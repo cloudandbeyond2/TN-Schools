@@ -112,18 +112,18 @@ export default function TeacherDashboard() {
       subtitle=""
     >
       {/* Top KPIs */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-6">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6 mb-6">
         {kpiData.map((kpi, i) => {
           const IconComponent = kpi.icon;
           return (
-            <div key={i} className={`theme-card border-t-4 ${kpi.borderColor} p-4 sm:p-5 lg:p-6 flex justify-between items-start relative overflow-hidden group shadow-sm hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300`}>
+            <div key={i} className={`theme-card border-t-4 ${kpi.borderColor} p-3 sm:p-5 lg:p-6 flex justify-between items-start relative overflow-hidden group shadow-sm hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300`}>
               <div className="min-w-0 text-left">
-                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 truncate">{kpi.title}</p>
-                <h3 className="text-xl sm:text-2xl font-black text-[var(--text-heading)] mb-2 truncate">{kpi.value}</h3>
-                <p className={`text-xs font-semibold ${kpi.subColor} truncate`}>{kpi.subtitle}</p>
+                <p className="text-[9px] sm:text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 truncate">{kpi.title}</p>
+                <h3 className="text-sm sm:text-xl lg:text-2xl font-black text-[var(--text-heading)] mb-2 truncate">{kpi.value}</h3>
+                <p className={`text-[9px] sm:text-xs font-semibold ${kpi.subColor} truncate`}>{kpi.subtitle}</p>
               </div>
-              <div className={`w-10 h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-xl flex items-center justify-center ${kpi.iconBg} ${kpi.iconColor} shrink-0 ml-2 group-hover:scale-110 transition-transform shadow-sm`}>
-                <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-xl flex items-center justify-center ${kpi.iconBg} ${kpi.iconColor} shrink-0 ml-2 group-hover:scale-110 transition-transform shadow-sm`}>
+                <IconComponent className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
               </div>
             </div>
           );

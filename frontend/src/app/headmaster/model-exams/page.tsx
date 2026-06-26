@@ -127,12 +127,12 @@ export default function ModelExamsPage() {
       </div>
 
       {/* Main KPI Stats Row */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Pass Percentage</span>
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-6">
+        <div className="glass p-3.5 sm:p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+          <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-wider">Pass Percentage</span>
           <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-black text-emerald-400">{activeStats.passPercentage}%</span>
-            <span className="text-[10px] text-emerald-500 font-bold">State target: 90%</span>
+            <span className="text-sm sm:text-2xl font-black text-emerald-400">{activeStats.passPercentage}%</span>
+            <span className="text-[9px] sm:text-[10px] text-emerald-500 font-bold">State target: 90%</span>
           </div>
           <div className="w-full bg-slate-850 h-1.5 rounded-full mt-3 overflow-hidden">
             <div
@@ -142,39 +142,39 @@ export default function ModelExamsPage() {
           </div>
         </div>
 
-        <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Total Enrolled</span>
+        <div className="glass p-3.5 sm:p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+          <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-wider">Total Enrolled</span>
           <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-black text-white">{activeStats.totalStudents}</span>
-            <span className="text-[10px] text-slate-400 font-bold">Candidates</span>
+            <span className="text-sm sm:text-2xl font-black text-white">{activeStats.totalStudents}</span>
+            <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold">Candidates</span>
           </div>
-          <div className="text-[11px] text-slate-500 mt-3 font-semibold">
+          <div className="text-[9px] sm:text-[11px] text-slate-500 mt-3 font-semibold">
             Passed: <span className="text-slate-350">{activeStats.passed}</span> · Failed: <span className="text-red-400">{activeStats.failed}</span>
           </div>
         </div>
 
-        <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Average Score</span>
+        <div className="glass p-3.5 sm:p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+          <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-wider">Average Score</span>
           <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-black text-blue-400">
+            <span className="text-sm sm:text-2xl font-black text-blue-400">
               {activeStats.averageScore}
-              <span className="text-xs font-semibold text-slate-400">/{activeTab === "Class 10" ? "500" : "600"}</span>
+              <span className="text-[10px] sm:text-xs font-semibold text-slate-400">/{activeTab === "Class 10" ? "500" : "600"}</span>
             </span>
           </div>
-          <div className="text-[11px] text-slate-500 mt-3 font-semibold">
+          <div className="text-[9px] sm:text-[11px] text-slate-500 mt-3 font-semibold">
             School Target: <span className="text-slate-350">{activeTab === "Class 10" ? "420" : "530"}</span>
           </div>
         </div>
 
-        <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Highest Score</span>
+        <div className="glass p-3.5 sm:p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
+          <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-wider">Highest Score</span>
           <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-black text-amber-400">
+            <span className="text-sm sm:text-2xl font-black text-amber-400">
               {activeStats.highestScore}
-              <span className="text-xs font-semibold text-slate-400">/{activeTab === "Class 10" ? "500" : "600"}</span>
+              <span className="text-[10px] sm:text-xs font-semibold text-slate-400">/{activeTab === "Class 10" ? "500" : "600"}</span>
             </span>
           </div>
-          <div className="text-[11px] text-slate-500 mt-3 font-semibold">
+          <div className="text-[9px] sm:text-[11px] text-slate-500 mt-3 font-semibold">
             Top District Rank Potential
           </div>
         </div>
