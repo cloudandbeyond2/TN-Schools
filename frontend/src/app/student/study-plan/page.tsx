@@ -116,7 +116,20 @@ export default function StudyPlanPage() {
     const fetchTeacherPlans = async () => {
       try {
         setLoadingTeacherPlans(true);
-        const res = await fetch(`${API_URL}/api/teacher/lessons`);
+        
+        const schoolId = (session?.user as any)?.schoolId;
+        const studentClass = (session?.user as any)?.class;
+        
+        const params = new URLSearchParams();
+        if (schoolId) params.append("schoolId", schoolId);
+        if (studentClass) {
+          const match = String(studentClass).match(/\d+/);
+          if (match) {
+            params.append("grade", `Grade ${match[0]}`);
+          }
+        }
+
+        const res = await fetch(`${API_URL}/api/teacher/lessons?${params.toString()}`);
         const json = await res.json();
         if (json.success && json.data) {
           setTeacherPlans(json.data);
@@ -127,8 +140,11 @@ export default function StudyPlanPage() {
         setLoadingTeacherPlans(false);
       }
     };
-    fetchTeacherPlans();
-  }, [API_URL]);
+    
+    if (session) {
+      fetchTeacherPlans();
+    }
+  }, [API_URL, session]);
 
   // Set chat messages welcome when a plan changes
   useEffect(() => {

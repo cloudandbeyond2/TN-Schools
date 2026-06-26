@@ -482,11 +482,12 @@ router.post('/leave', async (req: Request, res: Response) => {
 // GET /api/teacher/lessons
 router.get('/lessons', async (req: Request, res: Response) => {
   try {
-    const { schoolId, subject } = req.query;
+    const { schoolId, subject, grade } = req.query;
     const lessons = await prisma.lessonPlan.findMany({
       where: {
         ...(schoolId ? { schoolId: String(schoolId) } : {}),
         ...(subject ? { subject: { equals: String(subject), mode: 'insensitive' } } : {}),
+        ...(grade ? { grade: { equals: String(grade), mode: 'insensitive' } } : {}),
       },
       orderBy: { createdAt: 'desc' },
     });
