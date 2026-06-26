@@ -39,6 +39,7 @@ function getHex(accent: SlideVisualProps["accent"]) {
 // ─────────────────────────────────────────────────────────────────────────────
 function HeroCover({ accent, title, subtitle }: Pick<SlideVisualProps, "accent" | "title" | "subtitle">) {
   const { pri, sec, light } = getHex(accent);
+  const textFill = accent?.from?.includes("amber") ? "#1e293b" : "white";
   return (
     <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" className="w-full h-full rounded-2xl">
       <defs>
@@ -60,7 +61,7 @@ function HeroCover({ accent, title, subtitle }: Pick<SlideVisualProps, "accent" 
       <circle cx="80" cy="110" r="52" fill={pri} opacity="0.12" />
       <circle cx="80" cy="110" r="38" fill={pri} opacity="0.18" />
       <circle cx="80" cy="110" r="26" fill={pri} />
-      <text x="80" y="116" textAnchor="middle" fontSize="20" fill="white">🎓</text>
+      <text x="80" y="116" textAnchor="middle" fontSize="20" fill={textFill}>🎓</text>
       <rect x="148" y="78" width="4" height="64" rx="2" fill={pri} opacity="0.8" />
       <text x="162" y="100" fontSize="11" fontWeight="800" fill="#1e293b" fontFamily="sans-serif">
         {(title || "Lesson").substring(0, 24)}
@@ -83,6 +84,7 @@ function HeroCover({ accent, title, subtitle }: Pick<SlideVisualProps, "accent" 
 // ─────────────────────────────────────────────────────────────────────────────
 function ConceptMap({ graphicData, accent }: Pick<SlideVisualProps, "graphicData" | "accent">) {
   const { pri, sec, light } = getHex(accent);
+  const textFill = accent?.from?.includes("amber") ? "#1e293b" : "white";
   const values: string[] = graphicData?.values || ["Concept A", "Concept B", "Concept C", "Concept D"];
   const label: string = graphicData?.label || "Core Concept";
   const positions: [number, number][] = [[65, 65], [255, 65], [65, 160], [255, 160]];
@@ -91,10 +93,10 @@ function ConceptMap({ graphicData, accent }: Pick<SlideVisualProps, "graphicData
       <rect width="320" height="220" rx="14" fill={light} />
       <circle cx="160" cy="110" r="40" fill={pri} />
       <circle cx="160" cy="110" r="32" fill="white" fillOpacity="0.12" />
-      <text x="160" y="107" textAnchor="middle" fontSize="9" fontWeight="800" fill="white" fontFamily="sans-serif">
+      <text x="160" y="107" textAnchor="middle" fontSize="9" fontWeight="800" fill={textFill} fontFamily="sans-serif">
         {label.substring(0, 14)}
       </text>
-      <text x="160" y="119" textAnchor="middle" fontSize="8" fill="white" opacity="0.85" fontFamily="sans-serif">
+      <text x="160" y="119" textAnchor="middle" fontSize="8" fill={textFill} opacity="0.85" fontFamily="sans-serif">
         {label.substring(14, 26)}
       </text>
       {positions.slice(0, values.length).map(([cx, cy], i) => (
@@ -118,6 +120,7 @@ function ConceptMap({ graphicData, accent }: Pick<SlideVisualProps, "graphicData
 // ─────────────────────────────────────────────────────────────────────────────
 function FormulaVisual({ graphicData, accent }: Pick<SlideVisualProps, "graphicData" | "accent">) {
   const { pri, sec, light } = getHex(accent);
+  const textFill = accent?.from?.includes("amber") ? "#1e293b" : "white";
   const formula: string = graphicData?.formula || graphicData?.label || "F = ma";
   const vars: string[] = graphicData?.variables || graphicData?.values || [];
   return (
@@ -163,6 +166,7 @@ function FormulaVisual({ graphicData, accent }: Pick<SlideVisualProps, "graphicD
 // ─────────────────────────────────────────────────────────────────────────────
 function ComparisonVisual({ graphicData, accent }: Pick<SlideVisualProps, "graphicData" | "accent">) {
   const { pri, sec, light } = getHex(accent);
+  const textFill = accent?.from?.includes("amber") ? "#1e293b" : "white";
   const values: string[] = graphicData?.values || ["Type A", "Type B", "Feature 1", "Feature 2", "Feature 3", "Feature 4"];
   const label: string = graphicData?.label || "Comparison";
   const leftHead = values[0] || "Column A";
@@ -172,7 +176,7 @@ function ComparisonVisual({ graphicData, accent }: Pick<SlideVisualProps, "graph
     <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" className="w-full h-full rounded-2xl">
       <rect width="320" height="220" rx="14" fill={light} />
       <rect x="10" y="10" width="300" height="26" rx="8" fill={pri} />
-      <text x="160" y="27" textAnchor="middle" fontSize="10" fontWeight="800" fill="white" fontFamily="sans-serif">
+      <text x="160" y="27" textAnchor="middle" fontSize="10" fontWeight="800" fill={textFill} fontFamily="sans-serif">
         {label.toUpperCase().substring(0, 32)}
       </text>
       {/* Column headers */}
@@ -187,7 +191,7 @@ function ComparisonVisual({ graphicData, accent }: Pick<SlideVisualProps, "graph
       {/* VS divider */}
       <line x1="160" y1="42" x2="160" y2="210" stroke="#e2e8f0" strokeWidth="2" />
       <circle cx="160" cy="115" r="14" fill={pri} />
-      <text x="160" y="119" textAnchor="middle" fontSize="8" fontWeight="900" fill="white" fontFamily="sans-serif">VS</text>
+      <text x="160" y="119" textAnchor="middle" fontSize="8" fontWeight="900" fill={textFill} fontFamily="sans-serif">VS</text>
       {/* Rows */}
       {rows.slice(0, 4).map((item, i) => {
         const y = 70 + i * 32;
@@ -211,6 +215,7 @@ function ComparisonVisual({ graphicData, accent }: Pick<SlideVisualProps, "graph
 // ─────────────────────────────────────────────────────────────────────────────
 function ProcessFlow({ graphicData, accent }: Pick<SlideVisualProps, "graphicData" | "accent">) {
   const { pri, sec, light } = getHex(accent);
+  const textFill = accent?.from?.includes("amber") ? "#1e293b" : "white";
   const steps: string[] = graphicData?.values || ["Observe", "Hypothesize", "Experiment", "Conclude"];
   const label: string = graphicData?.label || "Process";
   return (
@@ -236,7 +241,7 @@ function ProcessFlow({ graphicData, accent }: Pick<SlideVisualProps, "graphicDat
             )}
             <rect x={x} y="66" width="58" height="86" rx="12" fill="white" stroke={color} strokeWidth="1.5" />
             <rect x={x} y="66" width="58" height="22" rx="8" fill={color} />
-            <text x={x + 29} y="81" textAnchor="middle" fontSize="11" fontWeight="900" fill="white" fontFamily="sans-serif">
+            <text x={x + 29} y="81" textAnchor="middle" fontSize="11" fontWeight="900" fill={textFill} fontFamily="sans-serif">
               0{i + 1}
             </text>
             <text x={x + 29} y="100" textAnchor="middle" fontSize="7.5" fontWeight="700" fill={color} fontFamily="sans-serif">
@@ -263,6 +268,7 @@ function ProcessFlow({ graphicData, accent }: Pick<SlideVisualProps, "graphicDat
 // ─────────────────────────────────────────────────────────────────────────────
 function LabDiagram({ graphicData, accent }: Pick<SlideVisualProps, "graphicData" | "accent">) {
   const { pri, sec, light } = getHex(accent);
+  const textFill = accent?.from?.includes("amber") ? "#1e293b" : "white";
   const apparatus: string[] = graphicData?.values || ["Beaker", "Thermometer", "Flask"];
   return (
     <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" className="w-full h-full rounded-2xl">
@@ -306,6 +312,7 @@ function LabDiagram({ graphicData, accent }: Pick<SlideVisualProps, "graphicData
 // ─────────────────────────────────────────────────────────────────────────────
 function ApplicationsGrid({ graphicData, accent }: Pick<SlideVisualProps, "graphicData" | "accent">) {
   const { pri, sec, light } = getHex(accent);
+  const textFill = accent?.from?.includes("amber") ? "#1e293b" : "white";
   const apps: string[] = graphicData?.values || ["Industrial Use", "Home Application", "Medical Field", "Transport"];
   const icons = ["🏭", "🏠", "🏥", "🚗", "🌾", "⚡"];
   return (
@@ -345,16 +352,17 @@ function ApplicationsGrid({ graphicData, accent }: Pick<SlideVisualProps, "graph
 // ─────────────────────────────────────────────────────────────────────────────
 function SummaryMap({ graphicData, accent, title }: Pick<SlideVisualProps, "graphicData" | "accent" | "title">) {
   const { pri, sec, light } = getHex(accent);
+  const textFill = accent?.from?.includes("amber") ? "#1e293b" : "white";
   const points: string[] = graphicData?.values || ["Key Point 1", "Key Point 2", "Key Point 3", "Key Point 4"];
   const angles = [-135, -45, 45, 135];
   return (
     <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" className="w-full h-full rounded-2xl">
       <rect width="320" height="220" rx="14" fill={light} />
       <ellipse cx="160" cy="110" rx="54" ry="34" fill={pri} />
-      <text x="160" y="107" textAnchor="middle" fontSize="9" fontWeight="800" fill="white" fontFamily="sans-serif">
+      <text x="160" y="107" textAnchor="middle" fontSize="9" fontWeight="800" fill={textFill} fontFamily="sans-serif">
         {(title || "Summary").substring(0, 14)}
       </text>
-      <text x="160" y="120" textAnchor="middle" fontSize="8" fill="white" opacity="0.8" fontFamily="sans-serif">சுருக்கம்</text>
+      <text x="160" y="120" textAnchor="middle" fontSize="8" fill={textFill} opacity="0.8" fontFamily="sans-serif">சுருக்கம்</text>
       {points.slice(0, 4).map((pt, i) => {
         const angle = (angles[i] * Math.PI) / 180;
         const ex = 160 + Math.cos(angle) * 108;
@@ -383,6 +391,7 @@ function SummaryMap({ graphicData, accent, title }: Pick<SlideVisualProps, "grap
 // ─────────────────────────────────────────────────────────────────────────────
 function QuizVisual({ accent }: Pick<SlideVisualProps, "accent">) {
   const { pri, sec, light } = getHex(accent);
+  const textFill = accent?.from?.includes("amber") ? "#1e293b" : "white";
   return (
     <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" className="w-full h-full rounded-2xl">
       <rect width="320" height="220" rx="14" fill={light} />
@@ -393,7 +402,7 @@ function QuizVisual({ accent }: Pick<SlideVisualProps, "accent">) {
           <rect x="20" y={48 + i * 54} width="280" height="46" rx="10" fill="white"
             stroke={i === 0 ? pri : sec} strokeWidth="1" strokeOpacity="0.4" />
           <circle cx="42" cy={71 + i * 54} r="15" fill={i === 0 ? pri : sec} opacity="0.85" />
-          <text x="42" y={75 + i * 54} textAnchor="middle" fontSize="10" fontWeight="900" fill="white" fontFamily="sans-serif">Q{i+1}</text>
+          <text x="42" y={75 + i * 54} textAnchor="middle" fontSize="10" fontWeight="900" fill={textFill} fontFamily="sans-serif">Q{i+1}</text>
           <rect x="68" y={56 + i * 54} width="220" height="9" rx="4" fill="#e2e8f0" />
           <rect x="68" y={70 + i * 54} width="160" height="7" rx="3" fill="#f1f5f9" />
           <rect x="68" y={82 + i * 54} width="120" height="7" rx="3" fill="#f1f5f9" />
