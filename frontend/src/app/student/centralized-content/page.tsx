@@ -558,7 +558,7 @@ export default function CentralizedContentPage() {
 
                             return mcqRecords.map((record) => {
                               const mcqList = record.mcqs || [];
-                              if (mcqList.length === 0) return <p className="text-xs text-slate-500">Empty quiz library.</p>;
+                              if (mcqList.length === 0) return <p key={record.id} className="text-xs text-slate-500">Empty quiz library.</p>;
 
                               return (
                                 <div key={record.id} className="space-y-6">
