@@ -33,23 +33,22 @@ try {
   console.error("❌ [Startup Image Sync] Failed to copy images:", e);
 }
 
-
 // Route imports
-import aiRoutes        from './routes/ai.routes';
+import aiRoutes from './routes/ai.routes';
 import portfolioRoutes from './routes/portfolio.routes';
 import sportsRoutes from './routes/sports.routes';
-import wellnessRoutes  from './routes/wellness.routes';
-import studentRoutes   from './routes/student.routes';
+import wellnessRoutes from './routes/wellness.routes';
+import studentRoutes from './routes/student.routes';
 import activitiesRoutes from './routes/activities.routes';
 import attendanceRoutes from './routes/attendance.routes';
-import schoolRoutes    from './routes/school.routes';
+import schoolRoutes from './routes/school.routes';
 import headmasterRoutes from './routes/headmaster.routes';
-import pageRoutes       from './routes/page.routes';
-import userRoutes       from './routes/user.routes';
-import teacherRoutes    from './routes/teacher.routes';
+import pageRoutes from './routes/page.routes';
+import userRoutes from './routes/user.routes';
+import teacherRoutes from './routes/teacher.routes';
 import notificationRoutes from './routes/notification.routes';
-import classRoutes       from './routes/class.routes';
-import parentRoutes     from './routes/parent.routes';
+import classRoutes from './routes/class.routes';
+import parentRoutes from './routes/parent.routes';
 import centralContentRoutes from './routes/centralContent.routes';
 
 // Trigger nodemon restart after prisma client generation
@@ -58,20 +57,61 @@ dotenv.config();
 const app: Express = express();
 const port = process.env.PORT || 5000;
 
-// ─── Middleware ──────────────────────────────────────────────
-if (!process.env.VERCEL) {
-  app.use(cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      const isAllowed = origin === 'http://localhost:3000' ||
-                        origin === 'https://tn-schools.vercel.app' ||
-                        /^(https?:\/\/tn-schools(-[a-z0-9-]+)?\.vercel\.app)$/.test(origin) ||
-                        (process.env.NEXTAUTH_URL && origin === process.env.NEXTAUTH_URL);
-      callback(null, isAllowed ? true : false);
-    },
-    credentials: true
-  }));
-}
+// ─── CORS Configuration ──────────────────────────────────────────────
+// Define allowed origins based on environment
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://tn-schools.vercel.app',
+  'https://tn-schools-backend.vercel.app',
+  // Add any other production domains here
+];
+
+// CORS options
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // Check if the origin is allowed
+    const isAllowed = allowedOrigins.includes(origin) ||
+      // Allow any vercel.app subdomain for preview deployments
+      /^(https?:\/\/tn-schools(-[a-z0-9-]+)?\.vercel\.app)$/.test(origin) ||
+      /^(https?:\/\/tn-schools-backend(-[a-z0-9-]+)?\.vercel\.app)$/.test(origin) ||
+      // Allow NEXTAUTH_URL if set
+      (process.env.NEXTAUTH_URL && origin === process.env.NEXTAUTH_URL);
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked request from origin: ${origin}`);
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Access-Control-Request-Method',
+    'Access-Control-Request-Headers'
+  ],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
+
+// ─── Other Middleware ──────────────────────────────────────────────
 app.use(express.json({ limit: '150mb' }));
 app.use(express.urlencoded({ limit: '150mb', extended: true }));
 
@@ -96,27 +136,30 @@ app.get('/', async (req: Request, res: Response) => {
       mongodb: 'connected',
       postgresql: pgStatus,
     },
+    cors: {
+      allowedOrigins: allowedOrigins,
+      environment: process.env.NODE_ENV || 'development'
+    }
   });
 });
 
 // ─── API Routes ──────────────────────────────────────────────
-app.use('/api/ai',         aiRoutes);
-app.use('/api/portfolio',  portfolioRoutes);
-app.use('/api/sports',     sportsRoutes);
-app.use('/api/wellness',   wellnessRoutes);
-app.use('/api/students',   studentRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/sports', sportsRoutes);
+app.use('/api/wellness', wellnessRoutes);
+app.use('/api/students', studentRoutes);
 app.use('/api/activities', activitiesRoutes);
 app.use('/api/attendance', attendanceRoutes);
-app.use('/api/schools',    schoolRoutes);
+app.use('/api/schools', schoolRoutes);
 app.use('/api/headmaster', headmasterRoutes);
-app.use('/api/pages',      pageRoutes);
-app.use('/api/users',      userRoutes);
-app.use('/api/teacher',    teacherRoutes);
-app.use('/api/parent',     parentRoutes);
+app.use('/api/pages', pageRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/teacher', teacherRoutes);
+app.use('/api/parent', parentRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/classes',    classRoutes);
+app.use('/api/classes', classRoutes);
 app.use('/api/centralized-content', centralContentRoutes);
-
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
@@ -136,7 +179,8 @@ if (!process.env.VERCEL) {
     console.log(`\n🚀  TN Schools API → http://localhost:${port}`);
     console.log(`📦  MongoDB   : Atlas Cluster`);
     console.log(`🐘  PostgreSQL: Google Cloud SQL`);
-    console.log(`🌍  Env       : ${process.env.NODE_ENV || 'development'}\n`);
+    console.log(`🌍  Env       : ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔒  CORS      : ${allowedOrigins.join(', ')}\n`);
   });
 
   // ─── Auto-recover from port conflict ─────────────────────────────
@@ -164,5 +208,3 @@ if (!process.env.VERCEL) {
 }
 
 export default app;
-
-
