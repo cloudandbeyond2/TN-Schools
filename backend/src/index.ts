@@ -60,56 +60,33 @@ const port = process.env.PORT || 5000;
 // ─── CORS Configuration ──────────────────────────────────────────────
 // Define allowed origins based on environment
 const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'https://tn-schools.vercel.app',
-  'https://tn-schools-backend.vercel.app',
-  // Add any other production domains here
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "https://tn-schools.vercel.app",
 ];
 
-// CORS options
-const corsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) {
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+
+    if (
+      allowedOrigins.includes(origin) ||
+      /^https:\/\/tn-schools(-[a-z0-9-]+)?\.vercel\.app$/.test(origin)
+    ) {
       return callback(null, true);
     }
 
-    // Check if the origin is allowed
-    const isAllowed = allowedOrigins.includes(origin) ||
-      // Allow any vercel.app subdomain for preview deployments
-      /^(https?:\/\/tn-schools(-[a-z0-9-]+)?\.vercel\.app)$/.test(origin) ||
-      /^(https?:\/\/tn-schools-backend(-[a-z0-9-]+)?\.vercel\.app)$/.test(origin) ||
-      // Allow NEXTAUTH_URL if set
-      (process.env.NEXTAUTH_URL && origin === process.env.NEXTAUTH_URL);
-
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.warn(`CORS blocked request from origin: ${origin}`);
-      callback(new Error(`Origin ${origin} not allowed by CORS`));
-    }
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'X-Requested-With',
-    'Accept',
-    'Origin',
-    'Access-Control-Request-Method',
-    'Access-Control-Request-Headers'
-  ],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
-};
+    "Content-Type",
+    "Authorization"
+  ]
+}));
 
-// Apply CORS middleware
-app.use(cors(corsOptions));
-
-// Handle preflight requests explicitly
-app.options('*', cors(corsOptions));
+app.options("*", cors());
 
 // ─── Other Middleware ──────────────────────────────────────────────
 app.use(express.json({ limit: '150mb' }));

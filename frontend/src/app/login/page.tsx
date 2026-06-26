@@ -6,29 +6,29 @@ import Link from "next/link";
 
 // Role → portal path
 const roleToPath: Record<string, string> = {
-  TEACHER:      "/teacher",
-  PARENT:       "/parent",
-  HEADMASTER:   "/headmaster",
-  BEO:          "/block-education-officer",
-  DEO:          "/district-education-officer",
+  TEACHER: "/teacher",
+  PARENT: "/parent",
+  HEADMASTER: "/headmaster",
+  BEO: "/block-education-officer",
+  DEO: "/district-education-officer",
   COMMISSIONER: "/commissioner",
-  MINISTER:     "/minister",
-  SUPERADMIN:   "/super-admin",
-  STUDENT:      "/student",
+  MINISTER: "/minister",
+  SUPERADMIN: "/super-admin",
+  STUDENT: "/student",
 };
 
 export default function LoginPage() {
-  const [loginType, setLoginType] = useState<"staff" | "student">("staff");
+  const [loginType, setLoginType] = useState<"staff" | "student">("student");
 
   // Staff
-  const [email, setEmail]       = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   // Student
   const [rollNumber, setRollNumber] = useState("");
-  const [phone, setPhone]           = useState("");
+  const [phone, setPhone] = useState("");
 
-  const [error, setError]     = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
@@ -125,25 +125,23 @@ export default function LoginPage() {
         <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200/50 dark:border-slate-800">
           <button
             type="button"
-            onClick={() => { setLoginType("staff"); setError(null); }}
-            className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all ${
-              loginType === "staff"
-                ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm"
-                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-            }`}
+            onClick={() => { setLoginType("student"); setError(null); }}
+            className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all ${loginType === "student"
+              ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm"
+              : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              }`}
           >
-            💼 Staff &amp; Parents
+            🎓 Student Login
           </button>
           <button
             type="button"
-            onClick={() => { setLoginType("student"); setError(null); }}
-            className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all ${
-              loginType === "student"
-                ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm"
-                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-            }`}
+            onClick={() => { setLoginType("staff"); setError(null); }}
+            className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all ${loginType === "staff"
+              ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm"
+              : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              }`}
           >
-            🎓 Student Login
+            💼 Parents &amp; Staffs
           </button>
         </div>
 
