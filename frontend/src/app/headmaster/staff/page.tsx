@@ -365,7 +365,7 @@ export default function StaffManagementPage() {
       </div>
 
       {/* Staff Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6 fade-in">
         {[
           { label: "Total Teaching Staff", value: staff.length, icon: "👩‍🏫", color: "text-blue-400", bg: "bg-blue-500/10", sub: "Permanent" },
           { label: "Staff Present Today", value: staff.filter((s) => s.attendance >= 90).length, icon: "🟢", color: "text-emerald-400", bg: "bg-emerald-500/10", sub: "Healthy attendance" },

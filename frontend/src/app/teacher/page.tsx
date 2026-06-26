@@ -14,7 +14,11 @@ import {
   Plus,
   ChevronDown,
   Filter,
-  User
+  User,
+  Users,
+  Briefcase,
+  Coins,
+  GraduationCap
 } from "lucide-react";
 
 interface Notice {
@@ -96,10 +100,10 @@ export default function TeacherDashboard() {
   const latePct = totalAttendance > 0 ? Math.round((attendance.late / totalAttendance) * 100) : 6;
 
   const kpiData = [
-    { title: "ACTIVE ALUMNI", value: alumniCount, subtitle: "↑ 14% this year", icon: "👥", color: "blue", subColor: "text-blue-500", iconBg: "bg-blue-100 dark:bg-blue-500/15", iconColor: "text-blue-600 dark:text-blue-400", borderColor: "border-t-blue-500" },
-    { title: "EMPLOYMENT RATE", value: "94.2%", subtitle: "Global top tier", icon: "💼", color: "green", subColor: "text-green-500", iconBg: "bg-green-100 dark:bg-green-500/15", iconColor: "text-green-600 dark:text-green-400", borderColor: "border-t-green-500" },
-    { title: "FUNDS DONATED", value: "₹3.42 Lakhs", subtitle: "For library upgrade", icon: "🪙", color: "orange", subColor: "text-orange-500", iconBg: "bg-orange-100 dark:bg-orange-500/15", iconColor: "text-orange-600 dark:text-orange-400", borderColor: "border-t-orange-500" },
-    { title: "ACTIVE MENTORS", value: mentorsCount, subtitle: "Providing career prep", icon: "🎓", color: "pink", subColor: "text-pink-500", iconBg: "bg-pink-100 dark:bg-pink-500/15", iconColor: "text-pink-600 dark:text-pink-400", borderColor: "border-t-pink-500" },
+    { title: "ACTIVE ALUMNI", value: alumniCount, subtitle: "↑ 14% this year", icon: Users, color: "blue", subColor: "text-blue-500", iconBg: "bg-blue-100 dark:bg-blue-500/15", iconColor: "text-blue-600 dark:text-blue-400", borderColor: "border-t-blue-500" },
+    { title: "EMPLOYMENT RATE", value: "94.2%", subtitle: "Global top tier", icon: Briefcase, color: "green", subColor: "text-green-500", iconBg: "bg-green-100 dark:bg-green-500/15", iconColor: "text-green-600 dark:text-green-400", borderColor: "border-t-green-500" },
+    { title: "FUNDS DONATED", value: "₹3.42 Lakhs", subtitle: "For library upgrade", icon: Coins, color: "orange", subColor: "text-orange-500", iconBg: "bg-orange-100 dark:bg-orange-500/15", iconColor: "text-orange-600 dark:text-orange-400", borderColor: "border-t-orange-500" },
+    { title: "ACTIVE MENTORS", value: mentorsCount, subtitle: "Providing career prep", icon: GraduationCap, color: "pink", subColor: "text-pink-500", iconBg: "bg-pink-100 dark:bg-pink-500/15", iconColor: "text-pink-600 dark:text-pink-400", borderColor: "border-t-pink-500" },
   ];
 
   return (
@@ -108,123 +112,141 @@ export default function TeacherDashboard() {
       subtitle=""
     >
       {/* Top KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        {kpiData.map((kpi, i) => (
-          <div key={i} className={`theme-card border-t-4 ${kpi.borderColor} p-6 flex justify-between items-start relative overflow-hidden group`}>
-            <div>
-              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">{kpi.title}</p>
-              <h3 className="text-2xl font-bold text-[var(--text-heading)] mb-2">{kpi.value}</h3>
-              <p className={`text-xs ${kpi.subColor}`}>{kpi.subtitle}</p>
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-6">
+        {kpiData.map((kpi, i) => {
+          const IconComponent = kpi.icon;
+          return (
+            <div key={i} className={`theme-card border-t-4 ${kpi.borderColor} p-4 sm:p-5 lg:p-6 flex justify-between items-start relative overflow-hidden group shadow-sm hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300`}>
+              <div className="min-w-0 text-left">
+                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 truncate">{kpi.title}</p>
+                <h3 className="text-xl sm:text-2xl font-black text-[var(--text-heading)] mb-2 truncate">{kpi.value}</h3>
+                <p className={`text-xs font-semibold ${kpi.subColor} truncate`}>{kpi.subtitle}</p>
+              </div>
+              <div className={`w-10 h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-xl flex items-center justify-center ${kpi.iconBg} ${kpi.iconColor} shrink-0 ml-2 group-hover:scale-110 transition-transform shadow-sm`}>
+                <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
             </div>
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${kpi.iconBg} ${kpi.iconColor} group-hover:scale-110 transition-transform`}>
-              {kpi.icon}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Student Attendance */}
-        <div className="lg:col-span-1 theme-card p-6 flex flex-col">
-          <div className="flex justify-between items-center gap-3 mb-6">
-            <h2 className="text-base font-bold text-[var(--text-heading)] flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
-                <BarChart2 className="w-4.5 h-4.5" />
-              </div>
-              <span>Student Attendance</span>
-            </h2>
-            <button className="text-xs bg-[var(--input-bg)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] px-3 py-1.5 rounded-xl font-bold border border-[var(--input-border)] flex items-center gap-1.5 transition-all shadow-sm active:scale-95">
-              <span>All Classes</span>
-              <ChevronDown className="w-3.5 h-3.5 opacity-60" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2.5 mb-8">
-            <div className="bg-emerald-500/5 rounded-xl p-3 text-center border-l-4 border-l-emerald-500 border border-emerald-500/10 shadow-sm relative overflow-hidden group">
-              <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">Present</p>
-              <h3 className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400 mb-0.5 flex items-center justify-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                <span>{attendance.present}</span>
-              </h3>
-              <p className="text-[10px] text-emerald-500/80 font-bold">{presentPct}%</p>
-
+        <div className="lg:col-span-1 theme-card p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-center gap-3 mb-6">
+              <h2 className="text-base font-bold text-[var(--text-heading)] flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+                  <BarChart2 className="w-4.5 h-4.5" />
+                </div>
+                <span>Student Attendance</span>
+              </h2>
+              <button className="text-xs bg-[var(--input-bg)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] px-3 py-1.5 rounded-xl font-bold border border-[var(--input-border)] flex items-center gap-1.5 transition-all shadow-sm active:scale-95">
+                <span>All Classes</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+              </button>
             </div>
-            <div className="bg-rose-500/5 rounded-xl p-3 text-center border-l-4 border-l-rose-500 border border-rose-500/10 shadow-sm relative overflow-hidden group">
-              <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider mb-1">Absent</p>
-              <h3 className="text-base sm:text-lg font-black text-rose-600 dark:text-rose-400 mb-0.5 flex items-center justify-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                <span>{attendance.absent}</span>
-              </h3>
-              <p className="text-[10px] text-rose-500/80 font-bold">{absentPct}%</p>
+
+            {/* Segmented Progress Bar */}
+            <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full flex overflow-hidden mb-6 shadow-inner">
+              <div style={{ width: `${presentPct}%` }} className="bg-emerald-500 h-full transition-all duration-500" title={`Present: ${presentPct}%`} />
+              <div style={{ width: `${absentPct}%` }} className="bg-rose-500 h-full transition-all duration-500" title={`Absent: ${absentPct}%`} />
+              <div style={{ width: `${latePct}%` }} className="bg-amber-500 h-full transition-all duration-500" title={`Late: ${latePct}%`} />
             </div>
-            <div className="bg-amber-500/5 rounded-xl p-3 text-center border-l-4 border-l-amber-500 border border-amber-500/10 shadow-sm relative overflow-hidden group">
-              <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1">Late</p>
-              <h3 className="text-base sm:text-lg font-black text-amber-600 dark:text-amber-400 mb-0.5 flex items-center justify-center gap-1">
-                <Clock className="w-3.5 h-3.5 shrink-0" />
-                <span>{attendance.late}</span>
-              </h3>
-              <p className="text-[10px] text-amber-500/80 font-bold">{latePct}%</p>
+
+            {/* Stats list */}
+            <div className="space-y-2.5 mb-6">
+               <div className="flex items-center justify-between text-xs border-b border-[var(--border)] pb-2">
+                  <div className="flex items-center gap-2">
+                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+                     <span className="text-[var(--text-main)] font-semibold">Present</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                     <span className="text-[var(--text-heading)] font-extrabold">{attendance.present}</span>
+                     <span className="text-[var(--text-muted)] font-bold text-[10px]">({presentPct}%)</span>
+                  </div>
+               </div>
+               <div className="flex items-center justify-between text-xs border-b border-[var(--border)] pb-2">
+                  <div className="flex items-center gap-2">
+                     <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0" />
+                     <span className="text-[var(--text-main)] font-semibold">Absent</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                     <span className="text-[var(--text-heading)] font-extrabold">{attendance.absent}</span>
+                     <span className="text-[var(--text-muted)] font-bold text-[10px]">({absentPct}%)</span>
+                  </div>
+               </div>
+               <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                     <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
+                     <span className="text-[var(--text-main)] font-semibold">Late</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                     <span className="text-[var(--text-heading)] font-extrabold">{attendance.late}</span>
+                     <span className="text-[var(--text-muted)] font-bold text-[10px]">({latePct}%)</span>
+                  </div>
+               </div>
             </div>
           </div>
 
           {/* Chart Wrapper with Y-axis column on the left */}
-          <div className="flex gap-4 items-stretch h-[220px] mt-auto">
-            {/* Y-Axis Label and Numbers */}
-            <div className="flex items-center gap-2.5 text-[var(--text-muted)] text-[10px] select-none">
-              <div className="whitespace-nowrap uppercase tracking-wider font-semibold [writing-mode:vertical-lr] rotate-180 pl-1 text-[9px]">
-                Number of Students
-              </div>
-              <div className="flex flex-col justify-between h-full py-1.5 pr-0.5 font-mono text-[9px] text-right w-6">
-                <span>400</span>
-                <span>300</span>
-                <span>200</span>
-              </div>
-            </div>
+          <div className="flex gap-4 items-stretch h-[160px] mt-2">
+             {/* Y-Axis Label and Numbers */}
+             <div className="flex items-center gap-2 text-[var(--text-muted)] text-[9px] select-none">
+                <div className="whitespace-nowrap uppercase tracking-wider font-semibold [writing-mode:vertical-lr] rotate-180 text-[8px] opacity-70">
+                   Students
+                </div>
+                <div className="flex flex-col justify-between h-full py-1 pr-0.5 font-mono text-[8px] text-right w-5 opacity-80">
+                   <span>400</span>
+                   <span>300</span>
+                   <span>200</span>
+                </div>
+             </div>
 
-            {/* Chart Area */}
-            <div className="flex-1 relative border-b border-l border-[var(--border-light)]">
-              {/* Mock Chart Lines */}
-              <div className="absolute left-0 bottom-[20%] w-full border-t border-[var(--border)] opacity-30"></div>
-              <div className="absolute left-0 bottom-[50%] w-full border-t border-[var(--border)] opacity-30"></div>
-              <div className="absolute left-0 bottom-[80%] w-full border-t border-[var(--border)] opacity-30"></div>
-
-              {/* SVG Mock Line */}
-              <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-                <defs>
-                  <linearGradient id="attendance-area-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                {/* Gradient Area Fill */}
-                <path
-                  d="M0,70 Q10,65 20,68 T40,75 T60,65 T80,72 T100,60 L100,100 L0,100 Z"
-                  fill="url(#attendance-area-grad)"
-                />
-                {/* Thick Line Path */}
-                <path
-                  d="M0,70 Q10,65 20,68 T40,75 T60,65 T80,72 T100,60"
-                  fill="none"
-                  stroke="#10b981"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-                {/* Data dots with pulse rings */}
-                {[
-                  { cx: 0, cy: 70 },
-                  { cx: 20, cy: 68 },
-                  { cx: 40, cy: 75 },
-                  { cx: 60, cy: 65 },
-                  { cx: 80, cy: 72 },
-                  { cx: 100, cy: 60 }
-                ].map((pt, idx) => (
-                  <g key={idx}>
-                    <circle cx={pt.cx} cy={pt.cy} r="4" fill="rgba(16, 185, 129, 0.25)" className="animate-pulse" />
-                    <circle cx={pt.cx} cy={pt.cy} r="2" fill="#10b981" />
-                  </g>
-                ))}
-              </svg>
-            </div>
+             {/* Chart Area */}
+             <div className="flex-1 relative border-b border-l border-[var(--border-light)] bg-slate-50/30 dark:bg-slate-900/5 rounded-bl">
+                {/* Mock Chart Lines */}
+                <div className="absolute left-0 bottom-[20%] w-full border-t border-[var(--border)] opacity-20"></div>
+                <div className="absolute left-0 bottom-[50%] w-full border-t border-[var(--border)] opacity-20"></div>
+                <div className="absolute left-0 bottom-[80%] w-full border-t border-[var(--border)] opacity-20"></div>
+                
+                {/* SVG Mock Line */}
+                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+                   <defs>
+                      <linearGradient id="attendance-area-grad" x1="0" y1="0" x2="0" y2="1">
+                         <stop offset="0%" stopColor="#10b981" stopOpacity="0.2" />
+                         <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                      </linearGradient>
+                   </defs>
+                   {/* Gradient Area Fill */}
+                   <path 
+                      d="M0,70 Q10,65 20,68 T40,75 T60,65 T80,72 T100,60 L100,100 L0,100 Z" 
+                      fill="url(#attendance-area-grad)" 
+                   />
+                   {/* Thick Line Path */}
+                   <path 
+                      d="M0,70 Q10,65 20,68 T40,75 T60,65 T80,72 T100,60" 
+                      fill="none" 
+                      stroke="#10b981" 
+                      strokeWidth="2.5" 
+                      strokeLinecap="round" 
+                   />
+                   {/* Data dots with pulse rings */}
+                   {[
+                      { cx: 0, cy: 70 },
+                      { cx: 20, cy: 68 },
+                      { cx: 40, cy: 75 },
+                      { cx: 60, cy: 65 },
+                      { cx: 80, cy: 72 },
+                      { cx: 100, cy: 60 }
+                   ].map((pt, idx) => (
+                      <g key={idx}>
+                         <circle cx={pt.cx} cy={pt.cy} r="3.5" fill="rgba(16, 185, 129, 0.2)" className="animate-pulse" />
+                         <circle cx={pt.cx} cy={pt.cy} r="1.5" fill="#10b981" />
+                      </g>
+                   ))}
+                </svg>
+             </div>
           </div>
         </div>
 

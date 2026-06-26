@@ -105,7 +105,7 @@ export default function HeadmasterAttendancePage() {
       accentColor="#3b82f6"
     >
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6 fade-in">
         {[
           {
             label: "Total Students",
