@@ -29,13 +29,31 @@ async function main() {
   const existingStudentUser = await prisma.user.findUnique({ where: { email: studentEmail } });
   
   if (!existingStudentUser) {
+    // Find or create a default school first
+    let school = await prisma.school.findFirst();
+    if (!school) {
+      school = await prisma.school.create({
+        data: {
+          dise: "33020100101",
+          name: "Government Higher Secondary School, Coimbatore",
+          district: "Coimbatore",
+          block: "Coimbatore South",
+          schoolType: "Government",
+          classes: ["6","7","8","9","10","11","12"]
+        }
+      });
+      console.log(`Created default school ${school.name}`);
+    }
+
     const studentUser = await prisma.user.create({
       data: {
         name: "Student",
         email: studentEmail,
         role: Role.STUDENT,
         mobile: "9655258556",
-        passwordHash: "123456"
+        passwordHash: "123456",
+        schoolId: school.id,
+        emisId: "EMIS10103"
       }
     });
 
@@ -45,10 +63,12 @@ async function main() {
         rollNumber: "HM10103",
         dob: new Date("2010-01-01"),
         parentMobile: "9655258556",
-        emisId: "EMIS10103"
+        class: "10",
+        section: "A",
+        schoolId: school.id
       }
     });
-    console.log(`Created student HM10103`);
+    console.log(`Created student HM10103 in Class 10-A`);
   } else {
     console.log(`Student HM10103 already exists`);
   }
