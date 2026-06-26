@@ -70,6 +70,11 @@ export default function LessonPlannerPage() {
   const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
+  // UI State
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<"overview" | "chat" | "studio">("overview");
+  
   // Intelligence Studio Modals
   const [activeStudioTool, setActiveStudioTool] = useState<"slides" | "podcast" | "video" | "bilingual" | "assessment" | "visualExplain" | null>(null);
 
@@ -86,7 +91,7 @@ export default function LessonPlannerPage() {
   const [videoScene, setVideoScene] = useState(0);
   const videoIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // AI Chat Tutor state (Middle panel)
+  // AI Chat Tutor state
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
@@ -213,6 +218,8 @@ export default function LessonPlannerPage() {
     setActiveStudioTool(null);
     setChatMessages([]);
     setChatInput("");
+    setActiveTab("overview");
+    if (window.innerWidth < 768) setIsSidebarOpen(false);
 
     // Run step increments
     let stepInterval = setInterval(() => {
@@ -358,7 +365,6 @@ export default function LessonPlannerPage() {
     }
   };
 
-  // AI Chat Tutor in Middle Panel
   const handleSendChat = async () => {
     if (!chatInput.trim() || !currentPlan) return;
 
@@ -395,7 +401,6 @@ export default function LessonPlannerPage() {
     }
   };
 
-  // Intelligence Audio Podcast reader via browser SpeechSynthesis
   const speakPodcast = (script: any[]) => {
     if (isPlayingPodcast) {
       window.speechSynthesis.cancel();
@@ -449,7 +454,6 @@ export default function LessonPlannerPage() {
     speakNext();
   };
 
-  // Video Storyboard Playback Simulation
   const toggleVideoPlayback = (storyboard: any[]) => {
     if (isVideoPlaying) {
       if (videoIntervalRef.current) clearInterval(videoIntervalRef.current);
@@ -480,777 +484,438 @@ export default function LessonPlannerPage() {
     };
   }, []);
 
+  // Theme configuration
+  const theme = {
+    bg: isDarkMode ? "bg-slate-950" : "bg-slate-50",
+    bgCard: isDarkMode ? "bg-slate-900" : "bg-white",
+    bgCardSoft: isDarkMode ? "bg-slate-900/50" : "bg-white/70",
+    text: isDarkMode ? "text-white" : "text-slate-900",
+    textMuted: isDarkMode ? "text-slate-400" : "text-slate-500",
+    border: isDarkMode ? "border-slate-800" : "border-slate-200",
+    borderSoft: isDarkMode ? "border-slate-850" : "border-slate-100",
+    inputBg: isDarkMode ? "bg-slate-950" : "bg-slate-50",
+    sidebarOverlay: isDarkMode ? "bg-slate-950/90" : "bg-white/90",
+  };
+
   return (
     <PortalLayout
-      title="AI Lesson Studio (Intelligence Style)"
+      title="AI Lesson Studio"
       subtitle="Bilingual AI chapter sources, real-time doc chatting, and visual studio output synthesis"
     >
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 h-[calc(100vh-160px)] overflow-hidden">
+      <div className={`flex flex-col md:flex-row h-[calc(100vh-160px)] overflow-hidden rounded-2xl border ${theme.border} ${theme.bg} shadow-2xl transition-colors duration-300 relative`}>
         
-        {/* Panel 1: Sources & Configuration (Left) */}
-        <div className="xl:col-span-1 border-r border-slate-800 pr-6 overflow-y-auto h-full space-y-6 scrollbar-thin">
-          <div className="theme-card p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-            <h2 className="text-white font-bold text-xs mb-3 flex items-center gap-2">
-              <span>📁</span> Document Sources
-            </h2>
+        {/* Mobile Sidebar Toggle Overlay */}
+        {isSidebarOpen && (
+          <div 
+            className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
+        {/* Sidebar (Left) */}
+        <div className={`
+          fixed md:relative z-50 h-full flex flex-col transition-all duration-300 ease-in-out shrink-0
+          ${isSidebarOpen ? 'w-80 translate-x-0' : 'w-80 -translate-x-full md:w-0 md:translate-x-0'}
+          ${theme.bgCard} border-r ${theme.border}
+        `}>
+          <div className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-thin">
             
-            <form onSubmit={handleGenerate} className="space-y-4">
-              <div>
-                <label className="text-[10px] font-semibold text-slate-400 block mb-1">Syllabus Standard</label>
-                <select
-                  value={syllabus}
-                  onChange={(e) => setSyllabus(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
-                >
-                  {syllabusOptions.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+            {/* Generate Form */}
+            <div className={`p-4 rounded-2xl border ${theme.border} ${theme.bgCardSoft} shadow-sm backdrop-blur-xl`}>
+              <h2 className={`${theme.text} font-bold text-xs mb-4 flex items-center gap-2`}>
+                <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500">📁</span> Document Sources
+              </h2>
+              
+              <form onSubmit={handleGenerate} className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Grade</label>
+                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>Syllabus Standard</label>
                   <select
-                    value={grade}
-                    onChange={(e) => setGrade(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                    value={syllabus}
+                    onChange={(e) => setSyllabus(e.target.value)}
+                    className={`w-full ${theme.inputBg} border ${theme.borderSoft} rounded-xl px-3 py-2.5 text-xs ${theme.text} focus:outline-none focus:border-amber-500 transition-colors`}
                   >
-                    {grades.map((g) => (
-                      <option key={g}>{g}</option>
-                    ))}
+                    {syllabusOptions.map((s) => <option key={s}>{s}</option>)}
                   </select>
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Subject</label>
-                  <select
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
-                  >
-                    {subjects.map((s) => (
-                      <option key={s}>{s}</option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>Grade</label>
+                    <select
+                      value={grade}
+                      onChange={(e) => setGrade(e.target.value)}
+                      className={`w-full ${theme.inputBg} border ${theme.borderSoft} rounded-xl px-3 py-2.5 text-xs ${theme.text} focus:outline-none focus:border-amber-500 transition-colors`}
+                    >
+                      {grades.map((g) => <option key={g}>{g}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>Subject</label>
+                    <select
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      className={`w-full ${theme.inputBg} border ${theme.borderSoft} rounded-xl px-3 py-2.5 text-xs ${theme.text} focus:outline-none focus:border-amber-500 transition-colors`}
+                    >
+                      {subjects.map((s) => <option key={s}>{s}</option>)}
+                    </select>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="text-[10px] font-semibold text-slate-400 block mb-1">Topic / Chapter</label>
-                <input
-                  type="text"
-                  required
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  placeholder="e.g. Newton's Laws"
-                  className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-semibold text-slate-400 block mb-1">Duration</label>
-                <select
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-850 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
-                >
-                  <option>30 Minutes</option>
-                  <option>45 Minutes</option>
-                  <option>60 Minutes</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-semibold text-slate-400 block mb-1">📖 Upload Chapter PDF</label>
-                <div className="flex gap-2">
+                <div>
+                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>Topic / Chapter</label>
                   <input
-                    type="file"
-                    accept=".pdf,.txt"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="pdf-upload"
+                    type="text"
+                    required
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    placeholder="e.g. Newton's Laws"
+                    className={`w-full ${theme.inputBg} border ${theme.borderSoft} rounded-xl px-3 py-2.5 text-xs ${theme.text} placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors`}
                   />
-                  <label
-                    htmlFor="pdf-upload"
-                    className="flex-1 bg-slate-950 border border-dashed border-slate-850 hover:border-amber-500 rounded-xl px-3 py-2 text-xs text-slate-400 cursor-pointer flex items-center justify-center gap-2 truncate"
-                  >
-                    {isReadingFile ? "⏳ Reading..." : fileName ? `📄 ${fileName.substring(0, 10)}...` : "📁 Choose PDF..."}
-                  </label>
                 </div>
-                {uploadedText && (
-                  <span className="text-[9px] text-emerald-400 block mt-1">✓ PDF context loaded into AI workspace.</span>
-                )}
-              </div>
 
-              <button
-                type="submit"
-                disabled={isGenerating}
-                className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:bg-amber-800 text-xs font-bold text-white transition-colors flex items-center justify-center gap-2"
+                <div>
+                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>Duration</label>
+                  <select
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    className={`w-full ${theme.inputBg} border ${theme.borderSoft} rounded-xl px-3 py-2.5 text-xs ${theme.text} focus:outline-none focus:border-amber-500 transition-colors`}
+                  >
+                    <option>30 Minutes</option>
+                    <option>45 Minutes</option>
+                    <option>60 Minutes</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>📖 Upload Chapter PDF</label>
+                  <div className="flex gap-2">
+                    <input type="file" accept=".pdf,.txt" onChange={handleFileUpload} className="hidden" id="pdf-upload" />
+                    <label
+                      htmlFor="pdf-upload"
+                      className={`flex-1 ${theme.inputBg} border border-dashed ${theme.border} hover:border-amber-500 rounded-xl px-3 py-2.5 text-xs ${theme.textMuted} cursor-pointer flex items-center justify-center gap-2 truncate transition-all`}
+                    >
+                      {isReadingFile ? "⏳ Reading..." : fileName ? `📄 ${fileName.substring(0, 15)}...` : "📁 Choose File..."}
+                    </label>
+                  </div>
+                  {uploadedText && <span className="text-[9px] text-emerald-500 font-bold block mt-1.5">✓ PDF context loaded into AI workspace.</span>}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isGenerating}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 disabled:opacity-50 text-slate-900 text-xs font-black uppercase tracking-wider transition-all transform hover:scale-[1.02] shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
+                >
+                  {isGenerating ? "Synthesizing..." : "⚡ Generate Lesson"}
+                </button>
+              </form>
+            </div>
+
+            {/* Saved Plans */}
+            <div>
+              <h3 className={`${theme.text} font-bold text-xs px-1 mb-3`}>Saved Chapters</h3>
+              {loading ? (
+                <div className={`text-[10px] ${theme.textMuted} px-1`}>Loading saved data...</div>
+              ) : savedPlans.length === 0 ? (
+                <div className={`text-[10px] ${theme.textMuted} px-1`}>No saved plans.</div>
+              ) : (
+                <div className="space-y-2">
+                  {savedPlans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      onClick={() => {
+                        setCurrentPlan(plan);
+                        setActiveSlide(0);
+                        setVideoScene(0);
+                        setIsVideoPlaying(false);
+                        if (videoIntervalRef.current) clearInterval(videoIntervalRef.current);
+                        window.speechSynthesis.cancel();
+                        setIsPlayingPodcast(false);
+                        setPodcastIndex(-1);
+                        setActiveStudioTool(null);
+                        setChatInput("");
+                        setSyllabus(plan.syllabus);
+                        setGrade(plan.grade);
+                        setSubject(plan.subject);
+                        setTopic(plan.topic);
+                        setDuration(plan.duration);
+                        if (window.innerWidth < 768) setIsSidebarOpen(false);
+                      }}
+                      className={`p-3 rounded-xl border text-[11px] cursor-pointer transition-all flex justify-between items-center group ${
+                        currentPlan?.id === plan.id
+                          ? "border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-sm"
+                          : `${theme.border} ${theme.bg} hover:border-amber-400 ${theme.textMuted}`
+                      }`}
+                    >
+                      <span className="truncate font-bold flex-1">{plan.topic}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(plan.id);
+                        }}
+                        className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity font-bold px-2 hover:scale-110"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+          
+          {/* Top Navbar */}
+          <div className={`h-16 border-b ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl flex items-center justify-between px-4 lg:px-6 shrink-0 z-10`}>
+            <div className="flex items-center gap-3 lg:gap-6">
+              <button 
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={`p-2 rounded-lg hover:${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'} ${theme.textMuted} transition-colors`}
               >
-                {isGenerating ? "Synthesizing..." : "⚡ Generate AI Lesson"}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
               </button>
-            </form>
+              
+              {currentPlan && !isGenerating && (
+                <div className="flex bg-slate-900/10 dark:bg-slate-900 rounded-xl p-1 shadow-inner border border-slate-200 dark:border-slate-800">
+                  {[
+                    { id: "overview", label: "Overview", icon: "📑" },
+                    { id: "chat", label: "AI Tutor", icon: "🤖" },
+                    { id: "studio", label: "Studio", icon: "✨" }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id as any)}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+                        activeTab === tab.id
+                          ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm"
+                          : `text-slate-500 hover:${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`
+                      }`}
+                    >
+                      <span className="text-sm">{tab.icon}</span> <span className="hidden sm:inline">{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              {currentPlan?.id === "temp-unsaved" && (
+                <button
+                  onClick={handleSave}
+                  className="px-4 py-1.5 bg-indigo-500 hover:bg-indigo-600 rounded-lg text-[10px] font-black text-white transition-transform hover:scale-105 shadow-md shadow-indigo-500/20"
+                >
+                  💾 SAVE PLAN
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Saved Plans Sidebar */}
-          <div className="space-y-2">
-            <h3 className="text-white font-bold text-xs px-1">Saved Chapters</h3>
-            {loading ? (
-              <div className="text-[10px] text-slate-500 px-1">Loading saved data...</div>
-            ) : savedPlans.length === 0 ? (
-              <div className="text-[10px] text-slate-500 px-1">No saved plans.</div>
-            ) : (
-              <div className="space-y-1.5 max-h-[200px] overflow-y-auto pr-1">
-                {savedPlans.map((plan) => (
-                  <div
-                    key={plan.id}
-                    onClick={() => {
-                      setCurrentPlan(plan);
-                      setActiveSlide(0);
-                      setVideoScene(0);
-                      setIsVideoPlaying(false);
-                      if (videoIntervalRef.current) clearInterval(videoIntervalRef.current);
-                      window.speechSynthesis.cancel();
-                      setIsPlayingPodcast(false);
-                      setPodcastIndex(-1);
-                      setActiveStudioTool(null);
-                      setChatInput("");
-
-                      // Sync search parameters in sidebar
-                      setSyllabus(plan.syllabus);
-                      setGrade(plan.grade);
-                      setSubject(plan.subject);
-                      setTopic(plan.topic);
-                      setDuration(plan.duration);
-                    }}
-                    className={`p-2.5 rounded-xl border text-[11px] cursor-pointer transition-all flex justify-between items-center ${
-                      currentPlan?.id === plan.id
-                        ? "border-amber-500 bg-amber-500/5 text-white"
-                        : "border-slate-850 bg-slate-950 hover:border-amber-500 text-slate-400"
-                    }`}
-                  >
-                    <span className="truncate font-semibold flex-1">{plan.topic}</span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(plan.id);
-                      }}
-                      className="text-red-500 hover:text-red-400 font-bold px-1"
-                    >
-                      ✕
-                    </button>
+          {/* Main Stage */}
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 scrollbar-thin relative">
+            {isGenerating ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className={`max-w-md w-full p-8 rounded-3xl border ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center text-center`}>
+                  <div className="relative mb-8">
+                    <div className="w-16 h-16 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin" />
+                    <div className="absolute inset-0 flex items-center justify-center text-amber-500 text-xl">✨</div>
                   </div>
-                ))}
+                  <h3 className={`${theme.text} font-bold text-lg mb-4`}>Synthesizing Knowledge...</h3>
+                  <div className="space-y-3 w-full">
+                    {steps.map((stepText, idx) => {
+                      let statusClass = theme.textMuted;
+                      let icon = "○";
+                      if (idx < currentStep) {
+                        statusClass = "text-emerald-500 font-bold";
+                        icon = "✅";
+                      } else if (idx === currentStep) {
+                        statusClass = "text-amber-500 font-bold animate-pulse";
+                        icon = "⏳";
+                      }
+                      return (
+                        <div key={idx} className={`text-xs text-left flex items-start gap-3 ${statusClass} transition-colors`}>
+                          <span className="shrink-0">{icon}</span>
+                          <span className="leading-tight">{stepText}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : !currentPlan ? (
+              <div className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto">
+                <div className="w-24 h-24 mb-6 rounded-3xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-5xl animate-bounce">
+                  📓
+                </div>
+                <h2 className={`${theme.text} font-black text-2xl mb-3`}>Intelligence Class Workspace</h2>
+                <p className={`text-sm ${theme.textMuted} leading-relaxed`}>
+                  Select a topic, upload your textbook chapter, and let our AI generate a comprehensive, bilingual lesson plan with interactive slides and podcasts.
+                </p>
+                <button 
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="mt-8 px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-transform md:hidden"
+                >
+                  Open Sidebar to Start
+                </button>
+              </div>
+            ) : (
+              <div className="max-w-5xl mx-auto h-full flex flex-col">
+                
+                {/* Header info */}
+                <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                  <div>
+                    <div className="flex gap-2 mb-2">
+                      <span className="px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase">{currentPlan.grade}</span>
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase">{currentPlan.subject}</span>
+                    </div>
+                    <h1 className={`${theme.text} font-black text-3xl md:text-4xl`}>{currentPlan.topic}</h1>
+                    <p className={`text-xs ${theme.textMuted} mt-2 font-medium`}>{currentPlan.syllabus} • {currentPlan.duration}</p>
+                  </div>
+                </div>
+
+                {/* Tab: Overview */}
+                {activeTab === "overview" && (
+                  <div className="flex-1 space-y-6">
+                    <div className={`p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm`}>
+                      <h3 className="text-sm font-bold text-indigo-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <span className="text-xl">🎯</span> Lesson Objectives
+                      </h3>
+                      <ul className="grid md:grid-cols-2 gap-4">
+                        {currentPlan.planData?.objectives?.map((obj, i) => (
+                          <li key={i} className={`p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/10 text-sm ${theme.text} flex gap-3`}>
+                            <span className="text-indigo-500 font-bold shrink-0">{i + 1}.</span> {obj}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className={`p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm`}>
+                      <h3 className="text-sm font-bold text-amber-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <span className="text-xl">⏱️</span> Pedagogical Timeline
+                      </h3>
+                      <div className="relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 dark:before:via-slate-700 before:to-transparent space-y-8">
+                        {currentPlan.planData?.timeline?.map((item, i) => (
+                          <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-slate-900 bg-amber-500 text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 text-xs font-bold">
+                              {i+1}
+                            </div>
+                            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 shadow-sm transition-transform hover:-translate-y-1">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-bold text-amber-600 dark:text-amber-400 text-sm">{item.activity}</span>
+                                <span className="text-[10px] font-black px-2 py-1 bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-md">{item.time}</span>
+                              </div>
+                              <p className={`text-xs ${theme.textMuted} leading-relaxed`}>{item.description}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab: Chat */}
+                {activeTab === "chat" && (
+                  <div className={`
+                    flex flex-col overflow-hidden 
+                    ${isDarkMode ? 'bg-[#0b141a]' : 'bg-[#efeae2]'}
+                    absolute inset-0 z-20 
+                    md:relative md:inset-auto md:flex-1 md:rounded-3xl md:border md:shadow-sm ${theme.border}
+                  `}>
+                    <div className={`p-3 md:p-4 border-b flex justify-between items-center shrink-0 ${isDarkMode ? 'bg-[#202c33] border-[#202c33]' : 'bg-[#f0f2f5] border-[#d1d7db]'}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xl shadow-sm">🤖</div>
+                        <div>
+                          <h3 className={`font-bold text-sm ${isDarkMode ? 'text-[#e9edef]' : 'text-[#111b21]'}`}>AI Co-Teacher</h3>
+                          <p className="text-[11px] text-[#00a884] font-medium">Online</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin">
+                      {chatMessages.map((msg, i) => (
+                        <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                          <div className={`max-w-[85%] md:max-w-[75%] px-4 py-2 text-[14px] leading-relaxed shadow-sm ${
+                            msg.role === "user"
+                              ? `${isDarkMode ? 'bg-[#005c4b] text-[#e9edef]' : 'bg-[#d9fdd3] text-[#111b21]'} rounded-2xl rounded-tr-sm`
+                              : `${isDarkMode ? 'bg-[#202c33] text-[#e9edef]' : 'bg-white text-[#111b21]'} rounded-2xl rounded-tl-sm`
+                          }`} style={{ whiteSpace: "pre-line" }}>
+                            {msg.content}
+                          </div>
+                        </div>
+                      ))}
+                      {chatLoading && (
+                        <div className="flex justify-start">
+                          <div className={`px-4 py-3 rounded-2xl rounded-tl-sm text-sm ${isDarkMode ? 'bg-[#202c33]' : 'bg-white'} shadow-sm flex gap-1.5 items-center`}>
+                            <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" />
+                            <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{animationDelay: "150ms"}} />
+                            <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{animationDelay: "300ms"}} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className={`p-2 flex gap-2 shrink-0 items-end ${isDarkMode ? 'bg-[#202c33]' : 'bg-[#f0f2f5]'}`}>
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
+                        placeholder="Type a message..."
+                        className={`flex-1 rounded-full px-5 py-3 text-[15px] focus:outline-none transition-shadow ${isDarkMode ? 'bg-[#2a3942] text-[#e9edef] placeholder-[#8696a0]' : 'bg-white text-[#111b21] placeholder-[#667781]'}`}
+                      />
+                      <button
+                        onClick={handleSendChat}
+                        className="w-12 h-12 rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white flex items-center justify-center shrink-0 transition-transform hover:scale-105 shadow-sm"
+                      >
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab: Studio */}
+                {activeTab === "studio" && (
+                  <div className="flex-1 grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 h-full content-start overflow-y-auto pb-8">
+                    {[
+                      { id: "slides", label: "Slide Deck", icon: "🖼️", desc: "Interactive concept slides", bg: "from-blue-500 to-indigo-600" },
+                      { id: "visualExplain", label: "Infographic", icon: "📊", desc: "Interactive visual mapping", bg: "from-emerald-400 to-teal-500" },
+                      { id: "podcast", label: "Audio Podcast", icon: "🎙️", desc: "AI generated host summary", bg: "from-amber-400 to-orange-500" },
+                      { id: "video", label: "Video Storyboard", icon: "🎥", desc: "Animated lecture simulation", bg: "from-rose-400 to-red-500" },
+                      { id: "bilingual", label: "Bilingual Glossary", icon: "🌐", desc: "Tamil translation matrix", bg: "from-violet-500 to-purple-600" },
+                      { id: "assessment", label: "Exit Tickets", icon: "✍️", desc: "Quick assessment MCQs", bg: "from-cyan-400 to-blue-500" }
+                    ].map((tool) => (
+                      <div
+                        key={tool.id}
+                        onClick={() => {
+                          if (currentPlan) {
+                            if (currentPlan.id === "temp-unsaved") {
+                              localStorage.setItem("tempStudioData", JSON.stringify(currentPlan));
+                            }
+                            window.open(`/teacher/studio-view?planId=${currentPlan.id}&tool=${tool.id}`, '_blank');
+                          }
+                        }}
+                        className={`group relative p-4 md:p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden text-left flex flex-col cursor-pointer`}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <div className={`absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br ${tool.bg} opacity-10 rounded-bl-full -mr-6 -mt-6 md:-mr-8 md:-mt-8 group-hover:scale-110 transition-transform duration-500`} />
+                        <div className="text-3xl md:text-4xl mb-3 md:mb-4 group-hover:scale-110 transition-transform origin-left">{tool.icon}</div>
+                        <h4 className={`text-sm md:text-lg font-black ${theme.text} mb-1 transition-colors group-hover:text-indigo-500`}>{tool.label}</h4>
+                        <p className={`text-[10px] md:text-xs ${theme.textMuted} font-medium leading-tight hidden sm:block`}>{tool.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* Panel 2 & 3: Middle Section (Document View & AI Chat) */}
-        <div className="xl:col-span-2 px-2 overflow-y-auto h-full flex flex-col justify-between space-y-4">
-          {isGenerating ? (
-            <div className="theme-card p-8 flex-1 flex flex-col items-center justify-center text-center bg-slate-900 border border-slate-800 rounded-3xl">
-              <div className="w-12 h-12 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin mb-6" />
-              <h3 className="text-white font-semibold text-sm mb-2">Intelligence Synthesis Active</h3>
-              <div className="space-y-2 w-full max-w-xs mt-3">
-                {steps.map((stepText, idx) => {
-                  let status = "text-slate-655";
-                  if (idx < currentStep) status = "text-emerald-450 font-medium";
-                  else if (idx === currentStep) status = "text-amber-550 font-semibold animate-pulse";
-                  return (
-                    <div key={idx} className={`text-xs text-left flex items-start gap-2 ${status}`}>
-                      <span>{idx < currentStep ? "✅" : idx === currentStep ? "⏳" : "○"}</span>
-                      <span>{stepText}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : !currentPlan ? (
-            <div className="theme-card p-12 flex-grow flex flex-col items-center justify-center text-center border border-dashed border-slate-800 bg-slate-900/10 rounded-3xl">
-              <span className="text-4xl mb-4">📓</span>
-              <h3 className="text-white font-bold text-sm">Intelligence Class Workspace</h3>
-              <p className="text-xs text-slate-400 max-w-sm mt-1.5 leading-relaxed">
-                Configure grade and syllabus parameters or upload a chapter PDF, then generate. Or select a saved chapter from the list.
-              </p>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col justify-between overflow-hidden gap-4">
-              {/* Document Paper Container */}
-              <div className="flex-1 rounded-2xl border border-slate-800 bg-slate-950 p-5 overflow-y-auto max-h-[60%] shadow-lg">
-                <div className="border-b border-slate-850 pb-3 mb-4 flex justify-between items-start">
-                  <div>
-                    <span className="badge badge-yellow mb-1.5">{currentPlan.grade} · {currentPlan.subject}</span>
-                    <h3 className="text-white font-black text-lg">{currentPlan.topic}</h3>
-                    <p className="text-[10px] text-slate-500">{currentPlan.syllabus} · {currentPlan.duration}</p>
-                  </div>
-                  {currentPlan.id === "temp-unsaved" && (
-                    <button
-                      onClick={handleSave}
-                      className="px-3 py-1 bg-amber-500 hover:bg-amber-600 rounded-lg text-[10px] font-black text-white transition-colors"
-                    >
-                      💾 Save to DB
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-4 text-xs text-slate-300">
-                  <div>
-                    <h4 className="text-white font-bold text-xs mb-1">🎯 Objectives</h4>
-                    <ul className="list-disc list-inside space-y-1 text-slate-400 font-sans">
-                      {currentPlan.planData?.objectives?.map((obj, i) => <li key={i}>{obj}</li>)}
-                    </ul>
-                  </div>
-
-                  <hr className="border-slate-850" />
-
-                  <div>
-                    <h4 className="text-white font-bold text-xs mb-2">⏰ Lesson Timeline</h4>
-                    <div className="space-y-2.5 font-sans">
-                      {currentPlan.planData?.timeline?.map((item, i) => (
-                        <div key={i} className="flex gap-3">
-                          <span className="font-mono text-amber-500 font-bold w-12 shrink-0">{item.time}</span>
-                          <div>
-                            <span className="text-white font-semibold block">{item.activity}</span>
-                            <span className="text-slate-450">{item.description}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Chat Workspace (Intelligence Style) */}
-              <div className="h-[38%] rounded-2xl border border-slate-800 bg-slate-900/50 p-4 flex flex-col justify-between overflow-hidden">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-850 pb-1.5 flex justify-between items-center">
-                  <span>🤖 Chat with Source Chapter</span>
-                  <span className="text-emerald-400 lowercase">connected to Gemini 2.5</span>
-                </div>
-
-                {/* Message Log */}
-                <div className="flex-1 overflow-y-auto my-2.5 space-y-2.5 pr-1 text-xs">
-                  {chatMessages.map((msg, i) => (
-                    <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[85%] rounded-xl px-3 py-2 leading-relaxed font-sans ${
-                        msg.role === "user"
-                          ? "bg-indigo-650 text-white rounded-tr-none"
-                          : "bg-slate-950 text-slate-200 border border-slate-850 rounded-tl-none"
-                      }`} style={{ whiteSpace: "pre-line" }}>
-                        {msg.content}
-                      </div>
-                    </div>
-                  ))}
-                  {chatLoading && (
-                    <div className="flex justify-start">
-                      <div className="bg-slate-950 border border-slate-850 rounded-xl rounded-tl-none px-3 py-2 text-slate-400 animate-pulse font-sans">
-                        AI Tutor thinking...
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Input box */}
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
-                    placeholder="Ask about this chapter (e.g. simplify explanation, generate homework)..."
-                    className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 placeholder-slate-600 font-sans"
-                  />
-                  <button
-                    onClick={handleSendChat}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition-colors"
-                  >
-                    Ask
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Panel 3: Intelligence Studio Tools (Right) */}
-        <div className="xl:col-span-1 border-l border-slate-800 pl-6 overflow-y-auto h-full space-y-4">
-          <h2 className="text-white font-bold text-xs flex items-center gap-2 mb-2 px-1">
-            <span>✨</span> Intelligence Studio
-          </h2>
-          
-          {!currentPlan ? (
-            <p className="text-[10px] text-slate-500 italic px-1">Please generate or select a plan to unlock Studio tools.</p>
-          ) : (
-            <div className="grid grid-cols-1 gap-3">
-              {[
-                { id: "visualExplain", label: "Visual Infographic", icon: "📊", desc: "Interactive explain view" },
-                { id: "podcast", label: "Audio Overview", icon: "🎙️", desc: "Host podcast summary" },
-                { id: "slides", label: "Slide Deck", icon: "🖼️", desc: "Interactive slides" },
-                { id: "video", label: "Video Overview", icon: "🎥", desc: "Animated storyboard" },
-                { id: "bilingual", label: "Bilingual Glossary", icon: "🌐", desc: "Tamil equivalents" },
-                { id: "assessment", label: "Exit tickets / Quiz", icon: "✍️", desc: "Assessment MCQs" }
-              ].map((tool) => (
-                <button
-                  type="button"
-                  key={tool.id}
-                  onClick={() => {
-                    setActiveStudioTool(tool.id as any);
-                    if (tool.id === "slides") setActiveSlide(0);
-                    if (tool.id === "video") setVideoScene(0);
-                  }}
-                  className="w-full text-left p-3.5 bg-slate-950 border border-slate-850 hover:border-amber-500 rounded-2xl transition-all group flex items-start gap-3.5"
-                >
-                  <span className="text-xl shrink-0 group-hover:scale-110 transition-transform">{tool.icon}</span>
-                  <div>
-                    <h4 className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors leading-none mb-1">{tool.label}</h4>
-                    <p className="text-[10px] text-slate-500 leading-none">{tool.desc}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
       </div>
 
-      {/* Intelligence Studio Overlay Modals */}
-      {activeStudioTool && currentPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-6xl rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-            
-            {/* Modal Header */}
-            <div className="p-5 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
-              <div>
-                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest block">Studio Tool Output</span>
-                <h3 className="text-white font-black text-sm">
-                  {activeStudioTool === "visualExplain" && "📊 Intelligence Visual Explain"}
-                  {activeStudioTool === "podcast" && "🎙️ Intelligence Audio Podcast"}
-                  {activeStudioTool === "slides" && "🖼️ Concept Infographic Slide Deck"}
-                  {activeStudioTool === "video" && "🎥 Video Storyboard Simulation"}
-                  {activeStudioTool === "bilingual" && "🌐 Bilingual glossary"}
-                  {activeStudioTool === "assessment" && "✍️ Exit Tickets Quiz"}
-                </h3>
-              </div>
-            <div className="flex items-center gap-3">
-              {activeStudioTool === "visualExplain" && (
-                <a
-                  href={`/infographic-view?planId=${currentPlan.id}&topic=${encodeURIComponent(currentPlan.topic)}&subject=${encodeURIComponent(currentPlan.subject)}&role=teacher`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => {
-                    if (currentPlan.id === "temp-unsaved") {
-                      localStorage.setItem("tempInfographicData", JSON.stringify(currentPlan.planData?.infographic || currentPlan.infographic));
-                    }
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10.5px] uppercase tracking-wider transition-colors flex items-center gap-1 shadow-md hover:scale-105"
-                >
-                  ↗️ Open Separate Page
-                </a>
-              )}
-              <button
-                onClick={() => {
-                  setActiveStudioTool(null);
-                  window.speechSynthesis.cancel();
-                  setIsPlayingPodcast(false);
-                  setPodcastIndex(-1);
-                  if (videoIntervalRef.current) clearInterval(videoIntervalRef.current);
-                  setIsVideoPlaying(false);
-                }}
-                className="w-8 h-8 rounded-full bg-slate-900 hover:bg-red-950/40 text-slate-400 hover:text-red-500 border border-slate-850 flex items-center justify-center font-bold text-sm transition-all"
-              >
-                ✕
-              </button>
-            </div>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto flex-1 max-h-[78vh] text-xs">
-              
-              {/* Visual Infographic Tool */}
-              {activeStudioTool === "visualExplain" && (
-                <InteractiveInfographic 
-                  key={currentPlan.topic}
-                  topic={currentPlan.topic} 
-                  subject={currentPlan.subject} 
-                  data={currentPlan.planData?.infographic || (currentPlan as any).infographic} 
-                />
-              )}
-              
-              {/* Slides Tool */}
-              {activeStudioTool === "slides" && (
-                <div className="space-y-4 flex flex-col justify-between h-full">
-                  {(() => {
-                    const slides = currentPlan.planData?.slides || ([
-                      {
-                        title: "Introduction",
-                        subtitle: "Concept Overview",
-                        bullets: ["Topic summary details"],
-                        graphicType: "concept",
-                        graphicData: { label: "Steps", values: ["Learn", "Practice"] }
-                      }
-                    ] as any[]);
-                    const slide = slides[activeSlide] || slides[0];
-                    const slideNum = activeSlide + 1;
-                    const totalSlides = slides.length;
-
-                    // Slide color accent based on slide index
-                    const accentPalette = [
-                      { from: "from-blue-600", to: "to-indigo-600", text: "text-blue-700", border: "border-blue-200", badge: "bg-blue-600" },
-                      { from: "from-emerald-600", to: "to-teal-600", text: "text-emerald-700", border: "border-emerald-200", badge: "bg-emerald-600" },
-                      { from: "from-violet-600", to: "to-purple-600", text: "text-violet-700", border: "border-violet-200", badge: "bg-violet-600" },
-                      { from: "from-rose-600", to: "to-pink-600", text: "text-rose-700", border: "border-rose-200", badge: "bg-rose-600" },
-                      { from: "from-amber-500", to: "to-orange-600", text: "text-amber-700", border: "border-amber-200", badge: "bg-amber-500" },
-                    ];
-                    const accent = accentPalette[activeSlide % accentPalette.length];
-
-                    const SlideCard = (
-                      <div className="flex flex-col gap-0 flex-grow">
-                        {/* Premium Slide Card */}
-                        <div className={`relative bg-white rounded-3xl shadow-[0_12px_50px_rgba(15,23,42,0.10)] border border-slate-100 overflow-hidden flex flex-col ${slideFullscreen ? "min-h-[calc(100vh-180px)]" : "min-h-[400px]"}`}>
-                          {/* Gradient accent top bar */}
-                          <div className={`h-1.5 w-full bg-gradient-to-r ${accent.from} ${accent.to}`} />
-
-                          {/* Slide top meta */}
-                          <div className="flex items-center justify-between px-6 pt-4 pb-2">
-                            <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white ${accent.badge}`}>
-                              Slide {slideNum} / {totalSlides}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{currentPlan.subject} · {currentPlan.grade}</span>
-                              <button
-                                type="button"
-                                title={slideFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-                                onClick={() => setSlideFullscreen(f => !f)}
-                                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm transition-all"
-                              >
-                                {slideFullscreen ? "⛶" : "⛶"}
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Divider */}
-                          <div className="h-px bg-gradient-to-r from-transparent via-slate-100 to-transparent mx-6" />
-
-                          {/* Slide main content */}
-                          <div className="flex flex-col md:flex-row gap-0 flex-1 overflow-hidden">
-                            {/* Left: Title + Bullets */}
-                            <div className="flex-1 p-6 md:p-8 flex flex-col justify-start gap-5">
-                              <div>
-                                <h4 className={`font-black text-xl md:text-2xl leading-snug font-tamil text-slate-900 mb-1`}>
-                                  {slide.title}
-                                </h4>
-                                <p className={`text-sm font-semibold ${accent.text} uppercase tracking-wider`}>
-                                  {slide.subtitle || "Concept Overview"}
-                                </p>
-                              </div>
-
-                              <ul className="space-y-2.5 font-sans">
-                                {slide.bullets?.map((bullet: string, idx: number) => (
-                                  <li key={idx} className="flex items-start gap-3 text-slate-700 text-sm">
-                                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-black shrink-0 mt-0.5 bg-gradient-to-br ${accent.from} ${accent.to}`}>{idx + 1}</span>
-                                    <span className="leading-relaxed">{bullet}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-
-                             {/* Right: Visual Infographic Panel */}
-                             <div className="w-full md:w-72 bg-gradient-to-br from-slate-50 to-blue-50/40 border-l border-slate-100 flex flex-col gap-2 p-4 shrink-0">
-                               <div className="flex items-center gap-2 mb-1">
-                                 <span className={`w-6 h-6 rounded-md flex items-center justify-center text-white text-xs bg-gradient-to-br ${accent.from} ${accent.to}`}>📊</span>
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Visual Infographic</span>
-                               </div>
-                               <div className="flex-1 min-h-[180px]">
-                                 <SlideVisual
-                                   graphicType={slide.graphicType}
-                                   graphicData={slide.graphicData}
-                                   illustrationPrompt={slide.illustrationPrompt}
-                                   animationSuggestion={slide.animationSuggestion}
-                                   title={slide.title}
-                                   subtitle={slide.subtitle}
-                                   accent={accent}
-                                 />
-                               </div>
-                             </div>
-                          </div>
-
-                          {/* Footer: Teacher Notes + Student Activity */}
-                          {(slide.teacherNotes || slide.studentActivity) && (
-                            <div className="border-t border-slate-100 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-100">
-                              {slide.teacherNotes && (
-                                <div className="flex-1 p-4 flex gap-3">
-                                  <div className="w-1 rounded-full bg-emerald-500 shrink-0" />
-                                  <div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 block mb-0.5">👨‍🏫 Teacher Notes</span>
-                                    <p className="text-xs text-slate-600 leading-relaxed">{slide.teacherNotes}</p>
-                                  </div>
-                                </div>
-                              )}
-                              {slide.studentActivity && (
-                                <div className="flex-1 p-4 flex gap-3">
-                                  <div className="w-1 rounded-full bg-indigo-500 shrink-0" />
-                                  <div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 block mb-0.5">✍️ Student Activity</span>
-                                    <p className="text-xs text-slate-600 leading-relaxed">{slide.studentActivity}</p>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Watermark */}
-                          <div className="absolute bottom-3 right-5 text-slate-200 font-black text-[10px] uppercase tracking-widest select-none pointer-events-none">
-                            Intelligence Studio
-                          </div>
-                        </div>
-
-                        {/* Navigation */}
-                        <div className="flex items-center justify-between gap-3 mt-4 px-1">
-                          <button
-                            type="button"
-                            disabled={activeSlide === 0}
-                            onClick={() => setActiveSlide((p) => p - 1)}
-                            className="px-4 py-2 rounded-xl font-bold text-xs bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 shadow-sm disabled:opacity-30 disabled:pointer-events-none transition-all flex items-center gap-1"
-                          >
-                            ← Previous
-                          </button>
-
-                          {/* Slide thumbnail pills */}
-                          <div className="flex items-center gap-1 flex-wrap justify-center flex-1">
-                            {slides.map((_: any, i: number) => (
-                              <button
-                                key={i}
-                                type="button"
-                                onClick={() => setActiveSlide(i)}
-                                className={`h-2 rounded-full transition-all duration-200 ${
-                                  i === activeSlide
-                                    ? `w-6 bg-gradient-to-r ${accent.from} ${accent.to}`
-                                    : "w-2 bg-slate-200 hover:bg-slate-300"
-                                }`}
-                                title={`Slide ${i + 1}`}
-                              />
-                            ))}
-                          </div>
-
-                          <button
-                            type="button"
-                            disabled={activeSlide === totalSlides - 1}
-                            onClick={() => setActiveSlide((p) => p + 1)}
-                            className="px-4 py-2 rounded-xl font-bold text-xs bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 shadow-sm disabled:opacity-30 disabled:pointer-events-none transition-all flex items-center gap-1"
-                          >
-                            Next →
-                          </button>
-                        </div>
-                      </div>
-                    );
-
-                    return slideFullscreen ? (
-                      <div className="fixed inset-0 z-[999] bg-gradient-to-br from-slate-100 via-white to-blue-50 flex flex-col p-6 overflow-y-auto">
-                        <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col">
-                          <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-slate-800 font-black text-sm uppercase tracking-widest">🖼️ Slide Deck · {currentPlan.topic}</h2>
-                            <button
-                              type="button"
-                              onClick={() => setSlideFullscreen(false)}
-                              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-700 transition-all"
-                            >✕ Exit Fullscreen</button>
-                          </div>
-                          {SlideCard}
-                        </div>
-                      </div>
-                    ) : SlideCard;
-                  })()}
-                </div>
-              )}
-
-              {/* Podcast Tool */}
-              {activeStudioTool === "podcast" && (
-                <div className="space-y-4">
-                  {(() => {
-                    const podcast = currentPlan.planData?.podcast || {
-                      hosts: ["Aravind", "Meera"],
-                      script: [{ speaker: "Aravind", text: "Ready?", lang: "en" }]
-                    };
-
-                    return (
-                      <div className="space-y-4">
-                        <div className="p-4 rounded-xl bg-slate-950 border border-slate-850 flex items-center justify-between">
-                          <div className="flex gap-3">
-                            <div className="flex -space-x-2 shrink-0">
-                              <div className="w-8 h-8 rounded-full bg-indigo-600 border border-slate-950 flex items-center justify-center text-xs">👨‍🏫</div>
-                              <div className="w-8 h-8 rounded-full bg-rose-600 border border-slate-950 flex items-center justify-center text-xs">👩‍🏫</div>
-                            </div>
-                            <div>
-                              <h4 className="text-white font-bold text-xs leading-tight">Intelligence AI Podcast Player</h4>
-                              <p className="text-[9px] text-slate-500">Hosts: {podcast.hosts?.join(" & ")}</p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            {isPlayingPodcast && (
-                              <div className="flex gap-0.5 items-end h-5 w-10 mr-1 shrink-0">
-                                <div className="bg-amber-500 w-0.5 rounded-sm animate-pulse h-2" style={{ animationDuration: "0.5s" }} />
-                                <div className="bg-amber-500 w-0.5 rounded-sm animate-pulse h-4" style={{ animationDuration: "0.7s" }} />
-                                <div className="bg-amber-500 w-0.5 rounded-sm animate-pulse h-1" style={{ animationDuration: "0.3s" }} />
-                                <div className="bg-amber-500 w-0.5 rounded-sm animate-pulse h-5" style={{ animationDuration: "0.8s" }} />
-                              </div>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => speakPodcast(podcast.script)}
-                              className={`px-3 py-1.5 rounded-xl font-bold text-[11px] text-white transition-all ${isPlayingPodcast ? "bg-red-650 hover:bg-red-705" : "bg-amber-500 hover:bg-amber-600"}`}
-                            >
-                              {isPlayingPodcast ? "⏹ Stop Podcast" : "🎙 Play AI Podcast"}
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2.5 max-h-[280px] overflow-y-auto bg-slate-950/40 p-4 rounded-xl border border-slate-850">
-                          {podcast.script?.map((line, idx) => (
-                            <div
-                              key={idx}
-                              className={`p-2.5 rounded-xl border transition-all ${
-                                podcastIndex === idx
-                                  ? "bg-amber-500/10 border-amber-500/40 text-white"
-                                  : "bg-slate-950 border-slate-850 text-slate-400"
-                              }`}
-                            >
-                              <div className="flex justify-between items-center mb-1 font-sans">
-                                <span className="font-bold text-[9px] text-amber-550 uppercase tracking-widest">{line.speaker}</span>
-                                <span className="text-[8px] text-slate-550 uppercase">{line.lang}</span>
-                              </div>
-                              <p className="text-xs leading-relaxed font-sans">{line.text}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-
-              {/* Video Tool */}
-              {activeStudioTool === "video" && (
-                <div className="space-y-4">
-                  {(() => {
-                    const storyboard = currentPlan.planData?.videoStoryboard || [
-                      { sceneNumber: 1, visualDescription: "Intro", narrationText: "Welcome", subtitles: "வணக்கம்" }
-                    ];
-                    const scene = storyboard[videoScene] || storyboard[0];
-
-                    return (
-                      <div className="space-y-4">
-                        <div className="relative aspect-video rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden flex flex-col justify-between p-5 shadow-lg">
-                          <div className="absolute top-4 left-4 px-2 py-0.5 bg-slate-900 border border-slate-800 rounded text-[9px] font-bold text-amber-400">
-                            SCENE {scene.sceneNumber} OF {storyboard.length}
-                          </div>
-
-                          <div className="flex-1 flex flex-col items-center justify-center text-center mt-5">
-                            <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-2xl animate-bounce mb-2">
-                              {scene.sceneNumber === 1 ? "🎬" : "🎓"}
-                            </div>
-                            <h5 className="text-white font-semibold text-xs max-w-sm mb-1">{scene.visualDescription}</h5>
-                            <p className="text-[8px] text-slate-500 uppercase tracking-wider font-semibold">Scene Visualization Layout</p>
-                          </div>
-
-                          <div className="bg-slate-900/90 border border-slate-850 rounded-xl p-3 text-center mx-auto max-w-md w-full">
-                            <p className="text-white text-xs font-semibold leading-relaxed font-sans">{scene.narrationText}</p>
-                            <p className="text-amber-400 text-[10px] font-tamil font-semibold mt-0.5 leading-relaxed">{scene.subtitles}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-between items-center p-2.5 rounded-xl border border-slate-800 bg-slate-950">
-                          <button
-                            type="button"
-                            onClick={() => toggleVideoPlayback(storyboard)}
-                            className="px-3 py-1 bg-slate-900 border border-slate-800 hover:border-amber-500 rounded text-xs font-bold text-white transition-colors"
-                          >
-                            {isVideoPlaying ? "⏸ Pause Video" : "▶ Play Lesson Video"}
-                          </button>
-
-                          <div className="flex gap-1.5">
-                            {storyboard.map((s, idx) => (
-                              <button
-                                type="button"
-                                key={idx}
-                                onClick={() => {
-                                  if (videoIntervalRef.current) clearInterval(videoIntervalRef.current);
-                                  setIsVideoPlaying(false);
-                                  setVideoScene(idx);
-                                }}
-                                className={`w-5 h-5 rounded text-[9px] font-bold border transition-colors ${
-                                  videoScene === idx
-                                    ? "bg-amber-500 border-amber-500 text-white"
-                                    : "bg-slate-900 border-slate-800 text-slate-400"
-                                }`}
-                              >
-                                {s.sceneNumber}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-
-              {/* Bilingual glossary */}
-              {activeStudioTool === "bilingual" && (
-                <div className="space-y-4">
-                  <div className="bg-amber-500/5 p-3 rounded-xl border border-amber-500/15">
-                    <p className="text-amber-400 font-medium leading-relaxed font-sans">
-                      📢 Use these Tamil equivalent terms in lecture transitions to assist students from regional media backgrounds.
-                    </p>
-                  </div>
-
-                  <table className="data-table font-sans">
-                    <thead>
-                      <tr>
-                        <th>English Term</th>
-                        <th>Tamil Equivalent</th>
-                        <th>Phonetic / Pronunciation</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentPlan.planData?.bilingual?.map((item, i) => (
-                        <tr key={i}>
-                          <td className="font-semibold text-white">{item.english}</td>
-                          <td className="text-amber-400 font-semibold font-tamil">{item.tamil}</td>
-                          <td>{item.pronunciation}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {/* Exit Tickets */}
-              {activeStudioTool === "assessment" && (
-                <div className="space-y-4 text-slate-350">
-                  <h4 className="text-white font-bold text-xs mb-2">🎯 Exit Ticket MCQs & Answers</h4>
-                  <div className="space-y-3 font-sans">
-                    {currentPlan.planData?.exitTickets?.map((ticket, i) => (
-                      <div key={i} className="p-3.5 bg-slate-950 hover:bg-slate-955 rounded-xl border border-slate-850">
-                        <div className="font-bold text-white mb-2 leading-relaxed">Question {i + 1}: {ticket.question}</div>
-                        <div className="grid grid-cols-2 gap-2 font-mono text-[10px] text-slate-500">
-                          {ticket.options?.map((opt, oIdx) => <div key={oIdx}>{opt}</div>)}
-                        </div>
-                        <div className="mt-2.5 text-emerald-400 font-bold text-[10px]">
-                          Correct Answer: {ticket.answer}. Explanation: {ticket.rationale}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            </div>
-          </div>
-        </div>
-      )}
-    </PortalLayout>
+      </PortalLayout>
   );
 }
