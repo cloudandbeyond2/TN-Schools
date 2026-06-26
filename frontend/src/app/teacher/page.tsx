@@ -4,21 +4,17 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import { 
-  BarChart2, 
-  CheckCircle2, 
-  AlertCircle, 
-  Clock, 
-  Calendar, 
-  Megaphone, 
-  Plus, 
-  ChevronDown, 
-  Filter, 
-  User,
-  Briefcase,
-  Coins,
-  GraduationCap,
-  Users
+import {
+  BarChart2,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Calendar,
+  Megaphone,
+  Plus,
+  ChevronDown,
+  Filter,
+  User
 } from "lucide-react";
 
 interface Notice {
@@ -90,6 +86,7 @@ export default function TeacherDashboard() {
       }
     };
 
+
     fetchDashboardData();
   }, [schoolId, API_URL]);
 
@@ -99,10 +96,10 @@ export default function TeacherDashboard() {
   const latePct = totalAttendance > 0 ? Math.round((attendance.late / totalAttendance) * 100) : 6;
 
   const kpiData = [
-    { title: "ACTIVE ALUMNI", value: alumniCount, subtitle: "↑ 14% this year", icon: Users, color: "blue", subColor: "text-blue-500", iconBg: "bg-blue-100 dark:bg-blue-500/15", iconColor: "text-blue-600 dark:text-blue-400", borderColor: "border-t-blue-500" },
-    { title: "EMPLOYMENT RATE", value: "94.2%", subtitle: "Global top tier", icon: Briefcase, color: "green", subColor: "text-green-500", iconBg: "bg-green-100 dark:bg-green-500/15", iconColor: "text-green-600 dark:text-green-400", borderColor: "border-t-green-500" },
-    { title: "FUNDS DONATED", value: "₹3.42 Lakhs", subtitle: "For library upgrade", icon: Coins, color: "orange", subColor: "text-orange-500", iconBg: "bg-orange-100 dark:bg-orange-500/15", iconColor: "text-orange-600 dark:text-orange-400", borderColor: "border-t-orange-500" },
-    { title: "ACTIVE MENTORS", value: mentorsCount, subtitle: "Providing career prep", icon: GraduationCap, color: "pink", subColor: "text-pink-500", iconBg: "bg-pink-100 dark:bg-pink-500/15", iconColor: "text-pink-600 dark:text-pink-400", borderColor: "border-t-pink-500" },
+    { title: "ACTIVE ALUMNI", value: alumniCount, subtitle: "↑ 14% this year", icon: "👥", color: "blue", subColor: "text-blue-500", iconBg: "bg-blue-100 dark:bg-blue-500/15", iconColor: "text-blue-600 dark:text-blue-400", borderColor: "border-t-blue-500" },
+    { title: "EMPLOYMENT RATE", value: "94.2%", subtitle: "Global top tier", icon: "💼", color: "green", subColor: "text-green-500", iconBg: "bg-green-100 dark:bg-green-500/15", iconColor: "text-green-600 dark:text-green-400", borderColor: "border-t-green-500" },
+    { title: "FUNDS DONATED", value: "₹3.42 Lakhs", subtitle: "For library upgrade", icon: "🪙", color: "orange", subColor: "text-orange-500", iconBg: "bg-orange-100 dark:bg-orange-500/15", iconColor: "text-orange-600 dark:text-orange-400", borderColor: "border-t-orange-500" },
+    { title: "ACTIVE MENTORS", value: mentorsCount, subtitle: "Providing career prep", icon: "🎓", color: "pink", subColor: "text-pink-500", iconBg: "bg-pink-100 dark:bg-pink-500/15", iconColor: "text-pink-600 dark:text-pink-400", borderColor: "border-t-pink-500" },
   ];
 
   return (
@@ -111,16 +108,16 @@ export default function TeacherDashboard() {
       subtitle=""
     >
       {/* Top KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         {kpiData.map((kpi, i) => (
-          <div key={i} className={`theme-card border-t-4 ${kpi.borderColor} p-4 sm:p-6 flex justify-between items-start relative overflow-hidden group shadow-sm hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300`}>
-            <div className="min-w-0 text-left">
-              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 truncate">{kpi.title}</p>
-              <h3 className="text-xl sm:text-2xl font-black text-[var(--text-heading)] mb-2 truncate">{kpi.value}</h3>
-              <p className={`text-xs font-semibold ${kpi.subColor} truncate`}>{kpi.subtitle}</p>
+          <div key={i} className={`theme-card border-t-4 ${kpi.borderColor} p-6 flex justify-between items-start relative overflow-hidden group`}>
+            <div>
+              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">{kpi.title}</p>
+              <h3 className="text-2xl font-bold text-[var(--text-heading)] mb-2">{kpi.value}</h3>
+              <p className={`text-xs ${kpi.subColor}`}>{kpi.subtitle}</p>
             </div>
-            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center ${kpi.iconBg} ${kpi.iconColor} shrink-0 ml-2 group-hover:scale-110 transition-transform shadow-sm`}>
-              <kpi.icon className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${kpi.iconBg} ${kpi.iconColor} group-hover:scale-110 transition-transform`}>
+              {kpi.icon}
             </div>
           </div>
         ))}
@@ -150,6 +147,7 @@ export default function TeacherDashboard() {
                 <span>{attendance.present}</span>
               </h3>
               <p className="text-[10px] text-emerald-500/80 font-bold">{presentPct}%</p>
+
             </div>
             <div className="bg-rose-500/5 rounded-xl p-3 text-center border-l-4 border-l-rose-500 border border-rose-500/10 shadow-sm relative overflow-hidden group">
               <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider mb-1">Absent</p>
@@ -171,62 +169,62 @@ export default function TeacherDashboard() {
 
           {/* Chart Wrapper with Y-axis column on the left */}
           <div className="flex gap-4 items-stretch h-[220px] mt-auto">
-             {/* Y-Axis Label and Numbers */}
-             <div className="flex items-center gap-2.5 text-[var(--text-muted)] text-[10px] select-none">
-                <div className="whitespace-nowrap uppercase tracking-wider font-semibold [writing-mode:vertical-lr] rotate-180 pl-1 text-[9px]">
-                   Number of Students
-                </div>
-                <div className="flex flex-col justify-between h-full py-1.5 pr-0.5 font-mono text-[9px] text-right w-6">
-                   <span>400</span>
-                   <span>300</span>
-                   <span>200</span>
-                </div>
-             </div>
+            {/* Y-Axis Label and Numbers */}
+            <div className="flex items-center gap-2.5 text-[var(--text-muted)] text-[10px] select-none">
+              <div className="whitespace-nowrap uppercase tracking-wider font-semibold [writing-mode:vertical-lr] rotate-180 pl-1 text-[9px]">
+                Number of Students
+              </div>
+              <div className="flex flex-col justify-between h-full py-1.5 pr-0.5 font-mono text-[9px] text-right w-6">
+                <span>400</span>
+                <span>300</span>
+                <span>200</span>
+              </div>
+            </div>
 
-             {/* Chart Area */}
-             <div className="flex-1 relative border-b border-l border-[var(--border-light)]">
-                {/* Mock Chart Lines */}
-                <div className="absolute left-0 bottom-[20%] w-full border-t border-[var(--border)] opacity-30"></div>
-                <div className="absolute left-0 bottom-[50%] w-full border-t border-[var(--border)] opacity-30"></div>
-                <div className="absolute left-0 bottom-[80%] w-full border-t border-[var(--border)] opacity-30"></div>
-                
-                {/* SVG Mock Line */}
-                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-                   <defs>
-                      <linearGradient id="attendance-area-grad" x1="0" y1="0" x2="0" y2="1">
-                         <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
-                         <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                      </linearGradient>
-                   </defs>
-                   {/* Gradient Area Fill */}
-                   <path 
-                      d="M0,70 Q10,65 20,68 T40,75 T60,65 T80,72 T100,60 L100,100 L0,100 Z" 
-                      fill="url(#attendance-area-grad)" 
-                   />
-                   {/* Thick Line Path */}
-                   <path 
-                      d="M0,70 Q10,65 20,68 T40,75 T60,65 T80,72 T100,60" 
-                      fill="none" 
-                      stroke="#10b981" 
-                      strokeWidth="2.5" 
-                      strokeLinecap="round" 
-                   />
-                   {/* Data dots with pulse rings */}
-                   {[
-                      { cx: 0, cy: 70 },
-                      { cx: 20, cy: 68 },
-                      { cx: 40, cy: 75 },
-                      { cx: 60, cy: 65 },
-                      { cx: 80, cy: 72 },
-                      { cx: 100, cy: 60 }
-                   ].map((pt, idx) => (
-                      <g key={idx}>
-                         <circle cx={pt.cx} cy={pt.cy} r="4" fill="rgba(16, 185, 129, 0.25)" className="animate-pulse" />
-                         <circle cx={pt.cx} cy={pt.cy} r="2" fill="#10b981" />
-                      </g>
-                   ))}
-                </svg>
-             </div>
+            {/* Chart Area */}
+            <div className="flex-1 relative border-b border-l border-[var(--border-light)]">
+              {/* Mock Chart Lines */}
+              <div className="absolute left-0 bottom-[20%] w-full border-t border-[var(--border)] opacity-30"></div>
+              <div className="absolute left-0 bottom-[50%] w-full border-t border-[var(--border)] opacity-30"></div>
+              <div className="absolute left-0 bottom-[80%] w-full border-t border-[var(--border)] opacity-30"></div>
+
+              {/* SVG Mock Line */}
+              <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+                <defs>
+                  <linearGradient id="attendance-area-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                {/* Gradient Area Fill */}
+                <path
+                  d="M0,70 Q10,65 20,68 T40,75 T60,65 T80,72 T100,60 L100,100 L0,100 Z"
+                  fill="url(#attendance-area-grad)"
+                />
+                {/* Thick Line Path */}
+                <path
+                  d="M0,70 Q10,65 20,68 T40,75 T60,65 T80,72 T100,60"
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                />
+                {/* Data dots with pulse rings */}
+                {[
+                  { cx: 0, cy: 70 },
+                  { cx: 20, cy: 68 },
+                  { cx: 40, cy: 75 },
+                  { cx: 60, cy: 65 },
+                  { cx: 80, cy: 72 },
+                  { cx: 100, cy: 60 }
+                ].map((pt, idx) => (
+                  <g key={idx}>
+                    <circle cx={pt.cx} cy={pt.cy} r="4" fill="rgba(16, 185, 129, 0.25)" className="animate-pulse" />
+                    <circle cx={pt.cx} cy={pt.cy} r="2" fill="#10b981" />
+                  </g>
+                ))}
+              </svg>
+            </div>
           </div>
         </div>
 
@@ -267,11 +265,10 @@ export default function TeacherDashboard() {
                   </div>
                   <div className="flex-1 space-y-2.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full border ${
-                        notice.pinned 
-                          ? "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400" 
-                          : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400"
-                      }`}>
+                      <span className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full border ${notice.pinned
+                        ? "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400"
+                        : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400"
+                        }`}>
                         {notice.pinned ? "PINNED" : "NOTICE"}
                       </span>
                       <span className="text-[9px] text-[var(--text-muted)] font-extrabold bg-[var(--bg-main)] border border-[var(--border)] px-2 py-0.5 rounded-md uppercase tracking-wider">{notice.target}</span>
@@ -296,8 +293,8 @@ export default function TeacherDashboard() {
             )}
           </div>
 
-          <Link 
-            href="/teacher/announcements" 
+          <Link
+            href="/teacher/announcements"
             className="absolute bottom-6 right-6 w-12 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-full shadow-lg hover:shadow-indigo-500/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group duration-300 z-10"
             title="Add Announcement"
           >
