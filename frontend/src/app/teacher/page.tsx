@@ -14,7 +14,11 @@ import {
   Plus, 
   ChevronDown, 
   Filter, 
-  User 
+  User,
+  Briefcase,
+  Coins,
+  GraduationCap,
+  Users
 } from "lucide-react";
 
 interface Notice {
@@ -95,10 +99,10 @@ export default function TeacherDashboard() {
   const latePct = totalAttendance > 0 ? Math.round((attendance.late / totalAttendance) * 100) : 6;
 
   const kpiData = [
-    { title: "ACTIVE ALUMNI", value: alumniCount, subtitle: "↑ 14% this year", icon: "👥", color: "blue", subColor: "text-blue-500", iconBg: "bg-blue-100 dark:bg-blue-500/15", iconColor: "text-blue-600 dark:text-blue-400", borderColor: "border-t-blue-500" },
-    { title: "EMPLOYMENT RATE", value: "94.2%", subtitle: "Global top tier", icon: "💼", color: "green", subColor: "text-green-500", iconBg: "bg-green-100 dark:bg-green-500/15", iconColor: "text-green-600 dark:text-green-400", borderColor: "border-t-green-500" },
-    { title: "FUNDS DONATED", value: "₹3.42 Lakhs", subtitle: "For library upgrade", icon: "🪙", color: "orange", subColor: "text-orange-500", iconBg: "bg-orange-100 dark:bg-orange-500/15", iconColor: "text-orange-600 dark:text-orange-400", borderColor: "border-t-orange-500" },
-    { title: "ACTIVE MENTORS", value: mentorsCount, subtitle: "Providing career prep", icon: "🎓", color: "pink", subColor: "text-pink-500", iconBg: "bg-pink-100 dark:bg-pink-500/15", iconColor: "text-pink-600 dark:text-pink-400", borderColor: "border-t-pink-500" },
+    { title: "ACTIVE ALUMNI", value: alumniCount, subtitle: "↑ 14% this year", icon: Users, color: "blue", subColor: "text-blue-500", iconBg: "bg-blue-100 dark:bg-blue-500/15", iconColor: "text-blue-600 dark:text-blue-400", borderColor: "border-t-blue-500" },
+    { title: "EMPLOYMENT RATE", value: "94.2%", subtitle: "Global top tier", icon: Briefcase, color: "green", subColor: "text-green-500", iconBg: "bg-green-100 dark:bg-green-500/15", iconColor: "text-green-600 dark:text-green-400", borderColor: "border-t-green-500" },
+    { title: "FUNDS DONATED", value: "₹3.42 Lakhs", subtitle: "For library upgrade", icon: Coins, color: "orange", subColor: "text-orange-500", iconBg: "bg-orange-100 dark:bg-orange-500/15", iconColor: "text-orange-600 dark:text-orange-400", borderColor: "border-t-orange-500" },
+    { title: "ACTIVE MENTORS", value: mentorsCount, subtitle: "Providing career prep", icon: GraduationCap, color: "pink", subColor: "text-pink-500", iconBg: "bg-pink-100 dark:bg-pink-500/15", iconColor: "text-pink-600 dark:text-pink-400", borderColor: "border-t-pink-500" },
   ];
 
   return (
@@ -107,16 +111,16 @@ export default function TeacherDashboard() {
       subtitle=""
     >
       {/* Top KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
         {kpiData.map((kpi, i) => (
-          <div key={i} className={`theme-card border-t-4 ${kpi.borderColor} p-6 flex justify-between items-start relative overflow-hidden group`}>
-            <div>
-              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">{kpi.title}</p>
-              <h3 className="text-2xl font-bold text-[var(--text-heading)] mb-2">{kpi.value}</h3>
-              <p className={`text-xs ${kpi.subColor}`}>{kpi.subtitle}</p>
+          <div key={i} className={`theme-card border-t-4 ${kpi.borderColor} p-4 sm:p-6 flex justify-between items-start relative overflow-hidden group shadow-sm hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300`}>
+            <div className="min-w-0 text-left">
+              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 truncate">{kpi.title}</p>
+              <h3 className="text-xl sm:text-2xl font-black text-[var(--text-heading)] mb-2 truncate">{kpi.value}</h3>
+              <p className={`text-xs font-semibold ${kpi.subColor} truncate`}>{kpi.subtitle}</p>
             </div>
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${kpi.iconBg} ${kpi.iconColor} group-hover:scale-110 transition-transform`}>
-              {kpi.icon}
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center ${kpi.iconBg} ${kpi.iconColor} shrink-0 ml-2 group-hover:scale-110 transition-transform shadow-sm`}>
+              <kpi.icon className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
           </div>
         ))}
