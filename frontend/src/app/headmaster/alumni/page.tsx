@@ -518,49 +518,51 @@ export default function AlumniPage() {
                 </div>
 
                 <div className="max-h-[300px] overflow-y-auto border border-slate-200 rounded-xl bg-slate-50/50">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-200 bg-slate-100 sticky top-0">
-                        <th className="p-3 text-slate-700 font-semibold">Alumni Name</th>
-                        <th className="p-3 text-slate-700 font-semibold">Batch</th>
-                        <th className="p-3 text-slate-700 font-semibold">Role</th>
-                        <th className="p-3 text-slate-700 font-semibold">Phone Number</th>
-                        <th className="p-3 text-slate-700 font-semibold">Email</th>
-                        <th className="p-3 text-slate-700 font-semibold">Location</th>
-                        <th className="p-3 text-slate-700 font-semibold">Contribution Value</th>
-                        <th className="p-3 text-slate-700 font-semibold">Details</th>
-                        <th className="p-3 text-slate-700 font-semibold text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {previewAlumni.map((s) => (
-                        <tr 
-                          key={s.id} 
-                          className={s.isValid ? "hover:bg-slate-100/80 text-slate-800" : "bg-red-50/70 hover:bg-red-100/70 text-slate-800"}
-                        >
-                          <td className="p-3 font-semibold text-slate-900">
-                            {s.name || <span className="text-red-500 italic">Name Missing</span>}
-                          </td>
-                          <td className="p-3 text-slate-700">{s.batch}</td>
-                          <td className="p-3 text-slate-800">{s.role}</td>
-                          <td className="p-3 text-slate-700">{s.phone}</td>
-                          <td className="p-3 text-slate-700">{s.email}</td>
-                          <td className="p-3 text-slate-700">{s.location}</td>
-                          <td className="p-3 text-slate-700">{s.value}</td>
-                          <td className="p-3 text-slate-600 truncate max-w-[120px]" title={s.contribution}>{s.contribution}</td>
-                          <td className="p-3 text-right">
-                            {s.isValid ? (
-                              <span className="text-emerald-600 font-medium">✓ Ready</span>
-                            ) : (
-                              <span className="text-red-500 font-semibold" title={s.validationError}>
-                                ⚠️ Invalid
-                              </span>
-                            )}
-                          </td>
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200 bg-slate-100 sticky top-0">
+                          <th className="p-3 text-slate-700 font-semibold">Alumni Name</th>
+                          <th className="p-3 text-slate-700 font-semibold">Batch</th>
+                          <th className="p-3 text-slate-700 font-semibold">Role</th>
+                          <th className="p-3 text-slate-700 font-semibold">Phone Number</th>
+                          <th className="p-3 text-slate-700 font-semibold">Email</th>
+                          <th className="p-3 text-slate-700 font-semibold">Location</th>
+                          <th className="p-3 text-slate-700 font-semibold">Contribution Value</th>
+                          <th className="p-3 text-slate-700 font-semibold">Details</th>
+                          <th className="p-3 text-slate-700 font-semibold text-right">Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {previewAlumni.map((s) => (
+                          <tr 
+                            key={s.id} 
+                            className={s.isValid ? "hover:bg-slate-100/80 text-slate-800" : "bg-red-50/70 hover:bg-red-100/70 text-slate-800"}
+                          >
+                            <td className="p-3 font-semibold text-slate-900">
+                              {s.name || <span className="text-red-500 italic">Name Missing</span>}
+                            </td>
+                            <td className="p-3 text-slate-700">{s.batch}</td>
+                            <td className="p-3 text-slate-800">{s.role}</td>
+                            <td className="p-3 text-slate-700">{s.phone}</td>
+                            <td className="p-3 text-slate-700">{s.email}</td>
+                            <td className="p-3 text-slate-700">{s.location}</td>
+                            <td className="p-3 text-slate-700">{s.value}</td>
+                            <td className="p-3 text-slate-600 truncate max-w-[120px]" title={s.contribution}>{s.contribution}</td>
+                            <td className="p-3 text-right">
+                              {s.isValid ? (
+                                <span className="text-emerald-600 font-medium">✓ Ready</span>
+                              ) : (
+                                <span className="text-red-500 font-semibold" title={s.validationError}>
+                                  ⚠️ Invalid
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 <div className="flex space-x-3 pt-2">

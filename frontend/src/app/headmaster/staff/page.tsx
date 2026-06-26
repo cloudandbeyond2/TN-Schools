@@ -367,18 +367,20 @@ export default function StaffManagementPage() {
       {/* Staff Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
         {[
-          { label: "Total Teaching Staff", value: staff.length, icon: "👩‍🏫", color: "text-blue-400", sub: "Permanent" },
-          { label: "Staff Present Today", value: staff.filter((s) => s.attendance >= 90).length, icon: "🟢", color: "text-emerald-400", sub: "Healthy attendance" },
-          { label: "Total Leave Days", value: staff.reduce((acc, curr) => acc + (curr.leaveUsed ?? 0), 0), icon: "📄", color: "text-amber-400", sub: "This term cumulative" },
-          { label: "Excellent Performers", value: staff.filter((s) => s.performance === "Excellent").length, icon: "⭐", color: "text-cyan-400", sub: "Top rated staff" },
+          { label: "Total Teaching Staff", value: staff.length, icon: "👩‍🏫", color: "text-blue-400", bg: "bg-blue-500/10", sub: "Permanent" },
+          { label: "Staff Present Today", value: staff.filter((s) => s.attendance >= 90).length, icon: "🟢", color: "text-emerald-400", bg: "bg-emerald-500/10", sub: "Healthy attendance" },
+          { label: "Total Leave Days", value: staff.reduce((acc, curr) => acc + (curr.leaveUsed ?? 0), 0), icon: "📄", color: "text-amber-400", bg: "bg-amber-500/10", sub: "This term cumulative" },
+          { label: "Excellent Performers", value: staff.filter((s) => s.performance === "Excellent").length, icon: "⭐", color: "text-cyan-400", bg: "bg-cyan-500/10", sub: "Top rated staff" },
         ].map((kpi) => (
-          <div key={kpi.label} className="kpi-card">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{kpi.icon}</span>
-              <span className={`text-[10px] font-bold ${kpi.color}`}>{kpi.sub}</span>
+          <div key={kpi.label} className="glass rounded-2xl p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all shadow-sm">
+            <div className="flex flex-col text-left min-w-0">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{kpi.label}</span>
+              <span className={`text-2xl font-black ${kpi.color} mt-1`}>{kpi.value}</span>
+              <span className="text-[10px] text-slate-500 font-semibold mt-0.5 truncate">{kpi.sub}</span>
             </div>
-            <div className={`text-2xl font-extrabold ${kpi.color} mb-1`}>{kpi.value}</div>
-            <div className="text-xs text-slate-500 font-semibold">{kpi.label}</div>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${kpi.bg} ${kpi.color} shrink-0 ml-2 shadow-sm`}>
+              {kpi.icon}
+            </div>
           </div>
         ))}
       </div>
@@ -624,46 +626,48 @@ export default function StaffManagementPage() {
                   <div className="text-slate-500 font-semibold">{previewTeachers.filter((s) => !s.isValid).length} invalid rows found</div>
                 </div>
                 <div className="max-h-[300px] overflow-y-auto border border-slate-200 rounded-xl bg-slate-50/50">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-200 bg-slate-100 sticky top-0">
-                        <th className="p-3 text-slate-700 font-semibold">Teacher Name</th>
-                        <th className="p-3 text-slate-700 font-semibold">ID</th>
-                        <th className="p-3 text-slate-700 font-semibold">Subject</th>
-                        <th className="p-3 text-slate-700 font-semibold">Phone</th>
-                        <th className="p-3 text-slate-700 font-semibold">Email</th>
-                        <th className="p-3 text-slate-700 font-semibold">Attendance</th>
-                        <th className="p-3 text-slate-700 font-semibold">Performance</th>
-                        <th className="p-3 text-slate-700 font-semibold">Leave</th>
-                        <th className="p-3 text-slate-700 font-semibold">Password</th>
-                        <th className="p-3 text-slate-700 font-semibold text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {previewTeachers.map((s) => (
-                        <tr key={s.id} className={s.isValid ? "hover:bg-slate-100/80 text-slate-800" : "bg-red-50/70 text-slate-800"}>
-                          <td className="p-3 font-semibold text-slate-900">{s.name || <span className="text-red-500 italic">Name Missing</span>}</td>
-                          <td className="p-3 text-slate-700">{s.emisId || <span className="text-red-500 italic">ID Missing</span>}</td>
-                          <td className="p-3 text-slate-800">{s.subject}</td>
-                          <td className="p-3 text-slate-700">{s.phone}</td>
-                          <td className="p-3 text-slate-700">{s.email}</td>
-                          <td className="p-3 text-slate-700">{s.attendance}%</td>
-                          <td className="p-3 text-slate-700">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              s.performance === "Excellent" ? "bg-green-50 text-green-700 border border-green-200" :
-                              s.performance === "Good" ? "bg-blue-50 text-blue-700 border border-blue-200" :
-                              "bg-amber-50 text-amber-700 border border-amber-200"
-                            }`}>{s.performance}</span>
-                          </td>
-                          <td className="p-3 text-slate-700">{s.leaveUsed} days</td>
-                          <td className="p-3 text-slate-700">{s.password}</td>
-                          <td className="p-3 text-right">
-                            {s.isValid ? <span className="text-emerald-600 font-medium">✓ Ready</span> : <span className="text-red-500 font-semibold">⚠️ Invalid</span>}
-                          </td>
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200 bg-slate-100 sticky top-0">
+                          <th className="p-3 text-slate-700 font-semibold">Teacher Name</th>
+                          <th className="p-3 text-slate-700 font-semibold">ID</th>
+                          <th className="p-3 text-slate-700 font-semibold">Subject</th>
+                          <th className="p-3 text-slate-700 font-semibold">Phone</th>
+                          <th className="p-3 text-slate-700 font-semibold">Email</th>
+                          <th className="p-3 text-slate-700 font-semibold">Attendance</th>
+                          <th className="p-3 text-slate-700 font-semibold">Performance</th>
+                          <th className="p-3 text-slate-700 font-semibold">Leave</th>
+                          <th className="p-3 text-slate-700 font-semibold">Password</th>
+                          <th className="p-3 text-slate-700 font-semibold text-right">Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {previewTeachers.map((s) => (
+                          <tr key={s.id} className={s.isValid ? "hover:bg-slate-100/80 text-slate-800" : "bg-red-50/70 text-slate-800"}>
+                            <td className="p-3 font-semibold text-slate-900">{s.name || <span className="text-red-500 italic">Name Missing</span>}</td>
+                            <td className="p-3 text-slate-700">{s.emisId || <span className="text-red-500 italic">ID Missing</span>}</td>
+                            <td className="p-3 text-slate-800">{s.subject}</td>
+                            <td className="p-3 text-slate-700">{s.phone}</td>
+                            <td className="p-3 text-slate-700">{s.email}</td>
+                            <td className="p-3 text-slate-700">{s.attendance}%</td>
+                            <td className="p-3 text-slate-700">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                s.performance === "Excellent" ? "bg-green-50 text-green-700 border border-green-200" :
+                                s.performance === "Good" ? "bg-blue-50 text-blue-700 border border-blue-200" :
+                                "bg-amber-50 text-amber-700 border border-amber-200"
+                              }`}>{s.performance}</span>
+                            </td>
+                            <td className="p-3 text-slate-700">{s.leaveUsed} days</td>
+                            <td className="p-3 text-slate-700">{s.password}</td>
+                            <td className="p-3 text-right">
+                              {s.isValid ? <span className="text-emerald-600 font-medium">✓ Ready</span> : <span className="text-red-500 font-semibold">⚠️ Invalid</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
                 <div className="flex space-x-3 pt-2">
                   <button

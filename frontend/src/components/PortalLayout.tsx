@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import { roleConfigs, NavItem } from "@/lib/navConfig";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useTheme } from "next-themes";
+import { Menu, Bell, Globe, ChevronDown, User, Settings, HelpCircle, LogOut } from "lucide-react";
 
 interface PortalLayoutProps {
   children: React.ReactNode;
@@ -282,7 +283,28 @@ export default function PortalLayout({
       ? resolvedNavItems
       : resolvedNavItems.filter((item) => item.href === "#" || item.label === "---" || !disabledRoutes.has(item.href));
   const resolvedTitle = title || currentConfig?.title || "Portal Dashboard";
-  const resolvedSubtitle = subtitle || currentConfig?.subtitle || "";
+  let resolvedSubtitle = subtitle || currentConfig?.subtitle || "";
+  if (session?.user?.name) {
+    resolvedSubtitle = resolvedSubtitle
+      .replace("Mrs. Sumathi Devi", session.user.name)
+      .replace("Sumathi Devi", session.user.name)
+      .replace("Arjun Kumar", session.user.name)
+      .replace("Arjun", session.user.name)
+      .replace("Rajesh Kumar", session.user.name)
+      .replace("Mr. Venkatesh R.", session.user.name)
+      .replace("Mr. Murugesan P.", session.user.name)
+      .replace("DEO Officer", session.user.name)
+      .replace("Commissioner", session.user.name)
+      .replace("Minister", session.user.name)
+      .replace("System Management", session.user.name);
+
+    if (userRole === "TEACHER") {
+      const subject = (session.user as any).subject || "General";
+      resolvedSubtitle = resolvedSubtitle
+        .replace("Mathematics", subject)
+        .replace(" · GHS Coimbatore", "");
+    }
+  }
   const resolvedAvatarLetter = avatarLetter || currentConfig?.avatarLetter || "P";
 
   // Enforce access mapping rules
@@ -504,24 +526,32 @@ export default function PortalLayout({
         />
 
         {/* Topbar */}
-        <div className="topbar mb-6 -mt-2 mx-0 relative z-30 flex items-center justify-between">
-          <div className="flex items-center gap-4 flex-1">
+        <header className="topbar relative flex items-center justify-between">
+          <div className="flex items-center gap-3 md:gap-4 flex-1">
+            {/* Mobile Menu Trigger (Hamburger) */}
             <button
-              className="md:hidden text-[var(--text-main)] p-2 rounded-lg hover:bg-[var(--sidebar-item-hover-bg)]"
+              className="md:hidden text-[var(--text-main)] p-2 rounded-xl hover:bg-[var(--sidebar-item-hover-bg)] active:scale-95 transition-all duration-200"
               onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Open Sidebar"
             >
-              ☰
-            </button>
-            <button className="hidden md:block text-[var(--text-main)] p-2 hover:bg-[var(--sidebar-item-hover-bg)] rounded-lg text-lg">
-              ☰
+              <Menu className="w-5 h-5" />
             </button>
             
-            {/* If title is provided, display title and subtitle like the screenshot, otherwise show search bar */}
+            {/* Simplified Logo on Mobile */}
+            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity md:hidden mr-2">
+              <span className="text-xl shrink-0">🏛️</span>
+              <div className="leading-none text-left">
+                <span className="block text-xs font-black text-[var(--text-heading)]">TN Schools</span>
+                <span className="block text-[8px] font-semibold text-[var(--text-muted)] tracking-wider">AI PORTAL</span>
+              </div>
+            </Link>
+
+            {/* Desktop search bar or role identity */}
             {resolvedTitle ? (
-              <div className="ml-2 text-left hidden md:block">
-                <h1 className="text-lg md:text-xl font-bold text-[var(--text-heading)] leading-tight">{resolvedTitle}</h1>
+              <div className="ml-2 text-left hidden md:block animate-in fade-in duration-300">
+                <h1 className="text-base lg:text-lg font-bold text-[var(--text-heading)] leading-tight">{resolvedTitle}</h1>
                 {resolvedSubtitle && (
-                  <p className="text-xs text-[var(--text-muted)] font-medium mt-0.5">{resolvedSubtitle}</p>
+                  <p className="text-[11px] text-[var(--text-muted)] font-medium mt-0.5">{resolvedSubtitle}</p>
                 )}
               </div>
             ) : (
@@ -536,14 +566,9 @@ export default function PortalLayout({
             )}
           </div>
 
-          <div className="flex items-center gap-3 relative z-50">
+          <div className="flex items-center gap-2 md:gap-3.5 relative z-50">
             {/* Theme Toggle */}
             <ThemeToggle />
-
-            {/* Expand Icon - hidden in light theme card design for simplicity, keeping in dark layout */}
-            <button className="p-2 text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] rounded-full transition-colors hidden sm:block dark:block">
-              ⛶
-            </button>
 
             {/* Language Selector */}
             <div className="relative hidden sm:block">
@@ -553,15 +578,15 @@ export default function PortalLayout({
                   setIsNotificationsOpen(false);
                   setIsProfileOpen(false);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-[var(--border)] rounded-xl text-xs font-semibold text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-[var(--border)] rounded-xl text-xs font-semibold text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200 active:scale-95"
                 title="Language"
               >
-                <span className="text-sm">🌐</span>
+                <Globe className="w-3.5 h-3.5" />
                 <span>{currentLanguage}</span>
-                <span className="text-[10px] opacity-60">▼</span>
+                <ChevronDown className="w-3 h-3 opacity-60" />
               </button>
               {isLanguageDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-lg z-50 py-1">
+                <div className="absolute right-0 mt-2 w-32 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-lg z-50 py-1 animate-in fade-in slide-in-from-top-1 duration-200">
                   <button
                     onClick={() => {
                       setCurrentLanguage("English");
@@ -593,17 +618,18 @@ export default function PortalLayout({
                   setIsProfileOpen(false);
                   setIsLanguageDropdownOpen(false);
                 }}
-                className="relative p-2 text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] rounded-full transition-colors"
+                className="relative p-2 text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] rounded-full transition-all duration-200 active:scale-95"
+                aria-label="Notifications"
               >
-                <span className="text-lg">🔔</span>
+                <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full text-white text-[10px] flex items-center justify-center font-bold border-2 border-[var(--bg-card)]">
+                  <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full text-white text-[9px] flex items-center justify-center font-bold border-2 border-[var(--bg-card)] animate-pulse">
                     {unreadCount}
                   </span>
                 )}
               </button>
               {isNotificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-xl z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-80 bg-[var(--bg-card)]/90 backdrop-blur-md border border-[var(--border)] rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-250">
                   <div className="p-4 border-b border-[var(--border)] flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/10">
                     <span className="text-xs font-bold text-[var(--text-heading)]">{t.notificationsTitle}</span>
                     <button 
@@ -623,7 +649,7 @@ export default function PortalLayout({
                             !notif.read ? "bg-[var(--primary)]/5 font-semibold text-[var(--text-heading)]" : ""
                           }`}
                         >
-                          <div>
+                          <div className="flex-1">
                             <div>{notif.message}</div>
                             <div className="text-[9px] text-[var(--text-muted)] mt-1 font-normal">
                               {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -646,40 +672,69 @@ export default function PortalLayout({
 
             {/* User Profile Avatar Mini */}
             <div className="relative ml-1 flex items-center">
-               <div
-                  className="w-9 h-9 rounded-full text-white text-xs font-bold flex items-center justify-center cursor-pointer shadow-sm border border-[var(--border)]"
-                  style={{ background: `linear-gradient(135deg, ${resolvedAccentColor}, ${resolvedAccentColor}dd)` }}
-                  onClick={() => {
-                    setIsProfileOpen(!isProfileOpen);
-                    setIsNotificationsOpen(false);
-                    setIsLanguageDropdownOpen(false);
-                  }}
-               >
-                  {letter}
-               </div>
-               {isProfileOpen && (
-                 <div className="absolute right-0 mt-12 top-0 w-56 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-xl z-50 py-2">
-                   <div className="px-4 py-2 border-b border-[var(--border)] mb-1">
-                     <div className="text-xs font-bold text-[var(--text-heading)] truncate">{displayName}</div>
-                     <div className="text-[10px] text-[var(--text-muted)] truncate">{displayEmail}</div>
-                   </div>
-                   <Link href="/teacher/profile" onClick={() => setIsProfileOpen(false)} scroll={false} className="flex items-center gap-2 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] transition-colors">
-                     👤 {t.profileTitle}
-                   </Link>
-                   <Link href="#" onClick={() => setIsProfileOpen(false)} scroll={false} className="flex items-center gap-2 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] transition-colors">
-                     ⚙️ {t.settings}
-                   </Link>
-                   <Link href="#" onClick={() => setIsProfileOpen(false)} scroll={false} className="flex items-center gap-2 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] transition-colors">
-                     ❓ {t.help}
-                   </Link>
-                 </div>
-               )}
+              <button
+                className="w-9 h-9 rounded-full text-white text-xs font-bold flex items-center justify-center cursor-pointer shadow-sm border border-[var(--border)] active:scale-95 transition-all duration-200"
+                style={{ background: `linear-gradient(135deg, ${resolvedAccentColor}, ${resolvedAccentColor}dd)` }}
+                onClick={() => {
+                  setIsProfileOpen(!isProfileOpen);
+                  setIsNotificationsOpen(false);
+                  setIsLanguageDropdownOpen(false);
+                }}
+              >
+                {letter}
+              </button>
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-12 top-0 w-56 bg-[var(--bg-card)]/90 backdrop-blur-md border border-[var(--border)] rounded-2xl shadow-xl z-50 py-2 animate-in fade-in slide-in-from-top-1 duration-250">
+                  <div className="px-4 py-2.5 border-b border-[var(--border)] mb-1">
+                    <div className="text-xs font-bold text-[var(--text-heading)] truncate">{displayName}</div>
+                    <div className="text-[10px] text-[var(--text-muted)] truncate">{displayEmail}</div>
+                  </div>
+                  <Link 
+                    href="/teacher/profile" 
+                    onClick={() => setIsProfileOpen(false)} 
+                    scroll={false} 
+                    className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
+                  >
+                    <User className="w-3.5 h-3.5" /> 
+                    <span>{t.profileTitle}</span>
+                  </Link>
+                  <Link 
+                    href="#" 
+                    onClick={() => setIsProfileOpen(false)} 
+                    scroll={false} 
+                    className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
+                  >
+                    <Settings className="w-3.5 h-3.5" /> 
+                    <span>{t.settings}</span>
+                  </Link>
+                  <Link 
+                    href="#" 
+                    onClick={() => setIsProfileOpen(false)} 
+                    scroll={false} 
+                    className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" /> 
+                    <span>{t.help}</span>
+                  </Link>
+                  <div className="my-1 border-t border-[var(--border)]" />
+                  <button 
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      signOut({ callbackUrl: "/" });
+                    }} 
+                    className="flex w-full items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                  >
+                    <LogOut className="w-3.5 h-3.5" /> 
+                    <span>{t.signOut}</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Children content relative to sit above absolute background */}
-        <div className="relative">
+        <main className="relative flex-1 p-4 md:p-6 lg:p-8 z-10">
           {/* Mobile Page Header (visible on mobile only) */}
           {resolvedTitle && (
             <div className="md:hidden px-1 mb-5 text-left animate-in fade-in duration-300">
@@ -690,7 +745,7 @@ export default function PortalLayout({
             </div>
           )}
           {children}
-        </div>
+        </main>
       </div>
     </div>
   );

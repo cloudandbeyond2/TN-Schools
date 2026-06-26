@@ -378,18 +378,20 @@ export default function StudentsMonitoringPage() {
       {/* Metrics Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
         {[
-          { label: "Total Students", value: isLoading ? "..." : watchlist.length.toString(), icon: "👨‍🎓", color: "text-blue-400", sub: "Watchlist entries" },
-          { label: "High Risk Count", value: isLoading ? "..." : highRiskCount.toString(), icon: "⚠️", color: "text-red-400", sub: "Needs urgent action" },
-          { label: "Medium Risk Count", value: isLoading ? "..." : mediumRiskCount.toString(), icon: "📊", color: "text-amber-400", sub: "Under observation" },
-          { label: "Safe / Cleared", value: isLoading ? "..." : (watchlist.length - highRiskCount - mediumRiskCount).toString(), icon: "✅", color: "text-emerald-400", sub: "Low risk students" },
+          { label: "Total Students", value: isLoading ? "..." : watchlist.length.toString(), icon: "👨‍🎓", color: "text-blue-400", bg: "bg-blue-500/10", sub: "Watchlist entries" },
+          { label: "High Risk Count", value: isLoading ? "..." : highRiskCount.toString(), icon: "⚠️", color: "text-red-400", bg: "bg-red-500/10", sub: "Needs urgent action" },
+          { label: "Medium Risk Count", value: isLoading ? "..." : mediumRiskCount.toString(), icon: "📊", color: "text-amber-400", bg: "bg-amber-500/10", sub: "Under observation" },
+          { label: "Safe / Cleared", value: isLoading ? "..." : (watchlist.length - highRiskCount - mediumRiskCount).toString(), icon: "✅", color: "text-emerald-400", bg: "bg-emerald-500/10", sub: "Low risk students" },
         ].map((kpi) => (
-          <div key={kpi.label} className="kpi-card">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{kpi.icon}</span>
-              <span className={`text-[10px] font-bold ${kpi.color}`}>{kpi.sub}</span>
+          <div key={kpi.label} className="glass rounded-2xl p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all shadow-sm">
+            <div className="flex flex-col text-left min-w-0">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{kpi.label}</span>
+              <span className={`text-2xl font-black ${kpi.color} mt-1`}>{kpi.value}</span>
+              <span className="text-[10px] text-slate-500 font-semibold mt-0.5 truncate">{kpi.sub}</span>
             </div>
-            <div className={`text-2xl font-extrabold ${kpi.color} mb-1`}>{kpi.value}</div>
-            <div className="text-xs text-slate-500 font-semibold">{kpi.label}</div>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${kpi.bg} ${kpi.color} shrink-0 ml-2 shadow-sm`}>
+              {kpi.icon}
+            </div>
           </div>
         ))}
       </div>
@@ -418,40 +420,42 @@ export default function StudentsMonitoringPage() {
               <div>Use the form or Excel import to add students to the database.</div>
             </div>
           ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Student Name</th>
-                  <th>Roll No / Class</th>
-                  <th>Parent Name</th>
-                  <th>Location</th>
-                  <th>Risk Level</th>
-                  <th>Added On</th>
-                </tr>
-              </thead>
-              <tbody>
-                {watchlist.map((s) => (
-                  <tr key={s.id || s.rollNumber}>
-                    <td className="font-medium text-white">{s.name}</td>
-                    <td>
-                      <div className="text-xs text-slate-300">{s.rollNumber}</div>
-                      <div className="text-[10px] text-slate-500">{s.class}</div>
-                    </td>
-                    <td>
-                      <div className="text-xs text-slate-300">{s.parentName}</div>
-                      <div className="text-[10px] text-slate-500">{s.phone}</div>
-                    </td>
-                    <td className="text-[10px] text-slate-400">{s.city}, {s.district}</td>
-                    <td>
-                      <span className={`badge ${s.risk === "High" ? "badge-red" : "badge-yellow"}`}>{s.risk} Risk</span>
-                    </td>
-                    <td className="text-[10px] text-slate-500">
-                      {s.createdAt ? new Date(s.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
-                    </td>
+            <div className="overflow-x-auto w-full">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Student Name</th>
+                    <th>Roll No / Class</th>
+                    <th>Parent Name</th>
+                    <th>Location</th>
+                    <th>Risk Level</th>
+                    <th>Added On</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {watchlist.map((s) => (
+                    <tr key={s.id || s.rollNumber}>
+                      <td className="font-medium text-white">{s.name}</td>
+                      <td>
+                        <div className="text-xs text-slate-300">{s.rollNumber}</div>
+                        <div className="text-[10px] text-slate-500">{s.class}</div>
+                      </td>
+                      <td>
+                        <div className="text-xs text-slate-300">{s.parentName}</div>
+                        <div className="text-[10px] text-slate-500">{s.phone}</div>
+                      </td>
+                      <td className="text-[10px] text-slate-400">{s.city}, {s.district}</td>
+                      <td>
+                        <span className={`badge ${s.risk === "High" ? "badge-red" : "badge-yellow"}`}>{s.risk} Risk</span>
+                      </td>
+                      <td className="text-[10px] text-slate-500">
+                        {s.createdAt ? new Date(s.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
@@ -549,53 +553,55 @@ export default function StudentsMonitoringPage() {
                 </div>
 
                 <div className="max-h-[300px] overflow-y-auto border border-slate-200 rounded-xl bg-slate-50/50">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-200 bg-slate-100 sticky top-0">
-                        <th className="p-3 text-slate-700 font-semibold">Student Name</th>
-                        <th className="p-3 text-slate-700 font-semibold">Roll Number</th>
-                        <th className="p-3 text-slate-700 font-semibold">Class</th>
-                        <th className="p-3 text-slate-700 font-semibold">Phone Number</th>
-                        <th className="p-3 text-slate-700 font-semibold">Parent Name</th>
-                        <th className="p-3 text-slate-700 font-semibold">Address</th>
-                        <th className="p-3 text-slate-700 font-semibold">Risk Level</th>
-                        <th className="p-3 text-slate-700 font-semibold text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {previewStudents.map((s) => (
-                        <tr
-                          key={s.id}
-                          className={s.isValid ? "hover:bg-slate-100/80 text-slate-800" : "bg-red-50/70 hover:bg-red-100/70 text-slate-800"}
-                        >
-                          <td className="p-3 font-semibold text-slate-900">
-                            {s.name || <span className="text-red-500 italic">Name Missing</span>}
-                          </td>
-                          <td className="p-3 text-slate-700">{s.rollNumber || <span className="text-red-500 italic">Roll Missing</span>}</td>
-                          <td className="p-3 text-slate-800">{s.class}</td>
-                          <td className="p-3 text-slate-700">{s.phone}</td>
-                          <td className="p-3 text-slate-700">{s.parentName}</td>
-                          <td className="p-3 text-slate-600 truncate max-w-[150px]" title={`${s.city}, ${s.district}, ${s.state} - ${s.pincode}`}>
-                            {s.city}, {s.district}
-                          </td>
-                          <td className="p-3">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              s.risk === "High" ? "bg-red-50 text-red-600 border border-red-200" : "bg-amber-50 text-amber-600 border border-amber-200"
-                            }`}>
-                              {s.risk}
-                            </span>
-                          </td>
-                          <td className="p-3 text-right">
-                            {s.isValid ? (
-                              <span className="text-emerald-600 font-medium">✓ Ready</span>
-                            ) : (
-                              <span className="text-red-500 font-semibold" title={s.validationError}>⚠️ Invalid</span>
-                            )}
-                          </td>
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200 bg-slate-100 sticky top-0">
+                          <th className="p-3 text-slate-700 font-semibold">Student Name</th>
+                          <th className="p-3 text-slate-700 font-semibold">Roll Number</th>
+                          <th className="p-3 text-slate-700 font-semibold">Class</th>
+                          <th className="p-3 text-slate-700 font-semibold">Phone Number</th>
+                          <th className="p-3 text-slate-700 font-semibold">Parent Name</th>
+                          <th className="p-3 text-slate-700 font-semibold">Address</th>
+                          <th className="p-3 text-slate-700 font-semibold">Risk Level</th>
+                          <th className="p-3 text-slate-700 font-semibold text-right">Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {previewStudents.map((s) => (
+                          <tr
+                            key={s.id}
+                            className={s.isValid ? "hover:bg-slate-100/80 text-slate-800" : "bg-red-50/70 hover:bg-red-100/70 text-slate-800"}
+                          >
+                            <td className="p-3 font-semibold text-slate-900">
+                              {s.name || <span className="text-red-500 italic">Name Missing</span>}
+                            </td>
+                            <td className="p-3 text-slate-700">{s.rollNumber || <span className="text-red-500 italic">Roll Missing</span>}</td>
+                            <td className="p-3 text-slate-800">{s.class}</td>
+                            <td className="p-3 text-slate-700">{s.phone}</td>
+                            <td className="p-3 text-slate-700">{s.parentName}</td>
+                            <td className="p-3 text-slate-600 truncate max-w-[150px]" title={`${s.city}, ${s.district}, ${s.state} - ${s.pincode}`}>
+                              {s.city}, {s.district}
+                            </td>
+                            <td className="p-3">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                s.risk === "High" ? "bg-red-50 text-red-600 border border-red-200" : "bg-amber-50 text-amber-600 border border-amber-200"
+                              }`}>
+                                {s.risk}
+                              </span>
+                            </td>
+                            <td className="p-3 text-right">
+                              {s.isValid ? (
+                                <span className="text-emerald-600 font-medium">✓ Ready</span>
+                              ) : (
+                                <span className="text-red-500 font-semibold" title={s.validationError}>⚠️ Invalid</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 <div className="flex space-x-3 pt-2">

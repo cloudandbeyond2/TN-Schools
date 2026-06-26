@@ -59,17 +59,19 @@ const app: Express = express();
 const port = process.env.PORT || 5000;
 
 // ─── Middleware ──────────────────────────────────────────────
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    const isAllowed = origin === 'http://localhost:3000' ||
-                      origin === 'https://tn-schools.vercel.app' ||
-                      /^(https?:\/\/tn-schools(-[a-z0-9-]+)?\.vercel\.app)$/.test(origin) ||
-                      (process.env.NEXTAUTH_URL && origin === process.env.NEXTAUTH_URL);
-    callback(null, isAllowed ? true : false);
-  },
-  credentials: true
-}));
+if (!process.env.VERCEL) {
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const isAllowed = origin === 'http://localhost:3000' ||
+                        origin === 'https://tn-schools.vercel.app' ||
+                        /^(https?:\/\/tn-schools(-[a-z0-9-]+)?\.vercel\.app)$/.test(origin) ||
+                        (process.env.NEXTAUTH_URL && origin === process.env.NEXTAUTH_URL);
+      callback(null, isAllowed ? true : false);
+    },
+    credentials: true
+  }));
+}
 app.use(express.json({ limit: '150mb' }));
 app.use(express.urlencoded({ limit: '150mb', extended: true }));
 
@@ -128,36 +130,38 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 });
 
 // ─── Start Server ─────────────────────────────────────────────
-const server = app.listen(port, () => {
-  console.log(`\n🚀  TN Schools API → http://localhost:${port}`);
-  console.log(`📦  MongoDB   : Atlas Cluster`);
-  console.log(`🐘  PostgreSQL: Google Cloud SQL`);
-  console.log(`🌍  Env       : ${process.env.NODE_ENV || 'development'}\n`);
-});
+let server: any;
+if (!process.env.VERCEL) {
+  server = app.listen(port, () => {
+    console.log(`\n🚀  TN Schools API → http://localhost:${port}`);
+    console.log(`📦  MongoDB   : Atlas Cluster`);
+    console.log(`🐘  PostgreSQL: Google Cloud SQL`);
+    console.log(`🌍  Env       : ${process.env.NODE_ENV || 'development'}\n`);
+  });
 
-// ─── Auto-recover from port conflict ─────────────────────────────
-server.on('error', (err: NodeJS.ErrnoException) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`\n❌  Port ${port} is still in use. Run: npm run kill\n`);
-    process.exit(1);
-  } else {
-    throw err;
-  }
-});
+  // ─── Auto-recover from port conflict ─────────────────────────────
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`\n❌  Port ${port} is still in use. Run: npm run kill\n`);
+      process.exit(1);
+    } else {
+      throw err;
+    }
+  });
 
+  // ─── Graceful shutdown ────────────────────────────────────────────
+  process.on('SIGTERM', async () => {
+    if (server) server.close();
+    await prisma.$disconnect();
+    process.exit(0);
+  });
 
-// ─── Graceful shutdown ────────────────────────────────────────────
-process.on('SIGTERM', async () => {
-  server.close();
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-process.on('SIGINT', async () => {
-  server.close();
-  await prisma.$disconnect();
-  process.exit(0);
-});
+  process.on('SIGINT', async () => {
+    if (server) server.close();
+    await prisma.$disconnect();
+    process.exit(0);
+  });
+}
 
 export default app;
 

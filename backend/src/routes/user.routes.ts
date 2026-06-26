@@ -240,6 +240,7 @@ return res.json({
                 email: pgUser.email,
                 role: "TEACHER",
                 schoolId: teacher?.schoolId ?? pgUser.schoolId,
+                subject: teacher?.subject ?? "General",
             },
         });
     }
@@ -272,7 +273,8 @@ return res.json({
             name: staffMember.name,
             email: staffMember.email || cleanEmail,
             role: 'TEACHER',
-            schoolId: staffMember.schoolId || null
+            schoolId: staffMember.schoolId || null,
+            subject: staffMember.subject || 'General'
           }
         });
       }

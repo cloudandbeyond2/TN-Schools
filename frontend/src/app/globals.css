@@ -24,9 +24,9 @@
   --danger: #ef4444;
   --warning: #f59e0b;
   --info: #3b82f6;
-  --card-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.02); /* Faint clean shadow */
-  --sidebar-shadow: none; /* No shadow on sidebar, flat clean border */
-  --topbar-shadow: none;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 10px 20px -5px rgba(0, 0, 0, 0.02); /* Faint clean premium shadow */
+  --sidebar-shadow: 1px 0 0 0 var(--border); /* Clean flat right border line instead of heavy shadow */
+  --topbar-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.03);
   --overlay-bg: rgba(15, 23, 42, 0.4);
   /* Sidebar active item */
   --sidebar-item-color: #4b5563;
@@ -71,9 +71,9 @@
   --danger: #f5365c;
   --warning: #fb6340;
   --info: #11cdef;
-  --card-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
-  --sidebar-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-  --topbar-shadow: none;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  --sidebar-shadow: 1px 0 0 0 var(--border);
+  --topbar-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.05);
   --overlay-bg: rgba(0,0,0,0.85);
   /* Sidebar active item */
   --sidebar-item-color: #b1c2d9;
@@ -557,21 +557,21 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ===================== SIDEBAR ===================== */
 .sidebar {
-  width: 250px;
+  width: 260px;
   height: 100vh;
   background: var(--bg-sidebar);
   border-right: 1px solid var(--border);
   position: fixed;
   left: 0; top: 0;
-  z-index: 40;
+  z-index: 50; /* Ensure overlay works correctly on mobile */
   display: flex;
   flex-direction: column;
-  padding: 1.5rem 0;
-  transition: transform 0.3s ease, background 0.3s, border-color 0.3s;
+  padding: 1.25rem 0;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s, border-color 0.3s;
   box-shadow: var(--sidebar-shadow);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .sidebar {
     transform: translateX(-100%);
   }
@@ -583,52 +583,51 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar-item {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
-  padding: 0.65rem 1.25rem;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
   color: var(--sidebar-item-color);
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 500;
   border-radius: 0.5rem;
-  margin: 0.125rem 0 0.125rem 1rem;
-  transition: all 0.15s ease;
+  margin: 0.125rem 0.75rem;
+  transition: all 0.2s cubic-bezier(0.075, 0.82, 0.165, 1);
   cursor: pointer;
   border: none;
   background: none;
-  width: calc(100% - 1rem);
+  width: calc(100% - 1.5rem);
   text-align: left;
 }
 .sidebar-item:hover {
   color: var(--portal-color, var(--primary)) !important;
   background-color: var(--sidebar-item-hover-bg);
+  transform: translateX(2px);
 }
 .sidebar-item.active {
   color: var(--portal-color, var(--primary)) !important;
   background-color: var(--sidebar-item-hover-bg);
   font-weight: 600;
-  border-right: 3px solid var(--portal-color, var(--primary));
-  border-radius: 0.5rem 0 0 0.5rem;
+  border-left: 3px solid var(--portal-color, var(--primary));
+  border-right: none;
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding-left: calc(1rem - 3px);
 }
 
 /* ===================== MAIN CONTENT ===================== */
 .main-content {
   margin-left: 260px;
   min-height: 100vh;
-  padding: 2rem;
+  padding: 0 !important; /* Managed via PortalLayout internally for standard edges */
   background: var(--bg-main);
-  transition: margin-left 0.3s ease, background 0.3s;
+  transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s;
+  display: flex;
+  flex-direction: column;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .main-content {
     margin-left: 0;
-    padding: 1rem;
-  }
-  .topbar {
-    padding: 0.6rem 1rem !important;
-    margin-top: 0.5rem !important;
-    margin-bottom: 1.5rem !important;
-    border-radius: 1rem !important;
+    padding: 0 !important;
   }
 }
 
@@ -636,15 +635,20 @@ h1, h2, h3, h4, h5, h6 {
 .topbar {
   background: var(--bg-topbar);
   border-bottom: 1px solid var(--border);
-  padding: 0.75rem 2rem;
+  padding: 0.875rem 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: sticky;
   top: 0;
-  z-index: 30;
+  z-index: 40;
   box-shadow: var(--topbar-shadow);
   transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+@media (max-width: 767px) {
+  .topbar {
+    padding: 0.75rem 1.25rem;
+  }
 }
 
 /* ===================== PROGRESS BARS ===================== */
@@ -814,14 +818,14 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Align content container properly on right side */
 .main-content {
-  margin-left: 250px !important;
-  padding: 1.5rem 2rem !important;
+  margin-left: 260px !important;
+  padding: 0 !important; /* Edge-to-edge for premium glassmorphism topbar */
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .main-content {
     margin-left: 0 !important;
-    padding: 1rem !important;
+    padding: 0 !important;
   }
 }
 
@@ -1069,20 +1073,29 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 1px !important;
 }
 
-/* Argon Topbar Layout Overrides - Floating Card Topbar Layout for both Light and Dark Mode */
+/* Argon Topbar Layout Overrides - Floating Card is removed, replaced with a premium sticky glassmorphism topbar */
 .topbar {
-  background: var(--bg-card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 1.25rem !important; /* 20px rounded corners */
-  padding: 1.25rem 2rem !important;
-  margin-top: 1rem !important;
-  margin-bottom: 2rem !important;
-  box-shadow: var(--card-shadow) !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6) !important;
+  border-radius: 0px !important; 
+  padding: 0.75rem 2rem !important;
+  margin: 0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.01), 0 1px 2px -1px rgba(0, 0, 0, 0.01) !important;
   color: var(--text-main) !important;
+  width: 100% !important;
+}
+
+.dark .topbar {
+  background: rgba(10, 10, 10, 0.75) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
 .topbar button, 
-.topbar .text-\[var\(--text-main\)\],
 .topbar svg,
 .topbar span {
   color: var(--text-main) !important;
@@ -1109,6 +1122,13 @@ h1, h2, h3, h4, h5, h6 {
   background-color: var(--bg-card) !important;
   border-color: var(--primary) !important;
   color: var(--text-heading) !important;
+}
+
+@media (max-width: 767px) {
+  .topbar {
+    padding: 0.75rem 1rem !important;
+    border-radius: 0px !important;
+  }
 }
 
 /* Ensure notifications badge is properly styled */

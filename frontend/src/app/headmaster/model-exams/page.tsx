@@ -127,7 +127,7 @@ export default function ModelExamsPage() {
       </div>
 
       {/* Main KPI Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
           <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Pass Percentage</span>
           <div className="flex items-baseline gap-2 mt-2">

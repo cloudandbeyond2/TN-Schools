@@ -252,7 +252,7 @@ export default function ClassesPage() {
       )}
 
       {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Classes", value: classes.length, icon: "🏫", color: "text-amber-500" },
           { label: "Active Classes", value: activeCount, icon: "✅", color: "text-emerald-500" },

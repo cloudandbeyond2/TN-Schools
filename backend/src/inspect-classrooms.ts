@@ -10,9 +10,18 @@ async function test() {
     const staff = await prisma.headmasterStaff.findMany();
     console.log(staff);
 
-    console.log('\n--- User Records ---');
-    const users = await prisma.user.findMany({ select: { id: true, name: true, email: true, role: true } });
-    console.log(users);
+    console.log('\n--- Teacher Table Records ---');
+    const teachers = await prisma.teacher.findMany({
+      include: {
+        user: {
+          select: {
+            email: true,
+            name: true
+          }
+        }
+      }
+    });
+    console.log(teachers);
   } catch (err) {
     console.error('Error:', err);
   } finally {

@@ -405,7 +405,7 @@ export default function TeacherParentsPage() {
       )}
 
       {/* KPI Section with Premium White Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-transform hover:-translate-y-0.5">
           <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Total Parents</span>
           <div className="text-2xl font-black text-slate-800 dark:text-white">{filteredParents.length}</div>

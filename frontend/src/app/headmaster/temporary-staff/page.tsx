@@ -335,80 +335,82 @@ export default function TemporaryStaffPage() {
             <div>Use the form or Excel import to add records to the database.</div>
           </div>
         ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Staff Details</th>
-                <th>Designated Role</th>
-                <th>Source / Agency</th>
-                <th>Joined Date</th>
-                <th>Stipend & Contract</th>
-                <th>Password</th>
-                <th>Added On</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {temps.map((t) => (
-                <tr key={t.id || t.name}>
-                  <td className="font-bold text-xs py-3">
-                    <div>{t.name}</div>
-                    <div className="text-[10px] text-slate-400 font-semibold mt-1 space-x-2 flex flex-wrap">
-                      <span>Ph: {t.phone || "N/A"}</span>
-                      <span>•</span>
-                      <span>Email: {t.email || "N/A"}</span>
-                    </div>
-                  </td>
-                  <td>{t.role}</td>
-                  <td>{t.agency}</td>
-                  <td>{t.joined}</td>
-                  <td>
-                    <div className="text-xs text-blue-400 font-semibold">{t.salary}</div>
-                    <div className="text-[10px] text-slate-500 font-medium mt-0.5">{t.duration}</div>
-                  </td>
-                  <td className="text-slate-300 font-medium text-xs">{t.password || "123456"}</td>
-                  <td className="text-[10px] text-slate-500">
-                    {t.createdAt ? new Date(t.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
-                  </td>
-                  <td>
-  {t.id && (
-    <div className="flex flex-row gap-2 justify-center">
-      <button
-        onClick={() => {
-          setStaffToEdit(t);
-          setIsEditModalOpen(true);
-        }}
-        className="text-[10px] text-blue-400 hover:text-blue-300 font-semibold border border-blue-500/20 px-2 py-1 rounded-lg transition-colors flex items-center justify-center"
-      >
-        ✎
-      </button>
-
-      <button
-        onClick={() => setTempStaffToDelete(t)}
-        className="text-[10px] text-red-400 hover:text-red-300 font-semibold border border-red-500/20 px-2 py-1 rounded-lg transition-colors flex items-center justify-center"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-3 w-3"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-          />
-        </svg>
-      </button>
-    </div>
-  )}
-</td>
+          <div className="overflow-x-auto w-full">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Staff Details</th>
+                  <th>Designated Role</th>
+                  <th>Source / Agency</th>
+                  <th>Joined Date</th>
+                  <th>Stipend & Contract</th>
+                  <th>Password</th>
+                  <th>Added On</th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {temps.map((t) => (
+                  <tr key={t.id || t.name}>
+                    <td className="font-bold text-xs py-3">
+                      <div>{t.name}</div>
+                      <div className="text-[10px] text-slate-400 font-semibold mt-1 space-x-2 flex flex-wrap">
+                        <span>Ph: {t.phone || "N/A"}</span>
+                        <span>•</span>
+                        <span>Email: {t.email || "N/A"}</span>
+                      </div>
+                    </td>
+                    <td>{t.role}</td>
+                    <td>{t.agency}</td>
+                    <td>{t.joined}</td>
+                    <td>
+                      <div className="text-xs text-blue-400 font-semibold">{t.salary}</div>
+                      <div className="text-[10px] text-slate-500 font-medium mt-0.5">{t.duration}</div>
+                    </td>
+                    <td className="text-slate-300 font-medium text-xs">{t.password || "123456"}</td>
+                    <td className="text-[10px] text-slate-500">
+                      {t.createdAt ? new Date(t.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+                    </td>
+                    <td>
+    {t.id && (
+      <div className="flex flex-row gap-2 justify-center">
+        <button
+          onClick={() => {
+            setStaffToEdit(t);
+            setIsEditModalOpen(true);
+          }}
+          className="text-[10px] text-blue-400 hover:text-blue-300 font-semibold border border-blue-500/20 px-2 py-1 rounded-lg transition-colors flex items-center justify-center"
+        >
+          ✎
+        </button>
+
+        <button
+          onClick={() => setTempStaffToDelete(t)}
+          className="text-[10px] text-red-400 hover:text-red-300 font-semibold border border-red-500/20 px-2 py-1 rounded-lg transition-colors flex items-center justify-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-3 w-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+        </button>
+      </div>
+    )}
+  </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -438,40 +440,42 @@ export default function TemporaryStaffPage() {
                   <div className="text-slate-500 font-semibold">{previewStaff.filter((s) => !s.isValid).length} invalid rows found</div>
                 </div>
                 <div className="max-h-[300px] overflow-y-auto border border-slate-200 rounded-xl bg-slate-50/50">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-200 bg-slate-100 sticky top-0">
-                        <th className="p-3 text-slate-700 font-semibold">Staff Name</th>
-                        <th className="p-3 text-slate-700 font-semibold">Designated Role</th>
-                        <th className="p-3 text-slate-700 font-semibold">Agency</th>
-                        <th className="p-3 text-slate-700 font-semibold">Joined</th>
-                        <th className="p-3 text-slate-700 font-semibold">Phone</th>
-                        <th className="p-3 text-slate-700 font-semibold">Email</th>
-                        <th className="p-3 text-slate-700 font-semibold">Duration</th>
-                        <th className="p-3 text-slate-700 font-semibold">Stipend</th>
-                        <th className="p-3 text-slate-700 font-semibold">Password</th>
-                        <th className="p-3 text-slate-700 font-semibold text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {previewStaff.map((s) => (
-                        <tr key={s.id} className={s.isValid ? "hover:bg-slate-100/80 text-slate-800" : "bg-red-50/70 text-slate-800"}>
-                          <td className="p-3 font-semibold text-slate-900">{s.name || <span className="text-red-500 italic">Name Missing</span>}</td>
-                          <td className="p-3 text-slate-700">{s.role || <span className="text-red-500 italic">Role Missing</span>}</td>
-                          <td className="p-3 text-slate-800">{s.agency}</td>
-                          <td className="p-3 text-slate-700">{s.joined}</td>
-                          <td className="p-3 text-slate-700">{s.phone}</td>
-                          <td className="p-3 text-slate-700">{s.email}</td>
-                          <td className="p-3 text-slate-700">{s.duration}</td>
-                          <td className="p-3 text-slate-700">{s.salary}</td>
-                          <td className="p-3 text-slate-700">{s.password}</td>
-                          <td className="p-3 text-right">
-                            {s.isValid ? <span className="text-emerald-600 font-medium">✓ Ready</span> : <span className="text-red-500 font-semibold" title={s.validationError}>⚠️ Invalid</span>}
-                          </td>
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200 bg-slate-100 sticky top-0">
+                          <th className="p-3 text-slate-700 font-semibold">Staff Name</th>
+                          <th className="p-3 text-slate-700 font-semibold">Designated Role</th>
+                          <th className="p-3 text-slate-700 font-semibold">Agency</th>
+                          <th className="p-3 text-slate-700 font-semibold">Joined</th>
+                          <th className="p-3 text-slate-700 font-semibold">Phone</th>
+                          <th className="p-3 text-slate-700 font-semibold">Email</th>
+                          <th className="p-3 text-slate-700 font-semibold">Duration</th>
+                          <th className="p-3 text-slate-700 font-semibold">Stipend</th>
+                          <th className="p-3 text-slate-700 font-semibold">Password</th>
+                          <th className="p-3 text-slate-700 font-semibold text-right">Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {previewStaff.map((s) => (
+                          <tr key={s.id} className={s.isValid ? "hover:bg-slate-100/80 text-slate-800" : "bg-red-50/70 text-slate-800"}>
+                            <td className="p-3 font-semibold text-slate-900">{s.name || <span className="text-red-500 italic">Name Missing</span>}</td>
+                            <td className="p-3 text-slate-700">{s.role || <span className="text-red-500 italic">Role Missing</span>}</td>
+                            <td className="p-3 text-slate-800">{s.agency}</td>
+                            <td className="p-3 text-slate-700">{s.joined}</td>
+                            <td className="p-3 text-slate-700">{s.phone}</td>
+                            <td className="p-3 text-slate-700">{s.email}</td>
+                            <td className="p-3 text-slate-700">{s.duration}</td>
+                            <td className="p-3 text-slate-700">{s.salary}</td>
+                            <td className="p-3 text-slate-700">{s.password}</td>
+                            <td className="p-3 text-right">
+                              {s.isValid ? <span className="text-emerald-600 font-medium">✓ Ready</span> : <span className="text-red-500 font-semibold" title={s.validationError}>⚠️ Invalid</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
                 <div className="flex space-x-3 pt-2">
                   <button

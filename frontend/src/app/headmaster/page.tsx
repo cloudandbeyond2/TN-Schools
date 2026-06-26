@@ -76,6 +76,7 @@ export default function HeadmasterDashboard() {
             value: isLoading ? "..." : totalStudents.toString(),
             icon: "👨‍🎓",
             color: "text-blue-400",
+            bg: "bg-blue-500/10",
             sub: "Watchlist records",
           },
           {
@@ -83,6 +84,7 @@ export default function HeadmasterDashboard() {
             value: isLoading ? "..." : totalStaff.toString(),
             icon: "👩‍🏫",
             color: "text-amber-400",
+            bg: "bg-amber-500/10",
             sub: isLoading ? "Loading..." : `${excellentStaff} excellent`,
           },
           {
@@ -90,6 +92,7 @@ export default function HeadmasterDashboard() {
             value: isLoading ? "..." : highRisk.toString(),
             icon: "⚠️",
             color: "text-red-400",
+            bg: "bg-red-500/10",
             sub: "Needs intervention",
           },
           {
@@ -97,16 +100,19 @@ export default function HeadmasterDashboard() {
             value: isLoading ? "..." : (totalStudents - highRisk).toString(),
             icon: "✅",
             color: "text-emerald-400",
+            bg: "bg-emerald-500/10",
             sub: "Low / Medium risk",
           },
         ].map((kpi) => (
-          <div key={kpi.label} className="kpi-card">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{kpi.icon}</span>
-              <span className={`text-xs font-medium ${kpi.color}`}>{kpi.sub}</span>
+          <div key={kpi.label} className="glass rounded-2xl p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all shadow-sm">
+            <div className="flex flex-col text-left min-w-0">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{kpi.label}</span>
+              <span className={`text-2xl font-black ${kpi.color} mt-1`}>{kpi.value}</span>
+              <span className="text-[10px] text-slate-500 font-semibold mt-0.5 truncate">{kpi.sub}</span>
             </div>
-            <div className={`text-3xl font-bold ${kpi.color} mb-1`}>{kpi.value}</div>
-            <div className="text-xs text-slate-500">{kpi.label}</div>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${kpi.bg} ${kpi.color} shrink-0 ml-2 shadow-sm`}>
+              {kpi.icon}
+            </div>
           </div>
         ))}
       </div>
@@ -137,38 +143,40 @@ export default function HeadmasterDashboard() {
               <Link href="/headmaster/staff" className="text-blue-400 hover:underline">Go to Staff Management →</Link>
             </div>
           ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Subject</th>
-                  <th>Attendance</th>
-                  <th>Performance</th>
-                  <th>Leave Days</th>
-                </tr>
-              </thead>
-              <tbody>
-                {staff.slice(0, 8).map((s, i) => (
-                  <tr key={s.id || i}>
-                    <td className="font-bold text-white text-xs">{s.name}</td>
-                    <td>{s.subject}</td>
-                    <td>
-                      <span className={`badge ${s.attendance >= 95 ? "badge-green" : s.attendance >= 90 ? "badge-yellow" : "badge-red"}`}>
-                        {s.attendance}%
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge ${s.performance === "Excellent" ? "badge-green" : s.performance === "Good" ? "badge-blue" : "badge-yellow"}`}>
-                        {s.performance}
-                      </span>
-                    </td>
-                    <td className={(s.leaveUsed ?? 0) >= 3 ? "text-red-400" : "text-slate-400"}>
-                      {s.leaveUsed ?? 0}
-                    </td>
+            <div className="overflow-x-auto w-full">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Subject</th>
+                    <th>Attendance</th>
+                    <th>Performance</th>
+                    <th>Leave Days</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {staff.slice(0, 8).map((s, i) => (
+                    <tr key={s.id || i}>
+                      <td className="font-bold text-white text-xs">{s.name}</td>
+                      <td>{s.subject}</td>
+                      <td>
+                        <span className={`badge ${s.attendance >= 95 ? "badge-green" : s.attendance >= 90 ? "badge-yellow" : "badge-red"}`}>
+                          {s.attendance}%
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`badge ${s.performance === "Excellent" ? "badge-green" : s.performance === "Good" ? "badge-blue" : "badge-yellow"}`}>
+                          {s.performance}
+                        </span>
+                      </td>
+                      <td className={(s.leaveUsed ?? 0) >= 3 ? "text-red-400" : "text-slate-400"}>
+                        {s.leaveUsed ?? 0}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
@@ -221,7 +229,7 @@ export default function HeadmasterDashboard() {
       </div>
 
       {/* Quick Links */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 fade-in-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 fade-in-4">
         {[
           { label: "Staff Management", icon: "👩‍🏫", href: "/headmaster/staff", color: "border-blue-500/20 hover:border-blue-500/50" },
           { label: "Student Monitoring", icon: "👨‍🎓", href: "/headmaster/students", color: "border-emerald-500/20 hover:border-emerald-500/50" },

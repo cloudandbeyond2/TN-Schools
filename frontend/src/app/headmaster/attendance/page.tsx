@@ -112,6 +112,7 @@ export default function HeadmasterAttendancePage() {
             value: isLoading ? "..." : totalStudents.toString(),
             icon: "👨‍🎓",
             color: "text-blue-400",
+            bg: "bg-blue-500/10",
             sub: "In watchlist",
           },
           {
@@ -119,6 +120,7 @@ export default function HeadmasterAttendancePage() {
             value: isLoading ? "..." : highRiskStudents.toString(),
             icon: "🔴",
             color: "text-red-400",
+            bg: "bg-red-500/10",
             sub: "Needs intervention",
           },
           {
@@ -126,6 +128,7 @@ export default function HeadmasterAttendancePage() {
             value: isLoading ? "..." : `${staffAttendancePct}%`,
             icon: "👩‍🏫",
             color: "text-emerald-400",
+            bg: "bg-emerald-500/10",
             sub: isLoading ? "..." : `${staffPresentCount} / ${totalStaff} present`,
           },
           {
@@ -133,16 +136,19 @@ export default function HeadmasterAttendancePage() {
             value: isLoading ? "..." : (totalStudents - highRiskStudents).toString(),
             icon: "✅",
             color: "text-cyan-400",
+            bg: "bg-cyan-500/10",
             sub: "Low / Medium risk",
           },
         ].map((kpi) => (
-          <div key={kpi.label} className="kpi-card">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{kpi.icon}</span>
-              <span className={`text-[10px] font-bold ${kpi.color}`}>{kpi.sub}</span>
+          <div key={kpi.label} className="glass rounded-2xl p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all shadow-sm">
+            <div className="flex flex-col text-left min-w-0">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{kpi.label}</span>
+              <span className={`text-2xl font-black ${kpi.color} mt-1`}>{kpi.value}</span>
+              <span className="text-[10px] text-slate-500 font-semibold mt-0.5 truncate">{kpi.sub}</span>
             </div>
-            <div className={`text-2xl font-extrabold ${kpi.color} mb-1`}>{kpi.value}</div>
-            <div className="text-xs text-slate-500 font-semibold">{kpi.label}</div>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${kpi.bg} ${kpi.color} shrink-0 ml-2 shadow-sm`}>
+              {kpi.icon}
+            </div>
           </div>
         ))}
       </div>
@@ -162,32 +168,34 @@ export default function HeadmasterAttendancePage() {
               <div>No student records found for your school.</div>
             </div>
           ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Class</th>
-                  <th>Total</th>
-                  <th>Normal</th>
-                  <th>High Risk</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {classRows.map((g) => (
-                  <tr key={g.grade}>
-                    <td className="font-bold text-white text-xs">{g.grade}</td>
-                    <td>{g.total}</td>
-                    <td className="text-emerald-400 font-bold">{g.present}</td>
-                    <td className="text-red-400 font-bold">{g.absent}</td>
-                    <td>
-                      <span className={`badge ${g.percent >= 80 ? "badge-green" : "badge-yellow"}`}>
-                        {g.percent}%
-                      </span>
-                    </td>
+            <div className="overflow-x-auto w-full">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Class</th>
+                    <th>Total</th>
+                    <th>Normal</th>
+                    <th>High Risk</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {classRows.map((g) => (
+                    <tr key={g.grade}>
+                      <td className="font-bold text-white text-xs">{g.grade}</td>
+                      <td>{g.total}</td>
+                      <td className="text-emerald-400 font-bold">{g.present}</td>
+                      <td className="text-red-400 font-bold">{g.absent}</td>
+                      <td>
+                        <span className={`badge ${g.percent >= 80 ? "badge-green" : "badge-yellow"}`}>
+                          {g.percent}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
