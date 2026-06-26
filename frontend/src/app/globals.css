@@ -1387,3 +1387,13 @@ button.bg-red-600 span {
 :root:not(.dark) .text-slate-100:not(input):not(select):not(textarea) {
   color: #f1f5f9 !important;
 }
+
+/* Shaking animation for login error feedback */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.animate-shake {
+  animation: shake 0.2s ease-in-out 0s 2;
+}
