@@ -50,6 +50,7 @@ import teacherRoutes    from './routes/teacher.routes';
 import notificationRoutes from './routes/notification.routes';
 import classRoutes       from './routes/class.routes';
 import parentRoutes     from './routes/parent.routes';
+import centralContentRoutes from './routes/centralContent.routes';
 
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
@@ -112,6 +113,7 @@ app.use('/api/teacher',    teacherRoutes);
 app.use('/api/parent',     parentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/classes',    classRoutes);
+app.use('/api/centralized-content', centralContentRoutes);
 
 
 // ─── 404 Handler ─────────────────────────────────────────────

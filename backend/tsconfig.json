@@ -10,6 +10,11 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["../frontend/**/*", "node_modules"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "../frontend/**/*",
+    "node_modules"
+  ]
 }

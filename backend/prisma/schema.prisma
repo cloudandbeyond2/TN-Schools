@@ -732,3 +732,58 @@ model Notification {
 
   @@index([userId])
 }
+
+// ─── Centralized Content models ───────────────────────────────
+
+model CentralSubject {
+  id        String        @id @default(uuid())
+  class     String        // e.g. "10"
+  name      String        // e.g. "Mathematics"
+  icon      String?       // emoji or icon name
+  color     String?       // hex or color theme label
+  units     CentralUnit[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([class, name])
+}
+
+model CentralUnit {
+  id               String          @id @default(uuid())
+  subjectId        String
+  subject          CentralSubject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  name             String          // e.g. "Relations and Functions"
+  unitNumber       Int             // e.g. 1
+  topics           CentralTopic[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@unique([subjectId, unitNumber])
+}
+
+model CentralTopic {
+  id               String          @id @default(uuid())
+  unitId           String
+  unit             CentralUnit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  name             String          // e.g. "Cartesian Product"
+  topicNumber      Int             // e.g. 1
+  contents         CentralContent[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@unique([unitId, topicNumber])
+}
+
+model CentralContent {
+  id          String       @id @default(uuid())
+  topicId     String
+  topic       CentralTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  contentType String       // "PDF", "PPT", "SUMMARY", "NOTES", "MCQ"
+  title       String
+  fileUrl     String?      // external URL if any
+  fileContent String?      // Base64 file data or text content (notes/summary)
+  mcqs        Json?        // For MCQ type, store list of questions/options/answers as JSON
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+

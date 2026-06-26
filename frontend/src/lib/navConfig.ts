@@ -119,6 +119,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#10b981",
     navItems: [
       { label: "Dashboard", href: "/student/middle-school", icon: "🏠" },
+      { label: "Learning Hub", href: "/student/centralized-content", icon: "📚" },
       { label: "My Subjects", href: "/student/subjects", icon: "📖" },
       { label: "Homework", href: "/student/homework", icon: "📝" },
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "⚡" },
@@ -150,6 +151,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#ef4444",
     navItems: [
       { label: "Dashboard", href: "/student/high-school", icon: "🏠" },
+      { label: "Learning Hub", href: "/student/centralized-content", icon: "📚" },
       { label: "My Subjects", href: "/student/subjects", icon: "📖" },
       { label: "Homework", href: "/student/homework", icon: "📝" },
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "⚡" },
@@ -181,6 +183,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#8b5cf6",
     navItems: [
       { label: "Dashboard", href: "/student/higher-secondary", icon: "🏠" },
+      { label: "Learning Hub", href: "/student/centralized-content", icon: "📚" },
       { label: "My Subjects", href: "/student/subjects", icon: "📖" },
       { label: "Homework", href: "/student/homework", icon: "📝" },
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "⚡" },
