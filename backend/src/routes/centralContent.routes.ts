@@ -100,7 +100,7 @@ const fallbackUnits: Record<string, any[]> = {
       name: "Introduction to Computers",
       unitNumber: 1,
       topics: [
-        { id: "t1-comp-11", name: "Generations of Computers", topicNumber: 1 }
+        { id: "t1-comp-11", name: "Generations of Computers11", topicNumber: 1 }
       ]
     }
   ]
@@ -404,7 +404,7 @@ router.get('/subjects', async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.warn("⚠️ Database query failed, falling back to local seed data. Error:", err.message || err);
-    
+
     // Fail-safe: filter local mock data by class standard
     const filtered = fallbackSubjects.filter(sub => sub.class === String(req.query.class));
     res.json({
@@ -443,7 +443,7 @@ router.get('/subjects/:id/units', async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.warn(`⚠️ Database query failed for units of subject ${req.params.id}, falling back. Error:`, err.message || err);
-    
+
     // Fail-safe: retrieve from local mock map
     const subjectId = req.params.id;
     const units = fallbackUnits[subjectId] || [];
@@ -476,7 +476,7 @@ router.get('/topics/:id/contents', async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.warn(`⚠️ Database query failed for topic ${req.params.id} contents, falling back. Error:`, err.message || err);
-    
+
     // Fail-safe: retrieve from local mock map
     const topicId = req.params.id;
     const contents = fallbackContents[topicId] || [];

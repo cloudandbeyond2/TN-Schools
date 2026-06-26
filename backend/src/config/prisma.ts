@@ -15,3 +15,6 @@ if (process.env.NODE_ENV !== 'production') {
   global.prisma = prisma;
 }
 
+// Trigger nodemon restart after prisma client generation
+
+
