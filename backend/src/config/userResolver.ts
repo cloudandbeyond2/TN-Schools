@@ -50,7 +50,20 @@ export async function resolveUserId(userId: string): Promise<string | null> {
     });
 
     if (staff) {
-      return await ensureUser(staff.email, staff.name, 'TEACHER', staff.schoolId);
+      const resolvedId = await ensureUser(staff.email, staff.name, 'TEACHER', staff.schoolId);
+      // Persist the userId back to HeadmasterStaff for future lookups (avoids repeated User creation)
+      if (resolvedId && !staff.userId) {
+        try {
+          await prisma.headmasterStaff.update({
+            where: { id: staff.id },
+            data: { userId: resolvedId }
+          });
+        } catch (e) {
+          // Ignore unique constraint errors (another request may have set it already)
+          console.warn('[resolveUserId] Could not persist userId to HeadmasterStaff:', e);
+        }
+      }
+      return resolvedId;
     }
 
     // 3. Check if it belongs to HeadmasterParent
@@ -59,7 +72,19 @@ export async function resolveUserId(userId: string): Promise<string | null> {
     });
 
     if (parent) {
-      return await ensureUser(parent.email, parent.name, 'PARENT', parent.schoolId);
+      const resolvedId = await ensureUser(parent.email, parent.name, 'PARENT', parent.schoolId);
+      // Persist the userId back to HeadmasterParent for future lookups
+      if (resolvedId && !parent.userId) {
+        try {
+          await prisma.headmasterParent.update({
+            where: { id: parent.id },
+            data: { userId: resolvedId }
+          });
+        } catch (e) {
+          console.warn('[resolveUserId] Could not persist userId to HeadmasterParent:', e);
+        }
+      }
+      return resolvedId;
     }
 
     // 4. Check if it belongs to HeadmasterTempStaff

@@ -39,10 +39,13 @@ router.post('/students', async (req: Request, res: Response) => {
     if (!name || !rollNumber) {
       return res.status(400).json({ success: false, error: 'name and rollNumber are required' });
     }
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required' });
+    }
 
     const cleanRoll  = String(rollNumber).trim();
     const cleanPhone = String(phone || '').trim();
-    const resolvedSchoolId = schoolId || 'a423cb72-6ef7-48ab-b4ac-d26bdc934b4d';
+    const resolvedSchoolId = schoolId;
 
     // 1. Check if student already exists in Student table
     const existingStudent = await prisma.student.findFirst({
@@ -74,7 +77,7 @@ router.post('/students', async (req: Request, res: Response) => {
         }
       });
 
-      await tx.student.create({
+      const student = await tx.student.create({
         data: {
           userId: user.id,
           schoolId: resolvedSchoolId,
@@ -98,7 +101,8 @@ router.post('/students', async (req: Request, res: Response) => {
           city: city || 'N/A',
           pincode: pincode || 'N/A',
           risk: risk || 'Medium',
-          schoolId: resolvedSchoolId,
+          student: { connect: { id: student.id } },   // Formal FK link to Student
+          school: resolvedSchoolId ? { connect: { id: resolvedSchoolId } } : undefined,
         }
       });
 
@@ -125,10 +129,11 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
 
     for (const s of students) {
       if (!s.name || !s.rollNumber) { skippedCount++; continue; }
+      if (!s.schoolId) { skippedCount++; continue; }
 
       const cleanRoll  = String(s.rollNumber).trim();
       const cleanPhone = String(s.phone || '').trim();
-      const resolvedSchoolId = s.schoolId || 'a423cb72-6ef7-48ab-b4ac-d26bdc934b4d';
+      const resolvedSchoolId = s.schoolId;
 
       // Skip duplicates
       const existingStudent = await prisma.student.findFirst({
@@ -159,7 +164,7 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
             }
           });
 
-          await tx.student.create({
+          const bulkStudent = await tx.student.create({
             data: {
               userId: user.id,
               schoolId: resolvedSchoolId,
@@ -183,7 +188,8 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
               city: s.city || 'N/A',
               pincode: s.pincode || 'N/A',
               risk: s.risk || 'Medium',
-              schoolId: resolvedSchoolId,
+              student: { connect: { id: bulkStudent.id } },   // Formal FK link to Student
+              school: resolvedSchoolId ? { connect: { id: resolvedSchoolId } } : undefined,
             }
           });
         });
@@ -814,6 +820,96 @@ router.get('/parents/:id/linked-students', async (req: Request, res: Response) =
       })),
     });
   } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+/* ------------------- HEADMASTER PROFILE ROUTES ------------------- */
+
+// GET /api/headmaster/profile/:userId — Fetch profile by User ID
+router.get('/profile/:userId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const profile = await prisma.headmasterProfile.findUnique({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            mobile: true,
+            isActive: true,
+          }
+        },
+        school: {
+          select: {
+            name: true,
+            dise: true,
+            district: true,
+            block: true,
+          }
+        }
+      }
+    });
+
+    if (!profile) {
+      return res.status(404).json({ success: false, error: 'Headmaster profile not found' });
+    }
+
+    res.json({ success: true, data: profile });
+  } catch (err) {
+    console.error('Error fetching headmaster profile:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/profile — Create or Upsert profile
+router.post('/profile', async (req: Request, res: Response) => {
+  try {
+    const { userId, schoolId, employeeId, joiningDate, address, gender, dob } = req.body;
+
+    if (!userId || !schoolId) {
+      return res.status(400).json({ success: false, error: 'userId and schoolId are required' });
+    }
+
+    const profile = await prisma.headmasterProfile.upsert({
+      where: { userId },
+      update: {
+        schoolId,
+        employeeId: employeeId || null,
+        joiningDate: joiningDate ? new Date(joiningDate) : null,
+        address: address || null,
+        gender: gender || null,
+        dob: dob ? new Date(dob) : null,
+      },
+      create: {
+        userId,
+        schoolId,
+        employeeId: employeeId || null,
+        joiningDate: joiningDate ? new Date(joiningDate) : null,
+        address: address || null,
+        gender: gender || null,
+        dob: dob ? new Date(dob) : null,
+      }
+    });
+
+    res.status(201).json({ success: true, data: profile });
+  } catch (err) {
+    console.error('Error upserting headmaster profile:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/headmaster/profile/:id — Delete profile by profile ID
+router.delete('/profile/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.headmasterProfile.delete({
+      where: { id }
+    });
+    res.json({ success: true, message: 'Headmaster profile deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting headmaster profile:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });
