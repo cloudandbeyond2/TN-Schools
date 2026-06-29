@@ -588,9 +588,9 @@ export default function ScienceLabsPage() {
           {/* Roster & Live Students */}
           <div className="glass rounded-2xl border border-slate-800 p-6 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <h3 className="font-bold text-white text-base">👥 Student Workspace Monitor</h3>
-                <span className="text-[10px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded-full self-start sm:self-auto">
                   {liveStudents.length} Online
                 </span>
               </div>
@@ -644,16 +644,16 @@ export default function ScienceLabsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Lab Sessions */}
         <div className="lg:col-span-2 theme-card p-6">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <h2 className="text-base font-semibold text-[var(--text-heading)]">🧪 Experimental Lab Sessions</h2>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-start">
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="btn-primary py-1 px-3 text-[11px] font-bold rounded-lg shadow-none"
+                className="bg-[var(--portal-color,var(--primary))] hover:brightness-95 text-white py-1.5 px-3 text-[11px] font-bold rounded-lg shadow-sm transition-all active:scale-95 inline-flex items-center justify-center whitespace-nowrap"
               >
                 {showAddForm ? "Cancel" : "+ Schedule Lab"}
               </button>
-              <span className="text-xs font-medium text-[var(--text-muted)] bg-[var(--bg-main)] px-2.5 py-1 rounded-full">
+              <span className="text-xs font-medium text-[var(--text-muted)] bg-[var(--bg-main)] px-2.5 py-1 rounded-full whitespace-nowrap">
                 Active: {experiments.filter((e) => e.status === "active").length}
               </span>
             </div>
@@ -695,7 +695,7 @@ export default function ScienceLabsPage() {
                   required
                 />
               </div>
-              <button type="submit" className="btn-primary py-1.5 px-4 text-xs font-semibold rounded-lg shadow-none">
+              <button type="submit" className="bg-[var(--portal-color,var(--primary))] hover:brightness-95 text-white py-1.5 px-4 text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95 inline-flex items-center justify-center">
                 Schedule Session
               </button>
             </form>
@@ -764,7 +764,7 @@ export default function ScienceLabsPage() {
                     {exp.status === "scheduled" && (
                       <button
                         onClick={() => startSession(exp)}
-                        className="btn-primary py-1.5 text-[11px] px-4 shadow-none hover:shadow-[var(--primary-shadow-1)] bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold"
+                        className="bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-950 py-1.5 px-4 text-[11px] font-bold rounded-lg shadow-sm transition-all inline-flex items-center justify-center whitespace-nowrap"
                       >
                         Start Session
                       </button>

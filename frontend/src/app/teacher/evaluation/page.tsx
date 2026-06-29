@@ -154,13 +154,12 @@ export default function EvaluationPage() {
           <span>✅</span> {toastMessage}
         </div>
       )}
-
       {loading ? (
         <div className="text-center py-12 text-xs text-[var(--text-muted)]">Loading AI evaluation queue...</div>
       ) : submissions.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           {/* Submissions List Panel */}
-          <div className="lg:col-span-1 flex flex-col gap-4">
+          <div className="xl:col-span-1 flex flex-col gap-4">
             <div className="theme-card p-4">
               <h3 className="text-[var(--text-heading)] font-semibold text-xs mb-3 uppercase tracking-wider">📄 Submissions</h3>
               
@@ -199,10 +198,10 @@ export default function EvaluationPage() {
               </div>
             </div>
           </div>
-
+ 
           {/* Evaluation Desk */}
           {selectedSub && (
-            <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="xl:col-span-3 grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Student Answer Sheet (Digitized) */}
               <div className="theme-card p-5 flex flex-col h-[500px]">
                 <div className="flex items-center gap-2 border-b border-[var(--border)] pb-3 mb-4">
