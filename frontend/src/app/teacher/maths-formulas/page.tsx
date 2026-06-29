@@ -413,11 +413,15 @@ export default function MathsFormulasPage() {
     setTimeout(() => setToastMsg(""), 3000);
   };
 
-  const handleCopy = (e: React.MouseEvent, id: number) => {
+  const handleCopy = (e: React.MouseEvent, id: number, textToCopy: string) => {
     e.stopPropagation();
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-    showToast("Formula magically copied! ✨");
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+      showToast("Formula magically copied! ✨");
+    }).catch(() => {
+      showToast("Failed to copy formula 😢");
+    });
   };
 
   const openSandbox = (formula: any, cat: any) => {
@@ -582,7 +586,7 @@ export default function MathsFormulasPage() {
                      </span>
                      
                      <button 
-                       onClick={(e) => handleCopy(e, formula.id)}
+                       onClick={(e) => handleCopy(e, formula.id, formula.formula)}
                        className="absolute top-4 right-4 p-2 rounded-xl bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all shadow-sm active:scale-95 z-10"
                        title="Copy Formula"
                      >
