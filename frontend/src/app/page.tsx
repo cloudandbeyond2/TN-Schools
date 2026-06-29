@@ -678,12 +678,12 @@ export default function HomePage() {
                         <div style={{ fontSize: "15px", fontWeight: 700, color: "#111827", marginBottom: "2px" }}>{portal.label}</div>
                         <div style={{ fontSize: "11px", color: pColor.text, fontWeight: 600, background: pColor.bg, padding: "2px 8px", borderRadius: "100px", display: "inline-block" }}>
                           {portal.href === "/student" ? "Class 6–12" :
-                           portal.href === "/teacher" ? "All Teachers" :
-                           portal.href === "/parent" ? "All Parents" :
-                           portal.href === "/headmaster" ? "School Head" :
-                           portal.href === "/block-education-officer" ? "BEO" :
-                           portal.href === "/district-education-officer" ? "DEO" :
-                           portal.href === "/commissioner" ? "Commissioner" : "Minister"}
+                            portal.href === "/teacher" ? "All Teachers" :
+                              portal.href === "/parent" ? "All Parents" :
+                                portal.href === "/headmaster" ? "School Head" :
+                                  portal.href === "/block-education-officer" ? "BEO" :
+                                    portal.href === "/district-education-officer" ? "DEO" :
+                                      portal.href === "/commissioner" ? "Commissioner" : "Minister"}
                         </div>
                       </div>
                     </div>
@@ -741,7 +741,7 @@ export default function HomePage() {
                 </div>
                 <p style={{ fontSize: "13px", color: "#374151", lineHeight: 1.7, fontStyle: "italic", margin: 0 }}>"{t.text}"</p>
                 <div style={{ display: "flex", gap: "2px", marginTop: "12px" }}>
-                  {[1,2,3,4,5].map(s => <span key={s} style={{ color: "#FFB800", fontSize: "14px" }}>★</span>)}
+                  {[1, 2, 3, 4, 5].map(s => <span key={s} style={{ color: "#FFB800", fontSize: "14px" }}>★</span>)}
                 </div>
               </motion.div>
             ))}

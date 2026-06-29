@@ -242,6 +242,19 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Announcements", href: "/teacher/announcements", icon: "📢" },
       { label: "Leave Requests", href: "/teacher/leave", icon: "📄" },
       { label: "Club Events", href: "/teacher/events", icon: "📅" },
+
+      // Interactive Modules & Centers
+      { label: "Interactive Modules", href: "#", icon: "" },
+      { label: "Science Draw Mat", href: "/teacher/science-draw-mat", icon: "🔬" },
+      { label: "Maths Formulas", href: "/teacher/maths-formulas", icon: "➗" },
+      { label: "Language Coaching", href: "/teacher/language-coaching", icon: "🗣️" },
+      { label: "Science Lab Support", href: "/teacher/science-lab-support", icon: "🧪" },
+      { label: "Chemistry Lab", href: "/teacher/chemistry-lab", icon: "⚗️" },
+      { label: "Zoology Centre", href: "/teacher/zoology-centre", icon: "🐸" },
+      { label: "3D Preview", href: "/teacher/3d-preview", icon: "🧊" },
+      { label: "Celebrations", href: "/teacher/celebrations", icon: "🎉" },
+      { label: "Cultural Events", href: "/teacher/cultural-events", icon: "🎭" },
+      { label: "Computer Education", href: "/teacher/computer-education", icon: "💻" },
     ],
   },
   PARENT: {
