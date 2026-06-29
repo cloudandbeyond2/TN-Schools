@@ -538,84 +538,11 @@ export default function StudyPlanPage() {
       themeClass="theme-student"
       accentColor="#6366f1"
     >
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 h-[calc(100vh-160px)] overflow-hidden">
+      <div className="flex flex-col xl:flex-row gap-6 h-auto xl:h-[calc(100vh-160px)] xl:overflow-hidden pb-10 xl:pb-0">
         
         {/* Panel 1: Configuration & Sources (Left) */}
-        <div className="xl:col-span-1 border-r border-slate-200 dark:border-slate-800 pr-6 overflow-y-auto h-full space-y-6 scrollbar-thin">
-          <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent">
-            <h3 className="text-black dark:text-white font-bold text-xs mb-3 flex items-center gap-2">
-              <span>⚡</span> Self-Study Setup
-            </h3>
+        <div className="w-full xl:w-1/4 xl:border-r border-slate-200 dark:border-slate-800 xl:pr-6 overflow-y-visible xl:overflow-y-auto h-auto xl:h-full space-y-6 scrollbar-thin shrink-0">
 
-            <form onSubmit={handleGenerate} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-semibold text-slate-500 block mb-1">Grade</label>
-                  <select
-                    value={selectedGrade}
-                    disabled
-                    className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1.5 text-xs text-slate-500 dark:text-slate-400 cursor-not-allowed focus:outline-none"
-                  >
-                    <option value={selectedGrade}>{selectedGrade}</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-semibold text-slate-500 block mb-1">Subject</label>
-                  <select
-                    value={selectedSubject}
-                    onChange={(e) => setSelectedSubject(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1.5 text-xs text-black dark:text-white focus:outline-none focus:border-indigo-500"
-                  >
-                    {subjects.map(s => <option key={s}>{s}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-semibold text-slate-500 block mb-1">Topic / Chapter Name</label>
-                <input
-                  type="text"
-                  required
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  placeholder="e.g. Algebra Rules"
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-black dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              {/* Textbook PDF file upload */}
-              <div>
-                <label className="text-[10px] font-semibold text-slate-500 block mb-1">📖 Upload Chapter PDF</label>
-                <div className="flex gap-2">
-                  <input
-                    type="file"
-                    accept=".pdf,.txt"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="pdf-upload"
-                  />
-                  <label
-                    htmlFor="pdf-upload"
-                    className="flex-1 bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-350 hover:border-indigo-500 rounded-xl px-3 py-2 text-xs text-slate-550 cursor-pointer flex items-center justify-center gap-2 truncate"
-                  >
-                    {isReadingFile ? "⏳ Extracting..." : fileName ? `📄 ${fileName.substring(0, 12)}...` : "📁 Choose PDF..."}
-                  </label>
-                </div>
-                {uploadedText && (
-                  <span className="text-[9px] text-emerald-600 dark:text-emerald-400 block mt-1">✓ PDF context successfully loaded.</span>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={isGenerating}
-                className="w-full mt-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-850 text-xs font-bold text-white transition-colors flex items-center justify-center gap-2 shadow-lg"
-              >
-                {isGenerating ? "Synthesizing..." : "⚡ Generate My Study Plan"}
-              </button>
-            </form>
-          </div>
 
           {/* Teacher assigned plans list */}
           <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent">
@@ -658,7 +585,7 @@ export default function StudyPlanPage() {
         </div>
 
         {/* Panel 2 & 3: Middle Section (Document View & AI Chat) */}
-        <div className="xl:col-span-2 px-2 overflow-y-auto h-full flex flex-col justify-between space-y-4">
+        <div className="w-full xl:w-2/4 px-0 xl:px-2 overflow-y-visible xl:overflow-y-auto h-[700px] xl:h-full flex flex-col justify-between space-y-4 shrink-0">
           {isGenerating ? (
             <div className="glass rounded-3xl p-12 border border-slate-250 dark:border-slate-700/50 text-center flex-grow flex flex-col items-center justify-center bg-white dark:bg-transparent">
               <div className="w-12 h-12 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin mb-6" />
@@ -763,7 +690,7 @@ export default function StudyPlanPage() {
         </div>
 
         {/* Panel 3: Studio Tools list per unit (Right) */}
-        <div className="xl:col-span-1 border-l border-slate-200 dark:border-slate-800 pl-6 overflow-y-auto h-full space-y-4 scrollbar-thin">
+        <div className="w-full xl:w-1/4 xl:border-l border-slate-200 dark:border-slate-800 xl:pl-6 overflow-y-visible xl:overflow-y-auto h-auto xl:h-full space-y-4 scrollbar-thin shrink-0">
           <h2 className="text-black dark:text-white font-bold text-xs flex items-center gap-2 mb-2 px-1">
             <span>🎨</span> Intelligence Studio
           </h2>
@@ -890,7 +817,7 @@ export default function StudyPlanPage() {
 
       {/* Studio Tool Overlays */}
       {activeStudioTool && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 sm:p-8">
           <div className="w-full max-w-6xl rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
             
             {/* Header */}
