@@ -307,6 +307,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       { label: "Extra Curricular & Info", href: "#", icon: "" },
       { label: "School Events", href: "/headmaster/events", icon: "🎉" },
+      { label: "Celebrations", href: "/headmaster/celebrations", icon: "🥳" },
       { label: "Media Gallery", href: "/headmaster/gallery", icon: "🖼️" },
       { label: "Rewards & Honors", href: "/headmaster/rewards", icon: "🏆" },
       { label: "School History", href: "/headmaster/history", icon: "📜" },

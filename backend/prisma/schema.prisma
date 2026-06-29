@@ -99,6 +99,7 @@ model School {
   clubs                 Club[]
   clubEvents            ClubEvent[]
   messages              Message[]
+  celebrations          Celebration[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 }
@@ -886,5 +887,19 @@ model Message {
   createdAt DateTime         @default(now())
 
   @@index([parentId])
+  @@index([schoolId])
+}
+
+model Celebration {
+  id          String   @id @default(uuid())
+  title       String
+  date        DateTime
+  description String?
+  type        String   @default("EVENT") // "EVENT" or "HOLIDAY"
+  schoolId    String?
+  school      School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   @@index([schoolId])
 }
