@@ -308,37 +308,48 @@ function StudioViewContent() {
         )}
 
         {tool === "video" && (
-          <div className="max-w-6xl mx-auto w-full h-full flex flex-col gap-6 py-4">
-            <div className={`flex-1 ${isDarkMode ? 'bg-black' : 'bg-slate-100'} rounded-[3rem] overflow-hidden relative flex flex-col justify-center items-center p-8 sm:p-16 border-4 ${isDarkMode ? 'border-slate-800' : 'border-slate-300'} shadow-2xl`}>
-               <div className={`absolute top-8 left-8 px-4 py-2 ${isDarkMode ? 'bg-white/10' : 'bg-slate-900/10'} rounded-2xl text-sm font-black tracking-widest ${theme.text} border ${isDarkMode ? 'border-white/20' : 'border-slate-900/10'} backdrop-blur-md uppercase`}>
-                 Scene {videoScene + 1}
-               </div>
-               
-               <div className="flex-1 flex items-center justify-center">
-                 <h4 className={`${theme.text} text-3xl sm:text-5xl font-black max-w-4xl text-center leading-tight drop-shadow-sm`}>
-                   {currentPlan.planData?.videoStoryboard?.[videoScene]?.visualDescription}
-                 </h4>
-               </div>
+          <div className="max-w-4xl mx-auto w-full h-full flex flex-col justify-center gap-6 py-8">
+            <div className={`w-full rounded-[2rem] p-8 sm:p-12 relative flex flex-col items-center text-center ${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'} shadow-sm`}>
+              
+              <div className={`absolute top-6 left-6 px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase ${isDarkMode ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} shadow-sm`}>
+                Scene {videoScene + 1}
+              </div>
+              
+              <div className="w-full aspect-video max-w-3xl mx-auto rounded-3xl overflow-hidden relative mt-8 mb-8 group bg-slate-900 border border-slate-700/20 shadow-2xl">
+                <img 
+                  src={`https://image.pollinations.ai/prompt/${encodeURIComponent((currentPlan.planData?.videoStoryboard?.[videoScene]?.visualDescription || "educational scene") + ", highly detailed, 3d, cinematic, beautiful educational animation style, vibrant")}?width=1280&height=720&nologo=true`} 
+                  alt="Generated Scene"
+                  className="w-full h-full object-cover transition-transform duration-[10000ms] ease-linear scale-100 group-hover:scale-110"
+                />
+                
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 pt-16 flex flex-col items-center justify-end text-center pointer-events-none">
+                  <p className="text-white/90 text-sm md:text-base font-semibold max-w-2xl drop-shadow-md">
+                     {currentPlan.planData?.videoStoryboard?.[videoScene]?.visualDescription}
+                  </p>
+                </div>
+              </div>
 
-               <div className={`${isDarkMode ? 'bg-white/10 border-white/20' : 'bg-white/60 border-white'} backdrop-blur-xl p-8 rounded-3xl text-center max-w-3xl w-full shadow-2xl mt-8 border`}>
-                 <p className={`${theme.text} text-xl sm:text-2xl font-medium leading-relaxed mb-4 drop-shadow-sm`}>
-                   {currentPlan.planData?.videoStoryboard?.[videoScene]?.narrationText}
-                 </p>
-                 <p className="text-amber-500 font-tamil font-bold text-lg drop-shadow-sm">
-                   {currentPlan.planData?.videoStoryboard?.[videoScene]?.subtitles}
-                 </p>
-               </div>
+              <div className={`w-full max-w-xl rounded-2xl p-8 text-sm sm:text-base leading-relaxed text-center shadow-lg ${isDarkMode ? 'bg-slate-900 text-slate-300' : 'bg-white text-slate-500'}`}>
+                <p className="mb-6">
+                  {currentPlan.planData?.videoStoryboard?.[videoScene]?.narrationText}
+                </p>
+                <p className="font-tamil">
+                  {currentPlan.planData?.videoStoryboard?.[videoScene]?.subtitles}
+                </p>
+              </div>
+
             </div>
             
-            <div className={`p-6 rounded-3xl ${theme.bgCard} border ${theme.border} shadow-lg flex flex-col sm:flex-row justify-between items-center gap-6 shrink-0`}>
+            {/* Control Bar */}
+            <div className={`flex items-center justify-between p-2 rounded-full ${isDarkMode ? 'bg-slate-800' : 'bg-white'} shadow-sm border ${theme.border}`}>
               <button 
                 onClick={() => toggleVideoPlayback(currentPlan.planData?.videoStoryboard || [])} 
-                className={`w-full sm:w-auto px-10 py-4 bg-rose-500 hover:bg-rose-600 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-xl hover:shadow-rose-500/30 transition-all hover:-translate-y-1`}
+                className={`px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white font-black text-[10px] uppercase tracking-widest rounded-full transition-all`}
               >
-                {isVideoPlaying ? "Pause Video Simulation" : "Play Video Simulation"}
+                {isVideoPlaying ? "PAUSE VIDEO SIMULATION" : "PLAY VIDEO SIMULATION"}
               </button>
               
-              <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 pr-2">
                  {currentPlan.planData?.videoStoryboard?.map((s:any, idx:number) => (
                    <button 
                      key={idx} 
@@ -347,9 +358,9 @@ function StudioViewContent() {
                        setIsVideoPlaying(false); 
                        setVideoScene(idx); 
                      }} 
-                     className={`w-12 h-12 rounded-2xl font-black transition-all ${videoScene === idx ? 'bg-rose-500 text-white shadow-lg scale-110' : `${isDarkMode?'bg-slate-800 hover:bg-slate-700':'bg-slate-200 hover:bg-slate-300'} ${theme.text}`}`}
+                     className={`w-8 h-8 rounded-full font-black text-xs transition-all flex items-center justify-center ${videoScene === idx ? 'bg-rose-500 text-white' : `${isDarkMode?'bg-slate-700 hover:bg-slate-600':'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}`}
                    >
-                     {s.sceneNumber}
+                     {idx + 1}
                    </button>
                  ))}
               </div>

@@ -17,7 +17,7 @@ const steps = [
   "Structuring pedagogical activities (Hook, Core, Evaluation)...",
   "Translating technical terminology to Tamil...",
   "Generating concept slides & visual infographics...",
-  "Synthesizing audio script and video storyboard...",
+  "Synthesizing audio script and generating AI video...",
 ];
 
 interface LessonPlan {
@@ -883,7 +883,7 @@ export default function LessonPlannerPage() {
                       { id: "slides", label: "Slide Deck", icon: "🖼️", desc: "Interactive concept slides", bg: "from-blue-500 to-indigo-600" },
                       { id: "visualExplain", label: "Infographic", icon: "📊", desc: "Interactive visual mapping", bg: "from-emerald-400 to-teal-500" },
                       { id: "podcast", label: "Audio Podcast", icon: "🎙️", desc: "AI generated host summary", bg: "from-amber-400 to-orange-500" },
-                      { id: "video", label: "Video Storyboard", icon: "🎥", desc: "Animated lecture simulation", bg: "from-rose-400 to-red-500" },
+                      { id: "video", label: "Generate Video", icon: "🎥", desc: "Animated lecture simulation", bg: "from-rose-400 to-red-500" },
                       { id: "bilingual", label: "Bilingual Glossary", icon: "🌐", desc: "Tamil translation matrix", bg: "from-violet-500 to-purple-600" },
                       { id: "assessment", label: "Exit Tickets", icon: "✍️", desc: "Quick assessment MCQs", bg: "from-cyan-400 to-blue-500" }
                     ].map((tool) => (
