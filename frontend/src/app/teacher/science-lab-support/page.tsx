@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
-import { 
-  Beaker, 
-  Settings, 
-  AlertTriangle, 
-  Wrench, 
+import {
+  Beaker,
+  Settings,
+  AlertTriangle,
+  Wrench,
   ClipboardCheck,
   Package,
   PlusCircle,
@@ -43,7 +43,7 @@ export default function ScienceLabSupportPage() {
     const location = formData.get("location") as string;
     const count = parseInt(formData.get("count") as string) || 0;
     const status = formData.get("status") as string;
-    
+
     setInventory([...inventory, { id: Date.now(), item, location, count, status, icon: <Package />, color: "indigo" }]);
     setModalOpen(false);
     showToast("Awesome! New item added to the lab! 🧪");
@@ -55,7 +55,7 @@ export default function ScienceLabSupportPage() {
       subtitle="Discover cool equipment, run safe experiments, and explore!"
     >
       <div className="flex flex-col gap-8">
-        
+
         {/* Playful Top Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-lg border-4 border-emerald-100 dark:border-slate-700 flex items-center justify-between hover:scale-105 transition-all">
@@ -68,7 +68,7 @@ export default function ScienceLabSupportPage() {
               <Zap className="w-8 h-8" />
             </div>
           </div>
-          
+
           <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-lg border-4 border-amber-100 dark:border-slate-700 flex items-center justify-between hover:scale-105 transition-all">
             <div>
               <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Broken Stuff</p>
@@ -79,7 +79,7 @@ export default function ScienceLabSupportPage() {
               <Wrench className="w-8 h-8" />
             </div>
           </div>
-          
+
           <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-lg border-4 border-blue-100 dark:border-slate-700 flex items-center justify-between hover:scale-105 transition-all">
             <div>
               <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Next Inspection</p>
@@ -94,38 +94,35 @@ export default function ScienceLabSupportPage() {
 
         {/* Main Content Area */}
         <div className="bg-white dark:bg-slate-800 p-2 rounded-[2.5rem] shadow-xl border-4 border-slate-100 dark:border-slate-700 overflow-hidden">
-          
+
           {/* Playful Tabs */}
           <div className="flex bg-slate-50 dark:bg-slate-900 rounded-[2rem] p-2 mb-4 gap-2 overflow-x-auto hide-scrollbar">
-            <button 
+            <button
               onClick={() => setActiveTab("inventory")}
-              className={`flex-1 min-w-[150px] px-6 py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-3 transition-all ${
-                activeTab === "inventory" 
-                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 scale-105" 
-                  : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 border-2 border-slate-100 dark:border-slate-700"
-              }`}
+              className={`flex-1 min-w-[150px] px-6 py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-3 transition-all ${activeTab === "inventory"
+                ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 scale-105"
+                : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 border-2 border-slate-100 dark:border-slate-700"
+                }`}
             >
               <Package className="w-5 h-5" />
               Treasure Chest
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("maintenance")}
-              className={`flex-1 min-w-[150px] px-6 py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-3 transition-all ${
-                activeTab === "maintenance" 
-                  ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105" 
-                  : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-amber-50 hover:text-amber-600 border-2 border-slate-100 dark:border-slate-700"
-              }`}
+              className={`flex-1 min-w-[150px] px-6 py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-3 transition-all ${activeTab === "maintenance"
+                ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105"
+                : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-amber-50 hover:text-amber-600 border-2 border-slate-100 dark:border-slate-700"
+                }`}
             >
               <Settings className="w-5 h-5" />
               Fix-It Logs
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("safety")}
-              className={`flex-1 min-w-[150px] px-6 py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-3 transition-all ${
-                activeTab === "safety" 
-                  ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30 scale-105" 
-                  : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-rose-50 hover:text-rose-600 border-2 border-slate-100 dark:border-slate-700"
-              }`}
+              className={`flex-1 min-w-[150px] px-6 py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-3 transition-all ${activeTab === "safety"
+                ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30 scale-105"
+                : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-rose-50 hover:text-rose-600 border-2 border-slate-100 dark:border-slate-700"
+                }`}
             >
               <ClipboardCheck className="w-5 h-5" />
               Safety Rules
@@ -139,71 +136,70 @@ export default function ScienceLabSupportPage() {
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
                   <div className="relative w-full sm:w-1/2">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400 font-bold" />
-                    <input 
-                      type="text" 
-                      placeholder="Search for cool lab stuff..." 
+                    <input
+                      type="text"
+                      placeholder="Search for cool lab stuff..."
                       className="w-full bg-slate-50 dark:bg-slate-900 border-4 border-emerald-100 dark:border-slate-700 text-emerald-900 dark:text-emerald-100 rounded-3xl py-3 pl-12 pr-4 text-base font-bold focus:outline-none focus:ring-4 focus:ring-emerald-300 transition-all shadow-inner placeholder:text-emerald-300 dark:placeholder:text-emerald-700"
                     />
                   </div>
-                  <button onClick={() => setModalOpen(true)} className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-400 to-teal-500 text-white text-sm font-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-emerald-500/30">
-                    <PlusCircle className="w-5 h-5" /> Add New Gear!
+                  <button onClick={() => setModalOpen(true)} className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-400 to-teal-500 text-sm font-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-emerald-500/30">
+                    <PlusCircle className="w-5 h-5 text-black" /> Add New Gear!
                   </button>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                   {inventory.map((item, idx) => (
-                      <div key={idx} className={`bg-white dark:bg-slate-900 p-6 rounded-[2rem] border-4 border-${item.color}-100 dark:border-slate-700 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all group flex flex-col relative overflow-hidden`}>
-                         <div className={`absolute top-0 right-0 p-4 opacity-5 pointer-events-none scale-[3] -translate-y-1/4 translate-x-1/4 text-${item.color}-500`}>
-                           {item.icon}
-                         </div>
-                         
-                         <div className="flex justify-between items-start mb-4 relative z-10">
-                            <div className={`w-14 h-14 rounded-2xl bg-${item.color}-100 text-${item.color}-600 flex items-center justify-center shadow-inner group-hover:scale-110 group-hover:rotate-6 transition-transform`}>
-                               {React.cloneElement(item.icon as React.ReactElement, { className: "w-7 h-7" })}
-                            </div>
-                            <span className={`text-[10px] font-black px-3 py-1.5 rounded-xl border-2 ${
-                              item.status === 'Good' ? 'bg-emerald-100 text-emerald-600 border-emerald-200' :
-                              item.status === 'Low Stock' ? 'bg-amber-100 text-amber-600 border-amber-200' :
-                              'bg-rose-100 text-rose-600 border-rose-200'
-                            }`}>
-                              {item.status}
-                            </span>
-                         </div>
-                         
-                         <h4 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-2 relative z-10">{item.item}</h4>
-                         <p className="text-sm font-bold text-slate-500 mb-6 flex items-center gap-2 relative z-10">
-                            📍 {item.location}
-                         </p>
-                         
-                         <div className="mt-auto flex items-center justify-between pt-4 border-t-2 border-slate-100 dark:border-slate-700 relative z-10">
-                            <div className="flex flex-col">
-                               <span className="text-[10px] font-black uppercase text-slate-400">Quantity</span>
-                               <span className="text-2xl font-black text-slate-700 dark:text-slate-300">{item.count}</span>
-                            </div>
-                            <button onClick={() => showToast(`Opening settings for ${item.item}... ⚙️`)} className={`w-10 h-10 rounded-xl bg-${item.color}-50 hover:bg-${item.color}-100 flex items-center justify-center text-${item.color}-600 transition-colors active:scale-95`}>
-                               <Settings className="w-5 h-5" />
-                            </button>
-                         </div>
+                  {inventory.map((item, idx) => (
+                    <div key={idx} className={`bg-white dark:bg-slate-900 p-6 rounded-[2rem] border-4 border-${item.color}-100 dark:border-slate-700 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all group flex flex-col relative overflow-hidden`}>
+                      <div className={`absolute top-0 right-0 p-4 opacity-5 pointer-events-none scale-[3] -translate-y-1/4 translate-x-1/4 text-${item.color}-500`}>
+                        {item.icon}
                       </div>
-                   ))}
+
+                      <div className="flex justify-between items-start mb-4 relative z-10">
+                        <div className={`w-14 h-14 rounded-2xl bg-${item.color}-100 text-${item.color}-600 flex items-center justify-center shadow-inner group-hover:scale-110 group-hover:rotate-6 transition-transform`}>
+                          {React.cloneElement(item.icon as React.ReactElement, { className: "w-7 h-7" })}
+                        </div>
+                        <span className={`text-[10px] font-black px-3 py-1.5 rounded-xl border-2 ${item.status === 'Good' ? 'bg-emerald-100 text-emerald-600 border-emerald-200' :
+                          item.status === 'Low Stock' ? 'bg-amber-100 text-amber-600 border-amber-200' :
+                            'bg-rose-100 text-rose-600 border-rose-200'
+                          }`}>
+                          {item.status}
+                        </span>
+                      </div>
+
+                      <h4 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-2 relative z-10">{item.item}</h4>
+                      <p className="text-sm font-bold text-slate-500 mb-6 flex items-center gap-2 relative z-10">
+                        📍 {item.location}
+                      </p>
+
+                      <div className="mt-auto flex items-center justify-between pt-4 border-t-2 border-slate-100 dark:border-slate-700 relative z-10">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-black uppercase text-slate-400">Quantity</span>
+                          <span className="text-2xl font-black text-slate-700 dark:text-slate-300">{item.count}</span>
+                        </div>
+                        <button onClick={() => showToast(`Opening settings for ${item.item}... ⚙️`)} className={`w-10 h-10 rounded-xl bg-${item.color}-50 hover:bg-${item.color}-100 flex items-center justify-center text-${item.color}-600 transition-colors active:scale-95`}>
+                          <Settings className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
-            
+
             {activeTab !== "inventory" && (
               <div className="py-20 flex flex-col items-center justify-center text-center">
                 <div className="w-24 h-24 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                   <FileText className="w-12 h-12 text-slate-400" />
+                  <FileText className="w-12 h-12 text-slate-400" />
                 </div>
                 <h3 className="text-2xl font-black text-slate-700 dark:text-slate-300">Building this section! 🚧</h3>
                 <p className="text-base font-bold text-slate-500 mt-2">Check back soon for more cool stuff.</p>
               </div>
             )}
           </div>
-          
+
         </div>
       </div>
-      
+
       {/* Playful Toast Notification */}
       {toastMsg && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl shadow-emerald-500/20 text-base font-bold animate-[bounce_0.5s_ease-out] z-50 flex items-center gap-2 border-4 border-emerald-500/30">
