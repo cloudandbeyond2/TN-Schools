@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
+import { Activity, Eye, Stethoscope, FileText, PlusCircle } from "lucide-react";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -112,6 +113,80 @@ export default function StudentsMonitoringPage() {
   const [previewStudents, setPreviewStudents] = useState<ParsedPreviewStudent[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Health report state
+  const [healthReports, setHealthReports] = useState<Record<string, any>>({});
+  const [isHealthModalOpen, setIsHealthModalOpen] = useState(false);
+  const [isViewHealthModalOpen, setIsViewHealthModalOpen] = useState(false);
+  const [selectedStudentForHealth, setSelectedStudentForHealth] = useState<WatchlistStudent | null>(null);
+  const [healthForm, setHealthForm] = useState({ height: "", weight: "", bloodGroup: "", vision: "", hearing: "", bmi: "", dental: "", lastCheckupDate: "", notes: "" });
+
+  const fetchHealthReport = async (rollNumber: string, id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/headmaster/health/${rollNumber}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setHealthReports(prev => ({ ...prev, [id]: json.data }));
+        return json.data;
+      }
+    } catch (e) {
+      console.error("Failed to fetch health report", e);
+    }
+    return null;
+  };
+
+  const handleOpenHealthModal = async (student: WatchlistStudent) => {
+    setSelectedStudentForHealth(student);
+    const id = student.id || student.rollNumber;
+    setIsHealthModalOpen(true);
+    setHealthForm({ height: "", weight: "", bloodGroup: "", vision: "", hearing: "", bmi: "", dental: "", lastCheckupDate: "", notes: "" });
+    
+    const existingData = await fetchHealthReport(student.rollNumber, id);
+    if (existingData) {
+      setHealthForm({
+        height: existingData.height || "",
+        weight: existingData.weight || "",
+        bloodGroup: existingData.bloodGroup || "",
+        vision: existingData.vision || "",
+        hearing: existingData.hearing || "",
+        bmi: existingData.bmi || "",
+        dental: existingData.dental || "",
+        lastCheckupDate: existingData.lastCheckupDate ? new Date(existingData.lastCheckupDate).toISOString().split('T')[0] : "",
+        notes: existingData.notes || ""
+      });
+    }
+  };
+
+  const handleSaveHealthReport = async () => {
+    if (!selectedStudentForHealth) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/headmaster/health/${selectedStudentForHealth.rollNumber}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(healthForm)
+      });
+      const json = await res.json();
+      if (json.success) {
+        const studentId = selectedStudentForHealth.id || selectedStudentForHealth.rollNumber;
+        setHealthReports((prev) => ({
+          ...prev,
+          [studentId]: json.data,
+        }));
+        setIsHealthModalOpen(false);
+        showToast("Health report saved permanently");
+      } else {
+        showToast(json.error || "Failed to save. Make sure student is enrolled.", "error");
+      }
+    } catch (e) {
+      showToast("Failed to save health report", "error");
+    }
+  };
+
+  const handleViewHealthReport = async (student: WatchlistStudent) => {
+    setSelectedStudentForHealth(student);
+    setIsViewHealthModalOpen(true);
+    await fetchHealthReport(student.rollNumber, student.id || student.rollNumber);
+  };
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
@@ -430,6 +505,7 @@ export default function StudentsMonitoringPage() {
                     <th>Location</th>
                     <th>Risk Level</th>
                     <th>Added On</th>
+                    <th>Health</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -450,6 +526,27 @@ export default function StudentsMonitoringPage() {
                       </td>
                       <td className="text-[10px] text-slate-500">
                         {s.createdAt ? new Date(s.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-2">
+                          {healthReports[s.id || s.rollNumber] ? (
+                            <button
+                              onClick={() => handleViewHealthReport(s)}
+                              className="p-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-md transition-colors"
+                              title="View Health Report"
+                            >
+                              <FileText className="w-4 h-4" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleOpenHealthModal(s)}
+                              className="p-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-md transition-colors"
+                              title="Add Health Report"
+                            >
+                              <PlusCircle className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -761,6 +858,143 @@ export default function StudentsMonitoringPage() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Add Health Report Modal */}
+      {isHealthModalOpen && selectedStudentForHealth && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Stethoscope className="w-5 h-5 text-emerald-400" /> Add Health Report
+              </h3>
+              <button onClick={() => setIsHealthModalOpen(false)} className="text-slate-400 hover:text-white transition-colors">✕</button>
+            </div>
+            <p className="text-xs text-slate-400 mb-4">Entering data for: <span className="font-medium text-white">{selectedStudentForHealth.name}</span></p>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Height (cm)</label>
+                  <input type="number" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.height} onChange={(e) => setHealthForm({...healthForm, height: e.target.value})} placeholder="e.g. 145" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Weight (kg)</label>
+                  <input type="number" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.weight} onChange={(e) => setHealthForm({...healthForm, weight: e.target.value})} placeholder="e.g. 40" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Blood Group</label>
+                  <input type="text" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.bloodGroup} onChange={(e) => setHealthForm({...healthForm, bloodGroup: e.target.value})} placeholder="e.g. O+" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">BMI</label>
+                  <input type="number" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.bmi} onChange={(e) => setHealthForm({...healthForm, bmi: e.target.value})} placeholder="e.g. 19.5" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Vision</label>
+                  <input type="text" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.vision} onChange={(e) => setHealthForm({...healthForm, vision: e.target.value})} placeholder="e.g. 6/6" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Hearing</label>
+                  <input type="text" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.hearing} onChange={(e) => setHealthForm({...healthForm, hearing: e.target.value})} placeholder="e.g. Normal" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Dental</label>
+                  <input type="text" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.dental} onChange={(e) => setHealthForm({...healthForm, dental: e.target.value})} placeholder="e.g. Cavities present" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Last Checkup</label>
+                  <input type="date" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.lastCheckupDate} onChange={(e) => setHealthForm({...healthForm, lastCheckupDate: e.target.value})} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Doctor Notes / Allergies</label>
+                <textarea className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none h-20 resize-none" value={healthForm.notes} onChange={(e) => setHealthForm({...healthForm, notes: e.target.value})} placeholder="Any medical conditions..." />
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setIsHealthModalOpen(false)} className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors">Cancel</button>
+              <button onClick={handleSaveHealthReport} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors">Save Report</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Health Report Modal */}
+      {isViewHealthModalOpen && selectedStudentForHealth && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Activity className="w-5 h-5 text-blue-400" /> Health Report
+              </h3>
+              <button onClick={() => setIsViewHealthModalOpen(false)} className="text-slate-400 hover:text-white transition-colors">✕</button>
+            </div>
+            
+            {healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber] && (
+              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                <div className="flex items-center gap-3 mb-4 border-b border-slate-700/50 pb-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-lg font-bold">
+                    {selectedStudentForHealth.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium">{selectedStudentForHealth.name}</h4>
+                    <p className="text-[10px] text-slate-400">{selectedStudentForHealth.class} • Roll: {selectedStudentForHealth.rollNumber}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
+                    <div className="text-[9px] text-slate-500 uppercase">Height</div>
+                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].height || "—"} cm</div>
+                  </div>
+                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
+                    <div className="text-[9px] text-slate-500 uppercase">Weight</div>
+                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].weight || "—"} kg</div>
+                  </div>
+                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
+                    <div className="text-[9px] text-slate-500 uppercase">Blood</div>
+                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].bloodGroup || "—"}</div>
+                  </div>
+                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
+                    <div className="text-[9px] text-slate-500 uppercase">BMI</div>
+                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].bmi || "—"}</div>
+                  </div>
+                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
+                    <div className="text-[9px] text-slate-500 uppercase">Vision</div>
+                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].vision || "—"}</div>
+                  </div>
+                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
+                    <div className="text-[9px] text-slate-500 uppercase">Hearing</div>
+                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].hearing || "—"}</div>
+                  </div>
+                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700 col-span-2">
+                    <div className="text-[9px] text-slate-500 uppercase">Dental</div>
+                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].dental || "—"}</div>
+                  </div>
+                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
+                    <div className="text-[9px] text-slate-500 uppercase">Checkup</div>
+                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].lastCheckupDate ? new Date(healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].lastCheckupDate).toLocaleDateString() : "—"}</div>
+                  </div>
+                </div>
+                
+                <div className="bg-slate-800 p-3 rounded-lg border border-slate-700">
+                  <div className="text-[10px] text-slate-500 uppercase">Medical Notes</div>
+                  <p className="text-sm text-slate-300 mt-1 whitespace-pre-wrap">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].notes || "No additional notes provided."}</p>
+                </div>
+                
+                <div className="text-right mt-3 text-[9px] text-slate-500">
+                  Last updated: {new Date(healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].updatedAt || healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].date || Date.now()).toLocaleDateString()}
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-end mt-4">
+              <button onClick={() => setIsViewHealthModalOpen(false)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors">Close</button>
+            </div>
           </div>
         </div>
       )}

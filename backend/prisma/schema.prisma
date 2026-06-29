@@ -129,6 +129,7 @@ model Student {
   homeworkSubmissions HomeworkSubmission[] // Formal FK (set null on student delete)
   watchlistEntry      WatchlistStudent?   // One watchlist entry per student (set null on delete)
   parentNotifications ParentNotification[] // Notifications referencing this child
+  healthReport        HealthReport?
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 }
@@ -887,4 +888,21 @@ model Message {
 
   @@index([parentId])
   @@index([schoolId])
+}
+
+model HealthReport {
+  id                 String   @id @default(uuid())
+  studentId          String   @unique
+  student            Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  height             Float?
+  weight             Float?
+  bloodGroup         String?
+  vision             String?
+  hearing            String?
+  bmi                Float?
+  dental             String?
+  lastCheckupDate    DateTime?
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }

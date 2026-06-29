@@ -163,14 +163,25 @@ export default function LanguageCoachingPage() {
 
     // Simulate AI response
     setTimeout(() => {
-      let reply = "That's a good try! Let's practice saying that in English together.";
-      let audioTxt = "That's a good try! Let's practice saying that in English together.";
+      let reply = "Super! I hear you. To say that in English, we can try different words. Want to practice a simple dialogue together?";
+      let audioTxt = "Super! I hear you. Want to practice a simple dialogue together?";
+      const lowerMsg = userMsg.toLowerCase();
       
-      if (userMsg.toLowerCase().includes("bank") && userMsg.toLowerCase().includes("leave")) {
+      if (lowerMsg.includes("bank") && lowerMsg.includes("leave")) {
         reply = "Great question! You can ask: \n\n\"Is the bank closed tomorrow?\"";
         audioTxt = "Is the bank closed tomorrow?";
-      } else if (userMsg.toLowerCase().includes("hello") || userMsg.toLowerCase().includes("hi")) {
-        reply = "Hello! Epdi irukkinga? Ready to practice some English today?";
+      } else if (lowerMsg.includes("hello") || lowerMsg.includes("hi")) {
+        reply = "Hello! Epdi irukkinga? Ready to practice some English today? 😊";
+        audioTxt = "Hello! Epdi irukkinga? Ready to practice some English today?";
+      } else if (lowerMsg.includes("enna panra") || lowerMsg.includes("enna panringa") || lowerMsg.includes("enna seikiraai")) {
+        reply = "Naan unga kooda pesitu iruken! (I am talking with you!) In English you can ask: 'What are you doing?'. Try asking me that! 🌟";
+        audioTxt = "I am talking with you. In English you can ask: What are you doing?";
+      } else if (lowerMsg.includes("name enna") || lowerMsg.includes("unoda name") || lowerMsg.includes("unga name") || lowerMsg.includes("peyar enna")) {
+        reply = "En name Maya! Super kelvi. In English, you can ask: 'What is your name?'. Can you type that for me? 🙌";
+        audioTxt = "My name is Maya. In English, you can ask: What is your name?";
+      } else if (lowerMsg.includes("how are you") || lowerMsg.includes("eppadi irukka") || lowerMsg.includes("epdi irukka")) {
+        reply = "I'm doing great, nandri! How are you doing today? 👍";
+        audioTxt = "I'm doing great, nandri! How are you doing today?";
       }
 
       setChatMessages(prev => [...prev, { sender: "ai", text: reply, audio: audioTxt }]);
