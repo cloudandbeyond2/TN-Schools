@@ -4,7 +4,9 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
-import { Activity, Eye, Stethoscope, FileText, PlusCircle } from "lucide-react";
+import { Activity, Eye, Stethoscope, FileText, PlusCircle, HeartPulse, X, GraduationCap, User, Ruler, Weight, Droplet, Target, Ear, ShieldCheck, Download, Calendar, ClipboardList, Smile, Clock } from "lucide-react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -179,6 +181,30 @@ export default function StudentsMonitoringPage() {
       }
     } catch (e) {
       showToast("Failed to save health report", "error");
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    const reportElement = document.getElementById('health-report-modal-content');
+    if (!reportElement || !selectedStudentForHealth) return;
+    
+    try {
+      showToast("Generating PDF...");
+      const canvas = await html2canvas(reportElement, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width / 2, canvas.height / 2] // keeping it crisp
+      });
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
+      pdf.save(`${selectedStudentForHealth.name}_HealthReport.pdf`);
+      showToast("PDF downloaded successfully!");
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to generate PDF.", "error");
     }
   };
 
@@ -864,60 +890,73 @@ export default function StudentsMonitoringPage() {
 
       {/* Add Health Report Modal */}
       {isHealthModalOpen && selectedStudentForHealth && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Stethoscope className="w-5 h-5 text-emerald-400" /> Add Health Report
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-[24px] w-full max-w-md p-6 shadow-2xl relative">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+                <Stethoscope className="w-6 h-6 text-emerald-500" /> Add Health Report
               </h3>
-              <button onClick={() => setIsHealthModalOpen(false)} className="text-slate-400 hover:text-white transition-colors">✕</button>
+              <button onClick={() => setIsHealthModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <p className="text-xs text-slate-400 mb-4">Entering data for: <span className="font-medium text-white">{selectedStudentForHealth.name}</span></p>
+            
+            <div className="flex items-center gap-3 mb-6 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+                {selectedStudentForHealth.name.charAt(0)}
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Student Profile</p>
+                <p className="text-sm font-bold text-slate-800">{selectedStudentForHealth.name}</p>
+              </div>
+            </div>
             
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Height (cm)</label>
-                  <input type="number" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.height} onChange={(e) => setHealthForm({...healthForm, height: e.target.value})} placeholder="e.g. 145" />
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Height (cm)</label>
+                  <input type="number" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.height} onChange={(e) => setHealthForm({...healthForm, height: e.target.value})} placeholder="e.g. 145" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Weight (kg)</label>
-                  <input type="number" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.weight} onChange={(e) => setHealthForm({...healthForm, weight: e.target.value})} placeholder="e.g. 40" />
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Weight (kg)</label>
+                  <input type="number" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.weight} onChange={(e) => setHealthForm({...healthForm, weight: e.target.value})} placeholder="e.g. 40" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Blood Group</label>
-                  <input type="text" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.bloodGroup} onChange={(e) => setHealthForm({...healthForm, bloodGroup: e.target.value})} placeholder="e.g. O+" />
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Blood Group</label>
+                  <input type="text" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.bloodGroup} onChange={(e) => setHealthForm({...healthForm, bloodGroup: e.target.value})} placeholder="e.g. O+" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">BMI</label>
-                  <input type="number" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.bmi} onChange={(e) => setHealthForm({...healthForm, bmi: e.target.value})} placeholder="e.g. 19.5" />
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">BMI</label>
+                  <input type="number" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.bmi} onChange={(e) => setHealthForm({...healthForm, bmi: e.target.value})} placeholder="e.g. 19.5" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Vision</label>
-                  <input type="text" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.vision} onChange={(e) => setHealthForm({...healthForm, vision: e.target.value})} placeholder="e.g. 6/6" />
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Vision</label>
+                  <input type="text" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.vision} onChange={(e) => setHealthForm({...healthForm, vision: e.target.value})} placeholder="e.g. 6/6" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Hearing</label>
-                  <input type="text" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.hearing} onChange={(e) => setHealthForm({...healthForm, hearing: e.target.value})} placeholder="e.g. Normal" />
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Hearing</label>
+                  <input type="text" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.hearing} onChange={(e) => setHealthForm({...healthForm, hearing: e.target.value})} placeholder="e.g. Normal" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Dental</label>
-                  <input type="text" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.dental} onChange={(e) => setHealthForm({...healthForm, dental: e.target.value})} placeholder="e.g. Cavities present" />
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Dental</label>
+                  <input type="text" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.dental} onChange={(e) => setHealthForm({...healthForm, dental: e.target.value})} placeholder="e.g. Healthy" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Last Checkup</label>
-                  <input type="date" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none" value={healthForm.lastCheckupDate} onChange={(e) => setHealthForm({...healthForm, lastCheckupDate: e.target.value})} />
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Last Checkup</label>
+                  <input type="date" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.lastCheckupDate} onChange={(e) => setHealthForm({...healthForm, lastCheckupDate: e.target.value})} />
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] text-slate-400 uppercase tracking-wider mb-1">Doctor Notes / Allergies</label>
-                <textarea className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none h-20 resize-none" value={healthForm.notes} onChange={(e) => setHealthForm({...healthForm, notes: e.target.value})} placeholder="Any medical conditions..." />
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Medical Notes</label>
+                <textarea className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm h-20 resize-none" value={healthForm.notes} onChange={(e) => setHealthForm({...healthForm, notes: e.target.value})} placeholder="Any allergies or medical conditions..." />
               </div>
             </div>
             
-            <div className="flex justify-end gap-3 mt-6">
-              <button onClick={() => setIsHealthModalOpen(false)} className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors">Cancel</button>
-              <button onClick={handleSaveHealthReport} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors">Save Report</button>
+            <div className="flex justify-end gap-3 mt-8">
+              <button onClick={() => setIsHealthModalOpen(false)} className="px-6 py-2.5 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 text-slate-700 text-sm font-bold rounded-xl transition-colors">Cancel</button>
+              <button onClick={handleSaveHealthReport} className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/20 text-white text-sm font-bold rounded-xl transition-all active:scale-95">Save Report</button>
             </div>
           </div>
         </div>
@@ -925,75 +964,182 @@ export default function StudentsMonitoringPage() {
 
       {/* View Health Report Modal */}
       {isViewHealthModalOpen && selectedStudentForHealth && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Activity className="w-5 h-5 text-blue-400" /> Health Report
-              </h3>
-              <button onClick={() => setIsViewHealthModalOpen(false)} className="text-slate-400 hover:text-white transition-colors">✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto">
+          <div id="health-report-modal-content" className="bg-white rounded-[24px] w-full max-w-lg p-6 shadow-2xl relative my-8">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <HeartPulse className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-extrabold text-slate-800">Health Report</h3>
+                  <p className="text-xs text-slate-400 font-medium">Student Health Overview</p>
+                </div>
+              </div>
+              <button onClick={() => setIsViewHealthModalOpen(false)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors">
+                <X className="w-4 h-4" />
+              </button>
             </div>
             
             {healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber] && (
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
-                <div className="flex items-center gap-3 mb-4 border-b border-slate-700/50 pb-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-lg font-bold">
-                    {selectedStudentForHealth.name.charAt(0)}
+              <div className="space-y-4">
+                {/* Student Profile Card */}
+                <div className="border border-indigo-50 rounded-2xl p-4 flex items-center justify-between relative overflow-hidden">
+                  <div className="flex items-center gap-4 z-10">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white flex items-center justify-center text-2xl font-bold shadow-md">
+                      {selectedStudentForHealth.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="text-slate-800 font-extrabold text-xl mb-1">{selectedStudentForHealth.name}</h4>
+                      <div className="flex gap-2">
+                        <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1">
+                          <GraduationCap className="w-3 h-3" /> {selectedStudentForHealth.class}
+                        </span>
+                        <span className="bg-slate-50 text-slate-600 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1">
+                          <User className="w-3 h-3" /> Roll: {selectedStudentForHealth.rollNumber}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none transform translate-y-4 translate-x-2">
+                    <ClipboardList className="w-32 h-32 text-blue-600" />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
+                    <Activity className="w-3 h-3" />
+                  </div>
+                  <h4 className="text-sm font-extrabold text-slate-800">Health Summary</h4>
+                </div>
+                
+                {/* Metrics Grid */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow">
+                    <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                      <Ruler className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Height</div>
+                      <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].height || "—"} cm</div>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                      <Weight className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Weight</div>
+                      <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].weight || "—"} kg</div>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow">
+                    <div className="w-10 h-10 rounded-full bg-red-50 text-red-400 flex items-center justify-center shrink-0">
+                      <Droplet className="w-5 h-5 fill-red-400" />
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Blood Group</div>
+                      <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].bloodGroup || "—"}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow">
+                    <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center shrink-0">
+                      <Target className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">BMI</div>
+                      <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].bmi || "—"}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow">
+                    <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                      <Eye className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Vision</div>
+                      <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].vision || "—"}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow">
+                    <div className="w-10 h-10 rounded-full bg-fuchsia-50 text-fuchsia-500 flex items-center justify-center shrink-0">
+                      <Ear className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Hearing</div>
+                      <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].hearing || "—"}</div>
+                    </div>
+                  </div>
+
+                  <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow col-span-1">
+                    <div className="w-10 h-10 rounded-full bg-cyan-50 text-cyan-500 flex items-center justify-center shrink-0">
+                      <Smile className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Dental</div>
+                      <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].dental || "—"}</div>
+                    </div>
+                  </div>
+
+                  <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow col-span-2">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Checkup Date</div>
+                      <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].lastCheckupDate ? new Date(healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].lastCheckupDate).toLocaleDateString(undefined, {year: 'numeric', month: 'long', day: 'numeric'}) : "—"}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Notes */}
+                <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-2xl flex gap-4 mt-2">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <FileText className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-white font-medium">{selectedStudentForHealth.name}</h4>
-                    <p className="text-[10px] text-slate-400">{selectedStudentForHealth.class} • Roll: {selectedStudentForHealth.rollNumber}</p>
+                    <div className="text-[10px] text-emerald-800/60 font-bold uppercase tracking-wider mb-1">Medical Notes</div>
+                    <p className="text-sm text-emerald-900 font-medium whitespace-pre-wrap">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].notes || "OK"}</p>
                   </div>
                 </div>
-                
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
-                    <div className="text-[9px] text-slate-500 uppercase">Height</div>
-                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].height || "—"} cm</div>
+
+                {/* Overall Status */}
+                <div className="bg-blue-50 border border-blue-100 p-5 rounded-2xl flex justify-between items-center relative overflow-hidden mt-2">
+                  <div className="flex gap-4 z-10">
+                    <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-extrabold text-slate-800 mb-1">
+                        Overall Status: <span className="text-emerald-600">Healthy</span>
+                      </div>
+                      <div className="text-xs text-slate-500 font-medium">Great! Keep maintaining a healthy lifestyle.</div>
+                    </div>
                   </div>
-                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
-                    <div className="text-[9px] text-slate-500 uppercase">Weight</div>
-                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].weight || "—"} kg</div>
-                  </div>
-                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
-                    <div className="text-[9px] text-slate-500 uppercase">Blood</div>
-                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].bloodGroup || "—"}</div>
-                  </div>
-                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
-                    <div className="text-[9px] text-slate-500 uppercase">BMI</div>
-                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].bmi || "—"}</div>
-                  </div>
-                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
-                    <div className="text-[9px] text-slate-500 uppercase">Vision</div>
-                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].vision || "—"}</div>
-                  </div>
-                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
-                    <div className="text-[9px] text-slate-500 uppercase">Hearing</div>
-                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].hearing || "—"}</div>
-                  </div>
-                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700 col-span-2">
-                    <div className="text-[9px] text-slate-500 uppercase">Dental</div>
-                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].dental || "—"}</div>
-                  </div>
-                  <div className="bg-slate-800 p-2 rounded-lg border border-slate-700">
-                    <div className="text-[9px] text-slate-500 uppercase">Checkup</div>
-                    <div className="text-white text-xs font-medium mt-1">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].lastCheckupDate ? new Date(healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].lastCheckupDate).toLocaleDateString() : "—"}</div>
-                  </div>
+                  <HeartPulse className="w-24 h-24 text-blue-200/50 absolute right-0 transform translate-x-2" />
                 </div>
                 
-                <div className="bg-slate-800 p-3 rounded-lg border border-slate-700">
-                  <div className="text-[10px] text-slate-500 uppercase">Medical Notes</div>
-                  <p className="text-sm text-slate-300 mt-1 whitespace-pre-wrap">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].notes || "No additional notes provided."}</p>
-                </div>
-                
-                <div className="text-right mt-3 text-[9px] text-slate-500">
-                  Last updated: {new Date(healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].updatedAt || healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].date || Date.now()).toLocaleDateString()}
+                <div className="flex justify-end items-center gap-1 mt-3">
+                  <Clock className="w-3 h-3 text-slate-400" />
+                  <span className="text-[10px] text-slate-400 font-bold">
+                    Last updated: {new Date(healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].updatedAt || healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].date || Date.now()).toLocaleDateString(undefined, {year: 'numeric', month: 'long', day: 'numeric'})}
+                  </span>
                 </div>
               </div>
             )}
             
-            <div className="flex justify-end mt-4">
-              <button onClick={() => setIsViewHealthModalOpen(false)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors">Close</button>
+            <div className="grid grid-cols-2 gap-4 mt-6 pt-2" data-html2canvas-ignore>
+              <button onClick={handleDownloadPdf} className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 active:scale-95">
+                <Download className="w-4 h-4" />
+                Download PDF
+              </button>
+              <button onClick={() => setIsViewHealthModalOpen(false)} className="w-full py-3 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 text-slate-700 text-sm font-bold rounded-xl transition-colors">
+                Close
+              </button>
             </div>
           </div>
         </div>
