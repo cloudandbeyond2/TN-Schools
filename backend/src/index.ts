@@ -6,7 +6,6 @@ import { prisma } from './config/prisma';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-
 // Startup copy task for premium educational infographic assets
 try {
   const destDir = path.join(__dirname, '../../frontend/public/images');
