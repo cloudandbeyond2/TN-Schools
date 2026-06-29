@@ -519,7 +519,7 @@ export default function PortalLayout({
       <div className="main-content relative min-h-screen">
         {/* Argon Header Background Gradient */}
         <div 
-          className="absolute top-0 left-0 right-0 h-[300px] z-0 transition-all duration-300 pointer-events-none main-content-header-bg"
+          className="absolute top-0 left-0 right-0 h-[300px] transition-all duration-300 pointer-events-none main-content-header-bg"
           style={{
             background: `linear-gradient(87deg, ${resolvedAccentColor} 0%, ${resolvedAccentColor}dd 100%)`
           }}
@@ -734,7 +734,7 @@ export default function PortalLayout({
         </header>
 
         {/* Children content relative to sit above absolute background */}
-        <main className="relative flex-1 p-4 md:p-6 lg:p-8 z-10">
+        <main className="relative flex-1 p-4 md:p-6 lg:p-8">
           {/* Mobile Page Header (visible on mobile only) */}
           {resolvedTitle && (
             <div className="md:hidden px-1 mb-5 text-left animate-in fade-in duration-300">

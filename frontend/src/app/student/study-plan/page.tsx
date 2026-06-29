@@ -111,6 +111,9 @@ export default function StudyPlanPage() {
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
 
+  // Mobile layout state
+  const [mobileTab, setMobileTab] = useState<"lessons" | "study" | "tools">("lessons");
+
   // Fetch teacher plans on mount
   useEffect(() => {
     const fetchTeacherPlans = async () => {
@@ -538,83 +541,107 @@ export default function StudyPlanPage() {
       themeClass="theme-student"
       accentColor="#6366f1"
     >
+      <div className="flex xl:hidden mb-4 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl w-full shadow-inner">
+        <button 
+          onClick={() => setMobileTab("lessons")}
+          className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${mobileTab === 'lessons' ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-sm' : 'text-slate-500'}`}
+        >
+          Lessons
+        </button>
+        <button 
+          onClick={() => setMobileTab("study")}
+          className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${mobileTab === 'study' ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-sm' : 'text-slate-500'}`}
+        >
+          Study Hub
+        </button>
+        <button 
+          onClick={() => setMobileTab("tools")}
+          className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${mobileTab === 'tools' ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-sm' : 'text-slate-500'}`}
+        >
+          Studio Tools
+        </button>
+      </div>
+
       <div className="flex flex-col xl:flex-row gap-6 h-auto xl:h-[calc(100vh-160px)] xl:overflow-hidden pb-10 xl:pb-0">
         
         {/* Panel 1: Configuration & Sources (Left) */}
-        <div className="w-full xl:w-1/4 xl:border-r border-slate-200 dark:border-slate-800 xl:pr-6 overflow-y-visible xl:overflow-y-auto h-auto xl:h-full space-y-6 scrollbar-thin shrink-0">
+        <div className={`w-full xl:w-1/4 xl:border-r border-slate-200 dark:border-slate-800 xl:pr-6 overflow-y-visible xl:overflow-y-auto h-auto xl:h-full space-y-6 scrollbar-thin shrink-0 ${mobileTab === 'lessons' ? 'block' : 'hidden xl:block'}`}>
 
 
           {/* Teacher assigned plans list */}
           <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent">
-            <h3 className="text-black dark:text-white font-bold text-xs mb-3 flex items-center gap-2">
+            <h3 className="text-black dark:text-white font-bold text-sm mb-4 flex items-center gap-2">
               <span>👩‍🏫</span> Teacher Assigned Lessons
             </h3>
             {loadingTeacherPlans ? (
-              <div className="text-slate-400 text-xs animate-pulse font-sans">Loading assigned lessons...</div>
+              <div className="text-slate-400 text-sm animate-pulse font-sans">Loading assigned lessons...</div>
             ) : teacherPlans.length === 0 ? (
-              <p className="text-[10px] text-slate-550 italic font-sans">No assigned lessons yet.</p>
+              <p className="text-sm text-slate-550 italic font-sans">No assigned lessons yet.</p>
             ) : (
-              <div className="space-y-2 max-h-[220px] overflow-y-auto scrollbar-thin pr-1">
+              <div className="space-y-3 max-h-[350px] overflow-y-auto scrollbar-thin pr-1">
                 {teacherPlans.map((plan) => (
                   <button
                     key={plan.id}
-                    onClick={() => loadTeacherPlan(plan)}
-                    className={`w-full text-left p-2.5 rounded-xl border transition-all text-xs font-semibold ${
+                    onClick={() => {
+                      loadTeacherPlan(plan);
+                      if (window.innerWidth < 1280) setMobileTab("study");
+                    }}
+                    className={`w-full text-left p-4 rounded-xl border transition-all ${
                       currentPlan?.id === plan.id
                         ? "bg-indigo-600 text-white border-indigo-500 shadow-md"
                         : "bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-355 hover:border-slate-350"
                     }`}
                   >
-                    <span className="block truncate font-bold">{plan.topic}</span>
-                    <span className="text-[9px] text-slate-450 dark:text-slate-450 block mt-0.5 font-medium">{plan.subject} · {plan.grade}</span>
+                    <span className="block truncate font-bold text-sm md:text-sm">{plan.topic}</span>
+                    <span className={`text-xs block mt-1 font-medium ${currentPlan?.id === plan.id ? 'text-indigo-200' : 'text-slate-500'}`}>{plan.subject} · {plan.grade}</span>
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          <div className="glass rounded-3xl p-4 border border-slate-250 dark:border-slate-700/50 bg-indigo-500/5">
-            <h4 className="text-indigo-600 dark:text-indigo-400 font-bold text-xs mb-1.5">🎓 How to Study:</h4>
-            <p className="text-slate-550 dark:text-slate-400 text-[11px] leading-relaxed font-sans">
-              1. Setup and click **Generate**.<br/>
-              2. Review targets and outline.<br/>
-              3. Chat with your AI Tutor in the middle.<br/>
-              4. Open **Studio tools** on the right side to study cheat sheets, play audio buddy podcasts, and take mock tests.
+          <div className="glass rounded-3xl p-5 border border-slate-250 dark:border-slate-700/50 bg-indigo-500/5">
+            <h4 className="text-indigo-600 dark:text-indigo-400 font-bold text-sm mb-2">🎓 How to Study:</h4>
+            <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed font-sans space-y-1.5 flex flex-col">
+              <span>1. Choose an assigned lesson above.</span>
+              <span>2. Review the study targets.</span>
+              <span>3. Ask doubts to AI Tutor.</span>
+              <span>4. Tap "Studio Tools" for cheat sheets and audio podcasts.</span>
             </p>
           </div>
         </div>
 
         {/* Panel 2 & 3: Middle Section (Document View & AI Chat) */}
-        <div className="w-full xl:w-2/4 px-0 xl:px-2 overflow-y-visible xl:overflow-y-auto h-[700px] xl:h-full flex flex-col justify-between space-y-4 shrink-0">
+        <div className={`w-full xl:w-2/4 px-0 xl:px-2 overflow-y-visible xl:overflow-y-auto min-h-[85vh] xl:min-h-0 xl:h-full flex-col justify-between space-y-4 shrink-0 ${mobileTab === 'study' ? 'flex' : 'hidden xl:flex'}`}>
           {isGenerating ? (
             <div className="glass rounded-3xl p-12 border border-slate-250 dark:border-slate-700/50 text-center flex-grow flex flex-col items-center justify-center bg-white dark:bg-transparent">
-              <div className="w-12 h-12 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin mb-6" />
-              <h3 className="text-black dark:text-white font-bold text-sm">Gemini AI Formulating Study Plan</h3>
-              <p className="text-xs text-slate-550 max-w-xs mt-1.5 animate-pulse font-sans">
+              <div className="w-16 h-16 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin mb-6" />
+              <h3 className="text-black dark:text-white font-bold text-base md:text-lg">Gemini AI Formulating Study Plan</h3>
+              <p className="text-sm md:text-base text-slate-550 max-w-sm mt-3 animate-pulse font-sans">
                 Structuring unit targets, cheat sheets, quiz questions, and bilingual podcast scripts...
               </p>
             </div>
           ) : !currentPlan ? (
             <div className="glass rounded-3xl p-12 border border-slate-250 dark:border-slate-700/50 text-center flex-grow flex flex-col items-center justify-center bg-white dark:bg-transparent">
-              <span className="text-4xl mb-4">📓</span>
-              <h3 className="text-black dark:text-white font-bold text-sm font-sans">Student Self-Study Hub</h3>
-              <p className="text-xs text-slate-550 max-w-sm mt-1.5 leading-relaxed font-sans">
-                Launch a live study plan by configuring the form or uploading a textbook PDF. Chat with AI Tutor and generate visual cheat sheet slides.
+              <span className="text-6xl mb-6 block">📓</span>
+              <h3 className="text-black dark:text-white font-bold text-lg md:text-xl font-sans">Student Study Hub</h3>
+              <p className="text-sm md:text-base text-slate-550 max-w-md mt-3 leading-relaxed font-sans">
+                Select a lesson from the "Lessons" tab to get started. You can view study materials and chat with your AI Tutor here.
               </p>
             </div>
           ) : (
-            <div className="flex-grow flex flex-col justify-between overflow-hidden gap-4 h-full">
+            <div className="flex-grow flex flex-col justify-between overflow-hidden gap-6 h-full">
               {/* Study Plan Outline Document */}
-              <div className="flex-1 rounded-3xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-950 p-5 overflow-y-auto max-h-[60%] shadow-md">
-                <div className="border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
-                  <span className="badge badge-blue mb-1.5">{currentPlan.grade} · {currentPlan.subject}</span>
-                  <h3 className="text-black dark:text-white font-black text-lg">{currentPlan.topic} Study Guide</h3>
+              <div className="flex-1 rounded-3xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-950 p-6 md:p-8 overflow-y-auto max-h-[50%] md:max-h-[60%] shadow-md">
+                <div className="border-b border-slate-200 dark:border-slate-800 pb-4 mb-5">
+                  <span className="badge badge-blue mb-2.5 text-xs px-3 py-1">{currentPlan.grade} · {currentPlan.subject}</span>
+                  <h3 className="text-black dark:text-white font-black text-xl md:text-2xl">{currentPlan.topic} Study Guide</h3>
                 </div>
 
-                <div className="space-y-4 text-xs text-slate-655 dark:text-slate-350">
+                <div className="space-y-6 text-sm text-slate-655 dark:text-slate-350">
                   <div>
-                    <h4 className="text-black dark:text-white font-bold text-xs mb-2">🎯 Study Targets</h4>
-                    <ul className="list-disc list-inside space-y-1 text-slate-500 font-sans">
+                    <h4 className="text-black dark:text-white font-bold text-sm md:text-base mb-3">🎯 Study Targets</h4>
+                    <ul className="list-disc list-inside space-y-2 text-slate-600 dark:text-slate-400 font-sans leading-relaxed text-sm md:text-base">
                       {currentPlan.goals?.map((goal, idx) => <li key={idx}>{goal}</li>)}
                     </ul>
                   </div>
@@ -622,15 +649,15 @@ export default function StudyPlanPage() {
                   <hr className="border-slate-200 dark:border-slate-800" />
 
                   <div>
-                    <h4 className="text-black dark:text-white font-bold text-xs mb-3">📖 Course Units</h4>
-                    <div className="space-y-2">
+                    <h4 className="text-black dark:text-white font-bold text-sm md:text-base mb-4">📖 Course Units</h4>
+                    <div className="space-y-3">
                       {currentPlan.units?.map((unit, idx) => (
-                        <div key={unit.id} className="p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl flex justify-between items-center">
-                          <div className="font-sans">
-                            <span className="font-bold text-slate-800 dark:text-slate-200 block text-xs">{unit.title}</span>
-                            <span className="text-[10px] text-slate-500">{unit.summary.substring(0, 70)}...</span>
+                        <div key={unit.id} className="p-4 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3">
+                          <div className="font-sans flex-1">
+                            <span className="font-bold text-slate-800 dark:text-slate-200 block text-sm md:text-base mb-1">{unit.title}</span>
+                            <span className="text-xs md:text-sm text-slate-500 leading-relaxed">{unit.summary.substring(0, 100)}...</span>
                           </div>
-                          <span className="text-[10px] font-bold text-indigo-500 bg-indigo-500/10 px-2.5 py-1 rounded-md shrink-0">{unit.studyTime}</span>
+                          <span className="text-xs font-bold text-indigo-500 bg-indigo-500/10 px-3 py-1.5 rounded-lg shrink-0 self-start md:self-center">{unit.studyTime}</span>
                         </div>
                       ))}
                     </div>
@@ -639,20 +666,20 @@ export default function StudyPlanPage() {
               </div>
 
               {/* Chat Workspace */}
-              <div className="h-[38%] rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 p-4 flex flex-col justify-between overflow-hidden">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-1.5 flex justify-between items-center">
-                  <span>🤖 Chat with AI Tutor</span>
-                  <span className="text-indigo-400 lowercase">Connected to Gemini 2.5</span>
+              <div className="flex-1 min-h-[300px] md:h-[40%] rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 p-5 flex flex-col justify-between overflow-hidden">
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-3 flex justify-between items-center">
+                  <span>🤖 AI Tutor</span>
+                  <span className="text-indigo-400 lowercase truncate hidden sm:block">Connected to Gemini 2.5</span>
                 </div>
 
                 {/* Message logs */}
-                <div className="flex-1 overflow-y-auto my-2.5 space-y-2.5 pr-1 text-xs">
+                <div className="flex-1 overflow-y-auto my-3 space-y-4 pr-2 text-sm">
                   {chatMessages.map((msg, i) => (
                     <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[85%] rounded-xl px-3 py-2 leading-relaxed font-sans ${
+                      <div className={`max-w-[90%] md:max-w-[85%] rounded-2xl px-4 py-3 leading-relaxed font-sans ${
                         msg.role === "user"
-                          ? "bg-indigo-600 text-white rounded-tr-none"
-                          : "bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-850 rounded-tl-none"
+                          ? "bg-indigo-600 text-white rounded-tr-sm"
+                          : "bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-850 rounded-tl-sm"
                       }`} style={{ whiteSpace: "pre-line" }}>
                         {msg.content}
                       </div>
@@ -660,7 +687,7 @@ export default function StudyPlanPage() {
                   ))}
                   {chatLoading && (
                     <div className="flex justify-start">
-                      <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl rounded-tl-none px-3 py-2 text-slate-400 animate-pulse font-sans">
+                      <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-2xl rounded-tl-sm px-4 py-3 text-slate-400 animate-pulse font-sans text-sm">
                         AI Tutor thinking...
                       </div>
                     </div>
@@ -674,12 +701,12 @@ export default function StudyPlanPage() {
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
-                    placeholder="Ask AI Tutor for quick examples or homework doubts..."
-                    className="flex-1 bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-black dark:text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500 font-sans"
+                    placeholder="Ask AI Tutor for examples..."
+                    className="flex-1 bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-black dark:text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500 font-sans"
                   />
                   <button
                     onClick={handleSendChat}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-colors"
+                    className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl transition-colors shrink-0"
                   >
                     Ask AI
                   </button>
@@ -690,13 +717,13 @@ export default function StudyPlanPage() {
         </div>
 
         {/* Panel 3: Studio Tools list per unit (Right) */}
-        <div className="w-full xl:w-1/4 xl:border-l border-slate-200 dark:border-slate-800 xl:pl-6 overflow-y-visible xl:overflow-y-auto h-auto xl:h-full space-y-4 scrollbar-thin shrink-0">
-          <h2 className="text-black dark:text-white font-bold text-xs flex items-center gap-2 mb-2 px-1">
-            <span>🎨</span> Intelligence Studio
+        <div className={`w-full xl:w-1/4 xl:border-l border-slate-200 dark:border-slate-800 xl:pl-6 overflow-y-visible xl:overflow-y-auto h-auto xl:h-full space-y-6 scrollbar-thin shrink-0 pb-10 ${mobileTab === 'tools' ? 'block' : 'hidden xl:block'}`}>
+          <h2 className="text-black dark:text-white font-bold text-lg md:text-xl flex items-center gap-2 mb-4 px-1">
+            <span>🎨</span> Studio Tools
           </h2>
           
           {!currentPlan ? (
-            <p className="text-[10px] text-slate-500 italic px-1 font-sans">Unlock Studio tools by generating a study plan.</p>
+            <p className="text-sm text-slate-500 italic px-1 font-sans">Select a lesson to access tools.</p>
           ) : (
             <div className="space-y-4">
               {/* Teacher-assigned Lesson Plan specific tools */}
@@ -756,33 +783,33 @@ export default function StudyPlanPage() {
               )}
 
               {/* Grand Topic Infographic Visual Explain */}
-              <div className="p-3 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-850 rounded-2xl space-y-2">
-                <div className="text-[10px] font-black text-slate-450 uppercase tracking-widest px-1">Grand Overview</div>
+              <div className="p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-850 rounded-2xl space-y-3">
+                <div className="text-xs font-black text-slate-450 uppercase tracking-widest px-1">Grand Overview</div>
                 <button
                   type="button"
                   onClick={() => {
                     setActiveUnit(currentPlan.units[0] || null);
                     setActiveStudioTool("visualExplain");
                   }}
-                  className="w-full text-left p-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-250 dark:border-indigo-800 hover:border-indigo-500 rounded-xl transition-all text-[11px] font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2"
+                  className="w-full text-left p-3 md:p-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-250 dark:border-indigo-800 hover:border-indigo-500 rounded-xl transition-all text-sm font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-3"
                 >
-                  <span>📊</span> Topic Visual Explain
+                  <span className="text-lg">📊</span> Topic Visual Explain
                 </button>
               </div>
 
               {currentPlan.units?.map((unit, idx) => (
-                <div key={unit.id} className="p-3 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-850 rounded-2xl space-y-2">
-                  <div className="text-[10px] font-black text-slate-450 uppercase tracking-widest px-1">Unit {idx + 1} Tools</div>
-                  <div className="grid grid-cols-1 gap-1.5">
+                <div key={unit.id} className="p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-850 rounded-2xl space-y-3">
+                  <div className="text-xs font-black text-slate-450 uppercase tracking-widest px-1">Unit {idx + 1} Tools</div>
+                  <div className="grid grid-cols-1 gap-2">
                     
                     <button
                       onClick={() => {
                         setActiveUnit(unit);
                         setActiveStudioTool("unit-infographic");
                       }}
-                      className="w-full text-left p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"
+                      className="w-full text-left p-3 md:p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-sm md:text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-3 md:gap-2"
                     >
-                      <span>🖼️</span> Infographic Cheat Sheet
+                      <span className="text-base">🖼️</span> Infographic Cheat Sheet
                     </button>
 
                     <button
@@ -791,9 +818,9 @@ export default function StudyPlanPage() {
                         setActiveStudioTool("unit-audio");
                         setAudioLineIndex(-1);
                       }}
-                      className="w-full text-left p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"
+                      className="w-full text-left p-3 md:p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-sm md:text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-3 md:gap-2"
                     >
-                      <span>🎙️</span> Audio Buddy Podcast
+                      <span className="text-base">🎙️</span> Audio Buddy Podcast
                     </button>
 
                     <button
@@ -801,9 +828,9 @@ export default function StudyPlanPage() {
                         setActiveUnit(unit);
                         setActiveStudioTool("unit-quiz");
                       }}
-                      className="w-full text-left p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"
+                      className="w-full text-left p-3 md:p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-sm md:text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-3 md:gap-2"
                     >
-                      <span>📝</span> Interactive Quiz Test
+                      <span className="text-base">📝</span> Interactive Quiz Test
                     </button>
 
                   </div>
