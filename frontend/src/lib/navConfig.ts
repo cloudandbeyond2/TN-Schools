@@ -128,6 +128,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Story Books", href: "/student/middle-school/stories", icon: "📚" },
       { label: "AI Helper", href: "/student/middle-school/ai", icon: "🤖" },
       { label: "Welfare & Benefits", href: "/student/middle-school/welfare", icon: "🎁" },
+      { label: "Maths Formulas", href: "/student/maths-formulas", icon: "➗" },
 
       // Common Student Menu
       { label: "---", href: "#", icon: "" },
