@@ -804,7 +804,7 @@ export default function StudyPlanPage() {
                       }}
                       className="w-full text-left p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"
                     >
-                      <span>🎬</span> Lesson Storyboard Video
+                      <span>🎬</span> Generate Video
                     </button>
 
                     <button
@@ -906,7 +906,7 @@ export default function StudyPlanPage() {
                   {activeStudioTool === "unit-quiz" && "📝 Interactive mock Quiz"}
                   {activeStudioTool === "teacher-slides" && "🖼️ Teacher Guideline Slides"}
                   {activeStudioTool === "teacher-podcast" && "🎙️ Teacher Bilingual Podcast"}
-                  {activeStudioTool === "teacher-video" && "🎬 Lesson Storyboard Video"}
+                  {activeStudioTool === "teacher-video" && "🎬 Generate Video"}
                   {activeStudioTool === "teacher-bilingual" && "🗣️ Bilingual Vocabulary Dictionary"}
                   {activeStudioTool === "teacher-assessment" && "🎯 Class Exit Ticket Quiz"}
                 </h3>
@@ -1224,20 +1224,24 @@ export default function StudyPlanPage() {
 
                     return (
                       <div className="space-y-4">
-                        <div className="relative aspect-video rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden flex flex-col justify-between p-5 shadow-lg">
-                          <div className="absolute top-4 left-4 px-2 py-0.5 bg-slate-900 border border-slate-800 rounded text-[9px] font-bold text-amber-400">
+                        <div className="relative aspect-video rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden flex flex-col justify-between p-5 shadow-lg group">
+                          {/* Generated Image Background */}
+                          <img 
+                            src={`https://image.pollinations.ai/prompt/${encodeURIComponent((scene.visualDescription || "educational scene") + ", highly detailed, 3d, cinematic, beautiful educational animation style, vibrant")}?width=800&height=450&nologo=true`} 
+                            alt="Generated Scene"
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10000ms] ease-linear scale-100 group-hover:scale-110 opacity-70"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent pointer-events-none" />
+
+                          <div className="absolute top-4 left-4 px-2 py-0.5 bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded text-[9px] font-bold text-amber-400 z-10">
                             SCENE {scene.sceneNumber} OF {storyboard.length}
                           </div>
 
-                          <div className="flex-1 flex flex-col items-center justify-center text-center mt-5">
-                            <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-2xl animate-bounce mb-2">
-                              {scene.sceneNumber === 1 ? "🎬" : "🎓"}
-                            </div>
-                            <h5 className="text-white font-semibold text-xs max-w-sm mb-1">{scene.visualDescription}</h5>
-                            <p className="text-[8px] text-slate-500 uppercase tracking-wider font-semibold">Scene Visualization Layout</p>
+                          <div className="flex-1 flex flex-col items-center justify-center text-center mt-5 z-10 pointer-events-none">
+                            <h5 className="text-white font-bold text-sm max-w-sm mb-1 drop-shadow-md bg-black/40 px-3 py-1.5 rounded-lg backdrop-blur-sm">{scene.visualDescription}</h5>
                           </div>
 
-                          <div className="bg-slate-900/90 border border-slate-850 rounded-xl p-3 text-center mx-auto max-w-md w-full">
+                          <div className="bg-slate-900/90 backdrop-blur-md border border-slate-850 rounded-xl p-3 text-center mx-auto max-w-md w-full z-10">
                             <p className="text-white text-xs font-semibold leading-relaxed font-sans">{scene.narrationText}</p>
                             <p className="text-amber-400 text-[10px] font-tamil font-semibold mt-0.5 leading-relaxed">{scene.subtitles}</p>
                           </div>
