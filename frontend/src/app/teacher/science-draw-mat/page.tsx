@@ -17,7 +17,9 @@ import {
   Save,
   Trash2,
   Image as ImageIcon,
-  Rocket
+  Rocket,
+  Upload,
+  X
 } from "lucide-react";
 
 export default function ScienceDrawMatPage() {
@@ -38,8 +40,10 @@ export default function ScienceDrawMatPage() {
   
   // Drawing states
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importedDiagram, setImportedDiagram] = useState<string | null>(null);
+  const isDrawingRef = useRef(false);
+  const lastPosRef = useRef({ x: 0, y: 0 });
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   
   const [shapes, setShapes] = useState<any[]>([]);
@@ -72,8 +76,10 @@ export default function ScienceDrawMatPage() {
       setHistoryStep(newStep);
       showToast("Undid last action!");
     } else if (historyStep === 0) {
-      if (ctx && canvasRef.current) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext('2d');
+      if (ctx && canvas) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
       setShapes([]);
       setTexts([]);
@@ -98,47 +104,48 @@ export default function ScienceDrawMatPage() {
     setTexts(state.texts);
     setStickers(state.stickers);
     
-    if (canvasRef.current && ctx) {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (canvas && ctx) {
       const img = new Image();
       img.onload = () => {
-        if (canvasRef.current && ctx) {
-          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-          ctx.drawImage(img, 0, 0);
-        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
       };
       img.src = state.canvasData;
     }
   };
 
   useEffect(() => {
-    if (canvasRef.current) {
-      const canvas = canvasRef.current;
-      // Set canvas to its actual display size
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    
+    const observer = new ResizeObserver(() => {
+      if (canvas.offsetWidth === 0 || canvas.offsetHeight === 0) return;
+      
+      let imgData = null;
+      if (canvas.width > 0 && canvas.height > 0) {
+         try {
+           imgData = context.getImageData(0, 0, canvas.width, canvas.height);
+         } catch(e) {}
+      }
+      
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
       
-      const context = canvas.getContext('2d');
-      if (context) {
-        context.lineCap = 'round';
-        context.lineJoin = 'round';
-        setCtx(context);
-      }
+      context.lineCap = 'round';
+      context.lineJoin = 'round';
       
-      // Handle resize
-      const handleResize = () => {
-        // We'd ideally save and restore image data here, but for simplicity we just resize
-        const imgData = context?.getImageData(0, 0, canvas.width, canvas.height);
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-        if (context && imgData) {
-           context.lineCap = 'round';
-           context.lineJoin = 'round';
-           context.putImageData(imgData, 0, 0);
-        }
-      };
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }
+      if (imgData) {
+         context.putImageData(imgData, 0, 0);
+      }
+    });
+    
+    observer.observe(canvas.parentElement || canvas);
+    return () => observer.disconnect();
   }, []);
 
   const showToast = (msg: string) => {
@@ -159,9 +166,51 @@ export default function ScienceDrawMatPage() {
     "#000000", "#ef4444", "#3b82f6", "#22c55e", "#eab308", "#a855f7", "#ec4899", "#f97316", "#06b6d4"
   ];
 
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = canvasRef.current;
+        const ctx = canvas?.getContext('2d');
+        if (canvas && ctx) {
+          const maxWidth = canvas.width * 0.8;
+          const maxHeight = canvas.height * 0.8;
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > maxWidth) {
+            height = height * (maxWidth / width);
+            width = maxWidth;
+          }
+          if (height > maxHeight) {
+            width = width * (maxHeight / height);
+            height = maxHeight;
+          }
+          
+          const x = (canvas.width - width) / 2;
+          const y = (canvas.height - height) / 2;
+          ctx.drawImage(img, x, y, width, height);
+          saveState(shapes, texts, stickers);
+          showToast("Diagram imported successfully! 🖼️");
+        }
+      };
+      if (event.target?.result) {
+        img.src = event.target.result as string;
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
   const clearCanvas = () => {
-    if (ctx && canvasRef.current) {
-      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (ctx && canvas) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     setShapes([]);
     setTexts([]);
@@ -176,7 +225,9 @@ export default function ScienceDrawMatPage() {
     const y = e.clientY - rect.top;
 
     if (activeTool === 'pencil' || activeTool === 'eraser') {
-      setIsDrawing(true);
+      isDrawingRef.current = true;
+      lastPosRef.current = { x, y };
+      const ctx = canvasRef.current?.getContext('2d');
       if (ctx) {
         ctx.beginPath();
         ctx.moveTo(x, y);
@@ -188,7 +239,7 @@ export default function ScienceDrawMatPage() {
         ctx.stroke();
       }
     } else if (activeTool.startsWith('shape-')) {
-      setIsDrawing(true);
+      isDrawingRef.current = true;
       setStartPos({ x, y });
       setCurrentShape({
         type: activeTool,
@@ -228,20 +279,22 @@ export default function ScienceDrawMatPage() {
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDrawing) return;
+    if (!isDrawingRef.current) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
     if (activeTool === 'pencil' || activeTool === 'eraser') {
+      const ctx = canvasRef.current?.getContext('2d');
       if (!ctx) return;
+      ctx.beginPath();
+      ctx.moveTo(lastPosRef.current.x, lastPosRef.current.y);
       ctx.lineWidth = activeTool === 'eraser' ? eraserSize : strokeWidth;
       ctx.strokeStyle = activeTool === 'eraser' ? 'rgba(0,0,0,1)' : activeColor;
       ctx.globalCompositeOperation = activeTool === 'eraser' ? 'destination-out' : 'source-over';
       ctx.lineTo(x, y);
       ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x, y);
+      lastPosRef.current = { x, y };
     } else if (activeTool.startsWith('shape-')) {
       setCurrentShape((prev: any) => ({
         ...prev,
@@ -257,11 +310,11 @@ export default function ScienceDrawMatPage() {
       setShapes(newShapes);
       setCurrentShape(null);
       saveState(newShapes, texts, stickers);
-    } else if (isDrawing && (activeTool === 'pencil' || activeTool === 'eraser')) {
+    } else if (isDrawingRef.current && (activeTool === 'pencil' || activeTool === 'eraser')) {
       saveState(shapes, texts, stickers);
     }
-    setIsDrawing(false);
-    if (ctx) ctx.beginPath();
+    isDrawingRef.current = false;
+    canvasRef.current?.getContext('2d')?.beginPath();
   };
 
   const updateText = (id: number, newText: string) => {
@@ -324,13 +377,15 @@ export default function ScienceDrawMatPage() {
       <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-140px)]">
         
         {/* Playful Tools Sidebar */}
-        <div className="lg:w-24 flex-shrink-0 flex flex-col gap-4">
+        <div className="lg:w-24 flex-shrink-0 flex flex-col gap-4 relative z-50">
           <div className="bg-white dark:bg-slate-800 p-4 flex flex-col items-center gap-4 rounded-3xl shadow-xl shadow-indigo-500/10 border-4 border-indigo-100 dark:border-slate-700 select-none">
             {tools.map((tool) => (
               <button
                 key={tool.id}
                 onClick={() => {
                   setActiveTool(tool.id);
+                  setCurrentShape(null);
+                  isDrawingRef.current = false;
                   showToast(`Selected: ${tool.label} ✨`);
                 }}
                 className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 relative group
@@ -341,9 +396,9 @@ export default function ScienceDrawMatPage() {
                 title={tool.label}
               >
                 {tool.icon}
-                <span className="absolute left-full ml-4 px-3 py-1.5 bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                <span className="absolute left-full ml-4 px-3 py-1.5 bg-slate-800 dark:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
                   {tool.label}
-                  <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-slate-800 rotate-45"></div>
+                  <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-slate-800 dark:bg-white rotate-45"></div>
                 </span>
               </button>
             ))}
@@ -373,24 +428,26 @@ export default function ScienceDrawMatPage() {
           
           {/* Action Buttons */}
           <div className="bg-white dark:bg-slate-800 p-3 flex flex-col items-center gap-3 rounded-3xl shadow-xl shadow-emerald-500/10 border-4 border-emerald-100 dark:border-slate-700 mt-auto select-none">
-             <button onClick={undo} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-emerald-500 hover:bg-emerald-50 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Undo">
+             <button onClick={undo} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Undo">
                 <Undo className="w-6 h-6" />
              </button>
-             <button onClick={redo} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-emerald-500 hover:bg-emerald-50 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Redo">
+             <button onClick={redo} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Redo">
                 <Redo className="w-6 h-6" />
              </button>
-             <button onClick={clearCanvas} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Clear Canvas">
+             <button onClick={clearCanvas} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Clear Canvas">
                 <Trash2 className="w-6 h-6" />
              </button>
           </div>
         </div>
 
-        {/* Playful Canvas Area */}
-        <div className="flex-1 flex flex-col relative overflow-hidden bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border-8 border-indigo-100 dark:border-slate-800">
+        {/* Center Area containing Canvas and Reference */}
+        <div className="flex-1 flex flex-col xl:flex-row gap-6 min-w-0">
+          {/* Playful Canvas Area */}
+          <div className="flex-1 flex flex-col relative overflow-hidden bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border-8 border-indigo-100 dark:border-slate-800">
           {/* Top Bar for Canvas */}
           <div className="h-16 border-b-4 border-indigo-50 dark:border-slate-800 flex justify-between items-center px-6 bg-white dark:bg-slate-900 z-20">
             <div className="flex items-center gap-3">
-              <div className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-sm rounded-2xl shadow-md shadow-pink-500/20 flex items-center gap-2">
+              <div className="px-4 py-2 bg-pink-50 dark:bg-pink-900/40 text-pink-600 dark:text-pink-300 font-black text-sm rounded-2xl shadow-md shadow-pink-500/10 flex items-center gap-2">
                 <Atom className="w-4 h-4 animate-spin-slow" />
                 <span>My Super Cool Drawing</span>
               </div>
@@ -398,19 +455,30 @@ export default function ScienceDrawMatPage() {
             </div>
             
             <div className="flex items-center gap-3">
-              <button onClick={() => showToast("Link copied to clipboard! Share with your friends!")} className="flex items-center gap-2 px-4 py-2.5 text-sm font-black text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/*" 
+                onChange={handleImport} 
+              />
+              <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-4 py-2.5 text-sm font-black text-fuchsia-600 dark:text-fuchsia-300 bg-fuchsia-50 dark:bg-fuchsia-900/40 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
+                <Upload className="w-4 h-4" />
+                Import
+              </button>
+              <button onClick={() => showToast("Link copied to clipboard! Share with your friends!")} className="flex items-center gap-2 px-4 py-2.5 text-sm font-black text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
                 <Share2 className="w-4 h-4" />
                 Share
               </button>
-              <button onClick={handleDownload} className="flex items-center gap-2 px-4 py-2.5 text-sm font-black text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
+              <button onClick={handleDownload} className="flex items-center gap-2 px-4 py-2.5 text-sm font-black text-emerald-600 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
                 <Download className="w-4 h-4" />
                 Download
               </button>
               <button onClick={() => {
                 handleDownload();
                 showToast("Awesome drawing saved! 🌟");
-              }} className="flex items-center gap-2 px-6 py-2.5 text-sm font-black bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 rounded-2xl transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-105 active:scale-95">
-                <Save className="w-4 h-4 text-black" />
+              }} className="flex items-center gap-2 px-6 py-2.5 text-sm font-black text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
+                <Save className="w-4 h-4" />
                 Save to Portfolio
               </button>
             </div>
@@ -420,9 +488,7 @@ export default function ScienceDrawMatPage() {
           <div 
             className="flex-1 relative cursor-crosshair overflow-hidden touch-none" 
             style={{ 
-              backgroundImage: 'radial-gradient(#c7d2fe 2px, transparent 2px)', 
-              backgroundSize: '30px 30px',
-              backgroundColor: '#f8fafc'
+              backgroundColor: '#ffffff'
             }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -503,12 +569,27 @@ export default function ScienceDrawMatPage() {
               ))}
             </div>
             
-            {/* Watermark/Hint */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 text-slate-300 dark:text-slate-700/30 text-3xl font-black uppercase tracking-widest select-none pointer-events-none z-0">
-              <Palette className="w-10 h-10" />
-              TN-Schools Draw Mat
-            </div>
+            {/* Watermark/Hint Removed */}
+            {/* Watermark/Hint Removed */}
           </div>
+        </div>
+
+          {/* Reference Diagram Pane */}
+          {importedDiagram && (
+            <div className="xl:w-80 flex-shrink-0 flex flex-col bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-xl border-8 border-fuchsia-100 dark:border-slate-700 p-4">
+              <div className="flex justify-between items-center mb-4 px-2">
+                <h3 className="font-black text-fuchsia-600 dark:text-fuchsia-300 flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5" /> Reference
+                </h3>
+                <button onClick={() => setImportedDiagram(null)} className="p-2 hover:bg-fuchsia-50 dark:hover:bg-slate-700 text-fuchsia-400 rounded-xl transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex-1 relative rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center p-2">
+                 <img src={importedDiagram} alt="Reference" className="max-w-full max-h-full object-contain" />
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Right Side Properties Panel */}
