@@ -125,7 +125,9 @@ export default function StudyPlanPage() {
         if (studentClass) {
           const match = String(studentClass).match(/\d+/);
           if (match) {
-            params.append("grade", `Grade ${match[0]}`);
+            const gradeStr = `Grade ${match[0]}`;
+            params.append("grade", gradeStr);
+            setSelectedGrade(gradeStr);
           }
         }
 
@@ -551,10 +553,10 @@ export default function StudyPlanPage() {
                   <label className="text-[10px] font-semibold text-slate-500 block mb-1">Grade</label>
                   <select
                     value={selectedGrade}
-                    onChange={(e) => setSelectedGrade(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1.5 text-xs text-black dark:text-white focus:outline-none focus:border-indigo-500"
+                    disabled
+                    className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1.5 text-xs text-slate-500 dark:text-slate-400 cursor-not-allowed focus:outline-none"
                   >
-                    {grades.map(g => <option key={g}>{g}</option>)}
+                    <option value={selectedGrade}>{selectedGrade}</option>
                   </select>
                 </div>
 

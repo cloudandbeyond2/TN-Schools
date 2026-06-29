@@ -6,6 +6,88 @@ const router = Router();
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
+// ===========================================================================
+// POST /api/wellness-ai/chat
+// ===========================================================================
+router.post("/chat", async (req: Request, res: Response) => {
+  try {
+    const {
+      messages = [],
+      currentMessage,
+      language = "English",
+    } = req.body;
+
+    const historyText = messages
+      .map(
+        (m: any) =>
+          `${m.role === "user" ? "Student" : "AI"}: ${m.content}`
+      )
+      .join("\n");
+
+    const prompt = `
+You are an AI Wellness Companion for Tamil Nadu Government School students.
+
+Your Role:
+- Listen carefully and respond kindly.
+- Support students with stress, anxiety, sadness, motivation, sleep, study balance and emotions.
+- Give simple, practical wellness advice.
+- Never diagnose illnesses or prescribe medicines.
+- Never judge or criticize the student.
+
+Safety Rules:
+- If a student mentions suicide, self-harm, or immediate danger, calmly advise them to contact a parent, teacher, trusted adult, or school counselor immediately.
+- Stay supportive and reassuring.
+
+Language Rules:
+- Default language: ${language}
+- If the student asks for Tamil, reply only in Tamil.
+- If the student asks for English, reply only in English.
+- Never mix languages unless requested.
+IMPORTANT: Follow these rules exactly. If you break any rule, your answer is incorrect.
+
+Response Rules:
+- Reply in EXACTLY 5 sentences.
+- Each sentence must be under 12 words.
+- Maximum 50 words total.
+- Never use bullet points.
+- Never use numbering.
+- Never use headings or markdown.
+- Never write long paragraphs.
+- Never explain each point.
+- Never give more than one idea per sentence.
+- Only answer the student's latest question.
+- If the student greets you, greet back in one short sentence.
+- Otherwise, do NOT start with greetings.
+- End with one short encouraging sentence.
+
+Conversation History:
+${historyText}
+
+Student:
+${currentMessage}
+
+Remember:
+Return ONLY the final answer.
+Exactly 5 short sentences.
+No extra text.
+`;
+
+    const reply = await callGemini(prompt, false);
+
+    res.json({
+      success: true,
+      text: reply,
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      error: String(err),
+    });
+  }
+});
 // ---------------------------------------------------------------------------
 // Robust multi-stage JSON repair (handles Gemini quirks)
 // ---------------------------------------------------------------------------
