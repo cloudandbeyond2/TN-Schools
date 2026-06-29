@@ -454,7 +454,7 @@ router.get('/leave', async (req: Request, res: Response) => {
 router.post('/leave', async (req: Request, res: Response) => {
   try {
 
-    const { type, duration, reason, studentName, schoolId, userId } = req.body;
+    const { type, duration, reason, studentName, schoolId, userId, staffId } = req.body;
 
     const leave = await prisma.leaveRequest.create({
       data: {
@@ -462,6 +462,7 @@ router.post('/leave', async (req: Request, res: Response) => {
         duration,
         reason,
         studentName: studentName || 'Unknown',
+        staffId: staffId || null,  // Audit: who submitted the leave
         status: 'Pending',
         schoolId: schoolId || null,
       } as any,
@@ -736,16 +737,26 @@ router.put('/scholarships/:id', async (req: Request, res: Response) => {
   }
 });
 
-// 11. Parent-Teacher Messages (in-memory store; replace with DB model when available)
 // =========================================================================
-const messageStore: Record<string, Array<{ sender: string; text: string; time: string }>> = {};
+// 11. Parent-Teacher Messages (persisted to DB via Message model)
+// =========================================================================
 
 // GET /api/teacher/messages/:parentId
 router.get('/messages/:parentId', async (req: Request, res: Response) => {
   try {
     const { parentId } = req.params;
-    const msgs = messageStore[parentId] || [];
-    res.json({ success: true, data: msgs });
+    const msgs = await prisma.message.findMany({
+      where: { parentId },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, sender: true, text: true, createdAt: true },
+    });
+    const formatted = msgs.map((m) => ({
+      id: m.id,
+      sender: m.sender,
+      text: m.text,
+      time: m.createdAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    }));
+    res.json({ success: true, data: formatted });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -754,15 +765,19 @@ router.get('/messages/:parentId', async (req: Request, res: Response) => {
 // POST /api/teacher/messages
 router.post('/messages', async (req: Request, res: Response) => {
   try {
-    const { parentId, sender, text } = req.body;
+    const { parentId, sender, text, schoolId } = req.body;
     if (!parentId || !sender || !text) {
       return res.status(400).json({ success: false, error: 'parentId, sender, and text are required' });
     }
-    if (!messageStore[parentId]) {
-      messageStore[parentId] = [];
-    }
-    const newMsg = { sender, text, time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) };
-    messageStore[parentId].push(newMsg);
+    const msg = await prisma.message.create({
+      data: { parentId, sender, text, schoolId: schoolId || null },
+    });
+    const newMsg = {
+      id: msg.id,
+      sender: msg.sender,
+      text: msg.text,
+      time: msg.createdAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    };
     res.status(201).json({ success: true, data: newMsg });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });

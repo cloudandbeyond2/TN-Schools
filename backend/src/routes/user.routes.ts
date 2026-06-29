@@ -113,12 +113,36 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/users/:id - Delete a user
+// DELETE /api/users/:id - Delete a user and all dependent records
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    const existingUser = await prisma.user.findUnique({ where: { id } });
+    if (!existingUser) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // If the user is a STUDENT, clean up all student-linked records first
+    const student = await prisma.student.findUnique({ where: { userId: id } });
+    if (student) {
+      await prisma.parentStudentLink.deleteMany({ where: { studentId: student.id } });
+      await prisma.parentNotification.updateMany({ where: { studentId: student.id }, data: { studentId: null } });
+      await prisma.homeworkSubmission.updateMany({ where: { studentId: student.id }, data: { studentId: null } });
+      await prisma.watchlistStudent.updateMany({ where: { studentId: student.id }, data: { studentId: null } });
+      await prisma.clubMember.deleteMany({ where: { studentId: student.id } });
+      await prisma.scholarship.deleteMany({ where: { studentId: student.id } });
+      await prisma.mark.deleteMany({ where: { studentId: student.id } });
+      await prisma.attendance.deleteMany({ where: { studentId: student.id } });
+      await prisma.studentBadge.deleteMany({ where: { studentId: student.id } });
+      // Student itself will CASCADE delete when User is deleted
+    }
+
+    // If the user is a TEACHER, Notification CASCADE handles it via schema
+    // User delete will CASCADE to Student and Teacher via onDelete: Cascade
     await prisma.user.delete({ where: { id } });
-    res.json({ success: true, message: 'User deleted successfully' });
+
+    res.json({ success: true, message: 'User and all associated records deleted successfully' });
   } catch (err) {
     console.error('Error deleting user:', err);
     res.status(500).json({ success: false, error: String(err) });
