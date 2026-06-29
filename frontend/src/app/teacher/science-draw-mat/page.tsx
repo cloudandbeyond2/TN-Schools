@@ -47,6 +47,69 @@ export default function ScienceDrawMatPage() {
   const [texts, setTexts] = useState<any[]>([]);
   const [stickers, setStickers] = useState<any[]>([]);
 
+  const [history, setHistory] = useState<any[]>([]);
+  const [historyStep, setHistoryStep] = useState<number>(-1);
+
+  const saveState = (newShapes = shapes, newTexts = texts, newStickers = stickers) => {
+    if (!canvasRef.current) return;
+    const canvasData = canvasRef.current.toDataURL();
+    const newState = {
+      canvasData,
+      shapes: newShapes,
+      texts: newTexts,
+      stickers: newStickers
+    };
+    const newHistory = history.slice(0, historyStep + 1);
+    newHistory.push(newState);
+    setHistory(newHistory);
+    setHistoryStep(newHistory.length - 1);
+  };
+
+  const undo = () => {
+    if (historyStep > 0) {
+      const newStep = historyStep - 1;
+      restoreState(history[newStep]);
+      setHistoryStep(newStep);
+      showToast("Undid last action!");
+    } else if (historyStep === 0) {
+      if (ctx && canvasRef.current) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
+      setShapes([]);
+      setTexts([]);
+      setStickers([]);
+      setHistoryStep(-1);
+      showToast("Undid last action!");
+    }
+  };
+
+  const redo = () => {
+    if (historyStep < history.length - 1) {
+      const newStep = historyStep + 1;
+      restoreState(history[newStep]);
+      setHistoryStep(newStep);
+      showToast("Redid action!");
+    }
+  };
+
+  const restoreState = (state: any) => {
+    if (!state) return;
+    setShapes(state.shapes);
+    setTexts(state.texts);
+    setStickers(state.stickers);
+    
+    if (canvasRef.current && ctx) {
+      const img = new Image();
+      img.onload = () => {
+        if (canvasRef.current && ctx) {
+          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+          ctx.drawImage(img, 0, 0);
+        }
+      };
+      img.src = state.canvasData;
+    }
+  };
+
   useEffect(() => {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
@@ -104,6 +167,7 @@ export default function ScienceDrawMatPage() {
     setTexts([]);
     setStickers([]);
     showToast("Canvas Cleared! ✨");
+    saveState([], [], []);
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -135,7 +199,7 @@ export default function ScienceDrawMatPage() {
       });
     } else if (activeTool === 'text') {
       // Add text box
-      setTexts([...texts, {
+      const newTexts = [...texts, {
         id: Date.now(),
         x, y,
         text: "Type here...",
@@ -144,18 +208,22 @@ export default function ScienceDrawMatPage() {
         isBold,
         isItalic,
         isUnderline
-      }]);
+      }];
+      setTexts(newTexts);
+      saveState(shapes, newTexts, stickers);
     } else if (activeTool === 'image') {
       // Add sticker
-      const stickerIcons = [<Atom />, <Rocket />, <Palette />];
+      const stickerIcons = [<Atom key="atom" />, <Rocket key="rocket" />, <Palette key="palette" />];
       const randomIcon = stickerIcons[Math.floor(Math.random() * stickerIcons.length)];
-      setStickers([...stickers, {
+      const newStickers = [...stickers, {
         id: Date.now(),
         x: x - 40, y: y - 40,
         opacity,
         color: activeColor,
         icon: randomIcon
-      }]);
+      }];
+      setStickers(newStickers);
+      saveState(shapes, texts, newStickers);
     }
   };
 
@@ -185,8 +253,12 @@ export default function ScienceDrawMatPage() {
 
   const handlePointerUp = () => {
     if (activeTool.startsWith('shape-') && currentShape) {
-      setShapes([...shapes, currentShape]);
+      const newShapes = [...shapes, currentShape];
+      setShapes(newShapes);
       setCurrentShape(null);
+      saveState(newShapes, texts, stickers);
+    } else if (isDrawing && (activeTool === 'pencil' || activeTool === 'eraser')) {
+      saveState(shapes, texts, stickers);
     }
     setIsDrawing(false);
     if (ctx) ctx.beginPath();
@@ -194,6 +266,54 @@ export default function ScienceDrawMatPage() {
 
   const updateText = (id: number, newText: string) => {
     setTexts(texts.map(t => t.id === id ? { ...t, text: newText } : t));
+  };
+
+  const handleDownload = () => {
+    if (!canvasRef.current) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvasRef.current.width;
+    canvas.height = canvasRef.current.height;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    
+    context.fillStyle = '#f8fafc';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    
+    context.drawImage(canvasRef.current, 0, 0);
+    
+    shapes.forEach(shape => {
+       context.lineWidth = shape.strokeWidth;
+       context.strokeStyle = shape.color;
+       context.fillStyle = shape.fill ? `${shape.color}40` : 'transparent';
+       if (shape.type === 'shape-circle') {
+         context.beginPath();
+         const r = Math.sqrt(shape.w * shape.w + shape.h * shape.h);
+         context.arc(shape.x, shape.y, r, 0, 2 * Math.PI);
+         if (shape.fill) context.fill();
+         context.stroke();
+       } else if (shape.type === 'shape-square') {
+         context.beginPath();
+         context.rect(shape.w < 0 ? shape.x + shape.w : shape.x, shape.h < 0 ? shape.y + shape.h : shape.y, Math.abs(shape.w), Math.abs(shape.h));
+         if (shape.fill) context.fill();
+         context.stroke();
+       }
+    });
+
+    texts.forEach(t => {
+       context.font = `${t.isItalic ? 'italic ' : ''}${t.isBold ? '900 ' : 'normal '}${t.fontSize}px sans-serif`;
+       context.fillStyle = t.color;
+       context.fillText(t.text, t.x, t.y);
+       if (t.isUnderline) {
+         const width = context.measureText(t.text).width;
+         context.fillRect(t.x, t.y + 2, width, 2);
+       }
+    });
+
+    const link = document.createElement('a');
+    link.download = 'science-drawing.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast("Downloaded drawing as PNG! 🖼️");
   };
 
   return (
@@ -253,10 +373,10 @@ export default function ScienceDrawMatPage() {
           
           {/* Action Buttons */}
           <div className="bg-white dark:bg-slate-800 p-3 flex flex-col items-center gap-3 rounded-3xl shadow-xl shadow-emerald-500/10 border-4 border-emerald-100 dark:border-slate-700 mt-auto select-none">
-             <button onClick={() => showToast("Undoing last stroke...")} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-emerald-500 hover:bg-emerald-50 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Undo">
+             <button onClick={undo} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-emerald-500 hover:bg-emerald-50 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Undo">
                 <Undo className="w-6 h-6" />
              </button>
-             <button onClick={() => showToast("Redoing...")} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-emerald-500 hover:bg-emerald-50 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Redo">
+             <button onClick={redo} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-emerald-500 hover:bg-emerald-50 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Redo">
                 <Redo className="w-6 h-6" />
              </button>
              <button onClick={clearCanvas} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Clear Canvas">
@@ -282,11 +402,14 @@ export default function ScienceDrawMatPage() {
                 <Share2 className="w-4 h-4" />
                 Share
               </button>
-              <button onClick={() => showToast("Downloading drawing as PNG! 🖼️")} className="flex items-center gap-2 px-4 py-2.5 text-sm font-black text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
+              <button onClick={handleDownload} className="flex items-center gap-2 px-4 py-2.5 text-sm font-black text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
                 <Download className="w-4 h-4" />
                 Download
               </button>
-              <button onClick={() => showToast("Awesome drawing saved! 🌟")} className="flex items-center gap-2 px-6 py-2.5 text-sm font-black bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 rounded-2xl transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-105 active:scale-95">
+              <button onClick={() => {
+                handleDownload();
+                showToast("Awesome drawing saved! 🌟");
+              }} className="flex items-center gap-2 px-6 py-2.5 text-sm font-black bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 rounded-2xl transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-105 active:scale-95">
                 <Save className="w-4 h-4 text-black" />
                 Save to Portfolio
               </button>
