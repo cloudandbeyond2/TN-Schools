@@ -405,6 +405,9 @@ export default function PortalLayout({
   // Adjust avatar parameters dynamically using session profile data
   const displayName = session?.user?.name || resolvedTitle;
   const displayEmail = session?.user?.email || resolvedSubtitle;
+  const userClass = (session?.user as any)?.class;
+  const userSection = (session?.user as any)?.section;
+  const classDisplay = userClass && userSection ? `Class ${userClass} - ${userSection}` : (userClass ? `Class ${userClass}` : "");
   const letter = displayName ? displayName.charAt(0).toUpperCase() : resolvedAvatarLetter;
 
   return (
@@ -433,8 +436,9 @@ export default function PortalLayout({
              </div>
              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[var(--bg-sidebar)] rounded-full"></div>
           </div>
-          <div className="min-w-0 text-left">
+          <div className="min-w-0 text-left flex flex-col justify-center">
             <div className="text-sm font-bold text-[var(--text-heading)] truncate">{displayName}</div>
+            {classDisplay && <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 truncate mt-0.5">{classDisplay}</div>}
             <div className="text-[10px] text-[var(--text-muted)] truncate">{displayEmail || (userRole === "TEACHER" ? "Teacher" : "Student")}</div>
           </div>
         </div>
