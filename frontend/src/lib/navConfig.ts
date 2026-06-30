@@ -234,7 +234,6 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // Student Management
       { label: "Student Management", href: "#", icon: "" },
       { label: "Student Profiles", href: "/teacher/student-profiles", icon: "👤" },
-      { label: "Student Health Report", href: "/teacher/student-health", icon: "🏥" },
       { label: "Student Status", href: "/teacher/student-status", icon: "📈" },
       { label: "Homework Manager", href: "/teacher/homework", icon: "✔️" },
       { label: "Scholarship Details", href: "/teacher/scholarships", icon: "🎓" },
