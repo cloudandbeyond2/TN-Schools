@@ -243,22 +243,27 @@ model SchoolAsset {
 }
 
 model WatchlistStudent {
-  id         String   @id @default(uuid())
-  name       String
-  rollNumber String
-  class      String
-  phone      String   @default("N/A")
-  parentName String   @default("N/A")
-  district   String   @default("N/A")
-  state      String   @default("N/A")
-  city       String   @default("N/A")
-  pincode    String   @default("N/A")
-  risk       String   @default("Medium")
-  schoolId   String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  studentId  String?  @unique
-  student    Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  id                  String   @id @default(uuid())
+  name                String
+  rollNumber          String
+  class               String
+  phone               String   @default("N/A")
+  parentName          String   @default("N/A")
+  district            String   @default("N/A")
+  state               String   @default("N/A")
+  city                String   @default("N/A")
+  pincode             String   @default("N/A")
+  risk                String   @default("Medium")
+  issue               String   @default("High absenteeism + decline in math score averages below threshold")
+  attendance          Float?
+  lastScore           Float?
+  notified            Boolean  @default(false)
+  notificationMessage String?
+  schoolId            String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  studentId           String?  @unique
+  student             Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
   @@index([schoolId])
   @@index([risk])
@@ -1062,31 +1067,6 @@ model MinisterScheme {
   status        String
   createdAt     DateTime @default(now())
   updatedAt     DateTime
-}
-
-model PeerTutoring {
-  id        String   @id
-  studentId String
-  buddyId   String
-  subject   String
-  status    String   @default("active")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-
-  @@index([buddyId])
-  @@index([studentId])
-}
-
-model RemedialTask {
-  id          String   @id
-  studentId   String
-  title       String
-  description String
-  status      String   @default("assigned")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
-
-  @@index([studentId])
 }
 
 model SocialActivity {
