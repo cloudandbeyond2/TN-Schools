@@ -1042,4 +1042,48 @@ router.put('/profile/:userId', async (req: Request, res: Response) => {
   }
 });
 
+// =========================================================================
+// 8. School Press
+// =========================================================================
+
+// GET /api/teacher/school-press
+router.get('/school-press', async (req: Request, res: Response) => {
+  try {
+    const { teacherId } = req.query;
+    const activities = await (prisma as any).schoolPressActivity.findMany({
+      where: {
+        ...(teacherId ? { teacherId: String(teacherId) } : {})
+      },
+      include: {
+        student: { select: { id: true, user: { select: { name: true } }, class: true, section: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ success: true, data: activities });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/teacher/school-press
+router.post('/school-press', async (req: Request, res: Response) => {
+  try {
+    const { studentId, teacherId, description, photos } = req.body;
+    if (!studentId || !description) {
+      return res.status(400).json({ success: false, error: 'Student ID and description are required' });
+    }
+    const newActivity = await (prisma as any).schoolPressActivity.create({
+      data: {
+        studentId,
+        teacherId,
+        description,
+        photos: photos || []
+      }
+    });
+    res.json({ success: true, data: newActivity });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;

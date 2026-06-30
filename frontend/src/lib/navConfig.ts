@@ -263,6 +263,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Celebrations", href: "/teacher/celebrations", icon: "🎉" },
       { label: "Cultural Events", href: "/teacher/cultural-events", icon: "🎭" },
       { label: "Computer Education", href: "/teacher/computer-education", icon: "💻" },
+      { label: "School Press", href: "/teacher/school-press", icon: "📰" },
     ],
   },
   PARENT: {
