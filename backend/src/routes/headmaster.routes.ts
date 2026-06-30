@@ -328,6 +328,70 @@ router.delete('/students/:id', async (req: Request, res: Response) => {
   }
 });
 
+// ─── Health Report Endpoints ─────────────────────────────────────
+
+// GET /api/headmaster/health/:rollNumber
+router.get('/health/:rollNumber', async (req: Request, res: Response) => {
+  try {
+    const { rollNumber } = req.params;
+    const student = await prisma.student.findFirst({
+      where: { rollNumber: { equals: rollNumber, mode: 'insensitive' } }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found in core system.' });
+
+    const health = await prisma.healthReport.findUnique({
+      where: { studentId: student.id }
+    });
+    res.json({ success: true, data: health });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/health/:rollNumber
+router.post('/health/:rollNumber', async (req: Request, res: Response) => {
+  try {
+    const { rollNumber } = req.params;
+    const { height, weight, bloodGroup, vision, hearing, bmi, dental, lastCheckupDate, notes } = req.body;
+    
+    const student = await prisma.student.findFirst({
+      where: { rollNumber: { equals: rollNumber, mode: 'insensitive' } }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found in core system. Must be enrolled first.' });
+
+    const health = await prisma.healthReport.upsert({
+      where: { studentId: student.id },
+      update: { 
+        height: height ? parseFloat(height) : null, 
+        weight: weight ? parseFloat(weight) : null, 
+        bloodGroup, 
+        vision, 
+        hearing, 
+        bmi: bmi ? parseFloat(bmi) : null, 
+        dental, 
+        lastCheckupDate: lastCheckupDate ? new Date(lastCheckupDate) : null, 
+        notes 
+      },
+      create: { 
+        studentId: student.id, 
+        height: height ? parseFloat(height) : null, 
+        weight: weight ? parseFloat(weight) : null, 
+        bloodGroup, 
+        vision, 
+        hearing, 
+        bmi: bmi ? parseFloat(bmi) : null, 
+        dental, 
+        lastCheckupDate: lastCheckupDate ? new Date(lastCheckupDate) : null, 
+        notes 
+      }
+    });
+
+    res.json({ success: true, data: health });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // ─── Staff Endpoints ─────────────────────────────────────────────
 
 // GET /api/headmaster/staff — List all staff
