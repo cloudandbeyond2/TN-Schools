@@ -77,7 +77,7 @@ export default function QuizCategoryPage() {
 
         {/* Quizzes List */}
         <div className="lg:col-span-3 space-y-4">
-           {quizzesList.map((quiz) => (
+           {quizzesList.map((quiz: any) => (
              <div key={quiz.id} className="glass rounded-3xl p-6 border border-slate-700/50 hover:border-slate-500 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                    <div className="flex items-center gap-3 mb-2">
