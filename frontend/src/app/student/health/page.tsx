@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { useSession } from "next-auth/react";
 import { 
   HeartPulse, 
   Activity, 
@@ -18,19 +19,37 @@ import {
 } from "lucide-react";
 
 export default function StudentHealthReportPage() {
-  const studentName = "Arjun M.";
+  const { data: session } = useSession();
+  const [healthData, setHealthData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for the student
-  const healthData = {
-    height: 158, // cm
-    weight: 48, // kg
-    bloodGroup: "O+",
-    bmi: 19.2,
-    eyePower: { left: "-0.50", right: "-0.75" },
-    lastDental: "12 Oct 2025",
-    allergies: ["Dust", "Peanuts"],
-    vaccines: ["Typhoid Booster (2025)", "Tetanus (2024)"]
-  };
+  const studentName = session?.user?.name || "Student";
+  // The session email is stored as rollNumber@tn.gov.in for students
+  const rollNumber = session?.user?.email?.split('@')[0] || "";
+
+  useEffect(() => {
+    async function fetchHealthData() {
+      if (!rollNumber) return;
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const res = await fetch(`${apiUrl}/api/headmaster/health/${rollNumber}`);
+        const data = await res.json();
+        if (data.success && data.data) {
+          setHealthData(data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch health data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    if (rollNumber) {
+      fetchHealthData();
+    } else if (session === null) {
+      setLoading(false);
+    }
+  }, [rollNumber, session]);
 
   const getBmiStatus = (bmi: number) => {
     if (bmi < 18.5) return { label: "Underweight", color: "amber" };
@@ -38,7 +57,54 @@ export default function StudentHealthReportPage() {
     return { label: "Overweight", color: "rose" };
   };
 
-  const bmiStatus = getBmiStatus(healthData.bmi);
+  if (loading) {
+    return (
+      <PortalLayout title="My Health Report 🏥" subtitle="View your latest school medical checkup details.">
+        <div className="flex justify-center items-center h-64">
+          <p className="text-slate-500 font-bold">Loading health report...</p>
+        </div>
+      </PortalLayout>
+    );
+  }
+
+  if (!healthData) {
+    return (
+      <PortalLayout title="My Health Report 🏥" subtitle="View your latest school medical checkup details.">
+        <div className="flex justify-center items-center h-64">
+          <p className="text-slate-500 font-bold text-lg">No health report available yet.</p>
+        </div>
+      </PortalLayout>
+    );
+  }
+
+  const bmiValue = healthData.bmi || 0;
+  const bmiStatus = getBmiStatus(bmiValue);
+  
+  // Parse vision and notes from DB
+  const visionStr = healthData.vision || "N/A";
+  let leftEye = "N/A";
+  let rightEye = "N/A";
+  if (visionStr.includes(",")) {
+    const parts = visionStr.split(",");
+    leftEye = parts[0].trim();
+    rightEye = parts[1]?.trim() || "N/A";
+  } else {
+    leftEye = visionStr;
+    rightEye = visionStr;
+  }
+
+  let allergies = ["None recorded"];
+  let vaccines = ["Up to date (General)"];
+
+  if (healthData.notes) {
+    allergies = [healthData.notes];
+  }
+
+  const lastDentalStr = healthData.dental || "N/A";
+  let formattedDentalDate = "N/A";
+  if (healthData.lastCheckupDate) {
+    formattedDentalDate = new Date(healthData.lastCheckupDate).toLocaleDateString();
+  }
 
   return (
     <PortalLayout title="My Health Report 🏥" subtitle="View your latest school medical checkup details.">
@@ -55,10 +121,12 @@ export default function StudentHealthReportPage() {
             </div>
             <div>
               <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-1">{studentName}</h2>
-              <p className="text-sm font-bold text-slate-500">Class 9B • Roll No: 14</p>
+              <p className="text-sm font-bold text-slate-500">Roll No: {rollNumber}</p>
               <div className="flex gap-2 mt-3">
                 <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 bg-emerald-100 text-emerald-600 rounded-md">Cleared for Sports</span>
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 bg-amber-100 text-amber-600 rounded-md">Needs Glasses</span>
+                {(leftEye !== "N/A" || rightEye !== "N/A") && (
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 bg-amber-100 text-amber-600 rounded-md">Vision Checked</span>
+                )}
               </div>
             </div>
           </div>
@@ -68,7 +136,7 @@ export default function StudentHealthReportPage() {
               <div className="w-10 h-10 mx-auto bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-500 mb-3 group-hover:scale-110 group-hover:text-sky-500 transition-all">
                 <Ruler className="w-5 h-5" />
               </div>
-              <h3 className="text-2xl font-black text-slate-800 dark:text-white">{healthData.height}</h3>
+              <h3 className="text-2xl font-black text-slate-800 dark:text-white">{healthData.height || "—"}</h3>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Height (cm)</p>
             </div>
             
@@ -76,7 +144,7 @@ export default function StudentHealthReportPage() {
               <div className="w-10 h-10 mx-auto bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-500 mb-3 group-hover:scale-110 group-hover:text-sky-500 transition-all">
                 <Scale className="w-5 h-5" />
               </div>
-              <h3 className="text-2xl font-black text-slate-800 dark:text-white">{healthData.weight}</h3>
+              <h3 className="text-2xl font-black text-slate-800 dark:text-white">{healthData.weight || "—"}</h3>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Weight (kg)</p>
             </div>
 
@@ -84,7 +152,7 @@ export default function StudentHealthReportPage() {
               <div className="w-10 h-10 mx-auto bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-500 mb-3 group-hover:scale-110 group-hover:text-rose-500 transition-all">
                 <Droplet className="w-5 h-5 text-rose-500" />
               </div>
-              <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400">{healthData.bloodGroup}</h3>
+              <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400">{healthData.bloodGroup || "—"}</h3>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Blood Group</p>
             </div>
 
@@ -92,8 +160,8 @@ export default function StudentHealthReportPage() {
               <div className={`w-10 h-10 mx-auto bg-${bmiStatus.color}-100 dark:bg-${bmiStatus.color}-800/50 rounded-xl flex items-center justify-center text-${bmiStatus.color}-600 dark:text-${bmiStatus.color}-400 mb-3`}>
                 <Activity className="w-5 h-5" />
               </div>
-              <h3 className={`text-2xl font-black text-${bmiStatus.color}-700 dark:text-${bmiStatus.color}-400`}>{healthData.bmi}</h3>
-              <p className={`text-[10px] font-black text-${bmiStatus.color}-600 dark:text-${bmiStatus.color}-500 uppercase tracking-widest mt-1`}>BMI: {bmiStatus.label}</p>
+              <h3 className={`text-2xl font-black text-${bmiStatus.color}-700 dark:text-${bmiStatus.color}-400`}>{bmiValue || "—"}</h3>
+              <p className={`text-[10px] font-black text-${bmiStatus.color}-600 dark:text-${bmiStatus.color}-500 uppercase tracking-widest mt-1`}>BMI: {bmiValue ? bmiStatus.label : "N/A"}</p>
             </div>
           </div>
 
@@ -110,15 +178,12 @@ export default function StudentHealthReportPage() {
               <div className="flex gap-4">
                 <div className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl text-center">
                   <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Left Eye (L)</span>
-                  <span className="text-xl font-black text-slate-700 dark:text-white">{healthData.eyePower.left}</span>
+                  <span className="text-xl font-black text-slate-700 dark:text-white">{leftEye}</span>
                 </div>
                 <div className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl text-center">
                   <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Right Eye (R)</span>
-                  <span className="text-xl font-black text-slate-700 dark:text-white">{healthData.eyePower.right}</span>
+                  <span className="text-xl font-black text-slate-700 dark:text-white">{rightEye}</span>
                 </div>
-              </div>
-              <div className="mt-4 flex items-center gap-2 text-xs font-bold text-amber-500 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-lg">
-                <AlertCircle className="w-4 h-4" /> Wears corrective lenses
               </div>
             </div>
 
@@ -133,13 +198,15 @@ export default function StudentHealthReportPage() {
               
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
-                  <span className="text-xs font-bold text-slate-500 flex items-center gap-2"><Calendar className="w-4 h-4" /> Last Dental</span>
-                  <span className="text-sm font-black text-slate-700 dark:text-white">{healthData.lastDental}</span>
+                  <span className="text-xs font-bold text-slate-500 flex items-center gap-2"><Calendar className="w-4 h-4" /> Dental Details</span>
+                  <span className="text-sm font-black text-slate-700 dark:text-white">{lastDentalStr}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
-                  <span className="text-xs font-bold text-emerald-600 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> General Health</span>
-                  <span className="text-xs font-black text-emerald-700 dark:text-emerald-400">Excellent</span>
-                </div>
+                {healthData.lastCheckupDate && (
+                  <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
+                    <span className="text-xs font-bold text-emerald-600 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Checkup Date</span>
+                    <span className="text-xs font-black text-emerald-700 dark:text-emerald-400">{formattedDentalDate}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -153,7 +220,7 @@ export default function StudentHealthReportPage() {
               <Syringe className="w-5 h-5 text-sky-500" /> Vaccinations
             </h3>
             <ul className="space-y-3">
-              {healthData.vaccines.map((v, i) => (
+              {vaccines.map((v, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                   <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{v}</span>
@@ -164,10 +231,10 @@ export default function StudentHealthReportPage() {
 
           <div className="bg-amber-50 dark:bg-amber-900/20 p-6 rounded-3xl border-2 border-amber-200 dark:border-amber-800/50">
             <h3 className="font-black text-amber-700 dark:text-amber-400 mb-4 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" /> Known Allergies
+              <AlertCircle className="w-5 h-5" /> Known Allergies & Notes
             </h3>
             <div className="flex flex-wrap gap-2">
-              {healthData.allergies.map((a, i) => (
+              {allergies.map((a, i) => (
                 <span key={i} className="px-3 py-1.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-xs font-black rounded-lg">
                   {a}
                 </span>
