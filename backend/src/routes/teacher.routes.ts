@@ -1073,10 +1073,16 @@ router.put('/profile/:userId', async (req: Request, res: Response) => {
 // GET /api/teacher/school-press
 router.get('/school-press', async (req: Request, res: Response) => {
   try {
-    const { teacherId } = req.query;
+    const { teacherId, schoolId, class: studentClass } = req.query;
     const activities = await (prisma as any).schoolPressActivity.findMany({
       where: {
-        ...(teacherId ? { teacherId: String(teacherId) } : {})
+        ...(teacherId ? { teacherId: String(teacherId) } : {}),
+        ...(schoolId || studentClass ? {
+          student: {
+            ...(schoolId ? { schoolId: String(schoolId) } : {}),
+            ...(studentClass ? { class: String(studentClass) } : {})
+          }
+        } : {})
       },
       include: {
         student: { select: { id: true, user: { select: { name: true } }, class: true, section: true } }

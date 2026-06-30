@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { 
   Calculator, 
@@ -39,11 +40,35 @@ import { FormulaSandboxLoader } from "@/components/MathSandboxes";
 
 
 export default function MathsFormulasPage() {
+  const { data: session } = useSession();
   const [activeCat, setActiveCat] = useState("all");
   const [activeStandard, setActiveStandard] = useState("6");
   const [activeTerm, setActiveTerm] = useState("3");
   const [lang, setLang] = useState<"en" | "ta">("en");
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    async function fetchStudentClass() {
+      if (!session?.user) return;
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const res = await fetch(`${apiUrl}/api/students`);
+        const json = await res.json();
+        if (json.success) {
+          const profile = json.data.find((s: any) => s.userId === (session.user as any).id);
+          if (profile && profile.class) {
+            const match = profile.class.match(/\d+/);
+            if (match) {
+              setActiveStandard(match[0]);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching student profile for maths formulas:", err);
+      }
+    }
+    fetchStudentClass();
+  }, [session]);
   
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [toastMsg, setToastMsg] = useState("");

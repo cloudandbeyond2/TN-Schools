@@ -434,7 +434,7 @@ export default function ThreeDPreviewPage() {
               /* Beautiful retro-holographic scientific 3D canvas viewer */
               <ThreeDModelViewer
                 key={activeModel.id}
-                shapes={activeModel.shapes}
+                shapes={activeModel.shapes as any}
                 name={activeModel.name}
                 description={activeModel.description}
                 colorTheme={activeModel.color}
