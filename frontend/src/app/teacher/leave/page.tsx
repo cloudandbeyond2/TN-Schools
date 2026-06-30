@@ -65,7 +65,7 @@ export default function LeaveRequestsPage() {
         if (activeClasses.length === 0) {
           setRequests([]);
           setStaffList([]);
-          setStudentName("Select Student");
+          setStudentId("");
           setLoading(false);
           return;
         }
