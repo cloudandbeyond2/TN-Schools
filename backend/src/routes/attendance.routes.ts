@@ -3,15 +3,159 @@ import { prisma } from '../config/prisma';
 
 const router = Router();
 
-// POST /api/attendance — Bulk mark attendance
+// POST /api/attendance — Bulk mark attendance (supports updates via delete-and-recreate transaction)
 router.post('/', async (req: Request, res: Response) => {
   try {
     const { records } = req.body; // Array of { studentId, schoolId, date, status, method }
-    const result = await prisma.attendance.createMany({
-      data: records,
-      skipDuplicates: true,
+    if (!Array.isArray(records) || records.length === 0) {
+      return res.status(400).json({ success: false, error: 'records array is required' });
+    }
+
+    const firstRecord = records[0];
+    const dateVal = new Date(firstRecord.date);
+    dateVal.setHours(0, 0, 0, 0);
+    const nextDate = new Date(dateVal);
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    const studentIds = records.map(r => r.studentId);
+
+    // Run delete existing & create new as a single transaction to update attendance
+    const result = await prisma.$transaction([
+      prisma.attendance.deleteMany({
+        where: {
+          studentId: { in: studentIds },
+          date: { gte: dateVal, lt: nextDate },
+        },
+      }),
+      prisma.attendance.createMany({
+        data: records.map(r => ({
+          studentId: r.studentId,
+          schoolId: r.schoolId,
+          date: new Date(r.date),
+          status: r.status,
+          method: r.method || 'Manual',
+        })),
+      }),
+    ]);
+
+    res.status(201).json({ success: true, created: result[1].count });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/attendance/class-date — Load saved attendance for a class on a specific date
+router.get('/class-date', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, class: cls, section, date } = req.query;
+    if (!schoolId || !cls || !section || !date) {
+      return res.status(400).json({ success: false, error: 'schoolId, class, section, and date are required' });
+    }
+
+    const targetDate = new Date(String(date));
+    targetDate.setHours(0, 0, 0, 0);
+    const nextDate = new Date(targetDate);
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    const records = await prisma.attendance.findMany({
+      where: {
+        schoolId: String(schoolId),
+        date: { gte: targetDate, lt: nextDate },
+        student: {
+          class: String(cls),
+          section: String(section),
+        },
+      },
+      select: {
+        studentId: true,
+        status: true,
+      },
     });
-    res.status(201).json({ success: true, created: result.count });
+
+    res.json({ success: true, data: records });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// Helper function to calculate start (Monday) and end (Friday) dates for current/last week
+function getWeekRange(week: 'current' | 'last') {
+  const today = new Date();
+  const currentDay = today.getDay(); // 0 = Sun, 1 = Mon ...
+  // Find Monday of the current week
+  const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+  const monday = new Date(today.setDate(diff));
+  monday.setHours(0, 0, 0, 0);
+
+  if (week === 'last') {
+    monday.setDate(monday.getDate() - 7);
+  }
+
+  const Friday = new Date(monday);
+  Friday.setDate(monday.getDate() + 4);
+  Friday.setHours(23, 59, 59, 999);
+
+  return { start: monday, end: Friday };
+}
+
+// GET /api/attendance/weekly — Get student attendance for a class filtered by current/last week
+router.get('/weekly', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, class: cls, section, week } = req.query;
+    if (!schoolId || !cls || !section) {
+      return res.status(400).json({ success: false, error: 'schoolId, class, and section are required' });
+    }
+
+    const selectedWeek = week === 'last' ? 'last' : 'current';
+    const { start, end } = getWeekRange(selectedWeek);
+
+    // Fetch all students in the class
+    const students = await prisma.student.findMany({
+      where: {
+        schoolId: String(schoolId),
+        class: String(cls),
+        section: String(section),
+      },
+      select: {
+        id: true,
+        rollNumber: true,
+        user: { select: { name: true } },
+      },
+      orderBy: { rollNumber: 'asc' },
+    });
+
+    const studentIds = students.map(s => s.id);
+
+    // Fetch attendance for these students in the date range
+    const attendance = await prisma.attendance.findMany({
+      where: {
+        studentId: { in: studentIds },
+        date: { gte: start, lte: end },
+      },
+      select: {
+        studentId: true,
+        date: true,
+        status: true,
+      },
+    });
+
+    res.json({
+      success: true,
+      weekRange: { start, end },
+      students: students.map(s => {
+        const studentAttendance = attendance.filter(a => a.studentId === s.id);
+        return {
+          id: s.id,
+          name: s.user?.name || 'Unknown',
+          rollNo: s.rollNumber || '',
+          records: studentAttendance.map(a => ({
+            date: a.date.toISOString().split('T')[0],
+            dayOfWeek: new Date(a.date).getDay(), // 1=Mon, 2=Tue ... 5=Fri
+            status: a.status,
+          })),
+        };
+      }),
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

@@ -526,7 +526,7 @@ export default function PortalLayout({
         />
 
         {/* Topbar */}
-        <header className="topbar relative flex items-center justify-between">
+        <header className="topbar relative z-30 flex items-center justify-between">
           <div className="flex items-center gap-3 md:gap-4 flex-1">
             {/* Mobile Menu Trigger (Hamburger) */}
             <button
@@ -629,7 +629,7 @@ export default function PortalLayout({
                 )}
               </button>
               {isNotificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-[var(--bg-card)]/90 backdrop-blur-md border border-[var(--border)] rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-250">
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-250">
                   <div className="p-4 border-b border-[var(--border)] flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/10">
                     <span className="text-xs font-bold text-[var(--text-heading)]">{t.notificationsTitle}</span>
                     <button 
@@ -684,7 +684,7 @@ export default function PortalLayout({
                 {letter}
               </button>
               {isProfileOpen && (
-                <div className="absolute right-0 mt-12 top-0 w-56 bg-[var(--bg-card)]/90 backdrop-blur-md border border-[var(--border)] rounded-2xl shadow-xl z-50 py-2 animate-in fade-in slide-in-from-top-1 duration-250">
+                <div className="absolute right-0 mt-12 top-0 w-56 bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in slide-in-from-top-1 duration-250">
                   <div className="px-4 py-2.5 border-b border-[var(--border)] mb-1">
                     <div className="text-xs font-bold text-[var(--text-heading)] truncate">{displayName}</div>
                     <div className="text-[10px] text-[var(--text-muted)] truncate">{displayEmail}</div>
