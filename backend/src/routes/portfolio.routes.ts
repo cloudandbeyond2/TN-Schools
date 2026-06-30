@@ -15,7 +15,7 @@ router.get('/:studentId', async (req: Request, res: Response) => {
         projects: true,
         achievements: true,
         student: {
-          include: { user: true, school: true }
+          include: { school: true }
         }
       }
     });
@@ -31,7 +31,7 @@ router.get('/:studentId', async (req: Request, res: Response) => {
             projects: true,
             achievements: true,
             student: {
-              include: { user: true, school: true }
+              include: { school: true }
             }
           }
         });
@@ -42,10 +42,14 @@ router.get('/:studentId', async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: 'Portfolio not found' });
     }
 
+    const user = await prisma.user.findUnique({
+      where: { id: portfolio.student.userId }
+    });
+
     // Format the response to match what the frontend expects
     const formattedData = {
       profile: {
-        name: portfolio.student.user.name,
+        name: user?.name || "Student",
         class: portfolio.student.class,
         section: portfolio.student.section,
         stream: portfolio.stream,

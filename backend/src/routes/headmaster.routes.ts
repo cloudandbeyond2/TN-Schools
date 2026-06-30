@@ -102,7 +102,7 @@ router.post('/students', async (req: Request, res: Response) => {
           pincode: pincode || 'N/A',
           risk: risk || 'Medium',
           student: { connect: { id: student.id } },   // Formal FK link to Student
-          school: resolvedSchoolId ? { connect: { id: resolvedSchoolId } } : undefined,
+          schoolId: resolvedSchoolId || null,
         }
       });
 
@@ -189,7 +189,7 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
               pincode: s.pincode || 'N/A',
               risk: s.risk || 'Medium',
               student: { connect: { id: bulkStudent.id } },   // Formal FK link to Student
-              school: resolvedSchoolId ? { connect: { id: resolvedSchoolId } } : undefined,
+              schoolId: resolvedSchoolId || null,
             }
           });
         });
