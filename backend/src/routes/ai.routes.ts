@@ -620,6 +620,34 @@ Output ONLY valid JSON (no markdown, no backticks):
 });
 
 // ===========================================================================
+// POST /api/ai/draft-homework
+// ===========================================================================
+router.post('/draft-homework', async (req: Request, res: Response) => {
+  try {
+    const { topic, className } = req.body;
+
+    const prompt = `
+You are an expert teacher in Tamil Nadu, India, teaching the "TN Samacheer Kalvi" State Board syllabus.
+Draft a short, engaging homework assignment for students.
+Class & Subject: ${className}
+Unit Title / Topic: ${topic}
+
+Requirements:
+- Provide 3-5 thought-provoking questions or tasks.
+- Keep the language simple, direct, and grade-appropriate.
+- Do NOT include any introductory or concluding pleasantries. Just return the homework questions/prompts directly as plain text with numbered bullet points.
+- Include a mix of objective (e.g. fill in the blanks/multiple choice) and descriptive/creative questions.
+- Optionally add a hint of regional relevance if applicable to the topic.
+`;
+
+    const result = await callGemini(prompt, false);
+    res.json({ success: true, text: result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
 // POST /api/ai/chat-tutor
 // ===========================================================================
 router.post('/chat-tutor', async (req: Request, res: Response) => {

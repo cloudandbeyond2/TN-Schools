@@ -136,4 +136,61 @@ router.get('/:id/leave', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/students/:id/homework — Get homework for a student
+router.get('/:id/homework', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const student = await prisma.student.findFirst({ 
+      where: { 
+        OR: [
+          { id },
+          { userId: id }
+        ]
+      } 
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+
+    const classSection = `${student.class}${student.section}`;
+
+    // Get all homework for this class
+    const homeworkList = await prisma.homework.findMany({
+      where: { 
+        schoolId: student.schoolId, 
+        className: { startsWith: classSection } 
+      },
+      include: {
+        submissions: {
+          where: { rollNo: student.rollNumber || '' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const data = homeworkList.map((h: any) => {
+      const submission = h.submissions[0];
+      return {
+        id: h.id,
+        title: h.title,
+        subject: h.className.split(' - ')[1] || 'General',
+        subjectColor: '#2dd4bf', // Mock color or could map by subject
+        className: h.className,
+        dueDate: h.dueDate,
+        status: submission?.status === 'submitted' ? 'submitted' : 'not_submitted',
+        description: h.description,
+        fullBrief: h.description,
+        classLabel: `Class ${classSection}`,
+        dueLabel: `Due: ${h.dueDate}`,
+        postedLabel: new Date(h.createdAt).toLocaleDateString(),
+        teacher: 'Teacher', // could populate if linked
+      };
+    });
+
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('Error fetching student homework:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;

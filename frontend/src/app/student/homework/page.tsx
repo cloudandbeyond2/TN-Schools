@@ -1567,6 +1567,7 @@
 
 import PortalLayout from "@/components/PortalLayout";
 import { useState, useRef, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import {
   FileText,
   Upload,
@@ -1606,36 +1607,7 @@ interface Assignment {
   teacher: string;
 }
 
-const ASSIGNMENTS: Assignment[] = [
-  {
-    id: "algebra-1",
-    subject: "Mathematics",
-    subjectColor: "#2dd4bf",
-    title: "Algebra Practice — Linear Equations",
-    description: "Solve questions 1–12 from Chapter 3.",
-    fullBrief:
-      "Solve questions 1–12 from Chapter 3, covering single-variable and two-variable linear equations. Show every step — don't skip the working. Question 9 requires a word-problem setup before solving.",
-    classLabel: "Class 9",
-    status: "not_submitted",
-    dueLabel: "22 Jun · 3 days left",
-    postedLabel: "19 Jun",
-    teacher: "Mrs. Lakshmi",
-  },
-  {
-    id: "essay-1",
-    subject: "English",
-    subjectColor: "#fb923c",
-    title: "Essay — A Place I'd Like to Visit",
-    description: "Write a 300-word descriptive essay.",
-    fullBrief:
-      "Write a 300-word descriptive essay about a place you'd like to visit. Focus on sensory detail — what you'd see, hear, and feel — rather than just listing facts about the place.",
-    classLabel: "Class 9",
-    status: "submitted",
-    dueLabel: "20 Jun · Turned in",
-    postedLabel: "17 Jun",
-    teacher: "Mr. Joseph",
-  },
-];
+const ASSIGNMENTS: Assignment[] = []; // Removed hardcoded assignments
 
 /* Mocked AI guidance per assignment — in production this comes from your AI endpoint */
 const AI_GUIDANCE: Record<string, string[]> = {
@@ -2249,21 +2221,42 @@ function AssignmentDetail({
 type Filter = "all" | "pending" | "submitted";
 
 export default function HomeworkPage() {
+  const { data: session } = useSession();
+  const studentId = (session?.user as any)?.id;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [intent, setIntent] = useState<OpenIntent>("view");
   const [filter, setFilter] = useState<Filter>("all");
 
-  const completed = ASSIGNMENTS.filter((a) => a.status === "submitted").length;
-  const total = ASSIGNMENTS.length;
-  const pct = Math.round((completed / total) * 100);
+  useEffect(() => {
+    if (!studentId) return;
+    const fetchHomework = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/students/${studentId}/homework`);
+        const data = await res.json();
+        if (data.success) {
+          setAssignments(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching homework:", err);
+      }
+    };
+    fetchHomework();
+  }, [studentId]);
 
-  const filtered = ASSIGNMENTS.filter((a) => {
+  const completed = assignments.filter((a) => a.status === "submitted").length;
+  const total = assignments.length;
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  const filtered = assignments.filter((a) => {
     if (filter === "pending") return a.status === "not_submitted";
     if (filter === "submitted") return a.status === "submitted";
     return true;
   });
 
-  const selected = ASSIGNMENTS.find((a) => a.id === selectedId) ?? null;
+  const selected = assignments.find((a) => a.id === selectedId) ?? null;
 
   const handleOpen = (id: string, openIntent: OpenIntent) => {
     setSelectedId(id);
@@ -2309,7 +2302,7 @@ export default function HomeworkPage() {
             {(
               [
                 ["all", `All (${total})`],
-                ["pending", `Pending (${ASSIGNMENTS.filter((a) => a.status === "not_submitted").length})`],
+                ["pending", `Pending (${assignments.filter((a) => a.status === "not_submitted").length})`],
                 ["submitted", `Submitted (${completed})`],
               ] as [Filter, string][]
             ).map(([key, label]) => (
