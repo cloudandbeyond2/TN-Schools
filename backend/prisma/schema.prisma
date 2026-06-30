@@ -493,6 +493,8 @@ model LabEquipment {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   classRoomId  String?
+  location     String?  @default("N/A")
+  count        Int      @default(1)
 
   @@index([schoolId])
   @@index([classRoomId])
