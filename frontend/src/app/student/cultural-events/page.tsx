@@ -149,11 +149,11 @@ export default function CulturalEventsPage() {
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {loading ? (
-              <div className="col-span-3 text-center py-10 font-bold text-slate-500">Loading events... ⏳</div>
+              <div className="col-span-1 lg:col-span-3 text-center py-10 font-bold text-slate-500">Loading events... ⏳</div>
             ) : events.length === 0 ? (
-              <div className="col-span-3 text-center py-10 font-bold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-3xl border-4 border-dashed border-slate-200 dark:border-slate-700">No events scheduled. 🎉</div>
+              <div className="col-span-1 lg:col-span-3 text-center py-10 font-bold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-3xl border-4 border-dashed border-slate-200 dark:border-slate-700">No events scheduled. 🎉</div>
             ) : events.map((evt, i) => {
               const { icon, color } = getEventStyle(evt.title);
               return (

@@ -281,7 +281,7 @@ export default function LanguageCoachingPage() {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {stats.map((stat, i) => (
               <div key={i} className={`bg-white dark:bg-slate-800 p-5 rounded-[2rem] shadow-lg border-4 border-slate-100 dark:border-slate-700 flex flex-col items-center text-center group hover:-translate-y-2 hover:border-${stat.color}-300 hover:shadow-${stat.color}-500/20 transition-all`}>
                 <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-100 text-${stat.color}-500 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-inner`}>

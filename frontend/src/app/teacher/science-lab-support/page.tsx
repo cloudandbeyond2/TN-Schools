@@ -252,7 +252,7 @@ export default function ScienceLabSupportPage() {
       <div className="flex flex-col gap-8">
 
         {/* Playful Top Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-lg border-4 border-emerald-100 dark:border-slate-700 flex items-center justify-between hover:scale-105 transition-all">
             <div className="text-left">
               <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Lab Power Level</p>
@@ -291,38 +291,38 @@ export default function ScienceLabSupportPage() {
         <div className="bg-white dark:bg-slate-800 p-2 rounded-[2.5rem] shadow-xl border-4 border-slate-100 dark:border-slate-700 overflow-hidden">
 
           {/* Playful Tabs */}
-          <div className="flex bg-slate-50 dark:bg-slate-900 rounded-[2rem] p-2 mb-4 gap-2 overflow-x-auto hide-scrollbar">
+          <div className="flex bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] sm:rounded-[2rem] p-1.5 sm:p-2 mb-4 gap-1.5 sm:gap-2 overflow-x-auto hide-scrollbar">
             <button
               onClick={() => setActiveTab("inventory")}
-              className={`flex-1 min-w-[150px] px-6 py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-3 transition-all ${
+              className={`flex-1 min-w-[115px] sm:min-w-[150px] px-3 py-2.5 sm:px-6 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 sm:gap-3 transition-all ${
                 activeTab === "inventory"
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105"
+                  ? "bg-blue-600 text-white shadow-md sm:shadow-lg shadow-blue-500/30 scale-105"
                   : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
               }`}
             >
-              <Package className="w-5 h-5" />
+              <Package className="w-4 h-4 sm:w-5 h-5" />
               Treasure Chest (Inventory)
             </button>
             <button
               onClick={() => setActiveTab("maintenance")}
-              className={`flex-1 min-w-[150px] px-6 py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-3 transition-all ${
+              className={`flex-1 min-w-[115px] sm:min-w-[150px] px-3 py-2.5 sm:px-6 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 sm:gap-3 transition-all ${
                 activeTab === "maintenance"
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105"
+                  ? "bg-blue-600 text-white shadow-md sm:shadow-lg shadow-blue-500/30 scale-105"
                   : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
               }`}
             >
-              <Settings className="w-5 h-5" />
+              <Settings className="w-4 h-4 sm:w-5 h-5" />
               Fix-It Logs
             </button>
             <button
               onClick={() => setActiveTab("safety")}
-              className={`flex-1 min-w-[150px] px-6 py-4 rounded-2xl text-sm font-black flex items-center justify-center gap-3 transition-all ${
+              className={`flex-1 min-w-[115px] sm:min-w-[150px] px-3 py-2.5 sm:px-6 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 sm:gap-3 transition-all ${
                 activeTab === "safety"
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105"
+                  ? "bg-blue-600 text-white shadow-md sm:shadow-lg shadow-blue-500/30 scale-105"
                   : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
               }`}
             >
-              <ClipboardCheck className="w-5 h-5" />
+              <ClipboardCheck className="w-4 h-4 sm:w-5 h-5" />
               Safety Rules
             </button>
           </div>
@@ -356,7 +356,7 @@ export default function ScienceLabSupportPage() {
                     <span>Accessing PostgreSQL records...</span>
                   </div>
                 ) : filteredInventory.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
                     {filteredInventory.map((item) => {
                       const colorStyles = {
                         indigo: {

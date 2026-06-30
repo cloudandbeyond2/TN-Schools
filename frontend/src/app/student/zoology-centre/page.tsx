@@ -153,7 +153,7 @@ export default function ZoologyCentrePage() {
               <span>Finding creatures in the database...</span>
             </div>
           ) : filteredSpecimens.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredSpecimens.map((specimen) => {
                 const styleMaps = {
                   emerald: { border: "border-emerald-100", hoverBorder: "hover:border-emerald-300", bg: "bg-emerald-50/30 hover:bg-emerald-50", text: "text-emerald-550", textDark: "text-emerald-700", badgeBg: "bg-emerald-200", btnBg: "bg-emerald-500 hover:bg-emerald-600" },

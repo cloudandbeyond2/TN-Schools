@@ -360,7 +360,7 @@ export default function CelebrationsPage() {
                         <div className="flex-1 h-[2px] bg-gradient-to-r from-rose-200 to-transparent dark:from-slate-700" />
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         {holidaysByYear[year].map(item => (
                           <div 
                             key={item.id} 

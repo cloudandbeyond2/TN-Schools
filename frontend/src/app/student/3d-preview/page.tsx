@@ -56,7 +56,7 @@ export default function ThreeDPreviewPage() {
       title="Magic 3D Viewer! 👓"
       subtitle="Spin, zoom, and explore awesome 3D stuff!"
     >
-      <div className="flex flex-col lg:flex-row gap-8 h-[calc(100vh-140px)] text-left">
+      <div className="flex flex-col lg:flex-row gap-8 h-auto lg:h-[calc(100vh-140px)] text-left">
         
         {/* Main Viewer Area */}
         <div className="flex-1 rounded-[2.5rem] shadow-2xl border-8 border-indigo-100 dark:border-slate-700 overflow-hidden flex flex-col relative bg-slate-900">
