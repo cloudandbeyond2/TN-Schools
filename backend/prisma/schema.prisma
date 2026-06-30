@@ -85,6 +85,7 @@ model Student {
   socialActivities      SocialActivity[]
   schoolPressActivities SchoolPressActivity[]
   watchlistEntry        WatchlistStudent?
+  injuryReports         InjuryReport[]
   school                School                @relation(fields: [schoolId], references: [id])
 
   @@index([classRoomId])
@@ -749,6 +750,23 @@ model SportsHealthLog {
   sportsProfile   SportsProfile @relation(fields: [sportsProfileId], references: [id], onDelete: Cascade)
 
   @@index([sportsProfileId])
+}
+
+model InjuryReport {
+  id          String   @id @default(uuid())
+  studentId   String
+  studentName String
+  className   String
+  type        String
+  severity    String
+  description String
+  status      String   @default("Pending")
+  date        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
 }
 
 model Notification {
