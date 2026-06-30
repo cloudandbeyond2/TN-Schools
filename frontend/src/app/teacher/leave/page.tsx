@@ -35,7 +35,7 @@ export default function LeaveRequestsPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
-  const [studentName, setStudentName] = useState("");
+  const [studentId, setStudentId] = useState("");
   const [toast, setToast] = useState<string | null>(null);
 
   // Pagination State
@@ -65,7 +65,7 @@ export default function LeaveRequestsPage() {
         if (activeClasses.length === 0) {
           setRequests([]);
           setStaffList([]);
-          setStudentName("Select Student");
+          setStudentId("");
           setLoading(false);
           return;
         }
@@ -95,9 +95,9 @@ export default function LeaveRequestsPage() {
           }));
           setStaffList(mappedStudents);
           if (mappedStudents.length > 0) {
-            setStudentName(`${mappedStudents[0].name} (${mappedStudents[0].subject})`);
+            setStudentId(mappedStudents[0].id);
           } else {
-            setStudentName("Select Student");
+            setStudentId("");
           }
         }
       } catch (err) {
@@ -127,7 +127,7 @@ export default function LeaveRequestsPage() {
           type: leaveType,
           duration: durationStr,
           reason,
-          studentName,
+          studentId,
           schoolId,
         }),
       });
@@ -288,18 +288,18 @@ export default function LeaveRequestsPage() {
                   Student Name
                 </label>
                 <select
-                  value={studentName}
-                  onChange={(e) => setStudentName(e.target.value)}
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
                   className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                 >
                   {staffList.length > 0 ? (
                     staffList.map((st) => (
-                      <option key={st.id} value={`${st.name} (${st.subject})`}>
+                      <option key={st.id} value={st.id}>
                         {st.name} ({st.subject})
                       </option>
                     ))
                   ) : (
-                    <option value="Select Student">No students found</option>
+                    <option value="">No students found</option>
                   )}
                 </select>
               </div>
