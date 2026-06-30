@@ -99,6 +99,7 @@ model School {
   clubs                 Club[]
   clubEvents            ClubEvent[]
   messages              Message[]
+  celebrations          Celebration[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 }
@@ -890,10 +891,24 @@ model Message {
   @@index([schoolId])
 }
 
+model Celebration {
+  id          String   @id @default(uuid())
+  title       String
+  date        DateTime
+  description String?
+  type        String   @default("EVENT") // "EVENT" or "HOLIDAY"
+  schoolId    String?
+  school      School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([schoolId])
+}
+
 model HealthReport {
-  id                 String   @id @default(uuid())
-  studentId          String   @unique
-  student            Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  id                 String    @id @default(uuid())
+  studentId          String    @unique
+  student            Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
   height             Float?
   weight             Float?
   bloodGroup         String?
@@ -903,6 +918,6 @@ model HealthReport {
   dental             String?
   lastCheckupDate    DateTime?
   notes              String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
