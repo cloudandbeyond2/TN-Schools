@@ -454,16 +454,25 @@ router.get('/leave', async (req: Request, res: Response) => {
 router.post('/leave', async (req: Request, res: Response) => {
   try {
 
-    const { type, duration, reason, studentName, schoolId, userId, staffId } = req.body;
+    const { type, duration, reason, studentName, studentId, schoolId, userId, staffId } = req.body;
+
+    let finalStudentName = studentName || 'Unknown';
+    if (studentId && !studentName) {
+      const student = await prisma.student.findUnique({ where: { id: studentId }, include: { user: true } });
+      if (student && student.user) {
+        finalStudentName = student.user.name || 'Unknown';
+      }
+    }
 
     const leave = await prisma.leaveRequest.create({
       data: {
         type,
         duration,
         reason,
-        studentName: studentName || 'Unknown',
+        studentName: finalStudentName,
+        studentId: studentId || null,
         staffId: staffId || null,  // Audit: who submitted the leave
-        status: 'Pending',
+        status: 'Approved',
         schoolId: schoolId || null,
       } as any,
     });
