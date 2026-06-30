@@ -195,27 +195,27 @@ export default function ZoologyCentrePage() {
       <div className="flex flex-col gap-8">
 
         {/* Playful Banner */}
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-green-500 to-emerald-700 text-white p-8 shadow-xl border-4 border-green-200">
-          <div className="absolute top-[-50px] right-[-50px] w-64 h-64 bg-yellow-300/30 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-[-50px] right-[10%] w-48 h-48 bg-emerald-900/40 rounded-full blur-2xl"></div>
+        <div className="relative overflow-hidden rounded-[2.5rem] bg-white dark:bg-slate-800 text-slate-850 dark:text-slate-100 p-8 shadow-md border-4 border-slate-100 dark:border-slate-700">
+          <div className="absolute top-[-50px] right-[-50px] w-64 h-64 bg-yellow-100/30 dark:bg-yellow-950/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-[-50px] right-[10%] w-48 h-48 bg-emerald-100/20 dark:bg-emerald-950/10 rounded-full blur-2xl"></div>
           
           <div className="absolute right-10 top-1/2 -translate-y-1/2 opacity-20 transform scale-[2] pointer-events-none">
-             <PawPrint className="w-40 h-40" />
+             <PawPrint className="w-40 h-40 text-emerald-500/10 dark:text-emerald-400/5" />
           </div>
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl font-black tracking-wider text-xs uppercase mb-4 border-2 border-white/30">
-                <Leaf className="w-4 h-4" /> Nature Explorers
+              <div className="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-450 px-3 py-1.5 rounded-xl font-black tracking-wider text-xs uppercase mb-4 border-2 border-emerald-100 dark:border-emerald-900/50">
+                <Leaf className="w-4 h-4 text-emerald-600" /> Nature Explorers
               </div>
-              <h2 className="text-4xl font-black tracking-tight mb-3 drop-shadow-md">The Bio Zone!</h2>
-              <p className="text-green-50 font-bold max-w-xl text-base leading-relaxed">
+              <h2 className="text-4xl font-black tracking-tight mb-3 text-slate-900 dark:text-white">The Bio Zone!</h2>
+              <p className="text-slate-500 dark:text-slate-400 font-bold max-w-xl text-base leading-relaxed">
                 Welcome to the jungle! Check out our collection of bugs, models, and DNA kits. Get ready for some wild science!
               </p>
             </div>
 
             <div className="shrink-0 flex gap-3">
-              <button onClick={handleOpenCreate} className="px-6 py-4 bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-black text-sm rounded-2xl transition-all shadow-lg shadow-yellow-500/40 hover:scale-105 active:scale-95 flex items-center gap-3 border-4 border-yellow-200">
+              <button onClick={handleOpenCreate} className="px-6 py-4 bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-black text-sm rounded-2xl transition-all shadow-lg shadow-yellow-500/40 hover:scale-105 active:scale-95 flex items-center gap-3 border-4 border-yellow-250">
                 <Microscope className="w-6 h-6" /> I want a new specimen!
               </button>
             </div>
