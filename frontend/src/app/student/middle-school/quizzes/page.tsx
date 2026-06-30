@@ -217,15 +217,15 @@ import Link from "next/link";
 import { useState } from "react";
 
 const quizCategories = [
-  { name: "Science Space", icon: "🚀", color: "from-blue-500 to-indigo-600", active: 4, completed: 12 },
-  { name: "Math Puzzles", icon: "🧩", color: "from-emerald-500 to-teal-600", active: 2, completed: 8 },
-  { name: "History Quest", icon: "👑", color: "from-amber-500 to-orange-600", active: 5, completed: 15 },
-  { name: "Word Master", icon: "📚", color: "from-purple-500 to-pink-600", active: 3, completed: 10 },
+  { name: "Science (அறிவியல்)", icon: "🔬", color: "from-blue-500 to-indigo-600", active: 5, completed: 10 },
+  { name: "Math (கணிதம்)", icon: "📐", color: "from-emerald-500 to-teal-600", active: 4, completed: 8 },
+  { name: "Social Science", icon: "🌍", color: "from-amber-500 to-orange-600", active: 3, completed: 15 },
+  { name: "Tamil & English", icon: "📖", color: "from-purple-500 to-pink-600", active: 6, completed: 12 },
 ];
 
 const dailyChallenges = [
-  { title: "Solar System Speed Run", category: "Science", reward: "+50 XP", difficulty: "Medium", timeLimit: "5 mins", color: "text-blue-600 dark:text-blue-400", bgBorder: "border-blue-500/30" },
-  { title: "Fractions Ninja", category: "Math", reward: "+75 XP", difficulty: "Hard", timeLimit: "10 mins", color: "text-emerald-600 dark:text-emerald-400", bgBorder: "border-emerald-500/30" },
+  { title: "Algebra Basics (இயற்கணிதம்)", category: "Math", reward: "+50 XP", difficulty: "Medium", timeLimit: "5 mins", color: "text-emerald-600 dark:text-emerald-400", bgBorder: "border-emerald-500/30" },
+  { title: "Indus Valley Civilization", category: "Social", reward: "+75 XP", difficulty: "Hard", timeLimit: "10 mins", color: "text-amber-600 dark:text-amber-400", bgBorder: "border-amber-500/30" },
 ];
 
 const recentBadges = [

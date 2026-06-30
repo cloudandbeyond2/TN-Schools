@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 export default function ActiveQuizPage() {
   const params = useParams();
   const slug = params?.category as string;
+  const quizId = params?.quizId as string;
   
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -15,23 +16,125 @@ export default function ActiveQuizPage() {
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
-  const questions = [
-    {
-      q: "What is the largest planet in our Solar System?",
-      options: ["Earth", "Mars", "Jupiter", "Saturn"],
-      correct: 2
+  const decodedSlug = decodeURIComponent(slug);
+
+  const quizDatabase: Record<string, Record<string, { title: string, questions: { q: string, options: string[], correct: number }[] }>> = {
+    "science-(அறிவியல்)": {
+      "q1": {
+        title: "States of Matter",
+        questions: [
+          { q: "Which state of matter has a definite shape and volume?", options: ["Solid", "Liquid", "Gas", "Plasma"], correct: 0 },
+          { q: "The process of a liquid turning into a gas is called?", options: ["Melting", "Freezing", "Evaporation", "Condensation"], correct: 2 },
+          { q: "Water freezes at what temperature in Celsius?", options: ["100°C", "0°C", "50°C", "-10°C"], correct: 1 }
+        ]
+      },
+      "q2": {
+        title: "Human Body Systems",
+        questions: [
+          { q: "Which organ pumps blood throughout the body?", options: ["Lungs", "Brain", "Heart", "Kidney"], correct: 2 },
+          { q: "What is the longest bone in the human body?", options: ["Femur", "Humerus", "Tibia", "Fibula"], correct: 0 },
+          { q: "Which gas do we breathe out?", options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"], correct: 2 }
+        ]
+      },
+      "q3": {
+        title: "Light & Sound",
+        questions: [
+          { q: "Light travels fastest in?", options: ["Water", "Glass", "Air", "Vacuum"], correct: 3 },
+          { q: "Which of the following is a luminous object?", options: ["Moon", "Earth", "Sun", "Mirror"], correct: 2 },
+          { q: "Sound cannot travel through?", options: ["Air", "Water", "Steel", "Vacuum"], correct: 3 }
+        ]
+      }
     },
-    {
-      q: "Which force keeps the planets in orbit around the Sun?",
-      options: ["Magnetism", "Gravity", "Friction", "Electricity"],
-      correct: 1
+    "math-(கணிதம்)": {
+      "q1": {
+        title: "Fractions & Decimals",
+        questions: [
+          { q: "What is 1/2 as a decimal?", options: ["0.2", "0.5", "1.2", "0.25"], correct: 1 },
+          { q: "Which fraction is equivalent to 2/4?", options: ["1/3", "3/4", "1/2", "2/3"], correct: 2 },
+          { q: "What is 0.75 as a fraction?", options: ["3/4", "1/2", "1/4", "4/3"], correct: 0 }
+        ]
+      },
+      "q2": {
+        title: "Algebraic Expressions",
+        questions: [
+          { q: "If x = 3, what is 2x + 4?", options: ["10", "7", "12", "9"], correct: 0 },
+          { q: "Simplify: 3y + 2y - y", options: ["6y", "4y", "5y", "2y"], correct: 1 },
+          { q: "What is the variable in the expression 5m - 2?", options: ["5", "2", "m", "-2"], correct: 2 }
+        ]
+      },
+      "q3": {
+        title: "Geometry Basics",
+        questions: [
+          { q: "How many degrees are in a right angle?", options: ["45°", "90°", "180°", "360°"], correct: 1 },
+          { q: "What is the sum of angles in a triangle?", options: ["90°", "180°", "360°", "270°"], correct: 1 },
+          { q: "A polygon with 5 sides is called a?", options: ["Hexagon", "Pentagon", "Octagon", "Quadrilateral"], correct: 1 }
+        ]
+      }
     },
-    {
-      q: "How many moons does Mars have?",
-      options: ["1", "2", "14", "79"],
-      correct: 1
+    "social-science": {
+      "q1": {
+        title: "Indus Valley Civilization",
+        questions: [
+          { q: "Which river is associated with the Indus Valley Civilization?", options: ["Ganga", "Yamuna", "Indus", "Brahmaputra"], correct: 2 },
+          { q: "The Great Bath was found in which city?", options: ["Harappa", "Mohenjo-Daro", "Lothal", "Kalibangan"], correct: 1 },
+          { q: "Which animal was NOT known to the Indus people?", options: ["Bull", "Elephant", "Horse", "Rhino"], correct: 2 }
+        ]
+      },
+      "q2": {
+        title: "Earth and Solar System",
+        questions: [
+          { q: "Which is the third planet from the Sun?", options: ["Venus", "Earth", "Mars", "Jupiter"], correct: 1 },
+          { q: "What causes day and night on Earth?", options: ["Revolution", "Rotation", "Eclipse", "Tides"], correct: 1 },
+          { q: "Which planet is known as the Red Planet?", options: ["Saturn", "Jupiter", "Mars", "Uranus"], correct: 2 }
+        ]
+      },
+      "q3": {
+        title: "Indian Constitution",
+        questions: [
+          { q: "Who is known as the Father of the Indian Constitution?", options: ["Mahatma Gandhi", "Jawaharlal Nehru", "Dr. B.R. Ambedkar", "Sardar Patel"], correct: 2 },
+          { q: "How many Fundamental Rights are there initially?", options: ["5", "6", "7", "8"], correct: 2 },
+          { q: "When did the Constitution of India come into effect?", options: ["1947", "1950", "1952", "1949"], correct: 1 }
+        ]
+      }
+    },
+    "tamil-&-english": {
+      "q1": {
+        title: "Tenses & Verbs",
+        questions: [
+          { q: "Which is the past tense of 'Go'?", options: ["Goes", "Going", "Went", "Gone"], correct: 2 },
+          { q: "Identify the verb: 'The cat sleeps on the mat.'", options: ["cat", "sleeps", "on", "mat"], correct: 1 },
+          { q: "Future continuous tense of 'play':", options: ["will play", "was playing", "will be playing", "played"], correct: 2 }
+        ]
+      },
+      "q2": {
+        title: "Thirukkural Meanings",
+        questions: [
+          { q: "Who wrote Thirukkural?", options: ["Avvaiyar", "Thiruvalluvar", "Kambar", "Bharathiar"], correct: 1 },
+          { q: "How many chapters (Adhigaram) are in Thirukkural?", options: ["133", "1330", "100", "10"], correct: 0 },
+          { q: "How many couplets (Kurals) does each chapter have?", options: ["5", "10", "15", "20"], correct: 1 }
+        ]
+      },
+      "q3": {
+        title: "Synonyms & Antonyms",
+        questions: [
+          { q: "What is the synonym of 'Happy'?", options: ["Sad", "Joyful", "Angry", "Tired"], correct: 1 },
+          { q: "What is the antonym of 'Brave'?", options: ["Cowardly", "Bold", "Strong", "Fierce"], correct: 0 },
+          { q: "Synonym for 'Rapid':", options: ["Slow", "Steady", "Fast", "Heavy"], correct: 2 }
+        ]
+      }
     }
-  ];
+  };
+
+  const defaultQuiz = {
+    title: "General Knowledge",
+    questions: [
+      { q: "What is the capital of Tamil Nadu?", options: ["Madurai", "Coimbatore", "Chennai", "Trichy"], correct: 2 },
+      { q: "Which is the national bird of India?", options: ["Parrot", "Peacock", "Eagle", "Crow"], correct: 1 }
+    ]
+  };
+
+  const currentQuizData = (quizDatabase[decodedSlug] && quizDatabase[decodedSlug][quizId]) || defaultQuiz;
+  const questions = currentQuizData.questions;
 
   const handleAnswer = (index: number) => {
     if (isAnswered) return;
@@ -56,7 +159,7 @@ export default function ActiveQuizPage() {
   return (
     <PortalLayout
       title="Quiz Gameplay"
-      subtitle="The Solar System Speed Run"
+      subtitle={currentQuizData.title}
       avatarLetter="A"
       avatarColor="#10b981"
       themeClass="theme-student"

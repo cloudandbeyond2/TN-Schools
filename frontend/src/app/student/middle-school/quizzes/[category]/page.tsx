@@ -5,22 +5,45 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 const categoryData: Record<string, any> = {
-  "science-space": { name: "Science Space", icon: "🚀", color: "from-blue-500 to-indigo-600", desc: "Explore the universe, learn about gravity, and test your knowledge of planets!" },
-  "math-puzzles": { name: "Math Puzzles", icon: "🧮", color: "from-purple-500 to-fuchsia-600", desc: "Sharpen your mind with fractions, geometry, and logic puzzles." },
-  "history-heroes": { name: "History Heroes", icon: "👑", color: "from-amber-500 to-orange-600", desc: "Journey back in time to meet the great kings and queens of the past." },
-  "word-wizard": { name: "Word Wizard", icon: "🧙‍♂️", color: "from-emerald-500 to-teal-600", desc: "Expand your vocabulary in both English and Tamil." },
+  "science-(அறிவியல்)": { 
+    name: "Science (அறிவியல்)", icon: "🔬", color: "from-blue-500 to-indigo-600", desc: "Physics, Chemistry, and Biology fundamentals for standard 6 to 8.",
+    quizzes: [
+      { id: "q1", title: "States of Matter", time: "5 Mins", difficulty: "Easy", reward: "+50 XP", played: true, score: "100%" },
+      { id: "q2", title: "Human Body Systems", time: "10 Mins", difficulty: "Hard", reward: "+150 XP", played: false, score: null },
+      { id: "q3", title: "Light & Sound", time: "8 Mins", difficulty: "Medium", reward: "+100 XP", played: false, score: null },
+    ]
+  },
+  "math-(கணிதம்)": { 
+    name: "Math (கணிதம்)", icon: "📐", color: "from-emerald-500 to-teal-600", desc: "Algebra, Geometry, and Number systems for standard 6 to 8.",
+    quizzes: [
+      { id: "q1", title: "Fractions & Decimals", time: "5 Mins", difficulty: "Easy", reward: "+50 XP", played: true, score: "100%" },
+      { id: "q2", title: "Algebraic Expressions", time: "10 Mins", difficulty: "Hard", reward: "+150 XP", played: false, score: null },
+      { id: "q3", title: "Geometry Basics", time: "8 Mins", difficulty: "Medium", reward: "+100 XP", played: false, score: null },
+    ]
+  },
+  "social-science": { 
+    name: "Social Science", icon: "🌍", color: "from-amber-500 to-orange-600", desc: "History, Geography, and Civics for standard 6 to 8.",
+    quizzes: [
+      { id: "q1", title: "Indus Valley Civilization", time: "5 Mins", difficulty: "Easy", reward: "+50 XP", played: true, score: "100%" },
+      { id: "q2", title: "Earth and Solar System", time: "10 Mins", difficulty: "Hard", reward: "+150 XP", played: false, score: null },
+      { id: "q3", title: "Indian Constitution", time: "8 Mins", difficulty: "Medium", reward: "+100 XP", played: false, score: null },
+    ]
+  },
+  "tamil-&-english": { 
+    name: "Tamil & English", icon: "📖", color: "from-purple-500 to-pink-600", desc: "Grammar, Vocabulary, and Literature for standard 6 to 8.",
+    quizzes: [
+      { id: "q1", title: "Tenses & Verbs", time: "5 Mins", difficulty: "Easy", reward: "+50 XP", played: true, score: "100%" },
+      { id: "q2", title: "Thirukkural Meanings", time: "10 Mins", difficulty: "Hard", reward: "+150 XP", played: false, score: null },
+      { id: "q3", title: "Synonyms & Antonyms", time: "8 Mins", difficulty: "Medium", reward: "+100 XP", played: false, score: null },
+    ]
+  },
 };
-
-const quizzesList = [
-  { id: "q1", title: "The Solar System Speed Run", time: "5 Mins", difficulty: "Easy", reward: "+50 XP", played: true, score: "100%" },
-  { id: "q2", title: "Gravity & Black Holes", time: "10 Mins", difficulty: "Hard", reward: "+150 XP", played: false, score: null },
-  { id: "q3", title: "Phases of the Moon", time: "8 Mins", difficulty: "Medium", reward: "+100 XP", played: false, score: null },
-];
 
 export default function QuizCategoryPage() {
   const params = useParams();
-  const slug = params?.category as string;
-  const category = categoryData[slug] || categoryData["science-space"];
+  const slug = decodeURIComponent(params?.category as string);
+  const category = categoryData[slug] || categoryData["science-(அறிவியல்)"];
+  const quizzesList = category.quizzes;
 
   return (
     <PortalLayout
@@ -54,7 +77,7 @@ export default function QuizCategoryPage() {
 
         {/* Quizzes List */}
         <div className="lg:col-span-3 space-y-4">
-           {quizzesList.map((quiz) => (
+           {quizzesList.map((quiz: any) => (
              <div key={quiz.id} className="glass rounded-3xl p-6 border border-slate-700/50 hover:border-slate-500 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                    <div className="flex items-center gap-3 mb-2">

@@ -58,33 +58,34 @@ model School {
 }
 
 model Student {
-  id            String              @id @default(uuid())
-  userId        String              @unique
-  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  schoolId      String
-  class         String
-  section       String
-  rollNumber    String?
-  dob           DateTime?
-  gender        String?
-  religion      String?
-  caste         String?
-  parentName    String?
-  parentMobile  String?
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  classRoomId   String?
-  attendance    Attendance[]
-  clubMembers   ClubMember[]
-  healthReport  HealthReport?
-  marks         Mark[]
-  parentLinks   ParentStudentLink[]
-  portfolio     Portfolio?
-  scholarships  Scholarship[]
-  sportsProfile SportsProfile?
-  socialActivities SocialActivity[]
-  watchlistEntry   WatchlistStudent?
-  school        School              @relation(fields: [schoolId], references: [id])
+  id                    String                @id @default(uuid())
+  userId                String                @unique
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schoolId              String
+  class                 String
+  section               String
+  rollNumber            String?
+  dob                   DateTime?
+  gender                String?
+  religion              String?
+  caste                 String?
+  parentName            String?
+  parentMobile          String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  classRoomId           String?
+  attendance            Attendance[]
+  clubMembers           ClubMember[]
+  healthReport          HealthReport?
+  marks                 Mark[]
+  parentLinks           ParentStudentLink[]
+  portfolio             Portfolio?
+  scholarships          Scholarship[]
+  sportsProfile         SportsProfile?
+  socialActivities      SocialActivity[]
+  schoolPressActivities SchoolPressActivity[]
+  watchlistEntry        WatchlistStudent?
+  school                School                @relation(fields: [schoolId], references: [id])
 
   @@index([classRoomId])
   @@index([schoolId])
@@ -492,6 +493,8 @@ model LabEquipment {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   classRoomId  String?
+  location     String?  @default("N/A")
+  count        Int      @default(1)
 
   @@index([schoolId])
   @@index([classRoomId])
@@ -1099,6 +1102,20 @@ model SocialActivity {
   updatedAt    DateTime
 
   @@index([studentId])
+}
+
+model SchoolPressActivity {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacherId   String?
+  description String
+  photos      String[] @default([])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([teacherId])
 }
 
 model SuperAdmin {

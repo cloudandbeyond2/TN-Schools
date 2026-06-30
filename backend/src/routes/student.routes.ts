@@ -111,4 +111,29 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/students/:id/leave — Get leave requests for a student
+router.get('/:id/leave', async (req: Request, res: Response) => {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { id: req.params.id },
+      select: { user: { select: { name: true } } }
+    });
+
+    const studentName = student?.user?.name;
+
+    const leaves = await prisma.leaveRequest.findMany({
+      where: {
+        OR: [
+          { studentId: req.params.id },
+          ...(studentName ? [{ studentName: { contains: studentName, mode: 'insensitive' as any } }] : [])
+        ]
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json({ success: true, data: leaves });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;

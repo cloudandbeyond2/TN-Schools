@@ -201,7 +201,7 @@ async function callGemini(prompt: string, jsonMode: boolean = false): Promise<an
       res.on('data', (chunk) => chunks.push(chunk));
       res.on('end', () => {
         const body = Buffer.concat(chunks).toString('utf8');
-        
+
         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
           reject(new Error(`Gemini API error ${res.statusCode}: ${body.substring(0, 500)}`));
           return;
@@ -694,112 +694,6 @@ router.post('/learning-path', async (req: Request, res: Response) => {
     );
     res.json({ success: true, data: lp });
   } catch (err) {
-    res.status(500).json({ success: false, error: String(err) });
-  }
-});
-
-// ===========================================================================
-// POST /api/ai/generate-3d
-// ===========================================================================
-router.post('/generate-3d', async (req: Request, res: Response) => {
-  try {
-    const { topic, subject } = req.body;
-
-    // 1. Search Sketchfab for a real 3D model first
-    let sketchfabUid: string | null = null;
-    try {
-      const sfRes = await fetch(`https://api.sketchfab.com/v3/search?type=models&q=${encodeURIComponent(topic)}&limit=3`);
-      const sfData: any = await sfRes.json();
-      if (sfData && sfData.results && sfData.results.length > 0) {
-        sketchfabUid = sfData.results[0].uid;
-      }
-    } catch (sfErr) {
-      console.error("Sketchfab API search failed:", sfErr);
-    }
-
-    // 2. Generate procedural fallback/hologram representation using Gemini
-    const prompt = `
-You are an expert AI 3D Model Generator for educational topics.
-Your job is to generate a detailed, visually stunning, and scientifically accurate 3D scene representation of the topic: "${topic}".
-The subject category is: "${subject}".
-
-Generate a JSON object representing the 3D model using 3D primitives. The 3D space coordinates should range from -100 to 100.
-Create a complex, detailed model with 20 to 50 primitives so it looks premium, structured, and educational (not just a simple shape).
-
-JSON Schema:
-{
-  "name": "Bilingual Name of the object (English & Tamil, e.g. 'Human Heart - மனித இதயம்')",
-  "subject": "${subject}",
-  "description": "A brief educational description of the 3D model in 2-3 sentences.",
-  "color": "Theme color (one of: rose, indigo, emerald, amber, sky, purple)",
-  "shapes": [
-    {
-      "type": "sphere",
-      "x": number, "y": number, "z": number,
-      "radius": number,
-      "color": "hex color string starting with #",
-      "label": "Optional label for this part (e.g. 'Left Ventricle')"
-    },
-    {
-      "type": "cylinder",
-      "x1": number, "y1": number, "z1": number,
-      "x2": number, "y2": number, "z2": number,
-      "radius": number,
-      "color": "hex color string starting with #",
-      "label": "Optional label"
-    },
-    {
-      "type": "ring",
-      "x": number, "y": number, "z": number,
-      "radius": number,
-      "plane": "xz" | "xy" | "yz",
-      "color": "hex color string starting with #",
-      "thickness": number,
-      "label": "Optional label"
-    },
-    {
-      "type": "line",
-      "x1": number, "y1": number, "z1": number,
-      "x2": number, "y2": number, "z2": number,
-      "color": "hex color string starting with #",
-      "label": "Optional label"
-    },
-    {
-      "type": "text",
-      "x": number, "y": number, "z": number,
-      "text": "Label text (bilingual or English)",
-      "color": "hex color string starting with #",
-      "fontSize": number,
-      "xLink": number, "yLink": number, "zLink": number // optional connection point
-    },
-    {
-      "type": "particle_cloud",
-      "points": [[number, number, number], ...], // 10-30 points
-      "color": "hex color string starting with #",
-      "particleSize": number,
-      "label": "Optional label"
-    }
-  ]
-}
-
-Ensure coordinates are proportional and correctly arranged. For example:
-- A water molecule should have a center sphere at (0,0,0) (Oxygen) and two smaller spheres offset at appropriate angles (Hydrogen) with connection cylinders.
-- A human heart should have a main large red sphere, an indigo cylinder for the vena cava, a bright red curved pipe/cylinders for the aorta, and labels for ventricles, atria, etc.
-- A plant cell should have a green cell wall ring/box, a large central blue sphere for the vacuole, etc.
-- Solar system: Sun in center, circles for orbits, spheres for planets at different positions.
-- Atom: Nucleus in center (multiple red and blue spheres cluster), electron shell orbit rings (tilted xz/xy planes), and tiny particle cloud points on the rings representing electrons.
-
-Return ONLY the raw JSON object. Do not include markdown fences or any explanations.
-`;
-
-    const result = await callGemini(prompt, true);
-    if (result) {
-      result.sketchfabUid = sketchfabUid;
-    }
-
-    res.json({ success: true, data: result });
-  } catch (err) {
-    console.error("Error generating 3D model:", err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });
