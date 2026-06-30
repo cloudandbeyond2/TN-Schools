@@ -399,15 +399,18 @@ router.get('/labs', async (req: Request, res: Response) => {
 // POST /api/teacher/labs
 router.post('/labs', async (req: Request, res: Response) => {
   try {
-    const { name, classSection, status, date, safetyCheck, schoolId, userId } = req.body;
+    const { name, classSection, status, date, safetyCheck, schoolId, userId, classRoomId, location, count } = req.body;
     const lab = await prisma.labEquipment.create({
       data: {
         name,
-        classSection,
+        classSection: classSection || '',
         status: status || 'scheduled',
-        date,
+        date: date || '',
         safetyCheck: safetyCheck !== undefined ? !!safetyCheck : true,
         schoolId: schoolId || null,
+        classRoomId: classRoomId || null,
+        location: location || 'N/A',
+        count: count !== undefined ? Number(count) : 1
       },
     });
     if (userId) {
@@ -427,6 +430,18 @@ router.put('/labs/:id', async (req: Request, res: Response) => {
       data: req.body,
     });
     res.json({ success: true, data: lab });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/teacher/labs/:id
+router.delete('/labs/:id', async (req: Request, res: Response) => {
+  try {
+    await prisma.labEquipment.delete({
+      where: { id: req.params.id },
+    });
+    res.json({ success: true, message: 'Lab equipment deleted successfully' });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
