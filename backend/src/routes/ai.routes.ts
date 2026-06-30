@@ -201,7 +201,7 @@ async function callGemini(prompt: string, jsonMode: boolean = false): Promise<an
       res.on('data', (chunk) => chunks.push(chunk));
       res.on('end', () => {
         const body = Buffer.concat(chunks).toString('utf8');
-        
+
         if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
           reject(new Error(`Gemini API error ${res.statusCode}: ${body.substring(0, 500)}`));
           return;
@@ -693,61 +693,6 @@ router.post('/learning-path', async (req: Request, res: Response) => {
       { upsert: true, new: true }
     );
     res.json({ success: true, data: lp });
-  } catch (err) {
-    res.status(500).json({ success: false, error: String(err) });
-  }
-});
-
-// ===========================================================================
-// POST /api/ai/generate-questions
-// ===========================================================================
-router.post('/generate-questions', async (req: Request, res: Response) => {
-  try {
-    const { grade, subject, topic, difficulty, mcqCount, shortCount, longCount } = req.body;
-
-    const prompt = `
-You are an expert examiner for the Tamil Nadu Samacheer Kalvi syllabus.
-Generate a set of assessment questions based on the following parameters:
-Grade: ${grade}
-Subject: ${subject}
-Topic: ${topic}
-Difficulty Level: ${difficulty}
-
-Quantities:
-- Multiple Choice Questions (mcq): ${mcqCount}
-- Short Answer Questions (short): ${shortCount}
-- Long Answer Questions (long): ${longCount}
-
-Output ONLY a valid JSON object containing a "questions" array (no markdown, no backticks). 
-Note: 
-- "options" field should ONLY be included if "type" is "mcq".
-- "marks" should be 1 for mcq, 3 for short, and 5 for long.
-- "type" should be one of "mcq", "short", or "long".
-
-The JSON MUST conform to this exact structure:
-{
-  "questions": [
-    {
-      "type": "mcq",
-      "text": "The question text itself",
-      "options": ["A) opt1", "B) opt2", "C) opt3", "D) opt4"],
-      "answer": "The correct answer or detailed key points for short/long answers",
-      "marks": 1,
-      "grade": "${grade}",
-      "subject": "${subject}",
-      "topic": "${topic}",
-      "difficulty": "${difficulty}"
-    }
-  ]
-}
-
-Ensure the "questions" array contains exactly ${Number(mcqCount) + Number(shortCount) + Number(longCount)} items.
-`;
-
-    const result = await callGemini(prompt, true);
-    // the result should now be an object: { questions: [...] }
-    const questionsArray = result?.questions || [];
-    res.json({ success: true, data: questionsArray });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

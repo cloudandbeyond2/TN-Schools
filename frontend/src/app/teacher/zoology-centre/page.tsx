@@ -345,7 +345,7 @@ export default function ZoologyCentrePage() {
                   Nevermind
                 </button>
                 <button type="submit" className="flex-1 py-4 rounded-2xl text-base font-black text-slate-900 bg-emerald-400 hover:bg-emerald-300 transition-all shadow-lg shadow-emerald-500/30 active:scale-95">
-                  Get It! 🐾
+                  Get It! 🐾 
                 </button>
               </div>
             </form>
