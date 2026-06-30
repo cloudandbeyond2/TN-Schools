@@ -402,4 +402,69 @@ router.delete('/link', async (req: Request, res: Response) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────────
+// POST /api/parent/notifications
+// Send a notification/alert to the parent of a student
+// Body: { studentId, title, message, type? }
+// ─────────────────────────────────────────────────────────────────
+router.post('/notifications', async (req: Request, res: Response) => {
+  try {
+    const { studentId, title, message, type } = req.body;
+    if (!studentId || !message) {
+      return res.status(400).json({ success: false, error: 'studentId and message are required' });
+    }
+
+    // Find all parents linked to this student
+    const links = await prisma.parentStudentLink.findMany({
+      where: { studentId },
+      include: { parent: true }
+    });
+
+    if (links.length === 0) {
+      // Fallback: Check if we can find by parentMobile of the student
+      const student = await prisma.student.findUnique({
+        where: { id: studentId },
+        include: { user: true }
+      });
+      if (student && student.parentMobile) {
+        const parent = await prisma.headmasterParent.findFirst({
+          where: { phone: student.parentMobile }
+        });
+        if (parent) {
+          const notif = await prisma.parentNotification.create({
+            data: {
+              parentId: parent.id,
+              studentId,
+              type: type || 'ACADEMIC_ALERT',
+              title: title || 'Academic Risk Alert',
+              message,
+            }
+          });
+          return res.status(201).json({ success: true, data: [notif] });
+        }
+      }
+      return res.status(404).json({ success: false, error: 'No linked parent found for this student.' });
+    }
+
+    const createdNotifications = [];
+    for (const link of links) {
+      const notif = await prisma.parentNotification.create({
+        data: {
+          parentId: link.parentId,
+          studentId,
+          type: type || 'ACADEMIC_ALERT',
+          title: title || 'Academic Risk Alert',
+          message,
+        }
+      });
+      createdNotifications.push(notif);
+    }
+
+    return res.status(201).json({ success: true, data: createdNotifications });
+  } catch (err) {
+    console.error('Error creating parent notification:', err);
+    return res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;

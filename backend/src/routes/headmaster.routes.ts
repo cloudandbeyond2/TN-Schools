@@ -35,7 +35,7 @@ router.get('/students', async (req: Request, res: Response) => {
 // POST /api/headmaster/students — Add single student to watchlist
 router.post('/students', async (req: Request, res: Response) => {
   try {
-    const { name, rollNumber, class: cls, phone, parentName, district, state, city, pincode, risk, schoolId } = req.body;
+    const { name, rollNumber, class: cls, phone, parentName, district, state, city, pincode, risk, schoolId, issue, attendance, lastScore, notified, notificationMessage } = req.body;
     if (!name || !rollNumber) {
       return res.status(400).json({ success: false, error: 'name and rollNumber are required' });
     }
@@ -47,12 +47,44 @@ router.post('/students', async (req: Request, res: Response) => {
     const cleanPhone = String(phone || '').trim();
     const resolvedSchoolId = schoolId;
 
-    // 1. Check if student already exists in Student table
-    const existingStudent = await prisma.student.findFirst({
+    // Check if already in watchlist
+    const alreadyWatchlisted = await prisma.watchlistStudent.findFirst({
       where: { rollNumber: { equals: cleanRoll, mode: 'insensitive' } }
     });
+    if (alreadyWatchlisted) {
+      return res.status(400).json({ success: false, error: 'Student is already in the watchlist.' });
+    }
+
+    // 1. Check if student already exists in Student table
+    const existingStudent = await prisma.student.findFirst({
+      where: { rollNumber: { equals: cleanRoll, mode: 'insensitive' } },
+      include: { user: true }
+    });
+
     if (existingStudent) {
-      return res.status(400).json({ success: false, error: 'Student with this roll number already exists.' });
+      // Create watchlistStudent linked to the existing student
+      const watchlist = await prisma.watchlistStudent.create({
+        data: {
+          name: existingStudent.user.name,
+          rollNumber: cleanRoll,
+          class: cls || `${existingStudent.class}${existingStudent.section}`,
+          phone: cleanPhone || existingStudent.parentMobile || 'N/A',
+          parentName: parentName || existingStudent.parentName || 'N/A',
+          district: district || 'N/A',
+          state: state || 'N/A',
+          city: city || 'N/A',
+          pincode: pincode || 'N/A',
+          risk: risk || 'Medium',
+          issue: issue || undefined,
+          attendance: attendance !== undefined ? parseFloat(attendance) : undefined,
+          lastScore: lastScore !== undefined ? parseFloat(lastScore) : undefined,
+          notified: notified !== undefined ? Boolean(notified) : undefined,
+          notificationMessage: notificationMessage || undefined,
+          student: { connect: { id: existingStudent.id } },
+          schoolId: resolvedSchoolId || existingStudent.schoolId || null,
+        }
+      });
+      return res.status(201).json({ success: true, data: watchlist });
     }
 
     // 2. Determine mobile uniqueness
@@ -101,6 +133,11 @@ router.post('/students', async (req: Request, res: Response) => {
           city: city || 'N/A',
           pincode: pincode || 'N/A',
           risk: risk || 'Medium',
+          issue: issue || undefined,
+          attendance: attendance !== undefined ? parseFloat(attendance) : undefined,
+          lastScore: lastScore !== undefined ? parseFloat(lastScore) : undefined,
+          notified: notified !== undefined ? Boolean(notified) : undefined,
+          notificationMessage: notificationMessage || undefined,
           student: { connect: { id: student.id } },   // Formal FK link to Student
           schoolId: resolvedSchoolId || null,
         }
@@ -211,7 +248,7 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
 router.put('/students/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, rollNumber, class: cls, phone, parentName, district, state, city, pincode, risk, schoolId } = req.body;
+    const { name, rollNumber, class: cls, phone, parentName, district, state, city, pincode, risk, schoolId, issue, attendance, lastScore, notified, notificationMessage } = req.body;
 
     const watchlistStudent = await prisma.watchlistStudent.findUnique({
       where: { id }
@@ -239,6 +276,11 @@ router.put('/students/:id', async (req: Request, res: Response) => {
         city: city !== undefined ? city : undefined,
         pincode: pincode !== undefined ? pincode : undefined,
         risk: risk !== undefined ? risk : undefined,
+        issue: issue !== undefined ? issue : undefined,
+        attendance: attendance !== undefined ? parseFloat(attendance) : undefined,
+        lastScore: lastScore !== undefined ? parseFloat(lastScore) : undefined,
+        notified: notified !== undefined ? Boolean(notified) : undefined,
+        notificationMessage: notificationMessage !== undefined ? notificationMessage : undefined,
         schoolId: schoolId !== undefined ? schoolId : undefined,
       }
     });

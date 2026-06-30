@@ -4,58 +4,138 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { 
+  AlertTriangle, 
+  Plus, 
+  Search, 
+  Mail, 
+  Edit, 
+  CheckCircle, 
+  Trash2, 
+  X, 
+  Users, 
+  Percent, 
+  TrendingDown, 
+  FileText, 
+  Check 
+} from "lucide-react";
 
 interface AtRiskStudent {
   id: string;
   name: string;
   className: string;
+  rollNumber: string;
+  phone: string;
+  parentName: string;
   riskLevel: "high" | "medium";
   issue: string;
   attendance: number;
   lastScore: number;
-  parentName: string;
+  notified: boolean;
+  notificationMessage?: string;
+  studentId?: string;
 }
 
 export default function RiskAlertsPage() {
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
+  const teacherId = (session?.user as any)?.id;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+  // Watchlist & Selectable Students State
   const [students, setStudents] = useState<AtRiskStudent[]>([]);
-  const [selectedStudentId, setSelectedStudentId] = useState("");
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [allStudents, setAllStudents] = useState<any[]>([]);
   const [teacherClasses, setTeacherClasses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Intervention UI State
-  const [remedialText, setRemedialText] = useState<string | null>(null);
-  const [parentDraft, setParentDraft] = useState<string | null>(null);
-  const [peerTutor, setPeerTutor] = useState<string | null>(null);
+  // Search/Filters State
+  const [searchTerm, setSearchTerm] = useState("");
+  const [riskFilter, setRiskFilter] = useState("all");
 
-  const fetchWatchlist = async (tClasses?: any[]) => {
+  // Form Modals State
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingAlert, setEditingAlert] = useState<AtRiskStudent | null>(null);
+
+  // Form Fields
+  const [formStudentId, setFormStudentId] = useState("");
+  const [formRiskLevel, setFormRiskLevel] = useState<"high" | "medium">("medium");
+  const [formIssue, setFormIssue] = useState("");
+  const [formAttendance, setFormAttendance] = useState("80");
+  const [formLastScore, setFormLastScore] = useState("50");
+
+  // Predefined common issues/indicators
+  const commonIssues = [
+    "High absenteeism + decline in math score averages below threshold",
+    "Missing homework consistently + failing mock tests",
+    "Low classroom participation + language barriers in evaluation",
+    "Socio-economic hurdles impacting attendance & exam scores",
+    "Struggles with basic formulas & theorem applications"
+  ];
+
+  // Notification Modal State
+  const [isNotifyOpen, setIsNotifyOpen] = useState(false);
+  const [notifyStudent, setNotifyStudent] = useState<AtRiskStudent | null>(null);
+  const [notifyMessage, setNotifyMessage] = useState("");
+  const [isSendingNotif, setIsSendingNotif] = useState(false);
+
+  // Stats Counters
+  const [stats, setStats] = useState({
+    total: 0,
+    highRisk: 0,
+    medRisk: 0,
+    notifiedCount: 0
+  });
+
+  const fetchData = async () => {
+    if (!schoolId || !session?.user) return;
     try {
       setLoading(true);
+
+      // 1. Fetch teacher's classes
+      let tClasses: any[] = [];
+      const classesRes = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
+      const classesData = await classesRes.json();
+      if (classesData.success && Array.isArray(classesData.data)) {
+        tClasses = classesData.data;
+        setTeacherClasses(tClasses);
+      }
+
+      // 2. Fetch all school students
+      const studentsRes = await fetch(`${API_URL}/api/students?schoolId=${schoolId}`);
+      const studentsData = await studentsRes.json();
+      if (studentsData.success && Array.isArray(studentsData.data)) {
+        // Filter students to only those in the teacher's classes
+        const filteredAll = studentsData.data.filter((s: any) =>
+          tClasses.some(tc => tc.className === s.class && tc.section === s.section)
+        );
+        setAllStudents(filteredAll);
+      }
+
+      // 3. Fetch current watchlist/risk alerts
       const res = await fetch(`${API_URL}/api/headmaster/students${schoolId ? `?schoolId=${schoolId}` : ""}`);
       const data = await res.json();
       if (data.success && data.data) {
-        // Map the backend WatchlistStudent model to the page structure
-        let mapped = data.data.map((st: any) => ({
+        // Map backend structure to page structure
+        let mapped: AtRiskStudent[] = data.data.map((st: any) => ({
           id: st.id,
           name: st.name,
           className: st.class,
+          rollNumber: st.rollNumber,
+          phone: st.phone,
+          parentName: st.parentName,
           riskLevel: st.risk?.toLowerCase() === "high" ? "high" : "medium",
-          // Construct a dynamic issue description or use defaults
-          issue: st.issue || "High absenteeism + decline in math score averages below threshold",
-          attendance: st.attendance || Math.floor(Math.random() * 20) + 70,
-          lastScore: st.lastScore || Math.floor(Math.random() * 30) + 40,
-          parentName: st.parentName || "Parent / Guardian",
+          issue: st.issue || "High absenteeism + decline in test scores",
+          attendance: st.attendance !== null && st.attendance !== undefined ? st.attendance : 78,
+          lastScore: st.lastScore !== null && st.lastScore !== undefined ? st.lastScore : 45,
+          notified: st.notified || false,
+          notificationMessage: st.notificationMessage || "",
+          studentId: st.studentId
         }));
 
-        // Filter by teacher classes
-        const classesList = tClasses || teacherClasses;
-        if (classesList && classesList.length > 0) {
+        // Filter alerts by teacher classes
+        if (tClasses.length > 0) {
           mapped = mapped.filter((st: any) => {
-            return classesList.some((tc: any) => {
+            return tClasses.some((tc: any) => {
               const tcStr = `${tc.className}${tc.section}`.replace(/[-\s]/g, "").toUpperCase();
               let stClassStr = st.className.replace(/[-\s]/g, "").toUpperCase();
               stClassStr = stClassStr.replace(/^CLASS/i, "");
@@ -65,317 +145,777 @@ export default function RiskAlertsPage() {
         }
 
         setStudents(mapped);
-        if (mapped.length > 0) {
-          setSelectedStudentId(mapped[0].id);
-        } else {
-          setSelectedStudentId("");
-        }
+
+        // Update stats
+        const high = mapped.filter(s => s.riskLevel === "high").length;
+        const med = mapped.filter(s => s.riskLevel === "medium").length;
+        const notified = mapped.filter(s => s.notified).length;
+        setStats({
+          total: mapped.length,
+          highRisk: high,
+          medRisk: med,
+          notifiedCount: notified
+        });
       }
     } catch (err) {
-      console.error("Error loading watchlist", err);
+      console.error("Error loading watchlist:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const loadData = async () => {
-      if (!schoolId || !session?.user) return;
-      const teacherId = (session.user as any).id;
-      let tClasses: any[] = [];
-      try {
-        const res = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
-        const data = await res.json();
-        if (data.success && Array.isArray(data.data)) {
-          tClasses = data.data;
-          setTeacherClasses(tClasses);
-        }
-      } catch (err) {
-        console.error("Error fetching teacher classes:", err);
-      }
-      await fetchWatchlist(tClasses);
-    };
-
-    loadData();
+    fetchData();
   }, [schoolId, session, API_URL]);
 
-  const selectedStudent = students.find((s) => s.id === selectedStudentId) || students[0];
+  // Handle auto-fill student details on form select
+  useEffect(() => {
+    if (formStudentId && !editingAlert) {
+      const selected = allStudents.find(s => s.id === formStudentId);
+      if (selected) {
+        // Find default warning based on scores or random default
+        setFormIssue(commonIssues[Math.floor(Math.random() * commonIssues.length)]);
+        setFormAttendance(String(Math.floor(Math.random() * 25) + 65));
+        setFormLastScore(String(Math.floor(Math.random() * 30) + 30));
+      }
+    }
+  }, [formStudentId]);
 
-  const handleGenerateRemedial = () => {
-    if (!selectedStudent) return;
-    setParentDraft(null);
-    setPeerTutor(null);
-    setRemedialText(
-      `AI Generated Remedial Tasks for ${selectedStudent.name} (${selectedStudent.className}):\n` +
-      `Focus: Pythagoras Theorem Core formulas & diagonal calculations.\n` +
-      `- Task 1: Identify hypotenuse in 5 right triangles.\n` +
-      `- Task 2: Practice 3 problems involving base/height calculation.\n` +
-      `- Remedial worksheet generated and pushed to ${selectedStudent.name}'s Student Portal account.`
-    );
-    setToastMessage(`Remedial material pushed to ${selectedStudent.name}!`);
-    setTimeout(() => setToastMessage(null), 3000);
+  // Open modal for Adding Alert
+  const handleOpenAdd = () => {
+    setEditingAlert(null);
+    setFormStudentId(allStudents[0]?.id || "");
+    setFormRiskLevel("medium");
+    setFormIssue(commonIssues[0]);
+    setFormAttendance("80");
+    setFormLastScore("50");
+    setIsFormOpen(true);
   };
 
-  const handleDraftParent = () => {
-    if (!selectedStudent) return;
-    setRemedialText(null);
-    setPeerTutor(null);
-    setParentDraft(
-      `Dear ${selectedStudent.parentName},\n\n` +
-      `This is Sumathi Devi, Mathematics teacher of ${selectedStudent.name}. ` +
-      `I am writing to discuss ${selectedStudent.name}'s recent performance in class. ` +
-      `Currently, ${selectedStudent.name} has a score of ${selectedStudent.lastScore}% and an attendance rate of ${selectedStudent.attendance}%. ` +
-      `We noticed some difficulties with: "${selectedStudent.issue}".\n\n` +
-      `We have assigned some remedial resources for home study. I would appreciate if we could connect briefly to support their progress. Please let me know your availability.\n\n` +
-      `Best regards,\nSumathi Devi`
-    );
+  // Open modal for Editing Alert
+  const handleOpenEdit = (student: AtRiskStudent) => {
+    setEditingAlert(student);
+    setFormStudentId(student.studentId || "");
+    setFormRiskLevel(student.riskLevel);
+    setFormIssue(student.issue);
+    setFormAttendance(String(student.attendance));
+    setFormLastScore(String(student.lastScore));
+    setIsFormOpen(true);
   };
 
-  const handleAssignPeer = () => {
-    if (!selectedStudent) return;
-    setRemedialText(null);
-    setParentDraft(null);
-    setPeerTutor(
-      `AI Peer Tutoring recommendation:\n` +
-      `Connect ${selectedStudent.name} with Aarthi V. (Class average: 89%, high peer index).\n` +
-      `Study Buddy focus: Trigonometry basic worksheets.\n` +
-      `Assigned Study Buddy contract active in Student portal.`
-    );
-    setToastMessage(`Peer tutoring assigned!`);
-    setTimeout(() => setToastMessage(null), 3000);
+  // Save Risk Alert (POST or PUT)
+  const handleSaveAlert = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formStudentId) {
+      Swal.fire("Error", "Please select a student", "error");
+      return;
+    }
+
+    const selectedSt = allStudents.find(s => s.id === formStudentId);
+    
+    // Construct body
+    const body = {
+      name: selectedSt ? selectedSt.user?.name : editingAlert?.name,
+      rollNumber: selectedSt ? selectedSt.rollNumber : editingAlert?.rollNumber,
+      class: selectedSt ? `${selectedSt.class}${selectedSt.section}` : editingAlert?.className,
+      phone: selectedSt ? selectedSt.parentMobile : editingAlert?.phone,
+      parentName: selectedSt ? selectedSt.parentName : editingAlert?.parentName,
+      risk: formRiskLevel === "high" ? "High" : "Medium",
+      issue: formIssue,
+      attendance: parseFloat(formAttendance) || 0,
+      lastScore: parseFloat(formLastScore) || 0,
+      schoolId
+    };
+
+    try {
+      let res;
+      if (editingAlert) {
+        // PUT request
+        res = await fetch(`${API_URL}/api/headmaster/students/${editingAlert.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+      } else {
+        // POST request
+        res = await fetch(`${API_URL}/api/headmaster/students`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+      }
+
+      const data = await res.json();
+      if (data.success) {
+        setIsFormOpen(false);
+        Swal.fire({
+          icon: "success",
+          title: editingAlert ? "Alert Updated" : "Student Flagged",
+          text: editingAlert 
+            ? "The student's risk metrics have been updated." 
+            : "The student has been added to the academic watchlist.",
+          timer: 2000,
+          showConfirmButton: false
+        });
+        fetchData();
+      } else {
+        Swal.fire("Error", data.error || "Failed to save alert details", "error");
+      }
+    } catch (err) {
+      console.error("Save Alert Error:", err);
+      Swal.fire("Error", "An unexpected error occurred while saving.", "error");
+    }
   };
 
-  const handleResolveAlert = async (id: string) => {
-    const student = students.find((s) => s.id === id);
-    const sName = student ? student.name : "this student";
+  // Open send notification dialog
+  const handleOpenNotify = (student: AtRiskStudent) => {
+    setNotifyStudent(student);
+    const teacherName = session?.user?.name || "Mathematics Teacher";
+    const template = `Dear ${student.parentName},\n\nThis is ${teacherName}, Mathematics teacher of ${student.name}. I'm reaching out to partner with you to support ${student.name}'s learning progress in Mathematics.\n\nCurrently, ${student.name} has an attendance rate of ${student.attendance}% and scored ${student.lastScore}% in the latest assessment. To help them master the concepts better, especially regarding "${student.issue}", we have prepared some simple home study practice tasks on their student portal.\n\nWorking together, we can help them catch up and boost their confidence! Please check their portal and let me know if you'd like to have a quick chat about their progress.\n\nWarm regards,\n${teacherName}`;
+    setNotifyMessage(template);
+    setIsNotifyOpen(true);
+  };
+
+  // Dispatch Notification (Trigger backend POST/PUT APIs)
+  const handleSendNotification = async () => {
+    if (!notifyStudent) return;
+    try {
+      setIsSendingNotif(true);
+
+      // 1. Send Parent Notification
+      const parentRes = await fetch(`${API_URL}/api/parent/notifications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId: notifyStudent.studentId,
+          title: "Urgent Academic Alert",
+          message: notifyMessage,
+          type: "ACADEMIC_ALERT"
+        })
+      });
+
+      // 2. Send Student In-App Alert (if student user exists)
+      const studentObj = allStudents.find(s => s.id === notifyStudent.studentId);
+      if (studentObj && studentObj.userId) {
+        await fetch(`${API_URL}/api/notifications`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: studentObj.userId,
+            message: `📚 Learning Support: A few helpful Mathematics practice exercises have been added to your portal to help you catch up and improve. Let's work together to boost your score!`
+          })
+        });
+      }
+
+      // 3. Update Notified status in Watchlist table
+      await fetch(`${API_URL}/api/headmaster/students/${notifyStudent.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          notified: true,
+          notificationMessage: notifyMessage
+        })
+      });
+
+      setIsNotifyOpen(false);
+      Swal.fire({
+        icon: "success",
+        title: "Alert Notification Sent",
+        text: `Sent successfully to parent ${notifyStudent.parentName} and student in-app portal.`,
+        timer: 2000,
+        showConfirmButton: false
+      });
+      fetchData();
+    } catch (err) {
+      console.error("Notify Error:", err);
+      Swal.fire("Error", "Failed to send notifications. Try again.", "error");
+    } finally {
+      setIsSendingNotif(false);
+    }
+  };
+
+  // Resolve / Delete Alert
+  const handleResolveAlert = async (id: string, name: string) => {
     const result = await Swal.fire({
       title: "Resolve Risk Alert?",
-      text: `Are you sure you want to resolve the watchlist/risk alert for ${sName}?`,
+      text: `Are you sure you want to resolve the watchlist alert for ${name}? This will remove them from the watchlist.`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes, Resolve",
       cancelButtonText: "Cancel",
       confirmButtonColor: "#10b981",
       cancelButtonColor: "#64748b",
-      reverseButtons: true,
+      reverseButtons: true
     });
 
     if (!result.isConfirmed) return;
 
     try {
       const res = await fetch(`${API_URL}/api/headmaster/students/${id}`, {
-        method: "DELETE",
+        method: "DELETE"
       });
       const data = await res.json();
       if (data.success) {
-        setStudents(students.filter((s) => s.id !== id));
         Swal.fire({
           icon: "success",
-          title: "Resolved",
+          title: "Alert Resolved",
           text: "Risk alert marked as resolved successfully!",
           timer: 2000,
-          showConfirmButton: false,
+          showConfirmButton: false
         });
-        // Switch selection to another student
-        const remaining = students.filter((s) => s.id !== id);
-        if (remaining.length > 0) {
-          setSelectedStudentId(remaining[0].id);
-        } else {
-          setSelectedStudentId("");
-        }
+        fetchData();
       } else {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: data.error || "Failed to resolve alert.",
-          confirmButtonColor: "#ef4444",
-        });
+        Swal.fire("Error", data.error || "Failed to resolve alert.", "error");
       }
     } catch (err) {
-      console.error("Error resolving watchlist alert", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "An unexpected error occurred.",
-        confirmButtonColor: "#ef4444",
-      });
+      console.error("Resolve Error:", err);
+      Swal.fire("Error", "An unexpected error occurred.", "error");
     }
   };
+
+  // Filters mapping
+  const filteredStudents = students.filter(st => {
+    const matchesSearch = st.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          st.rollNumber.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRisk = riskFilter === "all" || st.riskLevel === riskFilter;
+    return matchesSearch && matchesRisk;
+  });
 
   return (
     <PortalLayout
       title="Risk Alerts"
       subtitle="Early-warning indicators identifying students requiring urgent academic support"
     >
-      {toastMessage && (
-        <div className="fixed top-5 right-5 bg-emerald-500 text-[var(--text-heading)] text-xs font-bold px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2">
-          <span>✅</span> {toastMessage}
+      {/* Stats Board */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl flex items-center justify-between shadow-sm">
+          <div>
+            <span className="block text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider">Total Alerts</span>
+            <span className="text-2xl font-black text-[var(--text-heading)]">{stats.total}</span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-450">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl flex items-center justify-between shadow-sm">
+          <div>
+            <span className="block text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider">🔴 High Risk</span>
+            <span className="text-2xl font-black text-rose-500">{stats.highRisk}</span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-450">
+            <TrendingDown className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl flex items-center justify-between shadow-sm">
+          <div>
+            <span className="block text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider">🟡 Medium Risk</span>
+            <span className="text-2xl font-black text-amber-500">{stats.medRisk}</span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-450">
+            <Percent className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl flex items-center justify-between shadow-sm">
+          <div>
+            <span className="block text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider">📬 Notified Parents</span>
+            <span className="text-2xl font-black text-emerald-500">{stats.notifiedCount}</span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-450">
+            <CheckCircle className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* Action and Filter bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border)]">
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          {/* Search bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+            <input
+              type="text"
+              placeholder="Search student or roll number..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 pr-4 py-2 w-full sm:w-64 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-all"
+            />
+          </div>
+
+          {/* Risk Filter */}
+          <select
+            value={riskFilter}
+            onChange={(e) => setRiskFilter(e.target.value)}
+            className="px-3 py-2 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)]"
+          >
+            <option value="all">All Risks</option>
+            <option value="high">High Risk</option>
+            <option value="medium">Medium Risk</option>
+          </select>
+        </div>
+
+        <button
+          onClick={handleOpenAdd}
+          className="w-full sm:w-auto px-4 py-2.5 bg-[var(--primary)] hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] active:scale-95"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Flag Student</span>
+        </button>
+      </div>
+
+      {/* Main Alert Grid / Table */}
+      <div className="theme-card p-6 border border-[var(--border)] shadow-sm">
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-sm font-bold text-[var(--text-heading)] uppercase tracking-wider flex items-center gap-2">
+            <span>📋 Watchlist Early-Warning Indicators</span>
+          </h2>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-16 text-xs text-[var(--text-muted)] flex flex-col items-center gap-3">
+            <div className="w-8 h-8 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin" />
+            <span>Loading database watchlist...</span>
+          </div>
+        ) : filteredStudents.length === 0 ? (
+          <div className="text-center py-16 border border-dashed border-[var(--border)] rounded-2xl text-[var(--text-muted)] text-xs flex flex-col items-center gap-2">
+            <Users className="w-10 h-10 opacity-30 mb-2" />
+            <span className="font-bold">No Risk Alerts Found</span>
+            <span>Great! No students are matching your filter or flagged for watchlist.</span>
+          </div>
+        ) : (
+          <>
+            {/* Desktop/Laptop Table Layout */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="data-table w-full text-left border-collapse">
+                <thead>
+                  <tr>
+                    <th className="py-3 px-4 font-bold text-[var(--text-muted)] text-[10px] uppercase border-b border-[var(--border)]">Student Details</th>
+                    <th className="py-3 px-4 font-bold text-[var(--text-muted)] text-[10px] uppercase border-b border-[var(--border)]">Risk Level</th>
+                    <th className="py-3 px-4 font-bold text-[var(--text-muted)] text-[10px] uppercase border-b border(--border)]">Warning Indicator / Issue</th>
+                    <th className="py-3 px-4 font-bold text-[var(--text-muted)] text-[10px] uppercase border-b border-[var(--border)] text-center">Attendance</th>
+                    <th className="py-3 px-4 font-bold text-[var(--text-muted)] text-[10px] uppercase border-b border-[var(--border)] text-center">Last Score</th>
+                    <th className="py-3 px-4 font-bold text-[var(--text-muted)] text-[10px] uppercase border-b border-[var(--border)] text-center">Alert Parent</th>
+                    <th className="py-3 px-4 font-bold text-[var(--text-muted)] text-[10px] uppercase border-b border-[var(--border)] text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border)]/40">
+                  {filteredStudents.map((st) => (
+                    <tr key={st.id} className="hover:bg-[var(--bg-card-hover)]/30 transition-colors">
+                      {/* Student Info */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="font-bold text-[var(--text-heading)] text-sm">{st.name}</div>
+                        <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                          Class: {st.className} · Roll: {st.rollNumber}
+                        </div>
+                      </td>
+
+                      {/* Risk Badge */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <span className={`badge shrink-0 font-semibold text-[10px] px-2.5 py-1 rounded-full ${
+                          st.riskLevel === "high" 
+                            ? "bg-rose-500/10 text-rose-450 border border-rose-500/20" 
+                            : "bg-amber-500/10 text-amber-450 border border-amber-500/20"
+                        }`}>
+                          {st.riskLevel.toUpperCase()}
+                        </span>
+                      </td>
+
+                      {/* Warning Indicator */}
+                      <td className="py-4 px-4 max-w-xs md:max-w-md">
+                        <p className="text-[11px] text-[var(--text-main)] leading-relaxed line-clamp-2">
+                          {st.issue}
+                        </p>
+                      </td>
+
+                      {/* Attendance Metric */}
+                      <td className="py-4 px-4 whitespace-nowrap text-center">
+                        <div className={`font-bold text-xs ${st.attendance < 75 ? "text-rose-400" : "text-[var(--text-heading)]"}`}>
+                          {st.attendance}%
+                        </div>
+                        <div className="text-[9px] text-[var(--text-muted)] mt-0.5">
+                          {st.attendance < 75 ? "⚠️ Below limit" : "Good"}
+                        </div>
+                      </td>
+
+                      {/* Last Score Metric */}
+                      <td className="py-4 px-4 whitespace-nowrap text-center">
+                        <div className={`font-bold text-xs ${st.lastScore < 40 ? "text-rose-400" : "text-[var(--text-heading)]"}`}>
+                          {st.lastScore}%
+                        </div>
+                        <div className="text-[9px] text-[var(--text-muted)] mt-0.5">
+                          {st.lastScore < 40 ? "⚠️ Critical" : "Passing"}
+                        </div>
+                      </td>
+
+                      {/* Alert Parent Status */}
+                      <td className="py-4 px-4 whitespace-nowrap text-center">
+                        {st.notified ? (
+                          <button 
+                            onClick={() => {
+                              Swal.fire({
+                                title: `Notification Sent Details`,
+                                html: `<div style="text-align: left; background-color: #0f172a; color: #e2e8f0; font-family: monospace; font-size: 11px; padding: 16px; border-radius: 12px; white-space: pre-wrap; line-height: 1.6; margin-top: 10px;">${st.notificationMessage}</div>`,
+                                confirmButtonColor: "#f59e0b",
+                                confirmButtonText: "Done"
+                              });
+                            }}
+                            className="inline-flex items-center gap-1.5 text-[10px] font-bold bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-lg border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
+                          >
+                            <Check className="w-3 h-3" />
+                            <span>Notified</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleOpenNotify(st)}
+                            className="inline-flex items-center gap-1.5 text-[10px] font-bold bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-lg border border-amber-500/20 hover:bg-amber-500/25 active:scale-95 transition-all"
+                          >
+                            <Mail className="w-3 h-3" />
+                            <span>Send Alert</span>
+                          </button>
+                        )}
+                      </td>
+
+                      {/* Action Column */}
+                      <td className="py-4 px-4 whitespace-nowrap text-right text-xs font-medium space-x-1">
+                        <button
+                          onClick={() => handleOpenEdit(st)}
+                          className="p-2 text-[var(--text-muted)] hover:text-amber-400 hover:bg-amber-500/5 rounded-lg transition-colors inline-flex"
+                          title="Edit Risk metrics"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleResolveAlert(st.id, st.name)}
+                          className="p-2 text-[var(--text-muted)] hover:text-emerald-400 hover:bg-emerald-500/5 rounded-lg transition-colors inline-flex"
+                          title="Resolve alert"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile/Tablet Card Grid Layout */}
+            <div className="block lg:hidden space-y-4">
+              {filteredStudents.map((st) => (
+                <div key={st.id} className="bg-[var(--bg-main)]/20 border border-[var(--border)] p-4 rounded-2xl space-y-3.5 shadow-sm text-xs">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-bold text-[var(--text-heading)] text-sm leading-tight">{st.name}</h4>
+                      <p className="text-[10px] text-[var(--text-muted)] mt-1">Class {st.className} · Roll {st.rollNumber}</p>
+                    </div>
+                    <span className={`badge shrink-0 font-semibold text-[9px] px-2 py-0.5 rounded-full ${
+                      st.riskLevel === "high" 
+                        ? "bg-rose-500/10 text-rose-450 border border-rose-500/20" 
+                        : "bg-amber-500/10 text-amber-450 border border-amber-500/20"
+                    }`}>
+                      {st.riskLevel.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <div className="bg-[var(--bg-main)]/35 p-3 rounded-xl border border-[var(--border)]/60 text-[11px] leading-relaxed text-[var(--text-main)]">
+                    <span className="font-semibold block text-[9px] uppercase tracking-wider text-[var(--text-muted)] mb-1">Issue/Indicator</span>
+                    {st.issue}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3.5 bg-[var(--bg-main)]/45 p-2.5 rounded-xl border border-[var(--border)]/40 text-center">
+                    <div>
+                      <span className="block text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-0.5">Attendance</span>
+                      <span className={`font-bold text-xs ${st.attendance < 75 ? "text-rose-400" : "text-[var(--text-heading)]"}`}>{st.attendance}%</span>
+                    </div>
+                    <div>
+                      <span className="block text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-0.5">Last Exam</span>
+                      <span className={`font-bold text-xs ${st.lastScore < 40 ? "text-rose-400" : "text-[var(--text-heading)]"}`}>{st.lastScore}%</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-2.5 border-t border-[var(--border)]/60">
+                    <div>
+                      {st.notified ? (
+                        <button 
+                          onClick={() => {
+                            Swal.fire({
+                              title: `Notification Sent Details`,
+                              html: `<div style="text-align: left; background-color: #0f172a; color: #e2e8f0; font-family: monospace; font-size: 11px; padding: 16px; border-radius: 12px; white-space: pre-wrap; line-height: 1.6; margin-top: 10px;">${st.notificationMessage}</div>`,
+                              confirmButtonColor: "#f59e0b",
+                              confirmButtonText: "Done"
+                            });
+                          }}
+                          className="inline-flex items-center gap-1.5 text-[10px] font-bold bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-lg border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
+                        >
+                          <Check className="w-3 h-3" />
+                          <span>Notified</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleOpenNotify(st)}
+                          className="inline-flex items-center gap-1.5 text-[10px] font-bold bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-lg border border-amber-500/20 hover:bg-amber-500/25 active:scale-95 transition-all"
+                        >
+                          <Mail className="w-3 h-3" />
+                          <span>Send Alert</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleOpenEdit(st)}
+                        className="p-1.5 text-[var(--text-muted)] hover:text-amber-400 hover:bg-amber-500/5 rounded-lg transition-colors border border-[var(--border)]"
+                        title="Edit Risk metrics"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleResolveAlert(st.id, st.name)}
+                        className="p-1.5 text-[var(--text-muted)] hover:text-emerald-400 hover:bg-emerald-500/5 rounded-lg transition-colors border border-[var(--border)]"
+                        title="Resolve alert"
+                      >
+                        <CheckCircle className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Flag / Edit Alert Modal Dialog */}
+      {isFormOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl animate-in zoom-in duration-200">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center px-6 py-4 border-b border-[var(--border)]">
+              <h3 className="text-sm font-black text-[var(--text-heading)] uppercase tracking-wider">
+                {editingAlert ? `✏️ Edit Risk Alert: ${editingAlert.name}` : "⚠️ Flag Student for Watchlist"}
+              </h3>
+              <button 
+                onClick={() => setIsFormOpen(false)}
+                className="text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body Form */}
+            <form onSubmit={handleSaveAlert} className="p-6 space-y-4">
+              {/* Select Student */}
+              <div>
+                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-bold uppercase tracking-wider">Select Student</label>
+                {editingAlert ? (
+                  <div className="bg-[var(--bg-main)]/60 px-3 py-2.5 rounded-xl border border-[var(--border)] text-xs text-[var(--text-heading)] font-semibold">
+                    {editingAlert.name} ({editingAlert.className} · Roll: {editingAlert.rollNumber})
+                  </div>
+                ) : (
+                  <select
+                    value={formStudentId}
+                    onChange={(e) => setFormStudentId(e.target.value)}
+                    className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors"
+                  >
+                    {allStudents.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.user?.name} (Class {s.class}{s.section} · Roll: {s.rollNumber})
+                      </option>
+                    ))}
+                    {allStudents.length === 0 && (
+                      <option value="">No students available for selection</option>
+                    )}
+                  </select>
+                )}
+              </div>
+
+              {/* Risk Level */}
+              <div>
+                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-bold uppercase tracking-wider">Risk Severity</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormRiskLevel("high")}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      formRiskLevel === "high"
+                        ? "border-rose-500 bg-rose-500/10 text-rose-450"
+                        : "border-[var(--border)] bg-[var(--bg-main)] text-[var(--text-muted)] hover:bg-[var(--bg-card-hover)]"
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-rose-500" />
+                    <span>HIGH RISK</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormRiskLevel("medium")}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      formRiskLevel === "medium"
+                        ? "border-amber-500 bg-amber-500/10 text-amber-450"
+                        : "border-[var(--border)] bg-[var(--bg-main)] text-[var(--text-muted)] hover:bg-[var(--bg-card-hover)]"
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-amber-500" />
+                    <span>MEDIUM RISK</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Attendance & Score */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-bold uppercase tracking-wider">Attendance Rate (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={formAttendance}
+                    onChange={(e) => setFormAttendance(e.target.value)}
+                    className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] font-mono"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-bold uppercase tracking-wider">Last Exam Score (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={formLastScore}
+                    onChange={(e) => setFormLastScore(e.target.value)}
+                    className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] font-mono"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Warning Indicator / Issue */}
+              <div>
+                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-bold uppercase tracking-wider">Warning Indicator / Issue</label>
+                <select
+                  onChange={(e) => setFormIssue(e.target.value)}
+                  value={commonIssues.includes(formIssue) ? formIssue : "custom"}
+                  className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] mb-2.5 focus:outline-none focus:border-[var(--primary)]"
+                >
+                  {commonIssues.map((issue, idx) => (
+                    <option key={idx} value={issue}>
+                      {issue}
+                    </option>
+                  ))}
+                  <option value="custom">-- Custom indicator text --</option>
+                </select>
+                
+                <textarea
+                  value={formIssue}
+                  onChange={(e) => setFormIssue(e.target.value)}
+                  rows={3}
+                  className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] resize-none leading-relaxed"
+                  placeholder="Enter details about why this student is flagged..."
+                  required
+                />
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-3 justify-end pt-3 border-t border-[var(--border)]/60">
+                <button
+                  type="button"
+                  onClick={() => setIsFormOpen(false)}
+                  className="px-4 py-2 border border-[var(--border)] rounded-xl text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)] transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[var(--primary)] hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-colors"
+                >
+                  {editingAlert ? "Save changes" : "Flag Student"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Risk Metrics list */}
-        <div className="lg:col-span-1 space-y-4">
-          <div className="flex justify-between items-center bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] p-4 rounded-xl border border-[var(--border)]">
-            <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider">⚠️ Flagged Students</h3>
-            <span className="badge badge-red">{students.length} Alerts</span>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-8 text-xs text-[var(--text-muted)]">Loading alerts...</div>
-          ) : (
-            <div className="space-y-3">
-              {students.map((st) => {
-                const isSelected = st.id === selectedStudentId;
-                return (
-                  <div
-                    key={st.id}
-                    onClick={() => {
-                      setSelectedStudentId(st.id);
-                      setRemedialText(null);
-                      setParentDraft(null);
-                      setPeerTutor(null);
-                    }}
-                    className={`p-4 rounded-2xl border text-xs cursor-pointer transition-all hover:scale-[1.01] ${
-                      isSelected
-                        ? "border-red-500/80 bg-red-500/5"
-                        : "border-[var(--border)] bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--border)]"
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h4 className="text-[var(--text-heading)] font-bold text-sm">{st.name}</h4>
-                        <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Section: {st.className} · Parent: {st.parentName}</p>
-                      </div>
-                      <span className={`badge ${st.riskLevel === "high" ? "badge-red" : "badge-yellow"}`}>
-                        {st.riskLevel}
-                      </span>
-                    </div>
-
-                    <p className="text-[11px] text-slate-350 leading-relaxed bg-[var(--bg-main)]/20 p-2.5 rounded border border-[var(--border)] my-3">
-                      {st.issue}
-                    </p>
-
-                    <div className="flex justify-between items-center text-[10px] text-[var(--text-muted)] pt-2 border-t border-[var(--border)]/60 font-medium">
-                      <span>Attendance: <span className="text-[var(--text-heading)]">{st.attendance}%</span></span>
-                      <span>Last Exam: <span className="text-[var(--text-heading)]">{st.lastScore}%</span></span>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {students.length === 0 && (
-                <div className="theme-card p-8 border border-dashed border-[var(--border)] text-center text-xs text-[var(--text-muted)]">
-                  🎉 Great job! No students are currently flagged for academic risk.
-                </div>
-              )}
+      {/* Parent Alert Notification Modal */}
+      {isNotifyOpen && notifyStudent && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl animate-in zoom-in duration-200">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center px-6 py-4 border-b border-[var(--border)] bg-amber-500/5">
+              <h3 className="text-sm font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                <span>Dispatch Academic Alert Notification</span>
+              </h3>
+              <button 
+                onClick={() => setIsNotifyOpen(false)}
+                className="text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-          )}
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
+              <div className="bg-[var(--bg-main)]/60 p-4 rounded-xl border border-[var(--border)] space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-[var(--text-muted)] font-medium">Recipient Parent:</span>
+                  <span className="text-[var(--text-heading)] font-bold">{notifyStudent.parentName} ({notifyStudent.phone})</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[var(--text-muted)] font-medium">Student Subject:</span>
+                  <span className="text-[var(--text-heading)] font-bold">Mathematics Alert (Grade {notifyStudent.className})</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] text-[var(--text-muted)] mb-1.5 font-bold uppercase tracking-wider">SMS / In-App Notification Body</label>
+                <textarea
+                  value={notifyMessage}
+                  onChange={(e) => setNotifyMessage(e.target.value)}
+                  rows={9}
+                  className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3.5 py-3 text-xs text-[var(--text-heading)] font-mono focus:outline-none focus:border-[var(--primary)] resize-none leading-relaxed"
+                  required
+                />
+              </div>
+
+              <div className="p-3 bg-rose-500/10 rounded-xl border border-rose-500/10 text-[10px] text-rose-300 leading-normal">
+                💡 <strong>Important Note:</strong> Sending this alert will dispatch a push notification to both the Parent Portal (linked to {notifyStudent.parentName}) and the Student Portal.
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-3 justify-end pt-3 border-t border-[var(--border)]/60">
+                <button
+                  type="button"
+                  onClick={() => setIsNotifyOpen(false)}
+                  className="px-4 py-2 border border-[var(--border)] rounded-xl text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)] transition-all"
+                  disabled={isSendingNotif}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSendNotification}
+                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5"
+                  disabled={isSendingNotif}
+                >
+                  {isSendingNotif ? (
+                    <>
+                      <div className="w-3.5 h-3.5 rounded-full border border-white/20 border-t-white animate-spin" />
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Send Alert Now</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {/* AI intervention workspace */}
-        {selectedStudent && students.length > 0 && (
-          <div className="lg:col-span-2 theme-card p-6 border border-[var(--border)] flex flex-col justify-between min-h-[480px]">
-            <div>
-              <div className="flex justify-between items-start border-b border-[var(--border)] pb-4 mb-5">
-                <div>
-                  <h3 className="text-[var(--text-heading)] font-bold text-base leading-snug">🛡️ Intervention Workspace</h3>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">Design academic countermeasures for {selectedStudent.name}</p>
-                </div>
-                <button
-                  onClick={() => handleResolveAlert(selectedStudent.id)}
-                  className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/10 transition-all"
-                >
-                  ✓ Resolve Alert
-                </button>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                <button
-                  onClick={handleGenerateRemedial}
-                  className="py-3 px-4 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] hover:bg-[var(--bg-card)] hover:border-[var(--border)] text-xs font-semibold text-[var(--text-heading)] transition-all text-center flex flex-col items-center gap-1.5"
-                >
-                  <span className="text-lg">📄</span>
-                  <span>Remedial Tasks</span>
-                </button>
-                <button
-                  onClick={handleDraftParent}
-                  className="py-3 px-4 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] hover:bg-[var(--bg-card)] hover:border-[var(--border)] text-xs font-semibold text-[var(--text-heading)] transition-all text-center flex flex-col items-center gap-1.5"
-                >
-                  <span className="text-lg">✉️</span>
-                  <span>Parent Update</span>
-                </button>
-                <button
-                  onClick={handleAssignPeer}
-                  className="py-3 px-4 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] hover:bg-[var(--bg-card)] hover:border-[var(--border)] text-xs font-semibold text-[var(--text-heading)] transition-all text-center flex flex-col items-center gap-1.5"
-                >
-                  <span className="text-lg">👥</span>
-                  <span>Peer Tutoring</span>
-                </button>
-              </div>
-
-              {/* Output Content */}
-              <div className="space-y-4">
-                {remedialText && (
-                  <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/10 rounded-xl space-y-3 animate-in fade-in duration-200">
-                    <div className="text-xs text-amber-400 font-bold">Generated Remedial Materials</div>
-                    <pre className="text-[var(--text-main)] font-mono text-[11px] leading-relaxed whitespace-pre-wrap">
-                      {remedialText}
-                    </pre>
-                  </div>
-                )}
-
-                {parentDraft && (
-                  <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/10 rounded-xl space-y-3 animate-in fade-in duration-200">
-                    <div className="flex justify-between items-center">
-                      <div className="text-xs text-amber-400 font-bold font-mono">Message Draft (Formal Tone)</div>
-                      <button
-                        onClick={() => {
-                          setToastMessage("Draft copied to clipboard!");
-                          setTimeout(() => setToastMessage(null), 2000);
-                        }}
-                        className="text-[10px] text-[var(--text-heading)] bg-slate-850 px-2 py-1 rounded hover:bg-[var(--bg-card)]"
-                      >
-                        Copy Letter
-                      </button>
-                    </div>
-                    <pre className="text-[var(--text-main)] font-mono text-[11px] leading-relaxed whitespace-pre-wrap bg-[var(--bg-main)]/40 p-3 rounded-lg border border-[var(--border)]">
-                      {parentDraft}
-                    </pre>
-                  </div>
-                )}
-
-                {peerTutor && (
-                  <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/10 rounded-xl space-y-3 animate-in fade-in duration-200">
-                    <div className="text-xs text-amber-400 font-bold">Buddy Allocation Summary</div>
-                    <pre className="text-[var(--text-main)] font-mono text-[11px] leading-relaxed whitespace-pre-wrap">
-                      {peerTutor}
-                    </pre>
-                  </div>
-                )}
-
-                {!remedialText && !parentDraft && !peerTutor && (
-                  <div className="p-8 border border-dashed border-[var(--border)] rounded-xl text-center text-xs text-[var(--text-muted)]">
-                    Select one of the interventions above to automatically draft actions.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] border border-[var(--border)] p-4 rounded-2xl flex items-center justify-between text-xs mt-6">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">💡</span>
-                <p className="text-[var(--text-muted)]">
-                  Early remediation results show that students utilizing tutoring improve grades by up to **18%**.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </PortalLayout>
   );
 }
-
-
