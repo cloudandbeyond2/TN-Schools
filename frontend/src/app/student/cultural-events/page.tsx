@@ -15,10 +15,7 @@ import {
   Sparkles,
   Heart,
   Camera,
-  Star,
-  Plus,
-  Pencil,
-  Trash2
+  Star
 } from "lucide-react";
 
 type CulturalEvent = {
@@ -38,14 +35,10 @@ export default function CulturalEventsPage() {
 
   const [events, setEvents] = useState<CulturalEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [studentClass, setStudentClass] = useState("");
 
   // Modal for registering students
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
-
-  // Modal for creating/editing event
-  const [eventModalOpen, setEventModalOpen] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
-  const [currentEvent, setCurrentEvent] = useState<CulturalEvent | null>(null);
 
   const fetchEvents = useCallback(async () => {
     if (!schoolId) return;
@@ -67,6 +60,26 @@ export default function CulturalEventsPage() {
     fetchEvents();
   }, [fetchEvents]);
 
+  // Fetch student class for default registration form
+  useEffect(() => {
+    async function fetchStudentProfile() {
+      if (!session?.user) return;
+      try {
+        const res = await fetch(`${API_URL}/api/students`);
+        const json = await res.json();
+        if (json.success) {
+          const profile = json.data.find((s: any) => s.userId === (session.user as any).id);
+          if (profile && profile.class) {
+            setStudentClass(profile.class);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch student profile", err);
+      }
+    }
+    fetchStudentProfile();
+  }, [session, API_URL]);
+
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     setRegisterModalOpen(false);
@@ -76,93 +89,6 @@ export default function CulturalEventsPage() {
       icon: "success",
       confirmButtonColor: "#f43f5e"
     });
-  };
-
-  const handleOpenCreate = () => {
-    setIsEdit(false);
-    setCurrentEvent(null);
-    setEventModalOpen(true);
-  };
-
-  const handleOpenEdit = (evt: CulturalEvent) => {
-    setIsEdit(true);
-    setCurrentEvent(evt);
-    setEventModalOpen(true);
-  };
-
-  const handleDeleteEvent = async (id: string, title: string) => {
-    const result = await Swal.fire({
-      title: "Delete Event?",
-      text: `Are you sure you want to cancel "${title}"?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#f43f5e",
-      cancelButtonColor: "#94a3b8",
-      confirmButtonText: "Yes, cancel it! 🗑️"
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      const res = await fetch(`${API_URL}/api/teacher/cultural-events/${id}?schoolId=${schoolId}`, {
-        method: "DELETE"
-      });
-      if (res.ok) {
-        Swal.fire({
-          title: "Cancelled!",
-          text: `"${title}" has been cancelled.`,
-          icon: "success",
-          confirmButtonColor: "#f43f5e"
-        });
-        fetchEvents();
-      }
-    } catch (err) {
-      console.error("Failed to delete event", err);
-    }
-  };
-
-  const handleSaveEvent = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!schoolId) return;
-
-    const formData = new FormData(e.target as HTMLFormElement);
-    const payload = {
-      title: formData.get("title"),
-      eventDate: formData.get("eventDate"),
-      location: formData.get("location"),
-      description: formData.get("description") || "A wonderful cultural event!",
-      status: formData.get("status"),
-      schoolId
-    };
-
-    try {
-      let url = `${API_URL}/api/teacher/cultural-events`;
-      let method = "POST";
-
-      if (isEdit && currentEvent) {
-        url = `${API_URL}/api/teacher/cultural-events/${currentEvent.id}`;
-        method = "PUT";
-      }
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        setEventModalOpen(false);
-        Swal.fire({
-          title: "Success!",
-          text: isEdit ? "Event updated successfully! ✨" : "New event created! 🎉",
-          icon: "success",
-          confirmButtonColor: "#f43f5e"
-        });
-        fetchEvents();
-      }
-    } catch (err) {
-      console.error("Failed to save event", err);
-    }
   };
 
   // Helper to pick icon and color based on title or status
@@ -179,11 +105,11 @@ export default function CulturalEventsPage() {
       title="Culture & Fun! 🎭"
       subtitle="Join the dance, art, and music festivals!"
     >
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-8 text-left">
 
         {/* Clean White Card Featured Event Hero */}
         <div className="relative rounded-[3rem] overflow-hidden shadow-xl bg-white dark:bg-slate-800 border-4 border-slate-100 dark:border-slate-700 min-h-[350px] flex flex-col justify-end p-8 sm:p-12">
-          
+
           {/* Subtle Decorative Background Elements */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-rose-50 dark:bg-rose-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 z-0"></div>
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-50 dark:bg-amber-900/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 z-0"></div>
@@ -208,9 +134,6 @@ export default function CulturalEventsPage() {
               <button onClick={() => Swal.fire({ title: 'Schedule', text: 'Downloading the fun schedule! 📅', icon: 'info' })} className="px-8 py-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-sm rounded-2xl transition-all shadow-sm hover:bg-slate-200 dark:hover:bg-slate-600 border-2 border-slate-200 dark:border-slate-600">
                 See What's Happening
               </button>
-              <button onClick={handleOpenCreate} className="px-8 py-4 bg-emerald-400 text-emerald-900 font-black text-sm rounded-2xl transition-all shadow-md shadow-emerald-400/30 hover:scale-105 active:scale-95 border-b-4 border-emerald-600 flex items-center gap-2 ml-auto">
-                <Plus className="w-5 h-5" /> Add New Event
-              </button>
             </div>
           </div>
         </div>
@@ -230,20 +153,11 @@ export default function CulturalEventsPage() {
             {loading ? (
               <div className="col-span-3 text-center py-10 font-bold text-slate-500">Loading events... ⏳</div>
             ) : events.length === 0 ? (
-              <div className="col-span-3 text-center py-10 font-bold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-3xl border-4 border-dashed border-slate-200 dark:border-slate-700">No events yet! Go add some! 🎉</div>
+              <div className="col-span-3 text-center py-10 font-bold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-3xl border-4 border-dashed border-slate-200 dark:border-slate-700">No events scheduled. 🎉</div>
             ) : events.map((evt, i) => {
               const { icon, color } = getEventStyle(evt.title);
               return (
                 <div key={i} className={`p-6 rounded-[2.5rem] border-4 border-${color}-100 dark:border-slate-700 hover:border-${color}-300 bg-${color}-50/50 hover:bg-${color}-50 dark:bg-slate-900/50 hover:-translate-y-2 hover:shadow-xl transition-all duration-300 flex flex-col h-full group relative`}>
-
-                  <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    <button onClick={() => handleOpenEdit(evt)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors shadow-sm border border-slate-200 dark:border-slate-700">
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => handleDeleteEvent(evt.id, evt.title)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-rose-500 hover:bg-rose-50 transition-colors shadow-sm border border-slate-200 dark:border-slate-700">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
 
                   <div className="flex justify-between items-start mb-6">
                     <div className={`w-16 h-16 rounded-2xl bg-${color}-200 text-${color}-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-transform shadow-inner`}>
@@ -307,7 +221,7 @@ export default function CulturalEventsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Class 🎒</label>
-                  <input required name="class" type="text" placeholder="e.g., 9th A" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-rose-300 transition-all" />
+                  <input required name="class" type="text" defaultValue={studentClass} placeholder="e.g., 9th A" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-rose-300 transition-all" />
                 </div>
                 <div>
                   <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">How Many? 🧑‍🤝‍🧑</label>
@@ -320,58 +234,6 @@ export default function CulturalEventsPage() {
                 </button>
                 <button type="submit" className="flex-1 py-4 rounded-2xl text-sm font-black text-grey bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 transition-all shadow-lg shadow-rose-500/30 active:scale-95 border-b-4 border-rose-700">
                   Register! 🎉
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Create / Edit Event Modal */}
-      {eventModalOpen && (
-        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-[3rem] w-full max-w-md shadow-2xl border-4 border-purple-200 dark:border-slate-700 animate-in zoom-in-95 p-3">
-            <div className="flex justify-between items-center p-6 bg-purple-50 dark:bg-slate-900 rounded-[2.5rem] mb-6">
-              <h3 className="text-2xl font-black text-purple-600 dark:text-purple-400">
-                {isEdit ? "Edit Event 🎨" : "New Event! 🎪"}
-              </h3>
-              <button onClick={() => setEventModalOpen(false)} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-full text-slate-400 hover:text-purple-500 hover:scale-110 transition-all shadow-sm">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <form onSubmit={handleSaveEvent} className="p-4 space-y-6">
-              <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Event Title ✨</label>
-                <input required name="title" defaultValue={currentEvent?.title} type="text" placeholder="e.g., Annual Arts Fest" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all" />
-              </div>
-              <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Description 📝</label>
-                <textarea required name="description" defaultValue={currentEvent?.description} placeholder="What's this event about?" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all resize-none h-24" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Date 📅</label>
-                  <input required name="eventDate" defaultValue={currentEvent ? new Date(currentEvent.eventDate).toISOString().substring(0, 10) : ""} type="date" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all" />
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Location 📍</label>
-                  <input required name="location" defaultValue={currentEvent?.location} type="text" placeholder="e.g., Auditorium" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Status 🎯</label>
-                <select required name="status" defaultValue={currentEvent?.status || "Upcoming"} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all">
-                  <option value="Upcoming">Upcoming ⏳</option>
-                  <option value="Planning">Planning 📝</option>
-                  <option value="Open Now!">Open Now! 🎉</option>
-                </select>
-              </div>
-              <div className="pt-6 flex gap-4">
-                <button type="button" onClick={() => setEventModalOpen(false)} className="flex-1 py-4 rounded-2xl text-sm font-black text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border-2 border-slate-200 dark:border-slate-700">
-                  Cancel
-                </button>
-                <button type="submit" className="flex-1 py-4 rounded-2xl text-sm font-black text-grey bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 transition-all shadow-lg shadow-purple-500/30 active:scale-95 border-b-4 border-purple-700">
-                  {isEdit ? "Update Event" : "Create Event!"}
                 </button>
               </div>
             </form>
