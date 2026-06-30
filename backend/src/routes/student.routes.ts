@@ -60,7 +60,6 @@ router.get('/:id', async (req: Request, res: Response) => {
     const student = await prisma.student.findUnique({
       where: { id: req.params.id },
       include: {
-        user: { select: { name: true, email: true, mobile: true } },
         school: { select: { name: true, district: true } },
         marks: { orderBy: { createdAt: 'desc' }, take: 20 },
         attendance: { orderBy: { date: 'desc' }, take: 30 },
@@ -68,7 +67,11 @@ router.get('/:id', async (req: Request, res: Response) => {
       },
     });
     if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
-    res.json({ success: true, data: student });
+
+    const user = await prisma.user.findUnique({ where: { id: student.userId }, select: { name: true, email: true, mobile: true } });
+    const studentWithUser = { ...student, user };
+
+    res.json({ success: true, data: studentWithUser });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -84,10 +87,15 @@ router.get('/', async (req: Request, res: Response) => {
         ...(cls ? { class: String(cls) } : {}),
         ...(section ? { section: String(section) } : {}),
       },
-      include: { user: { select: { name: true } } },
       orderBy: { createdAt: 'desc' },
     });
-    res.json({ success: true, count: students.length, data: students });
+
+    const userIds = students.map(s => s.userId);
+    const users = await prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true } });
+    const userMap = new Map(users.map(u => [u.id, u]));
+    const studentsWithUsers = students.map(s => ({ ...s, user: userMap.get(s.userId) || { name: "Student" } }));
+
+    res.json({ success: true, count: students.length, data: studentsWithUsers });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

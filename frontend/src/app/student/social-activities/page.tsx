@@ -1,65 +1,89 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PortalLayout from '@/components/PortalLayout';
 import { Leaf, Award, Heart, Shield, Loader2, CheckCircle2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 interface ActivityLog {
   id: string;
-  type: string;
+  activityType: string;
   description: string;
-  hours: number;
+  points: number;
   date: string;
+  createdAt: string;
   status: 'Pending Review' | 'Approved';
 }
 
 export default function SocialActivitiesPage() {
+  const { data: session } = useSession();
   const [activityType, setActivityType] = useState("");
-  const [activities, setActivities] = useState<ActivityLog[]>([
-    {
-      id: "1",
-      type: "environmental",
-      description: "Planted 5 tree saplings in the local park.",
-      hours: 3,
-      date: "2026-06-15",
-      status: "Approved"
-    },
-    {
-      id: "2",
-      type: "teaching",
-      description: "Tutored junior students in Mathematics.",
-      hours: 4,
-      date: "2026-06-22",
-      status: "Pending Review"
-    }
-  ]);
+  const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [description, setDescription] = useState("");
   const [hours, setHours] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchActivities();
+    }
+  }, [session]);
+
+  const fetchActivities = async () => {
+    try {
+      const userId = (session?.user as any)?.id;
+      if (!userId) return;
+      
+      const res = await fetch(`${API_URL}/api/social-activities/${userId}`);
+      const data = await res.json();
+      
+      if (data.success) {
+        setActivities(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
+    
+    try {
+      const userId = (session?.user as any)?.id;
+      if (!userId) throw new Error("User ID not found");
+
+      const res = await fetch(`${API_URL}/api/social-activities`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          type: activityType,
+          description,
+          hours,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setIsSuccess(true);
+        setActivities([data.data, ...activities]);
+        setActivityType("");
+        setDescription("");
+        setHours("");
+        setTimeout(() => setIsSuccess(false), 3000);
+      }
+    } catch (error) {
+      console.error("Error submitting activity:", error);
+    } finally {
       setIsSubmitting(false);
-      setIsSuccess(true);
-      const newActivity: ActivityLog = {
-        id: Math.random().toString(36).substr(2, 9),
-        type: activityType,
-        description,
-        hours: parseInt(hours),
-        date: new Date().toISOString().split('T')[0],
-        status: 'Pending Review'
-      };
-      setActivities([newActivity, ...activities]);
-      setActivityType("");
-      setDescription("");
-      setHours("");
-      
-      // Reset success message after 3 seconds
-      setTimeout(() => setIsSuccess(false), 3000);
-    }, 1000);
+    }
   };
 
   return (
@@ -203,9 +227,14 @@ export default function SocialActivitiesPage() {
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm mt-8">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Recent Activity Logs</h2>
           
-          {activities.length === 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 text-slate-500 gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+              <p className="text-sm">Loading your activity history...</p>
+            </div>
+          ) : activities.length === 0 ? (
             <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-              No activities logged yet.
+              No activities logged yet. Start making an impact!
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -223,18 +252,18 @@ export default function SocialActivitiesPage() {
                   {activities.map(activity => (
                     <tr key={activity.id} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="py-4 px-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                        {new Date(activity.date).toLocaleDateString()}
+                        {new Date(activity.date || activity.createdAt).toLocaleDateString()}
                       </td>
                       <td className="py-4 px-4">
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 capitalize">
-                          {activity.type}
+                          {activity.activityType}
                         </span>
                       </td>
                       <td className="py-4 px-4 text-sm text-slate-700 dark:text-slate-300 max-w-xs truncate" title={activity.description}>
                         {activity.description}
                       </td>
                       <td className="py-4 px-4 text-sm text-slate-900 dark:text-white font-semibold">
-                        {activity.hours} hrs
+                        {activity.points} hrs
                       </td>
                       <td className="py-4 px-4">
                         <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${
