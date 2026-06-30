@@ -222,18 +222,33 @@ export default function HomeworkPage() {
     }
   };
 
-  const triggerAIRecipes = () => {
+  const triggerAIRecipes = async () => {
     if (!newTitle.trim()) {
       alert("Please enter a homework title/topic first.");
       return;
     }
     setIsGeneratingAI(true);
-    setTimeout(() => {
-      setNewDesc(
-        `AI Generated Homework Prompt:\n1) In a right triangle, verify if sides (5cm, 12cm, 13cm) follow Pythagoras formula.\n2) If the diagonal of a rectangle is 25cm and the width is 7cm, find the length.\n3) Explain in your own words why hypotenuse is always the longest side.`
-      );
+    try {
+      const res = await fetch(`${API_URL}/api/ai/draft-homework`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic: newTitle,
+          className: newClass,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.text) {
+        setNewDesc(data.text);
+      } else {
+        alert("Failed to generate homework: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("AI Error:", err);
+      alert("An error occurred while calling the AI service.");
+    } finally {
       setIsGeneratingAI(false);
-    }, 1000);
+    }
   };
 
   const handleSendReminder = () => {
