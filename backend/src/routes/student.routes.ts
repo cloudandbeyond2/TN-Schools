@@ -142,13 +142,13 @@ router.get('/:id/homework', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const student = await prisma.student.findFirst({ 
-      where: { 
+    const student = await prisma.student.findFirst({
+      where: {
         OR: [
           { id },
           { userId: id }
         ]
-      } 
+      }
     });
     if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
 
@@ -156,9 +156,9 @@ router.get('/:id/homework', async (req: Request, res: Response) => {
 
     // Get all homework for this class
     const homeworkList = await prisma.homework.findMany({
-      where: { 
-        schoolId: student.schoolId, 
-        className: { startsWith: classSection } 
+      where: {
+        schoolId: student.schoolId,
+        className: { startsWith: classSection }
       },
       include: {
         submissions: {
@@ -201,8 +201,8 @@ router.post('/:id/homework/:homeworkId/submit', async (req: Request, res: Respon
 
     const { answerText } = req.body;
 
-    const student = await prisma.student.findFirst({ 
-      where: { 
+    const student = await prisma.student.findFirst({
+      where: {
         OR: [
           { id },
           { userId: id }

@@ -60,6 +60,7 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true);
   const [weeklyLoading, setWeeklyLoading] = useState(false);
   const [teacherClasses, setTeacherClasses] = useState<any[]>([]);
+  const [sendSMS, setSendSMS] = useState(false);
 
   // Fetch teacher classes on mount
   useEffect(() => {
@@ -212,14 +213,16 @@ export default function AttendancePage() {
       const res = await fetch(`${API_URL}/api/attendance`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ records }),
+        body: JSON.stringify({ records, notifySMS: sendSMS }),
       });
       const result = await res.json();
       if (result.success) {
         Swal.fire({
           icon: "success",
           title: "Attendance Saved Successfully!",
-          text: `Present: ${presentCount} | Absent: ${absentCount} | Late: ${lateCount} (${attendancePercentage}% Rate). Parent SMS alerts dispatched automatically.`,
+          text: `Present: ${presentCount} | Absent: ${absentCount} | Late: ${lateCount} (${attendancePercentage}% Rate). ${
+            sendSMS && absentCount > 0 ? "Parent SMS alerts dispatched successfully." : "Parent SMS alerts skipped/none absent."
+          }`,
           confirmButtonColor: "#3b82f6",
         });
         // If we are on the weekly tab, refresh it too
@@ -395,7 +398,24 @@ export default function AttendancePage() {
 
           {/* Actions (Only on Daily Checklist) */}
           {activeTab === "daily" && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center flex-wrap">
+              {/* Parent SMS Toggle */}
+              <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 shrink-0 select-none">
+                <input
+                  type="checkbox"
+                  id="smsAbsentToggle"
+                  checked={sendSMS}
+                  onChange={(e) => setSendSMS(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 bg-slate-950 border-slate-800 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
+                />
+                <label
+                  htmlFor="smsAbsentToggle"
+                  className="text-xs font-bold text-slate-300 cursor-pointer"
+                >
+                  SMS Absent Parents
+                </label>
+              </div>
+
               <button
                 onClick={markAllPresent}
                 className="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition-all shadow-sm shrink-0"
