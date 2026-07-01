@@ -223,6 +223,8 @@ return res.json({
     schoolId: student.schoolId,
     class: student.class,
     section: student.section,
+    studentId: student.id,           // Student record ID (for leave, homework, etc.)
+    rollNumber: student.rollNumber,  // Roll number for display
   },
 });
     } else {

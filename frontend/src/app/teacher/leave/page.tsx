@@ -62,31 +62,22 @@ export default function LeaveRequestsPage() {
           activeClasses = classesData.data;
         }
 
-        if (activeClasses.length === 0) {
-          setRequests([]);
-          setStaffList([]);
-          setStudentId("");
-          setLoading(false);
-          return;
-        }
-
-        // 2. Fetch Leave history
+        // 2. Fetch Leave history (all records for this school)
         const leaveRes = await fetch(`${API_URL}/api/teacher/leave?schoolId=${schoolId}`);
         const leaveData = await leaveRes.json();
         if (leaveData.success && leaveData.data) {
-          const filteredRequests = leaveData.data.filter((req: any) =>
-            activeClasses.some(tc => req.studentName && req.studentName.includes(`Class ${tc.className}${tc.section}`))
-          );
-          setRequests(filteredRequests);
+          setRequests(leaveData.data);
         }
 
-        // 3. Fetch Students
+        // 3. Fetch Students (filter by teacher's classes if available, else show all)
         const studentRes = await fetch(`${API_URL}/api/students?schoolId=${schoolId}`);
         const studentData = await studentRes.json();
         if (studentData.success && studentData.data) {
-          const filteredStudents = studentData.data.filter((s: any) =>
-            activeClasses.some(tc => tc.className === s.class && tc.section === s.section)
-          );
+          const filteredStudents = activeClasses.length > 0
+            ? studentData.data.filter((s: any) =>
+                activeClasses.some(tc => tc.className === s.class && tc.section === s.section)
+              )
+            : studentData.data;
 
           const mappedStudents = filteredStudents.map((s: any) => ({
             id: s.id,
