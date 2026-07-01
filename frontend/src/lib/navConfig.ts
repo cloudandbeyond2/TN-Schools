@@ -108,6 +108,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#6366f1",
     navItems: [
       { label: "Portal Home", href: "/student", icon: "🏠" },
+      { label: "AI Tutor", href: "/student/ai-tutor", icon: "🤖" },
     ],
   },
   STUDENT_MIDDLE: {
@@ -126,7 +127,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "My Badges", href: "/student/middle-school/badges", icon: "🏅" },
       { label: "Fun Quizzes", href: "/student/middle-school/quizzes", icon: "🎮" },
       { label: "Story Books", href: "/student/middle-school/stories", icon: "📚" },
-      { label: "AI Helper", href: "/student/middle-school/ai", icon: "🤖" },
+      { label: "AI Tutor", href: "/student/ai-tutor", icon: "🤖" },
       { label: "Welfare & Benefits", href: "/student/middle-school/welfare", icon: "🎁" },
       { label: "Maths Formulas", href: "/student/maths-formulas", icon: "➗" },
 

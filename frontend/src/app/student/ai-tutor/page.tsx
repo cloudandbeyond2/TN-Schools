@@ -56,9 +56,10 @@ export default function AITutorPage() {
     setSessionId(`session-${Date.now()}`);
   }, []);
 
-  // 2. Fetch student ID & load history
   useEffect(() => {
     if (!session?.user) return;
+    const userId = (session.user as any)?.id;
+    if (!userId) return;
 
     async function fetchStudentAndHistory() {
       try {
@@ -67,7 +68,7 @@ export default function AITutorPage() {
         
         let profile = null;
         if (studentJson.success) {
-          profile = studentJson.data.find((s: any) => s.userId === (session.user as any).id);
+          profile = studentJson.data.find((s: any) => s.userId === userId);
         }
 
         if (profile) {
