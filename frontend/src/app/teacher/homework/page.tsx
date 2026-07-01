@@ -23,6 +23,7 @@ interface Submission {
   status: "submitted" | "pending";
   score: string;
   date: string;
+  answerText?: string;
 }
 
 export default function HomeworkPage() {
@@ -222,6 +223,23 @@ export default function HomeworkPage() {
     }
   };
 
+  const handleViewAnswer = (sub: Submission) => {
+    Swal.fire({
+      title: `${sub.name}'s Submission`,
+      html: `
+        <div style="text-align: left; padding: 10px;">
+          <p style="margin-bottom: 8px;"><strong>Turned In:</strong> ${sub.date}</p>
+          <p style="margin-bottom: 12px;"><strong>Score:</strong> ${sub.score}</p>
+          <div style="margin-top: 15px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: monospace; white-space: pre-wrap; color: #1e293b; max-height: 250px; overflow-y: auto;">
+            ${sub.answerText || "No written response provided."}
+          </div>
+        </div>
+      `,
+      confirmButtonText: "Close",
+      confirmButtonColor: "#f59e0b",
+    });
+  };
+
   const triggerAIRecipes = async () => {
     if (!newTitle.trim()) {
       alert("Please enter a homework title/topic first.");
@@ -411,12 +429,22 @@ export default function HomeworkPage() {
                                 <td>{sub.date}</td>
                                 <td className="font-bold font-mono text-[var(--text-heading)]">{sub.score}</td>
                                 <td>
-                                  <button
-                                    onClick={() => handleGradeSubmission(sub.id, sub.name)}
-                                    className="text-xs text-amber-400 hover:underline"
-                                  >
-                                    Grade Sheet
-                                  </button>
+                                  <div className="flex gap-2">
+                                    {sub.status === "submitted" && (
+                                      <button
+                                        onClick={() => handleViewAnswer(sub)}
+                                        className="text-xs text-teal-500 hover:underline font-semibold"
+                                      >
+                                        View Answer
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={() => handleGradeSubmission(sub.id, sub.name)}
+                                      className="text-xs text-amber-400 hover:underline font-semibold"
+                                    >
+                                      Grade Sheet
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             ))}
