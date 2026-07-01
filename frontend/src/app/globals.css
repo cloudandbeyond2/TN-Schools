@@ -567,7 +567,7 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: var(--sidebar-shadow);
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .sidebar {
     transform: translateX(-100%);
   }
@@ -620,7 +620,7 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .main-content {
     margin-left: 0;
     padding: 0 !important;
@@ -641,7 +641,7 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: var(--topbar-shadow);
   transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .topbar {
     padding: 0.75rem 1.25rem;
   }
@@ -818,7 +818,7 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0 !important; /* Edge-to-edge for premium glassmorphism topbar */
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .main-content {
     margin-left: 0 !important;
     padding: 0 !important;
