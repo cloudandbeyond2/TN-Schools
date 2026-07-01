@@ -769,8 +769,8 @@ export default function LessonPlannerPage() {
                       </h3>
                       <ul className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                         {currentPlan.planData?.objectives?.map((obj, i) => (
-                          <li key={i} className={`p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/10 text-sm ${theme.text} flex gap-3`}>
-                            <span className="text-indigo-500 font-bold shrink-0">{i + 1}.</span> {obj}
+                          <li key={i} className={`p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/10 text-sm  flex gap-3`}>
+                            <span className="text-gray-500 font-bold shrink-0">{i + 1}.</span> {obj}
                           </li>
                         ))}
                       </ul>
