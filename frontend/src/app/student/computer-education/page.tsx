@@ -72,6 +72,113 @@ export default function ComputerEducationPage() {
   const [sqlQuery, setSqlQuery] = useState("SELECT * FROM Computers WHERE status = 'Active';");
   const [sqlResult, setSqlResult] = useState<any[]>([]);
 
+  // Typing Speed Challenge state
+  const [showTypingModal, setShowTypingModal] = useState(false);
+  const [typingSentence, setTypingSentence] = useState("");
+  const [typingInput, setTypingInput] = useState("");
+  const [typingStart, setTypingStart] = useState<number | null>(null);
+  const [typingWpm, setTypingWpm] = useState(0);
+  const [typingAccuracy, setTypingAccuracy] = useState(100);
+  const [typingFinished, setTypingFinished] = useState(false);
+
+  // Scratch Guide state
+  const [showScratchModal, setShowScratchModal] = useState(false);
+
+  // Open Typing Modal with random coding prompt
+  const startTypingChallenge = () => {
+    const sentences = [
+      "computers are machines that process instructions using binary code.",
+      "scratch uses colored blocks of code to build beautiful interactive stories.",
+      "loops help us repeat actions without typing them over and over.",
+      "variables are named boxes that hold information we want to use later.",
+      "always practice safe browsing and never share your passwords with strangers."
+    ];
+    const randomSentence = sentences[Math.floor(Math.random() * sentences.length)];
+    setTypingSentence(randomSentence);
+    setTypingInput("");
+    setTypingStart(null);
+    setTypingWpm(0);
+    setTypingAccuracy(100);
+    setTypingFinished(false);
+    setShowTypingModal(true);
+  };
+
+  // Evaluate typed characters live
+  const handleTypingChange = (val: string) => {
+    if (typingFinished) return;
+    if (!typingStart) {
+      setTypingStart(Date.now());
+    }
+    
+    setTypingInput(val);
+
+    let correctChars = 0;
+    const compareLength = Math.min(val.length, typingSentence.length);
+    for (let i = 0; i < compareLength; i++) {
+      if (val[i] === typingSentence[i]) {
+        correctChars++;
+      }
+    }
+    const acc = val.length > 0 ? Math.round((correctChars / val.length) * 100) : 100;
+    setTypingAccuracy(acc);
+
+    if (val === typingSentence) {
+      setTypingFinished(true);
+      const timeElapsed = (Date.now() - (typingStart || Date.now())) / 1000 / 60; // elapsed minutes
+      const wordCount = typingSentence.split(" ").length;
+      const wpmVal = Math.round(wordCount / (timeElapsed || 0.01));
+      setTypingWpm(wpmVal);
+      
+      if (acc >= 90 && wpmVal >= 25) {
+        Swal.fire({
+          title: "🎉 Typing Master!",
+          text: `You completed the challenge with ${wpmVal} WPM and ${acc}% Accuracy! You've earned a Typing Sticker! 🏆`,
+          icon: "success"
+        });
+      } else {
+        Swal.fire({
+          title: "So close!",
+          text: `Speed: ${wpmVal} WPM, Accuracy: ${acc}%. Target: 25 WPM, 90% Accuracy. Keep practicing! ⌨️`,
+          icon: "info"
+        });
+      }
+    }
+  };
+
+  // Execute Scratch block instructions on the playground canvas stage
+  const executeGuideBlock = (command: string) => {
+    if (command === "Move 15 steps") {
+      const rad = (spriteRotation * Math.PI) / 180;
+      setSpriteX(prev => Math.min(Math.max(prev + Math.cos(rad) * 15, 0), 100));
+      setSpriteY(prev => Math.min(Math.max(prev + Math.sin(rad) * 15, 0), 100));
+    } else if (command === "Turn Right 45°") {
+      setSpriteRotation(prev => (prev + 45) % 360);
+    } else if (command === "Turn Left 45°") {
+      setSpriteRotation(prev => (prev - 45 + 360) % 360);
+    } else if (command === "Say 'Hello!'") {
+      setSpriteSpeech("Hello!");
+    } else if (command === "Say 'Scratch is fun!'") {
+      setSpriteSpeech("Scratch is fun!");
+    } else if (command === "Clear Bubble") {
+      setSpriteSpeech("");
+    } else if (command === "Center Sprite") {
+      setSpriteX(50);
+      setSpriteY(50);
+    } else if (command === "Jump to Top Right") {
+      setSpriteX(80);
+      setSpriteY(20);
+    }
+
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      title: `Block run: ${command}`,
+      showConfirmButton: false,
+      timer: 1500
+    });
+  };
+
   // Update HTML Preview
   useEffect(() => {
     setHtmlPreview(htmlInput);
@@ -555,11 +662,11 @@ export default function ComputerEducationPage() {
               <div className="space-y-4">
                 {gradeBand === "middle" ? (
                   <>
-                    <button onClick={() => Swal.fire({ title: 'Sticker Typing Speed', text: 'Typing challenge loading! ⌨️ Goal: 35 WPM', icon: 'info' })} className="w-full text-left p-4 rounded-2xl border-4 border-slate-100 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-slate-650 hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-slate-700 dark:text-slate-200 flex items-center gap-3 group">
+                    <button onClick={startTypingChallenge} className="w-full text-left p-4 rounded-2xl border-4 border-slate-100 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-slate-650 hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-slate-700 dark:text-slate-200 flex items-center gap-3 group">
                       <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-emerald-100 text-slate-400 group-hover:text-emerald-500 transition-colors">⌨️</div>
                       Typing Speed Challenge
                     </button>
-                    <button onClick={() => Swal.fire({ title: 'Scratch Coding', text: 'Scratch Block Booklet: Learn Loops, Variables and Events! 🐱', icon: 'info' })} className="w-full text-left p-4 rounded-2xl border-4 border-slate-100 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-slate-650 hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-slate-700 dark:text-slate-200 flex items-center gap-3 group">
+                    <button onClick={() => setShowScratchModal(true)} className="w-full text-left p-4 rounded-2xl border-4 border-slate-100 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-slate-650 hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-slate-700 dark:text-slate-200 flex items-center gap-3 group">
                       <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-emerald-100 text-slate-400 group-hover:text-emerald-500 transition-colors">🐱</div>
                       Scratch Blocks Guide
                     </button>
@@ -593,6 +700,147 @@ export default function ComputerEducationPage() {
           </div>
         </div>
       </div>
+
+      {/* Typing Speed Challenge Modal */}
+      {showTypingModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] w-full max-w-xl p-8 border-4 border-indigo-400 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button 
+              onClick={() => setShowTypingModal(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 dark:hover:text-white font-bold text-xl"
+            >
+              ✕
+            </button>
+            <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-2 flex items-center gap-2 font-mono">
+              ⌨️ Typing Speed Challenge
+            </h3>
+            <p className="text-xs text-slate-400 mb-6">Type the sentence below as quickly and accurately as you can. Finish typing to get results.</p>
+            
+            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 rounded-2xl mb-6 text-left relative font-mono text-sm leading-relaxed">
+              {typingSentence.split("").map((char, index) => {
+                let color = "text-slate-400 dark:text-slate-600";
+                if (index < typingInput.length) {
+                  color = typingInput[index] === char ? "text-emerald-500 font-bold" : "text-rose-500 font-bold underline";
+                }
+                return <span key={index} className={color}>{char}</span>;
+              })}
+            </div>
+
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={typingInput}
+                onChange={(e) => handleTypingChange(e.target.value)}
+                placeholder="Type here..."
+                disabled={typingFinished}
+                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 font-mono text-black dark:text-white"
+                autoFocus
+              />
+
+              <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-350">
+                <span>Accuracy: <strong className={typingAccuracy < 90 ? "text-rose-500" : "text-emerald-500"}>{typingAccuracy}%</strong></span>
+                {typingFinished && (
+                  <span>Speed: <strong className="text-indigo-600 dark:text-indigo-400">{typingWpm} WPM</strong></span>
+                )}
+                <span>Target: 25 WPM, 90% Acc</span>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-2">
+                <button 
+                  onClick={startTypingChallenge}
+                  className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-750 dark:hover:bg-slate-700 text-black dark:text-white font-bold px-5 py-2.5 rounded-xl text-xs border border-slate-250 dark:border-slate-705"
+                >
+                  Reset Challenge
+                </button>
+                <button 
+                  onClick={() => setShowTypingModal(false)}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 py-2.5 rounded-xl text-xs"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scratch Blocks Guide Modal */}
+      {showScratchModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] w-full max-w-2xl p-8 border-4 border-emerald-400 shadow-2xl relative max-h-[85vh] overflow-y-auto animate-in fade-in zoom-in duration-200 text-left">
+            <button 
+              onClick={() => setShowScratchModal(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 dark:hover:text-white font-bold text-xl"
+            >
+              ✕
+            </button>
+            <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-2 flex items-center gap-2 font-mono">
+              🐱 Scratch Blocks Guide
+            </h3>
+            <p className="text-xs text-slate-400 mb-6">Click any coding block to run its command and see it execute live on the playground sprite stage above!</p>
+
+            <div className="space-y-6">
+              {[
+                {
+                  name: "🔵 Motion Blocks",
+                  desc: "Position, rotate, and navigate your character.",
+                  blocks: [
+                    { name: "Move 15 steps", cmd: "Move 15 steps" },
+                    { name: "Turn Right 45°", cmd: "Turn Right 45°" },
+                    { name: "Turn Left 45°", cmd: "Turn Left 45°" }
+                  ]
+                },
+                {
+                  name: "🔮 Looks Blocks",
+                  desc: "Say things, change speech bubbles, and control graphics.",
+                  blocks: [
+                    { name: "Say 'Hello!'", cmd: "Say 'Hello!'" },
+                    { name: "Say 'Scratch is fun!'", cmd: "Say 'Scratch is fun!'" },
+                    { name: "Clear Bubble", cmd: "Clear Bubble" }
+                  ]
+                },
+                {
+                  name: "📍 Positioning Blocks",
+                  desc: "Instantly warp to specific coordinates.",
+                  blocks: [
+                    { name: "Center Sprite", cmd: "Center Sprite" },
+                    { name: "Jump to Top Right", cmd: "Jump to Top Right" }
+                  ]
+                }
+              ].map((category, idx) => (
+                <div key={idx} className="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                  <h4 className="font-bold text-sm text-black dark:text-white mb-1">{category.name}</h4>
+                  <p className="text-[10px] text-slate-500 mb-4">{category.desc}</p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {category.blocks.map((b, bIdx) => (
+                      <button
+                        key={bIdx}
+                        onClick={() => {
+                          executeGuideBlock(b.cmd);
+                        }}
+                        className="bg-white dark:bg-slate-800 border border-slate-250 dark:border-slate-750 hover:border-emerald-500 dark:hover:border-emerald-500 p-3 rounded-xl text-xs font-bold text-black dark:text-slate-200 flex items-center justify-between shadow-sm hover:shadow-md transition-all group"
+                      >
+                        <span className="truncate">{b.name}</span>
+                        <Play className="w-3 h-3 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-6">
+              <button 
+                onClick={() => setShowScratchModal(false)}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-xl text-xs"
+              >
+                Close Guide
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PortalLayout>
   );
 }
