@@ -691,12 +691,12 @@ export default function WellnessPage() {
         <h2 className="text-base sm:text-lg font-bold text-black dark:text-white mb-2">{lang === 'ta' ? "அர்ஜுன், இன்று நீங்கள் எப்படி உணருகிறீர்கள்?" : "How are you feeling today ?"}</h2>
         <p className="text-xs sm:text-sm text-black dark:text-slate-400 mb-5">{lang === 'ta' ? "உங்கள் தினசரி மனநிலை பதிவு உங்களுக்குத் தேவையான நல்வாழ்வுப் பரிந்துரைகளை வழங்க உதவுகிறது." : "Your daily mood check-in helps us personalize your wellness recommendations."}</p>
 
-        <div className="flex flex-wrap justify-center sm:justify-start gap-3 sm:gap-4">
+        <div className="grid grid-cols-5 gap-2 sm:gap-4 w-full">
           {data.moods.map((mood) => (
             <button
               key={mood.id}
               onClick={() => setSelectedMood(mood.id)}
-              className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 transition-all cursor-pointer flex-1 min-w-[75px] max-w-[110px] sm:min-w-[80px]
+              className={`flex flex-col items-center justify-center p-2.5 sm:p-4 rounded-2xl border-2 transition-all cursor-pointer w-full
                 ${selectedMood === mood.id ? mood.active : `border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 ${mood.color}`}
               `}
             >
@@ -719,7 +719,7 @@ export default function WellnessPage() {
       </div>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-6 fade-in-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 fade-in-2">
         {data.metrics.map((metric, idx) => (
           <div key={idx} className="glass rounded-2xl p-5 border border-slate-200 dark:border-slate-700/50 relative overflow-hidden group bg-white dark:bg-transparent">
              <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b ${metric.color}`}></div>
@@ -766,7 +766,7 @@ export default function WellnessPage() {
         </div>
 
         {/* Side Panels - Active Interactive AI Companion & Journal */}
-        <div className="space-y-6 fade-in-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6 fade-in-4">
 
           {/* AI Companion Card with Active Interactive Chat Flow States */}
           <div className="glass rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent min-h-[340px] flex flex-col justify-between">

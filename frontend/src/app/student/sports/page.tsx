@@ -280,7 +280,12 @@ export default function SportsPage() {
   return (
     <PortalLayout
       title="Sports & Athletics"
-      subtitle={`Track physical fitness, team events, and health metrics for ${data.studentName}.`}
+      subtitle={`Track physical fitness, team events, and health metrics for ${data.studentName} · ${(() => {
+        const classNum = parseInt(data.className.replace(/\D/g, ""), 10);
+        if (classNum >= 6 && classNum <= 8) return "Middle School (Grades 6-8)";
+        if (classNum >= 11 && classNum <= 12) return "Higher Secondary (Grades 11-12)";
+        return "High School (Grades 9-10)";
+      })()} Sports.`}
       avatarLetter={data.studentName.charAt(0)}
       avatarColor="#06b6d4"
       themeClass="theme-student"
@@ -319,9 +324,19 @@ export default function SportsPage() {
               {/* Dynamic Physical Profile stats */}
               <div className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-700/50 relative overflow-hidden bg-white dark:bg-transparent">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 blur-3xl rounded-full"></div>
-                <h2 className="text-xl font-bold text-black dark:text-white mb-6 flex items-center gap-2 relative z-10">
-                  <span className="text-2xl">📊</span> Physical Assessment Profile
-                </h2>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 relative z-10">
+                  <h2 className="text-xl font-bold text-black dark:text-white flex items-center gap-2">
+                    <span className="text-2xl">📊</span> Physical Assessment Profile
+                  </h2>
+                  <span className="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 px-3 py-1 rounded-xl border border-cyan-500/20 font-black text-[10px] uppercase tracking-wider w-fit">
+                    {(() => {
+                      const classNum = parseInt(data.className.replace(/\D/g, ""), 10);
+                      if (classNum >= 6 && classNum <= 8) return "Middle School (Grades 6-8) Program";
+                      if (classNum >= 11 && classNum <= 12) return "Higher Secondary (Grades 11-12) Program";
+                      return "High School (Grades 9-10) Program";
+                    })()}
+                  </span>
+                </div>
                 
                 {fitnessStats.length === 0 ? (
                   <div className="text-center py-8 text-xs text-slate-400">
