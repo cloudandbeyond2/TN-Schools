@@ -3,6 +3,7 @@ import { prisma } from '../config/prisma';
 import { resolveUserId } from '../config/userResolver';
 import fs from 'fs';
 import path from 'path';
+import { sendMockSMS, getStudentParents } from '../utils/sms';
 
 const router = Router();
 
@@ -177,7 +178,7 @@ router.get('/announcements', async (req: Request, res: Response) => {
 // POST /api/teacher/announcements
 router.post('/announcements', async (req: Request, res: Response) => {
   try {
-    const { title, body, target, sender, pinned, schoolId, userId } = req.body;
+    const { title, body, target, sender, pinned, schoolId, userId, sendSMS } = req.body;
     if (!title || !body || !target) {
       return res.status(400).json({ success: false, error: 'title, body, and target are required' });
     }
@@ -192,9 +193,90 @@ router.post('/announcements', async (req: Request, res: Response) => {
         schoolId: schoolId || null,
       },
     });
+
     if (userId) {
       await createSafeNotification(userId, `Posted new announcement: "${title}"`);
     }
+
+    // SMS notice broadcasting to parents if checked
+    if (sendSMS) {
+      try {
+        let studentsList: any[] = [];
+        const classMatch = target.match(/^Class\s+(\d+)([a-zA-Z]+)\s+Parents$/i);
+
+        if (classMatch) {
+          const clsName = classMatch[1];
+          const secLetter = classMatch[2].toUpperCase();
+          studentsList = await prisma.student.findMany({
+            where: {
+              schoolId: schoolId || undefined,
+              class: clsName,
+              section: secLetter,
+            }
+          });
+        } else if (target === 'All Parents taught by me' && userId) {
+          const teacher = await prisma.teacher.findUnique({
+            where: { userId },
+          });
+          const classrooms = await prisma.classRoom.findMany({
+            where: {
+              schoolId: schoolId || undefined,
+              teacherId: teacher?.id || userId,
+            }
+          });
+
+          if (classrooms.length > 0) {
+            studentsList = await prisma.student.findMany({
+              where: {
+                schoolId: schoolId || undefined,
+                OR: classrooms.map(c => ({
+                  class: c.className,
+                  section: c.section,
+                }))
+              }
+            });
+          } else {
+            studentsList = await prisma.student.findMany({
+              where: { schoolId: schoolId || undefined }
+            });
+          }
+        } else {
+          studentsList = await prisma.student.findMany({
+            where: { schoolId: schoolId || undefined }
+          });
+        }
+
+        const smsMessage = `Notice: ${title} - ${body.substring(0, 100)}${body.length > 100 ? '...' : ''}`;
+        const processedPhones = new Set<string>();
+
+        for (const student of studentsList) {
+          const parents = await getStudentParents(student.id);
+          for (const parent of parents) {
+            if (parent.phone && !processedPhones.has(parent.phone)) {
+              processedPhones.add(parent.phone);
+              // 1. Deliver mock SMS
+              await sendMockSMS(parent.phone, smsMessage);
+
+              // 2. Add DB parentNotification record
+              if (parent.id) {
+                await prisma.parentNotification.create({
+                  data: {
+                    parentId: parent.id,
+                    studentId: student.id,
+                    type: 'NOTICE_BROADCAST',
+                    title: `Notice: ${title}`,
+                    message: body,
+                  }
+                });
+              }
+            }
+          }
+        }
+      } catch (smsErr) {
+        console.error('Error dispatching notice SMS:', smsErr);
+      }
+    }
+
     res.status(201).json({ success: true, data: announcement });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });

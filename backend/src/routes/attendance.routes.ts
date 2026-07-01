@@ -1,12 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { sendMockSMS, getStudentParents } from '../utils/sms';
 
 const router = Router();
 
 // POST /api/attendance — Bulk mark attendance (supports updates via delete-and-recreate transaction)
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { records } = req.body; // Array of { studentId, schoolId, date, status, method }
+    const { records, notifySMS } = req.body; // Array of { studentId, schoolId, date, status, method }, notifySMS toggle
     if (!Array.isArray(records) || records.length === 0) {
       return res.status(400).json({ success: false, error: 'records array is required' });
     }
@@ -37,6 +38,52 @@ router.post('/', async (req: Request, res: Response) => {
         })),
       }),
     ]);
+
+    // Dispatch SMS Notifications for absent students if enabled
+    if (notifySMS) {
+      const absentRecords = records.filter(r => r.status === 'ABSENT');
+      for (const record of absentRecords) {
+        try {
+          const studentId = record.studentId;
+          const parents = await getStudentParents(studentId);
+          if (parents.length > 0) {
+            const student = await prisma.student.findUnique({
+              where: { id: studentId },
+              include: { user: true, school: true },
+            });
+            const studentName = student?.user?.name || 'Your child';
+            const schoolName = student?.school?.name || 'School';
+            const formattedDate = new Date(record.date).toLocaleDateString('en-IN', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            });
+
+            const smsMessage = `Attendance Alert: ${studentName} was marked ABSENT at ${schoolName} on ${formattedDate}.`;
+
+            for (const parent of parents) {
+              // 1. Trigger SMS
+              await sendMockSMS(parent.phone, smsMessage);
+
+              // 2. Log ParentNotification in DB for parent portal alerts feed
+              if (parent.id) {
+                await prisma.parentNotification.create({
+                  data: {
+                    parentId: parent.id,
+                    studentId: studentId,
+                    type: 'ATTENDANCE_ALERT',
+                    title: 'Student Absence Notice',
+                    message: smsMessage,
+                  },
+                });
+              }
+            }
+          }
+        } catch (smsErr) {
+          console.error(`Error sending absence notification for student ${record.studentId}:`, smsErr);
+        }
+      }
+    }
 
     res.status(201).json({ success: true, created: result[1].count });
   } catch (err) {

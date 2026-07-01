@@ -61,18 +61,75 @@ export default function UnifiedWelfarePage() {
   const [calcSchoolType, setCalcSchoolType] = useState("Government");
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/students`)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success && json.data.length > 0) {
-          const myStudent = (session?.user as any)?.id 
-            ? json.data.find((s: any) => s.userId === (session?.user as any)?.id)
-            : null;
-          setStudent(myStudent || json.data[0]);
+    const fetchStudent = async () => {
+      try {
+        if (!session?.user) {
+          // If no session yet, fallback to first student to show some data, but do not stop loading
+          const res = await fetch(`${API_BASE}/api/students`);
+          const json = await res.json();
+          if (json.success && json.data.length > 0) {
+            setStudent(json.data[0]);
+          }
+          return;
         }
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+
+        let foundStudent: any = null;
+        const studentId = (session.user as any).studentId;
+        const userId = (session.user as any).id;
+
+        // 1. Try fetching by studentId
+        if (studentId) {
+          const res = await fetch(`${API_BASE}/api/students`);
+          const json = await res.json();
+          if (json.success) {
+            foundStudent = json.data.find((s: any) => s.id === studentId);
+          }
+        }
+
+        // 2. Try fetching by userId (id field on session.user)
+        if (!foundStudent && userId) {
+          const res = await fetch(`${API_BASE}/api/students?userId=${userId}`);
+          const json = await res.json();
+          if (json.success && json.data && json.data.length > 0) {
+            foundStudent = json.data[0];
+          }
+        }
+
+        // 3. Try fetching by rollNumber from email
+        if (!foundStudent && session.user.email) {
+          const rollNumber = session.user.email.split("@")[0];
+          if (rollNumber) {
+            const schoolId = (session.user as any).schoolId;
+            const res = await fetch(`${API_BASE}/api/students?schoolId=${schoolId}`);
+            const json = await res.json();
+            if (json.success && json.data) {
+              foundStudent = json.data.find(
+                (s: any) => s.rollNumber?.toLowerCase() === rollNumber.toLowerCase()
+              );
+            }
+          }
+        }
+
+        // 4. Default fallback
+        if (!foundStudent) {
+          const res = await fetch(`${API_BASE}/api/students`);
+          const json = await res.json();
+          if (json.success && json.data.length > 0) {
+            foundStudent = json.data[0];
+          }
+        }
+
+        if (foundStudent) {
+          setStudent(foundStudent);
+        }
+      } catch (err) {
+        console.error("Failed to load student for welfare benefits:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudent();
   }, [session]);
 
   const classNum = student ? parseInt(student.class.replace(/\D/g, ""), 10) : 7;

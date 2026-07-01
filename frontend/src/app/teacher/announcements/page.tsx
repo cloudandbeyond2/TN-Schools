@@ -30,6 +30,7 @@ export default function AnnouncementsPage() {
   const [body, setBody] = useState("");
   const [target, setTarget] = useState("");
   const [pinToTop, setPinToTop] = useState(false);
+  const [sendSMS, setSendSMS] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   // Fetch teacher classes on mount
@@ -98,6 +99,7 @@ export default function AnnouncementsPage() {
           sender: "You (Teacher)",
           pinned: pinToTop,
           schoolId: schoolId || null,
+          sendSMS,
         }),
       });
       const result = await res.json();
@@ -106,10 +108,13 @@ export default function AnnouncementsPage() {
         setTitle("");
         setBody("");
         setPinToTop(false);
+        setSendSMS(false);
         Swal.fire({
           icon: "success",
           title: "Broadcasted!",
-          text: "Announcement broadcasted! Parent notification feeds updated.",
+          text: sendSMS
+            ? "Announcement broadcasted! Parent notification feeds updated and SMS alerts dispatched."
+            : "Announcement broadcasted! Parent notification feeds updated.",
           timer: 2500,
           showConfirmButton: false,
         });
@@ -237,6 +242,19 @@ export default function AnnouncementsPage() {
               />
               <label htmlFor="pin-announcement" className="text-xs text-[var(--text-muted)] cursor-pointer select-none">
                 Pin to the top of the dashboard
+              </label>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="sms-notice"
+                checked={sendSMS}
+                onChange={(e) => setSendSMS(e.target.checked)}
+                className="accent-amber-500 cursor-pointer"
+              />
+              <label htmlFor="sms-notice" className="text-xs text-[var(--text-muted)] cursor-pointer select-none">
+                Send SMS alert to Parents
               </label>
             </div>
 

@@ -94,6 +94,7 @@
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -105,6 +106,14 @@ const getApiBase = () => {
 
 const API_BASE = getApiBase();
 
+// Map badge label → icon & style
+const BADGE_META: Record<string, { icon: string; color: string; rarity: string }> = {
+  "🔬 Star Scientist":  { icon: "🔬", color: "from-blue-500 to-indigo-600",   rarity: "Epic" },
+  "📝 Homework Pro":   { icon: "📝", color: "from-amber-500 to-orange-600",   rarity: "Rare" },
+  "💬 Active Speaker": { icon: "💬", color: "from-emerald-500 to-teal-600",   rarity: "Rare" },
+  "🌟 Mentor Star":    { icon: "🌟", color: "from-purple-500 to-fuchsia-600", rarity: "Epic" },
+};
+
 const subjects = [
   { name: "Mathematics", progress: 85, color: "#6366f1", icon: "🧮" },
   { name: "Science Explorer", progress: 70, color: "#10b981", icon: "🌱" },
@@ -113,33 +122,59 @@ const subjects = [
   { name: "Social Science", progress: 60, color: "#ec4899", icon: "🌍" },
 ];
 
-const recentActivity = [
-  { subject: "Mathematics", activity: "Completed 'Fractions Game'", score: "100%", time: "2 hrs ago", status: "green" },
-  { subject: "Science Explorer", activity: "Watched 'Plant Life' Video", score: "—", time: "Yesterday", status: "green" },
-  { subject: "Tamil", activity: "Story Reading", score: "20 min", time: "2 days ago", status: "blue" },
-];
-
 export default function MiddleSchoolDashboard() {
   const { data: session } = useSession();
   const [student, setStudent] = useState<any>(null);
+  const [earnedBadges, setEarnedBadges] = useState<any[]>([]);
+  const [loadingBadges, setLoadingBadges] = useState(true);
 
   useEffect(() => {
     fetch(`${API_BASE}/api/students`)
       .then((res) => res.json())
-      .then((json) => {
+      .then(async (json) => {
         if (json.success && json.data.length > 0) {
           const myStudent = (session?.user as any)?.id 
             ? json.data.find((s: any) => s.userId === (session?.user as any)?.id)
             : null;
-          setStudent(myStudent || json.data[0]);
+          const activeStudent = myStudent || json.data[0];
+          setStudent(activeStudent);
+
+          if (activeStudent) {
+            const schoolId = (session?.user as any)?.schoolId;
+            const url = schoolId
+              ? `${API_BASE}/api/teacher/badges?schoolId=${schoolId}`
+              : `${API_BASE}/api/teacher/badges`;
+
+            const bRes = await fetch(url);
+            const bJson = await bRes.json();
+            if (bJson.success) {
+              const studentBadges = bJson.data.filter((b: any) => b.studentId === activeStudent.id);
+              const shaped = studentBadges.map((b: any) => {
+                const meta = BADGE_META[b.badge] || {
+                  icon: "🏅",
+                  color: "from-slate-500 to-slate-700",
+                  rarity: "Common",
+                };
+                return {
+                  id: b.id,
+                  name: b.badge,
+                  icon: meta.icon,
+                  color: meta.color,
+                  rarity: meta.rarity,
+                };
+              });
+              setEarnedBadges(shaped);
+            }
+          }
         }
       })
-      .catch((err) => console.error(err));
+      .catch((err) => console.error(err))
+      .finally(() => setLoadingBadges(false));
   }, [session]);
 
   const userName = session?.user?.name || student?.user?.name || "Student";
   const subtitle = student 
-    ? `Welcome back, ${userName}! · Class ${student.class} ${student.section} · You have 5 new badges waiting! 🌟`
+    ? `Welcome back, ${userName}! · Class ${student.class} ${student.section} · You have earned ${earnedBadges.length} ${earnedBadges.length === 1 ? "badge" : "badges"}! 🏆`
     : "Loading student data...";
 
   return (
@@ -212,6 +247,38 @@ export default function MiddleSchoolDashboard() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Earned Badges Section */}
+      <div className="glass rounded-3xl p-6 fade-in-4 border border-slate-200 dark:border-slate-700/50 shadow-2xl bg-white dark:bg-transparent relative overflow-hidden mb-6">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -z-10" />
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-black dark:text-white flex items-center gap-2">🏅 My Earned Badges</h2>
+          <Link href="/student/middle-school/badges" className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-500/10 px-4 py-2 rounded-xl">View Trophy Room</Link>
+        </div>
+        
+        {loadingBadges ? (
+          <div className="flex justify-center py-8">
+            <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : earnedBadges.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {earnedBadges.map((badge) => (
+              <div key={badge.id} className="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/50 text-center flex flex-col items-center group cursor-pointer hover:border-indigo-500/50 transition-all hover:-translate-y-1 relative">
+                <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity bg-gradient-to-br ${badge.color}`}></div>
+                <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${badge.color} flex items-center justify-center text-3xl shadow-md mb-2 border-4 border-white dark:border-slate-800 relative animate-pulse-subtle`}>
+                  <span className="group-hover:scale-110 transition-transform">{badge.icon}</span>
+                </div>
+                <h3 className="font-bold text-xs text-black dark:text-white truncate w-full">{badge.name}</h3>
+                <span className="text-[9px] text-slate-500 dark:text-slate-400 font-medium block mt-1">{badge.rarity}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-sm text-slate-500 dark:text-slate-400">No badges earned yet. Keep up the good work to earn badges from your teachers! 🌟</p>
+          </div>
+        )}
       </div>
     </PortalLayout>
   );
