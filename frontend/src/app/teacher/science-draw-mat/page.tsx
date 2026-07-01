@@ -374,11 +374,11 @@ export default function ScienceDrawMatPage() {
       title="Science Draw Mat 🎨"
       subtitle="Draw, erase, type, and create awesome science diagrams!"
     >
-      <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-140px)]">
+      <div className="flex flex-col xl:flex-row gap-6 min-h-[calc(100vh-140px)] xl:h-[calc(100vh-140px)] overflow-y-auto xl:overflow-hidden">
         
         {/* Playful Tools Sidebar */}
-        <div className="lg:w-24 flex-shrink-0 flex flex-col gap-4 relative z-50">
-          <div className="bg-white dark:bg-slate-800 p-4 flex flex-col items-center gap-4 rounded-3xl shadow-xl shadow-indigo-500/10 border-4 border-indigo-100 dark:border-slate-700 select-none">
+        <div className="w-full xl:w-24 flex-shrink-0 flex flex-row xl:flex-col gap-4 relative z-40 select-none">
+          <div className="w-full bg-white dark:bg-slate-800 p-3 xl:p-4 flex flex-row xl:flex-col items-center justify-between xl:justify-start gap-3 xl:gap-4 rounded-3xl shadow-xl shadow-indigo-500/10 border-4 border-indigo-100 dark:border-slate-700 overflow-x-auto xl:overflow-x-visible">
             {tools.map((tool) => (
               <button
                 key={tool.id}
@@ -388,7 +388,7 @@ export default function ScienceDrawMatPage() {
                   isDrawingRef.current = false;
                   showToast(`Selected: ${tool.label} ✨`);
                 }}
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 relative group
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 relative group shrink-0
                   ${activeTool === tool.id 
                     ? "bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-lg shadow-purple-500/30 scale-110 rotate-3" 
                     : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-indigo-100 hover:text-indigo-600 hover:scale-105 hover:-rotate-3"
@@ -403,19 +403,19 @@ export default function ScienceDrawMatPage() {
               </button>
             ))}
             
-            <div className="w-full h-1 bg-indigo-50 dark:bg-slate-700 rounded-full my-1"></div>
+            <div className="hidden xl:block w-full h-1 bg-indigo-50 dark:bg-slate-700 rounded-full my-1"></div>
             
             {/* Colors */}
-            <div className="flex flex-col gap-3 items-center w-full">
-              <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-slate-700 flex items-center justify-center text-indigo-500 mb-1" style={{color: activeColor}}>
+            <div className="flex flex-row xl:flex-col gap-2.5 xl:gap-3 items-center w-auto xl:w-full">
+              <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-slate-700 flex items-center justify-center text-indigo-500 shrink-0" style={{color: activeColor}}>
                 <Palette className="w-6 h-6" />
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex xl:grid xl:grid-cols-2 gap-2 flex-wrap justify-center shrink-0">
                 {colors.map((color) => (
                   <button
                     key={color}
                     onClick={() => setActiveColor(color)}
-                    className={`w-6 h-6 rounded-full transition-all duration-300 shadow-sm ${
+                    className={`w-6 h-6 rounded-full transition-all duration-300 shadow-sm shrink-0 ${
                       activeColor === color ? "ring-4 ring-offset-2 ring-offset-white dark:ring-offset-slate-800 scale-125" : "hover:scale-110"
                     }`}
                     style={{ backgroundColor: color, "--tw-ring-color": color } as React.CSSProperties}
@@ -427,14 +427,14 @@ export default function ScienceDrawMatPage() {
           </div>
           
           {/* Action Buttons */}
-          <div className="bg-white dark:bg-slate-800 p-3 flex flex-col items-center gap-3 rounded-3xl shadow-xl shadow-emerald-500/10 border-4 border-emerald-100 dark:border-slate-700 mt-auto select-none">
-             <button onClick={undo} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Undo">
+          <div className="bg-white dark:bg-slate-800 p-2.5 xl:p-3 flex flex-row xl:flex-col items-center gap-2.5 xl:gap-3 rounded-3xl shadow-xl shadow-emerald-500/10 border-4 border-emerald-100 dark:border-slate-700 select-none w-full xl:w-auto overflow-x-auto justify-around xl:justify-start">
+             <button onClick={undo} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 shrink-0" title="Undo">
                 <Undo className="w-6 h-6" />
              </button>
-             <button onClick={redo} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Redo">
+             <button onClick={redo} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 shrink-0" title="Redo">
                 <Redo className="w-6 h-6" />
              </button>
-             <button onClick={clearCanvas} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95" title="Clear Canvas">
+             <button onClick={clearCanvas} className="w-14 h-14 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 shrink-0" title="Clear Canvas">
                 <Trash2 className="w-6 h-6" />
              </button>
           </div>
@@ -445,16 +445,16 @@ export default function ScienceDrawMatPage() {
           {/* Playful Canvas Area */}
           <div className="flex-1 flex flex-col relative overflow-hidden bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border-8 border-indigo-100 dark:border-slate-800">
           {/* Top Bar for Canvas */}
-          <div className="h-16 border-b-4 border-indigo-50 dark:border-slate-800 flex justify-between items-center px-6 bg-white dark:bg-slate-900 z-20">
-            <div className="flex items-center gap-3">
-              <div className="px-4 py-2 bg-pink-50 dark:bg-pink-900/40 text-pink-600 dark:text-pink-300 font-black text-sm rounded-2xl shadow-md shadow-pink-500/10 flex items-center gap-2">
+          <div className="h-auto border-b-4 border-indigo-50 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 p-3 md:p-4 bg-white dark:bg-slate-900 z-20 select-none">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="px-3 py-1.5 bg-pink-50 dark:bg-pink-900/40 text-pink-600 dark:text-pink-300 font-black text-xs md:text-sm rounded-2xl shadow-md shadow-pink-500/10 flex items-center gap-2">
                 <Atom className="w-4 h-4 animate-spin-slow" />
                 <span>My Super Cool Drawing</span>
               </div>
-              <span className="text-sm text-slate-400 font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">Not saved yet</span>
+              <span className="text-xs text-slate-400 font-bold bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">Not saved yet</span>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -462,22 +462,22 @@ export default function ScienceDrawMatPage() {
                 accept="image/*" 
                 onChange={handleImport} 
               />
-              <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-4 py-2.5 text-sm font-black text-fuchsia-600 dark:text-fuchsia-300 bg-fuchsia-50 dark:bg-fuchsia-900/40 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
+              <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-black text-fuchsia-600 dark:text-fuchsia-300 bg-fuchsia-50 dark:bg-fuchsia-900/40 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
                 <Upload className="w-4 h-4" />
                 Import
               </button>
-              <button onClick={() => showToast("Link copied to clipboard! Share with your friends!")} className="flex items-center gap-2 px-4 py-2.5 text-sm font-black text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
+              <button onClick={() => showToast("Link copied to clipboard! Share with your friends!")} className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-black text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
                 <Share2 className="w-4 h-4" />
                 Share
               </button>
-              <button onClick={handleDownload} className="flex items-center gap-2 px-4 py-2.5 text-sm font-black text-emerald-600 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
+              <button onClick={handleDownload} className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-black text-emerald-600 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
                 <Download className="w-4 h-4" />
                 Download
               </button>
               <button onClick={() => {
                 handleDownload();
                 showToast("Awesome drawing saved! 🌟");
-              }} className="flex items-center gap-2 px-6 py-2.5 text-sm font-black text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
+              }} className="flex items-center gap-2 px-4 py-2 md:px-6 md:py-2.5 text-xs md:text-sm font-black text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
                 <Save className="w-4 h-4" />
                 Save to Portfolio
               </button>
@@ -593,7 +593,7 @@ export default function ScienceDrawMatPage() {
         </div>
         
         {/* Right Side Properties Panel */}
-        <div className="lg:w-72 flex-shrink-0 flex flex-col gap-4">
+        <div className="w-full xl:w-72 flex-shrink-0 flex flex-col gap-4">
           <div className="bg-white dark:bg-slate-800 p-6 flex flex-col gap-6 rounded-[2.5rem] shadow-xl border-4 border-indigo-100 dark:border-slate-700 h-full">
             <h3 className="text-xl font-black text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-50 dark:border-slate-700 pb-3 flex items-center gap-2">
               <span className="capitalize">{activeTool.replace('shape-', '')}</span> Options

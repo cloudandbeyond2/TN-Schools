@@ -193,7 +193,7 @@ export default function LeaveRequestsPage() {
       {/* Outer wrapper: clamps width, kills any horizontal overflow at every breakpoint */}
       <div className="w-full max-w-full overflow-x-hidden">
         {/* Leave Quota Allowances */}
-        <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 mb-6">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 mb-6">
           {statCards.map((card) => (
             <div
               key={card.label}
@@ -224,7 +224,7 @@ export default function LeaveRequestsPage() {
         </div>
 
         {/* Main Containers */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 mb-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 sm:gap-6 mb-6">
           {/* Leave Application Form */}
           <div className="theme-card p-4 sm:p-5 lg:p-6 border border-[var(--border)] h-fit rounded-2xl bg-[var(--bg-card)] min-w-0">
             <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4">
@@ -319,7 +319,7 @@ export default function LeaveRequestsPage() {
           </div>
 
           {/* History Panel */}
-          <div className="lg:col-span-2 theme-card p-4 sm:p-5 lg:p-6 border border-[var(--border)] space-y-5 rounded-2xl bg-[var(--bg-card)] flex flex-col justify-between min-w-0">
+          <div className="xl:col-span-2 theme-card p-4 sm:p-5 lg:p-6 border border-[var(--border)] space-y-5 rounded-2xl bg-[var(--bg-card)] flex flex-col justify-between min-w-0">
             <div className="min-w-0">
               <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4">
                 📋 Previous Request History
@@ -406,8 +406,8 @@ export default function LeaveRequestsPage() {
 
             {/* Pagination Controls Footer */}
             {!loading && requests.length > 0 && (
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-[var(--border)] mt-auto">
-                <span className="text-xs text-[var(--text-muted)] text-center sm:text-left">
+              <div className="flex flex-col xl:flex-row justify-between items-center gap-4 pt-4 border-t border-[var(--border)] mt-auto">
+                <span className="text-xs text-[var(--text-muted)] text-center xl:text-left">
                   Showing{" "}
                   <strong className="text-[var(--text-heading)]">{indexOfFirst + 1}</strong> to{" "}
                   <strong className="text-[var(--text-heading)]">

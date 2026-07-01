@@ -203,7 +203,7 @@ export default function AnalyticsPage() {
     >
       <div className="flex flex-col gap-6">
         {/* Filter Controls Bar */}
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] p-4 rounded-2xl border border-[var(--border)]">
+        <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] p-4 rounded-2xl border border-[var(--border)]">
           <div className="flex gap-2">
             <button
               onClick={() => setSelectedClassId("10a")}
@@ -229,7 +229,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* KPI Summaries Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
           {[
             { label: "Class Average Score", value: `${summary.avgScore}%`, icon: "📈", color: "text-amber-400", desc: "Term average" },
             { label: "Mean Attendance", value: `${summary.attendance}%`, icon: "📅", color: "text-emerald-400", desc: "This semester" },
@@ -250,7 +250,7 @@ export default function AnalyticsPage() {
         {loading ? (
           <div className="space-y-6 animate-pulse">
             {/* Charts & Mastery Grid skeleton */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               {/* Grade distribution skeleton */}
               <div className="bg-[var(--bg-card)] border border-[var(--border)] p-6 rounded-2xl space-y-6">
                 <div className="h-4 bg-slate-800 rounded w-1/2" />
@@ -264,9 +264,9 @@ export default function AnalyticsPage() {
                 </div>
               </div>
               {/* Concept Mastery skeleton */}
-              <div className="lg:col-span-2 bg-[var(--bg-card)] border border-[var(--border)] p-6 rounded-2xl space-y-5">
+              <div className="xl:col-span-2 bg-[var(--bg-card)] border border-[var(--border)] p-6 rounded-2xl space-y-5">
                 <div className="h-4 bg-slate-800 rounded w-1/3" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {[1, 2, 3, 4].map((n) => (
                     <div key={n} className="bg-[var(--bg-main)] p-4 rounded-xl border border-[var(--border)] flex justify-between items-center">
                       <div className="space-y-2 w-2/3">
@@ -299,7 +299,7 @@ export default function AnalyticsPage() {
         ) : (
           <>
             {/* Charts & Mastery Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               {/* Grade Distribution Chart */}
               <div className="theme-card p-6">
                 <h3 className="text-[var(--text-heading)] font-semibold text-xs mb-6 uppercase tracking-wider">📊 Grade Distribution</h3>
@@ -323,10 +323,10 @@ export default function AnalyticsPage() {
               </div>
 
               {/* Subject Mastery checklist */}
-              <div className="lg:col-span-2 theme-card p-6">
+              <div className="xl:col-span-2 theme-card p-6">
                 <h3 className="text-[var(--text-heading)] font-semibold text-xs mb-5 uppercase tracking-wider">🎯 Concept Mastery Index</h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {mastery.map((m) => (
                     <div
                       key={m.topic}
@@ -362,7 +362,7 @@ export default function AnalyticsPage() {
 
             {/* Students Detailed performance table */}
             <div className="theme-card p-6">
-              <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+              <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-4 mb-6">
                 <div>
                   <h3 className="text-[var(--text-heading)] font-semibold text-sm">📋 Student Diagnostics Directory</h3>
                   <p className="text-xs text-slate-550">Review performance details and key concept gaps of each pupil.</p>

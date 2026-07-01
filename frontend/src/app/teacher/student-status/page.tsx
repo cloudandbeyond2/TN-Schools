@@ -184,64 +184,109 @@ export default function StudentStatusPage() {
 
   return (
     <PortalLayout title="Student Status & Engagement" subtitle="Award virtual badges and monitor student classroom participation metrics.">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
         {/* Engagement status board */}
-        <div className="lg:col-span-2 theme-card p-6 border border-[var(--border)]">
+        <div className="xl:col-span-2 theme-card p-6 border border-[var(--border)]">
           <h2 className="text-base font-semibold text-[var(--text-heading)] mb-5">📈 Student Engagement & Badges Roster</h2>
           {loading ? (
             <div className="text-center py-12 text-xs text-[var(--text-muted)]">Loading student status roster...</div>
           ) : students.length === 0 ? (
             <div className="text-center py-12 text-xs text-[var(--text-muted)]">No students found.</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Class</th>
-                    <th>Engagement</th>
-                    <th>Badges Awarded</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {students.map((student) => (
-                    <tr key={student.id}>
-                      <td className="font-medium text-[var(--text-heading)]">{student.name}</td>
-                      <td>{student.class}</td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            student.engagement === "High"
-                              ? "badge-green"
-                              : student.engagement === "Medium"
-                              ? "badge-blue"
-                              : "badge-red"
-                          }`}
-                        >
-                          {student.engagement} Engagement
-                        </span>
-                      </td>
-                      <td>
-                        <div className="flex flex-wrap gap-1.5 max-w-[250px]">
-                          {student.badges.length > 0 ? (
-                            student.badges.map((badge, idx) => (
-                              <span
-                                key={idx}
-                                className="text-[10px] font-bold px-2 py-0.5 bg-[var(--primary)]/10 text-amber-400 border border-[var(--primary)]/20 rounded-lg shrink-0 whitespace-nowrap"
-                              >
-                                {badge}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-[10px] text-[var(--text-muted)] italic">No badges awarded</span>
-                          )}
-                        </div>
-                      </td>
+            <>
+              {/* Table view for Large Desktops */}
+              <div className="hidden xl:block overflow-x-auto">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>Class</th>
+                      <th>Engagement</th>
+                      <th>Badges Awarded</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {students.map((student) => (
+                      <tr key={student.id}>
+                        <td className="font-medium text-[var(--text-heading)]">{student.name}</td>
+                        <td>{student.class}</td>
+                        <td>
+                          <span
+                            className={`badge ${
+                              student.engagement === "High"
+                                ? "badge-green"
+                                : student.engagement === "Medium"
+                                ? "badge-blue"
+                                : "badge-red"
+                            }`}
+                          >
+                            {student.engagement} Engagement
+                          </span>
+                        </td>
+                        <td>
+                          <div className="flex flex-wrap gap-1.5 max-w-[250px]">
+                            {student.badges.length > 0 ? (
+                              student.badges.map((badge, idx) => (
+                                <span
+                                  key={idx}
+                                  className="text-[10px] font-bold px-2 py-0.5 bg-[var(--primary)]/10 text-amber-400 border border-[var(--primary)]/20 rounded-lg shrink-0 whitespace-nowrap"
+                                >
+                                  {badge}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-[10px] text-[var(--text-muted)] italic">No badges awarded</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Card view for Mobile, Tablet, Small Laptop */}
+              <div className="xl:hidden grid grid-cols-1 gap-3">
+                {students.map((student) => (
+                  <div key={student.id} className="p-4 bg-[var(--bg-main)]/30 border border-[var(--border)] rounded-2xl flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-semibold text-[var(--text-heading)] text-sm">{student.name}</div>
+                        <div className="text-[10px] text-[var(--text-muted)] mt-0.5">Class: {student.class}</div>
+                      </div>
+                      <span
+                        className={`badge shrink-0 ${
+                          student.engagement === "High"
+                            ? "badge-green"
+                            : student.engagement === "Medium"
+                            ? "badge-blue"
+                            : "badge-red"
+                        }`}
+                      >
+                        {student.engagement}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] uppercase tracking-wider font-bold text-[var(--text-muted)] block mb-1.5">Badges Awarded</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {student.badges.length > 0 ? (
+                          student.badges.map((badge, idx) => (
+                            <span
+                              key={idx}
+                              className="text-[10px] font-bold px-2 py-0.5 bg-[var(--primary)]/10 text-amber-400 border border-[var(--primary)]/20 rounded-lg shrink-0 whitespace-nowrap"
+                            >
+                              {badge}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-[10px] text-[var(--text-muted)] italic">No badges awarded yet</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
@@ -319,7 +364,7 @@ export default function StudentStatusPage() {
       {/* Badge descriptions registry */}
       <div className="theme-card p-6 border border-[var(--border)]">
         <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4">🏆 Badge Directory definitions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
           {availableBadges.map((b, idx) => (
             <div key={idx} className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] border border-[var(--border)] rounded-xl">
               <div className="text-lg font-bold text-[var(--text-heading)] mb-1.5">{b.label}</div>

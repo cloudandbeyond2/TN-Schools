@@ -203,7 +203,7 @@ export default function ZoologyCentrePage() {
              <PawPrint className="w-40 h-40 text-emerald-500/10 dark:text-emerald-400/5" />
           </div>
 
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
             <div>
               <div className="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-450 px-3 py-1.5 rounded-xl font-black tracking-wider text-xs uppercase mb-4 border-2 border-emerald-100 dark:border-emerald-900/50">
                 <Leaf className="w-4 h-4 text-emerald-600" /> Nature Explorers
@@ -232,15 +232,13 @@ export default function ZoologyCentrePage() {
               Creature Collection
             </h3>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <div className="relative flex-1 sm:w-72">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400 font-bold" />
-                <input
-                  type="text"
-                  placeholder="Search for frogs, bugs..."
-                  className="w-full bg-slate-50 dark:bg-slate-900 border-4 border-emerald-100 dark:border-slate-700 text-slate-800 dark:text-white rounded-3xl py-3 pl-12 pr-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-200 transition-all shadow-inner"
-                />
-              </div>
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400 font-bold" />
+              <input
+                type="text"
+                placeholder="Search for frogs, bugs..."
+                className="w-full bg-slate-50 dark:bg-slate-900 border-4 border-emerald-100 dark:border-slate-700 text-slate-800 dark:text-white rounded-3xl py-3 pl-12 pr-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-200 transition-all shadow-inner"
+              />
             </div>
           </div>
 
@@ -250,7 +248,7 @@ export default function ZoologyCentrePage() {
               <span>Finding creatures in the database...</span>
             </div>
           ) : specimens.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               {specimens.map((specimen, idx) => {
                 
                 const styleMaps = {

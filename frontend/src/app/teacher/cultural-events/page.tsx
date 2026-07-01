@@ -201,14 +201,14 @@ export default function CulturalEventsPage() {
               Let's celebrate our rich culture together! There will be yummy food, beautiful dances, traditional games, and lots of fun!
             </p>
 
-            <div className="flex flex-wrap gap-4">
-              <button onClick={() => setRegisterModalOpen(true)} className="px-8 py-4 bg-rose-500 text-white font-black text-sm rounded-2xl transition-all shadow-md shadow-rose-500/30 hover:bg-rose-600 hover:scale-105 active:scale-95 border-b-4 border-rose-700">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button onClick={() => setRegisterModalOpen(true)} className="w-full py-4 bg-rose-500 text-white font-black text-sm rounded-2xl transition-all shadow-md shadow-rose-500/30 hover:bg-rose-600 hover:scale-105 active:scale-95 border-b-4 border-rose-700 flex items-center justify-center gap-2">
                 Join the Fun! 🎫
               </button>
-              <button onClick={() => Swal.fire({ title: 'Schedule', text: 'Downloading the fun schedule! 📅', icon: 'info' })} className="px-8 py-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-sm rounded-2xl transition-all shadow-sm hover:bg-slate-200 dark:hover:bg-slate-600 border-2 border-slate-200 dark:border-slate-600">
+              <button onClick={() => Swal.fire({ title: 'Schedule', text: 'Downloading the fun schedule! 📅', icon: 'info' })} className="w-full py-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-sm rounded-2xl transition-all shadow-sm hover:bg-slate-200 dark:hover:bg-slate-600 border-2 border-slate-200 dark:border-slate-600 flex items-center justify-center gap-2">
                 See What's Happening
               </button>
-              <button onClick={handleOpenCreate} className="px-8 py-4 bg-emerald-400 text-emerald-900 font-black text-sm rounded-2xl transition-all shadow-md shadow-emerald-400/30 hover:scale-105 active:scale-95 border-b-4 border-emerald-600 flex items-center gap-2 ml-auto">
+              <button onClick={handleOpenCreate} className="w-full py-4 bg-emerald-400 text-emerald-900 font-black text-sm rounded-2xl transition-all shadow-md shadow-emerald-400/30 hover:scale-105 active:scale-95 border-b-4 border-emerald-600 flex items-center justify-center gap-2">
                 <Plus className="w-5 h-5" /> Add New Event
               </button>
             </div>
@@ -226,11 +226,11 @@ export default function CulturalEventsPage() {
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
             {loading ? (
-              <div className="col-span-1 lg:col-span-3 text-center py-10 font-bold text-slate-500">Loading events... ⏳</div>
+              <div className="col-span-1 xl:col-span-3 text-center py-10 font-bold text-slate-500">Loading events... ⏳</div>
             ) : events.length === 0 ? (
-              <div className="col-span-1 lg:col-span-3 text-center py-10 font-bold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-3xl border-4 border-dashed border-slate-200 dark:border-slate-700">No events yet! Go add some! 🎉</div>
+              <div className="col-span-1 xl:col-span-3 text-center py-10 font-bold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-3xl border-4 border-dashed border-slate-200 dark:border-slate-700">No events yet! Go add some! 🎉</div>
             ) : events.map((evt, i) => {
               const { icon, color } = getEventStyle(evt.title);
               return (

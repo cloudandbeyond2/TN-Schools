@@ -303,7 +303,7 @@ export default function AttendancePage() {
       <div className="glass rounded-2xl p-5 mb-6 border border-slate-800 flex flex-col xl:flex-row justify-between items-stretch gap-4 fade-in">
         
         {/* Left Side: Segmented Tab control + Class Select */}
-        <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+        <div className="flex flex-col xl:flex-row gap-4 items-stretch xl:items-center">
           
           {/* Tab Selector */}
           <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 shrink-0">
@@ -352,7 +352,7 @@ export default function AttendancePage() {
         </div>
 
         {/* Right Side: Conditional Date Picker / Week Filter & Actions */}
-        <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-end">
+        <div className="flex flex-col xl:flex-row gap-3 items-stretch xl:items-center justify-end">
           
           {/* Date Picker (Only on Daily Checklist) */}
           {activeTab === "daily" && (
@@ -418,7 +418,7 @@ export default function AttendancePage() {
       {activeTab === "daily" ? (
         <>
           {/* Realtime Attendance Stats (Daily Tab) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 mb-6">
             {[
               { label: "Total Students", value: students.length, color: "text-slate-100", icon: Users, bg: "bg-blue-500/10 border-blue-500/20" },
               { label: "Present Today", value: presentCount, color: "text-emerald-400", icon: CheckCircle2, bg: "bg-emerald-500/10 border-emerald-500/20" },
@@ -457,71 +457,114 @@ export default function AttendancePage() {
                   <span>Loading class roster...</span>
                 </div>
               ) : students.length > 0 ? (
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-800 bg-slate-900/50">
-                      <th className="p-3.5 text-slate-400 font-bold uppercase tracking-wider">Roll No</th>
-                      <th className="p-3.5 text-slate-400 font-bold uppercase tracking-wider">Student Name</th>
-                      <th className="p-3.5 text-slate-400 font-bold uppercase tracking-wider text-center">Status Selection</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                <>
+                  {/* Table view for Large Desktops */}
+                  <div className="hidden xl:block overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800 bg-slate-900/50">
+                          <th className="p-3.5 text-slate-400 font-bold uppercase tracking-wider">Roll No</th>
+                          <th className="p-3.5 text-slate-400 font-bold uppercase tracking-wider">Student Name</th>
+                          <th className="p-3.5 text-slate-400 font-bold uppercase tracking-wider text-center">Status Selection</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/60">
+                        {students.map((student) => (
+                          <tr key={student.id} className="hover:bg-slate-900/20 text-slate-300">
+                            <td className="p-3.5 font-bold text-slate-400">{student.rollNo}</td>
+                            <td className="p-3.5 font-semibold text-slate-200 text-sm">{student.name}</td>
+                            <td className="p-3.5">
+                              <div className="flex justify-center">
+                                <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-0.5 max-w-[280px] w-full">
+                                  <button
+                                    onClick={() => handleStatusChange(student.id, "Present")}
+                                    className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
+                                      student.status === "Present"
+                                        ? "bg-emerald-500 text-slate-950 shadow-md scale-105"
+                                        : "text-slate-500 hover:text-slate-300"
+                                    }`}
+                                  >
+                                    {student.status === "Present" && <Check className="w-3 h-3 stroke-[3]" />}
+                                    <span>Present</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleStatusChange(student.id, "Absent")}
+                                    className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
+                                      student.status === "Absent"
+                                        ? "bg-rose-500 text-slate-950 shadow-md scale-105"
+                                        : "text-slate-500 hover:text-slate-300"
+                                    }`}
+                                  >
+                                    {student.status === "Absent" && <Check className="w-3 h-3 stroke-[3]" />}
+                                    <span>Absent</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleStatusChange(student.id, "Late")}
+                                    className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
+                                      student.status === "Late"
+                                        ? "bg-amber-500 text-slate-950 shadow-md scale-105"
+                                        : "text-slate-500 hover:text-slate-300"
+                                    }`}
+                                  >
+                                    {student.status === "Late" && <Check className="w-3 h-3 stroke-[3]" />}
+                                    <span>Late</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Card view for Mobile, Tablet, and Small Laptop */}
+                  <div className="xl:hidden grid grid-cols-1 gap-4">
                     {students.map((student) => (
-                      <tr key={student.id} className="hover:bg-slate-900/20 text-slate-300">
-                        <td className="p-3.5 font-bold text-slate-400">{student.rollNo}</td>
-                        <td className="p-3.5 font-semibold text-slate-200 text-sm">{student.name}</td>
-                        
-                        {/* Premium 3-Way Selector */}
-                        <td className="p-3.5">
-                          <div className="flex justify-center">
-                            <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-0.5 max-w-[280px] w-full">
-                              
-                              {/* Present Pill */}
-                              <button
-                                onClick={() => handleStatusChange(student.id, "Present")}
-                                className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
-                                  student.status === "Present"
-                                    ? "bg-emerald-500 text-slate-950 shadow-md scale-105"
-                                    : "text-slate-500 hover:text-slate-300"
-                                }`}
-                              >
-                                {student.status === "Present" && <Check className="w-3 h-3 stroke-[3]" />}
-                                <span>Present</span>
-                              </button>
-
-                              {/* Absent Pill */}
-                              <button
-                                onClick={() => handleStatusChange(student.id, "Absent")}
-                                className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
-                                  student.status === "Absent"
-                                    ? "bg-rose-500 text-slate-950 shadow-md scale-105"
-                                    : "text-slate-500 hover:text-slate-300"
-                                }`}
-                              >
-                                {student.status === "Absent" && <Check className="w-3 h-3 stroke-[3]" />}
-                                <span>Absent</span>
-                              </button>
-
-                              {/* Late Pill */}
-                              <button
-                                onClick={() => handleStatusChange(student.id, "Late")}
-                                className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
-                                  student.status === "Late"
-                                    ? "bg-amber-500 text-slate-950 shadow-md scale-105"
-                                    : "text-slate-500 hover:text-slate-300"
-                                }`}
-                              >
-                                {student.status === "Late" && <Check className="w-3 h-3 stroke-[3]" />}
-                                <span>Late</span>
-                              </button>
-
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
+                      <div key={student.id} className="p-4 bg-slate-900/40 border border-slate-800 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div className="text-left">
+                          <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider mb-0.5">Roll No: {student.rollNo}</span>
+                          <span className="font-semibold text-slate-200 text-sm">{student.name}</span>
+                        </div>
+                        <div className="flex bg-slate-950 border border-slate-800 rounded-xl p-0.5 w-full sm:w-auto max-w-[280px]">
+                          <button
+                            onClick={() => handleStatusChange(student.id, "Present")}
+                            className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
+                              student.status === "Present"
+                                ? "bg-emerald-500 text-slate-950 shadow-md scale-105"
+                                : "text-slate-500 hover:text-slate-300"
+                            }`}
+                          >
+                            {student.status === "Present" && <Check className="w-3 h-3 stroke-[3]" />}
+                            <span>Present</span>
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(student.id, "Absent")}
+                            className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
+                              student.status === "Absent"
+                                ? "bg-rose-500 text-slate-950 shadow-md scale-105"
+                                : "text-slate-500 hover:text-slate-300"
+                            }`}
+                          >
+                            {student.status === "Absent" && <Check className="w-3 h-3 stroke-[3]" />}
+                            <span>Absent</span>
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(student.id, "Late")}
+                            className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
+                              student.status === "Late"
+                                ? "bg-amber-500 text-slate-950 shadow-md scale-105"
+                                : "text-slate-500 hover:text-slate-300"
+                            }`}
+                          >
+                            {student.status === "Late" && <Check className="w-3 h-3 stroke-[3]" />}
+                            <span>Late</span>
+                          </button>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </>
               ) : (
                 <div className="text-center py-16 text-slate-500 text-xs italic">
                   {teacherClasses.length === 0
@@ -575,34 +618,71 @@ export default function AttendancePage() {
                 <span>Loading weekly data...</span>
               </div>
             ) : weeklyStudents.length > 0 ? (
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-800 bg-slate-900/50 text-center">
-                    <th className="p-3 text-slate-400 font-bold uppercase tracking-wider text-left">Roll No</th>
-                    <th className="p-3 text-slate-400 font-bold uppercase tracking-wider text-left">Student Name</th>
-                    <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Mon</th>
-                    <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Tue</th>
-                    <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Wed</th>
-                    <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Thu</th>
-                    <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Fri</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
+              <>
+                {/* Table view for Large Desktops */}
+                <div className="hidden xl:block overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-800 bg-slate-900/50 text-center">
+                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider text-left">Roll No</th>
+                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider text-left">Student Name</th>
+                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Mon</th>
+                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Tue</th>
+                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Wed</th>
+                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Thu</th>
+                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Fri</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60">
+                      {weeklyStudents.map((student) => (
+                        <tr key={student.id} className="hover:bg-slate-900/20 text-slate-300">
+                          <td className="p-3 font-bold text-slate-400 text-left">{student.rollNo}</td>
+                          <td className="p-3 font-semibold text-slate-200 text-sm text-left">{student.name}</td>
+                          <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 1)}</div></td>
+                          <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 2)}</div></td>
+                          <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 3)}</div></td>
+                          <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 4)}</div></td>
+                          <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 5)}</div></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Cards view for Mobile, Tablet, Small Laptop */}
+                <div className="xl:hidden grid grid-cols-1 gap-4">
                   {weeklyStudents.map((student) => (
-                    <tr key={student.id} className="hover:bg-slate-900/20 text-slate-300">
-                      <td className="p-3 font-bold text-slate-400 text-left">{student.rollNo}</td>
-                      <td className="p-3 font-semibold text-slate-200 text-sm text-left">{student.name}</td>
-                      
-                      {/* Mon to Fri Status Badges */}
-                      <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 1)}</div></td>
-                      <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 2)}</div></td>
-                      <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 3)}</div></td>
-                      <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 4)}</div></td>
-                      <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 5)}</div></td>
-                    </tr>
+                    <div key={student.id} className="p-4 bg-slate-900/40 border border-slate-800 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                      <div className="text-left">
+                        <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider mb-0.5">Roll No: {student.rollNo}</span>
+                        <span className="font-semibold text-slate-200 text-sm">{student.name}</span>
+                      </div>
+                      <div className="flex gap-4 items-center w-full sm:w-auto justify-between sm:justify-end">
+                        <div className="flex flex-col items-center">
+                          <span className="text-[9px] text-slate-500 font-bold uppercase mb-1">M</span>
+                          {getWeeklyStatusNode(student.records, 1)}
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span className="text-[9px] text-slate-500 font-bold uppercase mb-1">T</span>
+                          {getWeeklyStatusNode(student.records, 2)}
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span className="text-[9px] text-slate-500 font-bold uppercase mb-1">W</span>
+                          {getWeeklyStatusNode(student.records, 3)}
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span className="text-[9px] text-slate-500 font-bold uppercase mb-1">T</span>
+                          {getWeeklyStatusNode(student.records, 4)}
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span className="text-[9px] text-slate-500 font-bold uppercase mb-1">F</span>
+                          {getWeeklyStatusNode(student.records, 5)}
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              </>
             ) : (
               <div className="text-center py-16 text-slate-500 text-xs italic">
                 No students found in Class {selectedClass}.

@@ -405,7 +405,7 @@ export default function TeacherParentsPage() {
       )}
 
       {/* KPI Section with Premium White Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 mb-6">
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-transform hover:-translate-y-0.5">
           <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Total Parents</span>
           <div className="text-2xl font-black text-slate-800 dark:text-white">{filteredParents.length}</div>
@@ -434,20 +434,20 @@ export default function TeacherParentsPage() {
 
       {/* Main List Table in White Card */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm mb-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6">
           <div>
             <h2 className="text-base font-bold text-slate-850 dark:text-white">👥 Parents & PTA Registry</h2>
             <p className="text-xs text-slate-550 dark:text-slate-400 leading-relaxed">
               Verify parent contact details, assign them to schools, and update PTA designations.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
             <input
               type="text"
               placeholder="Search by name, student, phone..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-450 focus:outline-none focus:border-violet-500 transition-colors w-full sm:w-60"
+              className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-450 focus:outline-none focus:border-violet-500 transition-colors w-full xl:w-60"
             />
             
             <button
@@ -591,7 +591,7 @@ export default function TeacherParentsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold">Phone Number</label>
                   <input
@@ -631,7 +631,7 @@ export default function TeacherParentsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
                 <div className="col-span-1">
                   <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold">Student Name</label>
                   <input

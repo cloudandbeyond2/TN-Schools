@@ -160,7 +160,7 @@ export default function StudentProfilesPage() {
   return (
     <PortalLayout title="Student Profiles" subtitle="View and search comprehensive records, EMIS profiles, and performance details.">
       {/* Search and Filters */}
-      <div className="theme-card p-5 mb-6 border border-[var(--border)] flex flex-col md:flex-row gap-4 justify-between items-center fade-in">
+      <div className="theme-card p-5 mb-6 border border-[var(--border)] flex flex-col xl:flex-row gap-4 justify-between items-center fade-in">
         <div className="flex-1 w-full flex gap-3">
           <input
             type="text"
@@ -182,14 +182,14 @@ export default function StudentProfilesPage() {
             ))}
           </select>
         </div>
-        <div className="text-xs text-[var(--text-muted)] font-semibold self-end md:self-auto shrink-0">
+        <div className="text-xs text-[var(--text-muted)] font-semibold self-end xl:self-auto shrink-0">
           Showing {filteredStudents.length} students
         </div>
       </div>
 
       {/* Profiles Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 animate-pulse">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6 animate-pulse">
           {[1, 2, 3, 4, 5, 6].map((n) => (
             <div key={n} className="bg-[var(--bg-card)] border border-[var(--border)] p-5 rounded-2xl flex flex-col justify-between space-y-5">
               <div>
@@ -225,7 +225,7 @@ export default function StudentProfilesPage() {
       ) : filteredStudents.length === 0 ? (
         <div className="text-center py-12 text-xs text-[var(--text-muted)]">No student records found matching the query.</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
           {filteredStudents.map((student) => (
             <div
               key={student.id}
@@ -274,7 +274,7 @@ export default function StudentProfilesPage() {
       {/* Profile Detail Modal */}
       {selectedStudent && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-[var(--bg-main)] border border-[var(--border)] rounded-3xl p-6 md:p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl relative">
+          <div className="w-full max-w-2xl bg-[var(--bg-main)] border border-[var(--border)] rounded-3xl p-6 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl relative">
             <button
               onClick={() => setSelectedStudent(null)}
               className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-[var(--text-heading)] text-lg p-2"
@@ -301,7 +301,7 @@ export default function StudentProfilesPage() {
               <div className="text-center py-12 text-xs text-[var(--text-muted)]">Loading full performance metrics...</div>
             ) : (
               /* Profile Content Details */
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {/* Left Column: Stats & Contact */}
                 <div className="space-y-5">
                   <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-2xl border border-[var(--border)] space-y-3">

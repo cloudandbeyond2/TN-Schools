@@ -388,7 +388,7 @@ export default function RiskAlertsPage() {
       subtitle="Early-warning indicators identifying students requiring urgent academic support"
     >
       {/* Stats Board */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 mb-6">
         <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
             <span className="block text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider">Total Alerts</span>
@@ -431,8 +431,8 @@ export default function RiskAlertsPage() {
       </div>
 
       {/* Action and Filter bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border)]">
-        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+      <div className="flex flex-col xl:flex-row justify-between items-center gap-4 mb-6 bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border)]">
+        <div className="flex flex-col xl:flex-row gap-3 w-full xl:w-auto">
           {/* Search bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
@@ -441,7 +441,7 @@ export default function RiskAlertsPage() {
               placeholder="Search student or roll number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 pr-4 py-2 w-full sm:w-64 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-all"
+              className="pl-9 pr-4 py-2 w-full xl:w-64 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-all"
             />
           </div>
 
@@ -459,7 +459,7 @@ export default function RiskAlertsPage() {
 
         <button
           onClick={handleOpenAdd}
-          className="w-full sm:w-auto px-4 py-2.5 bg-[var(--primary)] hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] active:scale-95"
+          className="w-full xl:w-auto px-4 py-2.5 bg-[var(--primary)] hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] active:scale-95"
         >
           <Plus className="w-4 h-4" />
           <span>Flag Student</span>
@@ -488,7 +488,7 @@ export default function RiskAlertsPage() {
         ) : (
           <>
             {/* Desktop/Laptop Table Layout */}
-            <div className="hidden lg:block overflow-x-auto">
+            <div className="hidden xl:block overflow-x-auto">
               <table className="data-table w-full text-left border-collapse">
                 <thead>
                   <tr>
@@ -602,7 +602,7 @@ export default function RiskAlertsPage() {
             </div>
 
             {/* Mobile/Tablet Card Grid Layout */}
-            <div className="block lg:hidden space-y-4">
+            <div className="block xl:hidden space-y-4">
               {filteredStudents.map((st) => (
                 <div key={st.id} className="bg-[var(--bg-main)]/20 border border-[var(--border)] p-4 rounded-2xl space-y-3.5 shadow-sm text-xs">
                   <div className="flex justify-between items-start">

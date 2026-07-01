@@ -93,7 +93,7 @@ export default function TeacherEventsPage() {
       subtitle="Schedule and manage extracurricular events for clubs" 
       themeClass="theme-teacher"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 text-left">
         {/* Create Event Form */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
           <h2 className="text-xl font-bold mb-4">Schedule New Event</h2>
@@ -132,7 +132,7 @@ export default function TeacherEventsPage() {
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold mb-1">Event Type</label>
                   <select 
