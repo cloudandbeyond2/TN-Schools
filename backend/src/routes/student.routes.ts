@@ -229,7 +229,7 @@ router.post('/:id/homework/:homeworkId/submit', async (req: Request, res: Respon
           studentId: student.id,
           answerText,
           date: 'Today, ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-        }
+        } as any
       });
     } else {
       submission = await prisma.homeworkSubmission.create({
@@ -241,7 +241,7 @@ router.post('/:id/homework/:homeworkId/submit', async (req: Request, res: Respon
           studentId: student.id,
           answerText,
           date: 'Today, ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-        }
+        } as any
       });
     }
 
