@@ -53,6 +53,7 @@ import celebrationRoutes from './routes/celebration.routes';
 import socialActivitiesRoutes from './routes/socialActivities.routes';
 import culturalEventsRoutes from './routes/culturalEvents.routes';
 import computerEducationRoutes from './routes/computerEducation.routes';
+import storiesRoutes from './routes/stories.routes';
 
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
@@ -144,6 +145,7 @@ app.use('/api/celebrations', celebrationRoutes);
 app.use('/api/social-activities', socialActivitiesRoutes);
 app.use('/api/teacher/cultural-events', culturalEventsRoutes);
 app.use('/api/teacher/computer-education', computerEducationRoutes);
+app.use('/api/stories', storiesRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
