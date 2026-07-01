@@ -28,7 +28,7 @@ export default function SchoolPressPage() {
         if (profile) {
           setStudentProfile(profile);
           // 2. Fetch class-filtered activities
-          const actRes = await fetch(`${API_URL}/api/teacher/school-press?schoolId=${profile.schoolId}&class=${profile.class}`);
+          const actRes = await fetch(`${API_URL}/api/teacher/school-press?schoolId=${profile.schoolId}&class=${profile.class}&approvedOnly=true`);
           const actData = await actRes.json();
           if (actData.success) {
             setRecentActivities(actData.data);
@@ -46,11 +46,25 @@ export default function SchoolPressPage() {
     fetchProfileAndActivities();
   }, [session]);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      const newPhotos = Array.from(files).map((file) => URL.createObjectURL(file));
-      setPhotos((prev) => [...prev, ...newPhotos]);
+      try {
+        const promises = Array.from(files).map((file) => fileToBase64(file));
+        const base64Photos = await Promise.all(promises);
+        setPhotos((prev) => [...prev, ...base64Photos]);
+      } catch (err) {
+        console.error("Error reading files:", err);
+      }
     }
   };
 
