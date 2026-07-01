@@ -56,15 +56,36 @@ export default function StudentLeavePage() {
             setLeaves(allLeaves);
           }
         } else {
-          // Student logic
-          const rollNumber = session.user.email?.split('@')[0];
-          if (!rollNumber) return;
+          // Student logic — get studentId from session (set during login)
+          let studentId = (session.user as any).studentId as string | null;
 
-          const profileRes = await fetch(`${apiUrl}/api/headmaster/health/${rollNumber}`);
-          const profileData = await profileRes.json();
-          
-          if (profileData.success && profileData.data && profileData.data.studentId) {
-            const studentId = profileData.data.studentId;
+          if (!studentId) {
+            // Fallback: look up student by userId (for sessions created before the auth update)
+            const userId = (session.user as any).id;
+            const profileRes = await fetch(`${apiUrl}/api/students?userId=${userId}`);
+            const profileData = await profileRes.json();
+            if (profileData.success && profileData.data && profileData.data.length > 0) {
+              studentId = profileData.data[0].id;
+            }
+          }
+
+          if (!studentId) {
+            // Last resort: try roll number from email
+            const rollNumber = session.user.email?.split('@')[0];
+            if (rollNumber) {
+              // Use headmaster health only as a last resort for studentId (check student by rollNumber)
+              const studentsRes = await fetch(`${apiUrl}/api/students?schoolId=${(session.user as any).schoolId}`);
+              const studentsData = await studentsRes.json();
+              if (studentsData.success && studentsData.data) {
+                const match = studentsData.data.find((s: any) =>
+                  s.rollNumber?.toLowerCase() === rollNumber.toLowerCase()
+                );
+                if (match) studentId = match.id;
+              }
+            }
+          }
+
+          if (studentId) {
             const leaveRes = await fetch(`${apiUrl}/api/students/${studentId}/leave`);
             const leaveData = await leaveRes.json();
             if (leaveData.success) {
@@ -72,6 +93,7 @@ export default function StudentLeavePage() {
             }
           }
         }
+
       } catch (error) {
         console.error("Failed to fetch leave reports:", error);
       } finally {

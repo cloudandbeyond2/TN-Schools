@@ -56,6 +56,8 @@ export const authOptions: NextAuthOptions = {
         token.class = (user as any).class;
         token.section = (user as any).section;   // ✅ ADD THIS
         token.subject = (user as any).subject;   // ✅ ADD THIS
+        token.studentId = (user as any).studentId || null;   // Student record ID
+        token.rollNumber = (user as any).rollNumber || null; // Student roll number
       }
       return token;
     },
@@ -67,6 +69,8 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).class = token.class;
         (session.user as any).section = token.section;   // ✅ ADD THIS
         (session.user as any).subject = token.subject;   // ✅ ADD THIS
+        (session.user as any).studentId = token.studentId || null;
+        (session.user as any).rollNumber = token.rollNumber || null;
       }
       return session;
     },

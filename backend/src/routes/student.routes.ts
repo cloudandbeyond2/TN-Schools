@@ -80,12 +80,13 @@ router.get('/:id', async (req: Request, res: Response) => {
 // GET /api/students — List with filters
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { schoolId, class: cls, section } = req.query;
+    const { schoolId, class: cls, section, userId } = req.query;
     const students = await prisma.student.findMany({
       where: {
         ...(schoolId ? { schoolId: String(schoolId) } : {}),
         ...(cls ? { class: String(cls) } : {}),
         ...(section ? { section: String(section) } : {}),
+        ...(userId ? { userId: String(userId) } : {}),
       },
       orderBy: { createdAt: 'desc' },
     });
