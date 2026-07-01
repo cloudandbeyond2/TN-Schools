@@ -6,7 +6,7 @@ import Link from "next/link";
 
 // Role → portal path
 const roleToPath: Record<string, string> = {
-  TEACHER: "/teacher",
+  TEACHER: "/teacher/classes",
   PARENT: "/parent",
   HEADMASTER: "/headmaster",
   BEO: "/block-education-officer",
