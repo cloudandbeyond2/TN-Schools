@@ -1,13 +1,21 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   time: string;
+}
+
+interface SavedSession {
+  _id: string;
+  sessionId: string;
+  subject: string;
+  language: string;
+  messages: { role: string; content: string }[];
+  createdAt: string;
 }
 
 const suggestedQuestions = [
@@ -26,6 +34,7 @@ export default function AITutorPage() {
   const studentClass = (session?.user as any)?.class || "10";
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+  const [studentId, setStudentId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -37,11 +46,86 @@ export default function AITutorPage() {
   const [selectedSubject, setSelectedSubject] = useState("Mathematics");
   const [language, setLanguage] = useState<"bilingual" | "tamil" | "english">("bilingual");
   const [isTyping, setIsTyping] = useState(false);
+  const [sessionId, setSessionId] = useState<string>("");
+
+  // History list
+  const [pastSessions, setPastSessions] = useState<SavedSession[]>([]);
+
+  // 1. Initialize session ID
+  useEffect(() => {
+    setSessionId(`session-${Date.now()}`);
+  }, []);
+
+  useEffect(() => {
+    if (!session?.user) return;
+    const userId = (session.user as any)?.id;
+    if (!userId) return;
+
+    async function fetchStudentAndHistory() {
+      try {
+        const studentRes = await fetch(`${API_URL}/api/students`);
+        const studentJson = await studentRes.json();
+        
+        let profile = null;
+        if (studentJson.success) {
+          profile = studentJson.data.find((s: any) => s.userId === userId);
+        }
+
+        if (profile) {
+          setStudentId(profile.id);
+          
+          // Load past sessions
+          const historyRes = await fetch(`${API_URL}/api/ai/chat/${profile.id}`);
+          const historyJson = await historyRes.json();
+          if (historyJson.success) {
+            setPastSessions(historyJson.data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load student history:", err);
+      }
+    }
+
+    fetchStudentAndHistory();
+  }, [session, API_URL]);
+
+  // Save current chat session to MongoDB database
+  const saveChatSession = async (updatedMessages: Message[]) => {
+    if (!studentId || !sessionId) return;
+    try {
+      const formattedMsgs = updatedMessages.map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+
+      await fetch(`${API_URL}/api/ai/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId,
+          sessionId,
+          subject: selectedSubject,
+          language,
+          messages: formattedMsgs
+        })
+      });
+
+      // Reload past sessions to update the sidebar
+      const historyRes = await fetch(`${API_URL}/api/ai/chat/${studentId}`);
+      const historyJson = await historyRes.json();
+      if (historyJson.success) {
+        setPastSessions(historyJson.data);
+      }
+    } catch (err) {
+      console.error("Failed to save chat session:", err);
+    }
+  };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
     const userMsg: Message = { role: "user", content: input, time: "Now" };
-    setMessages((prev) => [...prev, userMsg]);
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
     setInput("");
     setIsTyping(true);
 
@@ -60,10 +144,12 @@ export default function AITutorPage() {
       });
       const data = await res.json();
       if (data.success && data.text) {
-        setMessages((prev) => [
-          ...prev,
+        const finalMsgs: Message[] = [
+          ...updatedMessages,
           { role: "assistant", content: data.text, time: "Now" }
-        ]);
+        ];
+        setMessages(finalMsgs);
+        saveChatSession(finalMsgs);
       } else {
         throw new Error(data.error || "Failed to fetch AI completion");
       }
@@ -78,6 +164,19 @@ export default function AITutorPage() {
     }
   };
 
+  // Load a past session when clicked
+  const loadPastSession = (s: SavedSession) => {
+    setSessionId(s.sessionId);
+    setSelectedSubject(s.subject);
+    setLanguage(s.language as any);
+    const mapped = s.messages.map((m: any) => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+      time: "Saved"
+    }));
+    setMessages(mapped);
+  };
+
   return (
     <PortalLayout
       title="AI Tutor"
@@ -85,23 +184,41 @@ export default function AITutorPage() {
     >
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-180px)]">
         {/* Sidebar Controls */}
-        <div className="lg:col-span-1 flex flex-col gap-4">
+        <div className="lg:col-span-1 flex flex-col gap-4 overflow-y-auto">
           {/* Subject */}
           <div className="glass rounded-2xl p-4 fade-in">
             <div className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">Subject</div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-wrap gap-1">
               {subjects.map((s) => (
                 <button
                   key={s}
                   id={`ai-tutor-subject-${s.toLowerCase().replace(/\s+/g, "-")}`}
                   onClick={() => setSelectedSubject(s)}
-                  className={`text-left text-xs px-3 py-2 rounded-lg transition-all ${selectedSubject === s ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-800"}`}
+                  className={`text-left text-xs px-2.5 py-1.5 rounded-lg transition-all ${selectedSubject === s ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-800"}`}
                 >
                   {s}
                 </button>
               ))}
             </div>
           </div>
+
+          {/* Recent Sessions */}
+          {pastSessions.length > 0 && (
+            <div className="glass rounded-2xl p-4 fade-in">
+              <div className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">Recent Sessions</div>
+              <div className="flex flex-col gap-1.5 max-h-36 overflow-y-auto">
+                {pastSessions.map((s) => (
+                  <button
+                    key={s._id}
+                    onClick={() => loadPastSession(s)}
+                    className="text-left text-[11px] p-2 rounded-lg bg-slate-800/40 hover:bg-slate-800 text-slate-300 hover:text-white transition-all border border-slate-700/30 truncate"
+                  >
+                    📖 {s.subject} ({new Date(s.createdAt).toLocaleDateString()})
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Language */}
           <div className="glass rounded-2xl p-4 fade-in-2">
@@ -121,7 +238,7 @@ export default function AITutorPage() {
           </div>
 
           {/* Suggested Questions */}
-          <div className="glass rounded-2xl p-4 fade-in-3 flex-1 overflow-y-auto">
+          <div className="glass rounded-2xl p-4 fade-in-3 flex-1 overflow-y-auto min-h-[150px]">
             <div className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">Quick Questions</div>
             <div className="flex flex-col gap-1.5">
               {suggestedQuestions.map((q) => (

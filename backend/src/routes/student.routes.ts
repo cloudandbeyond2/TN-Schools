@@ -194,4 +194,62 @@ router.get('/:id/homework', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/students/:id/homework/:homeworkId/submit
+router.post('/:id/homework/:homeworkId/submit', async (req: Request, res: Response) => {
+  try {
+    const { id, homeworkId } = req.params;
+
+    const { answerText } = req.body;
+
+    const student = await prisma.student.findFirst({ 
+      where: { 
+        OR: [
+          { id },
+          { userId: id }
+        ]
+      },
+      include: { user: true }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+
+    // Check if submission already exists
+    const existingSubmission = await prisma.homeworkSubmission.findFirst({
+      where: {
+        homeworkId,
+        rollNo: student.rollNumber || ''
+      }
+    });
+
+    let submission;
+    if (existingSubmission) {
+      submission = await prisma.homeworkSubmission.update({
+        where: { id: existingSubmission.id },
+        data: {
+          status: 'submitted',
+          studentId: student.id,
+          answerText,
+          date: 'Today, ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        }
+      });
+    } else {
+      submission = await prisma.homeworkSubmission.create({
+        data: {
+          homeworkId,
+          rollNo: student.rollNumber || '',
+          name: student.user?.name || 'Student',
+          status: 'submitted',
+          studentId: student.id,
+          answerText,
+          date: 'Today, ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        }
+      });
+    }
+
+    res.json({ success: true, data: submission });
+  } catch (err) {
+    console.error('Error submitting homework:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;

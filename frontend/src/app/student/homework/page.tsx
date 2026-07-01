@@ -2065,11 +2065,17 @@ function SubmissionPanel({
 function AssignmentDetail({
   assignment,
   intent,
+  studentId,
+  apiUrl,
   onBack,
+  onSubmitSuccess,
 }: {
   assignment: Assignment;
   intent: OpenIntent;
+  studentId: string | undefined;
+  apiUrl: string;
   onBack: () => void;
+  onSubmitSuccess: () => void;
 }) {
   const [tips, setTips] = useState<string[] | null>(null);
   const [loadingTips, setLoadingTips] = useState(false);
@@ -2127,8 +2133,22 @@ function AssignmentDetail({
     setFiles((prev) => [...prev, ...next]);
   };
 
-  const handleSubmit = () => {
-    setSubmitted(true);
+  const handleSubmit = async () => {
+    if (!studentId) return;
+    try {
+      const res = await fetch(`${apiUrl}/api/students/${studentId}/homework/${assignment.id}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answerText })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSubmitted(true);
+        onSubmitSuccess();
+      }
+    } catch (err) {
+      console.error("Error submitting homework:", err);
+    }
   };
 
   return (
@@ -2230,19 +2250,20 @@ export default function HomeworkPage() {
   const [intent, setIntent] = useState<OpenIntent>("view");
   const [filter, setFilter] = useState<Filter>("all");
 
-  useEffect(() => {
+  const fetchHomework = async () => {
     if (!studentId) return;
-    const fetchHomework = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/students/${studentId}/homework`);
-        const data = await res.json();
-        if (data.success) {
-          setAssignments(data.data);
-        }
-      } catch (err) {
-        console.error("Error fetching homework:", err);
+    try {
+      const res = await fetch(`${API_URL}/api/students/${studentId}/homework`);
+      const data = await res.json();
+      if (data.success) {
+        setAssignments(data.data);
       }
-    };
+    } catch (err) {
+      console.error("Error fetching homework:", err);
+    }
+  };
+
+  useEffect(() => {
     fetchHomework();
   }, [studentId]);
 
@@ -2276,7 +2297,10 @@ export default function HomeworkPage() {
         <AssignmentDetail
           assignment={selected}
           intent={intent}
+          studentId={studentId}
+          apiUrl={API_URL}
           onBack={() => setSelectedId(null)}
+          onSubmitSuccess={fetchHomework}
         />
       ) : (
         <div>

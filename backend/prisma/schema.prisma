@@ -463,6 +463,7 @@ model HomeworkSubmission {
   status     String
   score      String?  @default("—")
   date       String?  @default("—")
+  answerText String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   studentId  String?
@@ -1110,6 +1111,7 @@ model SchoolPressActivity {
   teacherId   String?
   description String
   photos      String[] @default([])
+  isApproved  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

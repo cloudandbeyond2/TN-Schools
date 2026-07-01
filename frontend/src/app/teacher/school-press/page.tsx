@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import { Camera, Send, CheckCircle, Search, Upload } from "lucide-react";
+import Swal from "sweetalert2";
+import { Camera, Send, CheckCircle, Search, Upload, Trash2, Check } from "lucide-react";
 
 export default function SchoolPressPage() {
   const { data: session } = useSession();
@@ -37,8 +38,8 @@ export default function SchoolPressPage() {
 
   const fetchActivities = async () => {
     try {
-      const teacherId = (session?.user as any)?.id;
-      const res = await fetch(`${API_URL}/api/teacher/school-press?teacherId=${teacherId || ''}`);
+      const schoolId = (session?.user as any)?.schoolId;
+      const res = await fetch(`${API_URL}/api/teacher/school-press?schoolId=${schoolId || ''}`);
       const data = await res.json();
       if (data.success) {
         setRecentActivities(data.data);
@@ -48,13 +49,25 @@ export default function SchoolPressPage() {
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      // In a real app, you would upload to a cloud storage (S3/Cloudinary) and get URLs back.
-      // Here we simulate by creating object URLs for preview.
-      const newPhotos = Array.from(files).map((file) => URL.createObjectURL(file));
-      setPhotos((prev) => [...prev, ...newPhotos]);
+      try {
+        const promises = Array.from(files).map((file) => fileToBase64(file));
+        const base64Photos = await Promise.all(promises);
+        setPhotos((prev) => [...prev, ...base64Photos]);
+      } catch (err) {
+        console.error("Error reading files:", err);
+      }
     }
   };
 
@@ -83,6 +96,12 @@ export default function SchoolPressPage() {
         setSelectedStudent("");
         setPhotos([]);
         fetchActivities();
+        Swal.fire({
+          title: "Published!",
+          text: "Achievement has been published successfully!",
+          icon: "success",
+          confirmButtonColor: "#10b981"
+        });
         setTimeout(() => setSubmitStatus("idle"), 3000);
       } else {
         setSubmitStatus("error");
@@ -90,6 +109,53 @@ export default function SchoolPressPage() {
     } catch (err) {
       console.error("Error submitting activity:", err);
       setSubmitStatus("error");
+    }
+  };
+
+  const handleApprove = async (id: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/teacher/school-press/${id}/approve`, {
+        method: "PUT"
+      });
+      const data = await res.json();
+      if (data.success) {
+        Swal.fire({
+          title: "Approved!",
+          text: "The post has been approved and published to the student feed.",
+          icon: "success",
+          confirmButtonColor: "#10b981"
+        });
+        fetchActivities();
+      }
+    } catch (err) {
+      console.error("Error approving activity:", err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You will not be able to recover this post!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Yes, delete it!"
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`${API_URL}/api/teacher/school-press/${id}`, {
+          method: "DELETE"
+        });
+        const data = await res.json();
+        if (data.success) {
+          Swal.fire("Deleted!", "The post has been deleted.", "success");
+          fetchActivities();
+        }
+      } catch (err) {
+        console.error("Error deleting activity:", err);
+      }
     }
   };
 
@@ -237,8 +303,13 @@ export default function SchoolPressPage() {
                           Class {act.student?.class} - {act.student?.section}
                         </div>
                       </div>
-                      <div className="ml-auto text-[9px] text-[var(--text-muted)]">
-                        {new Date(act.createdAt).toLocaleDateString()}
+                      <div className="ml-auto flex flex-col items-end gap-1">
+                        <span className="text-[9px] text-[var(--text-muted)]">
+                          {new Date(act.createdAt).toLocaleDateString()}
+                        </span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${act.isApproved ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                          {act.isApproved ? 'Approved' : 'Pending'}
+                        </span>
                       </div>
                     </div>
                     <p className="text-xs text-[var(--text-main)] leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-xl shadow-sm border border-[var(--border)]">
@@ -253,6 +324,22 @@ export default function SchoolPressPage() {
                         ))}
                       </div>
                     )}
+                    <div className="mt-3 pt-3 border-t border-[var(--border)] flex justify-end gap-2">
+                      {!act.isApproved && (
+                        <button
+                          onClick={() => handleApprove(act.id)}
+                          className="flex items-center gap-1 text-[10px] font-bold bg-green-500 hover:bg-green-600 text-white px-2.5 py-1.5 rounded-lg transition-colors"
+                        >
+                          <Check className="w-3.5 h-3.5" /> Approve
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(act.id)}
+                        className="flex items-center gap-1 text-[10px] font-bold bg-red-500/10 hover:bg-red-500 text-red-600 hover:text-white px-2.5 py-1.5 rounded-lg transition-colors border border-red-500/20"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                      </button>
+                    </div>
                   </div>
                 ))
               )}

@@ -1073,9 +1073,10 @@ router.put('/profile/:userId', async (req: Request, res: Response) => {
 // GET /api/teacher/school-press
 router.get('/school-press', async (req: Request, res: Response) => {
   try {
-    const { teacherId, schoolId, class: studentClass } = req.query;
+    const { teacherId, schoolId, class: studentClass, approvedOnly } = req.query;
     const activities = await (prisma as any).schoolPressActivity.findMany({
       where: {
+        ...(approvedOnly === 'true' ? { isApproved: true } : {}),
         ...(teacherId ? { teacherId: String(teacherId) } : {}),
         ...(schoolId || studentClass ? {
           student: {
@@ -1107,10 +1108,38 @@ router.post('/school-press', async (req: Request, res: Response) => {
         studentId,
         teacherId,
         description,
-        photos: photos || []
+        photos: photos || [],
+        isApproved: teacherId ? true : false // Auto-approve if created by teacher
       }
     });
     res.json({ success: true, data: newActivity });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PUT /api/teacher/school-press/:id/approve
+router.put('/school-press/:id/approve', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updated = await (prisma as any).schoolPressActivity.update({
+      where: { id },
+      data: { isApproved: true }
+    });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/teacher/school-press/:id
+router.delete('/school-press/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await (prisma as any).schoolPressActivity.delete({
+      where: { id }
+    });
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
