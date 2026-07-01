@@ -182,7 +182,7 @@ export default function AnnouncementsPage() {
 
   return (
     <PortalLayout title="Announcements & Circulars" subtitle="Broadcast updates to classes or review administration circulars.">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
         {/* Broadcast Form */}
         <div className="theme-card p-6 border border-[var(--border)] h-fit">
           <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4">📢 Compose Announcement</h2>
@@ -250,7 +250,7 @@ export default function AnnouncementsPage() {
         </div>
 
         {/* Board feed */}
-        <div className="lg:col-span-2 theme-card p-6 border border-[var(--border)] space-y-5">
+        <div className="xl:col-span-2 theme-card p-6 border border-[var(--border)] space-y-5">
           <h2 className="text-base font-semibold text-[var(--text-heading)]">📋 Active Announcement Board</h2>
 
           {toast && (

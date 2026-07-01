@@ -188,7 +188,7 @@ export default function CelebrationsPage() {
           <div className="absolute bottom-10 left-1/2 w-4 h-4 bg-emerald-300 rounded-sm rotate-12 animate-pulse"></div>
           <div className="absolute top-1/2 right-1/4 w-3 h-3 bg-purple-300 rounded-full animate-bounce"></div>
           
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="relative z-10 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
             <div>
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl font-black tracking-wider text-xs uppercase mb-4 border-2 border-white/30 rotate-[-2deg]">
                 <Star className="w-4 h-4 text-yellow-300" /> School Events
@@ -204,10 +204,10 @@ export default function CelebrationsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           
           {/* Main List */}
-          <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-lg border-4 border-rose-100 dark:border-slate-700 overflow-hidden">
+          <div className="xl:col-span-2 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-lg border-4 border-rose-100 dark:border-slate-700 overflow-hidden">
             <div className="flex bg-rose-50 dark:bg-slate-900 p-2 gap-2 flex-wrap sm:flex-nowrap">
               <button 
                 onClick={() => setActiveTab("today")}
@@ -360,7 +360,7 @@ export default function CelebrationsPage() {
                         <div className="flex-1 h-[2px] bg-gradient-to-r from-rose-200 to-transparent dark:from-slate-700" />
                       </div>
 
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                         {holidaysByYear[year].map(item => (
                           <div 
                             key={item.id} 

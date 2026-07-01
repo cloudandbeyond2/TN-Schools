@@ -138,26 +138,26 @@ export default function MathsFormulasPage() {
       <div className="flex flex-col gap-8">
         
         {/* Playful Search and Categories Header */}
-        <div className="bg-white dark:bg-slate-800 p-6 flex flex-col md:flex-row gap-6 justify-between items-center rounded-[2rem] border-4 border-indigo-100 dark:border-slate-700 shadow-xl shadow-indigo-500/10 relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 p-6 flex flex-col xl:flex-row gap-6 justify-between items-center rounded-[2rem] border-4 border-slate-200 dark:border-slate-750 shadow-xl shadow-indigo-500/10 relative overflow-hidden">
           
           <div className="absolute right-0 top-0 w-64 h-64 bg-yellow-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
 
-          <div className="w-full md:w-1/2 flex items-center gap-3">
+          <div className="w-full xl:w-1/2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 font-bold" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 font-bold" />
               <input 
                 type="text" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search formulas..." 
-                className="w-full bg-slate-50 dark:bg-slate-900 border-4 border-indigo-100 dark:border-slate-700 text-indigo-900 dark:text-indigo-100 rounded-3xl py-3 pl-12 pr-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all shadow-inner placeholder:text-indigo-300 dark:placeholder:text-indigo-700"
+                className="w-full bg-slate-50 dark:bg-slate-900 border-4 border-slate-200 dark:border-slate-750 text-slate-700 dark:text-slate-200 rounded-3xl py-3 pl-12 pr-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-slate-300 transition-all shadow-inner placeholder:text-slate-400 dark:placeholder:text-slate-550"
               />
             </div>
             
             {/* Standard & Term Selector */}
             <div className="relative flex gap-2">
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
                   <GraduationCap className="w-5 h-5" />
                 </div>
                 <select 
@@ -167,7 +167,7 @@ export default function MathsFormulasPage() {
                     setActiveCat("all");
                     showToast(`Viewing formulas for Standard ${e.target.value}`);
                   }}
-                  className="appearance-none bg-white dark:bg-slate-900 border-4 border-indigo-100 dark:border-slate-700 text-indigo-900 dark:text-indigo-100 rounded-2xl py-3 pl-10 pr-8 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all shadow-sm cursor-pointer"
+                  className="appearance-none bg-white dark:bg-slate-900 border-4 border-slate-200 dark:border-slate-750 text-slate-700 dark:text-slate-200 rounded-2xl py-3 pl-10 pr-8 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-slate-350 transition-all shadow-sm cursor-pointer"
                 >
                   <option value="6">Standard 6</option>
                 </select>
@@ -179,7 +179,7 @@ export default function MathsFormulasPage() {
                   setActiveTerm(e.target.value);
                   setActiveCat("all");
                 }}
-                className="appearance-none bg-white dark:bg-slate-900 border-4 border-indigo-100 dark:border-slate-700 text-indigo-900 dark:text-indigo-100 rounded-2xl py-3 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all shadow-sm cursor-pointer"
+                className="appearance-none bg-white dark:bg-slate-900 border-4 border-slate-200 dark:border-slate-750 text-slate-700 dark:text-slate-200 rounded-2xl py-3 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-slate-350 transition-all shadow-sm cursor-pointer"
               >
                 <option value="all">All Terms</option>
                 <option value="1">Term I</option>
@@ -210,13 +210,13 @@ export default function MathsFormulasPage() {
             </button>
           </div>
 
-          <div className="flex gap-3 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+          <div className="flex gap-3 overflow-x-auto w-full xl:w-auto pb-2 xl:pb-0 hide-scrollbar">
             <button 
               onClick={() => setActiveCat("all")}
-              className={`px-5 py-2.5 rounded-2xl text-xs font-black transition-all whitespace-nowrap flex items-center gap-2 ${
+              className={`px-5 py-2.5 rounded-2xl text-xs font-black transition-all whitespace-nowrap flex items-center gap-2 border-2 ${
                 activeCat === "all" 
-                  ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-purple-500/30 scale-105" 
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 border-2 border-transparent"
+                  ? "bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 border-transparent shadow-lg scale-105" 
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-200"
               }`}
             >
               <BookOpen className="w-4 h-4" />
@@ -228,8 +228,8 @@ export default function MathsFormulasPage() {
                 onClick={() => setActiveCat(cat.id)}
                 className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all whitespace-nowrap flex items-center gap-2 border-2 ${
                   activeCat === cat.id 
-                    ? `${cat.color.split(' ')[1]} ${cat.color.split(' ')[2]} ${cat.color.split(' ')[0]} shadow-lg scale-105`
-                    : `bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:scale-105`
+                    ? "bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 border-transparent shadow-lg scale-105"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-200"
                 }`}
               >
                 {React.cloneElement(cat.icon as React.ReactElement, { className: "w-4 h-4" })}
@@ -240,7 +240,7 @@ export default function MathsFormulasPage() {
         </div>
 
         {/* Playful Formulas Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {filteredFormulas.map(formula => {
             const cat = categories.find(c => c.id === formula.category);
             return (

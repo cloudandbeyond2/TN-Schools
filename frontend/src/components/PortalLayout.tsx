@@ -502,7 +502,7 @@ export default function PortalLayout({
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 dark:bg-black/70 z-30 md:hidden"
+          className="fixed inset-0 bg-black/50 dark:bg-black/70 z-30 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -534,15 +534,15 @@ export default function PortalLayout({
           <div className="flex items-center gap-3 md:gap-4 flex-1">
             {/* Mobile Menu Trigger (Hamburger) */}
             <button
-              className="md:hidden text-[var(--text-main)] p-2 rounded-xl hover:bg-[var(--sidebar-item-hover-bg)] active:scale-95 transition-all duration-200"
+              className="lg:hidden text-[var(--text-main)] p-2 rounded-xl hover:bg-[var(--sidebar-item-hover-bg)] active:scale-95 transition-all duration-200"
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="Open Sidebar"
             >
               <Menu className="w-5 h-5" />
             </button>
             
-            {/* Simplified Logo on Mobile */}
-            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity md:hidden mr-2">
+            {/* Simplified Logo on Mobile/Tablet */}
+            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity lg:hidden mr-2">
               <span className="text-xl shrink-0">🏛️</span>
               <div className="leading-none text-left">
                 <span className="block text-xs font-black text-[var(--text-heading)]">TN Schools</span>
@@ -552,14 +552,14 @@ export default function PortalLayout({
 
             {/* Desktop search bar or role identity */}
             {resolvedTitle ? (
-              <div className="ml-2 text-left hidden md:block animate-in fade-in duration-300">
+              <div className="ml-2 text-left hidden lg:block animate-in fade-in duration-300">
                 <h1 className="text-base lg:text-lg font-bold text-[var(--text-heading)] leading-tight">{resolvedTitle}</h1>
                 {resolvedSubtitle && (
                   <p className="text-[11px] text-[var(--text-muted)] font-medium mt-0.5">{resolvedSubtitle}</p>
                 )}
               </div>
             ) : (
-              <div className="relative hidden md:block max-w-md w-full ml-2">
+              <div className="relative hidden lg:block max-w-md w-full ml-2">
                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-muted)]">🔍</span>
                  <input 
                    type="text" 
@@ -739,9 +739,9 @@ export default function PortalLayout({
 
         {/* Children content relative to sit above absolute background */}
         <main className="relative flex-1 p-4 md:p-6 lg:p-8">
-          {/* Mobile Page Header (visible on mobile only) */}
+          {/* Mobile/Tablet Page Header (visible below lg breakpoint) */}
           {resolvedTitle && (
-            <div className="md:hidden px-1 mb-5 text-left animate-in fade-in duration-300">
+            <div className="lg:hidden px-1 mb-5 text-left animate-in fade-in duration-300">
               <h1 className="text-xl font-black text-white leading-tight drop-shadow-sm">{resolvedTitle}</h1>
               {resolvedSubtitle && (
                 <p className="text-xs text-white/85 font-semibold mt-1">{resolvedSubtitle}</p>

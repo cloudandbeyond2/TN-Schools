@@ -260,10 +260,10 @@ export default function ChemistryLabPage() {
       title="Magic Chemistry Lab! 🧪"
       subtitle="Mix potions, watch colors change, and learn science!"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-left">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 text-left">
 
         {/* Main Dashboard Panel */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="xl:col-span-2 space-y-8">
 
           {/* Playful Header Banner */}
           <div className="relative overflow-hidden rounded-[2.5rem] bg-purple-50 dark:bg-slate-800 p-8 text-slate-800 dark:text-slate-100 shadow-xl border-4 border-purple-200 dark:border-slate-700">

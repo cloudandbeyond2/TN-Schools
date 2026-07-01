@@ -323,16 +323,16 @@ export default function PETeacherSportsPage() {
       accentColor="#06b6d4"
     >
       {/* Top Tabs */}
-      <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700/50 w-full md:w-fit mb-6">
+      <div className="flex flex-col xl:flex-row bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700/50 w-full xl:w-fit mb-6 gap-1">
         <button 
           onClick={() => setActiveTab("roster")}
-          className={`flex-1 md:flex-initial px-6 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeTab === "roster" ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20" : "text-black dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400"}`}
+          className={`flex-1 xl:flex-initial px-6 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeTab === "roster" ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20" : "text-black dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400"}`}
         >
           📋 Student Roster & Scores
         </button>
         <button 
           onClick={() => setActiveTab("injuries")}
-          className={`flex-1 md:flex-initial px-6 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeTab === "injuries" ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20" : "text-black dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400"}`}
+          className={`flex-1 xl:flex-initial px-6 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeTab === "injuries" ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20" : "text-black dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400"}`}
         >
           🚑 Injury Tracker ({injuries.filter(i => i.status === 'Pending' || i.status === 'Under Treatment').length})
         </button>
@@ -343,10 +343,10 @@ export default function PETeacherSportsPage() {
         <div className="space-y-6">
           <div className="theme-card p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
             {/* Header filters */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6">
               
               {/* Section Filters */}
-              <div className="flex bg-slate-100 dark:bg-slate-900 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs w-full md:w-auto">
+              <div className="flex bg-slate-100 dark:bg-slate-900 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs w-full xl:w-auto">
                 {[
                   ["middle", "Middle (6-8)"],
                   ["high", "High (9-10)"],
@@ -355,7 +355,7 @@ export default function PETeacherSportsPage() {
                   <button
                     key={key}
                     onClick={() => setSection(key)}
-                    className={`flex-1 md:flex-none px-4 py-2 rounded-md font-bold transition-all ${section === key ? "bg-white dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 shadow-sm" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-350"}`}
+                    className={`flex-1 xl:flex-none px-4 py-2 rounded-md font-bold transition-all ${section === key ? "bg-white dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 shadow-sm" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-350"}`}
                   >
                     {label}
                   </button>
@@ -363,7 +363,7 @@ export default function PETeacherSportsPage() {
               </div>
 
               {/* Roster Search */}
-              <div className="relative w-full md:w-72">
+              <div className="relative w-full xl:w-72">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
@@ -493,7 +493,7 @@ export default function PETeacherSportsPage() {
                 </div>
 
                 {/* Mobile/Tablet Card View */}
-                <div className="xl:hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="xl:hidden grid grid-cols-1 gap-4">
                   {filteredRoster.map((student) => {
                     const sprint = student.stats.find(s => s.label === "Sprint Speed");
                     const shotPut = student.stats.find(s => s.label === "Shot Put");
@@ -594,7 +594,7 @@ export default function PETeacherSportsPage() {
             ) : (
               <div className="space-y-4">
                 {injuries.map((report) => (
-                  <div key={report.id} className="bg-slate-50 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs">
+                  <div key={report.id} className="bg-slate-50 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 text-xs">
                     
                     {/* Injury Details */}
                     <div className="space-y-1.5 flex-1">
@@ -620,7 +620,7 @@ export default function PETeacherSportsPage() {
                     </div>
 
                     {/* Action dropdown */}
-                    <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
+                    <div className="flex items-center gap-3 shrink-0 self-end xl:self-center">
                       <span className="text-[10px] text-slate-450 uppercase font-bold tracking-wider">Recovery status:</span>
                       <select
                         value={report.status}

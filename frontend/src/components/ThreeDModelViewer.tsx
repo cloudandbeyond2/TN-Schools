@@ -692,7 +692,7 @@ export default function ThreeDModelViewer({
       onMouseMove={handleCanvasMouseMove}
     >
       {/* Title / Info overlay */}
-      <div className="absolute top-24 left-6 z-30 max-w-xs pointer-events-none">
+      <div className="hidden lg:block absolute top-24 left-6 z-30 max-w-xs pointer-events-none">
         <h4 className="text-lg font-black text-white drop-shadow-md mb-1">{name}</h4>
         {description && !selectedShape && (
           <p className="text-xs text-slate-300 drop-shadow-md leading-relaxed line-clamp-3">
@@ -703,7 +703,7 @@ export default function ThreeDModelViewer({
 
       {/* Selected Shape / Click-to-Explain HUD popup */}
       {selectedShape && (
-        <div className="absolute top-24 left-6 z-40 max-w-sm bg-slate-950/95 backdrop-blur-md border-2 border-indigo-500/70 p-5 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-left-4 duration-300">
+        <div className="absolute bottom-20 lg:bottom-auto lg:top-24 left-4 right-4 lg:right-auto lg:left-6 z-40 max-w-sm lg:max-w-xs bg-slate-950/95 backdrop-blur-md border-2 border-indigo-500/70 p-4 lg:p-5 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-left-4 duration-300">
           <button
             onClick={() => setSelectedShape(null)}
             className="absolute top-3 right-3 text-slate-400 hover:text-white transition-colors"

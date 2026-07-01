@@ -86,6 +86,7 @@ model Student {
   schoolPressActivities SchoolPressActivity[]
   watchlistEntry        WatchlistStudent?
   injuryReports         InjuryReport[]
+  storyProgress         StudentStoryProgress[]
   school                School                @relation(fields: [schoolId], references: [id])
 
   @@index([classRoomId])
@@ -1147,4 +1148,68 @@ enum ScholarshipStatus {
   APPROVED
   REJECTED
   DISBURSED
+}
+
+model StoryBook {
+  id            String                 @id @default(uuid())
+  title         String
+  author        String
+  genre         String
+  cover         String
+  color         String
+  language      String
+  moral         String
+  xpReward      Int                    @default(50)
+  gradeLevel    String?                @default("6")
+
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  chapters      StoryChapter[]
+  progressLinks StudentStoryProgress[]
+
+}
+
+model StoryChapter {
+  id            String      @id @default(uuid())
+  storyBookId   String
+  chapterNumber Int
+  title         String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  storyBook     StoryBook   @relation(fields: [storyBookId], references: [id], onDelete: Cascade)
+  pages         StoryPage[]
+
+  @@index([storyBookId])
+}
+
+model StoryPage {
+  id             String       @id @default(uuid())
+  storyChapterId String
+  pageNumber     Int
+  contentEnglish String
+  contentTamil   String
+  illustration   String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  storyChapter   StoryChapter @relation(fields: [storyChapterId], references: [id], onDelete: Cascade)
+
+  @@index([storyChapterId])
+}
+
+model StudentStoryProgress {
+  id             String    @id @default(uuid())
+  studentId      String
+  storyBookId    String
+  completed      Boolean   @default(false)
+  progress       Int       @default(0)
+  currentChapter Int       @default(1)
+  currentPage    Int       @default(1)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  student        Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  storyBook      StoryBook @relation(fields: [storyBookId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, storyBookId])
+  @@index([studentId])
+  @@index([storyBookId])
 }

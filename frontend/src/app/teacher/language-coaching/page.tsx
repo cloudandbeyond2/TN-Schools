@@ -188,6 +188,41 @@ export default function LanguageCoachingPage() {
     }, 1000);
   };
   
+  const statStyles: Record<string, { iconBg: string; iconText: string; borderHover: string; shadowHover: string; trendBg: string; trendText: string }> = {
+    blue: {
+      iconBg: "bg-blue-100 dark:bg-blue-900/30",
+      iconText: "text-blue-600 dark:text-blue-400",
+      borderHover: "hover:border-blue-300 dark:hover:border-blue-700",
+      shadowHover: "hover:shadow-blue-500/10",
+      trendBg: "bg-blue-50 dark:bg-blue-900/20",
+      trendText: "text-blue-600 dark:text-blue-400"
+    },
+    yellow: {
+      iconBg: "bg-amber-100 dark:bg-amber-900/30",
+      iconText: "text-amber-600 dark:text-amber-400",
+      borderHover: "hover:border-amber-300 dark:hover:border-amber-700",
+      shadowHover: "hover:shadow-amber-500/10",
+      trendBg: "bg-amber-50 dark:bg-amber-900/20",
+      trendText: "text-amber-600 dark:text-amber-400"
+    },
+    emerald: {
+      iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
+      iconText: "text-emerald-600 dark:text-emerald-400",
+      borderHover: "hover:border-emerald-300 dark:hover:border-emerald-700",
+      shadowHover: "hover:shadow-emerald-500/10",
+      trendBg: "bg-emerald-50 dark:bg-emerald-900/20",
+      trendText: "text-emerald-600 dark:text-emerald-400"
+    },
+    fuchsia: {
+      iconBg: "bg-fuchsia-100 dark:bg-fuchsia-900/30",
+      iconText: "text-fuchsia-600 dark:text-fuchsia-400",
+      borderHover: "hover:border-fuchsia-300 dark:hover:border-fuchsia-700",
+      shadowHover: "hover:shadow-fuchsia-500/10",
+      trendBg: "bg-fuchsia-50 dark:bg-fuchsia-900/20",
+      trendText: "text-fuchsia-600 dark:text-fuchsia-400"
+    }
+  };
+
   const stats = [
     { label: "Sentences Spoken", value: "245", icon: <MessageCircle />, color: "blue", trend: "+12 Today" },
     { label: "Fearless Badges", value: "14", icon: <Star />, color: "yellow", trend: "Top 10%" },
@@ -242,26 +277,25 @@ export default function LanguageCoachingPage() {
       title="Spoken English Hub! 🗣️"
       subtitle="Speak fearlessly! Learn English using Tamil."
     >
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         
-        <div className="lg:col-span-2 space-y-8">
+        <div className="xl:col-span-2 space-y-8">
           
           {/* Tanglish Hero Banner */}
-          <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-500 via-purple-500 to-fuchsia-500 p-8 text-white shadow-xl shadow-indigo-500/20 border-4 border-indigo-200">
-            <div className="absolute top-0 right-0 w-64 h-full bg-white/10 skew-x-12 translate-x-16"></div>
-            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-yellow-300 rounded-full blur-2xl opacity-40"></div>
+          <div className="relative overflow-hidden bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-lg border-4 border-slate-100 dark:border-slate-700">
+            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-yellow-300/10 rounded-full blur-2xl pointer-events-none"></div>
             
             <div className="relative z-10 flex flex-col md:flex-row gap-6 items-center">
-              <div className="p-4 bg-white/20 backdrop-blur-md text-white rounded-3xl shadow-lg shrink-0 border-2 border-white/30 relative">
+              <div className="p-4 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-500 rounded-3xl shadow-inner border-2 border-indigo-100 dark:border-indigo-900/50 shrink-0 relative">
                 <div className="absolute -top-3 -right-3 bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-1 rounded-full shadow-sm">AI Tutor</div>
                 <Bot className="w-12 h-12" />
               </div>
               <div>
-                <h2 className="text-3xl font-black tracking-tight text-white drop-shadow-md mb-2">
+                <h2 className="text-3xl font-black tracking-tight text-slate-850 dark:text-white mb-2">
                   "Hello, epdi irukkinga?"
                 </h2>
-                <p className="text-indigo-50 font-bold max-w-lg mb-4 text-sm leading-relaxed">
-                  Don't worry about perfect grammar! Speak in <span className="bg-white/20 px-2 py-0.5 rounded-md text-yellow-300">Tanglish</span> or Tamil. 
+                <p className="text-slate-550 dark:text-slate-350 max-w-lg mb-4 text-sm leading-relaxed">
+                  Don't worry about perfect grammar! Speak in <span className="bg-indigo-50 dark:bg-indigo-950/50 px-2 py-0.5 rounded-md text-indigo-600 dark:text-indigo-400 font-bold">Tanglish</span> or Tamil. 
                   Our AI partner will understand you and teach you the exact English words to use. 
                   Mistakes are just steps to learning!
                 </p>
@@ -271,9 +305,9 @@ export default function LanguageCoachingPage() {
                     setActiveTab("tanglish");
                     interactiveHubRef.current?.scrollIntoView({ behavior: "smooth" });
                   }} 
-                  className="px-6 py-3 bg-white text-indigo-600 font-black text-sm rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
                 >
-                  <Sparkles className="w-5 h-5 text-indigo-500" />
+                  <Sparkles className="w-5 h-5 text-white" />
                   Chat with Tanglish AI Now
                 </button>
               </div>
@@ -281,19 +315,22 @@ export default function LanguageCoachingPage() {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, i) => (
-              <div key={i} className={`bg-white dark:bg-slate-800 p-5 rounded-[2rem] shadow-lg border-4 border-slate-100 dark:border-slate-700 flex flex-col items-center text-center group hover:-translate-y-2 hover:border-${stat.color}-300 hover:shadow-${stat.color}-500/20 transition-all`}>
-                <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-100 text-${stat.color}-500 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-inner`}>
-                  {React.cloneElement(stat.icon as React.ReactElement, { className: "w-6 h-6" })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+            {stats.map((stat, i) => {
+              const styles = statStyles[stat.color] || statStyles.blue;
+              return (
+                <div key={i} className={`bg-white dark:bg-slate-800 p-5 rounded-[2rem] shadow-lg border-4 border-slate-100 dark:border-slate-700 flex flex-col items-center text-center group hover:-translate-y-2 ${styles.borderHover} ${styles.shadowHover} transition-all`}>
+                  <div className={`w-12 h-12 rounded-2xl ${styles.iconBg} ${styles.iconText} flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-inner`}>
+                    {React.cloneElement(stat.icon as React.ReactElement, { className: "w-6 h-6" })}
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-1 leading-none">{stat.value}</h3>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{stat.label}</p>
+                  <div className={`text-[9px] font-black ${styles.trendBg} ${styles.trendText} px-2 py-1 rounded-md`}>
+                    {stat.trend}
+                  </div>
                 </div>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-1 leading-none">{stat.value}</h3>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{stat.label}</p>
-                <div className={`text-[9px] font-black bg-${stat.color}-50 text-${stat.color}-600 px-2 py-1 rounded-md`}>
-                  {stat.trend}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Interactive Hub */}

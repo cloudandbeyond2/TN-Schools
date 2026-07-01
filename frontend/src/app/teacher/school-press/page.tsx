@@ -100,10 +100,10 @@ export default function SchoolPressPage() {
 
   return (
     <PortalLayout title="School Press" subtitle="Publish student activities and achievements" accentColor="#10b981">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-in fade-in duration-300">
         
         {/* Left Column - Submission Form */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="xl:col-span-2 space-y-6">
           <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
@@ -213,7 +213,7 @@ export default function SchoolPressPage() {
 
         {/* Right Column - Recent Activity */}
         <div className="space-y-6">
-          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 shadow-sm flex flex-col h-[calc(100vh-140px)] sticky top-24">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 shadow-sm flex flex-col h-auto xl:h-[calc(100vh-140px)] xl:sticky xl:top-24">
             <h3 className="text-base font-bold text-[var(--text-heading)] mb-4 flex items-center gap-2">
               <span className="text-xl">📰</span>
               Recent Publications

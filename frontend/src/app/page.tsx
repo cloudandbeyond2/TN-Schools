@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { portals } from "@/lib/navConfig";
 import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X, MoreVertical } from "lucide-react";
 
 /* ─── Government Color Palette ─── */
 // New Palette: Deep Purple (#3D3580), Lavender (#7B7FC4), Golden Yellow (#F5B800), Warm Orange (#F07800), Red-Orange (#E84400)
@@ -260,14 +261,14 @@ export default function HomePage() {
       <div className="hidden sm:block" style={{ background: "#3D3580", color: "#ffffff", padding: "6px 0", fontSize: "11px" }}>
         <div className="px-4 md:px-8" style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span>🇮🇳</span>
-            <span style={{ fontWeight: 600 }}>{text.govtName}</span>
-            <span style={{ opacity: 0.6 }}>|</span>
-            <span style={{ opacity: 0.85 }}>{text.deptName}</span>
+            <span style={{ color: "white" }}>🇮🇳</span>
+            <span style={{ fontWeight: 600, color: "white" }}>{text.govtName}</span>
+            <span style={{ opacity: 0.6, color: "white" }}>|</span>
+            <span style={{ opacity: 0.85, color: "white" }}>{text.deptName}</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "16px", opacity: 0.85 }}>
-            <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80", display: "inline-block" }}></span>
+            <span style={{ display: "flex", alignItems: "center", gap: "4px", color: "white" }}>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80", display: "inline-block", color: "white" }}></span>
               {text.ftStatus}
             </span>
           </div>
@@ -277,7 +278,7 @@ export default function HomePage() {
       {/* ═══════ ANNOUNCEMENT TICKER ═══════ */}
       <div style={{ background: "#F07800", color: "#fff", padding: "8px 0", fontSize: "12px", overflow: "hidden" }}>
         <div className="px-4 md:px-8" style={{ maxWidth: "1280px", margin: "0 auto" }}>
-          <span style={{ fontWeight: 500 }}>{text.announcementText}</span>
+          <span style={{ fontWeight: 500, color: "white" }}>{text.announcementText}</span>
         </div>
       </div>
 
@@ -309,7 +310,7 @@ export default function HomePage() {
           </Link>
 
           {/* Center Nav Links */}
-          <div className="hidden md:flex items-center" style={{ gap: "32px" }}>
+          <div className="hidden lg:flex items-center" style={{ gap: "32px" }}>
             {[
               { label: text.navFeatures, href: "#features" },
               { label: text.navPortals, href: "#portals" },
@@ -328,8 +329,8 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Right: Lang Toggle + Auth */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {/* Right: Lang Toggle + Auth (Desktop Only) */}
+          <div className="hidden lg:flex items-center gap-3">
             {/* Language Toggle */}
             <div style={{ display: "flex", background: "#f1f5f9", borderRadius: "8px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
               <button
@@ -414,7 +415,125 @@ export default function HomePage() {
               </Link>
             )}
           </div>
+
+          {/* Right: Hamburger Menu button */}
+          <div className="flex lg:hidden items-center">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-xl text-[#3D3580] hover:bg-[#EEEDF8] transition-colors focus:outline-none"
+              aria-label="Toggle Menu"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu Panel */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="lg:hidden bg-white border-t border-slate-100 overflow-hidden"
+            >
+              <div className="px-4 py-6 space-y-6 flex flex-col">
+                {/* Navigation Links */}
+                <div className="flex flex-col gap-4">
+                  {[
+                    { label: text.navFeatures, href: "#features" },
+                    { label: text.navPortals, href: "#portals" },
+                    { label: text.navImpact, href: "#stats" },
+                    { label: text.navTestimonials, href: "#testimonials" },
+                  ].map((link) => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="text-sm font-bold text-slate-700 hover:text-[#3D3580] transition-colors py-2 border-b border-slate-100"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+
+                {/* Language Toggle */}
+                <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                  <span className="text-sm font-bold text-slate-600">Language / மொழி</span>
+                  <div style={{ display: "flex", background: "#f1f5f9", borderRadius: "8px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
+                    <button
+                      onClick={() => { setLang("en"); setIsMobileMenuOpen(false); }}
+                      style={{ fontSize: "12px", padding: "6px 14px", border: "none", cursor: "pointer", fontWeight: 700, background: lang === "en" ? "#3D3580" : "transparent", color: lang === "en" ? "#fff" : "#64748b", transition: "all 0.2s" }}
+                    >EN</button>
+                    <button
+                      onClick={() => { setLang("ta"); setIsMobileMenuOpen(false); }}
+                      style={{ fontSize: "12px", padding: "6px 14px", border: "none", cursor: "pointer", fontWeight: 700, background: lang === "ta" ? "#3D3580" : "transparent", color: lang === "ta" ? "#fff" : "#64748b", transition: "all 0.2s" }}
+                    >தமிழ்</button>
+                  </div>
+                </div>
+
+                {/* Auth Button */}
+                <div className="pt-2">
+                  {session ? (
+                    <div className="flex flex-col gap-3">
+                      <Link
+                        href={getPortalLink()}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        style={{
+                          fontSize: "13px",
+                          color: "#3D3580",
+                          background: "#EEEDF8",
+                          border: "1.5px solid #3D3580",
+                          padding: "10px 16px",
+                          borderRadius: "8px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "8px",
+                          textDecoration: "none",
+                          fontWeight: 700,
+                          width: "100%"
+                        }}
+                      >
+                        <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981", display: "inline-block" }}></span>
+                        <span>👤 {(session.user as any)?.name}</span>
+                      </Link>
+                      <button
+                        onClick={() => { signOut({ callbackUrl: "/" }); setIsMobileMenuOpen(false); }}
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: 700,
+                          color: "#dc2626",
+                          background: "#fff5f5",
+                          border: "1.5px solid #fca5a5",
+                          padding: "10px 16px",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          width: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "8px"
+                        }}
+                      >
+                        🚪 {text.navSignOut}
+                      </button>
+                    </div>
+                  ) : (
+                    <Link
+                      href="/login"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff", background: "linear-gradient(135deg, #3D3580, #7B7FC4)", padding: "12px 20px", borderRadius: "8px", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", width: "100%" }}
+                    >
+                      🔒 {text.navSignIn}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* ═══════════════ HERO SECTION — LIGHT THEME ═══════════════ */}
@@ -902,6 +1021,6 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   );
 }

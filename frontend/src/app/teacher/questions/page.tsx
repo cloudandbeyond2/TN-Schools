@@ -290,7 +290,7 @@ export default function QuestionGeneratorPage() {
       subtitle="Create high-quality exam and quiz questions using AI"
     >
       {/* Navigation tabs */}
-      <div className="flex border-b border-[var(--border)] mb-6">
+      <div className="flex flex-wrap border-b border-[var(--border)] mb-6">
         <button
           onClick={() => setActiveView("generator")}
           className={`py-3 px-6 text-xs font-semibold border-b-2 transition-all ${
@@ -313,7 +313,7 @@ export default function QuestionGeneratorPage() {
       </div>
 
       {activeView === "generator" ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Settings Column */}
           <div className="theme-card p-6 h-fit">
             <h2 className="text-[var(--text-heading)] font-semibold text-sm mb-4">⚙️ Generator Configuration</h2>
@@ -425,7 +425,7 @@ export default function QuestionGeneratorPage() {
           </div>
 
           {/* Output Column */}
-          <div className="lg:col-span-2 flex flex-col min-h-[400px]">
+          <div className="xl:col-span-2 flex flex-col min-h-[400px]">
             {!isGenerating && !showQuestions && (
               <div className="theme-card p-8 flex-1 flex flex-col items-center justify-center text-center border-dashed">
                 <span className="text-4xl mb-4">❓</span>
@@ -449,7 +449,7 @@ export default function QuestionGeneratorPage() {
             {showQuestions && !isGenerating && (
               <div className="space-y-4 flex-1 flex flex-col">
                 {/* Toolbar */}
-                <div className="theme-card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[var(--bg-main)]">
+                <div className="theme-card p-4 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-[var(--bg-main)]">
                   <div className="text-xs text-[var(--text-muted)]">
                     Total Questions: <span className="text-[var(--text-heading)] font-semibold">{questions.length}</span> · Difficulty: <span className="text-[var(--primary)] font-bold capitalize">{difficulty}</span>
                   </div>

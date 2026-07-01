@@ -6,6 +6,7 @@ import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import InteractiveInfographic from "@/components/InteractiveInfographic";
 import SlideVisual from "@/components/SlideVisual";
+import { MoreVertical, X } from "lucide-react";
 
 const syllabusOptions = ["TN State Board (Samacheer Kalvi)", "CBSE", "ICSE"];
 const grades = ["Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
@@ -74,6 +75,8 @@ export default function LessonPlannerPage() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "chat" | "studio">("overview");
+  const [isSidebarMenuOpen, setIsSidebarMenuOpen] = useState(false);
+  const [isNavbarMenuOpen, setIsNavbarMenuOpen] = useState(false);
 
   // Intelligence Studio Modals
   const [activeStudioTool, setActiveStudioTool] = useState<"slides" | "podcast" | "video" | "bilingual" | "assessment" | "visualExplain" | null>(null);
@@ -502,23 +505,11 @@ export default function LessonPlannerPage() {
       title="AI Lesson Studio"
       subtitle="Bilingual AI chapter sources, real-time doc chatting, and visual studio output synthesis"
     >
-      <div className={`flex flex-col md:flex-row h-[calc(100vh-160px)] overflow-hidden rounded-2xl border ${theme.border} ${theme.bg} shadow-2xl transition-colors duration-300 relative`}>
-
-        {/* Mobile Sidebar Toggle Overlay */}
-        {isSidebarOpen && (
-          <div
-            className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsSidebarOpen(false)}
-          />
-        )}
+      <div className={`grid grid-cols-1 xl:grid-cols-4 min-h-[calc(100vh-160px)] xl:h-[calc(100vh-160px)] rounded-2xl border ${theme.border} ${theme.bg} shadow-2xl transition-colors duration-300 relative overflow-y-auto xl:overflow-hidden`}>
 
         {/* Sidebar (Left) */}
-        <div className={`
-          fixed md:relative z-50 h-full flex flex-col transition-all duration-300 ease-in-out shrink-0
-          ${isSidebarOpen ? 'w-80 translate-x-0' : 'w-80 -translate-x-full md:w-0 md:translate-x-0'}
-          ${theme.bgCard} border-r ${theme.border}
-        `}>
-          <div className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-thin">
+        <div className={`col-span-1 flex flex-col ${theme.bgCard} border-b xl:border-b-0 xl:border-r ${theme.border} h-fit xl:h-full overflow-y-auto`}>
+          <div className="flex-1 p-5 space-y-6 scrollbar-thin">
 
             {/* Generate Form */}
             <div className={`p-4 rounded-2xl border ${theme.border} ${theme.bgCardSoft} shadow-sm backdrop-blur-xl`}>
@@ -666,17 +657,11 @@ export default function LessonPlannerPage() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+        <div className="col-span-1 xl:col-span-3 flex flex-col h-full overflow-hidden relative">
 
           {/* Top Navbar */}
-          <div className={`h-16 border-b ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl flex items-center justify-between px-4 lg:px-6 shrink-0 z-10`}>
-            <div className="flex items-center gap-3 lg:gap-6">
-              <button
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className={`p-2 rounded-lg hover:${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'} ${theme.textMuted} transition-colors`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-              </button>
+          <div className={`h-16 border-b ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl flex items-center justify-between px-4 xl:px-6 shrink-0 z-10`}>
+            <div className="flex items-center gap-3 xl:gap-6">
 
               {currentPlan && !isGenerating && (
                 <div className="flex bg-slate-900/10 dark:bg-slate-900 rounded-xl p-1 shadow-inner border border-slate-200 dark:border-slate-800">
@@ -693,7 +678,7 @@ export default function LessonPlannerPage() {
                         : `text-slate-500 hover:${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`
                         }`}
                     >
-                      <span className="text-sm">{tab.icon}</span> <span className="hidden sm:inline">{tab.label}</span>
+                      <span className="text-sm">{tab.icon}</span> <span className="hidden xl:inline">{tab.label}</span>
                     </button>
                   ))}
                 </div>
@@ -709,11 +694,12 @@ export default function LessonPlannerPage() {
                   💾 SAVE PLAN
                 </button>
               )}
+
             </div>
           </div>
 
           {/* Main Stage */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 scrollbar-thin relative">
+          <div className="flex-1 overflow-y-auto p-4 xl:p-8 scrollbar-thin relative">
             {isGenerating ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className={`max-w-md w-full p-8 rounded-3xl border ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center text-center`}>
@@ -754,7 +740,7 @@ export default function LessonPlannerPage() {
                 </p>
                 <button
                   onClick={() => setIsSidebarOpen(true)}
-                  className="mt-8 px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-transform md:hidden"
+                  className="mt-8 px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-transform xl:hidden"
                 >
                   Open Sidebar to Start
                 </button>
@@ -763,13 +749,13 @@ export default function LessonPlannerPage() {
               <div className="max-w-5xl mx-auto h-full flex flex-col">
 
                 {/* Header info */}
-                <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                <div className="mb-6 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
                   <div>
                     <div className="flex gap-2 mb-2">
                       <span className="px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase">{currentPlan.grade}</span>
                       <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase">{currentPlan.subject}</span>
                     </div>
-                    <h1 className={`${theme.text} font-black text-3xl md:text-4xl`}>{currentPlan.topic}</h1>
+                    <h1 className={`${theme.text} font-black text-3xl xl:text-4xl`}>{currentPlan.topic}</h1>
                     <p className={`text-xs ${theme.textMuted} mt-2 font-medium`}>{currentPlan.syllabus} • {currentPlan.duration}</p>
                   </div>
                 </div>
@@ -781,10 +767,10 @@ export default function LessonPlannerPage() {
                       <h3 className="text-sm font-bold text-indigo-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                         <span className="text-xl">🎯</span> Lesson Objectives
                       </h3>
-                      <ul className="grid md:grid-cols-2 gap-4">
+                      <ul className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                         {currentPlan.planData?.objectives?.map((obj, i) => (
-                          <li key={i} className={`p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/10 text-sm ${theme.text} flex gap-3`}>
-                            <span className="text-indigo-500 font-bold shrink-0">{i + 1}.</span> {obj}
+                          <li key={i} className={`p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/10 text-sm  flex gap-3`}>
+                            <span className="text-gray-500 font-bold shrink-0">{i + 1}.</span> {obj}
                           </li>
                         ))}
                       </ul>
@@ -794,13 +780,13 @@ export default function LessonPlannerPage() {
                       <h3 className="text-sm font-bold text-amber-500 uppercase tracking-widest mb-6 flex items-center gap-2">
                         <span className="text-xl">⏱️</span> Pedagogical Timeline
                       </h3>
-                      <div className="relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 dark:before:via-slate-700 before:to-transparent space-y-8">
+                      <div className="relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px xl:before:mx-auto xl:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 dark:before:via-slate-700 before:to-transparent space-y-8">
                         {currentPlan.planData?.timeline?.map((item, i) => (
-                          <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                            <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-slate-900 bg-amber-500 text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 text-xs font-bold">
+                          <div key={i} className="relative flex items-center justify-between xl:justify-normal xl:odd:flex-row-reverse group is-active">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-slate-900 bg-amber-500 text-white shadow shrink-0 xl:order-1 xl:group-odd:-translate-x-1/2 xl:group-even:translate-x-1/2 z-10 text-xs font-bold">
                               {i + 1}
                             </div>
-                            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 shadow-sm transition-transform hover:-translate-y-1">
+                            <div className="w-[calc(100%-4rem)] xl:w-[calc(50%-2.5rem)] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 shadow-sm transition-transform hover:-translate-y-1">
                               <div className="flex items-center justify-between mb-2">
                                 <span className="font-bold text-amber-600 dark:text-amber-400 text-sm">{item.activity}</span>
                                 <span className="text-[10px] font-black px-2 py-1 bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-md">{item.time}</span>
@@ -820,9 +806,9 @@ export default function LessonPlannerPage() {
                     flex flex-col overflow-hidden 
                     ${isDarkMode ? 'bg-[#0b141a]' : 'bg-[#efeae2]'}
                     absolute inset-0 z-20 
-                    md:relative md:inset-auto md:flex-1 md:rounded-3xl md:border md:shadow-sm ${theme.border}
+                    xl:relative xl:inset-auto xl:flex-1 xl:rounded-3xl xl:border xl:shadow-sm ${theme.border}
                   `}>
-                    <div className={`p-3 md:p-4 border-b flex justify-between items-center shrink-0 ${isDarkMode ? 'bg-[#202c33] border-[#202c33]' : 'bg-[#f0f2f5] border-[#d1d7db]'}`}>
+                    <div className={`p-3 xl:p-4 border-b flex justify-between items-center shrink-0 ${isDarkMode ? 'bg-[#202c33] border-[#202c33]' : 'bg-[#f0f2f5] border-[#d1d7db]'}`}>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xl shadow-sm">🤖</div>
                         <div>
@@ -835,7 +821,7 @@ export default function LessonPlannerPage() {
                     <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin">
                       {chatMessages.map((msg, i) => (
                         <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                          <div className={`max-w-[85%] md:max-w-[75%] px-4 py-2 text-[14px] leading-relaxed shadow-sm ${msg.role === "user"
+                          <div className={`max-w-[85%] xl:max-w-[75%] px-4 py-2 text-[14px] leading-relaxed shadow-sm ${msg.role === "user"
                             ? `${isDarkMode ? 'bg-[#005c4b] text-[#e9edef]' : 'bg-[#d9fdd3] text-[#111b21]'} rounded-2xl rounded-tr-sm`
                             : `${isDarkMode ? 'bg-[#202c33] text-[#e9edef]' : 'bg-white text-[#111b21]'} rounded-2xl rounded-tl-sm`
                             }`} style={{ whiteSpace: "pre-line" }}>
@@ -875,7 +861,7 @@ export default function LessonPlannerPage() {
 
                 {/* Tab: Studio */}
                 {activeTab === "studio" && (
-                  <div className="flex-1 grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 h-full content-start overflow-y-auto pb-8">
+                  <div className="flex-1 grid grid-cols-2 xl:grid-cols-3 gap-3 xl:gap-6 h-full content-start overflow-y-auto pb-8">
                     {[
                       { id: "slides", label: "Slide Deck", icon: "🖼️", desc: "Interactive concept slides", bg: "from-blue-500 to-indigo-600" },
                       { id: "visualExplain", label: "Infographic", icon: "📊", desc: "Interactive visual mapping", bg: "from-emerald-400 to-teal-500" },
@@ -894,14 +880,14 @@ export default function LessonPlannerPage() {
                             window.open(`/teacher/studio-view?planId=${currentPlan.id}&tool=${tool.id}`, '_blank');
                           }
                         }}
-                        className={`group relative p-4 md:p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden text-left flex flex-col cursor-pointer`}
+                        className={`group relative p-4 xl:p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden text-left flex flex-col cursor-pointer`}
                         role="button"
                         tabIndex={0}
                       >
-                        <div className={`absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br ${tool.bg} opacity-10 rounded-bl-full -mr-6 -mt-6 md:-mr-8 md:-mt-8 group-hover:scale-110 transition-transform duration-500`} />
-                        <div className="text-3xl md:text-4xl mb-3 md:mb-4 group-hover:scale-110 transition-transform origin-left">{tool.icon}</div>
-                        <h4 className={`text-sm md:text-lg font-black ${theme.text} mb-1 transition-colors group-hover:text-indigo-500`}>{tool.label}</h4>
-                        <p className={`text-[10px] md:text-xs ${theme.textMuted} font-medium leading-tight hidden sm:block`}>{tool.desc}</p>
+                        <div className={`absolute top-0 right-0 w-24 h-24 xl:w-32 xl:h-32 bg-gradient-to-br ${tool.bg} opacity-10 rounded-bl-full -mr-6 -mt-6 xl:-mr-8 xl:-mt-8 group-hover:scale-110 transition-transform duration-500`} />
+                        <div className="text-3xl xl:text-4xl mb-3 xl:mb-4 group-hover:scale-110 transition-transform origin-left">{tool.icon}</div>
+                        <h4 className={`text-sm xl:text-lg font-black ${theme.text} mb-1 transition-colors group-hover:text-indigo-500`}>{tool.label}</h4>
+                        <p className={`text-[10px] xl:text-xs ${theme.textMuted} font-medium leading-tight hidden xl:block`}>{tool.desc}</p>
                       </div>
                     ))}
                   </div>

@@ -158,7 +158,7 @@ export default function TeacherProfilePage() {
 
   return (
     <PortalLayout title="My Profile" subtitle="View and edit your personal educational credentials.">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
 
         {/* Left Card: Profile overview */}
         <div className="theme-card p-6 border border-[var(--border)] flex flex-col items-center text-center relative overflow-hidden">
@@ -246,7 +246,7 @@ export default function TeacherProfilePage() {
         </div>
 
         {/* Right Columns: Edit form */}
-        <div className="lg:col-span-2 theme-card p-6 border border-[var(--border)]">
+        <div className="xl:col-span-2 theme-card p-6 border border-[var(--border)]">
           <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4">⚙️ Profile Details</h2>
 
           {loading ? (
@@ -255,7 +255,7 @@ export default function TeacherProfilePage() {
             </div>
           ) : (
             <form onSubmit={handleSave} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Full Name</label>
                   <input
@@ -283,7 +283,7 @@ export default function TeacherProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Phone Number</label>
                   <input
@@ -309,7 +309,7 @@ export default function TeacherProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Subject Specialties (comma separated)</label>
                   <input
@@ -334,7 +334,7 @@ export default function TeacherProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Gender</label>
                   <select
