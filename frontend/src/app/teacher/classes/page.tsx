@@ -331,110 +331,175 @@ export default function ClassesPage() {
           )}
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                  <th className="px-5 py-3">Class / Section</th>
-                  <th className="px-5 py-3">Subject</th>
-                  <th className="px-5 py-3">Academic Year</th>
-                  <th className="px-5 py-3">Room</th>
-                  <th className="px-5 py-3">Schedule</th>
-                  <th className="px-5 py-3">Students</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((c) => (
-                  <tr
-                    key={c.id}
-                    className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-amber-50/30 dark:hover:bg-amber-500/5 transition-colors"
+        <>
+          {/* Mobile/Tablet Single Sentence Cards View */}
+          <div className="block lg:hidden space-y-4">
+            {filtered.map((c) => (
+              <div key={c.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                {/* Subject & Status */}
+                <div className="flex justify-between items-center mb-3">
+                  <span className={`text-[10px] px-2.5 py-1 rounded-full font-semibold ${badgeClass(c.subject)}`}>
+                    {c.subject}
+                  </span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${c.isActive
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+                    : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                    }`}>
+                    {c.isActive ? "● Active" : "Inactive"}
+                  </span>
+                </div>
+
+                {/* Single Sentence Description */}
+                <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed mb-4">
+                  Class <span className="font-black text-amber-500">{c.className} – {c.section}</span> {c.description ? `(${c.description})` : ""} is scheduled for <span className="font-bold text-slate-800 dark:text-white">{c.subject}</span> in the <span className="font-bold">{c.academicYear}</span> academic year, meeting in <span className="font-bold">{c.roomNumber || "—"}</span> on <span className="font-bold">{c.schedule || "—"}</span> with <span className="font-bold">{c.totalStudents || 0} students</span>.
+                </p>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <button
+                    onClick={() => openEdit(c)}
+                    className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded-lg font-bold text-[10px] transition-all"
                   >
-                    {/* Class / Section */}
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 font-black text-sm shrink-0">
-                          {c.className}{c.section}
-                        </div>
-                        <div>
-                          <div className="font-bold text-slate-800 dark:text-white text-xs">
-                            Class {c.className} – {c.section}
-                          </div>
-                          {c.description && (
-                            <div className="text-[10px] text-slate-400 mt-0.5 max-w-[140px] truncate">{c.description}</div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
+                    Edit Details
+                  </button>
+                  <button
+                    onClick={() => handleDelete(c)}
+                    className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/20 rounded-lg font-bold text-[10px] transition-all"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
 
-                    {/* Subject */}
-                    <td className="px-5 py-3.5">
-                      <span className={`text-[10px] px-2.5 py-1 rounded-full font-semibold ${badgeClass(c.subject)}`}>
-                        {c.subject}
-                      </span>
-                    </td>
-
-                    {/* Year */}
-                    <td className="px-5 py-3.5 text-xs text-slate-500 dark:text-slate-400 font-semibold">
-                      {c.academicYear}
-                    </td>
-
-                    {/* Room */}
-                    <td className="px-5 py-3.5 text-xs text-slate-600 dark:text-slate-400">
-                      {c.roomNumber ? `🚪 ${c.roomNumber}` : <span className="text-slate-300 dark:text-slate-600">—</span>}
-                    </td>
-
-                    {/* Schedule */}
-                    <td className="px-5 py-3.5 text-xs text-slate-600 dark:text-slate-400 max-w-[130px]">
-                      {c.schedule ? `⏰ ${c.schedule}` : <span className="text-slate-300 dark:text-slate-600">—</span>}
-                    </td>
-
-                    {/* Students */}
-                    <td className="px-5 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-                      {c.totalStudents > 0 ? `👥 ${c.totalStudents}` : <span className="text-slate-300 dark:text-slate-600">—</span>}
-                    </td>
-
-                    {/* Status */}
-                    <td className="px-5 py-3.5">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${c.isActive
-                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
-                        : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-                        }`}>
-                        {c.isActive ? "● Active" : "Inactive"}
-                      </span>
-                    </td>
-
-                    {/* Actions */}
-                    <td className="px-5 py-3.5 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => openEdit(c)}
-                          className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded-lg font-bold text-[10px] transition-all"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(c)}
-                          className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/20 rounded-lg font-bold text-[10px] transition-all"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+          {/* Desktop Table View */}
+          <div className="hidden lg:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    <th className="px-5 py-3">Class / Section</th>
+                    <th className="px-5 py-3">Subject</th>
+                    <th className="px-5 py-3">Academic Year</th>
+                    <th className="px-5 py-3">Room</th>
+                    <th className="px-5 py-3">Schedule</th>
+                    <th className="px-5 py-3">Students</th>
+                    <th className="px-5 py-3">Status</th>
+                    <th className="px-5 py-3 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filtered.map((c) => (
+                    <tr
+                      key={c.id}
+                      className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-amber-50/30 dark:hover:bg-amber-500/5 transition-colors"
+                    >
+                      {/* Class / Section */}
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 font-black text-sm shrink-0">
+                            {c.className}{c.section}
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800 dark:text-white text-xs">
+                              Class {c.className} – {c.section}
+                            </div>
+                            {c.description && (
+                              <div className="text-[10px] text-slate-400 mt-0.5 max-w-[140px] truncate">{c.description}</div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
 
-          {/* Table Footer */}
-          <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 flex justify-between items-center">
-            <span>Showing {filtered.length} of {classes.length} classes</span>
-            {/* <span>Data stored in PostgreSQL · TN Schools AI</span> */}
+                      {/* Subject */}
+                      <td className="px-5 py-3.5">
+                        <span className={`text-[10px] px-2.5 py-1 rounded-full font-semibold ${badgeClass(c.subject)}`}>
+                          {c.subject}
+                        </span>
+                      </td>
+
+                      {/* Year */}
+                      <td className="px-5 py-3.5 text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                        {c.academicYear}
+                      </td>
+
+                      {/* Room */}
+                      <td className="px-5 py-3.5 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                        {c.roomNumber ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="text-sm">🚪</span>
+                            <span>{c.roomNumber}</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-300 dark:text-slate-600">—</span>
+                        )}
+                      </td>
+
+                      {/* Schedule */}
+                      <td className="px-5 py-3.5 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                        {c.schedule ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="text-sm">⏰</span>
+                            <span>{c.schedule}</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-300 dark:text-slate-600">—</span>
+                        )}
+                      </td>
+
+                      {/* Students */}
+                      <td className="px-5 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                        {c.totalStudents > 0 ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="text-sm">👥</span>
+                            <span>{c.totalStudents}</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-300 dark:text-slate-600">—</span>
+                        )}
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-5 py-3.5 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full font-bold border ${c.isActive
+                          ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-450 border-emerald-200 dark:border-emerald-800/80"
+                          : "bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800"
+                          }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                          <span>{c.isActive ? "Active" : "Inactive"}</span>
+                        </span>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => openEdit(c)}
+                            className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded-lg font-bold text-[10px] transition-all"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(c)}
+                            className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/20 rounded-lg font-bold text-[10px] transition-all"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Table Footer */}
+            <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 flex justify-between items-center">
+              <span>Showing {filtered.length} of {classes.length} classes</span>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* ── Add / Edit Modal ─────────────────────────────────── */}
