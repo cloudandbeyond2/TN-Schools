@@ -449,7 +449,7 @@ export default function QuestionGeneratorPage() {
             {showQuestions && !isGenerating && (
               <div className="space-y-4 flex-1 flex flex-col">
                 {/* Toolbar */}
-                <div className="theme-card p-4 flex justify-between items-center bg-[var(--bg-main)]">
+                <div className="theme-card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[var(--bg-main)]">
                   <div className="text-xs text-[var(--text-muted)]">
                     Total Questions: <span className="text-[var(--text-heading)] font-semibold">{questions.length}</span> · Difficulty: <span className="text-[var(--primary)] font-bold capitalize">{difficulty}</span>
                   </div>

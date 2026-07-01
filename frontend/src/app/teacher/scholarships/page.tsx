@@ -126,7 +126,7 @@ export default function ScholarshipsPage() {
   return (
     <PortalLayout title="Scholarship & Govt Schemes" subtitle="Verify candidate records and monitor disbursal statuses.">
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6 fade-in">
         {[
           { label: "Eligible Students", value: String(stats.eligible), icon: "👨‍🎓", color: "text-amber-400", sub: "Across all classes" },
           { label: "Approved Grants", value: String(stats.approved), icon: "✅", color: "text-emerald-400", sub: "Disbursals active" },
@@ -228,7 +228,7 @@ export default function ScholarshipsPage() {
       {/* Guidelines details */}
       <div className="theme-card p-6 border border-[var(--border)]">
         <h2 className="text-base font-semibold text-[var(--text-heading)] mb-3">🏛️ Tamil Nadu Government Scheme Notes</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs text-[var(--text-muted)]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 text-xs text-[var(--text-muted)]">
           <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-xl border border-[var(--border)]">
             <h4 className="text-sm font-bold text-[var(--text-heading)] mb-1">Pudhumai Penn Scheme</h4>
             <p className="leading-relaxed font-normal">Eligible for all girl students who studied classes 6-12 in govt schools, providing ₹1,000/month upon entering higher education.</p>

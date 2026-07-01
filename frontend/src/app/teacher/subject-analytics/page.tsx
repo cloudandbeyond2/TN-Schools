@@ -415,7 +415,7 @@ export default function SubjectAnalyticsPage() {
       </div>
 
       {/* KPI Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6 fade-in">
         {[
           {
             label: "Syllabus Progress",
@@ -458,9 +458,9 @@ export default function SubjectAnalyticsPage() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 animate-pulse">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6 animate-pulse">
           {/* Chapter coverage directory skeleton */}
-          <div className="lg:col-span-2 bg-[var(--bg-card)] border border-[var(--border)] p-6 rounded-2xl space-y-6">
+          <div className="xl:col-span-2 bg-[var(--bg-card)] border border-[var(--border)] p-6 rounded-2xl space-y-6">
             <div className="flex justify-between items-center">
               <div className="h-6 bg-slate-800 rounded w-1/3" />
               <div className="h-8 bg-slate-800 rounded w-1/4" />
@@ -513,10 +513,10 @@ export default function SubjectAnalyticsPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
           {/* Chapters and Syllabus progress */}
-          <div className="lg:col-span-2 theme-card p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="xl:col-span-2 theme-card p-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
               <h2 className="text-base font-semibold text-[var(--text-heading)] flex items-center gap-2">
                 <span>📚</span> Chapter Coverage Directory
                 <button
@@ -551,7 +551,7 @@ export default function SubjectAnalyticsPage() {
                   key={chapter.id}
                   className="p-4 bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] hover-lift"
                 >
-                  <div className="flex justify-between items-start mb-2">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
                     <div>
                       <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
                         {chapter.category}

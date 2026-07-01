@@ -229,7 +229,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* KPI Summaries Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[
             { label: "Class Average Score", value: `${summary.avgScore}%`, icon: "📈", color: "text-amber-400", desc: "Term average" },
             { label: "Mean Attendance", value: `${summary.attendance}%`, icon: "📅", color: "text-emerald-400", desc: "This semester" },

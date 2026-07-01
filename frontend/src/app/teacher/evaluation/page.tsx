@@ -285,7 +285,7 @@ export default function EvaluationPage() {
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-[var(--border)] flex gap-3">
+                <div className="pt-3 border-t border-[var(--border)] flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={() => {
                       setManualOverrideScores({});

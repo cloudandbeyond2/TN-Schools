@@ -74,7 +74,7 @@ export default function LessonPlannerPage() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "chat" | "studio">("overview");
-  
+
   // Intelligence Studio Modals
   const [activeStudioTool, setActiveStudioTool] = useState<"slides" | "podcast" | "video" | "bilingual" | "assessment" | "visualExplain" | null>(null);
 
@@ -143,7 +143,7 @@ export default function LessonPlannerPage() {
       try {
         if (file.name.endsWith(".pdf")) {
           const arrayBuffer = event.target?.result as ArrayBuffer;
-          
+
           // Load PDF.js from CDN dynamically
           const pdfjsLib = (window as any)['pdfjs-dist/build/pdf'];
           if (!pdfjsLib) {
@@ -193,7 +193,7 @@ export default function LessonPlannerPage() {
         });
       }
     };
-    
+
     if (file.name.endsWith(".pdf")) {
       reader.readAsArrayBuffer(file);
     } else {
@@ -423,7 +423,7 @@ export default function LessonPlannerPage() {
       setPodcastIndex(index);
       const line = script[index];
       const utterance = new SpeechSynthesisUtterance(line.text);
-      
+
       const voices = window.speechSynthesis.getVoices();
       if (line.speaker.includes("Meera")) {
         const tamilVoice = voices.find(v => v.lang.includes("ta"));
@@ -461,7 +461,7 @@ export default function LessonPlannerPage() {
     } else {
       setIsVideoPlaying(true);
       if (videoScene >= storyboard.length) setVideoScene(0);
-      
+
       const interval = setInterval(() => {
         setVideoScene((prev) => {
           if (prev < storyboard.length - 1) {
@@ -503,10 +503,10 @@ export default function LessonPlannerPage() {
       subtitle="Bilingual AI chapter sources, real-time doc chatting, and visual studio output synthesis"
     >
       <div className={`flex flex-col md:flex-row h-[calc(100vh-160px)] overflow-hidden rounded-2xl border ${theme.border} ${theme.bg} shadow-2xl transition-colors duration-300 relative`}>
-        
+
         {/* Mobile Sidebar Toggle Overlay */}
         {isSidebarOpen && (
-          <div 
+          <div
             className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
             onClick={() => setIsSidebarOpen(false)}
           />
@@ -519,13 +519,13 @@ export default function LessonPlannerPage() {
           ${theme.bgCard} border-r ${theme.border}
         `}>
           <div className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-thin">
-            
+
             {/* Generate Form */}
             <div className={`p-4 rounded-2xl border ${theme.border} ${theme.bgCardSoft} shadow-sm backdrop-blur-xl`}>
               <h2 className={`${theme.text} font-bold text-xs mb-4 flex items-center gap-2`}>
                 <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500">📁</span> Document Sources
               </h2>
-              
+
               <form onSubmit={handleGenerate} className="space-y-4">
                 <div>
                   <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>Syllabus Standard</label>
@@ -640,11 +640,10 @@ export default function LessonPlannerPage() {
                         setDuration(plan.duration);
                         if (window.innerWidth < 768) setIsSidebarOpen(false);
                       }}
-                      className={`p-3 rounded-xl border text-[11px] cursor-pointer transition-all flex justify-between items-center group ${
-                        currentPlan?.id === plan.id
-                          ? "border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-sm"
-                          : `${theme.border} ${theme.bg} hover:border-amber-400 ${theme.textMuted}`
-                      }`}
+                      className={`p-3 rounded-xl border text-[11px] cursor-pointer transition-all flex justify-between items-center group ${currentPlan?.id === plan.id
+                        ? "border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-sm"
+                        : `${theme.border} ${theme.bg} hover:border-amber-400 ${theme.textMuted}`
+                        }`}
                     >
                       <span className="truncate font-bold flex-1">{plan.topic}</span>
                       <button
@@ -668,17 +667,17 @@ export default function LessonPlannerPage() {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-          
+
           {/* Top Navbar */}
           <div className={`h-16 border-b ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl flex items-center justify-between px-4 lg:px-6 shrink-0 z-10`}>
             <div className="flex items-center gap-3 lg:gap-6">
-              <button 
+              <button
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                 className={`p-2 rounded-lg hover:${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'} ${theme.textMuted} transition-colors`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
               </button>
-              
+
               {currentPlan && !isGenerating && (
                 <div className="flex bg-slate-900/10 dark:bg-slate-900 rounded-xl p-1 shadow-inner border border-slate-200 dark:border-slate-800">
                   {[
@@ -689,11 +688,10 @@ export default function LessonPlannerPage() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as any)}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
-                        activeTab === tab.id
-                          ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm"
-                          : `text-slate-500 hover:${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`
-                      }`}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === tab.id
+                        ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm"
+                        : `text-slate-500 hover:${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`
+                        }`}
                     >
                       <span className="text-sm">{tab.icon}</span> <span className="hidden sm:inline">{tab.label}</span>
                     </button>
@@ -754,7 +752,7 @@ export default function LessonPlannerPage() {
                 <p className={`text-sm ${theme.textMuted} leading-relaxed`}>
                   Select a topic, upload your textbook chapter, and let our AI generate a comprehensive, bilingual lesson plan with interactive slides and podcasts.
                 </p>
-                <button 
+                <button
                   onClick={() => setIsSidebarOpen(true)}
                   className="mt-8 px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-transform md:hidden"
                 >
@@ -763,7 +761,7 @@ export default function LessonPlannerPage() {
               </div>
             ) : (
               <div className="max-w-5xl mx-auto h-full flex flex-col">
-                
+
                 {/* Header info */}
                 <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                   <div>
@@ -800,7 +798,7 @@ export default function LessonPlannerPage() {
                         {currentPlan.planData?.timeline?.map((item, i) => (
                           <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
                             <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-slate-900 bg-amber-500 text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 text-xs font-bold">
-                              {i+1}
+                              {i + 1}
                             </div>
                             <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 shadow-sm transition-transform hover:-translate-y-1">
                               <div className="flex items-center justify-between mb-2">
@@ -833,15 +831,14 @@ export default function LessonPlannerPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin">
                       {chatMessages.map((msg, i) => (
                         <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                          <div className={`max-w-[85%] md:max-w-[75%] px-4 py-2 text-[14px] leading-relaxed shadow-sm ${
-                            msg.role === "user"
-                              ? `${isDarkMode ? 'bg-[#005c4b] text-[#e9edef]' : 'bg-[#d9fdd3] text-[#111b21]'} rounded-2xl rounded-tr-sm`
-                              : `${isDarkMode ? 'bg-[#202c33] text-[#e9edef]' : 'bg-white text-[#111b21]'} rounded-2xl rounded-tl-sm`
-                          }`} style={{ whiteSpace: "pre-line" }}>
+                          <div className={`max-w-[85%] md:max-w-[75%] px-4 py-2 text-[14px] leading-relaxed shadow-sm ${msg.role === "user"
+                            ? `${isDarkMode ? 'bg-[#005c4b] text-[#e9edef]' : 'bg-[#d9fdd3] text-[#111b21]'} rounded-2xl rounded-tr-sm`
+                            : `${isDarkMode ? 'bg-[#202c33] text-[#e9edef]' : 'bg-white text-[#111b21]'} rounded-2xl rounded-tl-sm`
+                            }`} style={{ whiteSpace: "pre-line" }}>
                             {msg.content}
                           </div>
                         </div>
@@ -850,13 +847,13 @@ export default function LessonPlannerPage() {
                         <div className="flex justify-start">
                           <div className={`px-4 py-3 rounded-2xl rounded-tl-sm text-sm ${isDarkMode ? 'bg-[#202c33]' : 'bg-white'} shadow-sm flex gap-1.5 items-center`}>
                             <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" />
-                            <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{animationDelay: "150ms"}} />
-                            <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{animationDelay: "300ms"}} />
+                            <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                            <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "300ms" }} />
                           </div>
                         </div>
                       )}
                     </div>
-                    
+
                     <div className={`p-2 flex gap-2 shrink-0 items-end ${isDarkMode ? 'bg-[#202c33]' : 'bg-[#f0f2f5]'}`}>
                       <input
                         type="text"
@@ -916,6 +913,6 @@ export default function LessonPlannerPage() {
 
       </div>
 
-      </PortalLayout>
+    </PortalLayout>
   );
 }

@@ -189,7 +189,7 @@ export default function StudentProfilesPage() {
 
       {/* Profiles Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 animate-pulse">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 animate-pulse">
           {[1, 2, 3, 4, 5, 6].map((n) => (
             <div key={n} className="bg-[var(--bg-card)] border border-[var(--border)] p-5 rounded-2xl flex flex-col justify-between space-y-5">
               <div>
