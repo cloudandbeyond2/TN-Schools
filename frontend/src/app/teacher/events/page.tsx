@@ -96,75 +96,75 @@ export default function TeacherEventsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 text-left">
         {/* Create Event Form */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <h2 className="text-xl font-bold mb-4">Schedule New Event</h2>
+          <h2 className="text-sm font-bold text-slate-800 dark:text-white mb-4">📅 Schedule New Event</h2>
           <form onSubmit={handleCreateEvent} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold mb-1">Event Title</label>
+              <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">Event Title *</label>
               <input 
                 required 
                 type="text" 
                 value={title} 
                 onChange={(e) => setTitle(e.target.value)} 
-                className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-white placeholder-slate-405 placeholder:text-xs focus:outline-none focus:border-amber-500 transition-colors"
                 placeholder="e.g. Annual Science Fair"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-1">Event Date</label>
+              <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">Event Date *</label>
               <input 
                 required 
                 type="date" 
                 value={eventDate} 
                 onChange={(e) => setEventDate(e.target.value)} 
-                className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-1">Associated Club</label>
+              <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">Associated Club *</label>
               <select 
                 required
                 value={clubId} 
                 onChange={(e) => setClubId(e.target.value)}
-                className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
               >
                 {clubs.map(club => (
-                  <option key={club.id} value={club.id}>{club.name} ({club.category})</option>
+                  <option key={club.id} value={club.id} className="dark:bg-slate-900">{club.name} ({club.category})</option>
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Event Type</label>
+                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">Event Type</label>
                   <select 
                     value={type} 
                     onChange={(e) => setType(e.target.value)}
-                    className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent outline-none focus:border-amber-500 transition-colors"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                   >
-                    <option value="School-wide">School-wide</option>
-                    <option value="Competition">Competition</option>
-                    <option value="Showcase">Showcase</option>
-                    <option value="Workshop">Workshop</option>
+                    <option value="School-wide" className="dark:bg-slate-900">School-wide</option>
+                    <option value="Competition" className="dark:bg-slate-900">Competition</option>
+                    <option value="Showcase" className="dark:bg-slate-900">Showcase</option>
+                    <option value="Workshop" className="dark:bg-slate-900">Workshop</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Icon (Emoji)</label>
+                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">Icon (Emoji) *</label>
                   <input 
                     required 
                     type="text" 
                     value={icon} 
                     onChange={(e) => setIcon(e.target.value)} 
-                    className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent outline-none focus:border-amber-500 transition-colors"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-white placeholder-slate-405 placeholder:text-xs focus:outline-none focus:border-amber-500 transition-colors"
                   />
                 </div>
             </div>
             <button 
               type="submit" 
               disabled={isSubmitting || clubs.length === 0}
-              className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Scheduling..." : "Schedule Event"}
             </button>
-            {clubs.length === 0 && <p className="text-xs text-red-500 text-center">A club must be created before scheduling events.</p>}
+            {clubs.length === 0 && <p className="text-[10px] text-red-500 text-center font-bold">A club must be created before scheduling events.</p>}
           </form>
         </div>
 
