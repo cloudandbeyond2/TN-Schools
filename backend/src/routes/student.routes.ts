@@ -538,7 +538,8 @@ router.get('/:id/language-coaching', async (req: Request, res: Response) => {
           { id },
           { userId: id }
         ]
-      }
+      },
+      include: { user: true }
     });
     if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
 
@@ -559,21 +560,21 @@ router.get('/:id/language-coaching', async (req: Request, res: Response) => {
     });
 
     if (badges.length === 0) {
-      // Create default badges for a neat UI
+      // Create default badges for a neat UI using actual database schema fields
       const defaultBadges = [
-        { badgeName: "Fearless Speaker", desc: "Spoke 10 sentences today", icon: "🦁", color: "amber" },
-        { badgeName: "Hospital Helper", desc: "Completed Doctor Roleplay", icon: "🏥", color: "rose" },
-        { badgeName: "Tanglish Master", desc: "Used AI bridge 5 times", icon: "🤖", color: "indigo" }
+        { badge: "💬 Active Speaker", remark: "Spoke 10 sentences today" },
+        { badge: "🔬 Star Scientist", remark: "Completed Doctor Roleplay" },
+        { badge: "🌟 Mentor Star", remark: "Used AI bridge 5 times" }
       ];
       
       await Promise.all(defaultBadges.map(b => 
         prisma.studentBadge.create({
           data: {
             studentId: student.id,
-            badgeName: b.badgeName,
-            desc: b.desc,
-            icon: b.icon,
-            color: b.color
+            studentName: student.user?.name || "Student",
+            classSection: `${student.class}-${student.section}`,
+            badge: b.badge,
+            remark: b.remark
           }
         })
       ));
@@ -598,10 +599,10 @@ router.get('/:id/language-coaching', async (req: Request, res: Response) => {
         ],
         wordOfTheDay,
         badges: badges.map((b: any) => ({
-          name: b.badgeName,
-          desc: b.desc,
-          icon: b.icon,
-          color: b.color
+          name: b.badge,
+          desc: b.remark || "Awarded by your teacher",
+          icon: b.badge.split(" ")[0] || "🏅",
+          color: b.badge.includes("Active") ? "emerald" : b.badge.includes("Scientist") ? "blue" : "purple"
         }))
       }
     });
@@ -704,6 +705,123 @@ router.post('/:id/language-coaching/pronunciation', async (req: Request, res: Re
 
     res.json({ success: true, data: progress });
   } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+
+/* ------------------- GET PORTFOLIO DETAILS ------------------- */
+router.get('/:id/portfolio', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id },
+          { userId: id }
+        ]
+      }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+
+    let portfolio = await prisma.portfolio.findUnique({
+      where: { studentId: student.id },
+      include: {
+        projects: true,
+        skills: true,
+        achievements: true
+      }
+    });
+
+    if (!portfolio) {
+      // Create default portfolio and seed data
+      portfolio = await prisma.portfolio.create({
+        data: {
+          studentId: student.id,
+          bio: "I love science, stargazing and drawing!",
+          stream: "General",
+          projects: {
+            create: [
+              { title: "Solar System Model", category: "Science", date: "Last Week", image: "🪐", tags: ["Craft"], description: "Super Star! ⭐" },
+              { title: "My Favorite Animal Essay", category: "English", date: "2 Weeks Ago", image: "🐶", tags: ["Writing"], description: "Great Job! 👍" },
+              { title: "Math Puzzle Challenge", category: "Mathematics", date: "Last Month", image: "🧩", tags: ["Game"], description: "Math Wizard! 🧙‍♂️" },
+              { title: "History of Cholas", category: "Social Science", date: "Last Month", image: "👑", tags: ["Drawing"], description: "Creative! 🎨" }
+            ]
+          },
+          skills: {
+            create: [
+              { name: "Creativity ✨", level: 90, color: "#f59e0b" },
+              { name: "Teamwork 🤝", level: 85, color: "#10b981" },
+              { name: "Curiosity 🕵️‍♂️", level: 95, color: "#ec4899" },
+              { name: "Focus 🎯", level: 70, color: "#3b82f6" }
+            ]
+          },
+          achievements: {
+            create: [
+              { title: "Spelling Bee Champion", year: "2024", icon: "🐝", color: "amber", bg: "bg-amber-500/20" }
+            ]
+          }
+        },
+        include: {
+          projects: true,
+          skills: true,
+          achievements: true
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: portfolio
+    });
+  } catch (err) {
+    console.error('Error fetching student portfolio:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+/* ------------------- ADD PROJECT TO PORTFOLIO ------------------- */
+router.post('/:id/portfolio/projects', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { title, category, date, image, tags, description } = req.body;
+
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id },
+          { userId: id }
+        ]
+      }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+
+    let portfolio = await prisma.portfolio.findUnique({
+      where: { studentId: student.id }
+    });
+
+    if (!portfolio) {
+      portfolio = await prisma.portfolio.create({
+        data: { studentId: student.id }
+      });
+    }
+
+    const newProject = await prisma.portfolioProject.create({
+      data: {
+        portfolioId: portfolio.id,
+        title,
+        category,
+        date: date || "Today",
+        image: image || "📁",
+        tags: tags || [],
+        description: description || "Great Job! 👍"
+      }
+    });
+
+    res.json({ success: true, data: newProject });
+  } catch (err) {
+    console.error('Error adding project to portfolio:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });
