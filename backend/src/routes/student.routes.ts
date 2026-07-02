@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { BoardPrep } from '../models/mongo';
 
 const router = Router();
 
@@ -248,6 +249,206 @@ router.post('/:id/homework/:homeworkId/submit', async (req: Request, res: Respon
     res.json({ success: true, data: submission });
   } catch (err) {
     console.error('Error submitting homework:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+
+/* ------------------- GET BOARD PREP DATA ------------------- */
+router.get('/:id/board-prep', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const selectedClass = String(req.query.class || "10"); // "9" or "10"
+
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id },
+          { userId: id }
+        ]
+      }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+
+    // Find or create BoardPrep in MongoDB
+    let prepDoc = await BoardPrep.findOne({ studentId: student.id, class: selectedClass });
+
+    if (!prepDoc) {
+      const defaultSyllabus = selectedClass === "9" 
+        ? [
+            { subject: "Mathematics", completed: 5, totalChapters: 9 },
+            { subject: "Science", completed: 12, totalChapters: 17 },
+            { subject: "Social Science", completed: 14, totalChapters: 21 },
+            { subject: "English", completed: 5, totalChapters: 7 },
+            { subject: "Tamil", completed: 8, totalChapters: 9 },
+          ]
+        : [
+            { subject: "Mathematics", completed: 9, totalChapters: 15 },
+            { subject: "Science", completed: 18, totalChapters: 22 },
+            { subject: "Social Science", completed: 20, totalChapters: 25 },
+            { subject: "English", completed: 11, totalChapters: 12 },
+            { subject: "Tamil", completed: 9, totalChapters: 10 },
+          ];
+
+      const defaultGoalsList = selectedClass === "9"
+        ? [
+            { task: "Revise Science Ch-2 (Motion) notes", done: true },
+            { task: "Complete Algebra Exercise 3.2", done: false },
+            { task: "Practice 9th Tamil grammar rules", done: false },
+          ]
+        : [
+            { task: "Read Science Ch-4 (Carbon Compounds)", done: true },
+            { task: "Solve 15 Math Trigonometry PYQs", done: false },
+            { task: "Take Tamil Public Exam Mini-Mock", done: false },
+          ];
+
+      prepDoc = await BoardPrep.create({
+        studentId: student.id,
+        class: selectedClass,
+        syllabusProgress: defaultSyllabus,
+        goals: defaultGoalsList
+      });
+    }
+
+    // Query practice paper marks from PostgreSQL
+    const examTypePrefix = selectedClass === "10" ? "Board Prep Mock - " : "Class 9 Practice Paper - ";
+    const marks = await prisma.mark.findMany({
+      where: {
+        studentId: student.id,
+        examType: {
+          startsWith: examTypePrefix
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        id: prepDoc._id,
+        studentId: prepDoc.studentId,
+        class: prepDoc.class,
+        syllabusProgress: prepDoc.syllabusProgress,
+        goals: prepDoc.goals,
+        marks: marks.map((m: any) => ({
+          id: m.id,
+          subject: m.subject,
+          paperName: m.examType.replace(examTypePrefix, ""),
+          scored: m.scored,
+          maxMarks: m.maxMarks,
+          grade: m.grade,
+          createdAt: m.createdAt
+        }))
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching board prep data:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+/* ------------------- UPDATE SYLLABUS PROGRESS ------------------- */
+router.post('/:id/board-prep/syllabus', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { subject, completed, class: selectedClass } = req.body;
+
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id },
+          { userId: id }
+        ]
+      }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+
+    const prepDoc = await BoardPrep.findOne({ studentId: student.id, class: selectedClass || "10" });
+    if (!prepDoc) return res.status(404).json({ success: false, error: 'Prep document not found' });
+
+    const item = prepDoc.syllabusProgress.find((s: any) => s.subject.toLowerCase() === subject.toLowerCase());
+    if (item) {
+      item.completed = Math.min(completed, item.totalChapters);
+      await prepDoc.save();
+    }
+
+    res.json({ success: true, data: prepDoc });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+/* ------------------- UPDATE DAILY GOALS ------------------- */
+router.post('/:id/board-prep/goals', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { goals, class: selectedClass } = req.body;
+
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id },
+          { userId: id }
+        ]
+      }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+
+    const prepDoc = await BoardPrep.findOneAndUpdate(
+      { studentId: student.id, class: selectedClass || "10" },
+      { goals },
+      { new: true, upsert: true }
+    );
+
+    res.json({ success: true, data: prepDoc });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+/* ------------------- SUBMIT PRACTICE PAPER MARK ------------------- */
+router.post('/:id/board-prep/submit-paper', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { subject, paperName, scored, maxMarks, class: selectedClass } = req.body;
+
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id },
+          { userId: id }
+        ]
+      }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+
+    const examTypePrefix = selectedClass === "10" ? "Board Prep Mock - " : "Class 9 Practice Paper - ";
+    const examType = `${examTypePrefix}${paperName}`;
+
+    // Determine grade dynamically
+    const pct = (scored / (maxMarks || 100)) * 100;
+    let grade = "E";
+    if (pct >= 90) grade = "A1";
+    else if (pct >= 80) grade = "A2";
+    else if (pct >= 70) grade = "B1";
+    else if (pct >= 60) grade = "B2";
+    else if (pct >= 50) grade = "C";
+    else if (pct >= 35) grade = "D";
+
+    const newMark = await prisma.mark.create({
+      data: {
+        studentId: student.id,
+        subject,
+        examType,
+        maxMarks: maxMarks || 100,
+        scored,
+        grade,
+        academicYear: "2024-25"
+      }
+    });
+
+    res.json({ success: true, data: newMark });
+  } catch (err) {
+    console.error('Error submitting paper mark:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });

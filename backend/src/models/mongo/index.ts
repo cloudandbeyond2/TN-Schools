@@ -184,3 +184,39 @@ const PersonalGuideRewardSchema = new Schema<IPersonalGuideReward>({
 }, { timestamps: true });
 
 export const PersonalGuideReward = mongoose.models.PersonalGuideReward || mongoose.model<IPersonalGuideReward>('PersonalGuideReward', PersonalGuideRewardSchema);
+
+// Board Prep Progress & Goals
+export interface IBoardPrep extends Document {
+  studentId: string;
+  class: string; // "9" or "10"
+  syllabusProgress: Array<{
+    subject: string;
+    completed: number;
+    totalChapters: number;
+  }>;
+  goals: Array<{
+    task: string;
+    done: boolean;
+  }>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const BoardPrepSchema = new Schema<IBoardPrep>({
+  studentId: { type: String, required: true, index: true },
+  class: { type: String, required: true },
+  syllabusProgress: [{
+    subject: { type: String, required: true },
+    completed: { type: Number, required: true },
+    totalChapters: { type: Number, required: true }
+  }],
+  goals: [{
+    task: { type: String, required: true },
+    done: { type: Boolean, default: false }
+  }]
+}, { timestamps: true });
+
+BoardPrepSchema.index({ studentId: 1, class: 1 }, { unique: true });
+
+export const BoardPrep = mongoose.models.BoardPrep || mongoose.model<IBoardPrep>('BoardPrep', BoardPrepSchema);
+
