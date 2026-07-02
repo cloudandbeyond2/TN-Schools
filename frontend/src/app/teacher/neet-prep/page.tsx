@@ -103,6 +103,7 @@ export default function NEETPrepPage() {
   const [tests, setTests] = useState<MockTest[]>([]);
   const [students, setStudents] = useState<StudentReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generatingChapterId, setGeneratingChapterId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"syllabus" | "tests" | "analytics" | "reports" | "gemini">("syllabus");
   const [filterSubject, setFilterSubject] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
@@ -249,12 +250,92 @@ export default function NEETPrepPage() {
     }
   };
 
+  const handleGenerateChapterQuestions = async (topic: NEETTopic) => {
+    setGeneratingChapterId(topic.id);
+    try {
+      const res = await fetch(`${API}/api/ai/generate-questions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          grade: "12",
+          subject: topic.subject,
+          topic: topic.chapter,
+          difficulty: topic.difficulty,
+          mcqCount: topic.totalQuestions > 0 ? topic.totalQuestions : 10,
+          shortCount: 0,
+          longCount: 0,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        // Save the generated questions back to the chapter in PostgreSQL
+        const putRes = await fetch(`${API}/api/neet-prep/chapters/${topic.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ generatedQuestions: data.data }),
+        });
+        const putData = await putRes.json();
+        if (putData.success) {
+          Swal.fire({
+            icon: "success",
+            title: "Generated!",
+            text: `Successfully generated and saved ${data.data.length} questions for ${topic.chapter}.`,
+            timer: 2000,
+            showConfirmButton: false,
+          });
+          fetchSyllabus(); // Refresh to see any changes if needed
+        }
+      } else {
+        throw new Error(data.error || "Generation failed");
+      }
+    } catch (e) {
+      Swal.fire({ icon: "error", title: "Error", text: "Failed to generate questions." });
+    } finally {
+      setGeneratingChapterId(null);
+    }
+  };
+
   const handleSaveChapter = async () => {
     if (!chapterForm.chapter) {
       return Swal.fire({ icon: "error", title: "Missing Chapter Name", text: "Please enter the chapter title." });
     }
     setSaving(true);
     try {
+      let generatedQuestions = null;
+
+      // Automatically generate questions when adding a new chapter
+      if (!editChapterId) {
+        Swal.fire({
+          title: "Generating Questions...",
+          text: `Gemini AI is crafting custom questions for ${chapterForm.chapter}...`,
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        const aiRes = await fetch(`${API}/api/ai/generate-questions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            grade: "12",
+            subject: chapterForm.subject,
+            topic: chapterForm.chapter,
+            difficulty: chapterForm.difficulty,
+            mcqCount: Number(chapterForm.totalQuestions) > 0 ? Number(chapterForm.totalQuestions) : 10,
+            shortCount: 0,
+            longCount: 0,
+          }),
+        });
+        
+        const aiData = await aiRes.json();
+        if (aiData.success && aiData.data) {
+           generatedQuestions = aiData.data;
+        } else {
+           throw new Error(aiData.error || "Failed to generate questions via Gemini.");
+        }
+      }
+
       const body = {
         ...chapterForm,
         totalQuestions: Number(chapterForm.totalQuestions) || 0,
@@ -262,7 +343,9 @@ export default function NEETPrepPage() {
         correct: Number(chapterForm.correct) || 0,
         schoolId,
         teacherId,
+        ...(generatedQuestions ? { generatedQuestions } : {})
       };
+
       const url = editChapterId ? `${API}/api/neet-prep/chapters/${editChapterId}` : `${API}/api/neet-prep/chapters`;
       const res = await fetch(url, {
         method: editChapterId ? "PUT" : "POST",
@@ -276,15 +359,15 @@ export default function NEETPrepPage() {
         Swal.fire({
           icon: "success",
           title: "Chapter Saved",
-          text: `Chapter "${chapterForm.chapter}" saved successfully.`,
-          timer: 1500,
+          text: `Chapter "${chapterForm.chapter}" saved successfully${generatedQuestions ? ' with auto-generated questions' : ''}.`,
+          timer: 2000,
           showConfirmButton: false,
         });
       } else {
         Swal.fire({ icon: "error", title: "Error", text: data.error || "Failed to save chapter" });
       }
-    } catch (e) {
-      Swal.fire({ icon: "error", title: "Network Error", text: "Failed to write chapter data to database." });
+    } catch (e: any) {
+      Swal.fire({ icon: "error", title: "Error", text: e.message || "Failed to write chapter data to database." });
     } finally {
       setSaving(false);
     }
@@ -580,7 +663,13 @@ export default function NEETPrepPage() {
                       </div>
                     )}
                     <div className="flex justify-between items-center border-t border-slate-100 dark:border-slate-800 pt-3 gap-2">
-                      <span className="text-[10px] text-slate-400 truncate">Last Session: {new Date(topic.updatedAt).toLocaleDateString()}</span>
+                      <button
+                        onClick={() => handleGenerateChapterQuestions(topic)}
+                        disabled={generatingChapterId === topic.id}
+                        className="text-[10px] px-2 py-0.5 bg-indigo-500/10 text-indigo-700 hover:bg-indigo-500/20 border border-indigo-500/20 rounded font-bold transition-colors disabled:opacity-50"
+                      >
+                        {generatingChapterId === topic.id ? "Generating..." : "🪄 Auto-Generate"}
+                      </button>
                       <div className="flex gap-1 shrink-0">
                         <button onClick={() => handleOpenEditChapter(topic)} className="text-[10px] px-2 py-0.5 bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 border border-amber-500/20 rounded font-bold">Edit</button>
                         <button onClick={() => handleDeleteChapter(topic.id, topic.chapter)} className="text-[10px] px-2 py-0.5 bg-red-500/10 text-red-700 hover:bg-red-500/20 border border-red-500/20 rounded font-bold">Delete</button>

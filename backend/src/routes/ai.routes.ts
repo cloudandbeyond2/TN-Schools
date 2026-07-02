@@ -799,4 +799,43 @@ CRITICAL: Return ONLY valid JSON matching this schema. Do not add any introducto
   }
 });
 
+// POST /api/ai/generate-resource-content
+router.post('/generate-resource-content', async (req: Request, res: Response) => {
+  try {
+    const { title, subject, type, description } = req.body;
+
+    const prompt = `
+You are an expert educator and content creator for Tamil Nadu (TN) State Board Syllabus.
+Please generate comprehensive study material for the following topic:
+
+Title: ${title}
+Subject: ${subject}
+Resource Type: ${type}
+Description: ${description || "Provide a detailed overview and key notes."}
+
+Generate structured, easy-to-read educational content. Include:
+1. Introduction
+2. Key Concepts & Definitions
+3. Important Formulas / Facts (if applicable)
+4. Summary / Conclusion
+
+Keep it concise (around 400-500 words). Format the output cleanly.
+Return a JSON object with a single key "content" containing the generated text (formatted with basic HTML tags like <h3>, <p>, <ul>, <li>, <strong> for readability).
+`;
+
+    const schema = {
+      type: "OBJECT",
+      properties: {
+        content: { type: "STRING" }
+      },
+      required: ["content"]
+    };
+
+    const result = await callGemini(prompt, true, schema);
+    res.json({ success: true, data: result.content });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
