@@ -2,6 +2,7 @@
 
 import PortalLayout from "@/components/PortalLayout";
 import { useState } from "react";
+import { Clock, Brain, FileText, Timer, Bot } from "lucide-react";
 
 
 const syllabusProgress = [
@@ -49,7 +50,7 @@ export default function BoardPrepPage() {
       {/* Top Countdown Banner */}
       <div className="glass rounded-2xl p-6 mb-6 fade-in flex flex-col md:flex-row items-center justify-between border-l-4 border-red-500 bg-red-900/10">
         <div>
-          <h2 className="text-xl font-bold text-white mb-2">Countdown to SSLC Public Exams ⏰</h2>
+          <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">Countdown to SSLC Public Exams <Clock className="w-5 h-5 text-red-400" /></h2>
           <p className="text-slate-400 text-sm">Stay focused, Arjun. Every day counts towards your goal of 480+!</p>
         </div>
         <div className="flex gap-4 mt-4 md:mt-0">
@@ -78,9 +79,9 @@ export default function BoardPrepPage() {
         </button>
         <button 
           onClick={() => setActiveTab("ai-analysis")}
-          className={`text-sm font-semibold px-4 py-2 transition-all ${activeTab === "ai-analysis" ? "text-red-400 border-b-2 border-red-400" : "text-slate-400 hover:text-white"}`}
+          className={`text-sm font-semibold px-4 py-2 transition-all flex items-center gap-1.5 ${activeTab === "ai-analysis" ? "text-red-400 border-b-2 border-red-400" : "text-slate-400 hover:text-white"}`}
         >
-          AI Weakness Detector 🤖
+          AI Weakness Detector <Bot className="w-4 h-4" />
         </button>
         <button 
           onClick={() => setActiveTab("pyq")}
@@ -125,8 +126,8 @@ export default function BoardPrepPage() {
           {activeTab === "ai-analysis" && (
             <div className="glass rounded-2xl p-6 fade-in-2 border border-red-500/20 bg-gradient-to-br from-red-900/10 to-transparent">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <span className="text-2xl">🧠</span> AI Weakness Detector
+                <h3 className="text-lg font-bold text-white flex items-center gap-2.5">
+                  <Brain className="w-5 h-5 text-red-400" /> AI Weakness Detector
                 </h3>
                 <span className="bg-red-500/20 text-red-400 text-xs px-3 py-1 rounded-full border border-red-500/30">Auto-updated from recent mocks</span>
               </div>
@@ -167,7 +168,7 @@ export default function BoardPrepPage() {
                 {previousPapers.map((paper, idx) => (
                   <div key={idx} className="bg-slate-900/60 p-4 rounded-xl border border-slate-700 flex flex-col justify-between hover:-translate-y-1 transition-transform cursor-pointer group">
                     <div className="flex justify-between items-start mb-4">
-                      <span className="text-3xl">📄</span>
+                      <FileText className="w-8 h-8 text-red-400" />
                       <span className={`text-xs font-bold px-2 py-1 rounded ${paper.status === 'Untouched' ? 'bg-slate-700 text-slate-300' : 'bg-emerald-500/20 text-emerald-400'}`}>
                         {paper.status}
                       </span>
@@ -219,7 +220,7 @@ export default function BoardPrepPage() {
 
           {/* Pomodoro Timer */}
           <div className="glass rounded-2xl p-6 fade-in-5 border border-slate-700/50 flex flex-col items-center justify-center py-8">
-            <div className="text-4xl mb-3">🍅</div>
+            <Timer className="w-10 h-10 text-emerald-400 mb-3" />
             <h3 className="text-sm font-bold text-slate-400 uppercase mb-2">Study Timer</h3>
             <div className="text-4xl font-mono font-bold text-white mb-4">25:00</div>
             <button className="bg-white text-slate-900 px-6 py-2 rounded-full font-bold text-sm hover:bg-slate-200 transition-colors">
