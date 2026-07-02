@@ -219,7 +219,7 @@ export default function SchoolPressPage() {
               <button
                 type="submit"
                 disabled={submitStatus === "loading"}
-                className="w-full bg-emerald-550 hover:bg-emerald-600 text-white rounded-xl py-3.5 text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3.5 text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
               >
                 {submitStatus === "loading" ? (
                   <div className="w-5 h-5 rounded-full border-2 border-white/20 border-t-white animate-spin" />
