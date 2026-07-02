@@ -138,3 +138,49 @@ const ManagedPageSchema = new Schema<IManagedPage>({
 
 export const ManagedPage = mongoose.models.ManagedPage || mongoose.model<IManagedPage>('ManagedPage', ManagedPageSchema);
 
+// ─── AI Personal Guide self-care habits tracking & rewards ──────────
+
+export interface IPersonalGuideHabitLog extends Document {
+  studentId: string;
+  date: string; // YYYY-MM-DD
+  reflectionJournal?: string;
+  screenTimeBreak: boolean;
+  sleepHours: number;
+  pointsEarned: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const PersonalGuideHabitLogSchema = new Schema<IPersonalGuideHabitLog>({
+  studentId: { type: String, required: true, index: true },
+  date: { type: String, required: true },
+  reflectionJournal: { type: String },
+  screenTimeBreak: { type: Boolean, default: false },
+  sleepHours: { type: Number, default: 0 },
+  pointsEarned: { type: Number, default: 0 },
+}, { timestamps: true });
+
+// Ensure unique habit logging per student per day
+PersonalGuideHabitLogSchema.index({ studentId: 1, date: 1 }, { unique: true });
+
+export const PersonalGuideHabitLog = mongoose.models.PersonalGuideHabitLog || mongoose.model<IPersonalGuideHabitLog>('PersonalGuideHabitLog', PersonalGuideHabitLogSchema);
+
+export interface IPersonalGuideReward extends Document {
+  studentId: string;
+  points: number;
+  streak: number;
+  badges: string[];
+  lastLoggedDate?: string; // YYYY-MM-DD
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const PersonalGuideRewardSchema = new Schema<IPersonalGuideReward>({
+  studentId: { type: String, required: true, unique: true },
+  points: { type: Number, default: 0 },
+  streak: { type: Number, default: 0 },
+  badges: { type: [String], default: [] },
+  lastLoggedDate: { type: String },
+}, { timestamps: true });
+
+export const PersonalGuideReward = mongoose.models.PersonalGuideReward || mongoose.model<IPersonalGuideReward>('PersonalGuideReward', PersonalGuideRewardSchema);
