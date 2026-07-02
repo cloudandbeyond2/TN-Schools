@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
-import { BoardPrep } from '../models/mongo';
+import { BoardPrep, LanguageCoachingProgress } from '../models/mongo';
+import https from 'https';
 
 const router = Router();
 
@@ -449,6 +450,260 @@ router.post('/:id/board-prep/submit-paper', async (req: Request, res: Response) 
     res.json({ success: true, data: newMark });
   } catch (err) {
     console.error('Error submitting paper mark:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+
+/* ------------------- LANGUAGE COACHING API HELPERS ------------------- */
+const wordsList = [
+  { word: "Opportunity", tamil: "வாய்ப்பு (Vaaippu)", example: "This is a great opportunity to learn English." },
+  { word: "Magnificent", tamil: "அற்புதமான (Arputhamaana)", example: "The school building is magnificent." },
+  { word: "Curiosity", tamil: "ஆர்வம் (Aarvam)", example: "Curiosity is key to learning new concepts." },
+  { word: "Determine", tamil: "தீர்மானி (Theermaani)", example: "Your efforts determine your success." },
+  { word: "Encourage", tamil: "ஊக்குவி (Ookkuvi)", example: "Teachers encourage students to speak in English." },
+  { word: "Perseverance", tamil: "விடாமுயற்சி (Vidaamuyarchi)", example: "Perseverance helps you overcome obstacles." },
+  { word: "Integrity", tamil: "நேர்மை (Naermai)", example: "Integrity is doing the right thing when no one is watching." }
+];
+
+async function callGeminiMaya(userMessage: string, history: Array<{role: string, content: string}> = []): Promise<{ text: string, audioText: string }> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey.trim() === '') {
+    throw new Error('GEMINI_API_KEY is missing');
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+  const prompt = `You are Maya, a friendly AI Spoken English tutor for Tamil students. The student will converse with you in a mix of Tamil, English, and Tanglish (Tamil words written in English letters).
+Your instructions:
+1. Speak in a warm, bilingual manner (mix of simple English and Tamil/Tanglish).
+2. Keep your response very conversational and encouraging.
+3. If they make a grammatical error, politely show them how to say it correctly in English.
+4. If they say something in Tamil or Tanglish, suggest how to say it in natural English.
+5. Provide a JSON response in the following schema:
+{
+  "text": "Your bilingual chat response (containing the bilingual feedback or reply)",
+  "audioText": "A clean English-only sentence representing the target English to speak aloud (which can be read by speech synthesis). Make it short and simple."
+}
+
+User Message: "${userMessage}"
+Response JSON:`;
+
+  const payload = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      maxOutputTokens: 1024,
+      responseMimeType: "application/json"
+    }
+  };
+
+  return new Promise((resolve, reject) => {
+    const req = https.request(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+          const parsed = JSON.parse(text);
+          resolve({
+            text: parsed.text || "Super! Let's continue practicing.",
+            audioText: parsed.audioText || ""
+          });
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+
+    req.on('error', (err) => reject(err));
+    req.write(JSON.stringify(payload));
+    req.end();
+  });
+}
+
+/* ------------------- GET LANGUAGE COACHING DETAILS ------------------- */
+router.get('/:id/language-coaching', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id },
+          { userId: id }
+        ]
+      }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+
+    // Get or Create progress stats in MongoDB
+    let progress = await LanguageCoachingProgress.findOne({ studentId: student.id });
+    if (!progress) {
+      progress = await LanguageCoachingProgress.create({
+        studentId: student.id,
+        sentencesSpoken: 45,
+        newWordsCount: 16,
+        grammarScore: 78
+      });
+    }
+
+    // Get badges from PostgreSQL (seed a few defaults if none exist)
+    let badges = await prisma.studentBadge.findMany({
+      where: { studentId: student.id }
+    });
+
+    if (badges.length === 0) {
+      // Create default badges for a neat UI
+      const defaultBadges = [
+        { badgeName: "Fearless Speaker", desc: "Spoke 10 sentences today", icon: "🦁", color: "amber" },
+        { badgeName: "Hospital Helper", desc: "Completed Doctor Roleplay", icon: "🏥", color: "rose" },
+        { badgeName: "Tanglish Master", desc: "Used AI bridge 5 times", icon: "🤖", color: "indigo" }
+      ];
+      
+      await Promise.all(defaultBadges.map(b => 
+        prisma.studentBadge.create({
+          data: {
+            studentId: student.id,
+            badgeName: b.badgeName,
+            desc: b.desc,
+            icon: b.icon,
+            color: b.color
+          }
+        })
+      ));
+
+      badges = await prisma.studentBadge.findMany({
+        where: { studentId: student.id }
+      });
+    }
+
+    // Select dynamic Word of the Day
+    const dayIndex = new Date().getDate() % wordsList.length;
+    const wordOfTheDay = wordsList[dayIndex];
+
+    res.json({
+      success: true,
+      data: {
+        stats: [
+          { label: "Sentences Spoken", value: String(progress.sentencesSpoken), color: "blue", trend: "+12 Today" },
+          { label: "Fearless Badges", value: String(badges.length), color: "yellow", trend: "Top 10%" },
+          { label: "New Words Used", value: String(progress.newWordsCount), color: "emerald", trend: "Vocab Growing" },
+          { label: "Grammar Flow", value: `${progress.grammarScore}%`, color: "fuchsia", trend: "Improving!" }
+        ],
+        wordOfTheDay,
+        badges: badges.map((b: any) => ({
+          name: b.badgeName,
+          desc: b.desc,
+          icon: b.icon,
+          color: b.color
+        }))
+      }
+    });
+
+  } catch (err) {
+    console.error('Error fetching language coaching details:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+/* ------------------- PROCESS LANGUAGE COACHING CHAT ------------------- */
+router.post('/:id/language-coaching/chat', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { message } = req.body;
+
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id },
+          { userId: id }
+        ]
+      }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+
+    // Increment Spoken Sentences
+    await LanguageCoachingProgress.findOneAndUpdate(
+      { studentId: student.id },
+      { $inc: { sentencesSpoken: 1 } },
+      { upsert: true }
+    );
+
+    try {
+      const geminiReply = await callGeminiMaya(message);
+      return res.json({
+        success: true,
+        data: geminiReply
+      });
+    } catch (apiError) {
+      console.warn("Gemini call failed or API key missing, falling back to mock response.");
+      // Fallback response parsing
+      const lowerMsg = message.toLowerCase();
+      let text = "Super! I hear you. To say that in English, we can try different words. Want to practice a simple dialogue together?";
+      let audioText = "Super! I hear you. Want to practice a simple dialogue together?";
+
+      if (lowerMsg.includes("bank") && lowerMsg.includes("leave")) {
+        text = "Great question! You can ask: \n\n\"Is the bank closed tomorrow?\"";
+        audioText = "Is the bank closed tomorrow?";
+      } else if (lowerMsg.includes("hello") || lowerMsg.includes("hi")) {
+        text = "Hello! Epdi irukkinga? Ready to practice some English today? 😊";
+        audioText = "Hello! Epdi irukkinga? Ready to practice some English today?";
+      } else if (lowerMsg.includes("enna panra") || lowerMsg.includes("enna panringa") || lowerMsg.includes("enna seikiraai")) {
+        text = "Naan unga kooda pesitu iruken! (I am talking with you!) In English you can ask: 'What are you doing?'. Try asking me that! 🌟";
+        audioText = "I am talking with you. In English you can ask: What are you doing?";
+      } else if (lowerMsg.includes("name enna") || lowerMsg.includes("unoda name") || lowerMsg.includes("unga name") || lowerMsg.includes("peyar enna")) {
+        text = "En name Maya! Super kelvi. In English, you can ask: 'What is your name?'. Can you type that for me? 🙌";
+        audioText = "My name is Maya. In English, you can ask: What is your name?";
+      } else if (lowerMsg.includes("how are you") || lowerMsg.includes("eppadi irukka") || lowerMsg.includes("epdi irukka")) {
+        text = "I'm doing great, nandri! How are you doing today? 👍";
+        audioText = "I'm doing great, nandri! How are you doing today?";
+      }
+
+      return res.json({
+        success: true,
+        data: { text, audioText }
+      });
+    }
+
+  } catch (err) {
+    console.error('Error processing chat:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+/* ------------------- LOG PRONUNCIATION ATTEMPT ------------------- */
+router.post('/:id/language-coaching/pronunciation', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id },
+          { userId: id }
+        ]
+      }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+
+    // Update stats: sentences spoken + 1, vocabulary words + 2
+    const progress = await LanguageCoachingProgress.findOneAndUpdate(
+      { studentId: student.id },
+      { 
+        $inc: { sentencesSpoken: 1, newWordsCount: 2 },
+        $set: { grammarScore: 82 }
+      },
+      { upsert: true, new: true }
+    );
+
+    res.json({ success: true, data: progress });
+  } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
 });

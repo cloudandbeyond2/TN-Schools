@@ -220,3 +220,23 @@ BoardPrepSchema.index({ studentId: 1, class: 1 }, { unique: true });
 
 export const BoardPrep = mongoose.models.BoardPrep || mongoose.model<IBoardPrep>('BoardPrep', BoardPrepSchema);
 
+// Language Coaching Progress
+export interface ILanguageCoachingProgress extends Document {
+  studentId: string;
+  sentencesSpoken: number;
+  newWordsCount: number;
+  grammarScore: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const LanguageCoachingProgressSchema = new Schema<ILanguageCoachingProgress>({
+  studentId: { type: String, required: true, unique: true },
+  sentencesSpoken: { type: Number, default: 0 },
+  newWordsCount: { type: Number, default: 0 },
+  grammarScore: { type: Number, default: 80 }
+}, { timestamps: true });
+
+export const LanguageCoachingProgress = mongoose.models.LanguageCoachingProgress || mongoose.model<ILanguageCoachingProgress>('LanguageCoachingProgress', LanguageCoachingProgressSchema);
+
+
