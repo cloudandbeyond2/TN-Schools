@@ -2089,24 +2089,61 @@ function AssignmentDetail({
   const aiRef = useRef<HTMLDivElement>(null);
   const submissionRef = useRef<HTMLDivElement>(null);
 
-  const handleAsk = () => {
+  const handleAsk = async () => {
     setLoadingTips(true);
-    window.setTimeout(() => {
-      setTips(AI_GUIDANCE[assignment.id] ?? []);
+    try {
+      const res = await fetch(`${apiUrl}/api/ai/homework-ideas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: assignment.title,
+          description: assignment.description,
+          fullBrief: assignment.fullBrief,
+          subject: assignment.subject
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.tips) {
+        setTips(data.tips);
+      } else {
+        setTips(AI_GUIDANCE[assignment.id] ?? ["Could not load ideas at this moment."]);
+      }
+    } catch (err) {
+      console.error("Error fetching AI homework ideas:", err);
+      setTips(AI_GUIDANCE[assignment.id] ?? ["Could not load ideas at this moment."]);
+    } finally {
       setLoadingTips(false);
-    }, 1100);
+    }
   };
 
-  const handleAskDoubt = () => {
+  const handleAskDoubt = async () => {
     if (!doubt.trim()) return;
     setDoubtLoading(true);
     setDoubtAnswer(null);
-    window.setTimeout(() => {
-      setDoubtAnswer(
-        `Good question. Try breaking "${doubt.trim()}" into smaller steps — identify what you already know, write that down first, then work out what's missing before applying the formula. If you're still stuck after that, flag it to ${assignment.teacher} when you submit.`
-      );
+    try {
+      const res = await fetch(`${apiUrl}/api/ai/homework-doubt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: assignment.title,
+          description: assignment.description,
+          fullBrief: assignment.fullBrief,
+          subject: assignment.subject,
+          doubt: doubt.trim()
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.text) {
+        setDoubtAnswer(data.text);
+      } else {
+        setDoubtAnswer("Sorry, I could not help with your doubt right now. Please try again.");
+      }
+    } catch (err) {
+      console.error("Error calling homework doubt solver:", err);
+      setDoubtAnswer("Sorry, I could not help with your doubt right now. Please try again.");
+    } finally {
       setDoubtLoading(false);
-    }, 1000);
+    }
   };
 
   useEffect(() => {

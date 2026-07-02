@@ -799,4 +799,83 @@ CRITICAL: Return ONLY valid JSON matching this schema. Do not add any introducto
   }
 });
 
+// ===========================================================================
+// POST /api/ai/homework-ideas
+// ===========================================================================
+router.post('/homework-ideas', async (req: Request, res: Response) => {
+  try {
+    const { title, description, fullBrief, subject } = req.body;
+
+    const prompt = `
+You are an expert bilingual AI Tutor for Tamil Nadu school students.
+A student needs help/ideas to get started on their homework.
+Subject: ${subject}
+Title: ${title}
+Description: ${description}
+Homework Questions / Brief: ${fullBrief}
+
+Provide 3 or 4 clear, encouraging, and helpful pedagogical hints/ideas/pointers to guide the student to solve their homework.
+Do NOT give the direct final answers or write complete solutions. Help them understand the concepts, formulas, or structures they should use.
+
+Your output MUST be a JSON object with a single key "tips" containing an array of strings.
+{
+  "tips": [
+    "Tip 1...",
+    "Tip 2..."
+  ]
+}
+Return ONLY valid JSON matching this structure.
+`;
+
+    const schema = {
+      type: "OBJECT",
+      properties: {
+        tips: {
+          type: "ARRAY",
+          items: { type: "STRING" }
+        }
+      },
+      required: ["tips"]
+    };
+
+    const result = await callGemini(prompt, true, schema);
+    res.json({ success: true, tips: result.tips || [] });
+  } catch (err) {
+    console.error("Error generating homework ideas:", err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// POST /api/ai/homework-doubt
+// ===========================================================================
+router.post('/homework-doubt', async (req: Request, res: Response) => {
+  try {
+    const { title, description, fullBrief, subject, doubt } = req.body;
+
+    const prompt = `
+You are a helpful, encouraging, and bilingual AI Study Companion / Tutor for Tamil Nadu school students.
+The student is working on this homework:
+Subject: ${subject}
+Title: ${title}
+Description: ${description}
+Homework Questions: ${fullBrief}
+
+The student is stuck on a specific part or has a specific doubt:
+"${doubt}"
+
+Help the student resolve their doubt.
+Provide a clear, brief, step-by-step pedagogical hint or explanation.
+Do NOT give the direct final answer or write out the complete solution. Instead, explain the concept, guide them on how to set up the problem, or point out what steps they should take.
+Speak in an encouraging, warm, and helpful tutoring tone. Keep the response reasonably short (around 3-5 sentences or bullet points).
+`;
+
+    const result = await callGemini(prompt, false);
+    res.json({ success: true, text: result });
+  } catch (err) {
+    console.error("Error explaining homework doubt:", err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
