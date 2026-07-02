@@ -45,23 +45,18 @@ export default function HeadmasterMockTestsPage() {
   }, [session]);
 
   const fetchProfileAndExistingTests = async () => {
+    const sessionSchoolId = (session?.user as any)?.schoolId;
+    if (!sessionSchoolId) return;
+
     try {
       setLoading(true);
-      // Fetch school info / profile
-      const res = await fetch(`${API_URL}/api/headmasters`);
-      const json = await res.json();
-      if (json.success && session?.user) {
-        const hmProfile = json.data.find((h: any) => h.userId === (session.user as any).id);
-        if (hmProfile) {
-          setProfile(hmProfile);
-          
-          // Fetch existing questions for mock repository
-          const qRes = await fetch(`${API_URL}/api/teacher/questions?schoolId=${hmProfile.schoolId}`);
-          const qData = await qRes.json();
-          if (qData.success) {
-            setExistingTests(qData.data);
-          }
-        }
+      setProfile({ schoolId: sessionSchoolId });
+      
+      // Fetch existing questions for mock repository
+      const qRes = await fetch(`${API_URL}/api/teacher/questions?schoolId=${sessionSchoolId}`);
+      const qData = await qRes.json();
+      if (qData.success) {
+        setExistingTests(qData.data);
       }
     } catch (err) {
       console.error(err);
@@ -148,7 +143,11 @@ export default function HeadmasterMockTestsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile) return;
+    const activeSchoolId = profile?.schoolId || (session?.user as any)?.schoolId;
+    if (!activeSchoolId) {
+      Swal.fire("Error", "Associated school ID not found in session.", "error");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -170,7 +169,7 @@ export default function HeadmasterMockTestsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           questions: records,
-          schoolId: profile.schoolId
+          schoolId: activeSchoolId
         })
       });
 
