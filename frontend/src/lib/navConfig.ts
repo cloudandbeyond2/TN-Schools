@@ -380,6 +380,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Timetable", href: "/headmaster/timetable", icon: "🗓️" },
       { label: "Exam Schedule", href: "/headmaster/exams", icon: "📋" },
       { label: "Model Exam Results", href: "/headmaster/model-exams", icon: "📝" },
+      { label: "Manage Mock Tests", href: "/headmaster/mock-tests", icon: "📝" },
 
       { label: "School Admin & Govt", href: "#", icon: "" },
       { label: "School Resources", href: "/headmaster/resources", icon: "🏗️" },
@@ -506,7 +507,8 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Headmaster Management", href: "/super-admin/headmasters", icon: "👤" },
 
       { label: "Academics & Content", href: "#", icon: "" },
-      { label: "Syllabus Management", href: "/super-admin/syllabus", icon: "📚" },
+      { label: "Learning Hub", href: "/super-admin/learning-hub", icon: "📚" },
+      { label: "Syllabus Management", href: "/super-admin/syllabus", icon: "📖" },
       { label: "Material Library", href: "/super-admin/materials", icon: "📦" },
       { label: "Department Modules", href: "/super-admin/modules", icon: "🗓️" },
 
