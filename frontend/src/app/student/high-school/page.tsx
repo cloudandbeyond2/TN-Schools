@@ -140,6 +140,20 @@ export default function HighSchoolDashboard() {
             </div>
             <button className="mt-4 text-xs text-center w-full text-slate-400 hover:text-white">View All Results →</button>
           </div>
+
+          {/* Quick Links / Student Tools */}
+          <div className="glass rounded-2xl p-6 fade-in-5 border border-slate-700/50">
+            <h2 className="text-base font-semibold text-white mb-4">Quick Links</h2>
+            <div className="space-y-3">
+              <a href="/student/leave" className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-red-500/50 hover:bg-slate-800 transition-all group">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-red-400" />
+                  <span className="text-sm text-slate-300 group-hover:text-white">Leave Reports & Application</span>
+                </div>
+                <span className="text-xs text-slate-400 group-hover:text-red-400">View →</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </PortalLayout>
