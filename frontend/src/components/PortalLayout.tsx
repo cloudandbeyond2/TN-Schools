@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import { roleConfigs, NavItem } from "@/lib/navConfig";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useTheme } from "next-themes";
+import { LucideIcon } from "@/components/LucideIcon";
 import { Menu, Bell, Globe, ChevronDown, User, Settings, HelpCircle, LogOut } from "lucide-react";
 
 interface PortalLayoutProps {
@@ -481,7 +482,9 @@ export default function PortalLayout({
                 className={`sidebar-item ${isActive ? "active" : ""}`}
                 scroll={false}
               >
-                <span className="text-lg opacity-80">{item.icon}</span>
+                <span className={`flex items-center justify-center transition-opacity ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}>
+                  {item.icon ? <LucideIcon name={item.icon as string} className="w-[18px] h-[18px]" /> : null}
+                </span>
                 <span>{item.label}</span>
               </Link>
             );

@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { getPortalPagesCatalog, PORTAL_LABELS } from "@/lib/portalPagesCatalog";
+import { LucideIcon } from "@/components/LucideIcon";
 
 interface ManagedPage {
   _id: string;
@@ -203,7 +204,7 @@ export default function PageManagement() {
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                   <div>
                     <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                      <span>{info.icon}</span>
+                      <span className="flex items-center"><LucideIcon name={info.icon} className="w-5 h-5" /></span>
                       {info.label}
                     </h2>
                     <p className="text-[10px] text-slate-500 mt-1">
@@ -236,7 +237,7 @@ export default function PageManagement() {
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-3 min-w-0">
-                          <span className="text-2xl shrink-0">{page.icon}</span>
+                          <span className="text-2xl shrink-0 flex items-center justify-center w-8 h-8"><LucideIcon name={page.icon} className="w-6 h-6" /></span>
                           <div className="min-w-0">
                             <h3 className="text-sm font-bold text-white truncate">{page.title}</h3>
                             <p className="text-[10px] text-slate-500 font-mono truncate mt-0.5">{page.route}</p>
