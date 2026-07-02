@@ -11,7 +11,8 @@ import {
   Microscope, 
   Scroll, 
   Languages, 
-  Globe 
+  Globe,
+  HeartPulse 
 } from "lucide-react";
 
 const getApiBase = () => {
@@ -149,6 +150,13 @@ export default function HighSchoolDashboard() {
                 <div className="flex items-center gap-3">
                   <FileText className="h-5 w-5 text-red-400" />
                   <span className="text-sm text-slate-300 group-hover:text-white">Leave Reports & Application</span>
+                </div>
+                <span className="text-xs text-slate-400 group-hover:text-red-400">View →</span>
+              </a>
+              <a href="/student/health" className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-red-500/50 hover:bg-slate-800 transition-all group">
+                <div className="flex items-center gap-3">
+                  <HeartPulse className="h-5 w-5 text-red-400" />
+                  <span className="text-sm text-slate-300 group-hover:text-white">My Health Report</span>
                 </div>
                 <span className="text-xs text-slate-400 group-hover:text-red-400">View →</span>
               </a>
