@@ -115,22 +115,22 @@ export default function SchoolPressPage() {
         <div className="lg:col-span-2 space-y-6">
           
           {/* Playful Hero Banner */}
-          <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-emerald-400 to-teal-500 text-white p-8 shadow-xl border-4 border-emerald-100">
+          <div className="relative overflow-hidden rounded-2xl md:rounded-[2.5rem] bg-gradient-to-r from-emerald-400 to-teal-500 text-white p-5 md:p-8 shadow-xl border-2 md:border-4 border-emerald-100">
             <div className="absolute right-0 top-0 opacity-20 transform translate-x-1/4 -translate-y-1/4 scale-150 pointer-events-none mix-blend-overlay">
               <Camera className="w-64 h-64" />
             </div>
             
             <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl font-black tracking-wider text-xs uppercase mb-4 border-2 border-white/30 rotate-[-2deg]">
+              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl font-black tracking-wider text-[10px] md:text-xs uppercase mb-4 border-2 border-white/30 rotate-[-2deg]">
                 <Star className="w-4 h-4 text-yellow-300" /> Share Your Moments
               </div>
-              <h2 className="text-4xl font-black tracking-tight mb-3 drop-shadow-md font-mono">The School Press!</h2>
+              <h2 className="text-2xl md:text-4xl font-black tracking-tight mb-3 drop-shadow-md font-mono">The School Press!</h2>
               {studentProfile ? (
-                <p className="text-emerald-50 font-bold max-w-xl text-base leading-relaxed">
+                <p className="text-emerald-50 font-bold max-w-xl text-xs md:text-base leading-relaxed">
                   Record your special moments, sports awards, academic accomplishments, and projects to display in the feed for <strong className="text-yellow-300">Class {studentProfile.class}</strong>!
                 </p>
               ) : (
-                <p className="text-emerald-50 font-bold max-w-xl text-base leading-relaxed">
+                <p className="text-emerald-50 font-bold max-w-xl text-xs md:text-base leading-relaxed">
                   Record your special moments, sports awards, and accomplishments to display in the feed!
                 </p>
               )}
@@ -138,7 +138,7 @@ export default function SchoolPressPage() {
           </div>
 
           {/* Submission Form Card */}
-          <div className="bg-[var(--bg-card)] border-4 border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-6 md:p-8 shadow-sm">
+          <div className="bg-[var(--bg-card)] border-2 md:border-4 border-slate-100 dark:border-slate-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
                 <Camera className="w-6 h-6" />
@@ -241,7 +241,7 @@ export default function SchoolPressPage() {
 
         {/* Right Column - Recent Activity Feed */}
         <div className="space-y-6">
-          <div className="bg-[var(--bg-card)] border-4 border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-6 shadow-sm flex flex-col h-[calc(100vh-140px)] sticky top-24">
+          <div className="bg-[var(--bg-card)] border-2 md:border-4 border-slate-100 dark:border-slate-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 shadow-sm flex flex-col h-auto lg:h-[calc(100vh-140px)] lg:sticky lg:top-24">
             <h3 className="text-base font-bold text-[var(--text-heading)] mb-4 flex items-center gap-2">
               <span className="text-xl">📰</span>
               Recent Publications
