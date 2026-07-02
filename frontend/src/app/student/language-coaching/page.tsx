@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { useSession } from "next-auth/react";
 import { 
   Languages, 
   Mic, 
@@ -20,12 +21,29 @@ import {
   Award,
   X,
   Send,
-  ArrowRight
+  ArrowRight,
+  Bus,
+  Briefcase,
+  Hospital,
+  Flame,
+  HeartPulse
 } from "lucide-react";
 
 type ChatMessage = { sender: "ai" | "user"; text: string; audio?: string };
 
+const getApiBase = () => {
+  let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  if (url && !url.startsWith("http://") && !url.startsWith("https://")) {
+    url = `https://${url}`;
+  }
+  return url;
+};
+
+const API_BASE = getApiBase();
+
 export default function LanguageCoachingPage() {
+  const { data: session } = useSession();
+  const [student, setStudent] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"roleplay" | "pronunciation" | "tanglish">("roleplay");
   const [toastMsg, setToastMsg] = useState("");
   
@@ -52,6 +70,45 @@ export default function LanguageCoachingPage() {
 
   // Scroll Ref for jumping to chat
   const interactiveHubRef = useRef<HTMLDivElement>(null);
+
+  // Dynamic States from Backend
+  const [statsList, setStatsList] = useState<any[]>([]);
+  const [dailyWord, setDailyWord] = useState<any>(null);
+  const [badgesList, setBadgesList] = useState<any[]>([]);
+
+  // 1. Fetch Student Session
+  useEffect(() => {
+    fetch(`${API_BASE}/api/students`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data.length > 0) {
+          const myStudent = (session?.user as any)?.id 
+            ? json.data.find((s: any) => s.userId === (session?.user as any)?.id)
+            : null;
+          setStudent(myStudent || json.data[0]);
+        }
+      })
+      .catch((err) => console.error(err));
+  }, [session]);
+
+  // 2. Fetch language coaching stats
+  const fetchCoachingDetails = () => {
+    if (!student) return;
+    fetch(`${API_BASE}/api/students/${student.id}/language-coaching`)
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.data) {
+          setStatsList(json.data.stats || []);
+          setDailyWord(json.data.wordOfTheDay || null);
+          setBadgesList(json.data.badges || []);
+        }
+      })
+      .catch(err => console.error(err));
+  };
+
+  useEffect(() => {
+    fetchCoachingDetails();
+  }, [student]);
 
   // Handle Chat Scroll
   useEffect(() => {
@@ -136,6 +193,18 @@ export default function LanguageCoachingPage() {
     setIsRecording(false);
     setWaveHeights([10, 20, 30, 20, 10]);
     showToast("Great job! Your voice sounds confident! ⭐");
+
+    // Dynamic: Log pronunciation attempt to backend
+    if (student) {
+      fetch(`${API_BASE}/api/students/${student.id}/language-coaching/pronunciation`, {
+        method: "POST"
+      })
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) fetchCoachingDetails();
+      })
+      .catch(err => console.error(err));
+    }
   };
 
   const toggleRecord = () => {
@@ -155,45 +224,49 @@ export default function LanguageCoachingPage() {
 
   const handleChatSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim()) return;
+    if (!chatInput.trim() || !student) return;
 
     const userMsg = chatInput.trim();
     setChatMessages(prev => [...prev, { sender: "user", text: userMsg }]);
     setChatInput("");
 
-    // Simulate AI response
-    setTimeout(() => {
-      let reply = "Super! I hear you. To say that in English, we can try different words. Want to practice a simple dialogue together?";
-      let audioTxt = "Super! I hear you. Want to practice a simple dialogue together?";
-      const lowerMsg = userMsg.toLowerCase();
-      
-      if (lowerMsg.includes("bank") && lowerMsg.includes("leave")) {
-        reply = "Great question! You can ask: \n\n\"Is the bank closed tomorrow?\"";
-        audioTxt = "Is the bank closed tomorrow?";
-      } else if (lowerMsg.includes("hello") || lowerMsg.includes("hi")) {
-        reply = "Hello! Epdi irukkinga? Ready to practice some English today? 😊";
-        audioTxt = "Hello! Epdi irukkinga? Ready to practice some English today?";
-      } else if (lowerMsg.includes("enna panra") || lowerMsg.includes("enna panringa") || lowerMsg.includes("enna seikiraai")) {
-        reply = "Naan unga kooda pesitu iruken! (I am talking with you!) In English you can ask: 'What are you doing?'. Try asking me that! 🌟";
-        audioTxt = "I am talking with you. In English you can ask: What are you doing?";
-      } else if (lowerMsg.includes("name enna") || lowerMsg.includes("unoda name") || lowerMsg.includes("unga name") || lowerMsg.includes("peyar enna")) {
-        reply = "En name Maya! Super kelvi. In English, you can ask: 'What is your name?'. Can you type that for me? 🙌";
-        audioTxt = "My name is Maya. In English, you can ask: What is your name?";
-      } else if (lowerMsg.includes("how are you") || lowerMsg.includes("eppadi irukka") || lowerMsg.includes("epdi irukka")) {
-        reply = "I'm doing great, nandri! How are you doing today? 👍";
-        audioTxt = "I'm doing great, nandri! How are you doing today?";
+    // Dynamic: Post message to backend
+    fetch(`${API_BASE}/api/students/${student.id}/language-coaching/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: userMsg })
+    })
+    .then(res => res.json())
+    .then(json => {
+      if (json.success && json.data) {
+        setChatMessages(prev => [
+          ...prev, 
+          { sender: "ai", text: json.data.text, audio: json.data.audioText }
+        ]);
+        fetchCoachingDetails(); // Refresh stats!
       }
-
-      setChatMessages(prev => [...prev, { sender: "ai", text: reply, audio: audioTxt }]);
-    }, 1000);
+    })
+    .catch(err => {
+      console.error(err);
+      // Fallback
+      setTimeout(() => {
+        setChatMessages(prev => [...prev, { sender: "ai", text: "Super! I hear you. Let's keep practicing English dialogue together." }]);
+      }, 1000);
+    });
   };
   
-  const stats = [
-    { label: "Sentences Spoken", value: "245", icon: <MessageCircle />, color: "blue", trend: "+12 Today" },
-    { label: "Fearless Badges", value: "14", icon: <Star />, color: "yellow", trend: "Top 10%" },
-    { label: "New Words Used", value: "86", icon: <CheckCircle2 />, color: "emerald", trend: "Vocab Growing" },
-    { label: "Grammar Flow", value: "82%", icon: <TrendingUp />, color: "fuchsia", trend: "Improving!" },
-  ];
+  // Dynamic stats mapped to Lucide icons
+  const iconMap: Record<string, any> = {
+    "Sentences Spoken": <MessageCircle />,
+    "Fearless Badges": <Star />,
+    "New Words Used": <CheckCircle2 />,
+    "Grammar Flow": <TrendingUp />
+  };
+
+  const stats = statsList.map(s => ({
+    ...s,
+    icon: iconMap[s.label] || <MessageCircle />
+  }));
 
   const roleplays = [
     { 
@@ -202,7 +275,8 @@ export default function LanguageCoachingPage() {
       tamil: "பேருந்து நிலையத்தில்", 
       desc: "Ask for the correct bus route.", 
       diff: "Easy", 
-      emoji: "🚌",
+      icon: Bus,
+      color: "sky",
       dialogues: [
         { char: "You", txt: "Excuse me, does this bus go to Gandhipuram?" },
         { char: "Conductor", txt: "No, this goes to Singanallur. You need bus number 11." },
@@ -215,7 +289,8 @@ export default function LanguageCoachingPage() {
       tamil: "நேர்காணலில்", 
       desc: "Introduce yourself confidently.", 
       diff: "Medium", 
-      emoji: "💼",
+      icon: Briefcase,
+      color: "indigo",
       dialogues: [
         { char: "Interviewer", txt: "Please introduce yourself." },
         { char: "You", txt: "Hi, I am Arjun. I recently completed my schooling and I am eager to learn." },
@@ -228,7 +303,8 @@ export default function LanguageCoachingPage() {
       tamil: "மருத்துவரிடம்", 
       desc: "Explain your fever and cold.", 
       diff: "Easy", 
-      emoji: "🏥",
+      icon: Hospital,
+      color: "rose",
       dialogues: [
         { char: "Doctor", txt: "What seems to be the problem today?" },
         { char: "You", txt: "I have had a mild fever and a cold since yesterday." },
@@ -239,7 +315,7 @@ export default function LanguageCoachingPage() {
 
   return (
     <PortalLayout
-      title="Spoken English Hub! 🗣️"
+      title="Spoken English Hub!"
       subtitle="Speak fearlessly! Learn English using Tamil."
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -266,7 +342,7 @@ export default function LanguageCoachingPage() {
                   Mistakes are just steps to learning!
                 </p>
                 
-                <button 
+                {/* <button 
                   onClick={() => {
                     setActiveTab("tanglish");
                     interactiveHubRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -275,7 +351,7 @@ export default function LanguageCoachingPage() {
                 >
                   <Sparkles className="w-5 h-5 text-indigo-500" />
                   Chat with Tanglish AI Now
-                </button>
+                </button> */}
               </div>
             </div>
           </div>
@@ -327,8 +403,8 @@ export default function LanguageCoachingPage() {
                 
                 {roleplays.map((rp) => (
                   <div key={rp.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-5 rounded-2xl border-2 border-slate-100 dark:border-slate-700 hover:border-sky-300 bg-sky-50/30 hover:bg-sky-50 dark:bg-slate-900/50 transition-all cursor-pointer group">
-                    <div className="w-14 h-14 rounded-2xl bg-sky-100 dark:bg-sky-900/50 flex items-center justify-center text-2xl shadow-inner shrink-0 group-hover:scale-110 transition-transform">
-                      {rp.emoji}
+                    <div className={`w-14 h-14 rounded-2xl bg-${rp.color}-100 dark:bg-${rp.color}-900/50 flex items-center justify-center shadow-inner shrink-0 group-hover:scale-110 transition-transform`}>
+                      <rp.icon className={`w-6 h-6 text-${rp.color}-600 dark:text-${rp.color}-400`} />
                     </div>
                     <div className="flex-1 text-left">
                       <div className="flex items-center gap-2 mb-1">
@@ -487,16 +563,22 @@ export default function LanguageCoachingPage() {
             </h3>
             
             <div className="text-center">
-              <h4 className="text-4xl font-black text-slate-800 dark:text-slate-100 mb-2">Opportunity</h4>
-              <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mb-4">வாய்ப்பு (Vaaippu)</p>
+              <h4 className="text-4xl font-black text-slate-800 dark:text-slate-100 mb-2">
+                {dailyWord?.word || "Opportunity"}
+              </h4>
+              <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mb-4">
+                {dailyWord?.tamil || "வாய்ப்பு (Vaaippu)"}
+              </p>
               
               <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl text-left shadow-sm border-2 border-emerald-100 dark:border-slate-700 mb-4">
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Example</span>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">"This is a great <span className="text-emerald-500">opportunity</span> to learn English."</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                  {dailyWord?.example || '"This is a great opportunity to learn English."'}
+                </p>
               </div>
 
               <button 
-                onClick={() => speakText("This is a great opportunity to learn English.")}
+                onClick={() => speakText(dailyWord?.example || "This is a great opportunity to learn English.")}
                 className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-black shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 <Volume2 className="w-4 h-4" /> Listen to Pronunciation
@@ -509,19 +591,24 @@ export default function LanguageCoachingPage() {
                <Award className="w-5 h-5 text-amber-500" /> Recent Badges
             </h3>
             <div className="space-y-3">
-               {[
-                 { name: "Fearless Speaker", desc: "Spoke 10 sentences today", icon: "🦁", color: "amber" },
-                 { name: "Hospital Helper", desc: "Completed Doctor Roleplay", icon: "🏥", color: "rose" },
-                 { name: "Tanglish Master", desc: "Used AI bridge 5 times", icon: "🤖", color: "indigo" }
-               ].map((b, i) => (
-                 <div key={i} className={`flex items-center gap-3 p-3 rounded-2xl bg-${b.color}-50/50 border border-${b.color}-100`}>
-                    <div className="text-3xl drop-shadow-sm">{b.icon}</div>
-                    <div className="text-left">
-                      <div className="font-black text-slate-700 text-sm">{b.name}</div>
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{b.desc}</div>
-                    </div>
-                 </div>
-               ))}
+               {(badgesList.length > 0 ? badgesList : [
+                 { name: "Fearless Speaker", desc: "Spoke 10 sentences today", color: "amber" },
+                 { name: "Hospital Helper", desc: "Completed Doctor Roleplay", color: "rose" },
+                 { name: "Tanglish Master", desc: "Used AI bridge 5 times", color: "indigo" }
+               ]).map((b, i) => {
+                 const BadgeIcon = b.name === "Fearless Speaker" ? Flame : b.name === "Hospital Helper" ? Hospital : Bot;
+                 return (
+                   <div key={i} className={`flex items-center gap-3 p-3 rounded-2xl bg-${b.color}-50/50 border border-${b.color}-100`}>
+                      <div className={`w-10 h-10 rounded-xl bg-${b.color}-100 flex items-center justify-center`}>
+                        <BadgeIcon className={`w-5 h-5 text-${b.color}-600`} />
+                      </div>
+                      <div className="text-left">
+                        <div className="font-black text-slate-700 text-sm">{b.name}</div>
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{b.desc}</div>
+                      </div>
+                   </div>
+                 );
+               })}
             </div>
           </div>
         </div>
@@ -533,7 +620,9 @@ export default function LanguageCoachingPage() {
           <div className="bg-white dark:bg-slate-800 max-w-2xl w-full rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-slate-100 dark:border-slate-700">
             <div className="bg-sky-50 dark:bg-slate-900 p-6 flex justify-between items-center border-b-2 border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-3">
-                <div className="text-4xl">{activeRoleplay.emoji}</div>
+                <div className={`w-12 h-12 rounded-xl bg-${activeRoleplay.color}-100 dark:bg-${activeRoleplay.color}-900/50 flex items-center justify-center`}>
+                  <activeRoleplay.icon className={`w-6 h-6 text-${activeRoleplay.color}-600 dark:text-${activeRoleplay.color}-400`} />
+                </div>
                 <div className="text-left">
                   <h3 className="text-xl font-black text-slate-800 dark:text-white">{activeRoleplay.title}</h3>
                   <p className="text-sm font-bold text-sky-600 dark:text-sky-400">{activeRoleplay.tamil}</p>

@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { portals } from "@/lib/navConfig";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, MoreVertical } from "lucide-react";
+import { LucideIcon } from "@/components/LucideIcon";
 
 /* ─── Government Color Palette ─── */
 // New Palette: Deep Purple (#3D3580), Lavender (#7B7FC4), Golden Yellow (#F5B800), Warm Orange (#F07800), Red-Orange (#E84400)
@@ -790,8 +791,8 @@ export default function HomePage() {
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                      <div style={{ width: "52px", height: "52px", borderRadius: "12px", background: pColor.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "26px", flexShrink: 0 }}>
-                        {portal.icon}
+                      <div style={{ width: "52px", height: "52px", borderRadius: "12px", background: pColor.bg, display: "flex", alignItems: "center", justifyContent: "center", color: pColor.text, flexShrink: 0 }}>
+                        <LucideIcon name={portal.icon} className="w-8 h-8" />
                       </div>
                       <div>
                         <div style={{ fontSize: "15px", fontWeight: 700, color: "#111827", marginBottom: "2px" }}>{portal.label}</div>

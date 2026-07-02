@@ -2,6 +2,18 @@
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
+import { 
+  Hourglass, 
+  BarChart2, 
+  FileText, 
+  Zap, 
+  Ruler, 
+  Microscope, 
+  Scroll, 
+  Languages, 
+  Globe,
+  HeartPulse 
+} from "lucide-react";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -14,11 +26,11 @@ const getApiBase = () => {
 const API_BASE = getApiBase();
 
 const subjects = [
-  { name: "Mathematics", progress: 65, color: "#ef4444", icon: "📐" }, // Low progress to show weakness detector
-  { name: "Science", progress: 78, color: "#3b82f6", icon: "🔬" },
-  { name: "Tamil", progress: 88, color: "#f59e0b", icon: "📜" },
-  { name: "English", progress: 85, color: "#10b981", icon: "🗣️" },
-  { name: "Social Science", progress: 75, color: "#8b5cf6", icon: "🌍" },
+  { name: "Mathematics", progress: 65, color: "#ef4444", icon: Ruler }, // Low progress to show weakness detector
+  { name: "Science", progress: 78, color: "#3b82f6", icon: Microscope },
+  { name: "Tamil", progress: 88, color: "#f59e0b", icon: Scroll },
+  { name: "English", progress: 85, color: "#10b981", icon: Languages },
+  { name: "Social Science", progress: 75, color: "#8b5cf6", icon: Globe },
 ];
 
 const mockTestScores = [
@@ -55,14 +67,14 @@ export default function HighSchoolDashboard() {
       {/* KPI Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
         {[
-          { label: "Countdown to SSLC", value: "84 Days", icon: "⏳", color: "text-red-400", sub: "Exam starts Mar 15" },
-          { label: "Overall Avg", value: "77%", icon: "📊", color: "text-blue-400", sub: "Target: 90%" },
-          { label: "Mock Tests Taken", value: "4/10", icon: "📝", color: "text-amber-400", sub: "Next test: Friday" },
-          { label: "Study Boost Hrs", value: "12 Hrs", icon: "⚡", color: "text-purple-400", sub: "Self-study this week" },
+          { label: "Countdown to SSLC", value: "84 Days", icon: Hourglass, color: "text-red-400", sub: "Exam starts Mar 15" },
+          { label: "Overall Avg", value: "77%", icon: BarChart2, color: "text-blue-400", sub: "Target: 90%" },
+          { label: "Mock Tests Taken", value: "4/10", icon: FileText, color: "text-amber-400", sub: "Next test: Friday" },
+          { label: "Study Boost Hrs", value: "12 Hrs", icon: Zap, color: "text-purple-400", sub: "Self-study this week" },
         ].map((kpi) => (
           <div key={kpi.label} className="kpi-card border border-slate-700 hover:border-red-500/50 transition-colors">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{kpi.icon}</span>
+              <kpi.icon className={`h-6 w-6 ${kpi.color}`} />
               <span className={`text-xs font-medium ${kpi.color}`}>{kpi.sub}</span>
             </div>
             <div className={`text-3xl font-bold ${kpi.color} mb-1`}>{kpi.value}</div>
@@ -81,7 +93,9 @@ export default function HighSchoolDashboard() {
           <div className="space-y-4">
             {subjects.map((s) => (
               <div key={s.name} className="flex items-center gap-4">
-                <div className="text-xl w-8">{s.icon}</div>
+                <div className="text-xl w-8">
+                  <s.icon className="h-5 w-5" style={{ color: s.color }} />
+                </div>
                 <div className="flex-1">
                   <div className="flex justify-between text-sm mb-1.5">
                     <span className="text-slate-300 font-medium">{s.name}</span>
@@ -100,7 +114,7 @@ export default function HighSchoolDashboard() {
           {/* AI Weakness Detector */}
           <div className="glass rounded-2xl p-6 fade-in-3 border border-red-500/30 bg-red-900/10">
             <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
-              <span className="text-red-500">⚡</span> AI Weakness Alert
+              <Zap className="h-5 w-5 text-red-500 animate-pulse" /> AI Weakness Alert
             </h2>
             <p className="text-sm text-slate-300 mb-4">
               Your recent scores show a drop in <strong className="text-red-400">Mathematics (Algebra)</strong>. We have generated a custom 3-day study plan to boost your score.
@@ -126,6 +140,27 @@ export default function HighSchoolDashboard() {
               ))}
             </div>
             <button className="mt-4 text-xs text-center w-full text-slate-400 hover:text-white">View All Results →</button>
+          </div>
+
+          {/* Quick Links / Student Tools */}
+          <div className="glass rounded-2xl p-6 fade-in-5 border border-slate-700/50">
+            <h2 className="text-base font-semibold text-white mb-4">Quick Links</h2>
+            <div className="space-y-3">
+              <a href="/student/leave" className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-red-500/50 hover:bg-slate-800 transition-all group">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-red-400" />
+                  <span className="text-sm text-slate-300 group-hover:text-white">Leave Reports & Application</span>
+                </div>
+                <span className="text-xs text-slate-400 group-hover:text-red-400">View →</span>
+              </a>
+              <a href="/student/health" className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-red-500/50 hover:bg-slate-800 transition-all group">
+                <div className="flex items-center gap-3">
+                  <HeartPulse className="h-5 w-5 text-red-400" />
+                  <span className="text-sm text-slate-300 group-hover:text-white">My Health Report</span>
+                </div>
+                <span className="text-xs text-slate-400 group-hover:text-red-400">View →</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>

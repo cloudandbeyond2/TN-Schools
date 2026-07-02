@@ -300,7 +300,7 @@ export default function LanguageCoachingPage() {
                   Mistakes are just steps to learning!
                 </p>
                 
-                <button 
+                {/* <button 
                   onClick={() => {
                     setActiveTab("tanglish");
                     interactiveHubRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -309,7 +309,7 @@ export default function LanguageCoachingPage() {
                 >
                   <Sparkles className="w-5 h-5 text-white" />
                   Chat with Tanglish AI Now
-                </button>
+                </button> */}
               </div>
             </div>
           </div>

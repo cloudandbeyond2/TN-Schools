@@ -91,7 +91,20 @@ export default function ComputerEducationPage() {
       "scratch uses colored blocks of code to build beautiful interactive stories.",
       "loops help us repeat actions without typing them over and over.",
       "variables are named boxes that hold information we want to use later.",
-      "always practice safe browsing and never share your passwords with strangers."
+      "always practice safe browsing and never share your passwords with strangers.",
+      "algorithms are step by step procedures used to solve problems or perform calculations.",
+      "html creates the structure of a webpage while css makes it look styled and beautiful.",
+      "javascript is a dynamic programming language that makes web pages interactive and lively.",
+      "python is known for its simple readability, making it great for beginners and ai developers.",
+      "cyber security protects our computers, networks, and data from unauthorized access.",
+      "a database organizes and stores large amounts of information so we can search it quickly.",
+      "the internet connects millions of computers worldwide, allowing us to share knowledge instantly.",
+      "debugging is the process of finding and fixing errors or bugs in your code.",
+      "cloud computing lets us store files and run programs on servers over the internet.",
+      "open source software allows anyone to view, modify, and share its source code freely.",
+      "artificial intelligence trains computers to think, learn, and make decisions like humans.",
+      "compilers translate high level programming code into machine language that computers run.",
+      "always lock your computer when you walk away to keep your personal files safe."
     ];
     const randomSentence = sentences[Math.floor(Math.random() * sentences.length)];
     setTypingSentence(randomSentence);
