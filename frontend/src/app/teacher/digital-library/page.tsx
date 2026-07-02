@@ -18,6 +18,8 @@ interface LibraryResource {
   description: string;
   tags: string[];
   isActive: boolean;
+  fileUrl?: string;
+  aiContent?: string;
 }
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -41,7 +43,7 @@ const subjectColor: Record<string, string> = {
   English: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
 };
 
-const emptyForm = { title: "", type: "PDF", subject: "Physics", class: "11", size: "N/A", description: "", tags: "" };
+const emptyForm = { title: "", type: "PDF", subject: "Physics", class: "11", size: "N/A", description: "", tags: "", fileUrl: "", aiContent: "" };
 
 export default function DigitalLibraryPage() {
   const { data: session } = useSession();
@@ -58,6 +60,7 @@ export default function DigitalLibraryPage() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [generatingAi, setGeneratingAi] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
 
   const fetchResources = useCallback(async () => {
@@ -82,8 +85,31 @@ export default function DigitalLibraryPage() {
 
   const handleOpenAdd = () => { setForm(emptyForm); setEditId(null); setShowModal(true); };
   const handleOpenEdit = (r: LibraryResource) => {
-    setForm({ title: r.title, type: r.type, subject: r.subject, class: r.class, size: r.size, description: r.description || "", tags: (r.tags || []).join(", ") });
+    setForm({ title: r.title, type: r.type, subject: r.subject, class: r.class, size: r.size, description: r.description || "", tags: (r.tags || []).join(", "), fileUrl: r.fileUrl || "", aiContent: r.aiContent || "" });
     setEditId(r.id); setShowModal(true);
+  };
+
+  const handleGenerateAi = async () => {
+    if (!form.title) return Swal.fire({ icon: "warning", title: "Missing Title", text: "Please enter a resource title first." });
+    setGeneratingAi(true);
+    try {
+      const res = await fetch(`${API}/api/ai/generate-resource-content`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: form.title, subject: form.subject, type: form.type, description: form.description }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setForm({ ...form, aiContent: data.data });
+        Swal.fire({ icon: "success", title: "Generated!", text: "AI Study Notes generated successfully." });
+      } else {
+        throw new Error("Failed to generate content.");
+      }
+    } catch (e) {
+      Swal.fire({ icon: "error", title: "Error", text: "Failed to generate AI content." });
+    } finally {
+      setGeneratingAi(false);
+    }
   };
 
   const handleSave = async () => {
@@ -322,10 +348,33 @@ export default function DigitalLibraryPage() {
                     {["1","2","3","4","5","6","7","8","9","10","11","12"].map((c) => <option key={c} value={c}>Class {c}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">File Size</label>
-                  <input value={form.size} onChange={(e) => setForm({ ...form, size: e.target.value })} placeholder="e.g. 2.4 MB" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500" />
-                </div>
+                {form.type !== "Video" && form.type !== "Audio" && (
+                  <div>
+                    <label className="block text-[10px] text-slate-500 mb-1 font-semibold">File Size</label>
+                    <input value={form.size} onChange={(e) => setForm({ ...form, size: e.target.value })} placeholder="e.g. 2.4 MB" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500" />
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-[10px] text-slate-500 mb-1 font-semibold">
+                  {form.type === "Video" ? "YouTube / Video URL" : form.type === "Audio" ? "Audio URL (e.g. Spotify, Drive)" : "File Link / Drive URL"}
+                </label>
+                <input value={form.fileUrl} onChange={(e) => setForm({ ...form, fileUrl: e.target.value })} placeholder="https://..." className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500" />
+                
+                {!form.fileUrl && (
+                  <div className="mt-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">✨ AI Study Notes Fallback</h4>
+                        <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80 mt-0.5 max-w-[250px]">Since there is no URL, you can auto-generate study notes for students to read instead.</p>
+                      </div>
+                      <button onClick={handleGenerateAi} disabled={generatingAi} className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white text-[10px] font-bold rounded-lg transition-colors whitespace-nowrap shadow-sm">
+                        {generatingAi ? "Generating..." : form.aiContent ? "🔄 Regenerate Notes" : "🪄 Generate Notes"}
+                      </button>
+                    </div>
+                    {form.aiContent && <div className="mt-2 p-2 bg-white/60 dark:bg-black/20 rounded-lg text-[10px] text-slate-600 dark:text-slate-300 line-clamp-3 italic">"{form.aiContent.replace(/<[^>]+>/g, '').slice(0, 150)}..."</div>}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Description</label>

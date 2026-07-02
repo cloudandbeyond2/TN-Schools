@@ -1233,6 +1233,7 @@ model DigitalLibraryResource {
   schoolId    String?
   teacherId   String?
   isActive    Boolean  @default(true)
+  aiContent   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -1275,6 +1276,7 @@ model NEETChapter {
   attempted      Int      @default(0)
   correct        Int      @default(0)
   status         String   @default("Pending")
+  generatedQuestions Json?
   schoolId       String?
   teacherId      String?
   createdAt      DateTime @default(now())

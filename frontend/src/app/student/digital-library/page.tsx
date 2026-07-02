@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { BookOpen, Search, Book, Video, ArrowRight, Star } from "lucide-react";
 import { useSession } from "next-auth/react";
+import Swal from "sweetalert2";
 
 interface LibraryResource {
   id: string;
@@ -14,6 +15,8 @@ interface LibraryResource {
   size: string;
   description: string;
   tags: string[];
+  fileUrl?: string;
+  aiContent?: string;
 }
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -63,6 +66,27 @@ export default function DigitalLibraryPage() {
   useEffect(() => {
     fetchResources();
   }, [fetchResources]);
+
+  const handleReadClick = async (res: LibraryResource) => {
+    if (res.fileUrl) {
+      window.open(res.fileUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    // Fallback: Show pre-generated AI content if available from the database
+    if (res.aiContent) {
+      Swal.fire({
+        title: `<span class="text-indigo-600">${res.title}</span>`,
+        html: `<div class="text-left text-sm max-h-[60vh] overflow-y-auto mt-4 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl leading-relaxed">${res.aiContent}</div>`,
+        width: 800,
+        showCloseButton: true,
+        confirmButtonText: "Close",
+        confirmButtonColor: "#4f46e5",
+      });
+    } else {
+      Swal.fire("Unavailable", `"${res.title}" is currently unavailable. Please ask your teacher to provide a link or generate study notes.`, "info");
+    }
+  };
 
   const filteredResources = resources.filter((res) => {
     const matchesSearch =
@@ -167,7 +191,7 @@ export default function DigitalLibraryPage() {
                     </div>
 
                     <button
-                      onClick={() => alert(`Opening "${res.title}"...`)}
+                      onClick={() => handleReadClick(res)}
                       className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
                     >
                       {res.type === "Video" ? "Watch" : "Read"} <ArrowRight className="w-3.5 h-3.5" />

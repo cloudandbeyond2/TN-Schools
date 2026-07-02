@@ -284,18 +284,28 @@ export default function PersonalGuidePage() {
           {filtered.map((student) => (
             <div key={student.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all">
               {/* Header */}
-              <div className="flex items-start gap-3 mb-3">
+              <div className="flex items-start gap-2 mb-3">
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-black text-base shrink-0">
                   {student.studentName.split(" ").map((n) => n[0]).join("").slice(0, 2)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-white leading-tight">{student.studentName}</h4>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Class {student.class}{student.section} &nbsp;|&nbsp; {student.goal}</p>
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-white leading-tight truncate">{student.studentName}</h4>
+                  <p className="text-[10px] text-slate-400 mt-0.5 truncate">Class {student.class}{student.section} &nbsp;|&nbsp; {student.goal}</p>
                 </div>
                 <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold border inline-flex items-center gap-1 shrink-0 ${statusColor[student.guidanceStatus]}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${statusDot[student.guidanceStatus]}`} />
                   {student.guidanceStatus}
                 </span>
+                <button
+                  onClick={() => handleDelete(student.id, student.studentName)}
+                  disabled={deletingId === student.id}
+                  className="text-slate-400 hover:text-red-500 bg-slate-50 hover:bg-red-50 dark:bg-slate-900 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 ml-1 p-1 rounded-full shrink-0"
+                  title="Remove Student"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
 
               {/* Scores */}
@@ -332,29 +342,19 @@ export default function PersonalGuidePage() {
               <p className="text-[10px] text-slate-400 italic leading-relaxed mb-3 line-clamp-2">"{student.notes}"</p>
 
               {/* Footer */}
-              <div className="flex justify-between items-center border-t border-slate-100 dark:border-slate-800 pt-3">
-                <span className="text-[10px] text-slate-400">Last meeting: {student.lastMeeting || "N/A"}</span>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => setSelectedStudent(student)}
-                    className="px-2.5 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20 rounded-lg font-bold text-[10px] transition-all"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => { setSelectedStudent(student); handleOpenEdit(student); }}
-                    className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded-lg font-bold text-[10px] transition-all"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(student.id, student.studentName)}
-                    disabled={deletingId === student.id}
-                    className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/20 rounded-lg font-bold text-[10px] transition-all disabled:opacity-50"
-                  >
-                    {deletingId === student.id ? "..." : "Delete"}
-                  </button>
-                </div>
+              <div className="border-t border-slate-100 dark:border-slate-800/60 mt-3 pt-3 flex justify-between items-center">
+                <button
+                  onClick={() => setSelectedStudent(student)}
+                  className="px-4 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-lg font-bold text-xs transition-colors hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
+                >
+                  View Details
+                </button>
+                <button
+                  onClick={() => { setSelectedStudent(student); handleOpenEdit(student); }}
+                  className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded-lg font-bold text-[10px] transition-all"
+                >
+                  Edit Profile
+                </button>
               </div>
             </div>
           ))}
@@ -376,7 +376,7 @@ export default function PersonalGuidePage() {
                 </div>
                 <button
                   onClick={() => setSelectedStudent(null)}
-                  className="text-white/70 hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-white/10 transition-all"
+                  className="text-grey/70 hover:text-grey text-xs px-2 py-1 rounded-lg hover:bg-grey/10 transition-all"
                 >
                   ✕
                 </button>
@@ -475,13 +475,13 @@ export default function PersonalGuidePage() {
                 <div>
                   <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Class *</label>
                   <select value={form.class} onChange={(e) => setForm({ ...form, class: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-indigo-400">
-                    {["9","10","11","12"].map((c) => <option key={c} value={c}>Class {c}</option>)}
+                    {["9", "10", "11", "12"].map((c) => <option key={c} value={c}>Class {c}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Section *</label>
                   <select value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-indigo-400">
-                    {["A","B","C","D"].map((s) => <option key={s} value={s}>Section {s}</option>)}
+                    {["A", "B", "C", "D"].map((s) => <option key={s} value={s}>Section {s}</option>)}
                   </select>
                 </div>
               </div>

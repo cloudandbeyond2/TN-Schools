@@ -69,10 +69,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 // ─── POST /api/digital-library ───────────────────────────────────
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const {
-      title, type, subject, class: cls, size, description,
-      tags, fileUrl, schoolId, teacherId,
-    } = req.body;
+    const { title, type, subject, class: cls, size, description, tags, fileUrl, aiContent, schoolId, teacherId } = req.body;
 
     if (!title || !type || !subject || !cls) {
       return res.status(400).json({
@@ -87,11 +84,11 @@ router.post('/', async (req: Request, res: Response) => {
 
     const rows: any[] = await prisma.$queryRaw`
       INSERT INTO "DigitalLibraryResource"
-        (id, title, type, subject, class, size, description, tags, "fileUrl",
+        (id, title, type, subject, class, size, description, tags, "fileUrl", "aiContent",
          "uploadDate", downloads, views, "schoolId", "teacherId", "isActive", "createdAt", "updatedAt")
       VALUES
         (${id}, ${title}, ${type}, ${subject}, ${String(cls)},
-         ${size || 'N/A'}, ${description || null}, ${tagsArr}, ${fileUrl || null},
+         ${size || 'N/A'}, ${description || null}, ${tagsArr}, ${fileUrl || null}, ${aiContent || null},
          ${now}, 0, 0, ${schoolId || null}, ${teacherId || null}, true, ${now}, ${now})
       RETURNING *
     `;
@@ -110,33 +107,31 @@ router.post('/', async (req: Request, res: Response) => {
 // ─── PUT /api/digital-library/:id ────────────────────────────────
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const existing = await prisma.digitalLibraryResource.findUnique({
-      where: { id: req.params.id },
-    });
-    if (!existing) return res.status(404).json({ success: false, error: 'Resource not found' });
+    const existing = await prisma.$queryRaw`SELECT * FROM "DigitalLibraryResource" WHERE id = ${req.params.id}`;
+    if (!existing || (existing as any[]).length === 0) {
+      return res.status(404).json({ success: false, error: 'Resource not found' });
+    }
 
-    const {
-      title, type, subject, class: cls, size, description,
-      tags, fileUrl, isActive, downloads,
-    } = req.body;
-
+    const curr = (existing as any[])[0];
+    const { title, type, subject, class: cls, size, description, tags, fileUrl, aiContent, isActive, downloads } = req.body;
     const now = new Date();
-    const tagsArr = tags !== undefined ? (Array.isArray(tags) ? tags : [tags]) : existing.tags;
+    const tagsArr = tags !== undefined ? (Array.isArray(tags) ? tags : [tags]) : curr.tags;
 
     const rows: any[] = await prisma.$queryRaw`
       UPDATE "DigitalLibraryResource"
       SET
-        title        = ${title       ?? existing.title},
-        type         = ${type        ?? existing.type},
-        subject      = ${subject     ?? existing.subject},
-        class        = ${cls         ?? existing.class},
-        size         = ${size        ?? existing.size},
-        description  = ${description ?? existing.description},
-        tags         = ${tagsArr},
-        "fileUrl"    = ${fileUrl     ?? existing.fileUrl},
-        "isActive"   = ${isActive    !== undefined ? Boolean(isActive) : existing.isActive},
-        downloads    = ${downloads   !== undefined ? Number(downloads) : existing.downloads},
-        "updatedAt"  = ${now}
+        title       = ${title       ?? curr.title},
+        type        = ${type        ?? curr.type},
+        subject     = ${subject     ?? curr.subject},
+        class       = ${cls         ?? curr.class},
+        size        = ${size        ?? curr.size},
+        description = ${description ?? curr.description},
+        tags        = ${tagsArr},
+        "fileUrl"   = ${fileUrl     ?? curr.fileUrl},
+        "aiContent" = ${aiContent   ?? curr.aiContent},
+        "isActive"  = ${isActive    !== undefined ? Boolean(isActive) : curr.isActive},
+        downloads   = ${downloads   !== undefined ? Number(downloads) : curr.downloads},
+        "updatedAt" = ${now}
       WHERE id = ${req.params.id}
       RETURNING *
     `;

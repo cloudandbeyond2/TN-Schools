@@ -45,7 +45,7 @@ router.get('/chapters/:id', async (req: Request, res: Response) => {
 // ─── POST /api/neet-prep/chapters ────────────────────────────────
 router.post('/chapters', async (req: Request, res: Response) => {
   try {
-    const { subject, chapter, difficulty, totalQuestions, attempted, correct, status, schoolId, teacherId } = req.body;
+    const { subject, chapter, difficulty, totalQuestions, attempted, correct, status, generatedQuestions, schoolId, teacherId } = req.body;
 
     if (!subject || !chapter) {
       return res.status(400).json({ success: false, error: 'subject and chapter are required' });
@@ -57,11 +57,11 @@ router.post('/chapters', async (req: Request, res: Response) => {
     const rows: any[] = await prisma.$queryRaw`
       INSERT INTO "NEETChapter"
         (id, subject, chapter, difficulty, "totalQuestions", attempted, correct, status,
-         "schoolId", "teacherId", "createdAt", "updatedAt")
+         "generatedQuestions", "schoolId", "teacherId", "createdAt", "updatedAt")
       VALUES
         (${id}, ${subject}, ${chapter}, ${difficulty || 'Medium'},
          ${Number(totalQuestions) || 0}, ${Number(attempted) || 0},
-         ${Number(correct) || 0}, ${status || 'Pending'},
+         ${Number(correct) || 0}, ${status || 'Pending'}, ${generatedQuestions ? JSON.stringify(generatedQuestions) : null}::jsonb,
          ${schoolId || null}, ${teacherId || null}, ${now}, ${now})
       RETURNING *
     `;
@@ -79,7 +79,7 @@ router.put('/chapters/:id', async (req: Request, res: Response) => {
     const existing = await prisma.nEETChapter.findUnique({ where: { id: req.params.id } });
     if (!existing) return res.status(404).json({ success: false, error: 'Chapter not found' });
 
-    const { subject, chapter, difficulty, totalQuestions, attempted, correct, status } = req.body;
+    const { subject, chapter, difficulty, totalQuestions, attempted, correct, status, generatedQuestions } = req.body;
     const now = new Date();
 
     const rows: any[] = await prisma.$queryRaw`
@@ -92,6 +92,7 @@ router.put('/chapters/:id', async (req: Request, res: Response) => {
         attempted        = ${attempted      !== undefined ? Number(attempted)      : existing.attempted},
         correct          = ${correct        !== undefined ? Number(correct)        : existing.correct},
         status           = ${status         ?? existing.status},
+        "generatedQuestions" = ${generatedQuestions !== undefined ? JSON.stringify(generatedQuestions) : (existing.generatedQuestions ? JSON.stringify(existing.generatedQuestions) : null)}::jsonb,
         "updatedAt"      = ${now}
       WHERE id = ${req.params.id}
       RETURNING *
