@@ -161,6 +161,7 @@ import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import Swal from "sweetalert2";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -179,25 +180,51 @@ const BADGE_META: Record<string, { icon: string; color: string }> = {
   "🌟 Mentor Star":    { icon: "🌟", color: "from-purple-400 to-fuchsia-500" },
 };
 
-const projects = [
-  { title: "Solar System Model", subject: "Science", date: "Last Week", type: "Craft", grade: "Super Star! ⭐", icon: "🪐", color: "#10b981" },
-  { title: "My Favorite Animal Essay", subject: "English", date: "2 Weeks Ago", type: "Writing", grade: "Great Job! 👍", icon: "🐶", color: "#f59e0b" },
-  { title: "Math Puzzle Challenge", subject: "Mathematics", date: "Last Month", type: "Game", grade: "Math Wizard! 🧙‍♂️", icon: "🧩", color: "#6366f1" },
-  { title: "History of Cholas", subject: "Social Science", date: "Last Month", type: "Drawing", grade: "Creative! 🎨", icon: "👑", color: "#ec4899" }
-];
-
-const skills = [
-  { name: "Creativity ✨", level: 90, color: "#f59e0b" },
-  { name: "Teamwork 🤝", level: 85, color: "#10b981" },
-  { name: "Curiosity 🕵️‍♂️", level: 95, color: "#ec4899" },
-  { name: "Focus 🎯", level: 70, color: "#3b82f6" }
-];
-
 export default function MiddleSchoolPortfolio() {
   const { data: session } = useSession();
   const [student, setStudent] = useState<any>(null);
   const [earnedBadges, setEarnedBadges] = useState<any[]>([]);
   const [badgesLoading, setBadgesLoading] = useState(true);
+
+  // Dynamic Portfolio states
+  const [projectsList, setProjectsList] = useState<any[]>([]);
+  const [skillsList, setSkillsList] = useState<any[]>([]);
+  const [bio, setBio] = useState<string>("I love science, stargazing and drawing!");
+  const [portfolioLoading, setPortfolioLoading] = useState(true);
+
+  const fetchPortfolioDetails = (studentId: string) => {
+    setPortfolioLoading(true);
+    fetch(`${API_BASE}/api/students/${studentId}/portfolio`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          const colorMap: Record<string, string> = {
+            "Science": "#10b981",
+            "English": "#f59e0b",
+            "Mathematics": "#6366f1",
+            "Social Science": "#ec4899"
+          };
+
+          const shapedProjects = (json.data.projects || []).map((p: any) => ({
+            title: p.title,
+            subject: p.category,
+            date: p.date,
+            type: p.tags?.[0] || "Project",
+            grade: p.description,
+            icon: p.image || "📁",
+            color: colorMap[p.category] || "#3b82f6"
+          }));
+
+          setProjectsList(shapedProjects);
+          setSkillsList(json.data.skills || []);
+          if (json.data.bio) {
+            setBio(json.data.bio);
+          }
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setPortfolioLoading(false));
+  };
 
   useEffect(() => {
     fetch(`${API_BASE}/api/students`)
@@ -209,6 +236,9 @@ export default function MiddleSchoolPortfolio() {
             : null;
           const resolved = myStudent || json.data[0];
           setStudent(resolved);
+
+          // Fetch dynamic portfolio data
+          fetchPortfolioDetails(resolved.id);
 
           // Fetch badges for this student
           const schoolId = (session?.user as any)?.schoolId;
@@ -242,6 +272,80 @@ export default function MiddleSchoolPortfolio() {
       .finally(() => setBadgesLoading(false));
   }, [session]);
 
+  const handleAddProject = async () => {
+    if (!student) return;
+
+    const { value: formValues } = await Swal.fire({
+      title: "Add New Project",
+      html: `
+        <div class="text-left space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Project Title</label>
+            <input id="swal-title" class="w-full border p-2 rounded-lg text-sm" placeholder="e.g. My Plant Growth Log" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Subject (Category)</label>
+            <select id="swal-category" class="w-full border p-2 rounded-lg text-sm">
+              <option value="Science">Science</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="English">English</option>
+              <option value="Social Science">Social Science</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Icon Emoji</label>
+            <input id="swal-image" class="w-full border p-2 rounded-lg text-sm" placeholder="e.g. 🌱, 🪐, 🎨, 🔬" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Type Tag</label>
+            <input id="swal-tag" class="w-full border p-2 rounded-lg text-sm" placeholder="e.g. Experiment, Craft, Essay" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Feedback/Grade</label>
+            <input id="swal-desc" class="w-full border p-2 rounded-lg text-sm" placeholder="e.g. Super Star! ⭐" />
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      preConfirm: () => {
+        return {
+          title: (document.getElementById("swal-title") as HTMLInputElement).value,
+          category: (document.getElementById("swal-category") as HTMLSelectElement).value,
+          image: (document.getElementById("swal-image") as HTMLInputElement).value || "📁",
+          tags: [(document.getElementById("swal-tag") as HTMLInputElement).value || "Project"],
+          description: (document.getElementById("swal-desc") as HTMLInputElement).value || "Great Job! 👍"
+        };
+      }
+    });
+
+    if (formValues) {
+      if (!formValues.title) {
+        Swal.fire("Error", "Project title is required", "error");
+        return;
+      }
+
+      fetch(`${API_BASE}/api/students/${student.id}/portfolio/projects`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formValues)
+      })
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          Swal.fire("Success", "Project added to your portfolio!", "success");
+          fetchPortfolioDetails(student.id);
+        } else {
+          Swal.fire("Error", json.error || "Failed to add project", "error");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire("Error", "Could not connect to server", "error");
+      });
+    }
+  };
+
   const userName = session?.user?.name || student?.user?.name || "Student";
   const firstName = userName.split(" ")[0] || "Student";
   const userInitial = userName.charAt(0).toUpperCase();
@@ -274,7 +378,9 @@ export default function MiddleSchoolPortfolio() {
           <div className="w-full bg-white dark:bg-slate-900/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700/50">
              <div className="flex justify-between items-center mb-3">
                 <span className="text-sm font-semibold text-black dark:text-slate-300 flex items-center gap-2"><span>📂</span> Awesome Projects</span>
-                <span className="text-base font-black text-emerald-600 dark:text-emerald-400">18</span>
+                <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
+                  {portfolioLoading ? "…" : projectsList.length}
+                </span>
              </div>
              <div className="flex justify-between items-center mb-3">
                 <span className="text-sm font-semibold text-black dark:text-slate-300 flex items-center gap-2"><span>🏅</span> Badges Collected</span>
@@ -288,39 +394,50 @@ export default function MiddleSchoolPortfolio() {
         </div>
 
         {/* Featured Projects */}
-        <div className="lg:col-span-2 glass rounded-3xl p-6 fade-in-2 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent">
+        <div className="lg:col-span-2 glass rounded-3xl p-6 fade-in-2 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-black text-black dark:text-white flex items-center gap-3">
               <span className="text-3xl">✨</span> Your Best Work
             </h2>
-            <button className="text-sm font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/30 px-4 py-2 rounded-xl transition-colors border border-emerald-500/30">
+            <button 
+              onClick={handleAddProject}
+              className="text-sm font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/30 px-4 py-2 rounded-xl transition-colors border border-emerald-500/30"
+            >
               + Add New
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {projects.map((p, i) => (
-              <div key={i} className="bg-slate-50 dark:bg-slate-900/60 border-2 border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 hover:border-emerald-500/50 transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer group flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="text-4xl bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl group-hover:scale-110 transition-transform">{p.icon}</div>
-                    <span className="text-xs font-black px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-black dark:text-slate-300 group-hover:bg-emerald-500/20 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors border border-transparent group-hover:border-emerald-500/30">{p.grade}</span>
+          {portfolioLoading ? (
+            <div className="text-center py-10 font-bold text-slate-500">Loading portfolio projects... ⏳</div>
+          ) : projectsList.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {projectsList.map((p, i) => (
+                <div key={i} className="bg-slate-50 dark:bg-slate-900/60 border-2 border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 hover:border-emerald-500/50 transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer group flex flex-col justify-between">
+                  <div>
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="text-4xl bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl group-hover:scale-110 transition-transform">{p.icon}</div>
+                      <span className="text-xs font-black px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-black dark:text-slate-300 group-hover:bg-emerald-500/20 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors border border-transparent group-hover:border-emerald-500/30">{p.grade}</span>
+                    </div>
+                    <h3 className="text-base font-bold text-black dark:text-white mb-1.5">{p.title}</h3>
+                    <p className="text-sm font-medium text-black dark:text-slate-400 mb-4">{p.subject} • {p.type}</p>
                   </div>
-                  <h3 className="text-base font-bold text-black dark:text-white mb-1.5">{p.title}</h3>
-                  <p className="text-sm font-medium text-black dark:text-slate-400 mb-4">{p.subject} • {p.type}</p>
+                  <div className="flex justify-between items-center text-xs mt-auto">
+                    <span className="font-bold text-black dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">{p.date}</span>
+                    <button className="font-bold text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">Open <span className="text-lg leading-none">→</span></button>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center text-xs mt-auto">
-                  <span className="font-bold text-black dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">{p.date}</span>
-                  <button className="font-bold text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">Open <span className="text-lg leading-none">→</span></button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
+              <p className="text-sm text-slate-500">No projects added yet! Click "+ Add New" to start your showcase.</p>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Badges & Achievements */}
-        <div className="glass rounded-3xl p-6 fade-in-3 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent">
+        <div className="glass rounded-3xl p-6 fade-in-3 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
           <div className="flex items-center justify-between mb-6">
              <h2 className="text-xl font-black text-black dark:text-white flex items-center gap-3">
                <span className="text-3xl">🏅</span> Badge Collection
@@ -352,19 +469,27 @@ export default function MiddleSchoolPortfolio() {
         </div>
 
         {/* Skills Radar / Progress */}
-        <div className="glass rounded-3xl p-6 fade-in-4 flex flex-col border border-slate-200 dark:border-slate-700/50 bg-gradient-to-br from-white to-emerald-50/50 dark:from-transparent dark:to-emerald-900/5">
+        <div className="glass rounded-3xl p-6 fade-in-4 flex flex-col border border-slate-200 dark:border-slate-700/50 bg-gradient-to-br from-white to-emerald-50/50 dark:from-transparent dark:to-emerald-900/5 text-left">
           <h2 className="text-xl font-black text-black dark:text-white mb-6 flex items-center gap-3">
              <span className="text-3xl">🎯</span> Super Skills
           </h2>
           <div className="space-y-6 flex-1">
-            {skills.map((s, i) => (
+            {(portfolioLoading ? [
+              { name: "Creativity ✨", level: 90, color: "#f59e0b" },
+              { name: "Teamwork 🤝", level: 85, color: "#10b981" },
+              { name: "Curiosity 🕵️‍♂️", level: 95, color: "#ec4899" },
+              { name: "Focus 🎯", level: 70, color: "#3b82f6" }
+            ] : skillsList).map((s, i) => (
                <div key={i} className="group">
                   <div className="flex justify-between text-sm mb-2.5">
                     <span className="text-black dark:text-slate-200 font-bold">{s.name}</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-black tracking-wider text-xs bg-emerald-400/10 px-2 py-0.5 rounded-md">{s.level} XP</span>
                   </div>
                   <div className="h-3.5 bg-slate-200 dark:bg-slate-800/80 rounded-full overflow-hidden border border-slate-300 dark:border-slate-700/50 shadow-inner">
-                    <div className="h-full rounded-full transition-all duration-1000 relative group-hover:brightness-125" style={{ width: `${s.level}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}dd)` }}>
+                    <div 
+                      className={`h-full rounded-full transition-all duration-1000 relative group-hover:brightness-125 ${s.color?.startsWith("from-") ? `bg-gradient-to-r ${s.color}` : ""}`} 
+                      style={s.color?.startsWith("from-") ? { width: `${s.level}%` } : { width: `${s.level}%`, background: `linear-gradient(90deg, ${s.color || '#10b981'}, ${(s.color || '#10b981')}dd)` }}
+                    >
                        <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-white/30 to-transparent"></div>
                        <div className="absolute top-0 bottom-0 left-0 right-0 overflow-hidden">
                           <div className="w-full h-full opacity-20" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.5) 10px, rgba(255,255,255,0.5) 20px)' }}></div>
@@ -377,7 +502,7 @@ export default function MiddleSchoolPortfolio() {
           <div className="mt-8 bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-500/20 rounded-2xl p-5 text-center shadow-lg relative overflow-hidden">
              <div className="absolute -right-4 -bottom-4 text-6xl opacity-10">👩‍🏫</div>
              <p className="text-sm text-emerald-800 dark:text-emerald-200 font-medium relative z-10 leading-relaxed">
-                "{firstName} is a fantastic learner! The solar system model was out of this world! Keep up the great reading!"
+                "{firstName} is a fantastic learner! {projectsList[0] ? `The ${projectsList[0].title} was out of this world!` : ''} Keep up the great reading!"
              </p>
              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-3 font-black tracking-wide relative z-10 uppercase">— Mrs. Anjali (Class Teacher)</p>
           </div>
