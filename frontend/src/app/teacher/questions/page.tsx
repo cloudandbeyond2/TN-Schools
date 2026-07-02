@@ -123,8 +123,14 @@ export default function QuestionGeneratorPage() {
     if (questions.length === 0) return;
     try {
       setActionStatus("Saving to Bank...");
-      // Map out client-side IDs
-      const cleanQuestions = questions.map(({ id, ...q }) => q);
+      // Map out client-side IDs and ensure proper metadata is present
+      const cleanQuestions = questions.map(({ id, ...q }) => ({
+        ...q,
+        grade: q.grade || grade,
+        subject: q.subject || subject,
+        topic: q.topic || topic,
+        difficulty: q.difficulty || difficulty,
+      }));
       const res = await fetch(`${API_URL}/api/teacher/questions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

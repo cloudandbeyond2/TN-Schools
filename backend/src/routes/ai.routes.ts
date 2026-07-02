@@ -160,7 +160,7 @@ function robustParseJSON(text: string): any {
 // ---------------------------------------------------------------------------
 // Gemini API helper
 // ---------------------------------------------------------------------------
-async function callGemini(prompt: string, jsonMode: boolean = false): Promise<any> {
+async function callGemini(prompt: string, jsonMode: boolean = false, schema?: any): Promise<any> {
   if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === '') {
     throw new Error('GEMINI_API_KEY is missing. Please add it to backend/.env');
   }
@@ -180,6 +180,9 @@ async function callGemini(prompt: string, jsonMode: boolean = false): Promise<an
 
   if (jsonMode) {
     payload.generationConfig.responseMimeType = 'application/json';
+    if (schema) {
+      payload.generationConfig.responseSchema = schema;
+    }
   }
 
   return new Promise((resolve, reject) => {
@@ -721,6 +724,76 @@ router.post('/learning-path', async (req: Request, res: Response) => {
       { upsert: true, new: true }
     );
     res.json({ success: true, data: lp });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/ai/generate-questions
+router.post('/generate-questions', async (req: Request, res: Response) => {
+  try {
+    const { grade, subject, topic, difficulty, mcqCount, shortCount, longCount } = req.body;
+
+    const prompt = `
+You are an expert curriculum developer and teacher for Tamil Nadu (TN) Schools under the State Board (Samacheer Kalvi) syllabus.
+Generate high-quality questions for:
+Grade: ${grade}
+Subject: ${subject}
+Topic/Concept: ${topic}
+Overall Difficulty Level: ${difficulty}
+
+You need to generate:
+- MCQ questions (type: "mcq"): ${mcqCount || 0} questions. Each MCQ should have 4 options. Each MCQ is worth 1 mark. The options must be an array of strings like ["A) option1", "B) option2", "C) option3", "D) option4"] and answer must be the option letter (e.g. "A").
+- Short Answer questions (type: "short"): ${shortCount || 0} questions. Each short answer question is worth 2 marks. Options should be empty/null, and answer should be a brief model answer key.
+- Long Answer questions (type: "long"): ${longCount || 0} questions. Each long answer question is worth 5 marks. Options should be empty/null, and answer should be a detailed model answer key.
+
+Your output MUST be a JSON object with a single key "questions" containing an array of all generated questions.
+Each question object in the "questions" array MUST have the following structure:
+{
+  "type": "mcq" | "short" | "long",
+  "difficulty": "${difficulty}",
+  "text": "Question statement...",
+  "options": ["A) option 1", "B) option 2", "C) option 3", "D) option 4"] or null,
+  "answer": "A" (for MCQs) or "brief model answer description" (for short/long questions),
+  "marks": 1 (for mcq) or 2 (for short) or 5 (for long)
+}
+
+CRITICAL: Return ONLY valid JSON matching this schema. Do not add any introductory or concluding markdown code blocks other than standard JSON.
+`;
+
+    const schema = {
+      type: "OBJECT",
+      properties: {
+        questions: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              type: { type: "STRING", enum: ["mcq", "short", "long"] },
+              difficulty: { type: "STRING" },
+              text: { type: "STRING" },
+              options: {
+                type: "ARRAY",
+                items: { type: "STRING" }
+              },
+              answer: { type: "STRING" },
+              marks: { type: "INTEGER" }
+            },
+            required: ["type", "difficulty", "text", "answer", "marks"]
+          }
+        }
+      },
+      required: ["questions"]
+    };
+
+    const result = await callGemini(prompt, true, schema);
+    const questionsWithMeta = (result.questions || []).map((q: any) => ({
+      ...q,
+      grade: q.grade || grade,
+      subject: q.subject || subject,
+      topic: q.topic || topic
+    }));
+    res.json({ success: true, data: questionsWithMeta });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
