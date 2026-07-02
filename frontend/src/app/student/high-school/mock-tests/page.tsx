@@ -160,12 +160,72 @@ export default function MockTestsPage() {
   const [testFinished, setTestFinished] = useState(false);
   const [score, setScore] = useState(0);
   const [maxPossibleScore, setMaxPossibleScore] = useState(0);
+  
+  const [dbTests, setDbTests] = useState<MockTest[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  const fetchLiveMockTests = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/teacher/questions?grade=Grade 10`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        const grouped = data.data.reduce((acc: any, q: any) => {
+          let duration = 180;
+          const durMatch = q.topic.match(/Duration:\s*(\d+)/i);
+          if (durMatch) {
+            duration = parseInt(durMatch[1]) || 180;
+          }
+          const cleanTitle = q.topic.replace(/\s*\(Duration:\s*\d+\s*mins\)/i, "");
+
+          if (!acc[cleanTitle]) {
+            acc[cleanTitle] = {
+              id: `live-${cleanTitle.replace(/\s+/g, "-").toLowerCase()}`,
+              title: cleanTitle,
+              subject: q.subject,
+              duration: duration,
+              totalMarks: 0,
+              questionCount: 0,
+              difficulty: q.difficulty,
+              questions: []
+            };
+          }
+          
+          acc[cleanTitle].questions.push({
+            id: q.id,
+            type: q.type,
+            text: q.text,
+            options: q.options,
+            answer: q.answer,
+            marks: q.marks
+          });
+          acc[cleanTitle].totalMarks += q.marks;
+          acc[cleanTitle].questionCount += 1;
+          
+          return acc;
+        }, {});
+        
+        setDbTests(Object.values(grouped));
+      }
+    } catch (err) {
+      console.error("Error loading live mock exams:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveMockTests();
+  }, []);
 
   const subjects = ["All", "Mathematics", "Science", "Social Science"];
 
+  const allAvailableTests = [...dbTests, ...mockTestsData];
   const filteredTests = selectedSubject === "All" 
-    ? mockTestsData 
-    : mockTestsData.filter(t => t.subject === selectedSubject);
+    ? allAvailableTests 
+    : allAvailableTests.filter(t => t.subject === selectedSubject);
 
   // Timer hook
   useEffect(() => {

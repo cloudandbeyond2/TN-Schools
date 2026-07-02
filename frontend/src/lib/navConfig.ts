@@ -367,6 +367,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Timetable", href: "/headmaster/timetable", icon: "🗓️" },
       { label: "Exam Schedule", href: "/headmaster/exams", icon: "📋" },
       { label: "Model Exam Results", href: "/headmaster/model-exams", icon: "📝" },
+      { label: "Manage Mock Tests", href: "/headmaster/mock-tests", icon: "📝" },
 
       { label: "School Admin & Govt", href: "#", icon: "" },
       { label: "School Resources", href: "/headmaster/resources", icon: "🏗️" },
