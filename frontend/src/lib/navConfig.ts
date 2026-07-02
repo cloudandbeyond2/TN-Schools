@@ -243,6 +243,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "College Admissions", href: "/student/higher-secondary/admissions", icon: "🎓" },
       { label: "Scholarships", href: "/student/higher-secondary/scholarships", icon: "📜" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "🎁" },
+      { label: "Formulae", href: "/student/higher-secondary/formulae", icon: "📐" },
 
       // Common Student Menu
       { label: "---", href: "#", icon: "" },
@@ -266,7 +267,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "Interactive Modules", href: "#", icon: "" },
       { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "🔬" },
-      { label: "Maths Formulas", href: "/student/maths-formulas", icon: "➗" },
+      // { label: "Maths Formulas", href: "/student/maths-formulas", icon: "➗" },
       { label: "Language Coaching", href: "/student/language-coaching", icon: "🗣️" },
       { label: "Science Lab Support", href: "/student/science-lab-support", icon: "🧪" },
       { label: "Chemistry Lab", href: "/student/chemistry-lab", icon: "⚗️" },
