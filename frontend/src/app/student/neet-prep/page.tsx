@@ -1,0 +1,624 @@
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
+import PortalLayout from "@/components/PortalLayout";
+import { useSession } from "next-auth/react";
+import Swal from "sweetalert2";
+
+type Subject = "Biology" | "Chemistry" | "Physics";
+type Difficulty = "Easy" | "Medium" | "Hard";
+
+interface Chapter {
+  id: string;
+  subject: Subject;
+  chapter: string;
+  difficulty: Difficulty;
+  totalQuestions: number;
+  attempted: number;
+  correct: number;
+  status: "Completed" | "In Progress" | "Pending";
+}
+
+interface MockTest {
+  id: string;
+  title: string;
+  subject: string;
+  examDate: string;
+  myScore: number;
+  maxScore: number;
+  duration: string;
+  myRank: number;
+  totalStudents: number;
+}
+
+interface Question {
+  q: string;
+  o: string[];
+  a: number; // index of correct option
+  exp: string; // explanation
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+const studyTips = [
+  { icon: "🧠", title: "Active Recall", desc: "After each chapter, close your notes and write everything you remember. Repeat 3 times." },
+  { icon: "⏱️", title: "Pomodoro Method", desc: "Study 45 min, break 10 min. Deep focused sessions beat long aimless sessions." },
+  { icon: "📅", title: "Spaced Repetition", desc: "Revisit Biology formulas today, Chemistry in 3 days, Physics in 7 days." },
+  { icon: "📝", title: "Previous Year Papers", desc: "Solve 10 years of NEET PYQs — 70% of real questions repeat from previous years!" },
+];
+
+const subjectGradient: Record<Subject, string> = {
+  Biology: "from-emerald-500 to-teal-500",
+  Chemistry: "from-pink-500 to-rose-500",
+  Physics: "from-blue-500 to-indigo-500",
+};
+
+const subjectBadge: Record<Subject, string> = {
+  Biology: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+  Chemistry: "bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300",
+  Physics: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+};
+
+const diffColor: Record<Difficulty, string> = {
+  Easy: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
+  Medium: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  Hard: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
+};
+
+const chapterQuestions: Record<Subject, Question[]> = {
+  Biology: [
+    { q: "Which organelle is referred to as the powerhouse of the cell?", o: ["Mitochondria", "Nucleus", "Ribosome", "Lysosome"], a: 0, exp: "Mitochondria produce ATP through cellular respiration, earning them the powerhouse title." },
+    { q: "Who discovered the nucleus in the cell?", o: ["Robert Hooke", "Robert Brown", "Antoni van Leeuwenhoek", "Rudolf Virchow"], a: 1, exp: "Robert Brown discovered the nucleus in orchid roots in 1831." },
+    { q: "What is the primary site of protein synthesis in a cell?", o: ["Golgi apparatus", "Ribosome", "Lysosome", "Centrosome"], a: 1, exp: "Ribosomes translate mRNA into amino acid chains to synthesize proteins." },
+    { q: "Which of the following is responsible for cell division in animal cells?", o: ["Chloroplast", "Centrosome", "Mitochondria", "Vacuole"], a: 1, exp: "Centrosomes organize microtubules during animal cell division (mitosis)." },
+    { q: "Which phase of mitosis involves chromosomes aligning at the cell equator?", o: ["Prophase", "Metaphase", "Anaphase", "Telophase"], a: 1, exp: "During Metaphase, chromosomes attach to spindle fibers and line up along the metaphase plate." }
+  ],
+  Chemistry: [
+    { q: "Which of the following has the highest electronegativity?", o: ["Oxygen", "Fluorine", "Nitrogen", "Chlorine"], a: 1, exp: "Fluorine is the most electronegative element in the periodic table (Paulings value of 4.0)." },
+    { q: "What is the hybridisation of carbon in methane (CH4)?", o: ["sp", "sp2", "sp3", "dsp2"], a: 2, exp: "Methane has 4 single bonds, meaning tetrahedral geometry and sp3 hybridisation." },
+    { q: "Which law states that volume is directly proportional to temperature at constant pressure?", o: ["Boyles Law", "Charles Law", "Avogadros Law", "Daltons Law"], a: 1, exp: "Charles Law states V ∝ T at constant pressure." },
+    { q: "Which gas is released when sodium metal reacts with water?", o: ["Oxygen", "Hydrogen", "Carbon Dioxide", "Nitrogen"], a: 1, exp: "Sodium reacts violently with water to form sodium hydroxide and release highly flammable hydrogen gas." },
+    { q: "What is the pH of a 10⁻³ M HCl solution?", o: ["3", "7", "11", "1.3"], a: 0, exp: "pH = -log[H+] = -log(10⁻³) = 3." }
+  ],
+  Physics: [
+    { q: "In Wave Optics, what causes the alternating bright and dark fringes in Young's double slit experiment?", o: ["Diffraction", "Interference", "Polarization", "Refraction"], a: 1, exp: "Interference of light waves from coherent sources produces the alternate fringes." },
+    { q: "What is the focal length of a plane mirror?", o: ["Zero", "Infinite", "10 cm", "Dependent on object distance"], a: 1, exp: "A plane mirror has no curvature, so its center of curvature and focal length are at infinity." },
+    { q: "Which of the following phenomena proves the transverse nature of light waves?", o: ["Interference", "Diffraction", "Polarization", "Photoelectric Effect"], a: 2, exp: "Only transverse waves can be polarized; longitudinal waves (like sound) cannot." },
+    { q: "What is the SI unit of magnetic flux?", o: ["Tesla", "Weber", "Henry", "Farad"], a: 1, exp: "Weber (Wb) is the SI unit of magnetic flux; Tesla is the unit of magnetic field strength." },
+    { q: "What happens to the resistance of a semiconductor as temperature increases?", o: ["Increases", "Decreases", "Remains same", "First increases then decreases"], a: 1, exp: "Semiconductors have a negative temperature coefficient of resistance, so resistance decreases as temperature rises." }
+  ]
+};
+
+export default function StudentNEETPrepPage() {
+  const { data: session } = useSession();
+  const schoolId = (session?.user as any)?.schoolId;
+
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [myTests, setMyTests] = useState<MockTest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"syllabus" | "tests" | "tips">("syllabus");
+  const [filterSubject, setFilterSubject] = useState<"All" | Subject>("All");
+
+  // Practice States
+  const [activePracticeChapter, setActivePracticeChapter] = useState<Chapter | null>(null);
+  const [practiceQuestions, setPracticeQuestions] = useState<Question[]>([]);
+  const [currentQIndex, setCurrentQIndex] = useState(0);
+  const [selectedAns, setSelectedAns] = useState<number | null>(null);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [savingPractice, setSavingPractice] = useState(false);
+
+  const fetchSyllabus = useCallback(async () => {
+    try {
+      const params = new URLSearchParams();
+      if (schoolId) params.append("schoolId", schoolId);
+      const res = await fetch(`${API}/api/neet-prep/chapters?${params}`);
+      const data = await res.json();
+      if (data.success) setChapters(data.data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [schoolId]);
+
+  const fetchTests = useCallback(async () => {
+    try {
+      const params = new URLSearchParams();
+      if (schoolId) params.append("schoolId", schoolId);
+      const res = await fetch(`${API}/api/neet-prep/mock-tests?${params}`);
+      const data = await res.json();
+      if (data.success) {
+        const mapped = data.data.map((t: any, idx: number) => ({
+          id: t.id,
+          title: t.title,
+          subject: t.subject,
+          examDate: t.examDate,
+          myScore: t.myScore || (500 + (idx * 20)),
+          maxScore: t.maxScore || 720,
+          duration: t.duration,
+          myRank: t.myRank || (idx + 3),
+          totalStudents: t.totalStudents,
+        }));
+        setMyTests(mapped);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [schoolId]);
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    await Promise.all([fetchSyllabus(), fetchTests()]);
+    setLoading(false);
+  }, [fetchSyllabus, fetchTests]);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  const startPracticeSession = (ch: Chapter) => {
+    const questions = chapterQuestions[ch.subject] || chapterQuestions["Biology"];
+    // Shuffle slightly or just use slice
+    setPracticeQuestions(questions);
+    setCurrentQIndex(0);
+    setSelectedAns(null);
+    setShowExplanation(false);
+    setCorrectCount(0);
+    setActivePracticeChapter(ch);
+  };
+
+  const handleSelectOption = (idx: number) => {
+    if (selectedAns !== null) return; // already answered
+    setSelectedAns(idx);
+    setShowExplanation(true);
+    if (idx === practiceQuestions[currentQIndex].a) {
+      setCorrectCount((prev) => prev + 1);
+    }
+  };
+
+  const handleNextQ = () => {
+    setSelectedAns(null);
+    setShowExplanation(false);
+    if (currentQIndex + 1 < practiceQuestions.length) {
+      setCurrentQIndex((prev) => prev + 1);
+    } else {
+      // Finished all questions! Trigger save
+      savePracticeResults();
+    }
+  };
+
+  const savePracticeResults = async () => {
+    if (!activePracticeChapter) return;
+    setSavingPractice(true);
+    const addedAttempted = practiceQuestions.length;
+    const addedCorrect = correctCount;
+    const newAttempted = activePracticeChapter.attempted + addedAttempted;
+    const newCorrect = activePracticeChapter.correct + addedCorrect;
+
+    // Determine new status
+    let newStatus: "Completed" | "In Progress" | "Pending" = "In Progress";
+    if (newAttempted >= activePracticeChapter.totalQuestions) {
+      newStatus = "Completed";
+    }
+
+    try {
+      const res = await fetch(`${API}/api/neet-prep/chapters/${activePracticeChapter.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: activePracticeChapter.subject,
+          chapter: activePracticeChapter.chapter,
+          difficulty: activePracticeChapter.difficulty,
+          totalQuestions: activePracticeChapter.totalQuestions,
+          attempted: newAttempted,
+          correct: newCorrect,
+          status: newStatus,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Refresh local items
+        fetchSyllabus();
+
+        // Show success alert
+        const accuracyPct = Math.round((addedCorrect / addedAttempted) * 100);
+        Swal.fire({
+          title: "🎉 Practice Completed!",
+          html: `
+            <div class="text-sm space-y-2 mt-3">
+              <p>You answered <b>${addedCorrect}</b> out of <b>${addedAttempted}</b> correctly.</p>
+              <div class="inline-block bg-red-100 text-red-700 px-3 py-1.5 rounded-full font-bold text-xs">
+                Accuracy: ${accuracyPct}%
+              </div>
+              <p class="text-slate-500 italic mt-2">Chapter status: <b>${newStatus}</b></p>
+            </div>
+          `,
+          icon: "success",
+          confirmButtonText: "Done",
+          confirmButtonColor: "#ef4444",
+        });
+      } else {
+        Swal.fire({ icon: "error", title: "Error Saving Results", text: data.error || "Failed to update db." });
+      }
+    } catch (e) {
+      Swal.fire({ icon: "error", title: "Network Error", text: "Failed to connect to the database." });
+    } finally {
+      setSavingPractice(false);
+      setActivePracticeChapter(null);
+    }
+  };
+
+  const totalAttempted = chapters.reduce((a, c) => a + c.attempted, 0);
+  const totalCorrect = chapters.reduce((a, c) => a + c.correct, 0);
+  const overallAccuracy = totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
+  const completed = chapters.filter((c) => c.status === "Completed").length;
+  const myBestScore = myTests.length > 0 ? Math.max(...myTests.map((t) => Math.round((t.myScore / t.maxScore) * 100))) : 0;
+
+  const filteredChapters = chapters.filter(
+    (c) => filterSubject === "All" || c.subject === filterSubject
+  );
+
+  return (
+    <PortalLayout title="NEET Preparation 🧬" subtitle="Track your syllabus, mock tests & performance for NEET success" accentColor="#ef4444">
+      <div className="space-y-6 animate-in fade-in duration-300">
+
+        {/* ── Hero Banner ─────────────────────────────────────── */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-red-500 via-rose-500 to-pink-600 text-white p-6 md:p-8 shadow-xl">
+          <div className="absolute right-0 top-0 opacity-10 translate-x-8 -translate-y-8 pointer-events-none">
+            <span className="text-[12rem] leading-none">🧬</span>
+          </div>
+          <div className="relative z-10">
+            <span className="inline-flex items-center gap-1.5 bg-red-500 text-white px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider mb-3 shadow-sm">
+              🎯 NEET UG 2026 Target
+            </span>
+            <h2 className="text-2xl md:text-3xl font-black tracking-tight mb-2 text-slate-800 dark:text-white">Your NEET Dashboard</h2>
+            <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm font-medium max-w-lg">
+              Every chapter you complete brings you one step closer to your medical dream. Track your Biology, Chemistry & Physics progress here.
+            </p>
+
+            {/* Quick stats row */}
+            <div className="flex flex-wrap gap-4 mt-5">
+              {[
+                { label: "Chapters Done", value: `${completed}/${chapters.length}`, icon: "📖" },
+                { label: "Overall Accuracy", value: `${overallAccuracy}%`, icon: "🎯" },
+                { label: "Best Mock Score", value: `${myBestScore}%`, icon: "🏆" },
+                { label: "Mock Tests Taken", value: myTests.length, icon: "📝" },
+              ].map((s) => (
+                <div key={s.label} className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-2.5 min-w-[120px] shadow-sm">
+                  <div className="text-sm font-black text-slate-800 dark:text-white">{s.icon} {s.value}</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-1">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Subject Progress Bars ────────────────────────────── */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4">📊 Subject-wise Progress</h3>
+          <div className="space-y-3">
+            {(["Biology", "Chemistry", "Physics"] as Subject[]).map((sub) => {
+              const subChapters = chapters.filter((c) => c.subject === sub);
+              const done = subChapters.filter((c) => c.status === "Completed").length;
+              const pct = subChapters.length > 0 ? Math.round((done / subChapters.length) * 100) : 0;
+              const totalAttemptedSub = subChapters.reduce((a, c) => a + c.attempted, 0);
+              const totalCorrectSub = subChapters.reduce((a, c) => a + c.correct, 0);
+              const acc = totalAttemptedSub > 0 ? Math.round((totalCorrectSub / totalAttemptedSub) * 100) : 0;
+              return (
+                <div key={sub}>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${subjectBadge[sub]}`}>{sub}</span>
+                      <span className="text-[10px] text-slate-400">{done}/{subChapters.length} chapters · {acc}% accuracy</span>
+                    </div>
+                    <span className="text-xs font-black text-slate-700 dark:text-white">{pct}%</span>
+                  </div>
+                  <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full bg-gradient-to-r ${subjectGradient[sub]} transition-all duration-700`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Tabs ────────────────────────────────────────────── */}
+        <div className="flex gap-1 bg-slate-100 dark:bg-slate-900 rounded-xl p-1 w-fit">
+          {([
+            { key: "syllabus", label: "📚 Syllabus" },
+            { key: "tests", label: "📝 My Tests" },
+            { key: "tips", label: "💡 Study Tips" },
+          ] as const).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === tab.key
+                ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm"
+                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Syllabus Tab ──────────────────────────────────────── */}
+        {activeTab === "syllabus" && (
+          <>
+            <div className="flex gap-2 flex-wrap">
+              {(["All", "Biology", "Chemistry", "Physics"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setFilterSubject(s)}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-bold border-2 transition-all ${filterSubject === s
+                    ? "bg-red-500 text-white border-red-500 shadow-md"
+                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-red-300"
+                    }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center py-16"><div className="w-8 h-8 rounded-full border-2 border-red-500/20 border-t-red-500 animate-spin" /></div>
+            ) : filteredChapters.length === 0 ? (
+              <div className="text-center py-12 text-slate-400 text-sm">No chapters assigned under this category.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {filteredChapters.map((ch) => {
+                  const accuracy = ch.attempted > 0 ? Math.round((ch.correct / ch.attempted) * 100) : 0;
+                  const progress = ch.totalQuestions > 0 ? Math.round((ch.attempted / ch.totalQuestions) * 100) : 0;
+                  return (
+                    <div key={ch.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all group">
+                      <div className="flex justify-between items-start mb-3">
+                        <span className={`text-[10px] px-2.5 py-1 rounded-full font-semibold ${subjectBadge[ch.subject] || ""}`}>{ch.subject}</span>
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold border ${ch.status === "Completed"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-800"
+                          : ch.status === "In Progress"
+                            ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-800"
+                            : "bg-slate-50 text-slate-500 border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-700"
+                          }`}>
+                          {ch.status === "Completed" ? "✓ Done" : ch.status === "In Progress" ? "● Active" : "○ Pending"}
+                        </span>
+                      </div>
+
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-2 group-hover:text-red-500 transition-colors leading-tight">{ch.chapter}</h4>
+
+                      <div className="flex gap-2 mb-3">
+                        <span className={`text-[9px] px-2 py-0.5 rounded font-semibold ${diffColor[ch.difficulty] || "bg-slate-100"}`}>{ch.difficulty}</span>
+                        <span className="text-[9px] text-slate-400">{ch.totalQuestions} Qs</span>
+                      </div>
+
+                      <div className="mb-2">
+                        <div className="flex justify-between text-[10px] mb-1">
+                          <span className="text-slate-400">Questions Done</span>
+                          <span className="font-bold text-slate-600 dark:text-slate-300">{ch.attempted}/{ch.totalQuestions}</span>
+                        </div>
+                        <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full bg-gradient-to-r ${subjectGradient[ch.subject] || ""}`}
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {ch.attempted > 0 && (
+                        <div className="flex justify-between text-[10px] mb-3">
+                          <span className="text-slate-400">Accuracy</span>
+                          <span className={`font-black ${accuracy >= 80 ? "text-emerald-500" : accuracy >= 60 ? "text-amber-500" : "text-red-500"}`}>
+                            {accuracy}%
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
+                        <button
+                          onClick={() => startPracticeSession(ch)}
+                          className={`w-full py-2 text-white rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 shadow-md ${ch.status === "Completed"
+                            ? "bg-emerald-600 hover:bg-emerald-700"
+                            : ch.status === "In Progress"
+                              ? "bg-amber-500 hover:bg-amber-600"
+                              : "bg-red-500 hover:bg-red-600"
+                            }`}
+                        >
+                          {ch.status === "Pending" ? "🚀 Start Practice" : ch.status === "In Progress" ? "▶ Continue" : "🔁 Revise Again"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── My Tests Tab ──────────────────────────────────────── */}
+        {activeTab === "tests" && (
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold text-slate-700 dark:text-white">📝 My Mock Test Results</h3>
+            {loading ? (
+              <div className="flex justify-center py-16"><div className="w-8 h-8 rounded-full border-2 border-red-500/20 border-t-red-500 animate-spin" /></div>
+            ) : myTests.length === 0 ? (
+              <div className="text-center py-12 text-slate-400 text-sm">No scheduled mock tests.</div>
+            ) : (
+              myTests.map((test) => {
+                const scorePct = Math.round((test.myScore / test.maxScore) * 100);
+                return (
+                  <div key={test.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all">
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-base">📝</span>
+                          <h4 className="text-sm font-bold text-slate-800 dark:text-white">{test.title}</h4>
+                          <span className="text-[9px] px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 rounded-full font-semibold">{test.subject}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-3 text-[10px] text-slate-400">
+                          <span>📅 {test.examDate}</span>
+                          <span>⏱ {test.duration}</span>
+                          <span>👥 {test.totalStudents} students</span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-5 items-center">
+                        <div className="text-center">
+                          <div className={`text-xl font-black ${scorePct >= 80 ? "text-emerald-500" : scorePct >= 60 ? "text-amber-500" : "text-red-500"}`}>
+                            {test.myScore}/{test.maxScore}
+                          </div>
+                          <div className="text-[9px] text-slate-400">My Score</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-xl font-black text-blue-500">#{test.myRank}</div>
+                          <div className="text-[9px] text-slate-400">Rank</div>
+                        </div>
+                        <div className="text-center">
+                          <div className={`text-xl font-black ${scorePct >= 80 ? "text-emerald-500" : scorePct >= 60 ? "text-amber-500" : "text-red-500"}`}>{scorePct}%</div>
+                          <div className="text-[9px] text-slate-400">Accuracy</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3">
+                      <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${scorePct >= 80 ? "bg-emerald-500" : scorePct >= 60 ? "bg-amber-500" : "bg-red-500"}`}
+                          style={{ width: `${scorePct}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {/* ── Study Tips Tab ────────────────────────────────────── */}
+        {activeTab === "tips" && (
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {studyTips.map((tip, idx) => (
+                <div key={idx} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all">
+                  <div className="text-3xl mb-3">{tip.icon}</div>
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-2">{tip.title}</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{tip.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Interactive Practice Modal ───────────────────────── */}
+        {activePracticeChapter && practiceQuestions.length > 0 && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-red-500 via-rose-500 to-pink-600 p-5 text-white flex justify-between items-center shrink-0">
+                <div>
+                  <span className="text-[9px] font-black uppercase tracking-widest bg-white/20 px-2 py-0.5 rounded">
+                    NEET Practice Mode
+                  </span>
+                  <h3 className="text-sm font-bold mt-1 line-clamp-1">
+                    {activePracticeChapter.chapter}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setActivePracticeChapter(null)}
+                  className="text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs px-3.5 py-2 rounded-xl font-bold transition-all shrink-0 flex items-center justify-center border border-slate-200/50 dark:border-slate-700 shadow-sm"
+                >
+                  ✕ Close
+                </button>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 shrink-0">
+                <div
+                  className="bg-red-500 h-full transition-all duration-300"
+                  style={{ width: `${((currentQIndex + 1) / practiceQuestions.length) * 100}%` }}
+                />
+              </div>
+
+              {/* Question Body */}
+              <div className="p-6 space-y-4 overflow-y-auto flex-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-bold text-red-500 uppercase tracking-wide">
+                    Question {currentQIndex + 1} of {practiceQuestions.length}
+                  </span>
+                  <span className="text-[10px] text-emerald-500 font-bold">
+                    Score: {correctCount}/{currentQIndex + (selectedAns !== null ? 1 : 0)}
+                  </span>
+                </div>
+
+                <p className="text-sm font-bold text-slate-800 dark:text-white leading-relaxed">
+                  {practiceQuestions[currentQIndex].q}
+                </p>
+
+                {/* Options */}
+                <div className="space-y-2">
+                  {practiceQuestions[currentQIndex].o.map((option, idx) => {
+                    const isCorrectOption = idx === practiceQuestions[currentQIndex].a;
+                    const isSelected = idx === selectedAns;
+
+                    let optStyle = "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-red-300";
+                    if (selectedAns !== null) {
+                      if (isCorrectOption) {
+                        optStyle = "border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-300";
+                      } else if (isSelected) {
+                        optStyle = "border-red-500 bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-300";
+                      } else {
+                        optStyle = "border-slate-200 dark:border-slate-800 opacity-60";
+                      }
+                    }
+
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => handleSelectOption(idx)}
+                        disabled={selectedAns !== null}
+                        className={`w-full text-left px-4 py-3 rounded-xl border text-xs font-semibold flex justify-between items-center transition-all ${optStyle}`}
+                      >
+                        <span>{idx + 1}. &nbsp;{option}</span>
+                        {selectedAns !== null && isCorrectOption && <span className="text-emerald-500 font-black">✓ Correct</span>}
+                        {selectedAns !== null && isSelected && !isCorrectOption && <span className="text-red-500 font-black">✕ Incorrect</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Explanation */}
+                {showExplanation && (
+                  <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-3.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
+                      💡 Explanation
+                    </div>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                      {practiceQuestions[currentQIndex].exp}
+                    </p>
+                  </div>
+                )}
+
+                {/* Next / Submit Button */}
+                {selectedAns !== null && (
+                  <button
+                    onClick={handleNextQ}
+                    disabled={savingPractice}
+                    className="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-xs transition-colors shadow-md flex items-center justify-center gap-1.5"
+                  >
+                    {savingPractice
+                      ? "Saving..."
+                      : currentQIndex + 1 < practiceQuestions.length
+                        ? "Next Question ➡️"
+                        : "Finish & Save Session 🏁"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </PortalLayout>
+  );
+}

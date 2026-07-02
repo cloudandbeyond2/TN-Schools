@@ -1215,3 +1215,112 @@ model StudentStoryProgress {
   @@index([studentId])
   @@index([storyBookId])
 }
+
+// ─── Digital Library ─────────────────────────────────────────────
+model DigitalLibraryResource {
+  id          String   @id @default(uuid())
+  title       String
+  type        String
+  subject     String
+  class       String
+  size        String   @default("N/A")
+  description String?
+  tags        String[]
+  fileUrl     String?
+  uploadDate  DateTime @default(now())
+  downloads   Int      @default(0)
+  views       Int      @default(0)
+  schoolId    String?
+  teacherId   String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([teacherId])
+}
+
+// ─── Personal Guide ───────────────────────────────────────────────
+model PersonalGuide {
+  id             String   @id @default(uuid())
+  studentName    String
+  studentId      String?
+  class          String
+  section        String
+  academicScore  Float    @default(0)
+  attendance     Float    @default(0)
+  strengths      String[]
+  weaknesses     String[]
+  goal           String   @default("Undecided")
+  parentContact  String   @default("N/A")
+  guidanceStatus String   @default("On Track")
+  notes          String?
+  lastMeeting    String   @default("")
+  schoolId       String?
+  teacherId      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([teacherId])
+}
+
+// ─── NEET Preparation ─────────────────────────────────────────────
+model NEETChapter {
+  id             String   @id @default(uuid())
+  subject        String
+  chapter        String
+  difficulty     String   @default("Medium")
+  totalQuestions Int      @default(0)
+  attempted      Int      @default(0)
+  correct        Int      @default(0)
+  status         String   @default("Pending")
+  schoolId       String?
+  teacherId      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([teacherId])
+}
+
+model NEETMockTest {
+  id            String   @id @default(uuid())
+  title         String
+  subject       String   @default("Full Syllabus")
+  examDate      String   @default("")
+  duration      String   @default("3 hrs 20 min")
+  totalStudents Int      @default(0)
+  avgScore      Int      @default(0)
+  topScore      Int      @default(0)
+  maxScore      Int      @default(720)
+  schoolId      String?
+  teacherId     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([teacherId])
+}
+
+// ─── Competitive Exams ────────────────────────────────────────────
+model CompetitiveExam {
+  id                   String   @id @default(uuid())
+  examName             String
+  category             String
+  conductedBy          String
+  registrationDeadline String
+  examDate             String
+  status               String   @default("Upcoming")
+  eligibility          String   @default("N/A")
+  website              String?
+  studentsEnrolled     Int      @default(0)
+  studentsCleared      Int      @default(0)
+  schoolId             String?
+  teacherId            String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([teacherId])
+}

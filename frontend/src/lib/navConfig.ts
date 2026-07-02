@@ -142,6 +142,8 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Digital Portfolio", href: "/student/middle-school/portfolio", icon: "🗂️" },
       { label: "Digital Library", href: "/student/digital-library", icon: "📖" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "🧭" },
+      { label: "NEET Preparation", href: "/student/neet-prep", icon: "🧬" },
+      { label: "Competitive Exams", href: "/student/competitive-exams", icon: "🏆" },
       { label: "Assessments", href: "/student/assessments", icon: "📝" },
       { label: "Extracurriculars", href: "/student/activities", icon: "🎭" },
       { label: "Sports & Athletics", href: "/student/sports", icon: "⚽" },
@@ -196,6 +198,8 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "🗂️" },
       { label: "Digital Library", href: "/student/digital-library", icon: "📖" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "🧭" },
+      { label: "NEET Preparation", href: "/student/neet-prep", icon: "🧬" },
+      { label: "Competitive Exams", href: "/student/competitive-exams", icon: "🏆" },
       { label: "Assessments", href: "/student/assessments", icon: "📝" },
       { label: "Extracurriculars", href: "/student/activities", icon: "🎭" },
       { label: "Sports & Athletics", href: "/student/sports", icon: "⚽" },
@@ -249,6 +253,8 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "🗂️" },
       { label: "Digital Library", href: "/student/digital-library", icon: "📖" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "🧭" },
+      { label: "NEET Preparation", href: "/student/neet-prep", icon: "🧬" },
+      { label: "Competitive Exams", href: "/student/competitive-exams", icon: "🏆" },
       { label: "Assessments", href: "/student/assessments", icon: "📝" },
       { label: "Extracurriculars", href: "/student/activities", icon: "🎭" },
       { label: "Sports & Athletics", href: "/student/sports", icon: "⚽" },
@@ -283,6 +289,13 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "My Classes", href: "/teacher/classes", icon: "🏫" },
       { label: "Science Labs", href: "/teacher/labs", icon: "🧪" },
       { label: "Subject Analytics", href: "/teacher/subject-analytics", icon: "📊" },
+
+      // Academics & Guidance
+      { label: "Academics & Guidance", href: "#", icon: "" },
+      { label: "NEET Preparation", href: "/teacher/neet-prep", icon: "🧬" },
+      { label: "Digital Library", href: "/teacher/digital-library", icon: "📚" },
+      { label: "Personal Guide", href: "/teacher/personal-guide", icon: "🧭" },
+      { label: "Competitive Exams", href: "/teacher/competitive-exams", icon: "🏆" },
 
       // Common Menu & Tools
       { label: "Admin & Tools", href: "#", icon: "" },

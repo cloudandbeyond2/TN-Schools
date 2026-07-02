@@ -1,95 +1,75 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
-import { BookOpen, Search, Book, Video, Download, ArrowRight, Star } from "lucide-react";
+import { BookOpen, Search, Book, Video, ArrowRight, Star } from "lucide-react";
+import { useSession } from "next-auth/react";
+
+interface LibraryResource {
+  id: string;
+  title: string;
+  type: string;
+  subject: string;
+  class: string;
+  size: string;
+  description: string;
+  tags: string[];
+}
+
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+const subjectColor: Record<string, string> = {
+  Physics: "#3b82f6",
+  Chemistry: "#ec4899",
+  Biology: "#10b981",
+  Mathematics: "#6366f1",
+  History: "#f97316",
+  Tamil: "#a855f7",
+  English: "#06b6d4",
+};
 
 export default function DigitalLibraryPage() {
+  const { data: session } = useSession();
+  const schoolId = (session?.user as any)?.schoolId;
+
+  const [resources, setResources] = useState<LibraryResource[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const categories = [
     { id: "all", label: "All Resources" },
-    { id: "textbooks", label: "Textbooks" },
-    { id: "reference", label: "Reference Books" },
-    { id: "videos", label: "Video Lessons" },
+    { id: "PDF", label: "PDF Documents" },
+    { id: "Video", label: "Video Lessons" },
+    { id: "Worksheet", label: "Worksheets" },
+    { id: "E-Book", label: "E-Books" },
   ];
 
-  const resources = [
-    {
-      id: "1",
-      title: "Class 10 - Mathematics Textbook",
-      category: "textbooks",
-      subject: "Mathematics",
-      rating: 4.8,
-      type: "pdf",
-      size: "12.4 MB",
-      desc: "Full textbook covering Algebra, Geometry, Trigonometry, and Statistics.",
-      accent: "#3b82f6",
-    },
-    {
-      id: "2",
-      title: "Concepts of Physics (Vol 1)",
-      category: "reference",
-      subject: "Physics",
-      rating: 4.9,
-      type: "pdf",
-      size: "18.1 MB",
-      desc: "Detailed explanations of mechanics, wave motion, and heat.",
-      accent: "#ec4899",
-    },
-    {
-      id: "3",
-      title: "Organic Chemistry Made Easy",
-      category: "reference",
-      subject: "Chemistry",
-      rating: 4.7,
-      type: "pdf",
-      size: "8.5 MB",
-      desc: "A simplified student guide to hydrocarbon structures and functional groups.",
-      accent: "#10b981",
-    },
-    {
-      id: "4",
-      title: "Understanding Ecosystems & Biodiversity",
-      category: "videos",
-      subject: "Biology",
-      rating: 4.9,
-      type: "video",
-      size: "15 min",
-      desc: "Video simulation of trophic levels and conservation strategies.",
-      accent: "#eab308",
-    },
-    {
-      id: "5",
-      title: "Tamil Literature - Classical Poetry",
-      category: "textbooks",
-      subject: "Tamil",
-      rating: 4.6,
-      type: "pdf",
-      size: "6.2 MB",
-      desc: "Anthology of Sangam poetry and modern compositions with annotations.",
-      accent: "#a855f7",
-    },
-    {
-      id: "6",
-      title: "Modern World History & India",
-      category: "textbooks",
-      subject: "Social Science",
-      rating: 4.5,
-      type: "pdf",
-      size: "14.3 MB",
-      desc: "Comprehensive review of the Indian national movement and post-independence events.",
-      accent: "#f97316",
-    },
-  ];
+  const fetchResources = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (schoolId) params.append("schoolId", schoolId);
+      const res = await fetch(`${API}/api/digital-library?${params}`);
+      const data = await res.json();
+      if (data.success) setResources(data.data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [schoolId]);
+
+  useEffect(() => {
+    fetchResources();
+  }, [fetchResources]);
 
   const filteredResources = resources.filter((res) => {
     const matchesSearch =
       res.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       res.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      res.desc.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || res.category === selectedCategory;
+      (res.description || "").toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || res.type === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -143,56 +123,61 @@ export default function DigitalLibraryPage() {
         </div>
 
         {/* Resources Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredResources.map((res) => (
-            <div
-              key={res.id}
-              className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-2xl md:rounded-[2rem] p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex justify-between items-start mb-3">
-                  <span
-                    className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border tracking-wider"
-                    style={{ color: res.accent, borderColor: `${res.accent}30`, backgroundColor: `${res.accent}10` }}
-                  >
-                    {res.subject}
-                  </span>
-                  <div className="flex items-center gap-1 text-xs text-amber-500 font-bold">
-                    <Star className="w-3.5 h-3.5 fill-amber-500" />
-                    {res.rating}
-                  </div>
-                </div>
-
-                <h3 className="text-base font-bold text-[var(--text-heading)] mb-1.5 leading-snug">{res.title}</h3>
-                <p className="text-xs text-[var(--text-muted)] leading-relaxed mb-4">{res.desc}</p>
-              </div>
-
-              <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-[var(--text-muted)]">
-                    {res.type === "pdf" ? <Book className="w-4 h-4" /> : <Video className="w-4 h-4" />}
-                  </div>
-                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                    {res.type} • {res.size}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => alert(`Opening "${res.title}"...`)}
-                  className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+        {loading ? (
+          <div className="flex justify-center py-12"><div className="w-8 h-8 rounded-full border-2 border-indigo-500/20 border-t-indigo-500 animate-spin" /></div>
+        ) : filteredResources.length === 0 ? (
+          <div className="text-center py-12 text-[var(--text-muted)] text-sm italic">
+            No digital resources match your criteria.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredResources.map((res) => {
+              const color = subjectColor[res.subject] || "#8b5cf6";
+              return (
+                <div
+                  key={res.id}
+                  className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-2xl md:rounded-[2rem] p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
                 >
-                  {res.type === "pdf" ? "Read" : "Watch"} <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
+                  <div>
+                    <div className="flex justify-between items-start mb-3">
+                      <span
+                        className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border tracking-wider"
+                        style={{ color: color, borderColor: `${color}30`, backgroundColor: `${color}10` }}
+                      >
+                        {res.subject}
+                      </span>
+                      <div className="flex items-center gap-1 text-xs text-amber-500 font-bold">
+                        <Star className="w-3.5 h-3.5 fill-amber-500" />
+                        4.8
+                      </div>
+                    </div>
 
-          {filteredResources.length === 0 && (
-            <div className="col-span-full text-center py-12 text-[var(--text-muted)] text-sm italic">
-              No digital resources match your criteria.
-            </div>
-          )}
-        </div>
+                    <h3 className="text-base font-bold text-[var(--text-heading)] mb-1.5 leading-snug">{res.title}</h3>
+                    <p className="text-xs text-[var(--text-muted)] leading-relaxed mb-4">{res.description}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-[var(--text-muted)]">
+                        {res.type === "Video" ? <Video className="w-4 h-4" /> : <Book className="w-4 h-4" />}
+                      </div>
+                      <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                        {res.type} • {res.size}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => alert(`Opening "${res.title}"...`)}
+                      className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                    >
+                      {res.type === "Video" ? "Watch" : "Read"} <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
       </div>
     </PortalLayout>

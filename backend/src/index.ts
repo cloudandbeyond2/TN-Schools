@@ -54,6 +54,10 @@ import socialActivitiesRoutes from './routes/socialActivities.routes';
 import culturalEventsRoutes from './routes/culturalEvents.routes';
 import computerEducationRoutes from './routes/computerEducation.routes';
 import storiesRoutes from './routes/stories.routes';
+import digitalLibraryRoutes from './routes/digitalLibrary.routes';
+import personalGuideRoutes from './routes/personalGuide.routes';
+import neetPrepRoutes from './routes/neetPrep.routes';
+import competitiveExamsRoutes from './routes/competitiveExams.routes';
 
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
@@ -146,6 +150,10 @@ app.use('/api/social-activities', socialActivitiesRoutes);
 app.use('/api/teacher/cultural-events', culturalEventsRoutes);
 app.use('/api/teacher/computer-education', computerEducationRoutes);
 app.use('/api/stories', storiesRoutes);
+app.use('/api/digital-library', digitalLibraryRoutes);
+app.use('/api/personal-guide', personalGuideRoutes);
+app.use('/api/neet-prep', neetPrepRoutes);
+app.use('/api/competitive-exams', competitiveExamsRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
