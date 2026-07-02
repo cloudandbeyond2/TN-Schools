@@ -19,7 +19,8 @@ const quickActions = [
   { label: "Role & Permissions", href: "/super-admin/roles", icon: "🔐", desc: "Permission matrix for all roles", color: "from-blue-600 to-indigo-700", badge: "9 roles" },
   { label: "School Management", href: "/super-admin/schools", icon: "🏫", desc: "Add, edit & manage all schools", color: "from-emerald-600 to-teal-700", badge: "37,404 schools" },
   { label: "Headmaster Mgmt", href: "/super-admin/headmasters", icon: "👤", desc: "Assign & transfer headmasters", color: "from-cyan-600 to-sky-700", badge: "37K+ HMs" },
-  { label: "Syllabus Manager", href: "/super-admin/syllabus", icon: "📚", desc: "Class/subject/chapter management", color: "from-amber-600 to-orange-700", badge: "Class 6–12" },
+  { label: "Learning Hub Admin", href: "/super-admin/learning-hub", icon: "📚", desc: "Manage central learning content, materials & AI", color: "from-indigo-650 to-indigo-850", badge: "Active" },
+  { label: "Syllabus Manager", href: "/super-admin/syllabus", icon: "📖", desc: "Class/subject/chapter management", color: "from-amber-600 to-orange-700", badge: "Class 6–12" },
   { label: "Material Library", href: "/super-admin/materials", icon: "📦", desc: "Upload & manage learning content", color: "from-pink-600 to-rose-700", badge: "2.8K items" },
   { label: "Department Modules", href: "/super-admin/modules", icon: "🗓️", desc: "Enable/disable portal modules", color: "from-fuchsia-600 to-violet-700", badge: "48 modules" },
   { label: "AI Integration", href: "/super-admin/ai-config", icon: "🤖", desc: "API keys, models & token limits", color: "from-slate-600 to-slate-800", badge: "3 APIs" },
@@ -61,7 +62,7 @@ export default function SuperAdminDashboard() {
   const filterMap: Record<string, string[]> = {
     all: quickActions.map((q) => q.href),
     people: ["/super-admin/users", "/super-admin/roles", "/super-admin/schools", "/super-admin/headmasters"],
-    academics: ["/super-admin/syllabus", "/super-admin/materials", "/super-admin/modules"],
+    academics: ["/super-admin/learning-hub", "/super-admin/syllabus", "/super-admin/materials", "/super-admin/modules"],
     system: ["/super-admin/features", "/super-admin/ai-config", "/super-admin/data-flow"],
     governance: ["/super-admin/ministers", "/super-admin/pages", "/super-admin/announcements", "/super-admin/logs", "/super-admin/settings"],
   };

@@ -494,7 +494,8 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Headmaster Management", href: "/super-admin/headmasters", icon: "👤" },
 
       { label: "Academics & Content", href: "#", icon: "" },
-      { label: "Syllabus Management", href: "/super-admin/syllabus", icon: "📚" },
+      { label: "Learning Hub", href: "/super-admin/learning-hub", icon: "📚" },
+      { label: "Syllabus Management", href: "/super-admin/syllabus", icon: "📖" },
       { label: "Material Library", href: "/super-admin/materials", icon: "📦" },
       { label: "Department Modules", href: "/super-admin/modules", icon: "🗓️" },
 

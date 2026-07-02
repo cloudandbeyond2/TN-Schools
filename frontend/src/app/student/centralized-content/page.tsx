@@ -44,7 +44,7 @@ export default function CentralizedContentPage() {
   const { data: session, status } = useSession();
   
   // States
-  const [selectedClass, setSelectedClass] = useState<string>("10");
+  const [selectedClass, setSelectedClass] = useState<string>("");
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState<boolean>(true);
   
@@ -74,26 +74,33 @@ export default function CentralizedContentPage() {
   // Fetch student profile to get default class standard
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
-      const fetchStudentClass = async () => {
-        try {
-          const res = await fetch(`${API_URL}/api/students`);
-          const json = await res.json();
-          if (json.success && json.data.length > 0) {
-            const currentStudent = json.data.find((s: any) => s.userId === (session?.user as any)?.id);
-            if (currentStudent && currentStudent.class) {
-              setSelectedClass(currentStudent.class);
+      const userClass = (session?.user as any)?.class;
+      if (userClass) {
+        setSelectedClass(String(userClass));
+      } else {
+        const fetchStudentClass = async () => {
+          try {
+            const res = await fetch(`${API_URL}/api/students`);
+            const json = await res.json();
+            if (json.success && json.data.length > 0) {
+              const currentStudent = json.data.find((s: any) => s.userId === (session?.user as any)?.id);
+              if (currentStudent && currentStudent.class) {
+                setSelectedClass(String(currentStudent.class));
+              }
             }
+          } catch (e) {
+            console.error("Error fetching student profile", e);
           }
-        } catch (e) {
-          console.error("Error fetching student profile", e);
-        }
-      };
-      fetchStudentClass();
+        };
+        fetchStudentClass();
+      }
     }
   }, [session, status]);
 
   // Fetch subjects whenever the selected class standard changes
   useEffect(() => {
+    if (!selectedClass) return; // Wait until class is resolved to avoid loading default class '10' subjects first
+
     const fetchSubjects = async () => {
       setLoadingSubjects(true);
       setSubjects([]);
@@ -152,7 +159,7 @@ export default function CentralizedContentPage() {
     setAiMessages([
       {
         role: "assistant",
-        content: `வணக்கம்! 👋 I am your AI Study Companion for **${topic.name}**. I am ready to explain concepts, clarify doubts, or quiz you in Tamil and English.\n\nAsk me anything! (என்னிடம் இந்தத் தலைப்பு பற்றி எதை வேண்டுமானாலும் கேளுங்கள்!)`
+        content: `வணக்கம்! 👋 I am your AI Study Companion for the subunit **${topic.name}**. I am ready to explain concepts, clarify doubts, or quiz you in Tamil and English.\n\nAsk me anything! (என்னிடம் இந்தத் துணை அலகு பற்றி எதை வேண்டுமானாலும் கேளுங்கள்!)`
       }
     ]);
 
@@ -286,38 +293,40 @@ export default function CentralizedContentPage() {
               <p className="text-xs text-slate-500 mt-2">Syllabus is being updated for Class {selectedClass}th. Check back soon!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
               {subjects.map((sub) => {
                 const subColor = getSubjectColor(sub);
                 return (
                   <div
                     key={sub.id}
                     onClick={() => handleSelectSubject(sub)}
-                    className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-850 hover:border-slate-400 dark:hover:border-slate-700 hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden flex flex-col h-60 bg-white dark:bg-slate-900/30"
+                    className="glass rounded-2xl p-4 border border-slate-200 dark:border-slate-850 hover:border-slate-400 dark:hover:border-slate-700 hover:-translate-y-0.5 transition-all cursor-pointer group relative overflow-hidden flex flex-col justify-between h-40 bg-white dark:bg-slate-950/40 shadow-sm"
                   >
                     {/* Background glow */}
                     <div 
-                      className="absolute -top-10 -right-10 w-28 h-28 rounded-full blur-3xl opacity-10 transition-opacity group-hover:opacity-20"
+                      className="absolute -top-10 -right-10 w-20 h-20 rounded-full blur-3xl opacity-10 transition-opacity group-hover:opacity-20"
                       style={{ backgroundColor: subColor }}
                     ></div>
                     
-                    {/* Subject Icon */}
-                    <div 
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-md mb-6 transition-transform group-hover:scale-105"
-                      style={{ background: `linear-gradient(135deg, ${subColor}, ${subColor}dd)` }}
-                    >
-                      {sub.icon || "📚"}
+                    {/* Subject Icon & Grade Tag in Row */}
+                    <div className="flex justify-between items-start w-full">
+                      <div 
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm transition-transform group-hover:scale-105"
+                        style={{ background: `linear-gradient(135deg, ${subColor}, ${subColor}dd)` }}
+                      >
+                        {sub.icon || "📚"}
+                      </div>
+                      <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
+                        Class {sub.class}
+                      </span>
                     </div>
 
-                    <div className="mt-auto">
-                      <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 mb-2 inline-block">
-                        Grade {sub.class}
-                      </span>
-                      <h3 className="text-xl font-bold text-black dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    <div className="mt-2">
+                      <h3 className="text-sm font-black text-black dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
                         {sub.name}
                       </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Click to explore board units, topics, and interactive AI modules.
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug line-clamp-2">
+                        Explore units, subunits, quizzes & AI modules.
                       </p>
                     </div>
                   </div>
@@ -331,7 +340,7 @@ export default function CentralizedContentPage() {
         /* 3. Subject Workspace (Side Accordion & Content Panel) */
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-in fade-in duration-300">
           
-          {/* Workspace Sidebar (Units & Topics) */}
+          {/* Workspace Sidebar (Units & Subunits) */}
           <div className="lg:col-span-1 space-y-4">
             
             {/* Back Button */}
@@ -401,12 +410,12 @@ export default function CentralizedContentPage() {
           <div className="lg:col-span-3">
             {!selectedTopic ? (
               
-              /* Default topic selection prompt */
+              /* Default subunit selection prompt */
               <div className="flex flex-col items-center justify-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/10 min-h-[450px]">
                 <span className="text-6xl block mb-4 animate-bounce" style={{ animationDuration: '3s' }}>📖</span>
                 <h3 className="text-lg font-bold text-slate-750 dark:text-slate-200">Start Your Master Study</h3>
                 <p className="text-xs text-slate-500 mt-2 text-center max-w-sm leading-relaxed">
-                  Select a specific topic from the syllabus index on the left to load textbooks, summaries, custom revision notes, interactive quiz prep, and the AI study coach.
+                  Select a specific subunit from the syllabus index on the left to load textbooks, summaries, custom revision notes, interactive quiz prep, and the AI study coach.
                 </p>
               </div>
             ) : (
@@ -414,7 +423,7 @@ export default function CentralizedContentPage() {
               /* Full Syllabus Content Workspace Panel */
               <div className="glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 overflow-hidden min-h-[500px] flex flex-col">
                 
-                {/* Topic Header details */}
+                {/* Subunit Header details */}
                 <div className="px-6 py-4 bg-slate-50/50 dark:bg-slate-950/20 border-b border-slate-250/20 dark:border-slate-800/80 flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-lg text-black dark:text-white">{selectedTopic.name}</h3>
@@ -458,7 +467,7 @@ export default function CentralizedContentPage() {
                   {loadingContents ? (
                     <div className="flex flex-col items-center justify-center py-20 flex-1">
                       <div className="w-10 h-10 rounded-full border-2 border-indigo-200 border-t-indigo-600 animate-spin mb-3" />
-                      <span className="text-xs text-slate-400">Loading topic contents...</span>
+                      <span className="text-xs text-slate-400">Loading subunit contents...</span>
                     </div>
                   ) : (
                     <div className="flex-1 flex flex-col">
@@ -474,7 +483,7 @@ export default function CentralizedContentPage() {
                               return (
                                 <div className="text-center py-10 bg-slate-50/50 dark:bg-slate-900/20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
                                   <span className="text-4xl block mb-2">📁</span>
-                                  <p className="text-xs text-slate-500">No PDF/PPT documents uploaded for this topic.</p>
+                                  <p className="text-xs text-slate-500">No PDF/PPT documents uploaded for this subunit.</p>
                                 </div>
                               );
                             }
@@ -554,7 +563,7 @@ export default function CentralizedContentPage() {
 
                           {(() => {
                             const mcqRecords = contents.filter(c => c.contentType === "MCQ");
-                            if (mcqRecords.length === 0) return <p className="text-xs text-slate-500">No MCQs seeded for this topic.</p>;
+                            if (mcqRecords.length === 0) return <p className="text-xs text-slate-500">No MCQs seeded for this subunit.</p>;
 
                             return mcqRecords.map((record) => {
                               const mcqList = record.mcqs || [];
@@ -693,9 +702,9 @@ export default function CentralizedContentPage() {
                           {/* Quick Prompts */}
                           <div className="flex flex-wrap gap-2 mb-3">
                             {[
-                              { text: `Explain this topic in simple terms`, label: "💡 Explain Simple" },
+                              { text: `Explain this subunit in simple terms`, label: "💡 Explain Simple" },
                               { text: `Give me a daily life example of ${selectedTopic.name}`, label: "🌍 Real-world Use" },
-                              { text: `Create a quick quiz on this topic`, label: "🧠 Quick Quiz" }
+                              { text: `Create a quick quiz on this subunit`, label: "🧠 Quick Quiz" }
                             ].map((p, idx) => (
                               <button
                                 key={idx}
@@ -717,7 +726,7 @@ export default function CentralizedContentPage() {
                                 onChange={(e) => setAiInput(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && handleSendAiMessage()}
                                 disabled={isAiTyping}
-                                placeholder={`Ask a doubt about ${selectedTopic.name}...`}
+                                placeholder={`Ask a doubt about this subunit...`}
                                 className="w-full bg-transparent border-0 text-xs md:text-sm text-black dark:text-white placeholder-slate-400 focus:outline-none focus:ring-0"
                               />
                             </div>
