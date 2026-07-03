@@ -35,6 +35,7 @@ export default function ZoologyCentrePage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [inspectSpec, setInspectSpec] = useState<Specimen | null>(null);
+  const [selectedSim, setSelectedSim] = useState("https://phet.colorado.edu/sims/html/natural-selection/latest/natural-selection_all.html");
 
   const getIconForCategory = (category: string) => {
     const c = category.toLowerCase();
@@ -120,6 +121,41 @@ export default function ZoologyCentrePage() {
                 Welcome to the jungle! Check out our collection of bugs, models, and DNA kits. Get ready for some wild science!
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Virtual Biology Lab Simulator */}
+        <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-lg border-4 border-emerald-100 dark:border-slate-700">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <h3 className="text-2xl font-black text-slate-855 dark:text-slate-100 flex items-center gap-3">
+                <div className="p-2 bg-emerald-100 text-emerald-650 dark:bg-slate-900 rounded-xl rotate-[-5deg]">
+                  <Dna className="w-6 h-6" />
+                </div>
+                Virtual Biology Sandbox
+              </h3>
+              <p className="text-slate-500 dark:text-slate-400 font-bold text-xs mt-1">Simulate natural selection, gene expression, and vision experiments in real-time!</p>
+            </div>
+            <div className="w-full sm:w-68">
+              <select
+                value={selectedSim}
+                onChange={(e) => setSelectedSim(e.target.value)}
+                className="w-full bg-slate-50 dark:bg-slate-900 border-4 border-emerald-100 dark:border-slate-750 text-slate-850 dark:text-white rounded-2xl px-3 py-2.5 text-xs font-black focus:outline-none focus:ring-4 focus:ring-emerald-200 transition-all shadow-inner"
+              >
+                <option value="https://phet.colorado.edu/sims/html/natural-selection/latest/natural-selection_all.html">🐰 Natural Selection (Bunny Evolution)</option>
+                <option value="https://phet.colorado.edu/sims/html/gene-expression-essentials/latest/gene-expression-essentials_all.html">🧬 Gene Expression Essentials</option>
+                <option value="https://phet.colorado.edu/sims/html/color-vision/latest/color-vision_all.html">👁️ Color Vision Experiment</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="rounded-[1.5rem] border-4 border-slate-100 dark:border-slate-900 overflow-hidden shadow-inner bg-slate-950 aspect-[16/9] w-full relative">
+            <iframe
+              src={selectedSim}
+              className="w-full h-full border-none"
+              allowFullScreen
+              title="Biology PhET Simulation"
+            />
           </div>
         </div>
 
