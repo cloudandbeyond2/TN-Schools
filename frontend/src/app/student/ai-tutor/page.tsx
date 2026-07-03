@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { Bot, Globe, History, MessageSquare, Sliders, Mic, Trash2, Send, X, BookOpen } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -201,7 +202,9 @@ export default function AITutorPage() {
           {/* Mobile Settings Close Header */}
           <div className="flex justify-between items-center lg:hidden border-b border-slate-800 pb-3 mb-2">
             <span className="text-xs font-black text-white uppercase tracking-wider">Tutor Settings</span>
-            <button onClick={() => setShowSidebar(false)} className="text-slate-400 hover:text-white text-sm font-bold">✕ Close</button>
+            <button onClick={() => setShowSidebar(false)} className="text-slate-400 hover:text-white text-xs font-bold flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg">
+              <X className="w-3.5 h-3.5" /> Close
+            </button>
           </div>
 
           {/* Subject */}
@@ -236,9 +239,10 @@ export default function AITutorPage() {
                       loadPastSession(s);
                       setShowSidebar(false); // Auto-close on load
                     }}
-                    className="text-left text-[11px] p-2 rounded-lg bg-slate-800/40 hover:bg-slate-800 text-slate-300 hover:text-white transition-all border border-slate-700/30 truncate"
+                    className="text-left text-[11px] p-2 rounded-lg bg-slate-800/40 hover:bg-slate-800 text-slate-300 hover:text-white transition-all border border-slate-700/30 truncate flex items-center gap-2"
                   >
-                    📖 {s.subject} ({new Date(s.createdAt).toLocaleDateString()})
+                    <History className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+                    <span className="truncate">{s.subject} ({new Date(s.createdAt).toLocaleDateString()})</span>
                   </button>
                 ))}
               </div>
@@ -257,9 +261,10 @@ export default function AITutorPage() {
                     setLanguage(l);
                     setShowSidebar(false); // Auto-close
                   }}
-                  className={`text-left text-xs px-3 py-2 rounded-lg transition-all capitalize ${language === l ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-800"}`}
+                  className={`text-left text-xs px-3 py-2 rounded-lg transition-all capitalize flex items-center gap-2 ${language === l ? "bg-indigo-600 text-white" : "text-slate-400 hover:bg-slate-800"}`}
                 >
-                  {l === "bilingual" ? "🌐 Tamil + English" : l === "tamil" ? "📜 Tamil Only" : "🗣️ English Only"}
+                  <Globe className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{l === "bilingual" ? "Tamil + English" : l === "tamil" ? "Tamil Only" : "English Only"}</span>
                 </button>
               ))}
             </div>
@@ -276,9 +281,10 @@ export default function AITutorPage() {
                     setInput(q);
                     setShowSidebar(false); // Auto-close
                   }}
-                  className="text-left text-xs px-3 py-2 rounded-lg text-slate-400 hover:text-indigo-300 hover:bg-indigo-500/10 transition-all border border-transparent hover:border-indigo-500/20"
+                  className="text-left text-xs px-3 py-2 rounded-lg text-slate-400 hover:text-indigo-300 hover:bg-indigo-500/10 transition-all border border-transparent hover:border-indigo-500/20 flex items-start gap-2"
                 >
-                  💬 {q}
+                  <MessageSquare className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0 mt-0.5" />
+                  <span>{q}</span>
                 </button>
               ))}
             </div>
@@ -292,13 +298,13 @@ export default function AITutorPage() {
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <button
                 onClick={() => setShowSidebar(true)}
-                className="lg:hidden p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition-all flex-shrink-0 text-xs font-semibold"
+                className="lg:hidden p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition-all flex-shrink-0 text-xs font-semibold flex items-center gap-1.5"
                 title="Open Settings"
               >
-                ⚙️ Controls
+                <Sliders className="w-3.5 h-3.5" /> Settings
               </button>
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-sm flex-shrink-0 hidden sm:flex">
-                🤖
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center flex-shrink-0 hidden sm:flex">
+                <Bot className="w-5 h-5 text-white" />
               </div>
               <div className="min-w-0">
                 <div className="text-xs sm:text-sm font-semibold text-white truncate">AI Tutor — {selectedSubject}</div>
@@ -316,8 +322,8 @@ export default function AITutorPage() {
             {messages.map((msg, i) => (
               <div key={i} className={`flex gap-2 sm:gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 {msg.role === "assistant" && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-xs sm:text-sm flex-shrink-0 mt-0.5">
-                    🤖
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Bot className="w-4.5 h-4.5 text-white" />
                   </div>
                 )}
                 <div
@@ -331,7 +337,7 @@ export default function AITutorPage() {
                   {msg.content}
                 </div>
                 {msg.role === "user" && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-505 flex items-center justify-center text-xs sm:text-sm font-bold text-white flex-shrink-0 mt-0.5">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-xs sm:text-sm font-bold text-white flex-shrink-0 mt-0.5">
                     A
                   </div>
                 )}
@@ -341,8 +347,8 @@ export default function AITutorPage() {
             {/* Typing indicator */}
             {isTyping && (
               <div className="flex gap-2 sm:gap-3 justify-start">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-xs sm:text-sm">
-                  🤖
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center flex-shrink-0">
+                  <Bot className="w-4.5 h-4.5 text-white" />
                 </div>
                 <div className="bg-slate-800 border border-slate-700 rounded-2xl rounded-tl-sm px-4 py-3 flex gap-1 items-center">
                   <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -370,16 +376,21 @@ export default function AITutorPage() {
               <button
                 id="ai-tutor-send-btn"
                 onClick={sendMessage}
-                className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-95 flex-shrink-0"
+                className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-95 flex-shrink-0 flex items-center gap-1.5"
                 style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
               >
-                Send
+                <span>Send</span>
+                <Send className="w-3.5 h-3.5" />
               </button>
             </div>
             <div className="flex justify-between sm:justify-start gap-3 mt-2 px-1">
-              <button id="ai-tutor-voice-btn" className="text-[10px] sm:text-xs text-slate-500 hover:text-indigo-400 transition-colors">🎤 Voice Input</button>
+              <button id="ai-tutor-voice-btn" className="text-[10px] sm:text-xs text-slate-500 hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                <Mic className="w-3 h-3" /> Voice Input
+              </button>
               <span className="text-slate-700 hidden sm:inline">·</span>
-              <button id="ai-tutor-clear-btn" onClick={() => setMessages([])} className="text-[10px] sm:text-xs text-slate-500 hover:text-red-400 transition-colors">🗑️ Clear Chat</button>
+              <button id="ai-tutor-clear-btn" onClick={() => setMessages([])} className="text-[10px] sm:text-xs text-slate-500 hover:text-red-400 transition-colors flex items-center gap-1.5">
+                <Trash2 className="w-3 h-3" /> Clear Chat
+              </button>
             </div>
           </div>
         </div>
