@@ -22,28 +22,64 @@ interface ParsedPreviewStudent {
   id: number;
   name: string;
   rollNumber: string;
+  admissionNumber?: string;
+  emisNumber?: string;
+  dob?: string;
+  gender?: string;
+  bloodGroup?: string;
+  religion?: string;
+  community?: string;
+  nationality?: string;
+  mediumOfInstruction?: string;
   class: string;
+  section?: string;
+  academicYear?: string;
+  fatherName?: string;
+  fatherOccupation?: string;
+  motherName?: string;
+  motherOccupation?: string;
+  parentEmail?: string;
   phone: string;
   parentName: string;
+  address?: string;
+  city: string;
   district: string;
   state: string;
-  city: string;
   pincode: string;
+  studentStatus?: string;
   risk: "High" | "Medium";
   isValid: boolean;
   validationError?: string;
 }
 
 interface ExcelStudentRow {
-  "Student Name"?: string;
+  "Full Name"?: string;
+  "Admission Number"?: string;
   "Roll Number"?: string;
-  "Class & Section"?: string;
+  "EMIS Number"?: string;
+  "Date of Birth (YYYY-MM-DD)"?: string;
+  "Gender"?: string;
+  "Blood Group"?: string;
+  "Religion"?: string;
+  "Community"?: string;
+  "Nationality"?: string;
+  "Medium of Instruction"?: string;
+  "Class"?: string;
+  "Section"?: string;
+  "Academic Year"?: string;
+  "Father Name"?: string;
+  "Father Occupation"?: string;
+  "Mother Name"?: string;
+  "Mother Occupation"?: string;
+  "Primary Contact Name"?: string;
+  "Parent Email"?: string;
   "Phone Number"?: string;
-  "Parent Name"?: string;
+  "Address"?: string;
+  "City"?: string;
   "District"?: string;
   "State"?: string;
-  "City"?: string;
   "Pincode"?: string;
+  "Student Status"?: string;
   "Risk Level"?: string;
 }
 
@@ -108,6 +144,25 @@ export default function StudentsMonitoringPage() {
   const [newCity, setNewCity] = useState("Coimbatore");
   const [newPincode, setNewPincode] = useState("");
   const [newRisk, setNewRisk] = useState<"High" | "Medium">("Medium");
+  const [newAdmissionNumber, setNewAdmissionNumber] = useState("");
+  const [newEmisNumber, setNewEmisNumber] = useState("");
+  const [newDob, setNewDob] = useState("");
+  const [newGender, setNewGender] = useState("");
+  const [newBloodGroup, setNewBloodGroup] = useState("");
+  const [newReligion, setNewReligion] = useState("");
+  const [newCommunity, setNewCommunity] = useState("");
+  const [newNationality, setNewNationality] = useState("Indian");
+  const [newMediumOfInstruction, setNewMediumOfInstruction] = useState("English");
+  const [newSection, setNewSection] = useState("A");
+  const [newAcademicYear, setNewAcademicYear] = useState("2024-25");
+  const [newFatherName, setNewFatherName] = useState("");
+  const [newFatherOccupation, setNewFatherOccupation] = useState("");
+  const [newMotherName, setNewMotherName] = useState("");
+  const [newMotherOccupation, setNewMotherOccupation] = useState("");
+  const [newParentEmail, setNewParentEmail] = useState("");
+  const [newAddress, setNewAddress] = useState("");
+  const [newStudentStatus, setNewStudentStatus] = useState("Active");
+
 
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -142,7 +197,7 @@ export default function StudentsMonitoringPage() {
     const id = student.id || student.rollNumber;
     setIsHealthModalOpen(true);
     setHealthForm({ height: "", weight: "", bloodGroup: "", vision: "", hearing: "", bmi: "", dental: "", lastCheckupDate: "", notes: "" });
-    
+
     const existingData = await fetchHealthReport(student.rollNumber, id);
     if (existingData) {
       setHealthForm({
@@ -187,18 +242,18 @@ export default function StudentsMonitoringPage() {
   const handleDownloadPdf = async () => {
     const reportElement = document.getElementById('health-report-modal-content');
     if (!reportElement || !selectedStudentForHealth) return;
-    
+
     try {
       showToast("Generating PDF...");
       const canvas = await html2canvas(reportElement, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
       const imgData = canvas.toDataURL('image/png');
-      
+
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'px',
         format: [canvas.width / 2, canvas.height / 2] // keeping it crisp
       });
-      
+
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
       pdf.save(`${selectedStudentForHealth.name}_HealthReport.pdf`);
       showToast("PDF downloaded successfully!");
@@ -245,42 +300,74 @@ export default function StudentsMonitoringPage() {
   // ── Excel download template ─────────────────────────────────────
   const downloadExcelTemplate = () => {
     const headers = [
-      "Student Name",
-      "Roll Number",
-      "Class & Section",
-      "Phone Number",
-      "Parent Name",
-      "District",
-      "State",
-      "City",
-      "Pincode",
-      "Risk Level",
+      "Full Name", "Admission Number", "Roll Number", "EMIS Number", "Date of Birth (YYYY-MM-DD)",
+      "Gender", "Blood Group", "Religion", "Community", "Nationality",
+      "Medium of Instruction", "Class", "Section", "Academic Year",
+      "Father Name", "Father Occupation", "Mother Name", "Mother Occupation",
+      "Primary Contact Name", "Parent Email", "Phone Number",
+      "Address", "City", "District", "State", "Pincode", "Student Status", "Risk Level"
     ];
     const sampleData = [
       {
-        "Student Name": "Arun Kumar",
+        "Full Name": "Arun Kumar",
+        "Admission Number": "ADM1001",
         "Roll Number": "HM10101",
-        "Class & Section": "Class 10A",
+        "EMIS Number": "EMIS99123",
+        "Date of Birth (YYYY-MM-DD)": "2008-05-12",
+        "Gender": "Male",
+        "Blood Group": "O+",
+        "Religion": "Hindu",
+        "Community": "BC",
+        "Nationality": "Indian",
+        "Medium of Instruction": "English",
+        "Class": "Class 10",
+        "Section": "A",
+        "Academic Year": "2024-25",
+        "Father Name": "Sinnasamy M.",
+        "Father Occupation": "Farmer",
+        "Mother Name": "Lakshmi M.",
+        "Mother Occupation": "Homemaker",
+        "Primary Contact Name": "Sinnasamy M.",
+        "Parent Email": "arun.parent@example.com",
         "Phone Number": "9876543210",
-        "Parent Name": "Sinnasamy M.",
+        "Address": "123 Main St",
+        "City": "Coimbatore",
         "District": "Coimbatore",
         "State": "Tamil Nadu",
-        "City": "Coimbatore",
         "Pincode": "641001",
+        "Student Status": "Active",
         "Risk Level": "High",
       },
       {
-        "Student Name": "Priya S.",
+        "Full Name": "Priya S.",
+        "Admission Number": "ADM1002",
         "Roll Number": "HM09202",
-        "Class & Section": "Class 9B",
+        "EMIS Number": "EMIS99124",
+        "Date of Birth (YYYY-MM-DD)": "2009-08-21",
+        "Gender": "Female",
+        "Blood Group": "A+",
+        "Religion": "Hindu",
+        "Community": "MBC",
+        "Nationality": "Indian",
+        "Medium of Instruction": "Tamil",
+        "Class": "Class 9",
+        "Section": "B",
+        "Academic Year": "2024-25",
+        "Father Name": "Ramasamy A.",
+        "Father Occupation": "Teacher",
+        "Mother Name": "Sita A.",
+        "Mother Occupation": "Nurse",
+        "Primary Contact Name": "Ramasamy A.",
+        "Parent Email": "priya.parent@example.com",
         "Phone Number": "9876543212",
-        "Parent Name": "Ramasamy A.",
+        "Address": "456 North St",
+        "City": "Coimbatore",
         "District": "Coimbatore",
         "State": "Tamil Nadu",
-        "City": "Coimbatore",
         "Pincode": "641003",
+        "Student Status": "Active",
         "Risk Level": "Medium",
-      },
+      }
     ];
     const worksheet = XLSX.utils.json_to_sheet(sampleData, { header: headers });
     const workbook = XLSX.utils.book_new();
@@ -314,30 +401,68 @@ export default function StudentsMonitoringPage() {
         const parsedData = XLSX.utils.sheet_to_json<ExcelStudentRow>(sheet);
 
         const validated: ParsedPreviewStudent[] = parsedData.map((row, idx) => {
-          const name = row["Student Name"]?.toString().trim() || "";
+          const name = row["Full Name"]?.toString().trim() || "";
           const rollNumber = row["Roll Number"]?.toString().trim() || "";
-          const classSection = row["Class & Section"]?.toString().trim() || "";
-          const phone = row["Phone Number"]?.toString().trim() || "";
-          const parentName = row["Parent Name"]?.toString().trim() || "";
-          const district = row["District"]?.toString().trim() || "";
-          const state = row["State"]?.toString().trim() || "";
-          const city = row["City"]?.toString().trim() || "";
-          const pincode = row["Pincode"]?.toString().trim() || "";
+          const admissionNumber = row["Admission Number"]?.toString().trim() || "";
+          const emisNumber = row["EMIS Number"]?.toString().trim() || "";
+          const dob = row["Date of Birth (YYYY-MM-DD)"]?.toString().trim() || "";
+          const gender = row["Gender"]?.toString().trim() || "";
+          const bloodGroup = row["Blood Group"]?.toString().trim() || "";
+          const religion = row["Religion"]?.toString().trim() || "";
+          const community = row["Community"]?.toString().trim() || "";
+          const nationality = row["Nationality"]?.toString().trim() || "";
+          const mediumOfInstruction = row["Medium of Instruction"]?.toString().trim() || "";
+          const cls = row["Class"]?.toString().trim() || "Not Specified";
+          const section = row["Section"]?.toString().trim() || "A";
+          const academicYear = row["Academic Year"]?.toString().trim() || "";
+          const fatherName = row["Father Name"]?.toString().trim() || "";
+          const fatherOccupation = row["Father Occupation"]?.toString().trim() || "";
+          const motherName = row["Mother Name"]?.toString().trim() || "";
+          const motherOccupation = row["Mother Occupation"]?.toString().trim() || "";
+          const parentName = row["Primary Contact Name"]?.toString().trim() || "Not Provided";
+          const parentEmail = row["Parent Email"]?.toString().trim() || "";
+          const phone = row["Phone Number"]?.toString().trim() || "Not Provided";
+          const address = row["Address"]?.toString().trim() || "";
+          const district = row["District"]?.toString().trim() || "Not Provided";
+          const state = row["State"]?.toString().trim() || "Not Provided";
+          const city = row["City"]?.toString().trim() || "Not Provided";
+          const pincode = row["Pincode"]?.toString().trim() || "Not Provided";
+          const studentStatus = row["Student Status"]?.toString().trim() || "Active";
+
           const rawRisk = row["Risk Level"]?.toString().trim() || "";
           let risk: "High" | "Medium" = "Medium";
           if (rawRisk && rawRisk.toLowerCase() === "high") risk = "High";
+          
           const isValid = name !== "" && rollNumber !== "";
           return {
             id: idx,
             name,
             rollNumber,
-            class: classSection || "Not Specified",
-            phone: phone || "Not Provided",
-            parentName: parentName || "Not Provided",
-            district: district || "Not Provided",
-            state: state || "Not Provided",
-            city: city || "Not Provided",
-            pincode: pincode || "Not Provided",
+            admissionNumber,
+            emisNumber,
+            dob,
+            gender,
+            bloodGroup,
+            religion,
+            community,
+            nationality,
+            mediumOfInstruction,
+            class: cls,
+            section,
+            academicYear,
+            fatherName,
+            fatherOccupation,
+            motherName,
+            motherOccupation,
+            parentEmail,
+            phone,
+            parentName,
+            address,
+            district,
+            state,
+            city,
+            pincode,
+            studentStatus,
             risk,
             isValid,
             validationError: !name ? "Name is missing" : !rollNumber ? "Roll Number is missing" : undefined,
@@ -409,6 +534,25 @@ export default function StudentsMonitoringPage() {
           state: newState || "N/A",
           city: newCity || "N/A",
           pincode: newPincode || "N/A",
+          admissionNumber: newAdmissionNumber,
+          emisNumber: newEmisNumber,
+          dob: newDob || null,
+          gender: newGender,
+          bloodGroup: newBloodGroup,
+          religion: newReligion,
+          community: newCommunity,
+          nationality: newNationality,
+          mediumOfInstruction: newMediumOfInstruction,
+          section: newSection,
+          academicYear: newAcademicYear,
+          fatherName: newFatherName,
+          fatherOccupation: newFatherOccupation,
+          motherName: newMotherName,
+          motherOccupation: newMotherOccupation,
+          parentEmail: newParentEmail,
+          address: newAddress,
+          studentStatus: newStudentStatus,
+
           risk: newRisk,
           schoolId: mySchoolId || null,
         }),
@@ -426,6 +570,12 @@ export default function StudentsMonitoringPage() {
         setNewName(""); setNewRollNumber(""); setNewClass("Class 10A"); setNewPhone("");
         setNewParentName(""); setNewDistrict("Coimbatore"); setNewState("Tamil Nadu");
         setNewCity("Coimbatore"); setNewPincode("");
+        setNewAdmissionNumber(""); setNewEmisNumber(""); setNewDob(""); setNewGender("");
+        setNewBloodGroup(""); setNewReligion(""); setNewCommunity(""); setNewNationality("Indian");
+        setNewMediumOfInstruction("English"); setNewSection("A"); setNewAcademicYear("2024-25");
+        setNewFatherName(""); setNewFatherOccupation(""); setNewMotherName(""); setNewMotherOccupation("");
+        setNewParentEmail(""); setNewAddress(""); setNewStudentStatus("Active");
+
         setIsModalOpen(false);
         fetchWatchlist();
       } else {
@@ -596,9 +746,8 @@ export default function StudentsMonitoringPage() {
               watchlist.map((s) => (
                 <div
                   key={s.id || s.rollNumber}
-                  className={`p-3.5 rounded-xl border text-xs ${
-                    s.risk === "High" ? "border-red-500/20 bg-red-500/5" : "border-amber-500/20 bg-amber-500/5"
-                  }`}
+                  className={`p-3.5 rounded-xl border text-xs ${s.risk === "High" ? "border-red-500/20 bg-red-500/5" : "border-amber-500/20 bg-amber-500/5"
+                    }`}
                 >
                   <div className="flex justify-between items-start mb-1.5">
                     <div>
@@ -645,7 +794,7 @@ export default function StudentsMonitoringPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
-            className="w-full max-w-4xl rounded-3xl p-6 space-y-6 relative transition-all duration-300"
+            className="w-full max-w-4xl rounded-3xl p-6 space-y-6 relative transition-all duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar"
             style={{
               background: "#ffffff",
               border: "1px solid rgba(0, 0, 0, 0.08)",
@@ -707,9 +856,8 @@ export default function StudentsMonitoringPage() {
                               {s.city}, {s.district}
                             </td>
                             <td className="p-3">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                s.risk === "High" ? "bg-red-50 text-red-600 border border-red-200" : "bg-amber-50 text-amber-600 border border-amber-200"
-                              }`}>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.risk === "High" ? "bg-red-50 text-red-600 border border-red-200" : "bg-amber-50 text-amber-600 border border-amber-200"
+                                }`}>
                                 {s.risk}
                               </span>
                             </td>
@@ -750,14 +898,92 @@ export default function StudentsMonitoringPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Manual Form */}
-                <form onSubmit={handleManualSubmit} className="space-y-3">
-                  <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Manual Entry</div>
+                <form onSubmit={handleManualSubmit} className="space-y-4">
+                  <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Manual Entry</div>
 
+                  {/* Personal Details */}
+                  <div className="pt-1 pb-2 border-b border-slate-200">
+                    <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Personal Details</h4>
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
+                    <div className="col-span-2">
                       <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Full Name</label>
                       <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)}
                         placeholder="e.g. Senthil Kumar"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Date of Birth</label>
+                      <input type="date" value={newDob} onChange={(e) => setNewDob(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Gender</label>
+                      <select value={newGender} onChange={(e) => setNewGender(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Blood Group</label>
+                      <select value={newBloodGroup} onChange={(e) => setNewBloodGroup(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                        <option value="">Select Blood Group</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Religion</label>
+                      <select value={newReligion} onChange={(e) => setNewReligion(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                        <option value="">Select Religion</option>
+                        <option value="Hindu">Hindu</option>
+                        <option value="Muslim">Muslim</option>
+                        <option value="Christian">Christian</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Community</label>
+                      <select value={newCommunity} onChange={(e) => setNewCommunity(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                        <option value="">Select Community</option>
+                        <option value="BC">BC</option>
+                        <option value="MBC">MBC</option>
+                        <option value="SC">SC</option>
+                        <option value="ST">ST</option>
+                        <option value="OC">OC</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Nationality</label>
+                      <select value={newNationality} onChange={(e) => setNewNationality(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                        <option value="Indian">Indian</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Academic Details */}
+                  <div className="pt-3 pb-2 border-b border-slate-200">
+                    <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Academic Details</h4>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Admission Number</label>
+                      <input type="text" value={newAdmissionNumber} onChange={(e) => setNewAdmissionNumber(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">EMIS Number</label>
+                      <input type="text" value={newEmisNumber} onChange={(e) => setNewEmisNumber(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                     </div>
                     <div>
@@ -766,39 +992,112 @@ export default function StudentsMonitoringPage() {
                         placeholder="e.g. HM10101"
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                     </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Academic Year</label>
+                      <input type="text" value={newAcademicYear} onChange={(e) => setNewAcademicYear(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Class</label>
+                      <select required value={newClass} onChange={(e) => setNewClass(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                        <option value="">Select Class</option>
+                        <option value="Class 1">Class 1</option>
+                        <option value="Class 2">Class 2</option>
+                        <option value="Class 3">Class 3</option>
+                        <option value="Class 4">Class 4</option>
+                        <option value="Class 5">Class 5</option>
+                        <option value="Class 6">Class 6</option>
+                        <option value="Class 7">Class 7</option>
+                        <option value="Class 8">Class 8</option>
+                        <option value="Class 9">Class 9</option>
+                        <option value="Class 10">Class 10</option>
+                        <option value="Class 11">Class 11</option>
+                        <option value="Class 12">Class 12</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Section</label>
+                      <select value={newSection} onChange={(e) => setNewSection(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Medium of Instruction</label>
+                      <select value={newMediumOfInstruction} onChange={(e) => setNewMediumOfInstruction(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                        <option value="English">English</option>
+                        <option value="Tamil">Tamil</option>
+                        <option value="Hindi">Hindi</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Student Status</label>
+                      <select value={newStudentStatus} onChange={(e) => setNewStudentStatus(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Transferred">Transferred</option>
+                        <option value="Graduated">Graduated</option>
+                      </select>
+                    </div>
                   </div>
 
+                  {/* Parent Details */}
+                  <div className="pt-3 pb-2 border-b border-slate-200">
+                    <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Parent / Guardian Details</h4>
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Parent Name</label>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Name</label>
+                      <input type="text" value={newFatherName} onChange={(e) => setNewFatherName(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Occupation</label>
+                      <input type="text" value={newFatherOccupation} onChange={(e) => setNewFatherOccupation(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Name</label>
+                      <input type="text" value={newMotherName} onChange={(e) => setNewMotherName(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Occupation</label>
+                      <input type="text" value={newMotherOccupation} onChange={(e) => setNewMotherOccupation(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Primary Contact Name</label>
                       <input type="text" required value={newParentName} onChange={(e) => setNewParentName(e.target.value)}
                         placeholder="e.g. Ramasamy A."
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Class & Section</label>
-                      <input type="text" required value={newClass} onChange={(e) => setNewClass(e.target.value)}
-                        placeholder="e.g. Class 10A"
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Parent Email</label>
+                      <input type="email" value={newParentEmail} onChange={(e) => setNewParentEmail(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Phone Number</label>
                       <input type="text" required value={newPhone} onChange={(e) => setNewPhone(e.target.value)}
                         placeholder="e.g. 9876543210"
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                     </div>
-                    <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Pincode</label>
-                      <input type="text" required value={newPincode} onChange={(e) => setNewPincode(e.target.value)}
-                        placeholder="e.g. 641001"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                    </div>
                   </div>
 
+                  {/* Address Details */}
+                  <div className="pt-3 pb-2 border-b border-slate-200">
+                    <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Address Details</h4>
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Address</label>
+                      <input type="text" value={newAddress} onChange={(e) => setNewAddress(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                    </div>
                     <div>
                       <label className="block text-[10px] text-slate-600 mb-1 font-semibold">City</label>
                       <input type="text" required value={newCity} onChange={(e) => setNewCity(e.target.value)}
@@ -811,9 +1110,6 @@ export default function StudentsMonitoringPage() {
                         placeholder="e.g. Coimbatore"
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] text-slate-600 mb-1 font-semibold">State</label>
                       <input type="text" required value={newState} onChange={(e) => setNewState(e.target.value)}
@@ -821,17 +1117,15 @@ export default function StudentsMonitoringPage() {
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Risk Rating</label>
-                      <select value={newRisk} onChange={(e) => setNewRisk(e.target.value as any)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                        <option value="Medium">Medium Risk</option>
-                        <option value="High">High Risk</option>
-                      </select>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Pincode</label>
+                      <input type="text" required value={newPincode} onChange={(e) => setNewPincode(e.target.value)}
+                        placeholder="e.g. 641001"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                     </div>
                   </div>
 
                   <button type="submit" disabled={isSaving}
-                    className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-1 flex items-center justify-center gap-2">
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-4 flex items-center justify-center gap-2">
                     {isSaving ? (
                       <><div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving...</>
                     ) : "💾 Save Student Record"}
@@ -853,9 +1147,8 @@ export default function StudentsMonitoringPage() {
                       onDragOver={handleDragOver}
                       onDragLeave={handleDragLeave}
                       onDrop={handleDrop}
-                      className={`rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-3 min-h-[160px] border-2 border-dashed ${
-                        isDragging ? "border-emerald-500 bg-emerald-50" : "border-slate-300 bg-white hover:border-emerald-500"
-                      }`}
+                      className={`rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-3 min-h-[160px] border-2 border-dashed ${isDragging ? "border-emerald-500 bg-emerald-50" : "border-slate-300 bg-white hover:border-emerald-500"
+                        }`}
                     >
                       {isUploading ? (
                         <>
@@ -902,7 +1195,7 @@ export default function StudentsMonitoringPage() {
                 </svg>
               </button>
             </div>
-            
+
             <div className="flex items-center gap-3 mb-6 bg-slate-50 p-3 rounded-2xl border border-slate-100">
               <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
                 {selectedStudentForHealth.name.charAt(0)}
@@ -912,48 +1205,48 @@ export default function StudentsMonitoringPage() {
                 <p className="text-sm font-bold text-slate-800">{selectedStudentForHealth.name}</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Height (cm)</label>
-                  <input type="number" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.height} onChange={(e) => setHealthForm({...healthForm, height: e.target.value})} placeholder="e.g. 145" />
+                  <input type="number" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.height} onChange={(e) => setHealthForm({ ...healthForm, height: e.target.value })} placeholder="e.g. 145" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Weight (kg)</label>
-                  <input type="number" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.weight} onChange={(e) => setHealthForm({...healthForm, weight: e.target.value})} placeholder="e.g. 40" />
+                  <input type="number" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.weight} onChange={(e) => setHealthForm({ ...healthForm, weight: e.target.value })} placeholder="e.g. 40" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Blood Group</label>
-                  <input type="text" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.bloodGroup} onChange={(e) => setHealthForm({...healthForm, bloodGroup: e.target.value})} placeholder="e.g. O+" />
+                  <input type="text" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.bloodGroup} onChange={(e) => setHealthForm({ ...healthForm, bloodGroup: e.target.value })} placeholder="e.g. O+" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">BMI</label>
-                  <input type="number" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.bmi} onChange={(e) => setHealthForm({...healthForm, bmi: e.target.value})} placeholder="e.g. 19.5" />
+                  <input type="number" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.bmi} onChange={(e) => setHealthForm({ ...healthForm, bmi: e.target.value })} placeholder="e.g. 19.5" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Vision</label>
-                  <input type="text" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.vision} onChange={(e) => setHealthForm({...healthForm, vision: e.target.value})} placeholder="e.g. 6/6" />
+                  <input type="text" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.vision} onChange={(e) => setHealthForm({ ...healthForm, vision: e.target.value })} placeholder="e.g. 6/6" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Hearing</label>
-                  <input type="text" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.hearing} onChange={(e) => setHealthForm({...healthForm, hearing: e.target.value})} placeholder="e.g. Normal" />
+                  <input type="text" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.hearing} onChange={(e) => setHealthForm({ ...healthForm, hearing: e.target.value })} placeholder="e.g. Normal" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Dental</label>
-                  <input type="text" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.dental} onChange={(e) => setHealthForm({...healthForm, dental: e.target.value})} placeholder="e.g. Healthy" />
+                  <input type="text" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.dental} onChange={(e) => setHealthForm({ ...healthForm, dental: e.target.value })} placeholder="e.g. Healthy" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Last Checkup</label>
-                  <input type="date" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.lastCheckupDate} onChange={(e) => setHealthForm({...healthForm, lastCheckupDate: e.target.value})} />
+                  <input type="date" className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm" value={healthForm.lastCheckupDate} onChange={(e) => setHealthForm({ ...healthForm, lastCheckupDate: e.target.value })} />
                 </div>
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Medical Notes</label>
-                <textarea className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm h-20 resize-none" value={healthForm.notes} onChange={(e) => setHealthForm({...healthForm, notes: e.target.value})} placeholder="Any allergies or medical conditions..." />
+                <textarea className="w-full bg-white border border-slate-200 rounded-[12px] px-3 py-2 text-slate-800 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-sm h-20 resize-none" value={healthForm.notes} onChange={(e) => setHealthForm({ ...healthForm, notes: e.target.value })} placeholder="Any allergies or medical conditions..." />
               </div>
             </div>
-            
+
             <div className="flex justify-end gap-3 mt-8">
               <button onClick={() => setIsHealthModalOpen(false)} className="px-6 py-2.5 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 text-slate-700 text-sm font-bold rounded-xl transition-colors">Cancel</button>
               <button onClick={handleSaveHealthReport} className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/20 text-white text-sm font-bold rounded-xl transition-all active:scale-95">Save Report</button>
@@ -980,7 +1273,7 @@ export default function StudentsMonitoringPage() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            
+
             {healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber] && (
               <div className="space-y-4">
                 {/* Student Profile Card */}
@@ -1012,7 +1305,7 @@ export default function StudentsMonitoringPage() {
                   </div>
                   <h4 className="text-sm font-extrabold text-slate-800">Health Summary</h4>
                 </div>
-                
+
                 {/* Metrics Grid */}
                 <div className="grid grid-cols-3 gap-3">
                   <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow">
@@ -1024,7 +1317,7 @@ export default function StudentsMonitoringPage() {
                       <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].height || "—"} cm</div>
                     </div>
                   </div>
-                  
+
                   <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow">
                     <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
                       <Weight className="w-5 h-5" />
@@ -1034,7 +1327,7 @@ export default function StudentsMonitoringPage() {
                       <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].weight || "—"} kg</div>
                     </div>
                   </div>
-                  
+
                   <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow">
                     <div className="w-10 h-10 rounded-full bg-red-50 text-red-400 flex items-center justify-center shrink-0">
                       <Droplet className="w-5 h-5 fill-red-400" />
@@ -1044,7 +1337,7 @@ export default function StudentsMonitoringPage() {
                       <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].bloodGroup || "—"}</div>
                     </div>
                   </div>
-                  
+
                   <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow">
                     <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center shrink-0">
                       <Target className="w-5 h-5" />
@@ -1054,7 +1347,7 @@ export default function StudentsMonitoringPage() {
                       <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].bmi || "—"}</div>
                     </div>
                   </div>
-                  
+
                   <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow">
                     <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
                       <Eye className="w-5 h-5" />
@@ -1064,7 +1357,7 @@ export default function StudentsMonitoringPage() {
                       <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].vision || "—"}</div>
                     </div>
                   </div>
-                  
+
                   <div className="border border-slate-100 rounded-2xl p-3 flex items-center gap-3 bg-white hover:shadow-sm transition-shadow">
                     <div className="w-10 h-10 rounded-full bg-fuchsia-50 text-fuchsia-500 flex items-center justify-center shrink-0">
                       <Ear className="w-5 h-5" />
@@ -1091,11 +1384,11 @@ export default function StudentsMonitoringPage() {
                     </div>
                     <div>
                       <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Checkup Date</div>
-                      <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].lastCheckupDate ? new Date(healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].lastCheckupDate).toLocaleDateString(undefined, {year: 'numeric', month: 'long', day: 'numeric'}) : "—"}</div>
+                      <div className="text-slate-800 font-extrabold text-sm">{healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].lastCheckupDate ? new Date(healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].lastCheckupDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : "—"}</div>
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Notes */}
                 <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-2xl flex gap-4 mt-2">
                   <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
@@ -1122,16 +1415,16 @@ export default function StudentsMonitoringPage() {
                   </div>
                   <HeartPulse className="w-24 h-24 text-blue-200/50 absolute right-0 transform translate-x-2" />
                 </div>
-                
+
                 <div className="flex justify-end items-center gap-1 mt-3">
                   <Clock className="w-3 h-3 text-slate-400" />
                   <span className="text-[10px] text-slate-400 font-bold">
-                    Last updated: {new Date(healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].updatedAt || healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].date || Date.now()).toLocaleDateString(undefined, {year: 'numeric', month: 'long', day: 'numeric'})}
+                    Last updated: {new Date(healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].updatedAt || healthReports[selectedStudentForHealth.id || selectedStudentForHealth.rollNumber].date || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                   </span>
                 </div>
               </div>
             )}
-            
+
             <div className="grid grid-cols-2 gap-4 mt-6 pt-2" data-html2canvas-ignore>
               <button onClick={handleDownloadPdf} className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 active:scale-95">
                 <Download className="w-4 h-4" />

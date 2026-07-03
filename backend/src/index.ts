@@ -123,6 +123,13 @@ app.use('/api', globalLimiter);
 app.use(express.json({ limit: '150mb' }));
 app.use(express.urlencoded({ limit: '150mb', extended: true }));
 
+// Serve uploaded files statically
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
+
 // ─── Connect Databases ───────────────────────────────────────
 connectMongoDB();  // MongoDB Atlas
 

@@ -240,3 +240,53 @@ const LanguageCoachingProgressSchema = new Schema<ILanguageCoachingProgress>({
 export const LanguageCoachingProgress = mongoose.models.LanguageCoachingProgress || mongoose.model<ILanguageCoachingProgress>('LanguageCoachingProgress', LanguageCoachingProgressSchema);
 
 
+// ─── Personal Guide Task & Response Models ────────────────────────────────────
+
+export interface IPersonalGuideTask extends Document {
+  teacherId: string;
+  studentId: string;
+  schoolId: string;
+  title: string;
+  question: string;
+  taskType: 'reflection' | 'goal' | 'question' | 'custom';
+  status: 'pending' | 'answered' | 'reviewed';
+  dueDate?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const PersonalGuideTaskSchema = new Schema<IPersonalGuideTask>({
+  teacherId:  { type: String, required: true, index: true },
+  studentId:  { type: String, required: true, index: true },
+  schoolId:   { type: String, required: true, index: true },
+  title:      { type: String, required: true },
+  question:   { type: String, required: true },
+  taskType:   { type: String, enum: ['reflection', 'goal', 'question', 'custom'], default: 'question' },
+  status:     { type: String, enum: ['pending', 'answered', 'reviewed'], default: 'pending' },
+  dueDate:    { type: String },
+}, { timestamps: true });
+
+export const PersonalGuideTask = mongoose.models.PersonalGuideTask || mongoose.model<IPersonalGuideTask>('PersonalGuideTask', PersonalGuideTaskSchema);
+
+
+export interface IPersonalGuideResponse extends Document {
+  taskId: string;
+  studentId: string;
+  teacherId: string;
+  responseText: string;
+  teacherFeedback?: string;
+  submittedAt: Date;
+  reviewedAt?: Date;
+}
+
+const PersonalGuideResponseSchema = new Schema<IPersonalGuideResponse>({
+  taskId:          { type: String, required: true, index: true },
+  studentId:       { type: String, required: true },
+  teacherId:       { type: String, required: true },
+  responseText:    { type: String, required: true },
+  teacherFeedback: { type: String },
+  submittedAt:     { type: Date, default: Date.now },
+  reviewedAt:      { type: Date },
+});
+
+export const PersonalGuideResponse = mongoose.models.PersonalGuideResponse || mongoose.model<IPersonalGuideResponse>('PersonalGuideResponse', PersonalGuideResponseSchema);

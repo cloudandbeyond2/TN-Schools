@@ -520,7 +520,7 @@ export default function ParentsPage() {
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-xl transition-all shadow-md"
+              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-xl transition-all shadow-md whitespace-nowrap"
             >
               + Register PTA Officer
             </button>
@@ -537,19 +537,19 @@ export default function ParentsPage() {
 
                 return (
                   <div key={p.id} className="p-4 border border-slate-200 rounded-xl bg-white/95 hover:bg-white text-slate-800 shadow-md transition-all duration-200 relative group">
-                    <div className="flex justify-between items-start pr-16">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 pr-24">
                       <div>
                         <div className="font-extrabold text-slate-900 text-xs sm:text-sm">{p.name}</div>
                         <div className="text-[10px] sm:text-xs text-blue-600 font-bold mt-0.5">{p.role}</div>
                       </div>
-                      <div className="text-right">
+                      <div className="sm:text-right">
                         <div className="text-[10px] sm:text-xs text-slate-700 font-bold">{p.phone}</div>
-                        {p.email && <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium mt-0.5">{p.email}</div>}
+                        {p.email && <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium mt-0.5 break-all sm:break-normal">{p.email}</div>}
                       </div>
                     </div>
                     <div className="border-t border-slate-100 mt-2.5 pt-2 flex flex-col gap-1 text-[9px] sm:text-[10px] text-slate-500 font-semibold">
                       <span>Ward: <span className="text-slate-800 font-bold">{displayWard}</span></span>
-                      <div className="flex gap-4">
+                      <div className="flex flex-col sm:flex-row gap-1 sm:gap-4">
                         <span>Pwd: <span className="text-blue-650 font-bold">{p.password || "123456"}</span></span>
                         <span>Term: {p.term}</span>
                       </div>

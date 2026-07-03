@@ -49,6 +49,7 @@ export default function ChemistryLabPage() {
 
   const [potionColor, setPotionColor] = useState("bg-purple-500");
   const [toastMsg, setToastMsg] = useState("");
+  const [selectedSim, setSelectedSim] = useState("https://phet.colorado.edu/sims/html/ph-scale/latest/ph-scale_all.html");
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -177,6 +178,42 @@ export default function ChemistryLabPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Virtual Lab Simulator */}
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-lg border-4 border-purple-100 dark:border-slate-700">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
+                <h3 className="text-2xl font-black text-slate-855 dark:text-slate-100 flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 text-purple-650 dark:bg-slate-900 rounded-xl rotate-[-5deg]">
+                    <FlaskConical className="w-6 h-6" />
+                  </div>
+                  Virtual Lab Simulator
+                </h3>
+                <p className="text-slate-500 dark:text-slate-400 font-bold text-xs mt-1">Interact with actual chemical equations, pH scales, and solution models in real-time!</p>
+              </div>
+              <div className="w-full sm:w-60">
+                <select
+                  value={selectedSim}
+                  onChange={(e) => setSelectedSim(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border-4 border-purple-100 dark:border-slate-750 text-slate-800 dark:text-white rounded-2xl px-3 py-2.5 text-xs font-black focus:outline-none focus:ring-4 focus:ring-purple-200 transition-all shadow-inner"
+                >
+                  <option value="https://phet.colorado.edu/sims/html/ph-scale/latest/ph-scale_all.html">🧪 pH Scale Simulator</option>
+                  <option value="https://phet.colorado.edu/sims/html/acid-base-solutions/latest/acid-base-solutions_all.html">🧬 Acid-Base Solutions</option>
+                  <option value="https://phet.colorado.edu/sims/html/balancing-chemical-equations/latest/balancing-chemical-equations_all.html">🧮 Balancing Equations</option>
+                  <option value="https://phet.colorado.edu/sims/html/states-of-matter/latest/states-of-matter_all.html">❄️ States of Matter</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="rounded-[1.5rem] border-4 border-slate-100 dark:border-slate-900 overflow-hidden shadow-inner bg-slate-950 aspect-[16/9] w-full relative">
+              <iframe
+                src={selectedSim}
+                className="w-full h-full border-none"
+                allowFullScreen
+                title="Chemistry PhET Simulation"
+              />
             </div>
           </div>
 

@@ -2,6 +2,24 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { BoardPrep, LanguageCoachingProgress } from '../models/mongo';
 import https from 'https';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage });
 
 const router = Router();
 
@@ -172,6 +190,35 @@ router.get('/:id/homework', async (req: Request, res: Response) => {
 
     const data = homeworkList.map((h: any) => {
       const submission = h.submissions[0];
+
+      // Parse serialized answer if present
+      let parsedAnswerText = submission?.answerText || null;
+      let parsedFiles: any[] = [];
+      
+      if (submission?.answerText) {
+        try {
+          const parsed = JSON.parse(submission.answerText);
+          if (parsed && typeof parsed === 'object' && ('notes' in parsed || 'files' in parsed)) {
+            parsedAnswerText = parsed.notes || '';
+            parsedFiles = parsed.files || [];
+          }
+        } catch (e) {
+          // not JSON, fallback to raw value
+        }
+      }
+
+      // Check if it was a late submission
+      let submissionStatus = submission ? 'submitted' : 'not_submitted';
+      if (submission && h.dueDate) {
+        const due = new Date(h.dueDate);
+        due.setHours(23, 59, 59, 999);
+        const isLateString = submission.date && submission.date.includes('Late');
+        const isLateTime = submission.createdAt && new Date(submission.createdAt) > due;
+        if (isLateString || isLateTime) {
+          submissionStatus = 'late_submission';
+        }
+      }
+
       return {
         id: h.id,
         title: h.title,
@@ -179,13 +226,17 @@ router.get('/:id/homework', async (req: Request, res: Response) => {
         subjectColor: '#2dd4bf', // Mock color or could map by subject
         className: h.className,
         dueDate: h.dueDate,
-        status: submission?.status === 'submitted' ? 'submitted' : 'not_submitted',
+        status: submissionStatus,
         description: h.description,
         fullBrief: h.description,
         classLabel: `Class ${classSection}`,
         dueLabel: `Due: ${h.dueDate}`,
         postedLabel: new Date(h.createdAt).toLocaleDateString(),
         teacher: 'Teacher', // could populate if linked
+        score: submission?.score || '—',
+        submittedAnswer: parsedAnswerText,
+        submittedDate: submission?.date || null,
+        submittedFiles: parsedFiles,
       };
     });
 
@@ -197,11 +248,10 @@ router.get('/:id/homework', async (req: Request, res: Response) => {
 });
 
 // POST /api/students/:id/homework/:homeworkId/submit
-router.post('/:id/homework/:homeworkId/submit', async (req: Request, res: Response) => {
+router.post('/:id/homework/:homeworkId/submit', upload.array('files'), async (req: Request, res: Response) => {
   try {
     const { id, homeworkId } = req.params;
-
-    const { answerText } = req.body;
+    const { answerText, existingFiles } = req.body;
 
     const student = await prisma.student.findFirst({
       where: {
@@ -213,6 +263,55 @@ router.post('/:id/homework/:homeworkId/submit', async (req: Request, res: Respon
       include: { user: true }
     });
     if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+
+    // Find the homework to calculate due date / late status
+    const homework = await prisma.homework.findUnique({
+      where: { id: homeworkId }
+    });
+    if (!homework) return res.status(404).json({ success: false, error: 'Homework not found' });
+
+    // Parse existing files if editing
+    let finalFiles: any[] = [];
+    if (existingFiles) {
+      try {
+        finalFiles = JSON.parse(existingFiles);
+      } catch (e) {}
+    }
+
+    // Process new files
+    if (req.files && Array.isArray(req.files)) {
+      req.files.forEach((f: any) => {
+        const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${f.filename}`;
+        finalFiles.push({
+          id: f.filename,
+          name: f.originalname,
+          kind: f.mimetype === 'application/pdf' ? 'pdf' : 'image',
+          sizeLabel: `${(f.size / 1024).toFixed(0)} KB`,
+          url: fileUrl
+        });
+      });
+    }
+
+    // Check if the submission is late
+    let isLate = false;
+    let lateString = '';
+    if (homework.dueDate) {
+      const due = new Date(homework.dueDate);
+      // set due time to end of day (23:59:59.999)
+      due.setHours(23, 59, 59, 999);
+      if (new Date() > due) {
+        isLate = true;
+        lateString = ' (Late Submission)';
+      }
+    }
+
+    // Serialize answerText and files list as JSON
+    const serializedAnswer = JSON.stringify({
+      notes: answerText || '',
+      files: finalFiles
+    });
+
+    const dateText = 'Today, ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + lateString;
 
     // Check if submission already exists
     const existingSubmission = await prisma.homeworkSubmission.findFirst({
@@ -229,8 +328,8 @@ router.post('/:id/homework/:homeworkId/submit', async (req: Request, res: Respon
         data: {
           status: 'submitted',
           studentId: student.id,
-          answerText,
-          date: 'Today, ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+          answerText: serializedAnswer,
+          date: dateText
         } as any
       });
     } else {
@@ -241,8 +340,8 @@ router.post('/:id/homework/:homeworkId/submit', async (req: Request, res: Respon
           name: student.user?.name || 'Student',
           status: 'submitted',
           studentId: student.id,
-          answerText,
-          date: 'Today, ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+          answerText: serializedAnswer,
+          date: dateText
         } as any
       });
     }
