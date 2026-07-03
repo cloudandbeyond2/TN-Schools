@@ -1,5 +1,7 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv'; // trigger nodemon reload
 import { connectMongoDB } from './config/db';
 import { prisma } from './config/prisma';
@@ -95,6 +97,27 @@ app.use(cors({
 }));
 
 app.options("*", cors());
+
+// ─── Security Headers ────────────────────────────────────────────
+app.use(helmet());
+
+// ─── Rate Limiting ───────────────────────────────────────────────
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many login attempts, please try again later.' },
+});
+app.use('/api/users/auth', loginLimiter);
+
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api', globalLimiter);
 
 // ─── Other Middleware ──────────────────────────────────────────────
 app.use(express.json({ limit: '150mb' }));

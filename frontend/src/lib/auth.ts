@@ -78,5 +78,5 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
-  secret: process.env.NEXTAUTH_SECRET || "tn-schools-ai-ecosystem-secret-2025",
+  secret: process.env.NEXTAUTH_SECRET,
 };

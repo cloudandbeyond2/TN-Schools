@@ -281,7 +281,7 @@ model HeadmasterStaff {
   attendance  Float     @default(100)
   performance String    @default("Good")
   leaveUsed   Int       @default(0)
-  password    String    @default("123456")
+  password    String    @default("$2b$10$672zWrwIOxXoaL.Eh9iZhubuyoMM1/Gc3UJzBJTt45rBRN6ci/Tn2")
   schoolId    String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -304,7 +304,7 @@ model HeadmasterTempStaff {
   duration  String   @default("12 Months")
   salary    String   @default("N/A")
   status    String   @default("Active")
-  password  String   @default("123456")
+  password  String   @default("$2b$10$672zWrwIOxXoaL.Eh9iZhubuyoMM1/Gc3UJzBJTt45rBRN6ci/Tn2")
   schoolId  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -322,7 +322,7 @@ model HeadmasterParent {
   studentName    String               @default("N/A")
   studentClass   String               @default("N/A")
   term           String
-  password       String               @default("123456")
+  password       String               @default("$2b$10$672zWrwIOxXoaL.Eh9iZhubuyoMM1/Gc3UJzBJTt45rBRN6ci/Tn2")
   schoolId       String?
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt

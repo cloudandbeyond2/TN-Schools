@@ -1,7 +1,20 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { hashPassword } from '../utils/password';
 
 const router = Router();
+
+const SAFE_STAFF_SELECT = {
+  id: true, name: true, emisId: true, subject: true, phone: true, email: true,
+  attendance: true, performance: true, leaveUsed: true, schoolId: true,
+  createdAt: true, updatedAt: true, address: true, dob: true, gender: true, userId: true,
+} as const;
+
+const SAFE_TEMP_STAFF_SELECT = {
+  id: true, name: true, role: true, agency: true, joined: true, phone: true, email: true,
+  duration: true, salary: true, status: true, schoolId: true,
+  createdAt: true, updatedAt: true, userId: true,
+} as const;
 
 // Helper to parse class and section from inputs like "Class 10A"
 function parseClassSection(classStr: string) {
@@ -103,7 +116,7 @@ router.post('/students', async (req: Request, res: Response) => {
           name,
           email: `${cleanRoll.toLowerCase()}@tn.gov.in`,
           mobile: mobileValue,
-          passwordHash: cleanPhone || '123456',
+          passwordHash: await hashPassword(cleanPhone || '123456'),
           role: 'STUDENT',
           schoolId: resolvedSchoolId,
         }
@@ -195,7 +208,7 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
               name: s.name,
               email: `${cleanRoll.toLowerCase()}@tn.gov.in`,
               mobile: mobileValue,
-              passwordHash: cleanPhone || '123456',
+              passwordHash: await hashPassword(cleanPhone || '123456'),
               role: 'STUDENT',
               schoolId: resolvedSchoolId,
             }
@@ -314,7 +327,7 @@ router.put('/students/:id', async (req: Request, res: Response) => {
         data: {
           name: name !== undefined ? name : undefined,
           email: `${cleanRoll.toLowerCase()}@tn.gov.in`,
-          passwordHash: cleanPhone,
+          passwordHash: await hashPassword(cleanPhone),
         }
       });
     }
@@ -443,6 +456,7 @@ router.get('/staff', async (req: Request, res: Response) => {
     const staff = await prisma.headmasterStaff.findMany({
       where: schoolId ? { schoolId: String(schoolId) } : undefined,
       orderBy: { createdAt: 'asc' },
+      select: SAFE_STAFF_SELECT,
     });
     res.json({ success: true, count: staff.length, data: staff });
   } catch (err) {
@@ -457,10 +471,12 @@ router.post('/staff', async (req: Request, res: Response) => {
     if (!name || !emisId) {
       return res.status(400).json({ success: false, error: 'name and emisId are required' });
     }
+    const hashedPassword = await hashPassword(password || '123456');
     const staff = await prisma.headmasterStaff.upsert({
       where: { emisId },
-      update: { name, subject: subject || 'General', phone: phone || 'N/A', email: email || null, attendance: attendance ?? 100, performance: performance || 'Good', leaveUsed: leaveUsed ?? 0, password: password || '123456', schoolId: schoolId || null },
-      create: { name, emisId, subject: subject || 'General', phone: phone || 'N/A', email: email || null, attendance: attendance ?? 100, performance: performance || 'Good', leaveUsed: leaveUsed ?? 0, password: password || '123456', schoolId: schoolId || null },
+      update: { name, subject: subject || 'General', phone: phone || 'N/A', email: email || null, attendance: attendance ?? 100, performance: performance || 'Good', leaveUsed: leaveUsed ?? 0, password: hashedPassword, schoolId: schoolId || null },
+      create: { name, emisId, subject: subject || 'General', phone: phone || 'N/A', email: email || null, attendance: attendance ?? 100, performance: performance || 'Good', leaveUsed: leaveUsed ?? 0, password: hashedPassword, schoolId: schoolId || null },
+      select: SAFE_STAFF_SELECT,
     });
     res.status(201).json({ success: true, data: staff });
   } catch (err) {
@@ -478,10 +494,11 @@ router.post('/staff/bulk', async (req: Request, res: Response) => {
     let created = 0;
     for (const s of staff) {
       if (!s.name || !s.emisId) continue;
+      const hashedPassword = await hashPassword(s.password || '123456');
       await prisma.headmasterStaff.upsert({
         where: { emisId: s.emisId },
-        update: { name: s.name, subject: s.subject || 'General', phone: s.phone || 'N/A', email: s.email || null, attendance: s.attendance ?? 100, performance: s.performance || 'Good', leaveUsed: s.leaveUsed ?? s.leave ?? 0, password: s.password || '123456', schoolId: s.schoolId || null },
-        create: { name: s.name, emisId: s.emisId, subject: s.subject || 'General', phone: s.phone || 'N/A', email: s.email || null, attendance: s.attendance ?? 100, performance: s.performance || 'Good', leaveUsed: s.leaveUsed ?? s.leave ?? 0, password: s.password || '123456', schoolId: s.schoolId || null },
+        update: { name: s.name, subject: s.subject || 'General', phone: s.phone || 'N/A', email: s.email || null, attendance: s.attendance ?? 100, performance: s.performance || 'Good', leaveUsed: s.leaveUsed ?? s.leave ?? 0, password: hashedPassword, schoolId: s.schoolId || null },
+        create: { name: s.name, emisId: s.emisId, subject: s.subject || 'General', phone: s.phone || 'N/A', email: s.email || null, attendance: s.attendance ?? 100, performance: s.performance || 'Good', leaveUsed: s.leaveUsed ?? s.leave ?? 0, password: hashedPassword, schoolId: s.schoolId || null },
       });
       created++;
     }
@@ -505,9 +522,10 @@ router.put('/staff/:id', async (req: Request, res: Response) => {
         attendance: attendance !== undefined ? attendance : undefined,
         performance: performance !== undefined ? performance : undefined,
         leaveUsed: leaveUsed !== undefined ? leaveUsed : undefined,
-        password: password !== undefined ? password : undefined,
+        password: password !== undefined ? await hashPassword(password) : undefined,
         schoolId: schoolId !== undefined ? schoolId : undefined,
-      }
+      },
+      select: SAFE_STAFF_SELECT,
     });
     res.json({ success: true, data: staff });
   } catch (err) {
@@ -534,6 +552,7 @@ router.get('/temp-staff', async (req: Request, res: Response) => {
     const staff = await prisma.headmasterTempStaff.findMany({
       where: schoolId ? { schoolId: String(schoolId) } : undefined,
       orderBy: { createdAt: 'desc' },
+      select: SAFE_TEMP_STAFF_SELECT,
     });
     res.json({ success: true, count: staff.length, data: staff });
   } catch (err) {
@@ -547,7 +566,8 @@ router.post('/temp-staff', async (req: Request, res: Response) => {
     const { name, role, agency, joined, phone, email, duration, salary, status, password, schoolId } = req.body;
     if (!name || !role) return res.status(400).json({ success: false, error: 'name and role are required' });
     const staff = await prisma.headmasterTempStaff.create({
-      data: { name, role, agency: agency || 'Direct Contract', joined: joined || '', phone: phone || 'N/A', email: email || 'N/A', duration: duration || '12 Months', salary: salary || 'N/A', status: status || 'Active', password: password || '123456', schoolId: schoolId || null },
+      data: { name, role, agency: agency || 'Direct Contract', joined: joined || '', phone: phone || 'N/A', email: email || 'N/A', duration: duration || '12 Months', salary: salary || 'N/A', status: status || 'Active', password: await hashPassword(password || '123456'), schoolId: schoolId || null },
+      select: SAFE_TEMP_STAFF_SELECT,
     });
     res.status(201).json({ success: true, data: staff });
   } catch (err) {
@@ -560,11 +580,11 @@ router.post('/temp-staff/bulk', async (req: Request, res: Response) => {
   try {
     const { staff } = req.body as { staff: any[] };
     if (!Array.isArray(staff) || staff.length === 0) return res.status(400).json({ success: false, error: 'staff array required' });
-    const records = staff.filter((s) => s.name && s.role).map((s) => ({
+    const records = await Promise.all(staff.filter((s) => s.name && s.role).map(async (s) => ({
       name: s.name, role: s.role, agency: s.agency || 'Direct Contract', joined: s.joined || '',
       phone: s.phone || 'N/A', email: s.email || 'N/A', duration: s.duration || '12 Months',
-      salary: s.salary || 'N/A', status: 'Active', password: s.password || '123456', schoolId: s.schoolId || null,
-    }));
+      salary: s.salary || 'N/A', status: 'Active', password: await hashPassword(s.password || '123456'), schoolId: s.schoolId || null,
+    })));
     const result = await prisma.headmasterTempStaff.createMany({ data: records, skipDuplicates: false });
     res.status(201).json({ success: true, created: result.count });
   } catch (err) {
@@ -588,9 +608,10 @@ router.put('/temp-staff/:id', async (req: Request, res: Response) => {
         duration: duration !== undefined ? duration : undefined,
         salary: salary !== undefined ? salary : undefined,
         status: status !== undefined ? status : undefined,
-        password: password !== undefined ? password : undefined,
+        password: password !== undefined ? await hashPassword(password) : undefined,
         schoolId: schoolId !== undefined ? schoolId : undefined,
-      }
+      },
+      select: SAFE_TEMP_STAFF_SELECT,
     });
     res.json({ success: true, data: staff });
   } catch (err) {
@@ -629,7 +650,8 @@ router.get('/parents', async (req: Request, res: Response) => {
       },
       orderBy: { createdAt: 'desc' },
     });
-    res.json({ success: true, count: parents.length, data: parents });
+    const safeParents = parents.map(({ password, ...rest }) => rest);
+    res.json({ success: true, count: safeParents.length, data: safeParents });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -651,11 +673,12 @@ router.post('/parents', async (req: Request, res: Response) => {
         studentName: studentName || 'N/A',
         studentClass: studentClass || 'N/A',
         term: term || '2025-26',
-        password: password || '123456',
+        password: await hashPassword(password || '123456'),
         schoolId: schoolId || null,
       },
     });
-    res.status(201).json({ success: true, data: parent });
+    const { password: _pw, ...safeParent } = parent;
+    res.status(201).json({ success: true, data: safeParent });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -668,9 +691,9 @@ router.post('/parents/bulk', async (req: Request, res: Response) => {
     if (!Array.isArray(parents) || parents.length === 0) {
       return res.status(400).json({ success: false, error: 'parents array is required' });
     }
-    const records = parents
+    const records = await Promise.all(parents
       .filter((p) => p.name && p.role && p.phone)
-      .map((p) => ({
+      .map(async (p) => ({
         name: p.name,
         role: p.role,
         phone: p.phone,
@@ -678,9 +701,9 @@ router.post('/parents/bulk', async (req: Request, res: Response) => {
         studentName: p.studentName || 'N/A',
         studentClass: p.studentClass || 'N/A',
         term: p.term || '2025-26',
-        password: p.password || '123456',
+        password: await hashPassword(p.password || '123456'),
         schoolId: p.schoolId || null,
-      }));
+      })));
     const result = await prisma.headmasterParent.createMany({ data: records, skipDuplicates: false });
     res.status(201).json({ success: true, created: result.count });
   } catch (err) {
@@ -691,11 +714,13 @@ router.post('/parents/bulk', async (req: Request, res: Response) => {
 // PUT /api/headmaster/parents/:id — Update parent officer
 router.put('/parents/:id', async (req: Request, res: Response) => {
   try {
+    const { password, ...rest } = req.body;
     const parent = await prisma.headmasterParent.update({
       where: { id: req.params.id },
-      data: req.body,
+      data: password !== undefined ? { ...rest, password: await hashPassword(password) } : rest,
     });
-    res.json({ success: true, data: parent });
+    const { password: _pw, ...safeParent } = parent;
+    res.json({ success: true, data: safeParent });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

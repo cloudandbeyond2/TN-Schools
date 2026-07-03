@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { hashPassword } from '../utils/password';
 
 export async function resolveUserId(userId: string): Promise<string | null> {
   if (!userId) return null;
@@ -33,7 +34,7 @@ export async function resolveUserId(userId: string): Promise<string | null> {
             email,
             role,
             schoolId,
-            passwordHash: '123456', // default
+            passwordHash: await hashPassword('123456'), // default
           },
           select: { id: true }
         });

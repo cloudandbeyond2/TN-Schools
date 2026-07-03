@@ -1,8 +1,24 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { Role } from '@prisma/client';
+import { hashPassword, verifyPassword } from '../utils/password';
 
 const router = Router();
+
+// Fields safe to return to clients — never includes passwordHash
+const SAFE_USER_SELECT = {
+  id: true,
+  emisId: true,
+  aadhaarHash: true,
+  mobile: true,
+  name: true,
+  email: true,
+  role: true,
+  isActive: true,
+  schoolId: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
 
 // GET /api/users - List users by role
 router.get('/', async (req: Request, res: Response) => {
@@ -14,7 +30,8 @@ router.get('/', async (req: Request, res: Response) => {
     const filter = role ? { role: role as Role } : {};
     const users = await prisma.user.findMany({
       where: filter,
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      select: SAFE_USER_SELECT,
     });
     res.json({ success: true, count: users.length, data: users });
   } catch (err) {
@@ -56,9 +73,10 @@ router.post('/', async (req: Request, res: Response) => {
         email,
         mobile: mobile || null,
         role: role as Role,
-        passwordHash: password || "123456",
+        passwordHash: await hashPassword(password || "123456"),
         schoolId: schoolId || null,
-      }
+      },
+      select: SAFE_USER_SELECT,
     });
 
     res.status(201).json({ success: true, data: user });
@@ -101,9 +119,10 @@ router.put('/:id', async (req: Request, res: Response) => {
         name: name !== undefined ? name : undefined,
         email: email !== undefined ? email : undefined,
         mobile: mobile !== undefined ? (mobile || null) : undefined,
-        passwordHash: password !== undefined ? password : undefined,
+        passwordHash: password !== undefined ? await hashPassword(password) : undefined,
         schoolId: schoolId !== undefined ? (schoolId || null) : undefined,
-      }
+      },
+      select: SAFE_USER_SELECT,
     });
 
     res.json({ success: true, data: updated });
@@ -187,20 +206,19 @@ router.post('/auth', async (req: Request, res: Response) => {
       }
 
       // Verify phone number against multiple stored fields:
-      // 1. passwordHash (always set to phone on creation — most reliable)
+      // 1. passwordHash (bcrypt hash of phone, set on creation — most reliable)
       // 2. user.mobile (can be null if another user had same phone)
       // 3. student.parentMobile (fallback)
-      const passwordHash  = student.user.passwordHash ? String(student.user.passwordHash).trim() : null;
       const userMobile    = student.user.mobile       ? String(student.user.mobile).trim()       : null;
       const parentMobile  = student.parentMobile      ? String(student.parentMobile).trim()      : null;
 
       const matchesPhone =
-        passwordHash === cleanPhone ||
+        await verifyPassword(cleanPhone, student.user.passwordHash) ||
         userMobile   === cleanPhone ||
         parentMobile === cleanPhone;
 
       if (!matchesPhone) {
-        console.log(`Auth failed for roll ${cleanRoll}: passwordHash=${passwordHash}, mobile=${userMobile}, parentMobile=${parentMobile}, provided=${cleanPhone}`);
+        console.warn(`Auth failed for roll ${cleanRoll}: incorrect phone number provided.`);
         return res.status(400).json({ success: false, error: 'Incorrect phone number.' });
       }
 
@@ -241,7 +259,7 @@ return res.json({
       });
 
     if (pgUser) {
-    if (pgUser.passwordHash !== password) {
+    if (!(await verifyPassword(password, pgUser.passwordHash))) {
         return res.status(400).json({
             success: false,
             error: "Invalid password."
@@ -288,8 +306,7 @@ return res.json({
       });
 
       if (staffMember) {
-        const staffPass = String(staffMember.password || '123456');
-        if (staffPass !== password) {
+        if (!(await verifyPassword(password, staffMember.password))) {
           return res.status(400).json({ success: false, error: 'Invalid password.' });
         }
         return res.json({
@@ -311,8 +328,7 @@ return res.json({
       });
 
       if (parentMember) {
-        const parentPass = String(parentMember.password || '123456');
-        if (parentPass !== password) {
+        if (!(await verifyPassword(password, parentMember.password))) {
           return res.status(400).json({ success: false, error: 'Invalid password.' });
         }
         return res.json({
