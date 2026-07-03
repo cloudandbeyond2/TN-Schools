@@ -37,8 +37,8 @@ export default function BlockSchoolsPage() {
   const [name, setName] = useState("");
   const [headmasterName, setHeadmasterName] = useState("");
   const [address, setAddress] = useState("");
-  const [district, setDistrict] = useState("Coimbatore");
-  const [block, setBlock] = useState("Coimbatore South");
+  const [district, setDistrict] = useState("");
+  const [block, setBlock] = useState("");
   const [pincode, setPincode] = useState("");
   const [schoolType, setSchoolType] = useState("Government");
   const [mediumOfInstruction, setMediumOfInstruction] = useState("Tamil");
@@ -79,8 +79,8 @@ export default function BlockSchoolsPage() {
     setName(s.name);
     setHeadmasterName(s.headmasterName || "");
     setAddress(s.address || "");
-    setDistrict(s.district || "Coimbatore");
-    setBlock(s.block || "Coimbatore South");
+    setDistrict(s.district || "");
+    setBlock(s.block || "");
     setPincode(s.pincode || "");
     setSchoolType(s.schoolType || "Government");
     setMediumOfInstruction(s.mediumOfInstruction || "Tamil");
@@ -93,8 +93,8 @@ export default function BlockSchoolsPage() {
     setName("");
     setHeadmasterName("");
     setAddress("");
-    setDistrict("Coimbatore");
-    setBlock("Coimbatore South");
+    setDistrict("");
+    setBlock("");
     setPincode("");
     setSchoolType("Government");
     setMediumOfInstruction("Tamil");
@@ -195,8 +195,8 @@ export default function BlockSchoolsPage() {
           name: String(row["School Name"] || row["name"] || row["schoolName"] || "").trim(),
           headmasterName: String(row["Headmaster Name"] || row["headmaster"] || row["headmasterName"] || "N/A").trim(),
           address: String(row["Address"] || row["address"] || "").trim() || null,
-          district: String(row["District"] || row["district"] || "Coimbatore").trim(),
-          block: String(row["Block"] || row["block"] || "Coimbatore South").trim(),
+          district: String(row["District"] || row["district"] || "").trim(),
+          block: String(row["Block"] || row["block"] || "").trim(),
           pincode: String(row["Pincode"] || row["pincode"] || "").trim() || null,
           schoolType: String(row["School Type"] || row["schoolType"] || "Government").trim(),
           mediumOfInstruction: String(row["Medium"] || row["mediumOfInstruction"] || "Tamil").trim(),
