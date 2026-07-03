@@ -1,6 +1,18 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import * as https from 'https';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+
+const pdfUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype === 'application/pdf') cb(null, true);
+    else cb(new Error('Only PDF files are allowed'));
+  }
+});
 
 const router = Router();
 
@@ -1169,6 +1181,192 @@ router.put('/units/:id/approve', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('Error updating unit approval:', err);
     res.status(500).json({ success: false, error: err.message || 'Failed to update unit approval' });
+  }
+});
+
+// ===========================================================================
+// PDF Syllabus Upload — extract structure from a textbook PDF via AI
+// ===========================================================================
+
+const PDF_SYLLABUS_SCHEMA = {
+  type: 'OBJECT' as const,
+  properties: {
+    subjectName: { type: 'STRING' as const, description: 'The subject name detected from the PDF' },
+    units: {
+      type: 'ARRAY' as const,
+      items: {
+        type: 'OBJECT' as const,
+        properties: {
+          unitNumber: { type: 'INTEGER' as const },
+          name: { type: 'STRING' as const, description: 'Unit/chapter title' },
+          topics: {
+            type: 'ARRAY' as const,
+            items: {
+              type: 'OBJECT' as const,
+              properties: {
+                topicNumber: { type: 'INTEGER' as const },
+                name: { type: 'STRING' as const, description: 'Topic/subtopic title' }
+              },
+              required: ['topicNumber', 'name']
+            }
+          }
+        },
+        required: ['unitNumber', 'name', 'topics']
+      }
+    }
+  },
+  required: ['subjectName', 'units']
+};
+
+router.post('/upload-syllabus-pdf', pdfUpload.single('pdf'), async (req: Request, res: Response) => {
+  try {
+    const file = (req as any).file;
+    if (!file) {
+      return res.status(400).json({ success: false, error: 'PDF file is required' });
+    }
+
+    const { className, subjectName, icon, color } = req.body;
+    if (!className) {
+      return res.status(400).json({ success: false, error: 'className is required' });
+    }
+
+    // 1. Extract text from PDF
+    const pdfParse = require('pdf-parse');
+    const pdfData = await pdfParse(file.buffer);
+    const extractedText = pdfData.text;
+
+    if (!extractedText || extractedText.trim().length < 50) {
+      return res.status(400).json({ success: false, error: 'Could not extract enough text from the PDF. Make sure the PDF contains selectable text.' });
+    }
+
+    const textForAI = extractedText.substring(0, 30000);
+
+    // 2. Call Gemini to parse syllabus structure
+    const prompt = `You are analyzing a school textbook PDF for Tamil Nadu State Board, Class ${className}.
+
+The following is extracted text from the PDF. Identify the subject, all units/chapters, and their sub-topics/sections.
+
+Rules:
+- Extract the subject name from the content (e.g. "Mathematics", "Science", "Social Science")
+- Number units sequentially starting from 1
+- For each unit, extract the sub-topics/sections within it, numbered sequentially
+- Only include actual academic content — skip preface, acknowledgements, appendices, glossary, index pages
+- Use clean, properly capitalized titles
+- If the text is in Tamil, transliterate the unit/topic names to English${subjectName ? `\n- The subject is: ${subjectName}` : ''}
+
+PDF Text:
+${textForAI}`;
+
+    console.log(`[PDF Upload] Extracting syllabus from ${pdfData.numpages}-page PDF for Class ${className}...`);
+    const parsed = await callGeminiJSON(prompt, PDF_SYLLABUS_SCHEMA);
+
+    if (!parsed || !Array.isArray(parsed.units) || parsed.units.length === 0) {
+      return res.status(422).json({ success: false, error: 'AI could not identify any units in the PDF. Try a different PDF or ensure it contains a table of contents.' });
+    }
+
+    // 3. Preview mode — if confirm is not set, return the parsed structure for review
+    if (req.body.previewOnly === 'true') {
+      return res.json({
+        success: true,
+        preview: true,
+        data: {
+          subjectName: subjectName || parsed.subjectName,
+          className,
+          icon: icon || '📚',
+          color: color || '#6366f1',
+          units: parsed.units,
+          pdfPages: pdfData.numpages,
+          totalUnits: parsed.units.length,
+          totalTopics: parsed.units.reduce((sum: number, u: any) => sum + (u.topics?.length || 0), 0)
+        }
+      });
+    }
+
+    // 4. Create/upsert CentralSubject
+    const finalSubjectName = subjectName || parsed.subjectName;
+    let subject = await prisma.centralSubject.findFirst({
+      where: { class: className, name: finalSubjectName }
+    });
+
+    if (!subject) {
+      subject = await prisma.centralSubject.create({
+        data: {
+          class: className,
+          name: finalSubjectName,
+          icon: icon || '📚',
+          color: color || '#6366f1'
+        }
+      });
+    } else {
+      subject = await prisma.centralSubject.update({
+        where: { id: subject.id },
+        data: {
+          icon: icon || subject.icon,
+          color: color || subject.color
+        }
+      });
+    }
+
+    // 5. Create/upsert Units and Topics
+    const results: Array<{ unit: any; topics: any[] }> = [];
+
+    for (const u of parsed.units) {
+      const unitNum = Number(u.unitNumber);
+      if (!u.name || isNaN(unitNum)) continue;
+
+      let unitRecord;
+      try {
+        unitRecord = await prisma.centralUnit.create({
+          data: { subjectId: subject.id, name: u.name, unitNumber: unitNum }
+        });
+      } catch {
+        unitRecord = await prisma.centralUnit.update({
+          where: { subjectId_unitNumber: { subjectId: subject.id, unitNumber: unitNum } },
+          data: { name: u.name }
+        });
+      }
+
+      const topicRecords: any[] = [];
+      for (const t of (u.topics || [])) {
+        const topicNum = Number(t.topicNumber);
+        if (!t.name || isNaN(topicNum)) continue;
+
+        try {
+          const topicRecord = await prisma.centralTopic.create({
+            data: { unitId: unitRecord.id, name: t.name, topicNumber: topicNum }
+          });
+          topicRecords.push(topicRecord);
+        } catch {
+          try {
+            const updated = await prisma.centralTopic.update({
+              where: { unitId_topicNumber: { unitId: unitRecord.id, topicNumber: topicNum } },
+              data: { name: t.name }
+            });
+            topicRecords.push(updated);
+          } catch (e) {
+            console.error(`Failed to upsert topic ${topicNum} under unit ${unitNum}`, e);
+          }
+        }
+      }
+
+      results.push({ unit: unitRecord, topics: topicRecords });
+    }
+
+    console.log(`[PDF Upload] Done! Created ${results.length} units for ${finalSubjectName} Class ${className}`);
+
+    res.json({
+      success: true,
+      message: `Successfully extracted and saved ${results.length} units with their topics from the PDF.`,
+      data: {
+        subject,
+        units: results,
+        totalUnits: results.length,
+        totalTopics: results.reduce((sum, r) => sum + r.topics.length, 0)
+      }
+    });
+  } catch (err: any) {
+    console.error('[PDF Upload] Error:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to process PDF' });
   }
 });
 

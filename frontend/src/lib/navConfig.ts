@@ -511,6 +511,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       { label: "Academics & Content", href: "#", icon: "" },
       { label: "Learning Hub", href: "/super-admin/learning-hub", icon: "Book" },
+      { label: "PDF Syllabus Upload", href: "/super-admin/syllabus-upload", icon: "Upload" },
       { label: "Syllabus Management", href: "/super-admin/syllabus", icon: "BookOpen" },
       { label: "Material Library", href: "/super-admin/materials", icon: "Box" },
       { label: "Department Modules", href: "/super-admin/modules", icon: "Calendar" },
