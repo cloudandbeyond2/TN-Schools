@@ -395,7 +395,7 @@ export default function MiddleSchoolPortfolio() {
 
         {/* Featured Projects */}
         <div className="lg:col-span-2 glass rounded-3xl p-6 fade-in-2 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
             <h2 className="text-xl font-black text-black dark:text-white flex items-center gap-3">
               <span className="text-3xl">✨</span> Your Best Work
             </h2>
@@ -422,7 +422,7 @@ export default function MiddleSchoolPortfolio() {
                   </div>
                   <div className="flex justify-between items-center text-xs mt-auto">
                     <span className="font-bold text-black dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">{p.date}</span>
-                    <button className="font-bold text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">Open <span className="text-lg leading-none">→</span></button>
+                    <button className="font-bold text-emerald-600 dark:text-emerald-400 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity flex items-center gap-1">Open <span className="text-lg leading-none">→</span></button>
                   </div>
                 </div>
               ))}
@@ -438,7 +438,7 @@ export default function MiddleSchoolPortfolio() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Badges & Achievements */}
         <div className="glass rounded-3xl p-6 fade-in-3 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
              <h2 className="text-xl font-black text-black dark:text-white flex items-center gap-3">
                <span className="text-3xl">🏅</span> Badge Collection
              </h2>
