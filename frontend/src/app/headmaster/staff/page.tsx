@@ -400,7 +400,7 @@ export default function StaffManagementPage() {
           </div>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md whitespace-nowrap"
           >
             + Add Teacher
           </button>
@@ -411,9 +411,9 @@ export default function StaffManagementPage() {
         ) : (
           <>
           <div className="overflow-x-auto">
-            <table className="data-table">
+            <table className="data-table w-full min-w-[800px]">
               <thead>
-                <tr>
+                <tr className="whitespace-nowrap">
                   <th>Teacher Details</th>
                   <th>Subject Speciality</th>
                   <th>Attendance Rate</th>

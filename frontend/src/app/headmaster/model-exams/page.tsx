@@ -273,9 +273,9 @@ export default function ModelExamsPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-xs">
+          <table className="w-full border-collapse text-left text-xs min-w-[700px]">
             <thead>
-              <tr className="border-b border-slate-850 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+              <tr className="border-b border-slate-850 text-slate-400 font-bold uppercase text-[10px] tracking-wider whitespace-nowrap">
                 <th className="pb-3 pl-2">Rank</th>
                 <th className="pb-3">Student Name</th>
                 <th className="pb-3">Class Section</th>
