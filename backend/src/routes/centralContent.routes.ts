@@ -947,7 +947,7 @@ async function callGeminiJSON(prompt: string, schema: any): Promise<any> {
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
-      maxOutputTokens: 8192,
+      maxOutputTokens: 16384,
       responseMimeType: 'application/json',
       responseSchema: schema
     },
@@ -990,35 +990,50 @@ async function callGeminiJSON(prompt: string, schema: any): Promise<any> {
     });
 
     req.on('error', (err) => reject(err));
-    req.setTimeout(60000, () => req.destroy(new Error('Gemini API timed out')));
+    req.setTimeout(120000, () => req.destroy(new Error('Gemini API timed out')));
     req.write(postData);
     req.end();
   });
 }
 
+const LANG_DETAIL_PROPS = {
+  keyConcepts: { type: 'ARRAY', items: { type: 'STRING' } },
+  realLifeConnections: { type: 'ARRAY', items: { type: 'STRING' } },
+  commonMisconceptions: { type: 'ARRAY', items: { type: 'STRING' } },
+  teachingFlow: {
+    type: 'ARRAY',
+    items: {
+      type: 'OBJECT',
+      properties: {
+        step: { type: 'STRING' },
+        minutes: { type: 'NUMBER' },
+        description: { type: 'STRING' }
+      },
+      required: ['step', 'minutes', 'description']
+    }
+  },
+  teacherScript: { type: 'STRING' },
+  studentKeyPoints: { type: 'ARRAY', items: { type: 'STRING' } }
+};
+const LANG_DETAIL_REQUIRED = ['keyConcepts', 'realLifeConnections', 'commonMisconceptions', 'teachingFlow', 'teacherScript', 'studentKeyPoints'];
+
+// Bilingual: the model returns the full insight set in both English and Tamil in one call.
 const UNIT_DETAIL_SCHEMA = {
   type: 'OBJECT',
   properties: {
-    keyConcepts: { type: 'ARRAY', items: { type: 'STRING' } },
-    realLifeConnections: { type: 'ARRAY', items: { type: 'STRING' } },
-    commonMisconceptions: { type: 'ARRAY', items: { type: 'STRING' } },
-    teachingFlow: {
-      type: 'ARRAY',
-      items: {
-        type: 'OBJECT',
-        properties: {
-          step: { type: 'STRING' },
-          minutes: { type: 'NUMBER' },
-          description: { type: 'STRING' }
-        },
-        required: ['step', 'minutes', 'description']
-      }
-    },
-    teacherScript: { type: 'STRING' },
-    studentKeyPoints: { type: 'ARRAY', items: { type: 'STRING' } }
+    en: { type: 'OBJECT', properties: LANG_DETAIL_PROPS, required: LANG_DETAIL_REQUIRED },
+    ta: { type: 'OBJECT', properties: LANG_DETAIL_PROPS, required: LANG_DETAIL_REQUIRED }
   },
-  required: ['keyConcepts', 'realLifeConnections', 'commonMisconceptions', 'teachingFlow', 'teacherScript', 'studentKeyPoints']
+  required: ['en', 'ta']
 };
+
+// Records written before bilingual support store the English fields at the top
+// level; wrap them so every consumer sees the same { en, ta } shape.
+function normalizeUnitDetail(raw: any): any {
+  if (!raw) return null;
+  if (raw.en) return raw;
+  return { en: raw, ta: null };
+}
 
 async function findOrCreateOverviewTopic(unitId: string) {
   const existing = await prisma.centralTopic.findFirst({ where: { unitId, topicNumber: 1 } });
@@ -1044,7 +1059,7 @@ router.get('/units/:id', async (req: Request, res: Response) => {
       const infographicRow = contents.find((c) => c.contentType === 'INFOGRAPHIC');
       const detailRow = contents.find((c) => c.contentType === 'UNIT_DETAIL');
       infographic = infographicRow ? { fileUrl: infographicRow.fileUrl, fileContent: infographicRow.fileContent } : null;
-      unitDetail = detailRow?.fileContent ? JSON.parse(detailRow.fileContent) : null;
+      unitDetail = detailRow?.fileContent ? normalizeUnitDetail(JSON.parse(detailRow.fileContent)) : null;
     }
 
     res.json({ success: true, data: { unit, infographic, unitDetail } });
@@ -1069,26 +1084,31 @@ router.post('/units/:id/generate-detail', async (req: Request, res: Response) =>
 
     const existing = await prisma.centralContent.findFirst({ where: { topicId: topic.id, contentType: 'UNIT_DETAIL' } });
     if (existing && !regenerate) {
-      return res.json({ success: true, cached: true, data: JSON.parse(existing.fileContent || '{}') });
+      return res.json({ success: true, cached: true, data: normalizeUnitDetail(JSON.parse(existing.fileContent || '{}')) });
     }
 
     // Ground the prompt in the same summary/tip already shown on the unit's infographic card, if present.
     const infographic = await prisma.centralContent.findFirst({ where: { topicId: topic.id, contentType: 'INFOGRAPHIC' } });
 
-    const prompt = `You are an experienced Tamil Nadu State Board teacher preparing to introduce a new unit to your class.
+    const prompt = `You are an experienced bilingual Tamil Nadu State Board teacher preparing to introduce a new unit to your class. You teach comfortably in both English and Tamil.
 
 Subject: ${unit.subject.name}
 Class: ${unit.subject.class}th Standard
 Unit ${unit.unitNumber}: ${unit.name}
 ${infographic?.fileContent ? `Existing short summary: ${infographic.fileContent}` : ''}
 
-Generate practical, classroom-ready lesson insights for this unit as JSON with these fields:
+Generate practical, classroom-ready lesson insights for this unit as a JSON object with TWO top-level keys, "en" (English) and "ta" (Tamil). Each of "en" and "ta" contains the SAME structure:
 - keyConcepts: 4-6 short bullet points (core ideas a student must walk away understanding)
 - realLifeConnections: 2-3 concrete, India/Tamil-Nadu-relevant real-life examples that make this unit relatable
 - commonMisconceptions: 2-3 mistakes or confusions students commonly have with this topic, so the teacher can pre-empt them
 - teachingFlow: an ordered lesson plan of 4-5 steps (e.g. Hook, Explain, Activity, Check Understanding, Wrap-up), each with a "step" name, "minutes" (rough duration out of a ~45 minute period), and a one-sentence "description" of what happens in that step
 - teacherScript: a warm, first-person paragraph (150-250 words) of how the teacher would actually open and explain this unit out loud to the class -- natural spoken classroom language, not textbook prose
 - studentKeyPoints: 5-8 short, simple takeaways written directly for a ${unit.subject.class}th-grade student to revise from (simpler language than keyConcepts)
+
+Rules for the Tamil ("ta") version:
+- Write natural, fluent, spoken classroom Tamil in Tamil script -- the way a real Tamil-medium teacher actually speaks, NOT a stiff word-for-word machine translation.
+- Technical and scientific terms may keep their common English form where that is what Tamil Nadu classrooms genuinely use (e.g. "rational numbers", "photosynthesis").
+- The "minutes" numbers and the number/order of teachingFlow steps must be identical across "en" and "ta".
 
 Keep everything concise and classroom-practical. Return only the JSON object.`;
 
