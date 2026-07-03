@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { hashPassword } from '../utils/password';
+import bcrypt from 'bcryptjs';
 
 const router = Router();
 
@@ -31,132 +32,102 @@ function parseClassSection(classStr: string) {
   return { classVal: clean || '10', sectionVal: 'A' };
 }
 
-// GET /api/headmaster/students — List all watchlist students
+// GET /api/headmaster/students — List all students for a school
 router.get('/students', async (req: Request, res: Response) => {
   try {
     const { schoolId } = req.query;
-    const students = await prisma.watchlistStudent.findMany({
+    const students = await prisma.student.findMany({
       where: schoolId ? { schoolId: String(schoolId) } : undefined,
+      include: { user: true },
       orderBy: { createdAt: 'desc' },
     });
-    res.json({ success: true, count: students.length, data: students });
+    // Format the response to flatten user name
+    const formattedStudents = students.map(s => ({
+      ...s,
+      name: s.user?.name || 'Unknown',
+      email: s.user?.email || s.parentEmail,
+      phone: s.phoneNumber || s.parentMobile || s.user?.mobile,
+    }));
+    res.json({ success: true, count: formattedStudents.length, data: formattedStudents });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
 });
 
-// POST /api/headmaster/students — Add single student to watchlist
+// POST /api/headmaster/students — Add a single student
 router.post('/students', async (req: Request, res: Response) => {
   try {
-    const { name, rollNumber, class: cls, phone, parentName, district, state, city, pincode, risk, schoolId, issue, attendance, lastScore, notified, notificationMessage } = req.body;
-    if (!name || !rollNumber) {
-      return res.status(400).json({ success: false, error: 'name and rollNumber are required' });
+    const {
+      name, admissionNumber, rollNumber, emisNumber, dob, gender,
+      bloodGroup, religion, community, nationality, mediumOfInstruction,
+      class: cls, section, academicYear, fatherName, fatherOccupation,
+      motherName, motherOccupation, parentEmail, phoneNumber, address,
+      city, district, state, pincode, studentStatus, schoolId
+    } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ success: false, error: 'Name is required' });
     }
     if (!schoolId) {
       return res.status(400).json({ success: false, error: 'schoolId is required' });
     }
 
-    const cleanRoll  = String(rollNumber).trim();
-    const cleanPhone = String(phone || '').trim();
-    const resolvedSchoolId = schoolId;
+    const cleanPhone = String(phoneNumber || '').trim();
+    const cleanRoll = rollNumber ? String(rollNumber).trim() : undefined;
 
-    // Check if already in watchlist
-    const alreadyWatchlisted = await prisma.watchlistStudent.findFirst({
-      where: { rollNumber: { equals: cleanRoll, mode: 'insensitive' } }
-    });
-    if (alreadyWatchlisted) {
-      return res.status(400).json({ success: false, error: 'Student is already in the watchlist.' });
-    }
-
-    // 1. Check if student already exists in Student table
-    const existingStudent = await prisma.student.findFirst({
-      where: { rollNumber: { equals: cleanRoll, mode: 'insensitive' } },
-      include: { user: true }
-    });
-
-    if (existingStudent) {
-      // Create watchlistStudent linked to the existing student
-      const watchlist = await prisma.watchlistStudent.create({
-        data: {
-          name: existingStudent.user.name,
-          rollNumber: cleanRoll,
-          class: cls || `${existingStudent.class}${existingStudent.section}`,
-          phone: cleanPhone || existingStudent.parentMobile || 'N/A',
-          parentName: parentName || existingStudent.parentName || 'N/A',
-          district: district || 'N/A',
-          state: state || 'N/A',
-          city: city || 'N/A',
-          pincode: pincode || 'N/A',
-          risk: risk || 'Medium',
-          issue: issue || undefined,
-          attendance: attendance !== undefined ? parseFloat(attendance) : undefined,
-          lastScore: lastScore !== undefined ? parseFloat(lastScore) : undefined,
-          notified: notified !== undefined ? Boolean(notified) : undefined,
-          notificationMessage: notificationMessage || undefined,
-          student: { connect: { id: existingStudent.id } },
-          schoolId: resolvedSchoolId || existingStudent.schoolId || null,
-        }
-      });
-      return res.status(201).json({ success: true, data: watchlist });
-    }
-
-    // 2. Determine mobile uniqueness
+    // Mobile uniqueness check for User table
     let mobileValue: string | null = cleanPhone || null;
     if (cleanPhone) {
       const existingMobile = await prisma.user.findFirst({ where: { mobile: cleanPhone } });
       if (existingMobile) mobileValue = null;
     }
 
-    // 3. Create all 3 records in a single atomic transaction
-    const { classVal, sectionVal } = parseClassSection(cls || 'Class 10A');
+    const { classVal, sectionVal } = parseClassSection(cls || '10');
 
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
           name,
-          email: `${cleanRoll.toLowerCase()}@tn.gov.in`,
+          email: parentEmail || (cleanRoll ? `${cleanRoll.toLowerCase()}@tn.gov.in` : null),
           mobile: mobileValue,
           passwordHash: await hashPassword(cleanPhone || '123456'),
           role: 'STUDENT',
-          schoolId: resolvedSchoolId,
+          schoolId,
         }
       });
 
       const student = await tx.student.create({
         data: {
           userId: user.id,
-          schoolId: resolvedSchoolId,
+          schoolId,
           class: classVal,
-          section: sectionVal,
+          section: section || sectionVal || 'A',
           rollNumber: cleanRoll,
-          parentName: parentName || 'N/A',
-          parentMobile: cleanPhone || 'N/A',
+          admissionNumber,
+          emisNumber,
+          dob: dob ? new Date(dob) : null,
+          gender,
+          bloodGroup,
+          religion,
+          community,
+          nationality,
+          mediumOfInstruction,
+          academicYear,
+          fatherName,
+          fatherOccupation,
+          motherName,
+          motherOccupation,
+          parentEmail,
+          phoneNumber: cleanPhone,
+          address,
+          city,
+          district,
+          state,
+          pincode,
+          studentStatus: studentStatus || 'Active',
         }
       });
-
-      const watchlist = await tx.watchlistStudent.create({
-        data: {
-          name,
-          rollNumber: cleanRoll,
-          class: cls || 'Class 10A',
-          phone: cleanPhone || 'N/A',
-          parentName: parentName || 'N/A',
-          district: district || 'N/A',
-          state: state || 'N/A',
-          city: city || 'N/A',
-          pincode: pincode || 'N/A',
-          risk: risk || 'Medium',
-          issue: issue || undefined,
-          attendance: attendance !== undefined ? parseFloat(attendance) : undefined,
-          lastScore: lastScore !== undefined ? parseFloat(lastScore) : undefined,
-          notified: notified !== undefined ? Boolean(notified) : undefined,
-          notificationMessage: notificationMessage || undefined,
-          student: { connect: { id: student.id } },   // Formal FK link to Student
-          schoolId: resolvedSchoolId || null,
-        }
-      });
-
-      return watchlist;
+      return { ...student, name: user.name };
     });
 
     res.status(201).json({ success: true, data: result });
@@ -166,93 +137,83 @@ router.post('/students', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/headmaster/students/bulk — Bulk import from Excel
+// POST /api/headmaster/students/bulk — Bulk import (Placeholder for now)
 router.post('/students/bulk', async (req: Request, res: Response) => {
   try {
-    const { students } = req.body as { students: any[] };
-    if (!Array.isArray(students) || students.length === 0) {
-      return res.status(400).json({ success: false, error: 'students array is required' });
+    const { students } = req.body;
+    if (!students || !Array.isArray(students)) {
+      return res.status(400).json({ success: false, error: 'Invalid payload.' });
     }
 
     let createdCount = 0;
-    let skippedCount = 0;
+    // Process each student
+    for (const student of students) {
+      const {
+        schoolId, name, rollNumber, admissionNumber, emisNumber, dob, gender,
+        bloodGroup, religion, community, nationality, mediumOfInstruction,
+        class: cls, section, academicYear, fatherName, fatherOccupation,
+        motherName, motherOccupation, parentEmail, phone, address,
+        city, district, state, pincode, studentStatus
+      } = student;
 
-    for (const s of students) {
-      if (!s.name || !s.rollNumber) { skippedCount++; continue; }
-      if (!s.schoolId) { skippedCount++; continue; }
+      if (!name || !rollNumber) continue;
 
-      const cleanRoll  = String(s.rollNumber).trim();
-      const cleanPhone = String(s.phone || '').trim();
-      const resolvedSchoolId = s.schoolId;
+      const { classVal } = parseClassSection(cls || "Class 1");
 
-      // Skip duplicates
       const existingStudent = await prisma.student.findFirst({
-        where: { rollNumber: { equals: cleanRoll, mode: 'insensitive' } }
+        where: { rollNumber, schoolId }
       });
-      if (existingStudent) { skippedCount++; continue; }
+      if (existingStudent) continue;
 
-      // Determine mobile uniqueness
-      let mobileValue: string | null = cleanPhone || null;
-      if (cleanPhone) {
-        const existingMobile = await prisma.user.findFirst({ where: { mobile: cleanPhone } });
-        if (existingMobile) mobileValue = null;
-      }
-
-      const { classVal, sectionVal } = parseClassSection(s.class || 'Class 10A');
-
-      try {
-        // Atomic transaction per student
-        await prisma.$transaction(async (tx) => {
-          const user = await tx.user.create({
-            data: {
-              name: s.name,
-              email: `${cleanRoll.toLowerCase()}@tn.gov.in`,
-              mobile: mobileValue,
-              passwordHash: await hashPassword(cleanPhone || '123456'),
-              role: 'STUDENT',
-              schoolId: resolvedSchoolId,
-            }
-          });
-
-          const bulkStudent = await tx.student.create({
-            data: {
-              userId: user.id,
-              schoolId: resolvedSchoolId,
-              class: classVal,
-              section: sectionVal,
-              rollNumber: cleanRoll,
-              parentName: s.parentName || 'N/A',
-              parentMobile: cleanPhone || 'N/A',
-            }
-          });
-
-          await tx.watchlistStudent.create({
-            data: {
-              name: s.name,
-              rollNumber: cleanRoll,
-              class: s.class || 'Class 10A',
-              phone: cleanPhone || 'N/A',
-              parentName: s.parentName || 'N/A',
-              district: s.district || 'N/A',
-              state: s.state || 'N/A',
-              city: s.city || 'N/A',
-              pincode: s.pincode || 'N/A',
-              risk: s.risk || 'Medium',
-              student: { connect: { id: bulkStudent.id } },   // Formal FK link to Student
-              schoolId: resolvedSchoolId || null,
-            }
-          });
+      const hashedPassword = await bcrypt.hash('welcome123', 10);
+      
+      await prisma.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            schoolId,
+            name,
+            passwordHash: hashedPassword,
+            role: 'STUDENT',
+          }
         });
-        createdCount++;
-      } catch (txErr) {
-        console.error(`Bulk import: failed for ${cleanRoll}:`, txErr);
-        skippedCount++;
-      }
+        await tx.student.create({
+          data: {
+            userId: user.id,
+            rollNumber,
+            schoolId,
+            class: classVal,
+            section: section || 'A',
+            admissionNumber,
+            emisNumber,
+            dob: dob ? new Date(dob) : null,
+            gender,
+            bloodGroup,
+            religion,
+            community,
+            nationality,
+            mediumOfInstruction,
+            academicYear,
+            fatherName,
+            fatherOccupation,
+            motherName,
+            motherOccupation,
+            parentEmail,
+            phoneNumber: phone,
+            address,
+            city,
+            district,
+            state,
+            pincode,
+            studentStatus,
+          }
+        });
+      });
+      createdCount++;
     }
 
-    res.status(201).json({ success: true, created: createdCount, skipped: skippedCount });
+    res.json({ success: true, created: createdCount });
   } catch (err) {
-    console.error('Error bulk importing students:', err);
+    console.error("Bulk upload error:", err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });
@@ -261,127 +222,101 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
 router.put('/students/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, rollNumber, class: cls, phone, parentName, district, state, city, pincode, risk, schoolId, issue, attendance, lastScore, notified, notificationMessage } = req.body;
+    const {
+      name, admissionNumber, rollNumber, emisNumber, dob, gender,
+      bloodGroup, religion, community, nationality, mediumOfInstruction,
+      class: cls, section, academicYear, fatherName, fatherOccupation,
+      motherName, motherOccupation, parentEmail, phoneNumber, address,
+      city, district, state, pincode, studentStatus, schoolId
+    } = req.body;
 
-    const watchlistStudent = await prisma.watchlistStudent.findUnique({
-      where: { id }
-    });
-
-    if (!watchlistStudent) {
-      return res.status(404).json({ success: false, error: 'Student not found in watchlist.' });
+    const student = await prisma.student.findUnique({ where: { id }, include: { user: true } });
+    if (!student) {
+      return res.status(404).json({ success: false, error: 'Student not found.' });
     }
 
-    const oldRollNumber = watchlistStudent.rollNumber;
-    const cleanRoll = rollNumber ? String(rollNumber).trim() : oldRollNumber;
-    const cleanPhone = phone ? String(phone).trim() : watchlistStudent.phone;
+    const { classVal } = parseClassSection(cls || student.class);
 
-    // Update watchlistStudent
-    const updatedWatchlist = await prisma.watchlistStudent.update({
+    const updatedStudent = await prisma.student.update({
       where: { id },
       data: {
-        name: name !== undefined ? name : undefined,
-        rollNumber: cleanRoll,
-        class: cls !== undefined ? cls : undefined,
-        phone: cleanPhone,
-        parentName: parentName !== undefined ? parentName : undefined,
-        district: district !== undefined ? district : undefined,
-        state: state !== undefined ? state : undefined,
-        city: city !== undefined ? city : undefined,
-        pincode: pincode !== undefined ? pincode : undefined,
-        risk: risk !== undefined ? risk : undefined,
-        issue: issue !== undefined ? issue : undefined,
-        attendance: attendance !== undefined ? parseFloat(attendance) : undefined,
-        lastScore: lastScore !== undefined ? parseFloat(lastScore) : undefined,
-        notified: notified !== undefined ? Boolean(notified) : undefined,
-        notificationMessage: notificationMessage !== undefined ? notificationMessage : undefined,
-        schoolId: schoolId !== undefined ? schoolId : undefined,
+        rollNumber,
+        admissionNumber,
+        emisNumber,
+        class: classVal,
+        section: section || student.section,
+        dob: dob ? new Date(dob) : null,
+        gender,
+        bloodGroup,
+        religion,
+        community,
+        nationality,
+        mediumOfInstruction,
+        academicYear,
+        fatherName,
+        fatherOccupation,
+        motherName,
+        motherOccupation,
+        parentEmail,
+        phoneNumber,
+        address,
+        city,
+        district,
+        state,
+        pincode,
+        studentStatus,
+        schoolId,
       }
     });
 
-    // Find and update core Student & User
-    const student = await prisma.student.findFirst({
-      where: {
-        rollNumber: {
-          equals: oldRollNumber,
-          mode: 'insensitive'
-        }
+    // Update User if name or mobile changed
+    if (name !== undefined || phoneNumber !== undefined) {
+      let mobileValue = student.user.mobile;
+      if (phoneNumber && phoneNumber !== student.user.mobile) {
+        const existingMobile = await prisma.user.findFirst({ where: { mobile: phoneNumber, id: { not: student.userId } } });
+        if (!existingMobile) mobileValue = phoneNumber;
       }
-    });
-
-    if (student) {
-      const { classVal, sectionVal } = parseClassSection(cls || watchlistStudent.class);
-      await prisma.student.update({
-        where: { id: student.id },
-        data: {
-          rollNumber: cleanRoll,
-          class: classVal,
-          section: sectionVal,
-          parentName: parentName !== undefined ? parentName : undefined,
-          parentMobile: cleanPhone,
-        }
-      });
-
-      // Update User
       await prisma.user.update({
         where: { id: student.userId },
         data: {
           name: name !== undefined ? name : undefined,
-          email: `${cleanRoll.toLowerCase()}@tn.gov.in`,
-          passwordHash: await hashPassword(cleanPhone),
+          mobile: mobileValue,
         }
       });
     }
 
-    res.json({ success: true, data: updatedWatchlist });
+    res.json({ success: true, data: { ...updatedStudent, name: name !== undefined ? name : student.user.name } });
   } catch (err) {
     console.error('Error updating student:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });
 
-// DELETE /api/headmaster/students/:id — Remove from watchlist and core tables
+// DELETE /api/headmaster/students/:id — Delete student
 router.delete('/students/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-
-    const watchlistStudent = await prisma.watchlistStudent.findUnique({
-      where: { id }
-    });
-
-    if (!watchlistStudent) {
-      return res.status(404).json({ success: false, error: 'Student not found in watchlist.' });
+    const student = await prisma.student.findUnique({ where: { id } });
+    
+    if (!student) {
+      return res.status(404).json({ success: false, error: 'Student not found.' });
     }
 
-    // Find core student
-    const student = await prisma.student.findFirst({
-      where: {
-        rollNumber: {
-          equals: watchlistStudent.rollNumber,
-          mode: 'insensitive'
-        }
-      }
-    });
+    // Delete dependent records
+    await prisma.mark.deleteMany({ where: { studentId: id } });
+    await prisma.attendance.deleteMany({ where: { studentId: id } });
+    await prisma.scholarship.deleteMany({ where: { studentId: id } });
 
-    if (student) {
-      // 1. Delete dependent records (marks, attendance, scholarships)
-      await prisma.mark.deleteMany({ where: { studentId: student.id } });
-      await prisma.attendance.deleteMany({ where: { studentId: student.id } });
-      await prisma.scholarship.deleteMany({ where: { studentId: student.id } });
+    await prisma.student.delete({ where: { id } });
+    await prisma.user.delete({ where: { id: student.userId } });
 
-      // 2. Delete Student and User
-      await prisma.student.delete({ where: { id: student.id } });
-      await prisma.user.delete({ where: { id: student.userId } });
-    }
-
-    // 3. Delete WatchlistStudent
-    await prisma.watchlistStudent.delete({ where: { id } });
-
-    res.json({ success: true, message: 'Student removed from all tables successfully' });
+    res.json({ success: true, message: 'Student deleted successfully' });
   } catch (err) {
     console.error('Error deleting student:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });
+
 
 // ─── Health Report Endpoints ─────────────────────────────────────
 
