@@ -361,9 +361,9 @@ router.post('/homework', async (req: Request, res: Response) => {
           homeworkId: homework.id,
           rollNo: s.rollNumber || `${clsNum}${secLetter}${String(index + 1).padStart(2, '0')}`,
           name: s.user.name,
-          status: index % 4 === 0 ? 'pending' : 'submitted', // mock some pending/submitted
-          score: index % 4 === 0 ? '—' : `${8 + (index % 3)}/10`,
-          date: index % 4 === 0 ? '—' : 'Yesterday, ' + (4 + (index % 5)) + ':00 PM',
+          status: 'pending',
+          score: '—',
+          date: '—',
         }));
 
         await prisma.homeworkSubmission.createMany({
