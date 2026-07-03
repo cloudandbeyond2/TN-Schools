@@ -130,7 +130,7 @@ export default function AITutorPage() {
     setIsTyping(true);
 
     try {
-      const chatHistory = messages.map(m => ({ role: m.role, content: m.content }));
+      const chatHistory = messages.slice(-15).map(m => ({ role: m.role, content: m.content }));
       const res = await fetch(`${API_URL}/api/ai/chat-tutor`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

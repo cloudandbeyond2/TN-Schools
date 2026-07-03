@@ -683,12 +683,16 @@ Keep the tone encouraging and pedagogical. Alternate English/Tamil sentences in 
 });
 
 // ===========================================================================
-// POST /api/ai/chat — Save AI chat session
+// POST /api/ai/chat — Save chat log
 // ===========================================================================
 router.post('/chat', async (req: Request, res: Response) => {
   try {
     const { studentId, sessionId, messages, subject, language } = req.body;
-    const chat = await AIChat.create({ studentId, sessionId, messages, subject, language });
+    const chat = await AIChat.findOneAndUpdate(
+      { studentId, sessionId },
+      { $set: { messages, subject, language } },
+      { upsert: true, new: true }
+    );
     res.status(201).json({ success: true, data: chat });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
@@ -698,7 +702,7 @@ router.post('/chat', async (req: Request, res: Response) => {
 // GET /api/ai/chat/:studentId — Get chat history
 router.get('/chat/:studentId', async (req: Request, res: Response) => {
   try {
-    const chats = await AIChat.find({ studentId: req.params.studentId }).sort({ createdAt: -1 }).limit(10);
+    const chats = await AIChat.find({ studentId: req.params.studentId }).sort({ updatedAt: -1 }).limit(10);
     res.json({ success: true, data: chats });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
