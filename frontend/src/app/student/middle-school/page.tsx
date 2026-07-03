@@ -95,6 +95,7 @@ import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { Megaphone } from "lucide-react";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -127,8 +128,24 @@ export default function MiddleSchoolDashboard() {
   const [student, setStudent] = useState<any>(null);
   const [earnedBadges, setEarnedBadges] = useState<any[]>([]);
   const [loadingBadges, setLoadingBadges] = useState(true);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(true);
 
   useEffect(() => {
+    if (session?.user) {
+      const userId = (session.user as any).id;
+      if (userId) {
+        fetch(`${API_BASE}/api/notifications?userId=${userId}`)
+          .then((res) => res.json())
+          .then((json) => {
+            if (json.success && Array.isArray(json.data)) {
+              setNotifications(json.data.slice(0, 3)); // top 3
+            }
+          })
+          .catch((err) => console.error(err))
+          .finally(() => setLoadingNotifications(false));
+      }
+    }
     fetch(`${API_BASE}/api/students`)
       .then((res) => res.json())
       .then(async (json) => {
@@ -226,25 +243,27 @@ export default function MiddleSchoolDashboard() {
           </div>
         </div>
 
-        {/* AI Helper for Kids */}
-        <div className="glass rounded-3xl p-6 fade-in-3 flex flex-col border border-slate-200 dark:border-slate-700/50 shadow-2xl bg-gradient-to-b from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
+        {/* Recent Notifications */}
+        <div className="glass rounded-3xl p-6 fade-in-3 flex flex-col border border-slate-200 dark:border-slate-700/50 shadow-2xl bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 text-left">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 shrink-0 bg-indigo-500 rounded-full flex items-center justify-center text-2xl animate-bounce shadow-lg shadow-indigo-500/30">🤖</div>
-            <h2 className="text-xl font-bold text-black dark:text-white">AI Learning Buddy</h2>
+            <Megaphone className="w-6 h-6 text-indigo-500 animate-pulse" />
+            <h2 className="text-xl font-bold text-black dark:text-white">Recent Notifications</h2>
           </div>
-          <div className="flex-1 bg-white dark:bg-slate-900/80 rounded-2xl p-5 mb-5 text-sm text-indigo-700 dark:text-indigo-200 italic border border-indigo-200 dark:border-indigo-500/30 relative">
-            <div className="absolute -left-2 top-4 w-4 h-4 bg-white dark:bg-slate-900/80 border-l border-b border-indigo-200 dark:border-indigo-500/30 rotate-45" />
-            &quot;Hi Arjun! Want to learn why the sky is blue? Or maybe play a math game?&quot;
-          </div>
-          <div className="space-y-3">
-            {["Play a Math Game", "Tell me a Science Fact", "Help with Homework"].map((q) => (
-              <button
-                key={q}
-                className="w-full text-left text-sm font-semibold px-4 py-3 bg-indigo-500/10 rounded-xl text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/20 dark:hover:bg-indigo-500/30 hover:text-indigo-900 dark:hover:text-white hover:-translate-y-1 transition-all border border-indigo-200 dark:border-indigo-500/30 shadow-sm"
-              >
-                ✨ {q}
-              </button>
-            ))}
+          <div className="flex-1 space-y-3">
+            {loadingNotifications ? (
+              <div className="text-center py-8 text-sm text-slate-500">Loading notifications...</div>
+            ) : notifications.length > 0 ? (
+              notifications.map((n) => (
+                <div key={n.id} className="p-3 bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-700/50 hover:shadow-md transition-shadow">
+                  <div className="text-xs text-black dark:text-slate-200 font-medium leading-relaxed">{n.message}</div>
+                  <div className="text-[10px] text-slate-400 mt-2 font-semibold">
+                    {new Date(n.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-sm text-slate-500">No new notifications.</div>
+            )}
           </div>
         </div>
       </div>
