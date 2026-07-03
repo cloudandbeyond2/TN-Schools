@@ -124,6 +124,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     navItems: [
       { label: "Dashboard", href: "/student/middle-school", icon: "Home" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
+      { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
       { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
@@ -179,6 +180,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     navItems: [
       { label: "Dashboard", href: "/student/high-school", icon: "Home" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
+      { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
       { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
@@ -234,6 +236,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     navItems: [
       { label: "Dashboard", href: "/student/higher-secondary", icon: "Home" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
+      { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
       { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },

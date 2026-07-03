@@ -1,6 +1,7 @@
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 
 interface Subject {
@@ -21,6 +22,7 @@ interface Unit {
   id: string;
   name: string;
   unitNumber: number;
+  isApproved: boolean;
   topics: Topic[];
 }
 
@@ -38,6 +40,7 @@ interface UnitCard {
   unitName: string;
   imageUrl: string | null;
   altText: string | null;
+  isApproved: boolean;
 }
 
 const CLASS_OPTIONS = ["6", "7", "8", "9", "10"];
@@ -53,8 +56,6 @@ export default function TeacherSyllabusBoardPage() {
 
   const [unitCards, setUnitCards] = useState<UnitCard[]>([]);
   const [loadingUnits, setLoadingUnits] = useState<boolean>(false);
-
-  const [lightbox, setLightbox] = useState<UnitCard | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -102,7 +103,7 @@ export default function TeacherSyllabusBoardPage() {
         units.map(async (unit): Promise<UnitCard> => {
           const overviewTopic = unit.topics[0];
           if (!overviewTopic) {
-            return { unitId: unit.id, unitNumber: unit.unitNumber, unitName: unit.name, imageUrl: null, altText: null };
+            return { unitId: unit.id, unitNumber: unit.unitNumber, unitName: unit.name, imageUrl: null, altText: null, isApproved: unit.isApproved };
           }
           try {
             const cRes = await fetch(`${API_URL}/api/centralized-content/topics/${overviewTopic.id}/contents`);
@@ -116,9 +117,10 @@ export default function TeacherSyllabusBoardPage() {
               unitName: unit.name,
               imageUrl: infographic?.fileUrl || null,
               altText: infographic?.fileContent || infographic?.title || unit.name,
+              isApproved: unit.isApproved,
             };
           } catch {
-            return { unitId: unit.id, unitNumber: unit.unitNumber, unitName: unit.name, imageUrl: null, altText: null };
+            return { unitId: unit.id, unitNumber: unit.unitNumber, unitName: unit.name, imageUrl: null, altText: null, isApproved: unit.isApproved };
           }
         })
       );
@@ -131,8 +133,6 @@ export default function TeacherSyllabusBoardPage() {
       setLoadingUnits(false);
     }
   };
-
-  const subjectColor = selectedSubject?.color || "#f59e0b";
 
   return (
     <PortalLayout
@@ -235,12 +235,17 @@ export default function TeacherSyllabusBoardPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
               {unitCards.map((card) => (
-                <button
+                <Link
                   key={card.unitId}
-                  onClick={() => card.imageUrl && setLightbox(card)}
-                  className="text-left rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all bg-white dark:bg-slate-950/40"
-                  title={`${card.unitName} — Class ${selectedClass}${selectedSection} planning reference`}
+                  href={`/teacher/syllabus-board/${card.unitId}`}
+                  className="relative text-left rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all bg-white dark:bg-slate-950/40 block"
+                  title={`${card.unitName} — open lesson insights (Class ${selectedClass}${selectedSection})`}
                 >
+                  {card.isApproved && (
+                    <span className="absolute top-2 right-2 z-10 text-[9px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-emerald-600 text-white shadow-sm">
+                      ✅ Published
+                    </span>
+                  )}
                   {card.imageUrl ? (
                     <img src={card.imageUrl} alt={card.altText || card.unitName} className="w-full h-auto block" />
                   ) : (
@@ -248,30 +253,11 @@ export default function TeacherSyllabusBoardPage() {
                       No visual available for Unit {card.unitNumber}
                     </div>
                   )}
-                </button>
+                </Link>
               ))}
             </div>
           )}
         </>
-      )}
-
-      {/* Lightbox */}
-      {lightbox && (
-        <div
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6"
-          onClick={() => setLightbox(null)}
-        >
-          <div className="max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
-            <img src={lightbox.imageUrl || ""} alt={lightbox.altText || lightbox.unitName} className="w-full h-auto rounded-2xl shadow-2xl" />
-            <button
-              onClick={() => setLightbox(null)}
-              className="mt-4 mx-auto block px-5 py-2 rounded-xl text-sm font-bold text-white"
-              style={{ background: subjectColor }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
       )}
     </PortalLayout>
   );
