@@ -1582,6 +1582,7 @@ import {
   Loader2,
   Lightbulb,
   MessageCircleQuestion,
+  AlertCircle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -1591,7 +1592,7 @@ type OpenIntent = "view" | "ai" | "submit";
 /*  Data                                                              */
 /* ------------------------------------------------------------------ */
 
-type Status = "not_submitted" | "submitted";
+type Status = "not_submitted" | "submitted" | "late_submission";
 
 interface Assignment {
   id: string;
@@ -1605,6 +1606,10 @@ interface Assignment {
   dueLabel: string;
   postedLabel: string;
   teacher: string;
+  score?: string;
+  submittedAnswer?: string | null;
+  submittedDate?: string | null;
+  submittedFiles?: any[];
 }
 
 const ASSIGNMENTS: Assignment[] = []; // Removed hardcoded assignments
@@ -1635,6 +1640,14 @@ function StatusPill({ status }: { status: Status }) {
       <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-emerald-600 dark:text-emerald-400">
         <CheckCircle2 className="h-3.5 w-3.5" />
         Submitted
+      </span>
+    );
+  }
+  if (status === "late_submission") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-amber-600 dark:text-amber-400">
+        <AlertCircle className="h-3.5 w-3.5" />
+        Late Submission
       </span>
     );
   }
@@ -1871,6 +1884,8 @@ interface UploadedFile {
   name: string;
   kind: UploadKind;
   sizeLabel: string;
+  url?: string;
+  rawFile?: File;
 }
 
 function SubmissionPanel({
@@ -1943,9 +1958,20 @@ function SubmissionPanel({
                     <ImageIcon className="h-4 w-4 shrink-0 text-sky-500 dark:text-sky-400" />
                   )}
                   <div className="min-w-0">
-                    <p className="truncate text-[12.5px] text-black dark:text-slate-200">
-                      {f.name}
-                    </p>
+                    {f.url ? (
+                      <a
+                        href={f.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="truncate text-[12.5px] text-teal-600 dark:text-teal-400 hover:underline font-semibold block"
+                      >
+                        {f.name}
+                      </a>
+                    ) : (
+                      <p className="truncate text-[12.5px] text-black dark:text-slate-200">
+                        {f.name}
+                      </p>
+                    )}
                     <p className="text-[11px] text-black dark:text-slate-500">
                       {f.sizeLabel}
                     </p>
@@ -2081,10 +2107,25 @@ function AssignmentDetail({
   const [loadingTips, setLoadingTips] = useState(false);
   const [answerText, setAnswerText] = useState("");
   const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [submitted, setSubmitted] = useState(assignment.status === "submitted");
+  const [submitted, setSubmitted] = useState(assignment.status === "submitted" || assignment.status === "late_submission");
   const [doubt, setDoubt] = useState("");
   const [doubtAnswer, setDoubtAnswer] = useState<string | null>(null);
   const [doubtLoading, setDoubtLoading] = useState(false);
+
+  // Sync / initialize answer and files when assignment changes or loads
+  useEffect(() => {
+    if (assignment.submittedAnswer) {
+      setAnswerText(assignment.submittedAnswer);
+    } else {
+      setAnswerText("");
+    }
+    if (assignment.submittedFiles) {
+      setFiles(assignment.submittedFiles);
+    } else {
+      setFiles([]);
+    }
+    setSubmitted(assignment.status === "submitted" || assignment.status === "late_submission");
+  }, [assignment]);
 
   const aiRef = useRef<HTMLDivElement>(null);
   const submissionRef = useRef<HTMLDivElement>(null);
@@ -2166,6 +2207,7 @@ function AssignmentDetail({
       name: f.name,
       kind: f.type === "application/pdf" ? "pdf" : "image",
       sizeLabel: `${(f.size / 1024).toFixed(0)} KB`,
+      rawFile: f,
     }));
     setFiles((prev) => [...prev, ...next]);
   };
@@ -2173,10 +2215,29 @@ function AssignmentDetail({
   const handleSubmit = async () => {
     if (!studentId) return;
     try {
+      const formData = new FormData();
+      formData.append("answerText", answerText);
+
+      // Append files to FormData
+      files.forEach((f) => {
+        if (f.rawFile) {
+          formData.append("files", f.rawFile);
+        }
+      });
+
+      // Keep record of previously uploaded files that are not modified
+      const existingFiles = files.filter(f => !f.rawFile).map(f => ({
+        id: f.id,
+        name: f.name,
+        kind: f.kind,
+        sizeLabel: f.sizeLabel,
+        url: f.url
+      }));
+      formData.append("existingFiles", JSON.stringify(existingFiles));
+
       const res = await fetch(`${apiUrl}/api/students/${studentId}/homework/${assignment.id}/submit`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answerText })
+        body: formData,
       });
       const data = await res.json();
       if (data.success) {
