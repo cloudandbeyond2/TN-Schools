@@ -5,13 +5,15 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
+/* ─── Types ──────────────────────────────────────────────────────────────── */
+
 interface TeachingStep {
   step: string;
   minutes: number;
   description: string;
 }
 
-interface UnitDetail {
+interface LangDetail {
   keyConcepts: string[];
   realLifeConnections: string[];
   commonMisconceptions: string[];
@@ -20,13 +22,29 @@ interface UnitDetail {
   studentKeyPoints: string[];
 }
 
+/** Bilingual shape returned by the backend */
+interface UnitDetail {
+  en: LangDetail;
+  ta: LangDetail | null;
+}
+
 interface UnitInfo {
   id: string;
   name: string;
   unitNumber: number;
   isApproved: boolean;
-  subject: { id: string; name: string; class: string; icon: string | null; color: string | null };
+  subject: {
+    id: string;
+    name: string;
+    class: string;
+    icon: string | null;
+    color: string | null;
+  };
 }
+
+type Lang = "en" | "ta";
+
+/* ─── Page ───────────────────────────────────────────────────────────────── */
 
 export default function TeacherUnitDetailPage() {
   const params = useParams();
@@ -36,11 +54,15 @@ export default function TeacherUnitDetailPage() {
   const [unit, setUnit] = useState<UnitInfo | null>(null);
   const [infographicUrl, setInfographicUrl] = useState<string | null>(null);
   const [detail, setDetail] = useState<UnitDetail | null>(null);
+  const [lang, setLang] = useState<Lang>("en");
+
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  /* ── Data loading ──────────────────────────────────────────────────────── */
 
   const loadUnit = async () => {
     setLoading(true);
@@ -51,11 +73,17 @@ export default function TeacherUnitDetailPage() {
       if (json.success) {
         setUnit(json.data.unit);
         setInfographicUrl(json.data.infographic?.fileUrl || null);
-        setDetail(json.data.unitDetail);
+        const raw = json.data.unitDetail;
+        // Normalize: old flat records (no .en key) get wrapped
+        if (raw && !raw.en) {
+          setDetail({ en: raw, ta: null });
+        } else {
+          setDetail(raw ?? null);
+        }
       } else {
         setError(json.error || "Unit not found");
       }
-    } catch (e) {
+    } catch {
       setError("Could not load this unit.");
     } finally {
       setLoading(false);
@@ -67,40 +95,59 @@ export default function TeacherUnitDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unitId]);
 
+  /* ── AI generation ─────────────────────────────────────────────────────── */
+
   const handleGenerate = async (regenerate: boolean) => {
     setGenerating(true);
     setError(null);
     setSuccessMsg(null);
     try {
-      const res = await fetch(`${API_URL}/api/centralized-content/units/${unitId}/generate-detail`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ regenerate }),
-      });
+      const res = await fetch(
+        `${API_URL}/api/centralized-content/units/${unitId}/generate-detail`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ regenerate }),
+        }
+      );
       const json = await res.json();
       if (json.success) {
-        setDetail(json.data);
-        setSuccessMsg(regenerate ? "Regenerated with AI." : "AI lesson insights generated.");
+        const raw = json.data;
+        if (raw && !raw.en) {
+          setDetail({ en: raw, ta: null });
+        } else {
+          setDetail(raw ?? null);
+        }
+        setSuccessMsg(
+          regenerate
+            ? "Regenerated in English & Tamil ✨"
+            : "AI lesson insights generated in English & Tamil ✨"
+        );
       } else {
         setError(json.error || "AI generation failed.");
       }
-    } catch (e) {
+    } catch {
       setError("AI generation failed. Check that the backend and GEMINI_API_KEY are configured.");
     } finally {
       setGenerating(false);
     }
   };
 
+  /* ── Approve / Publish ─────────────────────────────────────────────────── */
+
   const handleApprove = async (isApproved: boolean) => {
     if (!detail) return;
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/centralized-content/units/${unitId}/approve`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isApproved, editedDetail: detail }),
-      });
+      const res = await fetch(
+        `${API_URL}/api/centralized-content/units/${unitId}/approve`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isApproved, editedDetail: detail }),
+        }
+      );
       const json = await res.json();
       if (json.success) {
         setUnit((prev) => (prev ? { ...prev, isApproved } : prev));
@@ -108,31 +155,57 @@ export default function TeacherUnitDetailPage() {
       } else {
         setError(json.error || "Could not update approval status.");
       }
-    } catch (e) {
+    } catch {
       setError("Could not update approval status.");
     } finally {
       setSaving(false);
     }
   };
 
-  const updateList = (field: "keyConcepts" | "realLifeConnections" | "commonMisconceptions" | "studentKeyPoints", index: number, value: string) => {
-    if (!detail) return;
-    const next = { ...detail, [field]: detail[field].map((v, i) => (i === index ? value : v)) };
-    setDetail(next);
+  /* ── In-place editing helpers ──────────────────────────────────────────── */
+
+  const activeLang: LangDetail | null = detail ? (detail[lang] ?? null) : null;
+
+  const updateLangList = (
+    field: "keyConcepts" | "realLifeConnections" | "commonMisconceptions" | "studentKeyPoints",
+    index: number,
+    value: string
+  ) => {
+    if (!detail || !activeLang) return;
+    const updated: LangDetail = {
+      ...activeLang,
+      [field]: activeLang[field].map((v, i) => (i === index ? value : v)),
+    };
+    setDetail({ ...detail, [lang]: updated });
   };
 
   const updateFlowStep = (index: number, key: keyof TeachingStep, value: string | number) => {
-    if (!detail) return;
-    const next = { ...detail, teachingFlow: detail.teachingFlow.map((s, i) => (i === index ? { ...s, [key]: value } : s)) };
-    setDetail(next);
+    if (!detail || !activeLang) return;
+    const updated: LangDetail = {
+      ...activeLang,
+      teachingFlow: activeLang.teachingFlow.map((s, i) =>
+        i === index ? { ...s, [key]: value } : s
+      ),
+    };
+    setDetail({ ...detail, [lang]: updated });
   };
 
+  const updateScript = (value: string) => {
+    if (!detail || !activeLang) return;
+    setDetail({ ...detail, [lang]: { ...activeLang, teacherScript: value } });
+  };
+
+  /* ── Derived ───────────────────────────────────────────────────────────── */
+
   const accent = unit?.subject.color || "#f59e0b";
+  const hasTamil = !!detail?.ta;
+
+  /* ── Render ────────────────────────────────────────────────────────────── */
 
   return (
     <PortalLayout
       title="Unit Lesson Insights"
-      subtitle="AI-assisted planning for how to teach and present this unit."
+      subtitle="AI-assisted bilingual planning — English & Tamil"
       avatarLetter="S"
       avatarColor="#f59e0b"
       themeClass="theme-teacher"
@@ -140,171 +213,368 @@ export default function TeacherUnitDetailPage() {
     >
       <Link
         href="/teacher/syllabus-board"
-        className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-black dark:hover:text-white mb-6"
+        className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-black dark:hover:text-white mb-6 transition-colors"
       >
         ← Back to Syllabus Board
       </Link>
 
+      {/* ── Loading ── */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-10 h-10 rounded-full border-4 border-amber-200 border-t-amber-600 animate-spin mb-3" />
-          <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider animate-pulse">Loading unit...</p>
+          <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider animate-pulse">
+            Loading unit...
+          </p>
         </div>
       ) : !unit ? (
         <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800">
-          <p className="text-lg font-bold text-slate-700 dark:text-slate-300">{error || "Unit not found."}</p>
+          <p className="text-lg font-bold text-slate-700 dark:text-slate-300">
+            {error || "Unit not found."}
+          </p>
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Header */}
-          <div className="glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 p-6 flex flex-col md:flex-row gap-6 items-start">
-            {infographicUrl && (
-              <img src={infographicUrl} alt={unit.name} className="w-full md:w-80 rounded-2xl border border-slate-200 dark:border-slate-800 flex-shrink-0" />
-            )}
-            <div className="flex-1">
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500">
-                  {unit.subject.name} · Class {unit.subject.class} · Unit {unit.unitNumber}
-                </span>
-                <span
-                  className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-lg ${
-                    unit.isApproved
-                      ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400"
-                      : "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400"
-                  }`}
-                >
-                  {unit.isApproved ? "✅ Published to Students" : "📝 Draft — Not Visible to Students"}
-                </span>
-              </div>
-              <h2 className="text-2xl font-black text-black dark:text-white mt-3">{unit.name}</h2>
-              <p className="text-xs text-slate-500 mt-2 max-w-xl">
-                Generate AI lesson insights below, tweak anything that needs adjusting, then publish so students see a simplified version on their own syllabus board.
-              </p>
 
-              <div className="flex flex-wrap gap-2 mt-4">
-                <button
-                  onClick={() => handleGenerate(!!detail)}
-                  disabled={generating}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-white transition-all disabled:opacity-60"
-                  style={{ background: accent }}
-                >
-                  {generating ? "✨ Generating with AI..." : detail ? "🔁 Regenerate with AI" : "✨ Generate AI Lesson Insights"}
-                </button>
-                {detail && (
-                  <button
-                    onClick={() => handleApprove(!unit.isApproved)}
-                    disabled={saving}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-60 ${
+          {/* ── Hero header ── */}
+          <div
+            className="relative rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900/30"
+            style={{ background: `linear-gradient(135deg, ${accent}10 0%, transparent 55%)` }}
+          >
+            {/* Decorative orb */}
+            <div
+              className="pointer-events-none absolute -top-20 -right-20 w-72 h-72 rounded-full blur-3xl opacity-20"
+              style={{ background: accent }}
+            />
+            <div className="relative flex flex-col md:flex-row gap-6 p-6 items-start">
+              {infographicUrl && (
+                <img
+                  src={infographicUrl}
+                  alt={unit.name}
+                  className="w-full md:w-72 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md object-cover flex-shrink-0"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-3">
+                  <span
+                    className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-lg border"
+                    style={{
+                      background: `${accent}18`,
+                      borderColor: `${accent}44`,
+                      color: accent,
+                    }}
+                  >
+                    {unit.subject.icon || "📚"} {unit.subject.name} · Class {unit.subject.class} · Unit {unit.unitNumber}
+                  </span>
+                  <span
+                    className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-lg ${
                       unit.isApproved
-                        ? "border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300"
-                        : "bg-emerald-600 text-white"
+                        ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400"
+                        : "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400"
                     }`}
                   >
-                    {saving ? "Saving..." : unit.isApproved ? "Unpublish" : "✅ Approve & Publish to Students"}
+                    {unit.isApproved ? "✅ Published to Students" : "📝 Draft"}
+                  </span>
+                </div>
+
+                <h2 className="text-2xl font-black text-black dark:text-white mb-2 leading-tight">
+                  {unit.name}
+                </h2>
+                <p className="text-xs text-slate-500 max-w-xl mb-5">
+                  Generate bilingual AI lesson insights, tweak anything, then publish — students see a simplified version on their own syllabus board.
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => handleGenerate(!!detail)}
+                    disabled={generating}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-sm hover:opacity-90 active:scale-95 transition-all disabled:opacity-60"
+                    style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
+                  >
+                    {generating
+                      ? "✨ Generating..."
+                      : detail
+                      ? "🔁 Regenerate (EN + தமிழ்)"
+                      : "✨ Generate AI Insights (EN + தமிழ்)"}
                   </button>
+
+                  {detail && (
+                    <button
+                      onClick={() => handleApprove(!unit.isApproved)}
+                      disabled={saving}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-60 active:scale-95 ${
+                        unit.isApproved
+                          ? "border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                          : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm"
+                      }`}
+                    >
+                      {saving ? "Saving..." : unit.isApproved ? "Unpublish" : "✅ Approve & Publish"}
+                    </button>
+                  )}
+                </div>
+
+                {error && (
+                  <p className="text-xs text-rose-600 mt-3 font-semibold">⚠️ {error}</p>
+                )}
+                {successMsg && (
+                  <p className="text-xs text-emerald-600 mt-3 font-semibold">{successMsg}</p>
                 )}
               </div>
-
-              {error && <p className="text-xs text-rose-600 mt-3 font-semibold">⚠️ {error}</p>}
-              {successMsg && <p className="text-xs text-emerald-600 mt-3 font-semibold">{successMsg}</p>}
             </div>
           </div>
 
-          {!detail && !generating && (
-            <div className="text-center p-14 glass rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
-              <span className="text-5xl block mb-4">🧑‍🏫</span>
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No lesson insights yet for this unit.</p>
-              <p className="text-xs text-slate-500 mt-2">Click "Generate AI Lesson Insights" above — this calls Gemini live and takes a few seconds.</p>
+          {/* ── Generating spinner ── */}
+          {generating && (
+            <div className="flex flex-col items-center justify-center py-12 glass rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+              <div
+                className="w-12 h-12 rounded-full border-4 border-t-transparent animate-spin mb-4"
+                style={{ borderColor: `${accent}44`, borderTopColor: accent }}
+              />
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                Generating bilingual insights with Gemini…
+              </p>
+              <p className="text-xs text-slate-500 mt-1">
+                English & Tamil in one call — this takes 10–20 seconds.
+              </p>
             </div>
           )}
 
-          {detail && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Key Concepts */}
-              <EditableListCard
-                title="🧠 Key Concepts"
-                subtitle="What students must walk away understanding"
-                items={detail.keyConcepts}
-                accent={accent}
-                onChange={(i, v) => updateList("keyConcepts", i, v)}
-              />
-
-              {/* Real-life connections */}
-              <EditableListCard
-                title="🌍 Real-life Connections"
-                subtitle="Concrete examples to make it relatable"
-                items={detail.realLifeConnections}
-                accent={accent}
-                onChange={(i, v) => updateList("realLifeConnections", i, v)}
-              />
-
-              {/* Common misconceptions */}
-              <EditableListCard
-                title="⚠️ Common Misconceptions"
-                subtitle="Pre-empt these before they take root"
-                items={detail.commonMisconceptions}
-                accent={accent}
-                onChange={(i, v) => updateList("commonMisconceptions", i, v)}
-              />
-
-              {/* Student key points preview */}
-              <EditableListCard
-                title="🎯 Student Key Points"
-                subtitle="Simplified takeaways students will see once published"
-                items={detail.studentKeyPoints}
-                accent={accent}
-                onChange={(i, v) => updateList("studentKeyPoints", i, v)}
-              />
-
-              {/* Teaching flow timeline */}
-              <div className="lg:col-span-2 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 p-6">
-                <h3 className="text-sm font-black text-black dark:text-white mb-1">⏱️ Suggested Teaching Flow</h3>
-                <p className="text-xs text-slate-500 mb-4">A ready lesson pacing for a ~45 minute period</p>
-                <div className="flex flex-col md:flex-row gap-3 overflow-x-auto pb-2">
-                  {detail.teachingFlow.map((step, i) => (
-                    <div
-                      key={i}
-                      className="flex-1 min-w-[180px] rounded-2xl border p-4"
-                      style={{ borderColor: `${accent}33`, background: `${accent}0a` }}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <input
-                          value={step.step}
-                          onChange={(e) => updateFlowStep(i, "step", e.target.value)}
-                          className="font-bold text-xs bg-transparent border-0 focus:outline-none w-2/3"
-                          style={{ color: accent }}
-                        />
-                        <input
-                          type="number"
-                          value={step.minutes}
-                          onChange={(e) => updateFlowStep(i, "minutes", Number(e.target.value))}
-                          className="w-12 text-right text-[10px] font-bold bg-transparent border-0 focus:outline-none text-slate-400"
-                        />
-                        <span className="text-[10px] text-slate-400 -ml-1">min</span>
-                      </div>
-                      <textarea
-                        value={step.description}
-                        onChange={(e) => updateFlowStep(i, "description", e.target.value)}
-                        rows={3}
-                        className="w-full text-[11px] text-slate-600 dark:text-slate-300 bg-transparent border-0 resize-none focus:outline-none leading-relaxed"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Teacher script */}
-              <div className="lg:col-span-2 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 p-6">
-                <h3 className="text-sm font-black text-black dark:text-white mb-1">🗣️ How I'd Explain This to My Class</h3>
-                <p className="text-xs text-slate-500 mb-4">A ready-to-use spoken introduction — edit it to match your own voice</p>
-                <textarea
-                  value={detail.teacherScript}
-                  onChange={(e) => setDetail({ ...detail, teacherScript: e.target.value })}
-                  rows={8}
-                  className="w-full text-sm leading-relaxed text-slate-700 dark:text-slate-300 bg-slate-50/60 dark:bg-slate-950/30 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 focus:outline-none resize-y"
-                />
-              </div>
+          {/* ── Empty state ── */}
+          {!detail && !generating && (
+            <div className="text-center p-14 glass rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+              <span className="text-5xl block mb-4">🧑‍🏫</span>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                No lesson insights yet for this unit.
+              </p>
+              <p className="text-xs text-slate-500 mt-2">
+                Click &quot;Generate AI Insights&quot; above — Gemini will produce English &amp; Tamil in one call.
+              </p>
             </div>
+          )}
+
+          {/* ── Insights panel ── */}
+          {detail && !generating && (
+            <>
+              {/* Language toggle */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  Language
+                </span>
+                <div className="flex rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm">
+                  {(["en", "ta"] as Lang[]).map((l) => {
+                    const isActive = lang === l;
+                    const disabled = l === "ta" && !hasTamil;
+                    return (
+                      <button
+                        key={l}
+                        onClick={() => !disabled && setLang(l)}
+                        disabled={disabled}
+                        title={
+                          disabled
+                            ? "Tamil not generated yet — click Regenerate"
+                            : undefined
+                        }
+                        className={`px-4 py-2 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                          isActive
+                            ? "text-white"
+                            : "text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900/40 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                        }`}
+                        style={
+                          isActive
+                            ? {
+                                background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+                              }
+                            : undefined
+                        }
+                      >
+                        {l === "en" ? "🇬🇧 English" : "🇮🇳 தமிழ்"}
+                      </button>
+                    );
+                  })}
+                </div>
+                {!hasTamil && (
+                  <span className="text-[10px] text-amber-600 font-semibold">
+                    Tamil not available — click Regenerate to get both languages.
+                  </span>
+                )}
+              </div>
+
+              {/* Cards grid */}
+              {activeLang ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+
+                  {/* Key Concepts */}
+                  <InsightCard
+                    emoji="🧠"
+                    title={lang === "en" ? "Key Concepts" : "முக்கிய கருத்துகள்"}
+                    subtitle={
+                      lang === "en"
+                        ? "What students must walk away understanding"
+                        : "மாணவர்கள் புரிந்துகொள்ள வேண்டியவை"
+                    }
+                    gradientFrom="#6366f1"
+                    accent={accent}
+                  >
+                    <EditableList
+                      items={activeLang.keyConcepts}
+                      accent="#6366f1"
+                      onChange={(i, v) => updateLangList("keyConcepts", i, v)}
+                    />
+                  </InsightCard>
+
+                  {/* Real-life Connections */}
+                  <InsightCard
+                    emoji="🌍"
+                    title={lang === "en" ? "Real-life Connections" : "நிஜ வாழ்க்கை இணைப்புகள்"}
+                    subtitle={
+                      lang === "en"
+                        ? "Concrete Tamil Nadu-relevant examples"
+                        : "தமிழ்நாட்டிற்கு தொடர்புடைய உதாரணங்கள்"
+                    }
+                    gradientFrom="#10b981"
+                    accent={accent}
+                  >
+                    <EditableList
+                      items={activeLang.realLifeConnections}
+                      accent="#10b981"
+                      onChange={(i, v) => updateLangList("realLifeConnections", i, v)}
+                    />
+                  </InsightCard>
+
+                  {/* Common Misconceptions */}
+                  <InsightCard
+                    emoji="⚠️"
+                    title={lang === "en" ? "Common Misconceptions" : "பொதுவான தவறான கருத்துகள்"}
+                    subtitle={
+                      lang === "en"
+                        ? "Pre-empt these before they take root"
+                        : "இவற்றை முன்கூட்டியே தடுக்கவும்"
+                    }
+                    gradientFrom="#ef4444"
+                    accent={accent}
+                  >
+                    <EditableList
+                      items={activeLang.commonMisconceptions}
+                      accent="#ef4444"
+                      onChange={(i, v) => updateLangList("commonMisconceptions", i, v)}
+                    />
+                  </InsightCard>
+
+                  {/* Student Key Points */}
+                  <InsightCard
+                    emoji="🎯"
+                    title={lang === "en" ? "Student Key Points" : "மாணவர் முக்கிய குறிப்புகள்"}
+                    subtitle={
+                      lang === "en"
+                        ? "Simplified takeaways students will see once published"
+                        : "வெளியிட்ட பிறகு மாணவர்கள் காணும் எளிய குறிப்புகள்"
+                    }
+                    gradientFrom="#8b5cf6"
+                    accent={accent}
+                  >
+                    <EditableList
+                      items={activeLang.studentKeyPoints}
+                      accent="#8b5cf6"
+                      onChange={(i, v) => updateLangList("studentKeyPoints", i, v)}
+                    />
+                  </InsightCard>
+
+                  {/* Teaching Flow */}
+                  <div className="lg:col-span-2 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 p-6 overflow-hidden relative">
+                    <div
+                      className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl"
+                      style={{ background: `linear-gradient(90deg, ${accent}, ${accent}55)` }}
+                    />
+                    <h3 className="text-sm font-black text-black dark:text-white mb-1">
+                      ⏱️{" "}
+                      {lang === "en"
+                        ? "Suggested Teaching Flow"
+                        : "பரிந்துரைக்கப்பட்ட கற்பித்தல் திட்டம்"}
+                    </h3>
+                    <p className="text-xs text-slate-500 mb-5">
+                      {lang === "en"
+                        ? "Ready lesson pacing for a ~45 minute period"
+                        : "~45 நிமிட வகுப்புக்கான தயாரான பாட திட்டம்"}
+                    </p>
+                    <div className="flex flex-col md:flex-row gap-3 overflow-x-auto pb-2">
+                      {activeLang.teachingFlow.map((step, i) => (
+                        <div
+                          key={i}
+                          className="flex-1 min-w-[180px] rounded-2xl border p-4 relative"
+                          style={{ borderColor: `${accent}33`, background: `${accent}08` }}
+                        >
+                          <span
+                            className="absolute -top-2.5 left-3 text-[9px] font-black px-2 py-0.5 rounded-full text-white"
+                            style={{ background: accent }}
+                          >
+                            {i + 1}
+                          </span>
+                          <div className="flex items-center justify-between mb-2 mt-1">
+                            <input
+                              value={step.step}
+                              onChange={(e) => updateFlowStep(i, "step", e.target.value)}
+                              className="font-bold text-xs bg-transparent border-0 focus:outline-none w-2/3 truncate"
+                              style={{ color: accent }}
+                            />
+                            <div className="flex items-center gap-0.5">
+                              <input
+                                type="number"
+                                value={step.minutes}
+                                onChange={(e) =>
+                                  updateFlowStep(i, "minutes", Number(e.target.value))
+                                }
+                                className="w-10 text-right text-[10px] font-bold bg-transparent border-0 focus:outline-none text-slate-400"
+                              />
+                              <span className="text-[10px] text-slate-400">min</span>
+                            </div>
+                          </div>
+                          <textarea
+                            value={step.description}
+                            onChange={(e) => updateFlowStep(i, "description", e.target.value)}
+                            rows={3}
+                            className="w-full text-[11px] text-slate-600 dark:text-slate-300 bg-transparent border-0 resize-none focus:outline-none leading-relaxed"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Teacher Script */}
+                  <div className="lg:col-span-2 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 p-6 relative overflow-hidden">
+                    <div
+                      className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl"
+                      style={{ background: "linear-gradient(90deg, #6366f1, #8b5cf6)" }}
+                    />
+                    <h3 className="text-sm font-black text-black dark:text-white mb-1">
+                      🗣️{" "}
+                      {lang === "en"
+                        ? "How I&apos;d Explain This to My Class"
+                        : "என் வகுப்பிற்கு இதை எப்படி விளக்குவேன்"}
+                    </h3>
+                    <p className="text-xs text-slate-500 mb-4">
+                      {lang === "en"
+                        ? "Ready-to-use spoken introduction — edit it to match your own voice"
+                        : "தயாரான வாய்மொழி அறிமுகம் — உங்கள் பாணியில் திருத்தவும்"}
+                    </p>
+                    <textarea
+                      value={activeLang.teacherScript}
+                      onChange={(e) => updateScript(e.target.value)}
+                      rows={8}
+                      className="w-full text-sm leading-relaxed text-slate-700 dark:text-slate-300 bg-slate-50/60 dark:bg-slate-950/30 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 focus:outline-none resize-y"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center p-10 glass rounded-3xl border border-dashed border-amber-300 dark:border-amber-700">
+                  <span className="text-4xl block mb-3">🌐</span>
+                  <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
+                    Tamil not generated for this unit yet.
+                  </p>
+                  <p className="text-xs text-slate-500 mt-2">
+                    Click &quot;Regenerate (EN + தமிழ்)&quot; above to get both languages.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -312,36 +582,71 @@ export default function TeacherUnitDetailPage() {
   );
 }
 
-function EditableListCard({
+/* ─── InsightCard ─────────────────────────────────────────────────────────── */
+
+function InsightCard({
+  emoji,
   title,
   subtitle,
+  gradientFrom,
+  accent,
+  children,
+}: {
+  emoji: string;
+  title: string;
+  subtitle: string;
+  gradientFrom: string;
+  accent: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 p-6 relative overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 group">
+      {/* Top accent bar */}
+      <div
+        className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl"
+        style={{ background: `linear-gradient(90deg, ${gradientFrom}, ${gradientFrom}55)` }}
+      />
+      {/* Emoji bubble */}
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center text-lg mb-3 shadow-sm"
+        style={{ background: `${gradientFrom}18`, border: `1px solid ${gradientFrom}33` }}
+      >
+        {emoji}
+      </div>
+      <h3 className="text-sm font-black text-black dark:text-white mb-0.5">{title}</h3>
+      <p className="text-[11px] text-slate-500 mb-4">{subtitle}</p>
+      {children}
+    </div>
+  );
+}
+
+/* ─── EditableList ────────────────────────────────────────────────────────── */
+
+function EditableList({
   items,
   accent,
   onChange,
 }: {
-  title: string;
-  subtitle: string;
   items: string[];
   accent: string;
   onChange: (index: number, value: string) => void;
 }) {
   return (
-    <div className="glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 p-6">
-      <h3 className="text-sm font-black text-black dark:text-white mb-1">{title}</h3>
-      <p className="text-xs text-slate-500 mb-4">{subtitle}</p>
-      <div className="space-y-2">
-        {items.map((item, i) => (
-          <div key={i} className="flex items-start gap-2">
-            <span className="mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: accent }} />
-            <textarea
-              value={item}
-              onChange={(e) => onChange(i, e.target.value)}
-              rows={2}
-              className="flex-1 text-xs leading-relaxed text-slate-700 dark:text-slate-300 bg-transparent border-0 resize-none focus:outline-none focus:bg-slate-50 dark:focus:bg-slate-950/30 rounded-lg px-1"
-            />
-          </div>
-        ))}
-      </div>
+    <div className="space-y-2">
+      {items.map((item, i) => (
+        <div key={i} className="flex items-start gap-2">
+          <span
+            className="mt-2.5 w-1.5 h-1.5 rounded-full flex-shrink-0"
+            style={{ background: accent }}
+          />
+          <textarea
+            value={item}
+            onChange={(e) => onChange(i, e.target.value)}
+            rows={2}
+            className="flex-1 text-xs leading-relaxed text-slate-700 dark:text-slate-300 bg-transparent border-0 resize-none focus:outline-none focus:bg-slate-50/80 dark:focus:bg-slate-950/40 rounded-lg px-1 transition-colors"
+          />
+        </div>
+      ))}
     </div>
   );
 }

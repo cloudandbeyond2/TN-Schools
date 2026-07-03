@@ -1,6 +1,7 @@
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 
@@ -39,12 +40,6 @@ interface UnitCard {
   imageUrl: string | null;
 }
 
-interface UnitDetail {
-  realLifeConnections: string[];
-  commonMisconceptions: string[];
-  studentKeyPoints: string[];
-}
-
 export default function StudentSyllabusBoardPage() {
   const { data: session, status } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -57,13 +52,6 @@ export default function StudentSyllabusBoardPage() {
   const [unitCards, setUnitCards] = useState<UnitCard[]>([]);
   const [loadingUnits, setLoadingUnits] = useState<boolean>(false);
 
-  const [activeUnitId, setActiveUnitId] = useState<string | null>(null);
-  const [activeDetail, setActiveDetail] = useState<UnitDetail | null>(null);
-  const [activeImage, setActiveImage] = useState<string | null>(null);
-  const [activeName, setActiveName] = useState<string>("");
-  const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
-
-  // Resolve the student's own class, same pattern as the centralized-content page
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
       const userClass = (session?.user as any)?.class;
@@ -140,27 +128,6 @@ export default function StudentSyllabusBoardPage() {
     }
   };
 
-  const openUnit = async (card: UnitCard) => {
-    setActiveUnitId(card.unitId);
-    setActiveName(card.unitName);
-    setActiveImage(card.imageUrl);
-    setActiveDetail(null);
-    setLoadingDetail(true);
-    try {
-      const res = await fetch(`${API_URL}/api/centralized-content/units/${card.unitId}`);
-      const json = await res.json();
-      if (json.success) {
-        setActiveDetail(json.data.unitDetail);
-      }
-    } catch (err) {
-      console.error("Error fetching unit detail", err);
-    } finally {
-      setLoadingDetail(false);
-    }
-  };
-
-  const accent = selectedSubject?.color || "#6366f1";
-
   return (
     <PortalLayout
       title="Class Syllabus Board"
@@ -172,7 +139,7 @@ export default function StudentSyllabusBoardPage() {
     >
       <div className="flex items-center justify-between gap-4 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
         <div>
-          <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1">🗂️ Syllabus Board</h2>
+          <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1">Syllabus Board</h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">Only units your teacher has published appear here.</p>
         </div>
         <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm">
@@ -221,96 +188,33 @@ export default function StudentSyllabusBoardPage() {
           ) : unitCards.length === 0 ? (
             <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
               <span className="text-5xl block mb-4">🕓</span>
-              <p className="text-lg font-bold text-slate-700 dark:text-slate-300">Your teacher hasn't published any units yet.</p>
-              <p className="text-xs text-slate-500 mt-2">Check back once your teacher shares this subject's syllabus board.</p>
+              <p className="text-lg font-bold text-slate-700 dark:text-slate-300">Your teacher hasn&apos;t published any units yet.</p>
+              <p className="text-xs text-slate-500 mt-2">Check back once your teacher shares this subject&apos;s syllabus board.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
               {unitCards.map((card) => (
-                <button
+                <Link
                   key={card.unitId}
-                  onClick={() => openUnit(card)}
-                  className="text-left rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all bg-white dark:bg-slate-950/40"
+                  href={`/student/syllabus-board/${card.unitId}`}
+                  className="text-left rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 bg-white dark:bg-slate-950/40 block group"
                 >
                   {card.imageUrl ? (
-                    <img src={card.imageUrl} alt={card.unitName} className="w-full h-auto block" />
+                    <img src={card.imageUrl} alt={card.unitName} className="w-full h-auto block group-hover:scale-[1.02] transition-transform duration-300" />
                   ) : (
                     <div className="h-40 flex items-center justify-center text-slate-400 text-xs font-semibold">Unit {card.unitNumber}</div>
                   )}
-                </button>
+                  <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">
+                      Unit {card.unitNumber}: {card.unitName}
+                    </p>
+                    <span className="text-[10px] text-indigo-500 font-bold flex-shrink-0">View →</span>
+                  </div>
+                </Link>
               ))}
             </div>
           )}
         </>
-      )}
-
-      {/* Detail modal */}
-      {activeUnitId && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6" onClick={() => setActiveUnitId(null)}>
-          <div className="max-w-xl w-full max-h-[85vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            {activeImage && <img src={activeImage} alt={activeName} className="w-full h-auto rounded-t-3xl" />}
-            <div className="p-6">
-              {loadingDetail ? (
-                <div className="flex flex-col items-center justify-center py-10">
-                  <div className="w-8 h-8 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin mb-3" />
-                  <p className="text-slate-500 text-xs font-semibold">Loading...</p>
-                </div>
-              ) : !activeDetail ? (
-                <div className="text-center py-6">
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{activeName}</p>
-                  <p className="text-xs text-slate-500 mt-2">Your teacher hasn't added extra notes for this unit yet — the visual summary above covers the key idea.</p>
-                </div>
-              ) : (
-                <div className="space-y-5">
-                  <div>
-                    <h3 className="text-sm font-black text-black dark:text-white mb-3">🎯 Key Points to Remember</h3>
-                    <ul className="space-y-2">
-                      {activeDetail.studentKeyPoints.map((p, i) => (
-                        <li key={i} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: accent }} />
-                          {p}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {activeDetail.realLifeConnections?.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-black text-black dark:text-white mb-3">🌍 Where You'll See This in Real Life</h3>
-                      <ul className="space-y-2">
-                        {activeDetail.realLifeConnections.map((p, i) => (
-                          <li key={i} className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-950/30 rounded-xl p-3">
-                            {p}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {activeDetail.commonMisconceptions?.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-black text-black dark:text-white mb-3">🤔 Think About It...</h3>
-                      <ul className="space-y-2">
-                        {activeDetail.commonMisconceptions.map((p, i) => (
-                          <li key={i} className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed border border-amber-300/40 bg-amber-50/50 dark:bg-amber-950/10 rounded-xl p-3">
-                            {p}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            <button
-              onClick={() => setActiveUnitId(null)}
-              className="w-full py-3 text-xs font-bold text-white rounded-b-3xl"
-              style={{ background: accent }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
       )}
     </PortalLayout>
   );
