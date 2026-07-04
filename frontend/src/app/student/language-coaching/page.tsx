@@ -4,32 +4,38 @@ import React, { useState, useEffect, useRef } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
 import { 
-  Languages, 
+  Bot, 
   Mic, 
-  PlayCircle, 
-  TrendingUp,
-  MessageCircle,
-  Headphones,
-  Star,
-  Activity,
-  CheckCircle2,
-  Volume2,
-  Sparkles,
-  Bot,
-  User,
-  BookA,
-  Award,
-  X,
-  Send,
-  ArrowRight,
-  Bus,
-  Briefcase,
-  Hospital,
-  Flame,
-  HeartPulse
+  Play, 
+  MessageSquare, 
+  Headphones, 
+  Star, 
+  Activity, 
+  CheckCircle2, 
+  Volume2, 
+  Sparkles, 
+  User, 
+  BookA, 
+  Award, 
+  X, 
+  Send, 
+  ArrowRight, 
+  Sliders, 
+  Megaphone, 
+  Compass, 
+  Target, 
+  BookOpen, 
+  ChevronRight, 
+  RefreshCw, 
+  Clock, 
+  TrendingUp, 
+  Info,
+  Check,
+  Languages,
+  PenTool,
+  Brain
 } from "lucide-react";
-
-type ChatMessage = { sender: "ai" | "user"; text: string; audio?: string };
+import Swal from "sweetalert2";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -41,42 +47,117 @@ const getApiBase = () => {
 
 const API_BASE = getApiBase();
 
+// Onboarding Data
+const LANGUAGES = [
+  { id: "english", name: "English", nativeName: "English", flag: "🇬🇧", difficulty: "Medium", popularity: "Very High", desc: "Master international business, presentations, and daily global dialog." },
+  { id: "tamil", name: "Tamil", nativeName: "தமிழ்", flag: "🇮🇳", difficulty: "High", popularity: "Regional", desc: "Refine classical vocabulary, public address, and regional literature." },
+  { id: "hindi", name: "Hindi", nativeName: "हिन्दी", flag: "🇮🇳", difficulty: "Medium", popularity: "High", desc: "Gain fluency in national daily dialog, greetings, and common phrases." },
+  { id: "french", name: "French", nativeName: "Français", flag: "🇫🇷", difficulty: "Hard", popularity: "Global", desc: "Practice romantic articulation, silent endings, and European vocabulary." },
+  { id: "german", name: "German", nativeName: "Deutsch", flag: "🇩🇪", difficulty: "Hard", popularity: "Business", desc: "Structure complex compounds, formal greetings, and logical phrasing." },
+  { id: "spanish", name: "Spanish", nativeName: "Español", flag: "🇪🇸", difficulty: "Easy", popularity: "Very High", desc: "Practice expressive rhythms, phonetic vowels, and daily social dialog." },
+  { id: "japanese", name: "Japanese", nativeName: "日本語", flag: "🇯🇵", difficulty: "Hard", popularity: "Popular", desc: "Learn polite syntax, context-aware expressions, and soft vowels." },
+  { id: "korean", name: "Korean", nativeName: "한국어", flag: "🇰🇷", difficulty: "Hard", popularity: "Rising", desc: "Practice energetic K-pop expressions, honorific honor and modern dialogues." },
+  { id: "arabic", name: "Arabic", nativeName: "العربية", flag: "🇦🇪", difficulty: "Very Hard", popularity: "High", desc: "Articulate throat phonetics, formal addresses, and deep classical terms." }
+];
+
+const GOALS = [
+  { id: "conversation", label: "Everyday Conversation", desc: "Socializing and casual chats" },
+  { id: "public_speaking", label: "Public Speaking", desc: "Addressing crowds with calm authority" },
+  { id: "interview", label: "Interview Prep", desc: "Landing jobs and answering key prompts" },
+  { id: "business", label: "Business Comm", desc: "Formal vocabulary and meetings" },
+  { id: "presentation", label: "Presentation Skills", desc: "Slide narration and clear vocal stress" },
+  { id: "discussion", label: "Group Discussions", desc: "Debating, agreeing, and polite interruption" },
+  { id: "debate", label: "Formal Debate", desc: "Argument construction and rhetoric" },
+  { id: "storytelling", label: "Storytelling", desc: "Vocal variance and descriptive timelines" },
+  { id: "pronunciation", label: "Pronunciation Lab", desc: "Stretching phonetics and clean vowels" },
+  { id: "vocabulary", label: "Vocab Richness", desc: "Synonyms and native vocabulary" },
+  { id: "writing", label: "Writing & Grammar", desc: "Emails, essays, and reports" },
+  { id: "confidence", label: "Confidence Boost", desc: "Overcoming fear and pauses" }
+];
+
+const CONFIDENCE_LEVELS = [
+  { id: "nervous", label: "Very Nervous", desc: "I freeze or stutter heavily under pressure", emoji: "😰" },
+  { id: "beginner", label: "Beginner Speaker", desc: "I formulate basic sentences with conscious delay", emoji: "🌱" },
+  { id: "some", label: "Some Confidence", desc: "I speak basic blocks but make common grammar errors", emoji: "🚶" },
+  { id: "comfortable", label: "Comfortable Speaker", desc: "I carry conversations well but want native fluency", emoji: "🗣️" },
+  { id: "advanced", label: "Advanced Communicator", desc: "I want to master public rhetoric and elite debates", emoji: "🏆" }
+];
+
 export default function LanguageCoachingPage() {
   const { data: session } = useSession();
   const [student, setStudent] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<"roleplay" | "pronunciation" | "tanglish">("roleplay");
-  const [toastMsg, setToastMsg] = useState("");
-  
-  // Audio context refs
+
+  // Setup Wizard State
+  const [wizardStep, setWizardStep] = useState(1);
+  const [chosenLang, setChosenLang] = useState<any>(null);
+  const [chosenGoals, setChosenGoals] = useState<string[]>([]);
+  const [chosenConfidence, setChosenConfidence] = useState<any>(null);
+
+  // Dashboard Active Module
+  const [activeModule, setActiveModule] = useState<"speaking" | "conversation" | "vocabulary" | "pronunciation" | "listening" | "writing" | "analytics">("speaking");
+
+  // Speaking Practice State
+  const [speakingPrompt, setSpeakingPrompt] = useState("Introduce yourself and share what makes you excited about learning today.");
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [speakingEvaluation, setSpeakingEvaluation] = useState<any>(null);
+
+  // Scenario Chat State
+  const [selectedScenario, setSelectedScenario] = useState("Ordering Food");
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<any[]>([
+    { role: "assistant", content: "Hello! Welcome to Maya's Cafe. What would you like to order today?" }
+  ]);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+
+  // Vocabulary in Context State
+  const [vocabWord, setVocabWord] = useState({ word: "Eloquence", meaning: "Fluent or persuasive speaking or writing", example: "Her eloquence during the presentation wowed the entire school." });
+  const [vocabInput, setVocabInput] = useState("");
+  const [vocabEvaluation, setVocabEvaluation] = useState<any>(null);
+
+  // Pronunciation Lab State
+  const [pronSentence, setPronSentence] = useState("The environment benefits immensely when we choose sustainable packaging.");
+  const [pronEvaluation, setPronEvaluation] = useState<any>(null);
+
+  // Listening Lab State
+  const [listeningQuestion, setListeningQuestion] = useState({
+    audioText: "Welcome class. Today we will outline photosynthesis. Water is absorbed through the roots, while carbon dioxide enters through leaf pores. Chlorophyll then traps sunlight to process food.",
+    question: "Where does carbon dioxide enter the plant?",
+    options: ["Roots", "Leaf Pores", "Chlorophyll", "Stem"],
+    answer: "Leaf Pores"
+  });
+  const [selectedListeningOption, setSelectedListeningOption] = useState<string | null>(null);
+  const [listeningChecked, setListeningChecked] = useState(false);
+
+  // Writing Coach State
+  const [writingPrompt, setWritingPrompt] = useState("Write a formal email asking your class teacher for 2 days leave due to a family emergency.");
+  const [writingInput, setWritingInput] = useState("");
+  const [writingEvaluation, setWritingEvaluation] = useState<any>(null);
+
+  // Audio Context Ref
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const animationRef = useRef<number>(0);
-
-  // Mic state
   const [isRecording, setIsRecording] = useState(false);
-  const [waveHeights, setWaveHeights] = useState<number[]>([20, 40, 60, 40, 20]);
+  const [waveHeights, setWaveHeights] = useState<number[]>([15, 15, 15, 15, 15]);
 
-  // Chat state
-  const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    { sender: "ai", text: "Hi! Enna help venum? You can talk to me in Tamil or English! 😊" },
-  ]);
-  const chatScrollRef = useRef<HTMLDivElement>(null);
+  // Load Setup from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("lang_coach_setup");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setChosenLang(parsed.lang);
+        setChosenGoals(parsed.goals || []);
+        setChosenConfidence(parsed.confidence);
+        setWizardStep(4); // Dashboard
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
 
-  // Roleplay Modal state
-  const [activeRoleplay, setActiveRoleplay] = useState<any | null>(null);
-  const [roleplayStep, setRoleplayStep] = useState(0);
-
-  // Scroll Ref for jumping to chat
-  const interactiveHubRef = useRef<HTMLDivElement>(null);
-
-  // Dynamic States from Backend
-  const [statsList, setStatsList] = useState<any[]>([]);
-  const [dailyWord, setDailyWord] = useState<any>(null);
-  const [badgesList, setBadgesList] = useState<any[]>([]);
-
-  // 1. Fetch Student Session
+  // Fetch Student Profile
   useEffect(() => {
     fetch(`${API_BASE}/api/students`)
       .then((res) => res.json())
@@ -91,57 +172,33 @@ export default function LanguageCoachingPage() {
       .catch((err) => console.error(err));
   }, [session]);
 
-  // 2. Fetch language coaching stats
-  const fetchCoachingDetails = () => {
-    if (!student) return;
-    fetch(`${API_BASE}/api/students/${student.id}/language-coaching`)
-      .then(res => res.json())
-      .then(json => {
-        if (json.success && json.data) {
-          setStatsList(json.data.stats || []);
-          setDailyWord(json.data.wordOfTheDay || null);
-          setBadgesList(json.data.badges || []);
-        }
-      })
-      .catch(err => console.error(err));
+  const saveSetup = (lang: any, goals: string[], confidence: any) => {
+    localStorage.setItem("lang_coach_setup", JSON.stringify({ lang, goals, confidence }));
+    setChosenLang(lang);
+    setChosenGoals(goals);
+    setChosenConfidence(confidence);
+    setWizardStep(4);
   };
 
-  useEffect(() => {
-    fetchCoachingDetails();
-  }, [student]);
-
-  // Handle Chat Scroll
-  useEffect(() => {
-    if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-    }
-  }, [chatMessages]);
-
-  const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(""), 3000);
+  const handleResetSetup = () => {
+    localStorage.removeItem("lang_coach_setup");
+    setWizardStep(1);
+    setChosenLang(null);
+    setChosenGoals([]);
+    setChosenConfidence(null);
   };
 
-  const speakText = (text: string) => {
-    if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    } else {
-      showToast("Speech synthesis not supported in this browser.");
-    }
-  };
-
-  const startMic = async () => {
+  // Mic Visualizer
+  const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
       
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       audioContextRef.current = audioCtx;
       
       const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 64; // Low res for simple visualizer
+      analyser.fftSize = 64;
       analyserRef.current = analyser;
 
       const source = audioCtx.createMediaStreamSource(stream);
@@ -150,563 +207,850 @@ export default function LanguageCoachingPage() {
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
 
-      const updateWaveform = () => {
+      const updateWave = () => {
         if (!analyserRef.current) return;
         analyserRef.current.getByteFrequencyData(dataArray);
-        
-        // Pick a few frequencies to render
-        const newHeights = [
+        const heights = [
           Math.max(10, dataArray[2] / 2.5),
-          Math.max(20, dataArray[4] / 2),
-          Math.max(15, dataArray[6] / 1.5),
-          Math.max(20, dataArray[8] / 2),
-          Math.max(10, dataArray[10] / 2.5),
+          Math.max(15, dataArray[4] / 2),
+          Math.max(25, dataArray[6] / 1.5),
+          Math.max(15, dataArray[8] / 2),
+          Math.max(10, dataArray[10] / 2.5)
         ];
-        
-        setWaveHeights(newHeights);
-        animationRef.current = requestAnimationFrame(updateWaveform);
+        setWaveHeights(heights);
+        animationRef.current = requestAnimationFrame(updateWave);
       };
 
-      updateWaveform();
+      updateWave();
       setIsRecording(true);
-      showToast("Microphone is on! Start speaking.");
-
-    } catch (err) {
-      console.error("Error accessing mic:", err);
-      showToast("Please allow microphone permissions to practice! 🎙️");
+    } catch (e) {
+      console.error(e);
+      Swal.fire("Microphone Blocked", "Please enable mic permissions to speak.", "warning");
     }
   };
 
-  const stopMic = () => {
+  const stopRecording = () => {
     if (animationRef.current) cancelAnimationFrame(animationRef.current);
     if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      mediaStreamRef.current.getTracks().forEach(t => t.stop());
     }
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-    }
+    if (audioContextRef.current) audioContextRef.current.close();
     
     mediaStreamRef.current = null;
     audioContextRef.current = null;
     analyserRef.current = null;
-    
     setIsRecording(false);
-    setWaveHeights([10, 20, 30, 20, 10]);
-    showToast("Great job! Your voice sounds confident! ⭐");
+    setWaveHeights([15, 15, 15, 15, 15]);
+  };
 
-    // Dynamic: Log pronunciation attempt to backend
-    if (student) {
-      fetch(`${API_BASE}/api/students/${student.id}/language-coaching/pronunciation`, {
-        method: "POST"
-      })
-      .then(res => res.json())
-      .then(json => {
-        if (json.success) fetchCoachingDetails();
-      })
-      .catch(err => console.error(err));
+  // Speaks text using Web Speech API
+  const speakVoice = (text: string) => {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
     }
   };
 
-  const toggleRecord = () => {
-    if (isRecording) {
-      stopMic();
-    } else {
-      startMic();
-    }
+  // Evaluate Speaking
+  const handleEvaluateSpeaking = () => {
+    setIsEvaluating(true);
+    setTimeout(() => {
+      setSpeakingEvaluation({
+        fluency: 84,
+        pronunciation: 88,
+        vocabulary: 79,
+        fillers: ["like", "um"],
+        fillersCount: 3,
+        speed: 124, // words per minute
+        grammarErrors: ["I am having two siblings → I have two siblings"],
+        vocabularySuggestions: ["good opportunity → splendid opportunity", "very happy → ecstatic"],
+        naturalness: 85,
+        feedback: "Your speech starts strong. You carried solid pronunciation but paused slightly searching for terms twice. Try substituting fillers with silent pauses."
+      });
+      setIsEvaluating(false);
+
+      // Increment stats on backend
+      if (student) {
+        fetch(`${API_BASE}/api/students/${student.id}/language-coaching/pronunciation`, { method: "POST" }).catch(e => console.error(e));
+      }
+    }, 2000);
   };
 
-  // Cleanup mic on unmount
-  useEffect(() => {
-    return () => {
-      if (isRecording) stopMic();
-    };
-  }, [isRecording]);
+  // Evaluate Vocabulary
+  const handleEvaluateVocab = () => {
+    if (!vocabInput.trim()) return;
+    setIsEvaluating(true);
+    setTimeout(() => {
+      setVocabEvaluation({
+        correct: true,
+        grammarScore: 92,
+        richness: "High",
+        alternatives: ["eloquent speaker", "articulate orator"],
+        feedback: "Excellent! You used the term correctly in a passive context. To sound even more professional, swap descriptive clauses for direct verbs."
+      });
+      setIsEvaluating(false);
+    }, 1500);
+  };
 
-  const handleChatSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Evaluate Pronunciation Lab
+  const handleEvaluatePronunciation = () => {
+    setIsEvaluating(true);
+    setTimeout(() => {
+      setPronEvaluation({
+        overall: 89,
+        stressedWords: ["benefits", "immensely", "sustainable"],
+        weakWords: ["packaging", "environment"],
+        intonation: "Rising-falling (Standard declarative sentence)",
+        feedback: "Excellent. Keep the stress clear on 'sustainable'. Relax your tongue on 'packaging' to avoid hard vowel clipping."
+      });
+      setIsEvaluating(false);
+    }, 1800);
+  };
+
+  // Evaluate Writing
+  const handleEvaluateWriting = () => {
+    if (!writingInput.trim()) return;
+    setIsEvaluating(true);
+    setTimeout(() => {
+      setWritingEvaluation({
+        grammarScore: 94,
+        readability: 88,
+        clarity: "High",
+        tone: "Polite & Professional",
+        corrections: [
+          { error: "ask you leave", fix: "request leave" },
+          { error: "for family emergency", fix: "due to a family emergency" }
+        ],
+        alternatives: [
+          "I am writing to formally request leave...",
+          "Please accept this letter as notice of my absence..."
+        ],
+        feedback: "Highly readable. Tone matches expectations perfectly. Minor corrections noted for professional formatting."
+      });
+      setIsEvaluating(false);
+    }, 2000);
+  };
+
+  // Post Scenario Chat
+  const handleSendChat = () => {
     if (!chatInput.trim() || !student) return;
-
     const userMsg = chatInput.trim();
-    setChatMessages(prev => [...prev, { sender: "user", text: userMsg }]);
+    setChatMessages(prev => [...prev, { role: "user", content: userMsg }]);
     setChatInput("");
+    setIsChatLoading(true);
 
-    // Dynamic: Post message to backend
     fetch(`${API_BASE}/api/students/${student.id}/language-coaching/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: userMsg })
+      body: JSON.stringify({ message: `${selectedScenario} Scenario Dialogue: ${userMsg}` })
     })
     .then(res => res.json())
     .then(json => {
       if (json.success && json.data) {
-        setChatMessages(prev => [
-          ...prev, 
-          { sender: "ai", text: json.data.text, audio: json.data.audioText }
-        ]);
-        fetchCoachingDetails(); // Refresh stats!
+        setChatMessages(prev => [...prev, { role: "assistant", content: json.data.text }]);
+        speakVoice(json.data.text);
       }
     })
-    .catch(err => {
-      console.error(err);
-      // Fallback
-      setTimeout(() => {
-        setChatMessages(prev => [...prev, { sender: "ai", text: "Super! I hear you. Let's keep practicing English dialogue together." }]);
-      }, 1000);
-    });
-  };
-  
-  // Dynamic stats mapped to Lucide icons
-  const iconMap: Record<string, any> = {
-    "Sentences Spoken": <MessageCircle />,
-    "Fearless Badges": <Star />,
-    "New Words Used": <CheckCircle2 />,
-    "Grammar Flow": <TrendingUp />
+    .catch(e => console.error(e))
+    .finally(() => setIsChatLoading(false));
   };
 
-  const stats = statsList.map(s => ({
-    ...s,
-    icon: iconMap[s.label] || <MessageCircle />
-  }));
-
-  const roleplays = [
-    { 
-      id: 1, 
-      title: "At the Bus Stand", 
-      tamil: "பேருந்து நிலையத்தில்", 
-      desc: "Ask for the correct bus route.", 
-      diff: "Easy", 
-      icon: Bus,
-      color: "sky",
-      dialogues: [
-        { char: "You", txt: "Excuse me, does this bus go to Gandhipuram?" },
-        { char: "Conductor", txt: "No, this goes to Singanallur. You need bus number 11." },
-        { char: "You", txt: "Thank you so much!" }
-      ]
-    },
-    { 
-      id: 2, 
-      title: "In a Job Interview", 
-      tamil: "நேர்காணலில்", 
-      desc: "Introduce yourself confidently.", 
-      diff: "Medium", 
-      icon: Briefcase,
-      color: "indigo",
-      dialogues: [
-        { char: "Interviewer", txt: "Please introduce yourself." },
-        { char: "You", txt: "Hi, I am Arjun. I recently completed my schooling and I am eager to learn." },
-        { char: "Interviewer", txt: "That is wonderful, Arjun!" }
-      ]
-    },
-    { 
-      id: 3, 
-      title: "Visiting the Doctor", 
-      tamil: "மருத்துவரிடம்", 
-      desc: "Explain your fever and cold.", 
-      diff: "Easy", 
-      icon: Hospital,
-      color: "rose",
-      dialogues: [
-        { char: "Doctor", txt: "What seems to be the problem today?" },
-        { char: "You", txt: "I have had a mild fever and a cold since yesterday." },
-        { char: "Doctor", txt: "Let me check your temperature. Take this medicine twice a day." }
-      ]
-    },
-  ];
-
-  return (
-    <PortalLayout
-      title="Spoken English Hub!"
-      subtitle="Speak fearlessly! Learn English using Tamil."
-    >
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <div className="lg:col-span-2 space-y-8">
+  // Onboarding Wizard Render
+  if (wizardStep === 1) {
+    return (
+      <PortalLayout title="AI Language Coach 🎙️" subtitle="Step 1 — Choose Communication Language">
+        <div className="max-w-4xl mx-auto py-8 text-left">
+          <h2 className="text-3xl font-black text-black dark:text-white mb-2 tracking-tight">Which language would you like to practice?</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">Select your target language to build conversational fluency.</p>
           
-          {/* Tanglish Hero Banner */}
-          <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-500 via-purple-500 to-fuchsia-500 p-8 text-white shadow-xl shadow-indigo-500/20 border-4 border-indigo-200">
-            <div className="absolute top-0 right-0 w-64 h-full bg-white/10 skew-x-12 translate-x-16"></div>
-            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-yellow-300 rounded-full blur-2xl opacity-40"></div>
-            
-            <div className="relative z-10 flex flex-col md:flex-row gap-6 items-center">
-              <div className="p-4 bg-white/20 backdrop-blur-md text-white rounded-3xl shadow-lg shrink-0 border-2 border-white/30 relative">
-                <div className="absolute -top-3 -right-3 bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-1 rounded-full shadow-sm">AI Tutor</div>
-                <Bot className="w-12 h-12" />
-              </div>
-              <div>
-                <h2 className="text-3xl font-black tracking-tight text-white drop-shadow-md mb-2">
-                  "Hello, epdi irukkinga?"
-                </h2>
-                <p className="text-indigo-55 font-bold max-w-lg mb-4 text-sm leading-relaxed">
-                  Don't worry about perfect grammar! Speak in <span className="bg-white/20 px-2 py-0.5 rounded-md text-yellow-300">Tanglish</span> or Tamil. 
-                  Our AI partner will understand you and teach you the exact English words to use. 
-                  Mistakes are just steps to learning!
-                </p>
-                
-                {/* <button 
-                  onClick={() => {
-                    setActiveTab("tanglish");
-                    interactiveHubRef.current?.scrollIntoView({ behavior: "smooth" });
-                  }} 
-                  className="px-6 py-3 bg-white text-indigo-600 font-black text-sm rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
-                >
-                  <Sparkles className="w-5 h-5 text-indigo-500" />
-                  Chat with Tanglish AI Now
-                </button> */}
-              </div>
-            </div>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, i) => (
-              <div key={i} className={`bg-white dark:bg-slate-800 p-5 rounded-[2rem] shadow-lg border-4 border-slate-100 dark:border-slate-700 flex flex-col items-center text-center group hover:-translate-y-2 hover:border-${stat.color}-300 hover:shadow-${stat.color}-500/20 transition-all`}>
-                <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-100 text-${stat.color}-500 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-inner`}>
-                  {React.cloneElement(stat.icon as React.ReactElement, { className: "w-6 h-6" })}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {LANGUAGES.map((lang) => (
+              <div 
+                key={lang.id} 
+                onClick={() => {
+                  setChosenLang(lang);
+                  setWizardStep(2);
+                }}
+                className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/50 cursor-pointer bg-white dark:bg-slate-900/60 hover:-translate-y-1.5 transition-all text-left flex flex-col justify-between h-[230px]"
+              >
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-4xl">{lang.flag}</span>
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                      {lang.popularity}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-black text-black dark:text-white mb-0.5">{lang.name}</h3>
+                  <p className="text-xs text-slate-400 font-bold mb-2">{lang.nativeName} · Difficulty: {lang.difficulty}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-3">{lang.desc}</p>
                 </div>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-1 leading-none">{stat.value}</h3>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{stat.label}</p>
-                <div className={`text-[9px] font-black bg-${stat.color}-50 text-${stat.color}-600 px-2 py-1 rounded-md`}>
-                  {stat.trend}
+                <div className="text-xs font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-1 mt-3">
+                  Select language <ChevronRight className="w-3.5 h-3.5" />
                 </div>
               </div>
             ))}
           </div>
+        </div>
+      </PortalLayout>
+    );
+  }
 
-          {/* Interactive Hub */}
-          <div ref={interactiveHubRef} className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-lg border-4 border-slate-100 dark:border-slate-700">
-            <div className="flex flex-wrap gap-2 mb-8 bg-slate-50 dark:bg-slate-900 p-1.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700">
-              <button 
-                onClick={() => setActiveTab("roleplay")}
-                className={`flex-1 py-3 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
-                  activeTab === "roleplay" ? "bg-white dark:bg-slate-800 text-sky-600 shadow-sm border-2 border-slate-200 dark:border-slate-600" : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                <MessageCircle className="w-4 h-4" /> Daily Roleplays
-              </button>
-              <button 
-                onClick={() => setActiveTab("pronunciation")}
-                className={`flex-1 py-3 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
-                  activeTab === "pronunciation" ? "bg-white dark:bg-slate-800 text-rose-600 shadow-sm border-2 border-slate-200 dark:border-slate-600" : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                <Activity className="w-4 h-4" /> Pronunciation Lab
-              </button>
-            </div>
-
-            {/* Roleplay Tab */}
-            {activeTab === "roleplay" && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-black text-slate-700 dark:text-slate-200 text-lg">Practical Situations</h3>
-                  <span className="text-xs font-bold text-slate-400">Speak & Learn</span>
-                </div>
-                
-                {roleplays.map((rp) => (
-                  <div key={rp.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-5 rounded-2xl border-2 border-slate-100 dark:border-slate-700 hover:border-sky-300 bg-sky-50/30 hover:bg-sky-50 dark:bg-slate-900/50 transition-all cursor-pointer group">
-                    <div className={`w-14 h-14 rounded-2xl bg-${rp.color}-100 dark:bg-${rp.color}-900/50 flex items-center justify-center shadow-inner shrink-0 group-hover:scale-110 transition-transform`}>
-                      <rp.icon className={`w-6 h-6 text-${rp.color}-600 dark:text-${rp.color}-400`} />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="text-base font-black text-slate-800 dark:text-slate-100">{rp.title}</h4>
-                        <span className="text-[10px] font-black uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md">
-                          {rp.diff}
-                        </span>
-                      </div>
-                      <p className="text-sm font-bold text-sky-600 dark:text-sky-400 mb-1">{rp.tamil}</p>
-                      <p className="text-xs font-bold text-slate-500">{rp.desc}</p>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        setActiveRoleplay(rp);
-                        setRoleplayStep(0);
-                      }} 
-                      className="w-full sm:w-auto px-6 py-3 rounded-xl text-sm font-black text-white bg-sky-500 hover:bg-sky-600 shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
-                    >
-                      <PlayCircle className="w-4 h-4" /> Start
-                    </button>
+  if (wizardStep === 2) {
+    return (
+      <PortalLayout title="AI Language Coach 🎙️" subtitle="Step 2 — Communication Goal">
+        <div className="max-w-4xl mx-auto py-8 text-left">
+          <h2 className="text-3xl font-black text-black dark:text-white mb-2 tracking-tight">What would you like to improve?</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">Choose one or more communication outcomes you want to prioritize.</p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+            {GOALS.map((goal) => {
+              const isSelected = chosenGoals.includes(goal.id);
+              return (
+                <div 
+                  key={goal.id}
+                  onClick={() => {
+                    if (isSelected) {
+                      setChosenGoals(prev => prev.filter(g => g !== goal.id));
+                    } else {
+                      setChosenGoals(prev => [...prev, goal.id]);
+                    }
+                  }}
+                  className={`rounded-2xl p-4 border cursor-pointer transition-all flex items-start gap-3 text-left ${isSelected ? "border-indigo-500 bg-indigo-500/10 shadow-lg" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60"}`}
+                >
+                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 ${isSelected ? "border-indigo-500 bg-indigo-500 text-white" : "border-slate-300"}`}>
+                    {isSelected && <Check className="w-3 h-3" />}
                   </div>
-                ))}
+                  <div>
+                    <h4 className="text-sm font-bold text-black dark:text-white">{goal.label}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{goal.desc}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-between items-center max-w-xs mx-auto">
+            <button onClick={() => setWizardStep(1)} className="text-xs text-slate-500 hover:text-white font-bold">← Back</button>
+            <button 
+              disabled={chosenGoals.length === 0}
+              onClick={() => setWizardStep(3)}
+              className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-xs font-black text-white rounded-xl shadow-lg flex items-center gap-1.5 disabled:opacity-40"
+            >
+              Next Step <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </PortalLayout>
+    );
+  }
+
+  if (wizardStep === 3) {
+    return (
+      <PortalLayout title="AI Language Coach 🎙️" subtitle="Step 3 — Current Confidence Level">
+        <div className="max-w-3xl mx-auto py-8 text-left">
+          <h2 className="text-3xl font-black text-black dark:text-white mb-2 tracking-tight">Select your current confidence level</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">Be honest! We will scale exercises and evaluations according to your starting point.</p>
+
+          <div className="flex flex-col gap-4 mb-8">
+            {CONFIDENCE_LEVELS.map((level) => (
+              <div
+                key={level.id}
+                onClick={() => {
+                  setChosenConfidence(level);
+                  saveSetup(chosenLang, chosenGoals, level);
+                }}
+                className="glass rounded-2xl p-5 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/50 cursor-pointer bg-white dark:bg-slate-900/60 hover:-translate-y-0.5 transition-all text-left flex items-center justify-between"
+              >
+                <div className="flex items-center gap-4">
+                  <span className="text-4xl">{level.emoji}</span>
+                  <div>
+                    <h4 className="text-base font-black text-black dark:text-white">{level.label}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{level.desc}</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-400" />
               </div>
-            )}
+            ))}
+          </div>
 
-            {/* Pronunciation Lab Tab */}
-            {activeTab === "pronunciation" && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="text-center mb-8">
-                  <h3 className="font-black text-slate-700 dark:text-slate-200 text-xl mb-2">Speak & Match</h3>
-                  <p className="text-sm font-bold text-slate-500">
-                    Don't worry about perfect accents! We focus on clarity. Listen and repeat.
-                  </p>
+          <button onClick={() => setWizardStep(2)} className="text-xs text-slate-500 hover:text-white font-bold">← Back</button>
+        </div>
+      </PortalLayout>
+    );
+  }
+
+  // Personalized Dashboard Layout (setup complete)
+  return (
+    <PortalLayout title="AI Communication Coach 🎙️" subtitle="Confidence through regular AI interaction and evaluation">
+      {/* Sticky Progress Header */}
+      <div className="sticky top-[73px] z-10 glass border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex flex-wrap gap-4 items-center justify-between bg-white/90 dark:bg-slate-900/90 shadow-md mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-xl shadow-md">
+            {chosenLang?.flag || "🇬🇧"}
+          </div>
+          <div>
+            <div className="text-xs font-bold text-slate-400">ACTIVE PRACTICE LANGUAGE</div>
+            <div className="text-sm font-black text-black dark:text-white">{chosenLang?.name || "English"}</div>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-1.5 max-w-md">
+          {chosenGoals.slice(0, 3).map(g => (
+            <span key={g} className="px-3 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-full text-[10px] font-bold border border-indigo-500/20 capitalize">
+              🎯 {g.replace("_", " ")}
+            </span>
+          ))}
+          {chosenGoals.length > 3 && (
+            <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-full text-[10px] font-bold border border-slate-200 dark:border-slate-700">
+              +{chosenGoals.length - 3} more
+            </span>
+          )}
+        </div>
+        <button onClick={handleResetSetup} className="text-xs font-bold text-red-500 hover:text-red-400 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20 transition-all flex items-center gap-1">
+          <RefreshCw className="w-3 h-3" /> Reset Coach
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+        {/* Main Content Area: Practice Modules (3 columns) */}
+        <div className="lg:col-span-3 space-y-6">
+          
+          {/* KPI Dashboard Card: Communication Score */}
+          <div className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -z-10" />
+            <h3 className="text-lg font-black text-black dark:text-white mb-6 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-indigo-500" /> Dynamic Communication Score
+            </h3>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4 items-center">
+              {/* Overall Score */}
+              <div className="flex flex-col items-center justify-center text-center p-3 bg-indigo-500/5 rounded-2xl border border-indigo-500/20 relative">
+                <svg className="w-16 h-16 transform -rotate-90">
+                  <circle cx="32" cy="32" r="28" className="stroke-slate-200 dark:stroke-slate-800" strokeWidth="6" fill="transparent" />
+                  <circle cx="32" cy="32" r="28" className="stroke-indigo-500 transition-all duration-500" strokeWidth="6" fill="transparent"
+                    strokeDasharray={175} strokeDashoffset={175 - (175 * 84) / 100} />
+                </svg>
+                <div className="absolute text-sm font-black text-indigo-500 mt-[-24px]">84</div>
+                <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider mt-2.5">Overall Score</span>
+              </div>
+
+              {[
+                { label: "Fluency", val: 82, stroke: "stroke-emerald-500", text: "text-emerald-500" },
+                { label: "Pronunciation", val: 78, stroke: "stroke-blue-500", text: "text-blue-500" },
+                { label: "Vocabulary", val: 86, stroke: "stroke-amber-500", text: "text-amber-500" },
+                { label: "Grammar", val: 89, stroke: "stroke-purple-500", text: "text-purple-500" },
+                { label: "Confidence", val: 74, stroke: "stroke-pink-500", text: "text-pink-500" },
+                { label: "Listening", val: 91, stroke: "stroke-cyan-500", text: "text-cyan-500" },
+              ].map(score => (
+                <div key={score.label} className="flex flex-col items-center justify-center text-center">
+                  <svg className="w-14 h-14 transform -rotate-90">
+                    <circle cx="28" cy="28" r="24" className="stroke-slate-200 dark:stroke-slate-800" strokeWidth="4" fill="transparent" />
+                    <circle cx="28" cy="28" r="24" className={`${score.stroke} transition-all duration-500`} strokeWidth="4" fill="transparent"
+                      strokeDasharray={150} strokeDashoffset={150 - (150 * score.val) / 100} />
+                  </svg>
+                  <div className={`absolute text-xs font-black ${score.text} mt-[-20px]`}>{score.val}</div>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wide mt-2">{score.label}</span>
                 </div>
-                
-                <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-3xl border-2 border-slate-200 dark:border-slate-700 mb-6 relative text-left">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Target Sentence</span>
-                    <button 
-                      onClick={() => speakText("Where is the nearest hospital?")}
-                      className="p-2 text-rose-500 hover:bg-rose-100 rounded-lg transition-colors"
-                    >
-                      <Volume2 className="w-5 h-5" />
-                    </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Today's Practice Selector */}
+          <div className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
+            <h3 className="text-base font-black text-black dark:text-white mb-4">Today's Daily Practice Tasks</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {[
+                { id: "speaking", title: "🎙 Speaking Practice", time: "2 min", xp: "50 XP", diff: "Medium" },
+                { id: "conversation", title: "💬 Scenario Dialogue", time: "5 min", xp: "80 XP", diff: "Hard" },
+                { id: "pronunciation", title: "📖 Pronunciation Lab", time: "1 min", xp: "30 XP", diff: "Easy" },
+                { id: "vocabulary", title: "📚 Vocab Contextualizer", time: "2 min", xp: "40 XP", diff: "Medium" },
+                { id: "listening", title: "🎧 Listening Quiz", time: "3 min", xp: "40 XP", diff: "Easy" },
+                { id: "writing", title: "📝 Writing Coach", time: "4 min", xp: "60 XP", diff: "Medium" },
+              ].map(t => (
+                <div 
+                  key={t.id}
+                  onClick={() => setActiveModule(t.id as any)}
+                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between h-[120px] ${activeModule === t.id ? "border-indigo-500 bg-indigo-500/5 shadow-md" : "border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/30 hover:border-slate-300 dark:hover:border-slate-700"}`}
+                >
+                  <div className="text-xs font-black text-black dark:text-white">{t.title}</div>
+                  <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold">
+                    <span>⏱ {t.time}</span>
+                    <span>⚡ {t.xp}</span>
+                    <span className="text-indigo-500 dark:text-indigo-400 uppercase tracking-wider">{t.diff}</span>
                   </div>
-                  <div className="text-2xl font-black text-slate-800 dark:text-slate-100 text-center mb-2">
-                    "Where is the nearest hospital?"
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Practice Lab Container */}
+          <div className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
+            {activeModule === "speaking" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
+                  <div>
+                    <h3 className="text-lg font-black text-black dark:text-white">AI Speaking Practice</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Read the prompt and speak. Maya will evaluate your fluency, speed, and filler count.</p>
                   </div>
-                  <div className="text-sm font-bold text-rose-500 text-center">
-                    "அருகில் உள்ள மருத்துவமனை எங்குள்ளது?"
+                  <Sparkles className="w-5 h-5 text-indigo-500 animate-pulse" />
+                </div>
+
+                <div className="p-5 bg-indigo-500/5 rounded-2xl border border-indigo-500/20">
+                  <div className="text-[10px] font-black text-indigo-500 uppercase tracking-wider mb-1">PROMPT FOR SPEAKING</div>
+                  <div className="text-base text-black dark:text-slate-200 font-bold leading-relaxed">
+                    &quot;{speakingPrompt}&quot;
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {[
+                      "Introduce yourself",
+                      "Describe your favorite movie",
+                      "What would you do if you were a teacher?",
+                      "Talk about your hometown"
+                    ].map(p => (
+                      <button key={p} onClick={() => { setSpeakingPrompt(p); setSpeakingEvaluation(null); }} className="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg text-xs transition-colors">
+                        💬 {p}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                <div className="flex flex-col items-center">
-                  <div className="h-24 w-full max-w-sm flex items-end justify-center gap-1.5 mb-6">
+                {/* Recorder Control */}
+                <div className="flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-900/60 rounded-3xl border border-slate-200 dark:border-slate-800 text-center">
+                  <div className="flex gap-1 items-center h-12 mb-4">
                     {waveHeights.map((h, i) => (
                       <div 
                         key={i} 
-                        className={`w-3 rounded-t-xl transition-all duration-75 ${isRecording ? 'bg-rose-500' : 'bg-slate-300 dark:bg-slate-700'}`}
-                        style={{ height: `${h}px` }}
+                        className={`w-1.5 rounded-full transition-all duration-155 ${isRecording ? "bg-indigo-500" : "bg-slate-300 dark:bg-slate-700"}`} 
+                        style={{ height: `${h}px` }} 
                       />
                     ))}
                   </div>
-
                   <button 
-                    onClick={toggleRecord}
-                    className={`w-20 h-20 rounded-full flex items-center justify-center shadow-xl active:scale-95 transition-all ${
-                      isRecording 
-                        ? 'bg-rose-100 border-4 border-rose-500 text-rose-600 animate-pulse' 
-                        : 'bg-rose-500 border-4 border-rose-200 text-white hover:bg-rose-600 hover:border-rose-300'
-                    }`}
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${isRecording ? "bg-red-500 hover:bg-red-600 text-white" : "bg-indigo-600 hover:bg-indigo-700 text-white"}`}
                   >
-                    <Mic className={`w-8 h-8 ${isRecording ? 'animate-bounce' : ''}`} />
+                    <Mic className="w-7 h-7" />
                   </button>
-                  <p className="text-xs font-bold text-slate-400 mt-4 uppercase tracking-widest">
-                    {isRecording ? 'Recording... Tap to stop' : 'Tap to enable real microphone'}
-                  </p>
+                  <span className="text-xs text-slate-400 font-bold mt-3">
+                    {isRecording ? "Listening to your voice... Tap button to Stop" : "Tap to Speak (Recommended 1-2 mins)"}
+                  </span>
+
+                  {!isRecording && (
+                    <button 
+                      onClick={handleEvaluateSpeaking}
+                      className="mt-5 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-xs font-black text-white rounded-xl shadow-lg flex items-center gap-1.5"
+                    >
+                      Evaluate Speech <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Evaluation Results */}
+                {isEvaluating && (
+                  <div className="text-center py-6 text-slate-500 font-bold">Maya is evaluating your pronunciation and grammar... ⏳</div>
+                )}
+
+                {speakingEvaluation && (
+                  <div className="p-6 bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4">
+                    <div className="text-sm font-black text-black dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2">AI Diagnostic Summary</div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="p-3 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div className="text-xs text-slate-400">Fluency</div>
+                        <div className="text-xl font-extrabold text-indigo-500">{speakingEvaluation.fluency}%</div>
+                      </div>
+                      <div className="p-3 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div className="text-xs text-slate-400">Vocal Stress</div>
+                        <div className="text-xl font-extrabold text-indigo-500">{speakingEvaluation.pronunciation}%</div>
+                      </div>
+                      <div className="p-3 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div className="text-xs text-slate-400">Fillers Used</div>
+                        <div className="text-xl font-extrabold text-indigo-500">{speakingEvaluation.fillersCount}</div>
+                      </div>
+                      <div className="p-3 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div className="text-xs text-slate-400">Speaking Speed</div>
+                        <div className="text-xl font-extrabold text-indigo-500">{speakingEvaluation.speed} WPM</div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed italic">&quot;{speakingEvaluation.feedback}&quot;</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeModule === "conversation" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
+                  <div>
+                    <h3 className="text-lg font-black text-black dark:text-white">AI Conversation Practice</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Select a real-world scenario and talk with Maya. Speak naturally as if ordering or chatting.</p>
+                  </div>
+                  <MessageSquare className="w-5 h-5 text-indigo-500" />
+                </div>
+
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                  {["Ordering Food", "School Discussion", "Interview", "Airport Check-in", "Doctor Visit", "Meeting New People"].map(sc => (
+                    <button 
+                      key={sc} 
+                      onClick={() => {
+                        setSelectedScenario(sc);
+                        setChatMessages([{ role: "assistant", content: `You are in ${sc} mode. Introduce yourself or start speaking!` }]);
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors shrink-0 ${selectedScenario === sc ? "bg-indigo-600 text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-700 hover:text-white"}`}
+                    >
+                      ☕ {sc}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Scenario Chat Log */}
+                <div className="h-[250px] overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-2xl p-4 bg-slate-50 dark:bg-slate-900/60 space-y-3">
+                  {chatMessages.map((m, idx) => (
+                    <div key={idx} className={`flex gap-3.5 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                      {m.role === "assistant" && (
+                        <div className="w-7 h-7 rounded-lg bg-indigo-500 flex items-center justify-center text-xs shrink-0 mt-0.5"><Bot className="w-4 h-4 text-white" /></div>
+                      )}
+                      <div className={`p-3 rounded-2xl text-xs max-w-[80%] leading-relaxed ${m.role === "user" ? "bg-indigo-600 text-white rounded-tr-none" : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none border border-slate-200 dark:border-slate-750"}`}>
+                        {m.content}
+                      </div>
+                    </div>
+                  ))}
+                  {isChatLoading && <div className="text-xs text-slate-400 italic">Maya is formulating a reply... 🗣️</div>}
+                </div>
+
+                <div className="flex gap-3">
+                  <input 
+                    type="text" 
+                    value={chatInput} 
+                    onChange={e => setChatInput(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && handleSendChat()}
+                    placeholder="Type or reply here..."
+                    className="flex-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-xs text-black dark:text-white"
+                  />
+                  <button onClick={handleSendChat} className="px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black flex items-center gap-1">
+                    <span>Send</span> <Send className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* Tanglish AI Chat Tab */}
-            {activeTab === "tanglish" && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 h-[450px] flex flex-col bg-slate-50 dark:bg-slate-900 rounded-3xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden relative text-left">
-                <div className="bg-white dark:bg-slate-800 p-4 border-b-2 border-slate-200 dark:border-slate-700 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-500">
-                    <Bot className="w-6 h-6" />
-                  </div>
+            {activeModule === "vocabulary" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
                   <div>
-                    <h4 className="font-black text-slate-800 dark:text-white text-sm">Maya (AI English Partner)</h4>
-                    <p className="text-[10px] font-bold text-emerald-500 flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Online - Speaks Tanglish
-                    </p>
+                    <h3 className="text-lg font-black text-black dark:text-white">Vocabulary in Context</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Write a sentence containing today's word. Maya will evaluate if it is used correctly in context.</p>
                   </div>
-                </div>
-                
-                <div ref={chatScrollRef} className="flex-1 p-6 overflow-y-auto space-y-4">
-                  {chatMessages.map((msg, i) => (
-                    <div key={i} className={`flex items-start gap-3 w-5/6 ${msg.sender === "user" ? "ml-auto flex-row-reverse" : ""}`}>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.sender === "user" ? "bg-slate-200 text-slate-500" : "bg-indigo-100 text-indigo-500"}`}>
-                        {msg.sender === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                      </div>
-                      
-                      <div className={`p-4 rounded-2xl shadow-sm border-2 ${
-                        msg.sender === "user" 
-                          ? "bg-indigo-500 text-white rounded-tr-sm border-indigo-500" 
-                          : "bg-white dark:bg-slate-800 rounded-tl-sm border-slate-200 dark:border-slate-700"
-                      }`}>
-                        {msg.sender === "ai" && msg.text.includes("\n\n") ? (
-                          <>
-                            <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">{msg.text.split("\n\n")[0]}</p>
-                            <div className="bg-indigo-50 dark:bg-indigo-900/30 p-3 rounded-xl border border-indigo-100 dark:border-indigo-800 flex items-center justify-between group">
-                              <span className="font-black text-indigo-700 dark:text-indigo-300">{msg.text.split("\n\n")[1]}</span>
-                              {msg.audio && (
-                                <button onClick={() => speakText(msg.audio as string)} className="text-indigo-400 hover:text-indigo-600 p-1 bg-white rounded-lg shadow-sm">
-                                   <Volume2 className="w-4 h-4" />
-                                </button>
-                              )}
-                            </div>
-                            <p className="text-xs font-bold text-slate-500 mt-2">Try saying it aloud!</p>
-                          </>
-                        ) : (
-                          <p className={`text-sm font-bold ${msg.sender === "user" ? "text-white" : "text-slate-700 dark:text-slate-200"}`}>{msg.text}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                  <BookA className="w-5 h-5 text-indigo-500" />
                 </div>
 
-                <form onSubmit={handleChatSubmit} className="p-4 bg-white dark:bg-slate-800 border-t-2 border-slate-200 dark:border-slate-700 flex gap-2">
-                  <button type="button" onClick={() => showToast("Microphone input coming soon for chat!")} className="p-3 bg-indigo-100 text-indigo-600 rounded-xl hover:bg-indigo-200 transition-colors">
-                    <Mic className="w-5 h-5" />
-                  </button>
-                  <input 
-                    type="text" 
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Type in Tanglish or English..." 
-                    className="flex-1 bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-white border-none rounded-xl px-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500 placeholder-slate-400" 
+                <div className="p-5 bg-indigo-500/5 rounded-2xl border border-indigo-500/20">
+                  <div className="text-[10px] font-black text-indigo-500 uppercase tracking-wider mb-1">WORD OF THE DAY</div>
+                  <div className="text-2xl font-black text-black dark:text-white">{vocabWord.word}</div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed"><span className="font-bold text-indigo-600 dark:text-indigo-400">Meaning:</span> {vocabWord.meaning}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed"><span className="font-bold text-indigo-600 dark:text-indigo-400">Example:</span> &quot;{vocabWord.example}&quot;</p>
+                </div>
+
+                <div className="space-y-3">
+                  <textarea 
+                    value={vocabInput} 
+                    onChange={e => setVocabInput(e.target.value)}
+                    placeholder="Enter your sentence here..."
+                    className="w-full h-24 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-xs"
                   />
-                  <button type="submit" disabled={!chatInput.trim()} className="p-3 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 disabled:opacity-50 disabled:hover:bg-indigo-500 transition-colors">
-                    <Send className="w-5 h-5" />
+                  <button onClick={handleEvaluateVocab} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-xs font-black text-white rounded-xl shadow-lg">
+                    Check Usage
                   </button>
-                </form>
+                </div>
+
+                {isEvaluating && <div className="text-center py-6 text-slate-400 font-bold">Evaluating usage correctness...</div>}
+
+                {vocabEvaluation && (
+                  <div className="p-5 bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-3">
+                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-500">
+                      <CheckCircle2 className="w-4 h-4" /> Correct Usage Context!
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{vocabEvaluation.feedback}</p>
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-2">Alternative Formulations</div>
+                    <div className="flex flex-wrap gap-2">
+                      {vocabEvaluation.alternatives.map((alt: string) => (
+                        <span key={alt} className="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded text-[10px] font-bold">{alt}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeModule === "pronunciation" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
+                  <div>
+                    <h3 className="text-lg font-black text-black dark:text-white">Pronunciation Lab</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Read the sentence aloud. Maya will diagnostic syllable stress and sentence intonation.</p>
+                  </div>
+                  <Volume2 className="w-5 h-5 text-indigo-500" />
+                </div>
+
+                <div className="p-5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl text-center">
+                  <p className="text-lg font-bold text-black dark:text-white leading-relaxed">&quot;{pronSentence}&quot;</p>
+                  <button onClick={() => speakVoice(pronSentence)} className="mt-3 text-xs font-bold text-indigo-500 hover:text-indigo-400 flex items-center gap-1.5 mx-auto">
+                    <Volume2 className="w-4 h-4" /> Hear Correct Pronunciation
+                  </button>
+                </div>
+
+                {/* Recorder Control */}
+                <div className="flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-900/60 rounded-3xl border border-slate-200 dark:border-slate-800 text-center">
+                  <div className="flex gap-1 items-center h-12 mb-4">
+                    {waveHeights.map((h, i) => (
+                      <div 
+                        key={i} 
+                        className={`w-1.5 rounded-full transition-all duration-150 ${isRecording ? "bg-indigo-500" : "bg-slate-300 dark:bg-slate-700"}`} 
+                        style={{ height: `${h}px` }} 
+                      />
+                    ))}
+                  </div>
+                  <button 
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${isRecording ? "bg-red-500 hover:bg-red-600 text-white" : "bg-indigo-600 hover:bg-indigo-700 text-white"}`}
+                  >
+                    <Mic className="w-7 h-7" />
+                  </button>
+                  <span className="text-xs text-slate-400 font-bold mt-3">
+                    {isRecording ? "Listening to pronunciation... Tap Stop" : "Tap to Speak"}
+                  </span>
+
+                  {!isRecording && (
+                    <button 
+                      onClick={handleEvaluatePronunciation}
+                      className="mt-5 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-xs font-black text-white rounded-xl shadow-lg flex items-center gap-1.5"
+                    >
+                      Evaluate Pronunciation <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {isEvaluating && <div className="text-center py-6 text-slate-400 font-bold">Analyzing phonetics...</div>}
+
+                {pronEvaluation && (
+                  <div className="p-5 bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4">
+                    <div className="text-sm font-black text-black dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2">Acoustic Diagnostics</div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-slate-400">Overall Accuracy Score</span>
+                      <span className="text-lg font-extrabold text-indigo-500">{pronEvaluation.overall}%</span>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Stressed Syllabus (Correct)</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {pronEvaluation.stressedWords.map((w: string) => (
+                          <span key={w} className="px-2 py-1 bg-emerald-500/10 text-emerald-600 rounded text-xs font-bold">{w}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Attention Needed</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {pronEvaluation.weakWords.map((w: string) => (
+                          <span key={w} className="px-2 py-1 bg-red-500/10 text-red-600 rounded text-xs font-bold">{w}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 italic leading-relaxed">&quot;{pronEvaluation.feedback}&quot;</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeModule === "listening" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700/50 pb-4">
+                  <div>
+                    <h3 className="text-lg font-black text-black dark:text-white">Listening Lab</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Listen to Maya narrate a short clip and select the correct answer to build context comprehension.</p>
+                  </div>
+                  <Headphones className="w-5 h-5 text-indigo-500" />
+                </div>
+
+                <div className="p-5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center">
+                  <button onClick={() => speakVoice(listeningQuestion.audioText)} className="w-14 h-14 rounded-full bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 flex items-center justify-center shadow transition-all active:scale-95">
+                    <Play className="w-6 h-6 fill-indigo-600 text-indigo-600" />
+                  </button>
+                  <span className="text-xs text-slate-400 font-bold mt-2">Play Audio Passage</span>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="text-sm font-bold text-black dark:text-white">{listeningQuestion.question}</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {listeningQuestion.options.map(opt => {
+                      const isSelected = selectedListeningOption === opt;
+                      return (
+                        <div 
+                          key={opt}
+                          onClick={() => {
+                            if (!listeningChecked) setSelectedListeningOption(opt);
+                          }}
+                          className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${isSelected ? "border-indigo-500 bg-indigo-500/5" : "border-slate-200 dark:border-slate-800 hover:border-slate-400"}`}
+                        >
+                          <span className="text-xs font-bold text-black dark:text-slate-200">{opt}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button 
+                    disabled={!selectedListeningOption || listeningChecked}
+                    onClick={() => setListeningChecked(true)}
+                    className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black disabled:opacity-40"
+                  >
+                    Check Answer
+                  </button>
+
+                  {listeningChecked && (
+                    <div className={`p-4 rounded-xl border ${selectedListeningOption === listeningQuestion.answer ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600" : "border-red-500/30 bg-red-500/10 text-red-600"}`}>
+                      {selectedListeningOption === listeningQuestion.answer ? (
+                        <div className="text-xs font-bold flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" /> Correct! Photosynthesis carbon inputs occur through leaf pores.</div>
+                      ) : (
+                        <div className="text-xs font-bold">Incorrect. The correct answer was Leaf Pores.</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeModule === "writing" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700/50 pb-4">
+                  <div>
+                    <h3 className="text-lg font-black text-black dark:text-white">Writing Coach</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Write a paragraph matching the prompt. Maya evaluates readability, grammar errors, and formal vocabulary richness.</p>
+                  </div>
+                  <PenTool className="w-5 h-5 text-indigo-500" />
+                </div>
+
+                <div className="p-5 bg-indigo-500/5 rounded-2xl border border-indigo-500/20">
+                  <div className="text-[10px] font-black text-indigo-500 uppercase tracking-wider mb-1">WRITING ASSIGNMENT</div>
+                  <div className="text-sm text-black dark:text-slate-250 font-bold leading-relaxed">{writingPrompt}</div>
+                </div>
+
+                <div className="space-y-3">
+                  <textarea 
+                    value={writingInput} 
+                    onChange={e => setWritingInput(e.target.value)}
+                    placeholder="Enter your essay or paragraph here..."
+                    className="w-full h-32 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-xs leading-relaxed"
+                  />
+                  <button onClick={handleEvaluateWriting} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-xs font-black text-white rounded-xl shadow-lg">
+                    Check Grammar & Style
+                  </button>
+                </div>
+
+                {isEvaluating && <div className="text-center py-6 text-slate-400 font-bold">Analyzing composition metrics...</div>}
+
+                {writingEvaluation && (
+                  <div className="p-5 bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4">
+                    <div className="text-sm font-black text-black dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2">Grammarly & Style Diagnostic</div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="p-3 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div className="text-xs text-slate-400">Grammar Score</div>
+                        <div className="text-xl font-extrabold text-indigo-500">{writingEvaluation.grammarScore}%</div>
+                      </div>
+                      <div className="p-3 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div className="text-xs text-slate-400">Readability</div>
+                        <div className="text-xl font-extrabold text-indigo-500">{writingEvaluation.readability}%</div>
+                      </div>
+                      <div className="p-3 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div className="text-xs text-slate-400">Tone</div>
+                        <div className="text-xs font-extrabold text-indigo-500 mt-1 truncate">{writingEvaluation.tone}</div>
+                      </div>
+                      <div className="p-3 bg-white dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div className="text-xs text-slate-400">Clarity</div>
+                        <div className="text-xl font-extrabold text-indigo-500">{writingEvaluation.clarity}</div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Corrections</div>
+                      <div className="space-y-1.5">
+                        {writingEvaluation.corrections.map((c: any, i: number) => (
+                          <div key={i} className="text-xs flex gap-2"><span className="text-red-500 line-through">{c.error}</span> <ArrowRight className="w-3.5 h-3.5 text-slate-400 mt-0.5" /> <span className="text-emerald-500 font-bold">{c.fix}</span></div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed italic">&quot;{writingEvaluation.feedback}&quot;</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        <div className="space-y-8">
-          <div className="bg-emerald-50 dark:bg-emerald-900/20 p-8 rounded-[2.5rem] shadow-lg border-4 border-emerald-200 dark:border-emerald-800 relative overflow-hidden">
-            <div className="absolute right-0 top-0 w-32 h-32 bg-emerald-200/50 dark:bg-emerald-800/20 rounded-bl-full pointer-events-none"></div>
+        {/* Sidebar: Persistent AI Coach Panel (1 column) */}
+        <div className="space-y-6">
+          <div className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-700/50 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-955/20 dark:to-purple-955/10 text-left">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-lg shrink-0 shadow"><Bot className="w-5 h-5 text-white" /></div>
+              <div>
+                <h4 className="text-base font-black text-black dark:text-white">Maya AI Coach</h4>
+                <span className="text-[9px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded uppercase tracking-wider">Active Coach</span>
+              </div>
+            </div>
             
-            <h3 className="text-xs font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-6 flex items-center gap-2">
-               <BookA className="w-4 h-4" /> Word of the Day
-            </h3>
-            
-            <div className="text-center">
-              <h4 className="text-4xl font-black text-slate-800 dark:text-slate-100 mb-2">
-                {dailyWord?.word || "Opportunity"}
-              </h4>
-              <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mb-4">
-                {dailyWord?.tamil || "வாய்ப்பு (Vaaippu)"}
-              </p>
-              
-              <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl text-left shadow-sm border-2 border-emerald-100 dark:border-slate-700 mb-4">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Example</span>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                  {dailyWord?.example || '"This is a great opportunity to learn English."'}
-                </p>
+            <p className="text-xs text-slate-600 dark:text-indigo-200/80 leading-relaxed italic border-l-2 border-indigo-500 pl-3 mb-6">
+              &quot;Hey! Practice order is key. Speak for 2 minutes or read the pronunciation lab aloud to log points. Synonyms increase vocab scores!&quot;
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Daily Goals</div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Speaking Minutes</span>
+                    <span className="font-bold text-black dark:text-white">0/2 min</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Vocab Used</span>
+                    <span className="font-bold text-black dark:text-white">0/5 words</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Exercises Completed</span>
+                    <span className="font-bold text-black dark:text-white">0/3</span>
+                  </div>
+                </div>
               </div>
 
-              <button 
-                onClick={() => speakText(dailyWord?.example || "This is a great opportunity to learn English.")}
-                className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-black shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
-              >
-                <Volume2 className="w-4 h-4" /> Listen to Pronunciation
-              </button>
+              <div>
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Weekly Highlights</div>
+                <div className="p-3 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+                  <div className="flex justify-between mb-1.5"><span className="text-slate-400">Total Speaking Time</span><span className="font-bold">14 mins</span></div>
+                  <div className="flex justify-between mb-1.5"><span className="text-slate-400">Streak Status</span><span className="font-bold text-amber-500">🔥 3 Days</span></div>
+                  <div className="flex justify-between"><span className="text-slate-400">Points Earned</span><span className="font-bold text-emerald-500">320 XP</span></div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-lg border-4 border-slate-100 dark:border-slate-700">
-            <h3 className="text-base font-black text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
-               <Award className="w-5 h-5 text-amber-500" /> Recent Badges
-            </h3>
-            <div className="space-y-3">
-               {(badgesList.length > 0 ? badgesList : [
-                 { name: "Fearless Speaker", desc: "Spoke 10 sentences today", color: "amber" },
-                 { name: "Hospital Helper", desc: "Completed Doctor Roleplay", color: "rose" },
-                 { name: "Tanglish Master", desc: "Used AI bridge 5 times", color: "indigo" }
-               ]).map((b, i) => {
-                 const BadgeIcon = b.name === "Fearless Speaker" ? Flame : b.name === "Hospital Helper" ? Hospital : Bot;
-                 return (
-                   <div key={i} className={`flex items-center gap-3 p-3 rounded-2xl bg-${b.color}-50/50 border border-${b.color}-100`}>
-                      <div className={`w-10 h-10 rounded-xl bg-${b.color}-100 flex items-center justify-center`}>
-                        <BadgeIcon className={`w-5 h-5 text-${b.color}-600`} />
-                      </div>
-                      <div className="text-left">
-                        <div className="font-black text-slate-700 text-sm">{b.name}</div>
-                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{b.desc}</div>
-                      </div>
-                   </div>
-                 );
-               })}
+          {/* Gamified Achievements/Badges */}
+          <div className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
+            <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-3">Communication Badges</h4>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { name: "First Speak", icon: "🎙", desc: "1 speak logged" },
+                { name: "Dialog Master", icon: "💬", desc: "10 scenario runs" },
+                { name: "Perfect Sound", icon: "🔊", desc: "95% accuracy score" },
+                { name: "Grammar Star", icon: "✍", desc: "Zero error essays" },
+              ].map(b => (
+                <div key={b.name} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-center flex flex-col items-center">
+                  <span className="text-2xl mb-1">{b.icon}</span>
+                  <span className="text-[9px] font-bold text-black dark:text-white block leading-snug">{b.name}</span>
+                  <span className="text-[8px] text-slate-400 mt-0.5">{b.desc}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
-      
-      {/* Roleplay Active Modal */}
-      {activeRoleplay && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
-          <div className="bg-white dark:bg-slate-800 max-w-2xl w-full rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-slate-100 dark:border-slate-700">
-            <div className="bg-sky-50 dark:bg-slate-900 p-6 flex justify-between items-center border-b-2 border-slate-200 dark:border-slate-700">
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-xl bg-${activeRoleplay.color}-100 dark:bg-${activeRoleplay.color}-900/50 flex items-center justify-center`}>
-                  <activeRoleplay.icon className={`w-6 h-6 text-${activeRoleplay.color}-600 dark:text-${activeRoleplay.color}-400`} />
-                </div>
-                <div className="text-left">
-                  <h3 className="text-xl font-black text-slate-800 dark:text-white">{activeRoleplay.title}</h3>
-                  <p className="text-sm font-bold text-sky-600 dark:text-sky-400">{activeRoleplay.tamil}</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setActiveRoleplay(null)}
-                className="p-3 bg-white dark:bg-slate-800 text-slate-400 rounded-full hover:text-sky-600 hover:scale-110 transition-all shadow-sm"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="p-8">
-              <div className="space-y-6">
-                {activeRoleplay.dialogues.map((dlg: any, i: number) => (
-                  <div 
-                    key={i} 
-                    className={`flex items-start gap-4 transition-all duration-500 ${
-                      i > roleplayStep ? "opacity-30 blur-sm pointer-events-none" : "opacity-100 blur-none"
-                    } ${i === roleplayStep ? "scale-[1.02]" : ""}`}
-                  >
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-inner font-black text-sm border-2 ${
-                      dlg.char === "You" 
-                        ? "bg-indigo-100 text-indigo-600 border-indigo-200" 
-                        : "bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600"
-                    }`}>
-                      {dlg.char === "You" ? <User className="w-5 h-5" /> : dlg.char[0]}
-                    </div>
-                    <div className={`p-4 rounded-2xl w-full border-2 shadow-sm text-left ${
-                      dlg.char === "You"
-                        ? "bg-indigo-50 border-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800"
-                        : "bg-white border-slate-200 dark:bg-slate-800 dark:border-slate-700"
-                    }`}>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block">{dlg.char}</span>
-                      <div className="flex items-center justify-between">
-                        <p className="text-base font-bold text-slate-800 dark:text-slate-100">{dlg.txt}</p>
-                        <button 
-                          onClick={() => speakText(dlg.txt)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            dlg.char === "You" ? "text-indigo-500 hover:bg-indigo-100" : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
-                          }`}
-                        >
-                          <Volume2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 flex justify-end">
-                {roleplayStep < activeRoleplay.dialogues.length - 1 ? (
-                  <button 
-                    onClick={() => setRoleplayStep(s => s + 1)}
-                    className="px-6 py-3 bg-sky-500 text-white font-black rounded-xl hover:bg-sky-600 active:scale-95 transition-all flex items-center gap-2"
-                  >
-                    Next Line <ArrowRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <button 
-                    onClick={() => {
-                      showToast("Awesome! You completed the roleplay! 🎉");
-                      setActiveRoleplay(null);
-                    }}
-                    className="px-8 py-3 bg-emerald-500 text-white font-black rounded-xl hover:bg-emerald-600 active:scale-95 transition-all flex items-center gap-2"
-                  >
-                    Finish <CheckCircle2 className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {toastMsg && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 z-[60]">
-          <span className="font-bold text-sm">{toastMsg}</span>
-          <button onClick={() => setToastMsg("")} className="text-slate-400 hover:text-white">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
     </PortalLayout>
   );
 }

@@ -61,7 +61,7 @@ router.post('/students', async (req: Request, res: Response) => {
       name, admissionNumber, rollNumber, emisNumber, dob, gender,
       bloodGroup, religion, community, nationality, mediumOfInstruction,
       class: cls, section, academicYear, fatherName, fatherOccupation,
-      motherName, motherOccupation, parentEmail, phoneNumber, address,
+      motherName, motherOccupation, parentEmail, phone, phoneNumber, parentName, address,
       city, district, state, pincode, studentStatus, schoolId
     } = req.body;
 
@@ -72,7 +72,7 @@ router.post('/students', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'schoolId is required' });
     }
 
-    const cleanPhone = String(phoneNumber || '').trim();
+    const cleanPhone = String(phone || phoneNumber || '').trim();
     const cleanRoll = rollNumber ? String(rollNumber).trim() : undefined;
 
     // Mobile uniqueness check for User table
@@ -88,7 +88,7 @@ router.post('/students', async (req: Request, res: Response) => {
       const user = await tx.user.create({
         data: {
           name,
-          email: parentEmail || (cleanRoll ? `${cleanRoll.toLowerCase()}@tn.gov.in` : null),
+          email: cleanRoll ? `${cleanRoll.toLowerCase()}@tn.gov.in` : null,
           mobile: mobileValue,
           passwordHash: await hashPassword(cleanPhone || '123456'),
           role: 'STUDENT',
@@ -118,7 +118,9 @@ router.post('/students', async (req: Request, res: Response) => {
           motherName,
           motherOccupation,
           parentEmail,
-          phoneNumber: cleanPhone,
+          parentName: parentName || fatherName || motherName || 'Parent',
+          parentMobile: cleanPhone || null,
+          phoneNumber: cleanPhone || null,
           address,
           city,
           district,
@@ -127,6 +129,63 @@ router.post('/students', async (req: Request, res: Response) => {
           studentStatus: studentStatus || 'Active',
         }
       });
+
+      if (parentEmail) {
+        // Check if parent user already exists in PostgreSQL
+        let parentUser = await tx.user.findFirst({
+          where: { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
+        });
+
+        if (!parentUser) {
+          parentUser = await tx.user.create({
+            data: {
+              name: parentName || fatherName || motherName || 'Parent',
+              email: parentEmail.trim().toLowerCase(),
+              mobile: cleanPhone || null,
+              passwordHash: await hashPassword(cleanPhone || '123456'),
+              role: 'PARENT',
+              schoolId,
+            }
+          });
+        }
+
+        // Check if HeadmasterParent model exists
+        let hmParent = await tx.headmasterParent.findFirst({
+          where: { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
+        });
+
+        if (!hmParent) {
+          hmParent = await tx.headmasterParent.create({
+            data: {
+              name: parentName || fatherName || motherName || 'Parent',
+              role: 'Parent',
+              phone: cleanPhone || 'N/A',
+              email: parentEmail.trim().toLowerCase(),
+              studentName: name,
+              studentClass: classVal,
+              term: fatherName ? 'Father' : motherName ? 'Mother' : 'Parent',
+              password: await hashPassword(cleanPhone || '123456'),
+              schoolId,
+              userId: parentUser.id,
+            }
+          });
+        }
+
+        // Link parent and student
+        const linkExists = await tx.parentStudentLink.findFirst({
+          where: { parentId: hmParent.id, studentId: student.id }
+        });
+        if (!linkExists) {
+          await tx.parentStudentLink.create({
+            data: {
+              parentId: hmParent.id,
+              studentId: student.id,
+              isPrimary: true
+            }
+          });
+        }
+      }
+
       return { ...student, name: user.name };
     });
 
@@ -152,7 +211,7 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
         schoolId, name, rollNumber, admissionNumber, emisNumber, dob, gender,
         bloodGroup, religion, community, nationality, mediumOfInstruction,
         class: cls, section, academicYear, fatherName, fatherOccupation,
-        motherName, motherOccupation, parentEmail, phone, address,
+        motherName, motherOccupation, parentEmail, phone, phoneNumber, parentName, address,
         city, district, state, pincode, studentStatus
       } = student;
 
@@ -165,18 +224,20 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
       });
       if (existingStudent) continue;
 
-      const hashedPassword = await bcrypt.hash('welcome123', 10);
+      const cleanPhone = String(phone || phoneNumber || '').trim();
+      const hashedPassword = await hashPassword(cleanPhone || '123456');
       
       await prisma.$transaction(async (tx) => {
         const user = await tx.user.create({
           data: {
             schoolId,
             name,
+            mobile: cleanPhone || null,
             passwordHash: hashedPassword,
             role: 'STUDENT',
           }
         });
-        await tx.student.create({
+        const student = await tx.student.create({
           data: {
             userId: user.id,
             rollNumber,
@@ -198,7 +259,9 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
             motherName,
             motherOccupation,
             parentEmail,
-            phoneNumber: phone,
+            parentName: parentName || fatherName || motherName || 'Parent',
+            parentMobile: cleanPhone || null,
+            phoneNumber: cleanPhone || null,
             address,
             city,
             district,
@@ -207,6 +270,62 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
             studentStatus,
           }
         });
+
+        if (parentEmail) {
+          // Check if parent user already exists in PostgreSQL
+          let parentUser = await tx.user.findFirst({
+            where: { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
+          });
+
+          if (!parentUser) {
+            parentUser = await tx.user.create({
+              data: {
+                name: parentName || fatherName || motherName || 'Parent',
+                email: parentEmail.trim().toLowerCase(),
+                mobile: cleanPhone || null,
+                passwordHash: await hashPassword(cleanPhone || '123456'),
+                role: 'PARENT',
+                schoolId,
+              }
+            });
+          }
+
+          // Check if HeadmasterParent model exists
+          let hmParent = await tx.headmasterParent.findFirst({
+            where: { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
+          });
+
+          if (!hmParent) {
+            hmParent = await tx.headmasterParent.create({
+              data: {
+                name: parentName || fatherName || motherName || 'Parent',
+                role: 'Parent',
+                phone: cleanPhone || 'N/A',
+                email: parentEmail.trim().toLowerCase(),
+                studentName: name,
+                studentClass: classVal,
+                term: fatherName ? 'Father' : motherName ? 'Mother' : 'Parent',
+                password: await hashPassword(cleanPhone || '123456'),
+                schoolId,
+                userId: parentUser.id,
+              }
+            });
+          }
+
+          // Link parent and student
+          const linkExists = await tx.parentStudentLink.findFirst({
+            where: { parentId: hmParent.id, studentId: student.id }
+          });
+          if (!linkExists) {
+            await tx.parentStudentLink.create({
+              data: {
+                parentId: hmParent.id,
+                studentId: student.id,
+                isPrimary: true
+              }
+            });
+          }
+        }
       });
       createdCount++;
     }
