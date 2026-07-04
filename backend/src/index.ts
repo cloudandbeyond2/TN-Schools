@@ -125,8 +125,12 @@ app.use(express.urlencoded({ limit: '150mb', extended: true }));
 
 // Serve uploaded files statically
 const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (error) {
+  console.warn('[Warning] Could not create uploads directory (likely running in a read-only environment like Vercel).');
 }
 app.use('/uploads', express.static(uploadsDir));
 
