@@ -7,6 +7,7 @@ import * as XLSX from "xlsx";
 import { Activity, Eye, Stethoscope, FileText, PlusCircle, HeartPulse, X, GraduationCap, User, Ruler, Weight, Droplet, Target, Ear, ShieldCheck, Download, Calendar, ClipboardList, Smile, Clock, Trash2 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import Swal from "sweetalert2";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -171,7 +172,18 @@ export default function StudentsMonitoringPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<WatchlistStudent | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Pagination & Bulk Delete state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   // Health report state
   const [healthReports, setHealthReports] = useState<Record<string, any>>({});
@@ -494,26 +506,40 @@ export default function StudentsMonitoringPage() {
       showToast("⚠️ No valid students to import.", "error");
       return;
     }
+    
     setIsSaving(true);
+    setImportProgress(0);
+    const chunkSize = 25;
+    let totalCreated = 0;
+
     try {
-      const res = await fetch(`${API_BASE}/api/headmaster/students/bulk`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ students: validStudents }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        showToast(`🎉 Successfully saved ${json.created} students to database!`);
-        setPreviewStudents([]);
-        setIsModalOpen(false);
-        fetchWatchlist();
-      } else {
-        showToast(`❌ Import failed: ${json.error}`, "error");
+      for (let i = 0; i < validStudents.length; i += chunkSize) {
+        const chunk = validStudents.slice(i, i + chunkSize);
+        const res = await fetch(`${API_BASE}/api/headmaster/students/bulk`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ students: chunk }),
+        });
+        const json = await res.json();
+        
+        if (!json.success) {
+          throw new Error(json.error || "Import failed");
+        }
+        
+        totalCreated += (json.created || 0);
+        setImportProgress(Math.min(100, Math.round(((i + chunk.length) / validStudents.length) * 100)));
       }
-    } catch {
-      showToast("🔴 Server offline — could not save to database.", "error");
+      
+      showToast(`🎉 Successfully saved ${totalCreated} students to database!`);
+      setPreviewStudents([]);
+      setIsModalOpen(false);
+      fetchWatchlist();
+      
+    } catch (err: any) {
+      showToast(`❌ Import failed: ${err.message || 'Server error'}`, "error");
     } finally {
       setIsSaving(false);
+      setImportProgress(0);
     }
   };
 
@@ -609,6 +635,101 @@ export default function StudentsMonitoringPage() {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedStudentIds.length === 0) return;
+    
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: `You are about to delete ${selectedStudentIds.length} students. This action cannot be undone!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#e2e8f0',
+      confirmButtonText: 'Yes, delete them!',
+      cancelButtonText: '<span style="color: #475569; font-weight: bold;">Cancel</span>',
+      background: '#ffffff',
+      color: '#1e293b',
+      customClass: {
+        popup: 'rounded-2xl shadow-xl border border-slate-100',
+        confirmButton: 'rounded-xl font-bold px-6 py-2.5',
+        cancelButton: 'rounded-xl font-bold px-6 py-2.5 ml-3'
+      }
+    });
+
+    if (!result.isConfirmed) return;
+    
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/headmaster/students/bulk-delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentIds: selectedStudentIds })
+      });
+      const json = await res.json();
+      
+      if (json.success) {
+        setWatchlist((prev) => prev.filter((s) => !s.id || !selectedStudentIds.includes(s.id)));
+        setSelectedStudentIds([]);
+        showToast("🗑️ Selected students deleted successfully.");
+        
+        // Check if we need to adjust currentPage
+        const remainingItems = watchlist.length - selectedStudentIds.length;
+        const newTotalPages = Math.max(1, Math.ceil(remainingItems / itemsPerPage));
+        if (currentPage > newTotalPages) setCurrentPage(newTotalPages);
+      } else {
+        showToast(`❌ Could not delete: ${json.error || "Server error"}`, "error");
+      }
+      
+    } catch {
+      showToast("🔴 Could not delete some students.", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredWatchlist = watchlist.filter(s => 
+    s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    s.rollNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (s.parentName && s.parentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (s.phone && s.phone.includes(searchTerm))
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filteredWatchlist.length / itemsPerPage));
+  const currentWatchlist = filteredWatchlist.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const getPaginationPages = () => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (currentPage <= 4) {
+      return [1, 2, 3, 4, 5, '...', totalPages];
+    }
+    if (currentPage >= totalPages - 3) {
+      return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+  };
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      const allIds = filteredWatchlist.filter(s => s.id).map(s => s.id as string);
+      setSelectedStudentIds(prev => Array.from(new Set([...prev, ...allIds])));
+    } else {
+      const allIds = filteredWatchlist.filter(s => s.id).map(s => s.id as string);
+      setSelectedStudentIds(prev => prev.filter(id => !allIds.includes(id)));
+    }
+  };
+
+  const handleSelectStudent = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedStudentIds(prev => [...prev, id]);
+    } else {
+      setSelectedStudentIds(prev => prev.filter(selectedId => selectedId !== id));
+    }
+  };
+
+  const isAllCurrentPageSelected = filteredWatchlist.length > 0 && filteredWatchlist.every(s => s.id && selectedStudentIds.includes(s.id));
+
   const highRiskCount = watchlist.filter((s) => s.risk === "High").length;
   const mediumRiskCount = watchlist.filter((s) => s.risk === "Medium").length;
 
@@ -667,12 +788,34 @@ export default function StudentsMonitoringPage() {
         <div className="lg:col-span-2 glass rounded-2xl p-6 border border-slate-800">
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-base font-semibold text-white">🏫 Student Watchlist Overview</h2>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md"
-            >
-              + Add Student / Roster
-            </button>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search students..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="px-3 py-2 pl-9 bg-slate-800/50 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 sm:w-64 transition-all"
+                />
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </div>
+              </div>
+              {selectedStudentIds.length > 0 && (
+                <button
+                  onClick={handleBulkDelete}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" /> Delete Selected ({selectedStudentIds.length})
+                </button>
+              )}
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md"
+              >
+                + Add Student / Roster
+              </button>
+            </div>
           </div>
           {watchlist.length === 0 && !isLoading ? (
             <div className="text-center py-16 text-slate-500 text-xs">
@@ -685,6 +828,14 @@ export default function StudentsMonitoringPage() {
               <table className="data-table">
                 <thead>
                   <tr>
+                    <th className="w-10">
+                      <input 
+                        type="checkbox" 
+                        checked={isAllCurrentPageSelected}
+                        onChange={handleSelectAll}
+                        className="rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-blue-500/30"
+                      />
+                    </th>
                     <th>Student Name</th>
                     <th>Roll No / Class</th>
                     <th>Parent Name</th>
@@ -695,8 +846,18 @@ export default function StudentsMonitoringPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {watchlist.map((s) => (
+                  {currentWatchlist.map((s) => (
                     <tr key={s.id || s.rollNumber}>
+                      <td>
+                        {s.id && (
+                          <input 
+                            type="checkbox" 
+                            checked={selectedStudentIds.includes(s.id)}
+                            onChange={(e) => handleSelectStudent(s.id as string, e.target.checked)}
+                            className="rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-blue-500/30"
+                          />
+                        )}
+                      </td>
                       <td className="font-medium text-white">{s.name}</td>
                       <td>
                         <div className="text-xs text-slate-300">{s.rollNumber}</div>
@@ -750,6 +911,46 @@ export default function StudentsMonitoringPage() {
                   ))}
                 </tbody>
               </table>
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center mt-4 px-2">
+                  <span className="text-xs text-slate-400">
+                    Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredWatchlist.length)} of {filteredWatchlist.length} entries
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white disabled:opacity-50 hover:bg-slate-700 transition-colors"
+                    >
+                      Prev
+                    </button>
+                    {getPaginationPages().map((page, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => typeof page === 'number' && setCurrentPage(page)}
+                        disabled={page === '...'}
+                        className={`w-8 h-8 rounded-lg text-xs font-medium flex items-center justify-center transition-colors ${
+                          currentPage === page 
+                            ? "bg-blue-600 text-white" 
+                            : page === '...'
+                            ? "bg-transparent text-slate-500 cursor-default"
+                            : "bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white disabled:opacity-50 hover:bg-slate-700 transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -904,13 +1105,21 @@ export default function StudentsMonitoringPage() {
                   <button
                     onClick={handleConfirmImport}
                     disabled={previewStudents.filter((s) => s.isValid).length === 0 || isSaving}
-                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold rounded-xl text-xs transition-colors shadow-md flex items-center justify-center gap-2"
+                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold rounded-xl text-xs transition-colors shadow-md flex items-center justify-center gap-2 relative overflow-hidden"
                   >
-                    {isSaving ? (
-                      <><div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving to DB...</>
-                    ) : (
-                      `💾 Save to Database (${previewStudents.filter((s) => s.isValid).length} Students)`
+                    {isSaving && (
+                      <div 
+                        className="absolute left-0 top-0 bottom-0 bg-black/20 transition-all duration-300 ease-out" 
+                        style={{ width: `${importProgress}%` }}
+                      ></div>
                     )}
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      {isSaving ? (
+                        <><div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving to DB... {importProgress}%</>
+                      ) : (
+                        `💾 Save to Database (${previewStudents.filter((s) => s.isValid).length} Students)`
+                      )}
+                    </span>
                   </button>
                   <button
                     onClick={() => setPreviewStudents([])}
