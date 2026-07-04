@@ -48,6 +48,7 @@ model School {
   headmasterId        String?             @unique
   attendance          Attendance[]
   headmasterProfiles  HeadmasterProfile[]
+  portal              SchoolPortal?
   students            Student[]
   teachers            Teacher[]
   timetables          Timetable[]
@@ -55,6 +56,34 @@ model School {
 
   @@index([beoId])
   @@index([deoId])
+}
+
+model SchoolPortal {
+  id               String               @id @default(uuid())
+  schoolId         String               @unique
+  school           School               @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  tagline          String?              @default("Excellence in Education, Rooted in Values")
+  about            String?              @default("Welcome to our school. We are committed to nurturing every student to reach their full potential.")
+  bannerUrl        String?              @default("/portal/banner-default.jpg")
+  primaryColor     String?              @default("#059669")
+  showStudentLogin Boolean              @default(true)
+  showParentLogin  Boolean              @default(true)
+  isPublished      Boolean              @default(true)
+  gallery          SchoolGalleryImage[]
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+}
+
+model SchoolGalleryImage {
+  id        String       @id @default(uuid())
+  portalId  String
+  portal    SchoolPortal @relation(fields: [portalId], references: [id], onDelete: Cascade)
+  imageUrl  String
+  caption   String?
+  order     Int          @default(0)
+  createdAt DateTime     @default(now())
+
+  @@index([portalId])
 }
 
 model Student {
