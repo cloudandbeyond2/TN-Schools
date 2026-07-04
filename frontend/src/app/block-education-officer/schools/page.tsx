@@ -417,6 +417,14 @@ export default function BlockSchoolsPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
+                        <a
+                          href={`/school/${s.dise}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 rounded-md font-bold text-[10px] transition-all"
+                        >
+                          🌐 Portal
+                        </a>
                         <button
                           onClick={() => handleEditClick(s)}
                           className="px-2.5 py-1 bg-violet-500/10 hover:bg-violet-500/20 text-violet-700 dark:text-violet-450 border border-violet-500/20 rounded-md font-bold text-[10px] transition-all"
