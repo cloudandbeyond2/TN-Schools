@@ -448,7 +448,7 @@ export default function PortalLayout({
           <div className="min-w-0 text-left flex flex-col justify-center">
             <div className="text-sm font-bold text-[var(--text-heading)] truncate">{displayName}</div>
             {classDisplay && <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 truncate mt-0.5">{classDisplay}</div>}
-            <div className="text-[10px] text-[var(--text-muted)] truncate">{displayEmail || (userRole === "TEACHER" ? "Teacher" : "Student")}</div>
+            <div className="text-[10px] text-[var(--text-muted)] truncate capitalize">{userRole.replace(/_/g, " ").toLowerCase()}</div>
           </div>
         </div>
 
