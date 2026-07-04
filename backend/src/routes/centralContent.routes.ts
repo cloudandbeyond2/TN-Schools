@@ -1185,38 +1185,221 @@ router.put('/units/:id/approve', async (req: Request, res: Response) => {
 });
 
 // ===========================================================================
-// PDF Syllabus Upload — extract structure from a textbook PDF via AI
+// PDF Syllabus Upload — extract structure from a textbook PDF via AI and
+// build the SAME syllabus-board design as the seeded units: each unit gets a
+// meaningful title, a Tamil name, a short description, a study tip, and a
+// generated infographic card (so the board never shows "No visual available").
 // ===========================================================================
 
 const PDF_SYLLABUS_SCHEMA = {
   type: 'OBJECT' as const,
   properties: {
-    subjectName: { type: 'STRING' as const, description: 'The subject name detected from the PDF' },
+    language: { type: 'STRING' as const, description: 'The primary language the textbook is written in, e.g. "Tamil", "English".' },
+    subjectName: { type: 'STRING' as const, description: 'The subject name detected from the PDF (e.g. தமிழ், Mathematics, Science).' },
     units: {
       type: 'ARRAY' as const,
       items: {
         type: 'OBJECT' as const,
         properties: {
-          unitNumber: { type: 'INTEGER' as const },
-          name: { type: 'STRING' as const, description: 'Unit/chapter title' },
-          topics: {
+          unitNumber: { type: 'INTEGER' as const, description: 'Sequential unit number starting at 1' },
+          titleTamil: { type: 'STRING' as const, description: 'The unit/chapter heading in Tamil script. For a Tamil book this is the EXACT heading printed in the book (e.g. இயல் theme "தமிழ் இன்பம்"). For an English book, a faithful Tamil translation.' },
+          titleEnglish: { type: 'STRING' as const, description: 'The unit/chapter heading in English. For an English book this is the exact heading; for a Tamil book, an accurate English translation of the Tamil heading.' },
+          description: { type: 'STRING' as const, description: 'A 1-2 sentence student-facing summary of what this unit covers, written in the same language as the textbook.' },
+          tip: { type: 'STRING' as const, description: 'One short, practical study tip for this unit (under 90 characters), in the textbook language.' },
+          emoji: { type: 'STRING' as const, description: 'A single emoji that best represents this unit.' },
+          lessons: {
             type: 'ARRAY' as const,
             items: {
               type: 'OBJECT' as const,
               properties: {
-                topicNumber: { type: 'INTEGER' as const },
-                name: { type: 'STRING' as const, description: 'Topic/subtopic title' }
+                name: { type: 'STRING' as const, description: 'The lesson/section title EXACTLY as printed in the book (original script).' },
+                nameEnglish: { type: 'STRING' as const, description: 'English translation of the lesson title (same as name for an English book).' }
               },
-              required: ['topicNumber', 'name']
-            }
+              required: ['name', 'nameEnglish']
+            },
+            description: 'The lessons/sections inside this unit, in order, exactly as printed in the table of contents.'
           }
         },
-        required: ['unitNumber', 'name', 'topics']
+        required: ['unitNumber', 'titleTamil', 'titleEnglish', 'description', 'tip', 'emoji', 'lessons']
       }
     }
   },
-  required: ['subjectName', 'units']
+  required: ['language', 'subjectName', 'units']
 };
+
+// Call Gemini with a PDF document inline (vision) + a responseSchema. Used to
+// read the real script off the rendered pages, bypassing broken font encodings
+// that garble text extraction (common in TN Tamil textbooks).
+async function callGeminiWithPdf(prompt: string, base64Pdf: string, schema: any): Promise<any> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY is missing. Please add it to backend/.env');
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const payload = {
+    contents: [
+      {
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType: 'application/pdf', data: base64Pdf } }
+        ]
+      }
+    ],
+    generationConfig: {
+      maxOutputTokens: 16384,
+      responseMimeType: 'application/json',
+      responseSchema: schema
+    }
+  };
+
+  return new Promise((resolve, reject) => {
+    const postData = JSON.stringify(payload);
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+      }
+    };
+    const req = https.request(url, options, (resp) => {
+      const chunks: Buffer[] = [];
+      resp.on('data', (chunk) => chunks.push(chunk));
+      resp.on('end', () => {
+        const body = Buffer.concat(chunks).toString('utf8');
+        if (resp.statusCode && (resp.statusCode < 200 || resp.statusCode >= 300)) {
+          reject(new Error(`Gemini API error ${resp.statusCode}: ${body}`));
+          return;
+        }
+        try {
+          const parsed = JSON.parse(body);
+          const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!text) { reject(new Error('Empty content from Gemini.')); return; }
+          resolve(JSON.parse(text));
+        } catch (e) {
+          reject(new Error(`Failed to parse Gemini PDF response: ${String(e)}`));
+        }
+      });
+    });
+    req.on('error', (err) => reject(err));
+    req.setTimeout(120000, () => req.destroy(new Error('Gemini PDF request timed out')));
+    req.write(postData);
+    req.end();
+  });
+}
+
+// Slice the first `maxPages` pages of a PDF into a small sub-PDF (base64) so we
+// can send just the table-of-contents region to Gemini inline (<20MB limit).
+async function slicePdfPages(buffer: Buffer, maxPages: number): Promise<string> {
+  const { PDFDocument } = require('pdf-lib');
+  const src = await PDFDocument.load(buffer, { ignoreEncryption: true });
+  const total = src.getPageCount();
+  const count = Math.min(maxPages, total);
+  const out = await PDFDocument.create();
+  const indices = Array.from({ length: count }, (_, i) => i);
+  const pages = await out.copyPages(src, indices);
+  pages.forEach((p: any) => out.addPage(p));
+  const bytes = await out.save();
+  return Buffer.from(bytes).toString('base64');
+}
+
+// Remove NULL bytes and C0 control chars (keeping tab/newline/CR) — Postgres
+// text columns reject NUL, and stray control chars slip in from AI/PDF output.
+function cleanStr(s: any): string {
+  const str = String(s == null ? '' : s);
+  let out = '';
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    if (c === 9 || c === 10 || c === 13 || (c >= 32 && c !== 127)) out += str[i];
+  }
+  return out.trim();
+}
+
+// Escape text for safe embedding inside SVG/XML.
+function svgEscape(s: string): string {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// Word-wrap a string into at most `maxLines` lines of ~`maxChars` characters.
+function wrapText(text: string, maxChars: number, maxLines: number): string[] {
+  const words = String(text || '').trim().split(/\s+/);
+  const lines: string[] = [];
+  let current = '';
+  for (const word of words) {
+    if ((current + ' ' + word).trim().length <= maxChars) {
+      current = (current + ' ' + word).trim();
+    } else {
+      if (current) lines.push(current);
+      current = word;
+      if (lines.length === maxLines - 1) break;
+    }
+  }
+  if (current && lines.length < maxLines) lines.push(current);
+  // If we truncated, add an ellipsis to the last line.
+  if (lines.length === maxLines) {
+    const consumed = lines.join(' ').split(/\s+/).length;
+    if (consumed < words.length) lines[maxLines - 1] = lines[maxLines - 1].replace(/[.,;]?$/, '…');
+  }
+  return lines;
+}
+
+// Build an infographic SVG card matching the seeded syllabus-board design.
+// primaryTitle is the big heading (original script — Tamil for a Tamil book),
+// secondaryTitle is the italic subtitle (the translation).
+function buildInfographicSVG(opts: {
+  unitNumber: number;
+  primaryTitle: string;
+  secondaryTitle: string;
+  description: string;
+  tip: string;
+  emoji: string;
+  color: string;
+}): string {
+  const { unitNumber, primaryTitle, secondaryTitle, description, tip, emoji, color } = opts;
+  const c = /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#6366f1';
+
+  const descLines = wrapText(description, 38, 3);
+  const descTspans = descLines
+    .map((ln, i) => `<tspan x="24" dy="${i === 0 ? 0 : 15}">${svgEscape(ln)}</tspan>`)
+    .join('');
+
+  const tipLines = wrapText(tip, 44, 2);
+  const tipTspans = tipLines
+    .map((ln, i) => `<tspan x="52" dy="${i === 0 ? 0 : 14}">${svgEscape(i === 0 ? 'Tip: ' + ln : ln)}</tspan>`)
+    .join('');
+
+  const titleText = svgEscape(primaryTitle.length > 28 ? primaryTitle.slice(0, 27) + '…' : primaryTitle);
+  const subText = svgEscape(secondaryTitle.length > 44 ? secondaryTitle.slice(0, 43) + '…' : secondaryTitle);
+
+  return `<svg viewBox="0 0 380 260" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', 'Nirmala UI', 'Latha', Arial, sans-serif">
+  <defs>
+    <linearGradient id="badgeGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${c}"/>
+      <stop offset="100%" stop-color="${c}cc"/>
+    </linearGradient>
+  </defs>
+  <rect x="1.5" y="1.5" width="377" height="257" rx="18" fill="#ffffff" stroke="${c}" stroke-width="2"/>
+  <rect x="1.5" y="1.5" width="377" height="6" rx="3" fill="${c}"/>
+  <circle cx="40" cy="46" r="20" fill="url(#badgeGrad)"/>
+  <text x="40" y="52" font-size="18" font-weight="800" fill="#ffffff" text-anchor="middle">${unitNumber}</text>
+  <rect x="312" y="26" width="44" height="44" rx="12" fill="${c}1a"/>
+  <text x="334" y="55" font-size="24" text-anchor="middle">${svgEscape(emoji || '📘')}</text>
+  <text x="24" y="92" font-size="18" font-weight="800" fill="#0f172a"><tspan x="24" dy="0">${titleText}</tspan></text>
+  <text x="24" y="110" font-size="12" fill="#64748b" font-style="italic">${subText}</text>
+  <text x="24" y="134" font-size="12.5" fill="#334155">${descTspans}</text>
+  <rect x="24" y="190" width="332" height="54" rx="10" fill="${c}12" stroke="${c}33" stroke-width="1"/>
+  <text x="34" y="212" font-size="16">💡</text>
+  <text x="52" y="211" font-size="11" font-weight="600" fill="${c}">${tipTspans}</text>
+</svg>`;
+}
+
+function svgToDataUri(svg: string): string {
+  return `data:image/svg+xml;base64,${Buffer.from(svg, 'utf8').toString('base64')}`;
+}
 
 router.post('/upload-syllabus-pdf', pdfUpload.single('pdf'), async (req: Request, res: Response) => {
   try {
@@ -1230,138 +1413,207 @@ router.post('/upload-syllabus-pdf', pdfUpload.single('pdf'), async (req: Request
       return res.status(400).json({ success: false, error: 'className is required' });
     }
 
-    // 1. Extract text from PDF
-    const pdfParse = require('pdf-parse');
-    const pdfData = await pdfParse(file.buffer);
-    const extractedText = pdfData.text;
+    const promptBase = `You are analyzing a Tamil Nadu State Board school textbook for Class ${className}.
 
-    if (!extractedText || extractedText.trim().length < 50) {
-      return res.status(400).json({ success: false, error: 'Could not extract enough text from the PDF. Make sure the PDF contains selectable text.' });
+Read the table of contents / unit pages and extract the syllabus EXACTLY as printed — do NOT invent, rename, reorder, or translate away the original headings. Preserve the book's own unit and lesson titles in their original script.
+
+For each UNIT (in a Tamil book these are "இயல்"; in others they may be chapters/units):
+- "unitNumber": sequential number starting at 1.
+- "titleTamil" and "titleEnglish": the unit heading in Tamil script AND English. For a Tamil book, titleTamil must be the EXACT printed heading and titleEnglish an accurate translation. For an English book, titleEnglish is the exact heading and titleTamil a translation.
+- "description": 1-2 sentence student-facing summary of the unit, in the textbook's language.
+- "tip": one short study tip (under 90 chars), in the textbook language.
+- "emoji": one relevant emoji.
+- "lessons": every lesson/section under the unit, in order, each with "name" (EXACT original-script title as printed) and "nameEnglish" (translation).
+- Also return top-level "language" (e.g. "Tamil") and "subjectName" (e.g. "தமிழ்").${subjectName ? ` The subject is: ${subjectName}.` : ''}
+
+Skip covers, preface, acknowledgements, anthem, index and glossary — only real academic units/lessons.`;
+
+    let parsed: any = null;
+    let pdfPages = 0;
+
+    // --- Primary path: let Gemini read the PDF pages (accurate for Tamil script) ---
+    try {
+      const base64Pdf = await slicePdfPages(file.buffer, 25);
+      console.log(`[PDF Upload] Sending first pages to Gemini (vision) for Class ${className}...`);
+      parsed = await callGeminiWithPdf(promptBase, base64Pdf, PDF_SYLLABUS_SCHEMA);
+    } catch (visionErr: any) {
+      console.warn('[PDF Upload] PDF-vision path failed, will fall back to text:', visionErr.message);
     }
 
-    const textForAI = extractedText.substring(0, 30000);
-
-    // 2. Call Gemini to parse syllabus structure
-    const prompt = `You are analyzing a school textbook PDF for Tamil Nadu State Board, Class ${className}.
-
-The following is extracted text from the PDF. Identify the subject, all units/chapters, and their sub-topics/sections.
-
-Rules:
-- Extract the subject name from the content (e.g. "Mathematics", "Science", "Social Science")
-- Number units sequentially starting from 1
-- For each unit, extract the sub-topics/sections within it, numbered sequentially
-- Only include actual academic content — skip preface, acknowledgements, appendices, glossary, index pages
-- Use clean, properly capitalized titles
-- If the text is in Tamil, transliterate the unit/topic names to English${subjectName ? `\n- The subject is: ${subjectName}` : ''}
-
-PDF Text:
-${textForAI}`;
-
-    console.log(`[PDF Upload] Extracting syllabus from ${pdfData.numpages}-page PDF for Class ${className}...`);
-    const parsed = await callGeminiJSON(prompt, PDF_SYLLABUS_SCHEMA);
+    // --- Fallback path: text extraction (garbles Tamil, but better than nothing) ---
+    if (!parsed || !Array.isArray(parsed.units) || parsed.units.length === 0) {
+      const pdfParse = require('pdf-parse');
+      const pdfData = await pdfParse(file.buffer);
+      pdfPages = pdfData.numpages;
+      const extractedText = (pdfData.text || '').trim();
+      if (extractedText.length < 50) {
+        return res.status(400).json({ success: false, error: 'Could not read this PDF. It may be a scanned image with no selectable text.' });
+      }
+      console.log('[PDF Upload] Falling back to text extraction...');
+      parsed = await callGeminiJSON(`${promptBase}\n\nTextbook text (may be imperfectly encoded):\n${extractedText.substring(0, 30000)}`, PDF_SYLLABUS_SCHEMA);
+    }
 
     if (!parsed || !Array.isArray(parsed.units) || parsed.units.length === 0) {
       return res.status(422).json({ success: false, error: 'AI could not identify any units in the PDF. Try a different PDF or ensure it contains a table of contents.' });
     }
 
-    // 3. Preview mode — if confirm is not set, return the parsed structure for review
+    const language = cleanStr(parsed.language) || 'English';
+    const tamilPrimary = /tamil|தமிழ/i.test(language) || /tamil|தமிழ/i.test(cleanStr(parsed.subjectName));
+    const finalSubjectName = cleanStr(subjectName || parsed.subjectName) || (tamilPrimary ? 'தமிழ்' : 'Subject');
+    const finalColor = color || '#6366f1';
+    const finalIcon = cleanStr(icon) || '📚';
+
+    // Normalise: pick primary/secondary titles by language; keep lessons faithful.
+    const units = parsed.units
+      .map((u: any) => {
+        const unitNumber = Number(u.unitNumber);
+        const titleTamil = cleanStr(u.titleTamil);
+        const titleEnglish = cleanStr(u.titleEnglish);
+        const lessons = Array.isArray(u.lessons)
+          ? u.lessons
+              .map((l: any) => ({ name: cleanStr(l?.name), nameEnglish: cleanStr(l?.nameEnglish) }))
+              .filter((l: any) => l.name)
+          : [];
+
+        let primaryTitle = tamilPrimary ? titleTamil : titleEnglish;
+        let secondaryTitle = tamilPrimary ? titleEnglish : titleTamil;
+        if (!primaryTitle) primaryTitle = secondaryTitle || (lessons[0]?.name) || `Unit ${unitNumber}`;
+
+        return {
+          unitNumber,
+          primaryTitle,
+          secondaryTitle,
+          titleTamil,
+          titleEnglish,
+          description: cleanStr(u.description) || (lessons.length ? lessons.slice(0, 4).map((l: any) => l.name).join(', ') : ''),
+          tip: cleanStr(u.tip) || 'Read the lessons in order and note the key ideas.',
+          emoji: cleanStr(u.emoji) || finalIcon,
+          lessons
+        };
+      })
+      .filter((u: any) => !isNaN(u.unitNumber) && u.primaryTitle);
+
+    // Preview mode — return the parsed structure for review, no DB writes
     if (req.body.previewOnly === 'true') {
       return res.json({
         success: true,
         preview: true,
         data: {
-          subjectName: subjectName || parsed.subjectName,
+          language,
+          subjectName: finalSubjectName,
           className,
-          icon: icon || '📚',
-          color: color || '#6366f1',
-          units: parsed.units,
-          pdfPages: pdfData.numpages,
-          totalUnits: parsed.units.length,
-          totalTopics: parsed.units.reduce((sum: number, u: any) => sum + (u.topics?.length || 0), 0)
+          icon: finalIcon,
+          color: finalColor,
+          units,
+          pdfPages,
+          totalUnits: units.length,
+          totalTopics: units.reduce((sum: number, u: any) => sum + (u.lessons?.length || 0), 0)
         }
       });
     }
 
-    // 4. Create/upsert CentralSubject
-    const finalSubjectName = subjectName || parsed.subjectName;
+    // Create/upsert CentralSubject
     let subject = await prisma.centralSubject.findFirst({
       where: { class: className, name: finalSubjectName }
     });
-
     if (!subject) {
       subject = await prisma.centralSubject.create({
-        data: {
-          class: className,
-          name: finalSubjectName,
-          icon: icon || '📚',
-          color: color || '#6366f1'
-        }
+        data: { class: className, name: finalSubjectName, icon: finalIcon, color: finalColor }
       });
     } else {
       subject = await prisma.centralSubject.update({
         where: { id: subject.id },
-        data: {
-          icon: icon || subject.icon,
-          color: color || subject.color
-        }
+        data: { icon: finalIcon, color: finalColor }
       });
     }
 
-    // 5. Create/upsert Units and Topics
-    const results: Array<{ unit: any; topics: any[] }> = [];
+    // For each unit: upsert unit → "Unit Overview" topic (holds infographic) →
+    // lesson topics (2..N, faithful names) → infographic content on topic 1.
+    const results: Array<{ unit: any; lessons: number }> = [];
 
-    for (const u of parsed.units) {
-      const unitNum = Number(u.unitNumber);
-      if (!u.name || isNaN(unitNum)) continue;
-
+    for (const u of units) {
       let unitRecord;
       try {
         unitRecord = await prisma.centralUnit.create({
-          data: { subjectId: subject.id, name: u.name, unitNumber: unitNum }
+          data: { subjectId: subject.id, name: u.primaryTitle, unitNumber: u.unitNumber }
         });
       } catch {
         unitRecord = await prisma.centralUnit.update({
-          where: { subjectId_unitNumber: { subjectId: subject.id, unitNumber: unitNum } },
-          data: { name: u.name }
+          where: { subjectId_unitNumber: { subjectId: subject.id, unitNumber: u.unitNumber } },
+          data: { name: u.primaryTitle }
         });
       }
 
-      const topicRecords: any[] = [];
-      for (const t of (u.topics || [])) {
-        const topicNum = Number(t.topicNumber);
-        if (!t.name || isNaN(topicNum)) continue;
+      // Topic 1 = Unit Overview (holds the card image)
+      let overview = await prisma.centralTopic.findFirst({
+        where: { unitId: unitRecord.id, topicNumber: 1 }
+      });
+      if (!overview) {
+        overview = await prisma.centralTopic.create({
+          data: { unitId: unitRecord.id, topicNumber: 1, name: 'Unit Overview' }
+        });
+      } else {
+        await prisma.centralTopic.update({ where: { id: overview.id }, data: { name: 'Unit Overview' } });
+      }
 
+      // Topics 2..N = the real lessons (faithful, editable)
+      for (let i = 0; i < u.lessons.length; i++) {
+        const topicNumber = i + 2;
+        const lessonName = u.lessons[i].name;
         try {
-          const topicRecord = await prisma.centralTopic.create({
-            data: { unitId: unitRecord.id, name: t.name, topicNumber: topicNum }
+          await prisma.centralTopic.create({
+            data: { unitId: unitRecord.id, topicNumber, name: lessonName }
           });
-          topicRecords.push(topicRecord);
         } catch {
-          try {
-            const updated = await prisma.centralTopic.update({
-              where: { unitId_topicNumber: { unitId: unitRecord.id, topicNumber: topicNum } },
-              data: { name: t.name }
-            });
-            topicRecords.push(updated);
-          } catch (e) {
-            console.error(`Failed to upsert topic ${topicNum} under unit ${unitNum}`, e);
-          }
+          await prisma.centralTopic.update({
+            where: { unitId_topicNumber: { unitId: unitRecord.id, topicNumber } },
+            data: { name: lessonName }
+          });
         }
       }
 
-      results.push({ unit: unitRecord, topics: topicRecords });
+      // Infographic on the Unit Overview topic (data-URI SVG)
+      const svg = buildInfographicSVG({
+        unitNumber: u.unitNumber,
+        primaryTitle: u.primaryTitle,
+        secondaryTitle: u.secondaryTitle,
+        description: u.description,
+        tip: u.tip,
+        emoji: u.emoji,
+        color: finalColor
+      });
+      const fileUrl = svgToDataUri(svg);
+      const lessonList = u.lessons.map((l: any) => l.name).join(', ');
+      const fileContent = `${u.primaryTitle}${u.secondaryTitle ? ` (${u.secondaryTitle})` : ''}\n${u.description}\nTip: ${u.tip}${lessonList ? `\nLessons: ${lessonList}` : ''}`;
+
+      const existing = await prisma.centralContent.findFirst({
+        where: { topicId: overview.id, contentType: 'INFOGRAPHIC' }
+      });
+      if (existing) {
+        await prisma.centralContent.update({
+          where: { id: existing.id },
+          data: { title: `Unit ${u.unitNumber}: ${u.primaryTitle}`, fileUrl, fileContent }
+        });
+      } else {
+        await prisma.centralContent.create({
+          data: { topicId: overview.id, contentType: 'INFOGRAPHIC', title: `Unit ${u.unitNumber}: ${u.primaryTitle}`, fileUrl, fileContent }
+        });
+      }
+
+      results.push({ unit: unitRecord, lessons: u.lessons.length });
     }
 
-    console.log(`[PDF Upload] Done! Created ${results.length} units for ${finalSubjectName} Class ${className}`);
+    console.log(`[PDF Upload] Done! Built ${results.length} unit cards for ${finalSubjectName} Class ${className}`);
 
     res.json({
       success: true,
-      message: `Successfully extracted and saved ${results.length} units with their topics from the PDF.`,
+      message: `Successfully extracted and built ${results.length} unit cards from the PDF.`,
       data: {
         subject,
+        language,
         units: results,
         totalUnits: results.length,
-        totalTopics: results.reduce((sum, r) => sum + r.topics.length, 0)
+        totalTopics: units.reduce((sum: number, u: any) => sum + (u.lessons?.length || 0), 0)
       }
     });
   } catch (err: any) {
