@@ -273,12 +273,44 @@ return res.json({
       });
 
     if (pgUser) {
-    if (!(await verifyPassword(password, pgUser.passwordHash))) {
-        return res.status(400).json({
-            success: false,
-            error: "Invalid password."
+      let isPasswordValid = await verifyPassword(password, pgUser.passwordHash);
+
+      // Fallback check for TEACHER role password in headmasterStaff
+      if (!isPasswordValid && pgUser.role === "TEACHER") {
+        const teacher = await prisma.headmasterStaff.findFirst({
+          where: { email: { equals: cleanEmail, mode: "insensitive" } },
         });
-    }
+        if (teacher && await verifyPassword(password, teacher.password)) {
+          isPasswordValid = true;
+          // Synchronize password to PostgreSQL User table for future logins
+          await prisma.user.update({
+            where: { id: pgUser.id },
+            data: { passwordHash: teacher.password }
+          });
+        }
+      }
+
+      // Fallback check for PARENT role password in headmasterParent
+      if (!isPasswordValid && pgUser.role === "PARENT") {
+        const parent = await prisma.headmasterParent.findFirst({
+          where: { email: { equals: cleanEmail, mode: "insensitive" } },
+        });
+        if (parent && await verifyPassword(password, parent.password)) {
+          isPasswordValid = true;
+          // Synchronize password to PostgreSQL User table for future logins
+          await prisma.user.update({
+            where: { id: pgUser.id },
+            data: { passwordHash: parent.password }
+          });
+        }
+      }
+
+      if (!isPasswordValid) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid password."
+        });
+      }
 
     if (pgUser.role === "TEACHER") {
         const teacher = await prisma.headmasterStaff.findFirst({
