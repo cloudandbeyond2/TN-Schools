@@ -290,3 +290,107 @@ const PersonalGuideResponseSchema = new Schema<IPersonalGuideResponse>({
 });
 
 export const PersonalGuideResponse = mongoose.models.PersonalGuideResponse || mongoose.model<IPersonalGuideResponse>('PersonalGuideResponse', PersonalGuideResponseSchema);
+
+// ─── Digital Library AI Study Companion Cache ──────────────────────
+
+export interface ILibraryCompanion extends Document {
+  resourceId: string;
+  summary: string;
+  keyPoints: string[];
+  formulas: string[];
+  mindMap: string;
+  examQuestions: Array<{
+    question: string;
+    answerKey: string;
+    marks: number;
+  }>;
+  flashcards?: Array<{
+    id: string;
+    front: string;
+    back: string;
+  }>;
+  visualMindMap?: {
+    topic: string;
+    branches: Array<{
+      title: string;
+      details: string[];
+    }>;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const LibraryCompanionSchema = new Schema<ILibraryCompanion>({
+  resourceId:    { type: String, required: true, unique: true, index: true },
+  summary:       { type: String, required: true },
+  keyPoints:     { type: [String], default: [] },
+  formulas:      { type: [String], default: [] },
+  mindMap:       { type: String, default: "" },
+  examQuestions: [{
+    question:    { type: String, required: true },
+    answerKey:   { type: String, required: true },
+    marks:       { type: Number, default: 1 }
+  }],
+  flashcards:    { type: [Schema.Types.Mixed], default: [] },
+  visualMindMap: { type: Schema.Types.Mixed, default: null }
+}, { timestamps: true });
+
+export const LibraryCompanion = mongoose.models.LibraryCompanion || mongoose.model<ILibraryCompanion>('LibraryCompanion', LibraryCompanionSchema);
+
+// ─── Digital Library Flashcard Bookmarks ───────────────────────────
+
+export interface IFlashcardBookmark extends Document {
+  studentId: string;
+  resourceId: string;
+  flashcardId: string;
+  front: string;
+  back: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const FlashcardBookmarkSchema = new Schema<IFlashcardBookmark>({
+  studentId:   { type: String, required: true, index: true },
+  resourceId:  { type: String, required: true, index: true },
+  flashcardId: { type: String, required: true },
+  front:       { type: String, required: true },
+  back:        { type: String, required: true }
+}, { timestamps: true });
+
+// Ensure uniqueness of a bookmark per student per resource per flashcard
+FlashcardBookmarkSchema.index({ studentId: 1, resourceId: 1, flashcardId: 1 }, { unique: true });
+
+export const FlashcardBookmark = mongoose.models.FlashcardBookmark || mongoose.model<IFlashcardBookmark>('FlashcardBookmark', FlashcardBookmarkSchema);
+
+// ─── Student Digital Library Learning Progress ─────────────────────
+
+export interface ILibraryProgress extends Document {
+  studentId: string;
+  resourceId: string;
+  resourceTitle: string;
+  subject: string;
+  type: string;
+  lastChapter: string;
+  progressPercent: number;
+  timeSpentSeconds: number;
+  lastOpenedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const LibraryProgressSchema = new Schema<ILibraryProgress>({
+  studentId:        { type: String, required: true, index: true },
+  resourceId:       { type: String, required: true, index: true },
+  resourceTitle:    { type: String, required: true },
+  subject:          { type: String, required: true },
+  type:             { type: String, required: true },
+  lastChapter:      { type: String, default: "Summary" },
+  progressPercent:  { type: Number, default: 0, min: 0, max: 100 },
+  timeSpentSeconds: { type: Number, default: 0 },
+  lastOpenedAt:     { type: Date, default: Date.now }
+}, { timestamps: true });
+
+// Ensure unique progress tracking per student per resource
+LibraryProgressSchema.index({ studentId: 1, resourceId: 1 }, { unique: true });
+
+export const LibraryProgress = mongoose.models.LibraryProgress || mongoose.model<ILibraryProgress>('LibraryProgress', LibraryProgressSchema);

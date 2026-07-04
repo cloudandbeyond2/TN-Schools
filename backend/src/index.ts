@@ -61,6 +61,8 @@ import digitalLibraryRoutes from './routes/digitalLibrary.routes';
 import personalGuideRoutes from './routes/personalGuide.routes';
 import neetPrepRoutes from './routes/neetPrep.routes';
 import competitiveExamsRoutes from './routes/competitiveExams.routes';
+import libraryProgressRoutes from './routes/libraryProgress.routes';
+import flashcardRoutes from './routes/flashcards.routes';
 
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
@@ -190,6 +192,8 @@ app.use('/api/digital-library', digitalLibraryRoutes);
 app.use('/api/personal-guide', personalGuideRoutes);
 app.use('/api/neet-prep', neetPrepRoutes);
 app.use('/api/competitive-exams', competitiveExamsRoutes);
+app.use('/api/digital-library/progress', libraryProgressRoutes);
+app.use('/api/digital-library/flashcards', flashcardRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {

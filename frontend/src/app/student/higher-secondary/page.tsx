@@ -85,6 +85,18 @@ export default function HigherSecondaryDashboard() {
       .catch((err) => console.error(err));
   }, [session]);
 
+  const [todayProgress, setTodayProgress] = useState<any>(null);
+
+  useEffect(() => {
+    if (!(session?.user as any)?.id) return;
+    fetch(`${API_BASE}/api/digital-library/progress/today?studentId=${(session?.user as any)?.id}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) setTodayProgress(json.data);
+      })
+      .catch((err) => console.error("Failed to load today progress:", err));
+  }, [session]);
+
   const userName = session?.user?.name || student?.user?.name || "Student";
   const subtitle = student 
     ? `Welcome, ${userName} · Class ${student.class} ${student.section} Stream · Target: Medical Colleges`
@@ -137,6 +149,48 @@ export default function HigherSecondaryDashboard() {
         </div>
 
         <div className="space-y-6">
+          {/* Today's Learning Progress Card */}
+          <div className="glass rounded-2xl p-6 border border-slate-700/50">
+            <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
+              <span>⏱️</span> Today's Study Progress
+            </h2>
+            {todayProgress ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
+                  <div className="text-left">
+                    <div className="text-[10px] text-slate-500 uppercase font-black">Logged Today</div>
+                    <div className="text-xl font-extrabold text-indigo-400">{todayProgress.totalTimeSpentMinutes} mins</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-slate-500 uppercase font-black">Resources Studied</div>
+                    <div className="text-xl font-extrabold text-emerald-400">{todayProgress.activeCount}</div>
+                  </div>
+                </div>
+
+                {todayProgress.recentResources && todayProgress.recentResources.length > 0 ? (
+                  <div className="space-y-2.5">
+                    <div className="text-[10px] text-slate-500 uppercase font-black text-left font-sans">Recent Activity</div>
+                    {todayProgress.recentResources.slice(0, 3).map((r: any) => (
+                      <div key={r.resourceId} className="bg-slate-900/30 p-2.5 rounded-xl border border-slate-800/60 text-left space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold text-slate-200 truncate max-w-[70%]">{r.resourceTitle}</span>
+                          <span className="text-[9px] font-black text-indigo-400">{r.progressPercent}%</span>
+                        </div>
+                        <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                          <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${r.progressPercent}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 italic py-2 text-center">No study activity logged today yet.</p>
+                )}
+              </div>
+            ) : (
+              <div className="text-xs text-slate-500 py-4 text-center">Loading progress...</div>
+            )}
+          </div>
+
           {/* Competitive Exam Hub */}
           <div className="glass rounded-2xl p-6 fade-in-3 border border-pink-500/30 bg-gradient-to-br from-pink-900/20 to-purple-900/20">
             <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
