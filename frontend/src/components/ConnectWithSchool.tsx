@@ -44,7 +44,7 @@ export default function ConnectWithSchoolPage({ role }: { role: string }) {
   const [successMsg, setSuccessMsg] = useState("");
 
   const CLASSES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
-  const SECTIONS = ["A", "B", "C", "D", "E"];
+  const SECTIONS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
   useEffect(() => {
     fetchData();
