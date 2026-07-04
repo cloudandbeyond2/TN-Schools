@@ -102,7 +102,9 @@ interface WatchlistStudent {
   state: string;
   city: string;
   pincode: string;
-  risk: "High" | "Medium";
+  risk?: "High" | "Medium";
+  gender?: string;
+  studentStatus?: string;
   createdAt?: string;
 }
 
@@ -730,8 +732,9 @@ export default function StudentsMonitoringPage() {
 
   const isAllCurrentPageSelected = filteredWatchlist.length > 0 && filteredWatchlist.every(s => s.id && selectedStudentIds.includes(s.id));
 
-  const highRiskCount = watchlist.filter((s) => s.risk === "High").length;
-  const mediumRiskCount = watchlist.filter((s) => s.risk === "Medium").length;
+  const activeCount = watchlist.filter((s) => !s.studentStatus || s.studentStatus === "Active").length;
+  const boysCount = watchlist.filter((s) => s.gender === "Male").length;
+  const girlsCount = watchlist.filter((s) => s.gender === "Female").length;
 
   return (
     <PortalLayout
@@ -760,10 +763,10 @@ export default function StudentsMonitoringPage() {
       {/* Metrics Row */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-6 fade-in">
         {[
-          { label: "Total Students", value: isLoading ? "..." : watchlist.length.toString(), icon: "👨‍🎓", color: "text-blue-400", bg: "bg-blue-500/10", sub: "Watchlist entries" },
-          { label: "High Risk Count", value: isLoading ? "..." : highRiskCount.toString(), icon: "⚠️", color: "text-red-400", bg: "bg-red-500/10", sub: "Needs urgent action" },
-          { label: "Medium Risk Count", value: isLoading ? "..." : mediumRiskCount.toString(), icon: "📊", color: "text-amber-400", bg: "bg-amber-500/10", sub: "Under observation" },
-          { label: "Safe / Cleared", value: isLoading ? "..." : (watchlist.length - highRiskCount - mediumRiskCount).toString(), icon: "✅", color: "text-emerald-400", bg: "bg-emerald-500/10", sub: "Low risk students" },
+          { label: "Total Students", value: isLoading ? "..." : watchlist.length.toString(), icon: "🎓", color: "text-blue-400", bg: "bg-blue-500/10", sub: "All registered students" },
+          { label: "Active Students", value: isLoading ? "..." : activeCount.toString(), icon: "✅", color: "text-emerald-400", bg: "bg-emerald-500/10", sub: "Currently attending" },
+          { label: "Boys", value: isLoading ? "..." : boysCount.toString(), icon: "👦", color: "text-indigo-400", bg: "bg-indigo-500/10", sub: "Male students" },
+          { label: "Girls", value: isLoading ? "..." : girlsCount.toString(), icon: "👧", color: "text-pink-400", bg: "bg-pink-500/10", sub: "Female students" },
         ].map((kpi) => (
           <div key={kpi.label} className="glass rounded-2xl p-3 sm:p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all shadow-sm">
             <div className="flex flex-col text-left min-w-0">
