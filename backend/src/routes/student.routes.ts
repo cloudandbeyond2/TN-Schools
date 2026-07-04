@@ -24,6 +24,56 @@ const upload = multer({ storage });
 const router = Router();
 
 
+/* ------------------- GET PUBLISHED AI LESSONS ------------------- */
+// GET /api/students/lessons?class=8&section=A&subject=Science
+// Returns published lesson plans for the student's class + section.
+// Lessons with section = null are visible to ALL sections of that class.
+router.get('/lessons', async (req: Request, res: Response) => {
+  try {
+    const { class: cls, subject, section } = req.query;
+    const classNum = cls ? (String(cls).match(/\d+/) || [])[0] : undefined;
+    const studentSection = section ? String(section).trim().toUpperCase() : null;
+
+    // Build AND conditions so multiple OR clauses don't overwrite each other.
+    const andConditions: any[] = [{ isPublished: true }];
+
+    if (classNum) {
+      andConditions.push({ OR: [{ className: classNum }, { grade: { contains: classNum } }] });
+    }
+    if (subject) {
+      andConditions.push({ subject: { equals: String(subject), mode: 'insensitive' } });
+    }
+    if (studentSection) {
+      // Show all-sections lessons (section IS NULL) + lessons for this exact section
+      andConditions.push({ OR: [{ section: null }, { section: studentSection }] });
+    }
+
+    const lessons = await (prisma.lessonPlan as any).findMany({
+      where: { AND: andConditions },
+      orderBy: { publishedAt: 'desc' },
+    });
+    res.json({ success: true, data: lessons });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/students/lessons/:id — a single published lesson (student view)
+router.get('/lessons/:id', async (req: Request, res: Response) => {
+  try {
+    const lesson = await prisma.lessonPlan.findFirst({
+      where: { id: req.params.id, isPublished: true },
+    });
+    if (!lesson) {
+      return res.status(404).json({ success: false, error: 'Lesson not found or not published' });
+    }
+    res.json({ success: true, data: lesson });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+
 /* ------------------- GET ANNOUNCEMENTS ------------------- */
 router.get("/announcements", async (req: Request, res: Response) => {
   try {

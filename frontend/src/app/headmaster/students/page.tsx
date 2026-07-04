@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
-import { Activity, Eye, Stethoscope, FileText, PlusCircle, HeartPulse, X, GraduationCap, User, Ruler, Weight, Droplet, Target, Ear, ShieldCheck, Download, Calendar, ClipboardList, Smile, Clock } from "lucide-react";
+import { Activity, Eye, Stethoscope, FileText, PlusCircle, HeartPulse, X, GraduationCap, User, Ruler, Weight, Droplet, Target, Ear, ShieldCheck, Download, Calendar, ClipboardList, Smile, Clock, Trash2 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -169,6 +169,8 @@ export default function StudentsMonitoringPage() {
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [previewStudents, setPreviewStudents] = useState<ParsedPreviewStudent[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<WatchlistStudent | null>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Health report state
@@ -591,11 +593,19 @@ export default function StudentsMonitoringPage() {
   // ── Delete student ──────────────────────────────────────────────
   const handleDelete = async (id: string) => {
     try {
-      await fetch(`${API_BASE}/api/headmaster/students/${id}`, { method: "DELETE" });
-      setWatchlist((prev) => prev.filter((s) => s.id !== id));
-      showToast("🗑️ Student removed from watchlist.");
+      const res = await fetch(`${API_BASE}/api/headmaster/students/${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.success) {
+        setWatchlist((prev) => prev.filter((s) => s.id !== id));
+        showToast("🗑️ Student deleted successfully.");
+      } else {
+        showToast(`❌ Could not delete: ${json.error || "Server error"}`, "error");
+      }
     } catch {
       showToast("🔴 Could not delete — server error.", "error");
+    } finally {
+      setIsDeleteConfirmOpen(false);
+      setStudentToDelete(null);
     }
   };
 
@@ -681,7 +691,7 @@ export default function StudentsMonitoringPage() {
                     <th>Location</th>
                     <th>Risk Level</th>
                     <th>Added On</th>
-                    <th>Health</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -720,6 +730,18 @@ export default function StudentsMonitoringPage() {
                               title="Add Health Report"
                             >
                               <PlusCircle className="w-4 h-4" />
+                            </button>
+                          )}
+                          {s.id && (
+                            <button
+                              onClick={() => {
+                                setStudentToDelete(s);
+                                setIsDeleteConfirmOpen(true);
+                              }}
+                              className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-md transition-colors"
+                              title="Delete Student"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           )}
                         </div>
@@ -775,7 +797,10 @@ export default function StudentsMonitoringPage() {
                       <span className={`badge ${s.risk === "High" ? "badge-red" : "badge-yellow"}`}>{s.risk} Risk</span>
                       {s.id && (
                         <button
-                          onClick={() => handleDelete(s.id!)}
+                          onClick={() => {
+                            setStudentToDelete(s);
+                            setIsDeleteConfirmOpen(true);
+                          }}
                           className="text-[10px] text-red-400 hover:text-red-300 font-semibold transition-colors"
                         >
                           ✕ Remove
@@ -1435,6 +1460,44 @@ export default function StudentsMonitoringPage() {
               </button>
               <button onClick={() => setIsViewHealthModalOpen(false)} className="w-full py-3 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 text-slate-700 text-sm font-bold rounded-xl transition-colors">
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {isDeleteConfirmOpen && studentToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-[24px] w-full max-w-md p-6 shadow-2xl relative border border-slate-100 animate-in fade-in zoom-in-95 duration-200 text-left">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-extrabold text-slate-800">
+                  Delete Student
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Are you sure you want to delete <span className="font-semibold text-slate-700">{studentToDelete.name}</span>? This action cannot be undone and will delete all dependent health records, marks, and attendance records.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setIsDeleteConfirmOpen(false);
+                  setStudentToDelete(null);
+                }}
+                className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(studentToDelete.id!)}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-red-600/10 active:scale-95"
+              >
+                Delete Student
               </button>
             </div>
           </div>

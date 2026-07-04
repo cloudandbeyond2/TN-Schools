@@ -622,7 +622,7 @@ router.get('/lessons/:id', async (req: Request, res: Response) => {
 // POST /api/teacher/lessons
 router.post('/lessons', async (req: Request, res: Response) => {
   try {
-    const { syllabus, grade, subject, topic, duration, planData, schoolId, userId } = req.body;
+    const { syllabus, grade, subject, topic, duration, planData, schoolId, userId, section } = req.body;
     const lesson = await prisma.lessonPlan.create({
       data: {
         syllabus,
@@ -632,6 +632,7 @@ router.post('/lessons', async (req: Request, res: Response) => {
         duration,
         planData,
         schoolId: schoolId || null,
+        section: section && section !== 'All' ? section : null,
       },
     });
     if (userId) {
@@ -669,6 +670,35 @@ router.delete('/lessons/:id', async (req: Request, res: Response) => {
   try {
     await prisma.lessonPlan.delete({ where: { id: req.params.id } });
     res.json({ success: true, message: 'Lesson plan deleted' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PUT /api/teacher/lessons/:id/publish — publish/unpublish a lesson to students.
+// Derives className from the grade (e.g. "Grade 10" -> "10") so students in that
+// class + subject see it on their AI Lessons board.
+// Accepts optional `section` ("A"|"B"|"C"|"D"|"All") to restrict to one section;
+// omitting it or passing "All" sets section = null (visible to all sections).
+router.put('/lessons/:id/publish', async (req: Request, res: Response) => {
+  try {
+    const { isPublished, section } = req.body;
+    const existing = await prisma.lessonPlan.findUnique({ where: { id: req.params.id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Lesson plan not found' });
+    }
+    const className = (String(existing.grade || '').match(/\d+/) || [])[0] || null;
+    const resolvedSection = section && section !== 'All' ? section : null;
+    const lesson = await prisma.lessonPlan.update({
+      where: { id: req.params.id },
+      data: {
+        isPublished: !!isPublished,
+        publishedAt: isPublished ? new Date() : null,
+        className,
+        section: resolvedSection,
+      },
+    });
+    res.json({ success: true, data: lesson });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

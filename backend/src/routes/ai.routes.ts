@@ -160,7 +160,7 @@ function robustParseJSON(text: string): any {
 // ---------------------------------------------------------------------------
 // Gemini API helper
 // ---------------------------------------------------------------------------
-async function callGemini(prompt: string, jsonMode: boolean = false, schema?: any): Promise<any> {
+async function callGemini(prompt: string, jsonMode: boolean = false, schema?: any, maxTokens: number = 8192, timeoutMs: number = 90000): Promise<any> {
   if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === '') {
     throw new Error('GEMINI_API_KEY is missing. Please add it to backend/.env');
   }
@@ -169,7 +169,7 @@ async function callGemini(prompt: string, jsonMode: boolean = false, schema?: an
 
   const payload: any = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { maxOutputTokens: 8192 },
+    generationConfig: { maxOutputTokens: maxTokens },
     safetySettings: [
       { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
       { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
@@ -228,7 +228,7 @@ async function callGemini(prompt: string, jsonMode: boolean = false, schema?: an
     });
 
     req.on('error', (err) => reject(err));
-    req.setTimeout(90000, () => req.destroy(new Error('Gemini API timed out after 90 seconds')));
+    req.setTimeout(timeoutMs, () => req.destroy(new Error(`Gemini API timed out after ${Math.round(timeoutMs / 1000)} seconds`)));
     req.write(postData);
     req.end();
   });
@@ -256,172 +256,213 @@ function limitContext(context: string | undefined, topic: string): string {
 
 // ===========================================================================
 // POST /api/ai/generate-lesson-plan
+// Generates a compact, schema-validated CORE lesson plan that reliably fits in
+// the token budget. Heavy media (15 slides, podcast, video) are generated lazily
+// via separate endpoints when the teacher opens those studio tools.
 // ===========================================================================
+const LESSON_CORE_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    objectives: { type: 'ARRAY', items: { type: 'STRING' }, description: '3 learning objectives' },
+    timeline: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          time: { type: 'STRING' },
+          activity: { type: 'STRING' },
+          description: { type: 'STRING' },
+        },
+        required: ['time', 'activity', 'description'],
+      },
+      description: '4 phases: Hook, Core Instruction, Guided Practice, Exit Ticket',
+    },
+    studentKeyPoints: {
+      type: 'OBJECT',
+      properties: {
+        en: { type: 'ARRAY', items: { type: 'STRING' } },
+        ta: { type: 'ARRAY', items: { type: 'STRING' } },
+      },
+      required: ['en', 'ta'],
+      description: '5-6 crisp takeaways a student must remember, in English and Tamil (same count/order)',
+    },
+    bilingual: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          english: { type: 'STRING' },
+          tamil: { type: 'STRING' },
+          pronunciation: { type: 'STRING' },
+        },
+        required: ['english', 'tamil', 'pronunciation'],
+      },
+      description: '5 key technical terms',
+    },
+    exitTickets: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          question: { type: 'STRING' },
+          options: { type: 'ARRAY', items: { type: 'STRING' } },
+          answer: { type: 'STRING' },
+          rationale: { type: 'STRING' },
+        },
+        required: ['question', 'options', 'answer', 'rationale'],
+      },
+      description: '5 MCQs (options like "A) ...")',
+    },
+    infographic: {
+      type: 'OBJECT',
+      properties: {
+        heroTitle: { type: 'STRING' },
+        heroSubtitle: { type: 'STRING' },
+        heroIcon: { type: 'STRING' },
+        conceptColor: { type: 'STRING' },
+        modules: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: { id: { type: 'STRING' }, title: { type: 'STRING' }, desc: { type: 'STRING' }, icon: { type: 'STRING' } },
+            required: ['id', 'title', 'desc', 'icon'],
+          },
+        },
+        stats: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: { label: { type: 'STRING' }, value: { type: 'STRING' }, desc: { type: 'STRING' } },
+            required: ['label', 'value', 'desc'],
+          },
+        },
+        workflow: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: { step: { type: 'STRING' }, desc: { type: 'STRING' }, icon: { type: 'STRING' } },
+            required: ['step', 'desc', 'icon'],
+          },
+        },
+        formulaBox: { type: 'STRING' },
+        formulaExplain: { type: 'STRING' },
+        lawTitle: { type: 'STRING' },
+        lawDesc: { type: 'STRING' },
+        termTable: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: { english: { type: 'STRING' }, tamil: { type: 'STRING' }, definition: { type: 'STRING' } },
+            required: ['english', 'tamil', 'definition'],
+          },
+        },
+        constantName: { type: 'STRING' },
+        constantValue: { type: 'STRING' },
+        constantExplain: { type: 'STRING' },
+      },
+      required: ['heroTitle', 'heroSubtitle', 'heroIcon', 'conceptColor', 'modules', 'stats', 'workflow', 'termTable'],
+    },
+  },
+  required: ['objectives', 'timeline', 'studentKeyPoints', 'bilingual', 'exitTickets', 'infographic'],
+};
+
 router.post('/generate-lesson-plan', async (req: Request, res: Response) => {
   try {
     const { syllabus, grade, subject, topic, duration, textbookContext } = req.body;
     const truncatedContext = limitContext(textbookContext, topic);
 
-    const prompt = `
-You are an expert curriculum developer for Tamil Nadu (TN) Schools.
-Generate a comprehensive, syllabus-aligned lesson plan in JSON format for:
-Syllabus: ${syllabus}
-Grade/Class: ${grade}
-Subject: ${subject}
-Topic/Chapter: ${topic}
-Duration: ${duration}
-${truncatedContext ? `Textbook extract context:\n${truncatedContext}` : ''}
+    const prompt = `You are an expert curriculum developer for Tamil Nadu (TN) State Board schools.
+Create the CORE of a syllabus-aligned lesson plan for:
+- Syllabus: ${syllabus}
+- Grade/Class: ${grade}
+- Subject: ${subject}
+- Topic/Chapter: ${topic}
+- Duration: ${duration}
+${truncatedContext ? `\nTextbook extract (use ONLY content about "${topic}", ignore other chapters):\n${truncatedContext}` : ''}
+If "${topic}" is not in the context, use the standard TN Board curriculum.
 
-CRITICAL INSTRUCTION: If textbook context is provided, ONLY extract content about "${topic}". Ignore all other chapters.
-If "${topic}" is not found in the context, generate from standard TN Board curriculum.
+Return JSON matching the provided schema. All content MUST be specifically about "${topic}" — no generic placeholders. Rules:
+- objectives: exactly 3.
+- timeline: exactly 4 phases — "The Hook", "Core Instruction", "Guided Practice", "Exit Ticket" — with realistic time ranges that sum to ${duration}.
+- studentKeyPoints: 5-6 crisp, memorable takeaways for a student, given in BOTH English (en) and natural classroom Tamil (ta), same count and order. These are the "clear points" students see when the lesson is projected.
+- bilingual: 5 key technical terms (english, tamil, pronunciation).
+- exitTickets: exactly 5 MCQs; options formatted like "A) ...", answer is the full correct option text.
+- infographic: real data about ${topic} — heroTitle (bilingual), heroSubtitle "Grade ${grade} ${subject}", heroIcon (best emoji), conceptColor (one of emerald/sky/indigo/amber/rose/teal/violet), 4 modules, 3 stats, 4 workflow steps, formulaBox + formulaExplain, lawTitle + lawDesc, 3 termTable entries, constantName/Value/Explain (use real constants; leave formula/law/constant blank only if genuinely not applicable to ${topic}).`;
 
-CONSTRAINTS: objectives=3, timeline=4, infographic=1, bilingual=3, exitTickets=15, slides=15 (exactly 15 items in the slides array, mapping to Slide 1 through Slide 15 below), podcast=4 turns, videoStoryboard=2 scenes.
-
-SLIDE GENERATION RULES (CRITICAL):
-Generate exactly 15 slides. The "slides" array in JSON MUST contain exactly 15 objects in this precise sequence.
-Each slide must adhere to the following visual style and structure:
-
-VISUAL STYLE & THEME:
-- Background: Clean white/very light blue-white gradient. Professional, clean, modern, magazine-style educational presentation.
-- Color Palette: Primary (Royal Blue, Navy, Indigo, White). Secondary (Emerald, Teal). Accents (Purple, Orange, Cyan).
-- Illustration Style: Ultra-realistic 3D scientific illustration, white background, glassmorphism panels, detailed and professional, government educational standard, highly detailed, no cartoon, no clipart.
-- Lighting: Soft, HDR, global illumination, glass reflections, natural and warm. No neon glow.
-- Typography: Large bold title, numbered bullets, minimal body text (maximum 35 words per slide).
-- Icons: Premium vector, scientific, modern (strictly no cartoons, no clipart).
-
-SLIDE STRUCTURE (EXACTLY 15 SLIDES):
-- Slide 1: Premium Cover → graphicType:"hero" graphicData.label=topic title
-- Slide 2: Learning Outcomes → graphicType:"concept" graphicData.values=[3-4 objectives]
-- Slide 3: Introduction → graphicType:"concept" graphicData.values=[3-4 key introduction points]
-- Slide 4: Concept Visualization → graphicType:"concept" graphicData.label=main concept, values=[4 concept sub-elements]
-- Slide 5: Real World Example → graphicType:"application" graphicData.values=[4 real examples with detail]
-- Slide 6: Working Principle → graphicType:"process" graphicData.label=process name, values=[4 sequential steps]
-- Slide 7: Scientific Formula → graphicType:"formula" graphicData.formula=actual formula, graphicData.variables=[3-4 variable explanations]
-- Slide 8: Comparison → graphicType:"comparison" graphicData.label=comparison title, values=[LeftHeader, RightHeader, row1left, row1right, row2left, row2right]
-- Slide 9: Experiment → graphicType:"experiment" graphicData.label=experiment name, values=[apparatus1, apparatus2, apparatus3]
-- Slide 10: Daily Life Applications → graphicType:"application" graphicData.values=[4 detailed real-world uses]
-- Slide 11: Important Facts → graphicType:"concept" graphicData.values=[4 key facts/milestones]
-- Slide 12: Practice Questions → graphicType:"quiz"
-- Slide 13: Activity → graphicType:"experiment" graphicData.values=[material1, material2, material3]
-- Slide 14: Summary → graphicType:"summary" graphicData.values=[4 key summary points]
-- Slide 15: Thank You → graphicType:"hero" graphicData.label=Next topic teaser
-
-INFOGRAPHIC RULES — MOST IMPORTANT:
-ALL infographic content MUST be about "${topic}" specifically. Do NOT use generic placeholders.
-Use REAL educational data from the PDF context or standard curriculum.
-- heroTitle: Tamil + English bilingual title for ${topic}
-- heroSubtitle: Grade ${grade} ${subject}
-- heroIcon: pick best emoji (🔬 science, 📐 math, 🌿 biology, ⚡ physics, 🌍 geography, 💻 computer, 🎨 arts)
-- conceptColor: one of emerald/sky/indigo/amber/rose/teal/violet
-- modules: 4 real concept modules about ${topic} (NOT generic Module 1/2/3/4)
-- stats: 3 real quantitative facts/formulas from ${topic}
-- workflow: 4 real sequential steps to understand ${topic}
-- formulaBox: the actual primary formula or law for ${topic}
-- formulaExplain: bilingual explanation of the formula
-- lawTitle: name of the main law/theorem (bilingual)
-- lawDesc: statement of the law (bilingual)
-- termTable: 3 real technical terms from ${topic} (english, tamil, definition)
-- constantName: a real key constant for ${topic}
-- constantValue: the actual numeric value
-- constantExplain: bilingual 1-sentence meaning
-
-Output ONLY valid JSON (no markdown, no backticks):
-{
-  "syllabus": "${syllabus}",
-  "grade": "${grade}",
-  "subject": "${subject}",
-  "topic": "${topic}",
-  "duration": "${duration}",
-  "planData": {
-    "objectives": ["objective 1", "objective 2", "objective 3"],
-    "timeline": [
-      {"time": "00-05 Mins", "activity": "The Hook", "description": "hook for ${topic}"},
-      {"time": "05-25 Mins", "activity": "Core Instruction", "description": "theory"},
-      {"time": "25-40 Mins", "activity": "Guided Practice", "description": "exercises"},
-      {"time": "40-45 Mins", "activity": "Exit Ticket", "description": "MCQ check"}
-    ],
-    "infographic": {
-      "heroTitle": "REAL BILINGUAL TITLE FOR ${topic}",
-      "heroSubtitle": "Grade ${grade} ${subject}",
-      "heroIcon": "🔬",
-      "conceptColor": "emerald",
-      "modules": [
-        {"id": "m1", "title": "REAL CONCEPT 1 (தமிழ்)", "desc": "Real explanation from ${topic}. தமிழில் விளக்கம்.", "icon": "📌"},
-        {"id": "m2", "title": "REAL CONCEPT 2 (தமிழ்)", "desc": "Real explanation from ${topic}. தமிழில் விளக்கம்.", "icon": "🔍"},
-        {"id": "m3", "title": "REAL CONCEPT 3 (தமிழ்)", "desc": "Real explanation from ${topic}. தமிழில் விளக்கம்.", "icon": "⚡"},
-        {"id": "m4", "title": "REAL CONCEPT 4 (தமிழ்)", "desc": "Real explanation from ${topic}. தமிழில் விளக்கம்.", "icon": "🌟"}
-      ],
-      "stats": [
-        {"label": "REAL KPI 1 (அளவீடு)", "value": "REAL VALUE", "desc": "what this means for ${topic}"},
-        {"label": "REAL KPI 2 (சூத்திரம்)", "value": "FORMULA", "desc": "formula explanation"},
-        {"label": "REAL KPI 3 (அலகு)", "value": "UNIT", "desc": "unit explanation"}
-      ],
-      "workflow": [
-        {"step": "REAL STEP 1 (படிநிலை)", "desc": "Real step explanation for ${topic}. தமிழ்.", "icon": "1️⃣"},
-        {"step": "REAL STEP 2 (படிநிலை)", "desc": "Real step explanation. தமிழ்.", "icon": "2️⃣"},
-        {"step": "REAL STEP 3 (படிநிலை)", "desc": "Real step explanation. தமிழ்.", "icon": "3️⃣"},
-        {"step": "REAL STEP 4 (படிநிலை)", "desc": "Real step explanation. தமிழ்.", "icon": "4️⃣"}
-      ],
-      "formulaBox": "REAL PRIMARY FORMULA",
-      "formulaExplain": "Bilingual formula explanation. சூத்திர விளக்கம்.",
-      "lawTitle": "REAL LAW NAME (விதி அல்லது தேற்றம்)",
-      "lawDesc": "Real law statement. விதி கூற்று.",
-      "termTable": [
-        {"english": "term1", "tamil": "சொல்1", "definition": "definition1"},
-        {"english": "term2", "tamil": "சொல்2", "definition": "definition2"},
-        {"english": "term3", "tamil": "சொல்3", "definition": "definition3"}
-      ],
-      "constantName": "REAL CONSTANT NAME",
-      "constantValue": "REAL NUMERIC VALUE",
-      "constantExplain": "Bilingual constant explanation. தமிழில் விளக்கம்."
-    },
-    "bilingual": [
-      {"english": "term1", "tamil": "சொல்1", "pronunciation": "pron1"},
-      {"english": "term2", "tamil": "சொல்2", "pronunciation": "pron2"},
-      {"english": "term3", "tamil": "சொல்3", "pronunciation": "pron3"}
-    ],
-    "podcast": {
-      "hosts": ["Aravind (AI Teacher)", "Meera (AI Expert)"],
-      "script": [
-        {"speaker": "Aravind", "text": "intro about ${topic}", "lang": "en"},
-        {"speaker": "Meera", "text": "வணக்கம்! explanation in Tamil", "lang": "ta"},
-        {"speaker": "Aravind", "text": "key concept explanation", "lang": "en"},
-        {"speaker": "Meera", "text": "summary in Tamil", "lang": "ta"}
-      ]
-    },
-    "videoStoryboard": [
-      {"sceneNumber": 1, "visualDescription": "animation for ${topic}", "narrationText": "narration", "subtitles": "தமிழ் subtitle"},
-      {"sceneNumber": 2, "visualDescription": "problem solving animation", "narrationText": "narration 2", "subtitles": "தமிழ் subtitle 2"}
-    ],
-    "exitTickets": [
-      {"question": "mcq 1?", "options": ["A) a","B) b","C) c","D) d"], "answer": "B) b", "rationale": "because"},
-      {"question": "mcq 2?", "options": ["A) a","B) b","C) c","D) d"], "answer": "B) b", "rationale": "because"},
-      {"question": "... generate exactly 15 questions in total for this array ...", "options": ["A) a","B) b","C) c","D) d"], "answer": "A", "rationale": ""}
-    ],
-    "slides": [
-      {
-        "title": "Slide Title (e.g. Premium Cover)",
-        "subtitle": "Visual Explanation / Subtitle",
-        "bullets": ["Bullet 1", "Bullet 2"],
-        "teacherNotes": "Teacher instruction...",
-        "studentActivity": "Student task...",
-        "illustrationPrompt": "Ultra realistic, 3D scientific illustration, glassmorphism, white background...",
-        "animationSuggestion": "Animated flow...",
-        "graphicType": "hero|concept|formula|comparison|process|experiment|application|summary|quiz",
-        "graphicData": {
-          "label": "Main label or concept name",
-          "values": ["Item 1", "Item 2", "Item 3", "Item 4"],
-          "formula": "E = mc²",
-          "variables": ["E = Energy", "m = Mass", "c = Speed of light"]
-        }
-      }
-    ]
+    const core = await callGemini(prompt, true, LESSON_CORE_SCHEMA, 24000);
+    res.json({
+      success: true,
+      data: {
+        syllabus, grade, subject, topic, duration,
+        planData: core,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
   }
-}
-`;
+});
 
-    const result = await callGemini(prompt, true);
-    res.json({ success: true, data: result });
+// POST /api/ai/generate-lesson-slides — lazy: only when the Slide Deck tool opens
+const LESSON_SLIDES_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    slides: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          title: { type: 'STRING' },
+          subtitle: { type: 'STRING' },
+          bullets: { type: 'ARRAY', items: { type: 'STRING' } },
+          teacherNotes: { type: 'STRING' },
+          studentActivity: { type: 'STRING' },
+          illustrationPrompt: { type: 'STRING' },
+          animationSuggestion: { type: 'STRING' },
+          graphicType: { type: 'STRING' },
+          graphicData: {
+            type: 'OBJECT',
+            properties: {
+              label: { type: 'STRING' },
+              values: { type: 'ARRAY', items: { type: 'STRING' } },
+              formula: { type: 'STRING' },
+              variables: { type: 'ARRAY', items: { type: 'STRING' } },
+            },
+          },
+        },
+        required: ['title', 'subtitle', 'bullets', 'graphicType'],
+      },
+    },
+  },
+  required: ['slides'],
+};
+
+router.post('/generate-lesson-slides', async (req: Request, res: Response) => {
+  try {
+    const { grade, subject, topic, textbookContext } = req.body;
+    const truncatedContext = limitContext(textbookContext, topic);
+
+    const prompt = `Generate EXACTLY 15 professional concept slides for a Grade ${grade} ${subject} lesson on "${topic}" (TN State Board).
+${truncatedContext ? `Textbook context (only "${topic}"):\n${truncatedContext}\n` : ''}
+Return JSON matching the schema (a "slides" array of exactly 15 objects) in this sequence:
+1 Premium Cover (graphicType "hero", graphicData.label=title)
+2 Learning Outcomes (concept, values=3-4 objectives)
+3 Introduction (concept, values=3-4 points)
+4 Concept Visualization (concept, label=main concept, values=4)
+5 Real World Example (application, values=4)
+6 Working Principle (process, label=process, values=4 steps)
+7 Scientific Formula (formula, graphicData.formula=real formula, variables=3-4)
+8 Comparison (comparison, values=[LeftHeader,RightHeader,r1l,r1r,r2l,r2r])
+9 Experiment (experiment, values=3 apparatus)
+10 Daily Life Applications (application, values=4)
+11 Important Facts (concept, values=4)
+12 Practice Questions (quiz)
+13 Activity (experiment, values=3 materials)
+14 Summary (summary, values=4)
+15 Thank You (hero, label=next topic teaser)
+Each slide: large bold title, minimal body (max 30 words), numbered bullets, one-line teacherNotes, one-line studentActivity. Keep illustrationPrompt and animationSuggestion short (one line each). All content specifically about "${topic}".`;
+
+    const result = await callGemini(prompt, true, LESSON_SLIDES_SCHEMA, 32000, 150000);
+    res.json({ success: true, data: Array.isArray(result?.slides) ? result.slides : [] });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
