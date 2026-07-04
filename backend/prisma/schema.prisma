@@ -547,7 +547,7 @@ model LeaveRequest {
 }
 
 model LessonPlan {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   syllabus    String
   grade       String
   subject     String
@@ -555,14 +555,20 @@ model LessonPlan {
   duration    String
   planData    Json
   schoolId    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   teacherId   String?
   classRoomId String?
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  className   String?
+  section     String?
 
   @@index([schoolId])
   @@index([classRoomId])
   @@index([teacherId])
+  @@index([isPublished])
+  @@index([section])
 }
 
 model Question {

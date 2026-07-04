@@ -70,6 +70,43 @@ function StudioViewContent() {
     fetchPlan();
   }, [planId, API_URL]);
 
+  // Lazy-generate the 15 concept slides only when the Slide Deck tool is opened
+  const [slidesLoading, setSlidesLoading] = useState(false);
+  useEffect(() => {
+    const needSlides = tool === "slides" && currentPlan && !(currentPlan.planData?.slides?.length) && !slidesLoading;
+    if (!needSlides) return;
+    (async () => {
+      setSlidesLoading(true);
+      try {
+        const res = await fetch(`${API_URL}/api/ai/generate-lesson-slides`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            grade: currentPlan.grade,
+            subject: currentPlan.subject,
+            topic: currentPlan.topic,
+          }),
+        });
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setCurrentPlan((prev: any) => ({ ...prev, planData: { ...prev.planData, slides: json.data } }));
+          // Persist back to the saved plan so it's cached next time
+          if (planId && planId !== "temp-unsaved") {
+            fetch(`${API_URL}/api/teacher/lessons/${planId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ planData: { ...currentPlan.planData, slides: json.data } }),
+            }).catch(() => {});
+          }
+        }
+      } catch (e) {
+        console.error("Slide generation failed", e);
+      } finally {
+        setSlidesLoading(false);
+      }
+    })();
+  }, [tool, currentPlan, slidesLoading, API_URL, planId]);
+
   useEffect(() => {
     return () => {
       if (videoIntervalRef.current) clearInterval(videoIntervalRef.current);
@@ -213,8 +250,18 @@ function StudioViewContent() {
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-4 sm:p-8 flex flex-col relative">
         
-        {tool === "slides" && (
-          <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full h-full">
+        {tool === "slides" && slidesLoading && !(currentPlan.planData?.slides?.length) && (
+          <div className="flex-1 flex flex-col items-center justify-center text-center gap-5">
+            <div className="w-16 h-16 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin" />
+            <div>
+              <h3 className="text-xl font-black text-slate-800 dark:text-white mb-1">Generating concept slides…</h3>
+              <p className="text-sm text-slate-500">Building 15 professional slides for “{currentPlan.topic}”. This takes ~20–40 seconds.</p>
+            </div>
+          </div>
+        )}
+
+        {tool === "slides" && (currentPlan.planData?.slides?.length) && (
+          <div className="flex-1 flex flex-col w-full h-full pb-8">
             {(() => {
               const slides = currentPlan.planData?.slides || ([{title: "Intro", subtitle: "Concept", bullets: ["Summary"], graphicType: "concept", graphicData: {label: "X", values: ["Y"]}}] as any[]);
               const slide = slides[activeSlide] || slides[0];
@@ -237,18 +284,37 @@ function StudioViewContent() {
                       <div className="flex-1 flex flex-col justify-center">
                         <span className={`text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full text-white ${accent.badge} w-max mb-6 shadow-md`}>Slide {slideNum} / {totalSlides}</span>
                         <h1 className="font-black text-4xl lg:text-5xl text-slate-900 mb-4 leading-tight">{slide.title}</h1>
-                        <p className={`text-lg font-bold ${accent.text} uppercase tracking-wider mb-10`}>{slide.subtitle || "Concept Overview"}</p>
-                        <ul className="space-y-6">
-                          {slide.bullets?.map((b: string, idx: number) => (
-                            <li key={idx} className="flex gap-5 text-slate-700 text-lg">
-                              <span className={`w-8 h-8 rounded-full text-white text-sm font-black flex items-center justify-center shrink-0 mt-0.5 bg-gradient-to-br ${accent.from} ${accent.to} shadow-sm`}>{idx+1}</span>
-                              <span className="leading-relaxed font-medium">{b}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <p className={`text-lg font-bold ${accent.text} uppercase tracking-wider mb-8`}>{slide.subtitle || "Concept Overview"}</p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {slide.bullets?.map((b: string, idx: number) => {
+                            const icons = ["🎯", "💡", "🚀", "🌟", "🔍", "📈", "🧩", "⚙️", "📚", "🎨"];
+                            const icon = icons[idx % icons.length];
+                            
+                            // Split colon if exists for title/desc
+                            const splitIdx = b.indexOf(':');
+                            const hasTitle = splitIdx > 0 && splitIdx < 50;
+                            const bTitle = hasTitle ? b.substring(0, splitIdx) : `Key Point ${idx + 1}`;
+                            const bDesc = hasTitle ? b.substring(splitIdx + 1).trim() : b;
+                            
+                            return (
+                              <div key={idx} className={`p-6 rounded-3xl border border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-start gap-5 hover:-translate-y-1 hover:shadow-lg transition-all`}>
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-gradient-to-br ${accent.from} ${accent.to} shadow-md text-2xl`}>
+                                  {icon}
+                                </div>
+                                <div>
+                                  <h4 className={`font-bold ${accent.text} text-lg mb-1`}>{bTitle}</h4>
+                                  <p className="text-slate-600 leading-relaxed text-sm font-medium">{bDesc}</p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <div className="w-full lg:w-[450px] shrink-0 bg-slate-50 rounded-3xl border border-slate-100 p-6 flex flex-col shadow-inner">
-                        <SlideVisual graphicType={slide.graphicType} graphicData={slide.graphicData} illustrationPrompt={slide.illustrationPrompt} animationSuggestion={slide.animationSuggestion} title={slide.title} subtitle={slide.subtitle} accent={accent} />
+                      
+                      <div className="w-full lg:w-5/12 xl:w-1/2 shrink-0 bg-slate-50 rounded-3xl border border-slate-100 p-6 xl:p-8 flex flex-col shadow-inner relative overflow-hidden min-h-[400px]">
+                         <div className="absolute top-0 right-0 w-48 h-48 bg-white rounded-full blur-3xl opacity-60"></div>
+                         <SlideVisual graphicType={slide.graphicType} graphicData={slide.graphicData} illustrationPrompt={slide.illustrationPrompt} animationSuggestion={slide.animationSuggestion} title={slide.title} subtitle={slide.subtitle} accent={accent} />
                       </div>
                     </div>
                   </div>
@@ -269,7 +335,7 @@ function StudioViewContent() {
         )}
 
         {tool === "visualExplain" && (
-          <div className={`flex-1 ${theme.bgCard} rounded-3xl border ${theme.border} shadow-xl overflow-hidden`}>
+          <div className="flex-1 w-full pb-10">
             <InteractiveInfographic topic={currentPlan.topic} subject={currentPlan.subject} data={currentPlan.planData?.infographic || (currentPlan as any).infographic} />
           </div>
         )}

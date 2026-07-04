@@ -103,12 +103,13 @@ function ConceptMap({ graphicData, accent }: Pick<SlideVisualProps, "graphicData
         <g key={i}>
           <line x1="160" y1="110" x2={cx} y2={cy} stroke={pri} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.4" />
           <circle cx={cx} cy={cy} r="30" fill="white" stroke={i % 2 === 0 ? pri : sec} strokeWidth="1.5" />
-          <text x={cx} y={cy - 4} textAnchor="middle" fontSize="7.5" fontWeight="700" fill={i % 2 === 0 ? pri : sec} fontFamily="sans-serif">
-            {(values[i] || "").substring(0, 14)}
-          </text>
-          <text x={cx} y={cy + 8} textAnchor="middle" fontSize="6.5" fill="#64748b" fontFamily="sans-serif">
-            {(values[i] || "").substring(14, 28)}
-          </text>
+          <foreignObject x={cx - 26} y={cy - 26} width="52" height="52">
+            <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p style={{ margin: 0, fontSize: '7px', lineHeight: '1.2', color: '#475569', fontFamily: 'sans-serif', fontWeight: 'bold', textAlign: 'center', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                {values[i]}
+              </p>
+            </div>
+          </foreignObject>
         </g>
       ))}
     </svg>
@@ -200,9 +201,13 @@ function ComparisonVisual({ graphicData, accent }: Pick<SlideVisualProps, "graph
           <g key={i}>
             <rect x={isLeft ? 16 : 172} y={y} width="132" height="24" rx="8"
               fill="white" stroke={isLeft ? pri : sec} strokeWidth="0.8" strokeOpacity="0.3" />
-            <text x={isLeft ? 82 : 238} y={y + 15} textAnchor="middle" fontSize="8" fill="#334155" fontFamily="sans-serif">
-              {item.substring(0, 18)}
-            </text>
+            <foreignObject x={isLeft ? 20 : 176} y={y + 2} width="124" height="20">
+              <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ margin: 0, fontSize: '7.5px', lineHeight: '1.1', color: '#334155', fontFamily: 'sans-serif', fontWeight: '500', textAlign: 'center', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {item}
+                </p>
+              </div>
+            </foreignObject>
           </g>
         );
       })}
@@ -244,15 +249,13 @@ function ProcessFlow({ graphicData, accent }: Pick<SlideVisualProps, "graphicDat
             <text x={x + 29} y="81" textAnchor="middle" fontSize="11" fontWeight="900" fill={textFill} fontFamily="sans-serif">
               0{i + 1}
             </text>
-            <text x={x + 29} y="100" textAnchor="middle" fontSize="7.5" fontWeight="700" fill={color} fontFamily="sans-serif">
-              {step.substring(0, 8)}
-            </text>
-            <text x={x + 29} y="113" textAnchor="middle" fontSize="7" fill="#64748b" fontFamily="sans-serif">
-              {step.substring(8, 18)}
-            </text>
-            <text x={x + 29} y="124" textAnchor="middle" fontSize="7" fill="#64748b" fontFamily="sans-serif">
-              {step.substring(18, 28)}
-            </text>
+            <foreignObject x={x + 4} y={90} width="50" height="40">
+              <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ margin: 0, fontSize: '6.5px', lineHeight: '1.2', color: color, fontFamily: 'sans-serif', fontWeight: 'bold', textAlign: 'center', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {step}
+                </p>
+              </div>
+            </foreignObject>
           </g>
         );
       })}
@@ -331,15 +334,13 @@ function ApplicationsGrid({ graphicData, accent }: Pick<SlideVisualProps, "graph
             <rect x={x} y={y} width="138" height="72" rx="12" fill="white" stroke={color} strokeWidth="1.2" />
             <rect x={x} y={y} width="138" height="72" rx="12" fill={color} fillOpacity="0.04" />
             <text x={x + 20} y={y + 26} fontSize="18">{icons[i]}</text>
-            <text x={x + 48} y={y + 22} fontSize="8.5" fontWeight="800" fill={color} fontFamily="sans-serif">
-              {app.substring(0, 14)}
-            </text>
-            <text x={x + 48} y={y + 33} fontSize="7" fill="#64748b" fontFamily="sans-serif">
-              {app.substring(14, 30)}
-            </text>
-            <text x={x + 48} y={y + 44} fontSize="7" fill="#94a3b8" fontFamily="sans-serif">
-              {app.substring(30, 46)}
-            </text>
+            <foreignObject x={x + 40} y={y + 8} width="88" height="56">
+              <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+                <p style={{ margin: 0, fontSize: '7.5px', lineHeight: '1.25', color: '#334155', fontFamily: 'sans-serif', fontWeight: 'bold', textAlign: 'left', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {app}
+                </p>
+              </div>
+            </foreignObject>
           </g>
         );
       })}
@@ -373,12 +374,13 @@ function SummaryMap({ graphicData, accent, title }: Pick<SlideVisualProps, "grap
           <g key={i}>
             <line x1={mx} y1={my} x2={ex} y2={ey} stroke={i % 2 === 0 ? pri : sec} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.5" />
             <rect x={ex - 46} y={ey - 18} width="92" height="36" rx="10" fill="white" stroke={i % 2 === 0 ? pri : sec} strokeWidth="1" strokeOpacity="0.4" />
-            <text x={ex} y={ey - 4} textAnchor="middle" fontSize="7.5" fontWeight="700" fill={i % 2 === 0 ? pri : sec} fontFamily="sans-serif">
-              {pt.substring(0, 14)}
-            </text>
-            <text x={ex} y={ey + 8} textAnchor="middle" fontSize="6.5" fill="#64748b" fontFamily="sans-serif">
-              {pt.substring(14, 30)}
-            </text>
+            <foreignObject x={ex - 42} y={ey - 14} width="84" height="28">
+              <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ margin: 0, fontSize: '6.5px', lineHeight: '1.15', color: '#334155', fontFamily: 'sans-serif', fontWeight: 'bold', textAlign: 'center', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {pt}
+                </p>
+              </div>
+            </foreignObject>
           </g>
         );
       })}

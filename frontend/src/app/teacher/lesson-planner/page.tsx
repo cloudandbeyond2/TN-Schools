@@ -11,6 +11,7 @@ import { MoreVertical, X } from "lucide-react";
 const syllabusOptions = ["TN State Board (Samacheer Kalvi)", "CBSE", "ICSE"];
 const grades = ["Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
 const subjects = ["Mathematics", "Science", "Social Science", "English", "Tamil"];
+const sections = ["All", "A", "B", "C", "D", "E"];
 
 const steps = [
   "Reading uploaded Textbook chapter...",
@@ -28,10 +29,13 @@ interface LessonPlan {
   subject: string;
   topic: string;
   duration: string;
+  section?: string | null;
   infographic?: any;
+  isPublished?: boolean;
   planData: {
     objectives: string[];
     timeline: { time: string; activity: string; description: string }[];
+    studentKeyPoints?: { en: string[]; ta: string[] };
     bilingual: { english: string; tamil: string; pronunciation: string }[];
     exitTickets: { question: string; options: string[]; answer: string; rationale: string }[];
     slides?: { title: string; subtitle: string; bullets: string[]; graphicType: string; graphicData?: { label: string; values: string[] }; illustrationPrompt?: string; animationSuggestion?: string }[];
@@ -54,6 +58,7 @@ export default function LessonPlannerPage() {
   const [syllabus, setSyllabus] = useState(syllabusOptions[0]);
   const [grade, setGrade] = useState(grades[2]); // Grade 10
   const [subject, setSubject] = useState(subjects[0]); // Maths
+  const [section, setSection] = useState<string>("All"); // Section targeting
   const [topic, setTopic] = useState("Pythagoras Theorem & Trigonometry");
   const [duration, setDuration] = useState("45 Minutes");
 
@@ -98,6 +103,12 @@ export default function LessonPlannerPage() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
+
+  // Publish + present + bilingual state
+  const [publishing, setPublishing] = useState(false);
+  const [lang, setLang] = useState<"en" | "ta">("en");
+  const [presenting, setPresenting] = useState(false);
+  const [presentIndex, setPresentIndex] = useState(0);
 
   // Fetch saved plans on mount / schoolId update
   useEffect(() => {
@@ -286,6 +297,7 @@ export default function LessonPlannerPage() {
           duration: currentPlan.duration,
           planData: currentPlan.planData,
           schoolId,
+          section,
         }),
       });
       const data = await res.json();
@@ -313,6 +325,56 @@ export default function LessonPlannerPage() {
         confirmButtonColor: "#ef4444",
       });
       setSaveStatus("Error saving.");
+    }
+  };
+
+  const handlePublish = async (publish: boolean) => {
+    if (!currentPlan) return;
+    setPublishing(true);
+    try {
+      // Auto-save an unsaved plan first so it has a real id
+      let plan = currentPlan;
+      if (plan.id === "temp-unsaved") {
+        const saveRes = await fetch(`${API_URL}/api/teacher/lessons`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            syllabus: plan.syllabus, grade: plan.grade, subject: plan.subject,
+            topic: plan.topic, duration: plan.duration, planData: plan.planData,
+            schoolId, section,
+          }),
+        });
+        const saveData = await saveRes.json();
+        if (!saveData.success) throw new Error(saveData.error || "Could not save before publishing");
+        plan = saveData.data;
+        setSavedPlans((prev) => [plan, ...prev.filter((p) => p.id !== "temp-unsaved")]);
+      }
+
+      const res = await fetch(`${API_URL}/api/teacher/lessons/${plan.id}/publish`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPublished: publish, section }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Publish failed");
+
+      const updated = { ...plan, isPublished: publish, section: section === 'All' ? null : section };
+      setCurrentPlan(updated);
+      setSavedPlans((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      const secLabel = section === 'All' ? `All sections of ${plan.grade}` : `${plan.grade} – Section ${section}`;
+      Swal.fire({
+        icon: "success",
+        title: publish ? "Published to Class!" : "Unpublished",
+        text: publish
+          ? `Students in ${secLabel} • ${plan.subject} can now see this lesson.`
+          : "This lesson is no longer visible to students.",
+        timer: 2200,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Publish Failed", text: String(err), confirmButtonColor: "#ef4444" });
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -487,6 +549,21 @@ export default function LessonPlannerPage() {
     };
   }, []);
 
+  // Present-mode slides: title → each key point → infographic
+  const presentPoints = (currentPlan?.planData?.studentKeyPoints?.[lang] || currentPlan?.planData?.studentKeyPoints?.en || []);
+  const presentTotal = currentPlan ? presentPoints.length + 2 : 0; // title + points + infographic
+
+  useEffect(() => {
+    if (!presenting) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") setPresentIndex((i) => Math.min(i + 1, presentTotal - 1));
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") setPresentIndex((i) => Math.max(i - 1, 0));
+      else if (e.key === "Escape") setPresenting(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [presenting, presentTotal]);
+
   // Theme configuration
   const theme = {
     bg: isDarkMode ? "bg-slate-950" : "bg-slate-50",
@@ -551,6 +628,33 @@ export default function LessonPlannerPage() {
                     </select>
                   </div>
                 </div>
+
+                {/* Section Targeting */}
+                <div>
+                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>
+                    Section <span className="text-amber-500">★</span>
+                  </label>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {sections.map((sec) => (
+                      <button
+                        key={sec}
+                        type="button"
+                        onClick={() => setSection(sec)}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all border ${
+                          section === sec
+                            ? "bg-amber-500 text-slate-900 border-amber-500 shadow-md shadow-amber-500/25"
+                            : `${theme.inputBg} ${theme.border} ${theme.textMuted} hover:border-amber-400`
+                        }`}
+                      >
+                        {sec === "All" ? "📢 All" : sec}
+                      </button>
+                    ))}
+                  </div>
+                  <p className={`text-[9px] ${theme.textMuted} mt-1.5`}>
+                    {section === "All" ? "Visible to all sections of this grade" : `Visible to Section ${section} only`}
+                  </p>
+                </div>
+
 
                 <div>
                   <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>Topic / Chapter</label>
@@ -627,6 +731,7 @@ export default function LessonPlannerPage() {
                         setSyllabus(plan.syllabus);
                         setGrade(plan.grade);
                         setSubject(plan.subject);
+                        setSection(plan.section ? plan.section : "All");
                         setTopic(plan.topic);
                         setDuration(plan.duration);
                         if (window.innerWidth < 768) setIsSidebarOpen(false);
@@ -636,7 +741,15 @@ export default function LessonPlannerPage() {
                         : `${theme.border} ${theme.bg} hover:border-amber-400 ${theme.textMuted}`
                         }`}
                     >
-                      <span className="truncate font-bold flex-1">{plan.topic}</span>
+                      <div className="truncate font-bold flex-1">
+                        <span>{plan.topic}</span>
+                        <span className={`block text-[9px] mt-0.5 font-medium ${
+                          currentPlan?.id === plan.id ? 'text-amber-600 dark:text-amber-500' : theme.textMuted
+                        }`}>
+                          {plan.grade}{plan.section ? ` · §${plan.section}` : " · All"} · {plan.subject}
+                          {plan.isPublished && <span className="ml-1.5 text-emerald-500">● Live</span>}
+                        </span>
+                      </div>
                       <button
                         type="button"
                         onClick={(e) => {
@@ -685,16 +798,48 @@ export default function LessonPlannerPage() {
               )}
             </div>
 
-            <div className="flex items-center gap-3">
-              {currentPlan?.id === "temp-unsaved" && (
-                <button
-                  onClick={handleSave}
-                  className="px-4 py-1.5 bg-indigo-500 hover:bg-indigo-600 rounded-lg text-[10px] font-black text-white transition-transform hover:scale-105 shadow-md shadow-indigo-500/20"
-                >
-                  💾 SAVE PLAN
-                </button>
-              )}
+            <div className="flex items-center gap-2 xl:gap-3">
+              {currentPlan && !isGenerating && (
+                <>
+                  {currentPlan.isPublished ? (
+                    <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live
+                      {currentPlan.section && <span className="ml-1 normal-case font-bold text-emerald-500">§{currentPlan.section}</span>}
+                    </span>
+                  ) : (
+                    <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-500/10 text-slate-500 text-[10px] font-black uppercase">Draft</span>
+                  )}
 
+                  <button
+                    onClick={() => { setPresentIndex(0); setPresenting(true); }}
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-black text-slate-700 dark:text-white bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 transition-all"
+                    title="Fullscreen projection for the class"
+                  >
+                    🖥️ PRESENT
+                  </button>
+
+                  {currentPlan.id === "temp-unsaved" && (
+                    <button
+                      onClick={handleSave}
+                      className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 rounded-lg text-[10px] font-black text-white transition-transform hover:scale-105 shadow-md shadow-indigo-500/20"
+                    >
+                      💾 SAVE
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => handlePublish(!currentPlan.isPublished)}
+                    disabled={publishing}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black text-white transition-transform hover:scale-105 shadow-md disabled:opacity-60 ${
+                      currentPlan.isPublished
+                        ? "bg-slate-600 hover:bg-slate-700"
+                        : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20"
+                    }`}
+                  >
+                    {publishing ? "..." : currentPlan.isPublished ? "UNPUBLISH" : "📢 PUBLISH TO CLASS"}
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
@@ -763,9 +908,54 @@ export default function LessonPlannerPage() {
                 {/* Tab: Overview */}
                 {activeTab === "overview" && (
                   <div className="flex-1 space-y-6">
+                    {/* Student-facing preview banner + language toggle */}
+                    <div className={`p-4 rounded-2xl border ${theme.border} bg-gradient-to-r from-emerald-500/5 to-teal-500/5 flex flex-wrap items-center justify-between gap-3`}>
+                      <p className={`text-xs font-bold ${theme.textMuted} flex items-center gap-2`}>
+                        <span className="text-base">👁️</span> This is what students see when you publish — clear key points + the infographic.
+                      </p>
+                      <div className="flex bg-slate-900/10 dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-800">
+                        {(["en", "ta"] as const).map((l) => (
+                          <button
+                            key={l}
+                            onClick={() => setLang(l)}
+                            className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all ${lang === l ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm" : "text-slate-500"}`}
+                          >
+                            {l === "en" ? "English" : "தமிழ்"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Student Key Points — the "clear points of view" */}
+                    {currentPlan.planData?.studentKeyPoints && (
+                      <div className={`p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm`}>
+                        <h3 className="text-sm font-bold text-emerald-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                          <span className="text-xl">🎯</span> Key Points to Remember
+                        </h3>
+                        <ul className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                          {(currentPlan.planData.studentKeyPoints[lang] || currentPlan.planData.studentKeyPoints.en || []).map((pt, i) => (
+                            <li key={i} className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/10 text-sm flex gap-3">
+                              <span className="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-black flex items-center justify-center shrink-0">{i + 1}</span>
+                              <span className={theme.text}>{pt}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Visual Infographic */}
+                    {currentPlan.planData?.infographic && (
+                      <div className={`p-2 xl:p-4 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm overflow-hidden`}>
+                        <h3 className="text-sm font-bold text-violet-500 uppercase tracking-widest mb-2 px-3 pt-2 flex items-center gap-2">
+                          <span className="text-xl">📊</span> Concept Infographic
+                        </h3>
+                        <InteractiveInfographic topic={currentPlan.topic} subject={currentPlan.subject} data={currentPlan.planData.infographic} />
+                      </div>
+                    )}
+
                     <div className={`p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm`}>
                       <h3 className="text-sm font-bold text-indigo-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <span className="text-xl">🎯</span> Lesson Objectives
+                        <span className="text-xl">📋</span> Lesson Objectives
                       </h3>
                       <ul className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                         {currentPlan.planData?.objectives?.map((obj, i) => (
@@ -898,6 +1088,99 @@ export default function LessonPlannerPage() {
         </div>
 
       </div>
+
+      {/* ───── Present (fullscreen projection) ───── */}
+      {presenting && currentPlan && (
+        <div className="fixed inset-0 z-[100] bg-white text-slate-900 flex flex-col">
+          {/* Background decoration */}
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100 rounded-full blur-[100px] opacity-50" />
+             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-100 rounded-full blur-[100px] opacity-50" />
+          </div>
+
+          {/* Top bar */}
+          <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b border-slate-100 relative z-10 bg-white/80 backdrop-blur-md">
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold uppercase border border-indigo-100">{currentPlan.grade} • {currentPlan.subject}</span>
+              <div className="flex bg-slate-100 rounded-lg p-1">
+                {(["en", "ta"] as const).map((l) => (
+                  <button key={l} onClick={() => setLang(l)} className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
+                    {l === "en" ? "EN" : "தமிழ்"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button onClick={() => setPresenting(false)} className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors">
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Slide stage */}
+          <div className="flex-1 flex items-center justify-center px-6 xl:px-20 overflow-hidden relative z-10">
+            {presentIndex === 0 ? (
+              <div className="text-center animate-in fade-in zoom-in duration-500 max-w-5xl">
+                <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-indigo-50 text-6xl mb-8 shadow-inner border border-indigo-100">
+                  {currentPlan.planData?.infographic?.heroIcon || "📚"}
+                </div>
+                <h1 className="text-5xl xl:text-7xl font-black text-slate-900 mb-6 leading-tight tracking-tight drop-shadow-sm">{currentPlan.topic}</h1>
+                <p className="text-slate-500 text-xl xl:text-2xl font-semibold tracking-wide uppercase">{currentPlan.syllabus}</p>
+              </div>
+            ) : presentIndex <= presentPoints.length ? (
+              <div className="max-w-4xl w-full text-left animate-in fade-in slide-in-from-right-8 duration-400 bg-white rounded-[2.5rem] p-10 xl:p-16 shadow-2xl border border-slate-100 flex flex-col md:flex-row items-center gap-8 xl:gap-12 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-60"></div>
+                
+                <div className="shrink-0 flex flex-col items-center justify-center w-32 h-32 xl:w-48 xl:h-48 rounded-[2rem] bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-xl shadow-emerald-500/30 transform -rotate-3 transition-transform relative z-10">
+                  <span className="text-5xl xl:text-7xl font-black mb-1">{presentIndex}</span>
+                  <span className="text-xs xl:text-sm uppercase tracking-widest font-bold opacity-80">Key Point</span>
+                </div>
+                
+                <div className="flex-1 relative z-10">
+                   {(() => {
+                     const pt = presentPoints[presentIndex - 1] || "";
+                     const splitIdx = pt.indexOf(':');
+                     if (splitIdx > 0 && splitIdx < 50) {
+                        return (
+                          <>
+                            <h3 className="text-2xl xl:text-3xl font-black text-emerald-600 mb-4 uppercase tracking-wide">{pt.substring(0, splitIdx)}</h3>
+                            <p className="text-3xl xl:text-5xl font-bold text-slate-800 leading-snug tracking-tight">{pt.substring(splitIdx + 1).trim()}</p>
+                          </>
+                        )
+                     }
+                     return <p className="text-3xl xl:text-5xl font-bold text-slate-800 leading-snug tracking-tight">{pt}</p>;
+                   })()}
+                </div>
+              </div>
+            ) : (
+              <div className="w-full max-w-6xl h-full overflow-y-auto animate-in fade-in zoom-in duration-500 pb-12 pt-4 px-2 xl:px-8">
+                <InteractiveInfographic topic={currentPlan.topic} subject={currentPlan.subject} data={currentPlan.planData?.infographic} />
+              </div>
+            )}
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center justify-center gap-6 px-6 py-6 shrink-0 relative z-10 bg-white/80 backdrop-blur-md border-t border-slate-100">
+            <button
+              onClick={() => setPresentIndex((i) => Math.max(i - 1, 0))}
+              disabled={presentIndex === 0}
+              className="px-8 py-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold disabled:opacity-30 transition-all text-sm xl:text-base"
+            >
+              ← Previous
+            </button>
+            <div className="flex gap-2 mx-4">
+              {Array.from({ length: presentTotal }).map((_, i) => (
+                <button key={i} onClick={() => setPresentIndex(i)} className={`w-2.5 h-2.5 rounded-full transition-all ${i === presentIndex ? "bg-emerald-500 w-8 shadow-md shadow-emerald-500/30" : "bg-slate-200 hover:bg-slate-300"}`} />
+              ))}
+            </div>
+            <button
+              onClick={() => setPresentIndex((i) => Math.min(i + 1, presentTotal - 1))}
+              disabled={presentIndex >= presentTotal - 1}
+              className="px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold disabled:opacity-30 transition-all text-sm xl:text-base shadow-lg shadow-emerald-500/20"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
 
     </PortalLayout>
   );
