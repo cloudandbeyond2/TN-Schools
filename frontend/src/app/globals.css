@@ -612,10 +612,11 @@ h1, h2, h3, h4, h5, h6 {
 /* ===================== MAIN CONTENT ===================== */
 .main-content {
   margin-left: 260px;
+  width: calc(100% - 260px);
   min-height: 100vh;
   padding: 0 !important; /* Managed via PortalLayout internally for standard edges */
   background: var(--bg-main);
-  transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s;
+  transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s;
   display: flex;
   flex-direction: column;
 }
@@ -623,6 +624,7 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 1023px) {
   .main-content {
     margin-left: 0;
+    width: 100%;
     padding: 0 !important;
   }
 }

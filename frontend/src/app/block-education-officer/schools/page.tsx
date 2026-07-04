@@ -237,7 +237,6 @@ export default function BlockSchoolsPage() {
       {
         "School Name": "GHS Coimbatore South",
         "DISE Code": "33120100101",
-        "Headmaster Name": "Mr. Srinivasan K.",
         "Address": "123 Trichy Road, Ramanathapuram",
         "District": "Coimbatore",
         "Block": "Coimbatore South",
@@ -248,7 +247,6 @@ export default function BlockSchoolsPage() {
       {
         "School Name": "GHS Peelamedu Boys",
         "DISE Code": "33120100102",
-        "Headmaster Name": "Mrs. Shanthi M.",
         "Address": "45 Kamarajar Street, Peelamedu",
         "District": "Coimbatore",
         "Block": "Coimbatore South",
@@ -483,16 +481,7 @@ export default function BlockSchoolsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] text-slate-550 dark:text-slate-400 mb-1 font-semibold">Headmaster Name</label>
-                <input
-                  type="text"
-                  value={headmasterName}
-                  onChange={(e) => setHeadmasterName(e.target.value)}
-                  placeholder="e.g. Mr. Srinivasan K."
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors"
-                />
-              </div>
+
 
               <div>
                 <label className="block text-[10px] text-slate-550 dark:text-slate-400 mb-1 font-semibold">School Address</label>
