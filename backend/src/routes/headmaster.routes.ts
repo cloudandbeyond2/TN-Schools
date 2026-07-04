@@ -132,8 +132,15 @@ router.post('/students', async (req: Request, res: Response) => {
 
       if (parentEmail) {
         // Check if parent user already exists in PostgreSQL
+        const parentWhereConditions: any[] = [
+          { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
+        ];
+        if (cleanPhone) {
+          parentWhereConditions.push({ mobile: cleanPhone });
+        }
+
         let parentUser = await tx.user.findFirst({
-          where: { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
+          where: { OR: parentWhereConditions }
         });
 
         if (!parentUser) {
@@ -150,8 +157,15 @@ router.post('/students', async (req: Request, res: Response) => {
         }
 
         // Check if HeadmasterParent model exists
+        const hmParentWhereConditions: any[] = [
+          { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
+        ];
+        if (cleanPhone) {
+          hmParentWhereConditions.push({ phone: cleanPhone });
+        }
+
         let hmParent = await tx.headmasterParent.findFirst({
-          where: { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
+          where: { OR: hmParentWhereConditions }
         });
 
         if (!hmParent) {
