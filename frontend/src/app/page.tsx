@@ -211,9 +211,9 @@ function TypedText({ texts, speed = 60, pause = 2000 }: { texts: string[]; speed
   }, [charIndex, isDeleting, textIndex, texts, speed, pause]);
 
   return (
-    <span>
+    <span style={{ color: "inherit" }}>
       {displayText}
-      <span className="typing-cursor" style={{ background: "#3D3580" }} />
+      <span className="typing-cursor" style={{ background: "currentColor" }} />
     </span>
   );
 }
@@ -225,6 +225,13 @@ export default function HomePage() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [lang, setLang] = useState<"en" | "ta">("en");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const heroImages = [
+    "/bg-school.png",
+    "/bg-classroom.png",
+    "/bg-digital.png"
+  ];
 
   const text = t[lang];
 
@@ -254,6 +261,13 @@ export default function HomePage() {
     }, 5000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const slideTimer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+    }, 6000);
+    return () => clearInterval(slideTimer);
+  }, [heroImages.length]);
 
   return (
     <div style={{ background: "#f5f5fb", fontFamily: "'Inter', 'Segoe UI', sans-serif", color: "#1a1a2e" }}>
@@ -537,33 +551,54 @@ export default function HomePage() {
         </AnimatePresence>
       </nav>
 
-      {/* ═══════════════ HERO SECTION — LIGHT THEME ═══════════════ */}
+      {/* ═══════════════ HERO SECTION — SLIDER THEME ═══════════════ */}
       <section
         id="hero"
         style={{
-          background: "linear-gradient(160deg, #ffffff 0%, #f0effe 50%, #e8e7f8 100%)",
-          padding: "72px 0 80px",
           position: "relative",
+          minHeight: "90vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "72px 0 80px",
           overflow: "hidden",
           borderBottom: "1px solid #e2e8f0"
         }}
       >
-        {/* Subtle grid pattern */}
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundImage: "linear-gradient(rgba(61,53,128,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(61,53,128,0.04) 1px, transparent 1px)", backgroundSize: "48px 48px", pointerEvents: "none" }} />
-        {/* Decorative circles */}
-        <div style={{ position: "absolute", top: "-80px", right: "-80px", width: "360px", height: "360px", borderRadius: "50%", background: "radial-gradient(circle, rgba(61,53,128,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "-60px", left: "-60px", width: "280px", height: "280px", borderRadius: "50%", background: "radial-gradient(circle, rgba(240,120,0,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <AnimatePresence mode="popLayout">
+          <motion.div
+            key={currentSlide}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2 }}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundImage: `url('${heroImages[currentSlide]}')`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              zIndex: 0
+            }}
+          />
+        </AnimatePresence>
 
-        <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 2rem", textAlign: "center", position: "relative", zIndex: 1 }}>
+        {/* Gradient Overlay for Text Readability */}
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "linear-gradient(to right, rgba(61,53,128,0.85) 0%, rgba(61,53,128,0.4) 100%)", zIndex: 0 }} />
+
+        <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 32px", textAlign: "left", position: "relative", zIndex: 1, background: "rgba(255, 255, 255, 0.1)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(255, 255, 255, 0.2)", borderRadius: "24px", boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}>
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#ffffff", border: "1.5px solid #3D3580", borderRadius: "100px", padding: "7px 18px", marginBottom: "28px", boxShadow: "0 2px 12px rgba(61,53,128,0.12)" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255, 255, 255, 0.9)", border: "1.5px solid rgba(255, 255, 255, 0.5)", borderRadius: "100px", padding: "7px 18px", marginBottom: "28px", boxShadow: "0 2px 12px rgba(0,0,0,0.1)" }}
           >
             <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 6px #10b981", display: "inline-block" }}></span>
-            <span style={{ fontSize: "12px", color: "#3D3580", fontWeight: 700, letterSpacing: "0.2px" }}>{text.heroBadge}</span>
+            <span style={{ fontSize: "12px", color: "#3D3580", fontWeight: 800, letterSpacing: "0.5px" }}>{text.heroBadge}</span>
           </motion.div>
 
           {/* Hero Title */}
@@ -571,13 +606,13 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.15 }}
-            style={{ fontSize: "clamp(34px, 5.5vw, 68px)", fontWeight: 900, color: "#3D3580", lineHeight: 1.1, marginBottom: "20px", letterSpacing: "-1.5px" }}
+            style={{ fontSize: "clamp(40px, 6vw, 76px)", fontWeight: 900, color: "#ffffff", lineHeight: 1.1, marginBottom: "24px", letterSpacing: "-1.5px", textShadow: "0 2px 10px rgba(0,0,0,0.3)" }}
           >
             {text.heroTitle1}
             <br />
-            <span style={{ color: "#F07800", display: "inline-block", position: "relative" }}>
+            <span style={{ color: "#F5B800", display: "inline-block", position: "relative" }}>
               {text.heroTitle2}
-              <span style={{ position: "absolute", bottom: "-4px", left: 0, right: 0, height: "4px", background: "linear-gradient(90deg, #F07800, #F5B800)", borderRadius: "2px", opacity: 0.5 }}></span>
+              <span style={{ position: "absolute", bottom: "-6px", left: 0, right: 0, height: "6px", background: "linear-gradient(90deg, #F07800, #F5B800)", borderRadius: "3px", opacity: 0.8 }}></span>
             </span>
           </motion.h1>
 
@@ -585,7 +620,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            style={{ fontSize: "clamp(14px, 1.8vw, 17px)", color: "#475569", maxWidth: "680px", margin: "0 auto 14px", lineHeight: 1.75 }}
+            style={{ fontSize: "clamp(16px, 2vw, 20px)", color: "#f8fafc", maxWidth: "720px", marginBottom: "16px", lineHeight: 1.7, fontWeight: 500 }}
           >
             {text.heroSub}
           </motion.p>
@@ -594,7 +629,7 @@ export default function HomePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            style={{ fontSize: "13px", color: "#64748b", marginBottom: "36px", height: "28px" }}
+            style={{ fontSize: "15px", color: "#ffffff", marginBottom: "40px", height: "30px", fontWeight: 600, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}
           >
             <TypedText key={lang} texts={[text.heroType1, text.heroType2, text.heroType3]} speed={45} pause={2500} />
           </motion.div>
@@ -604,7 +639,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}
+            style={{ display: "flex", gap: "16px", justifyContent: "flex-start", flexWrap: "wrap" }}
           >
             {session ? (
               <Link
@@ -618,19 +653,19 @@ export default function HomePage() {
                   })()
                 }
                 id="hero-goto-portal"
-                style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "linear-gradient(135deg, #F07800, #E84400)", color: "#ffffff", padding: "13px 30px", borderRadius: "10px", textDecoration: "none", fontWeight: 700, fontSize: "14px", boxShadow: "0 4px 18px rgba(240,120,0,0.35)", transition: "all 0.2s" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: "linear-gradient(135deg, #F07800, #E84400)", color: "#ffffff", padding: "16px 36px", borderRadius: "12px", textDecoration: "none", fontWeight: 800, fontSize: "16px", boxShadow: "0 6px 20px rgba(240,120,0,0.4)", transition: "all 0.3s" }}
               >
                 🚀 {text.heroBtnGo}
               </Link>
             ) : (
               <Link href="/login" id="hero-signin"
-                style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "linear-gradient(135deg, #F07800, #E84400)", color: "#ffffff", padding: "13px 30px", borderRadius: "10px", textDecoration: "none", fontWeight: 700, fontSize: "14px", boxShadow: "0 4px 18px rgba(240,120,0,0.35)", transition: "all 0.2s" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: "linear-gradient(135deg, #F07800, #E84400)", color: "#ffffff", padding: "16px 36px", borderRadius: "12px", textDecoration: "none", fontWeight: 800, fontSize: "16px", boxShadow: "0 6px 20px rgba(240,120,0,0.4)", transition: "all 0.3s" }}
               >
                 🚀 {text.heroBtnSignIn}
               </Link>
             )}
             <a href="#portals" id="hero-explore"
-              style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#ffffff", color: "#3D3580", padding: "13px 30px", borderRadius: "10px", textDecoration: "none", fontWeight: 700, fontSize: "14px", border: "2px solid #3D3580", transition: "all 0.2s" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: "rgba(255,255,255,0.15)", color: "#ffffff", padding: "16px 36px", borderRadius: "12px", textDecoration: "none", fontWeight: 800, fontSize: "16px", border: "2px solid rgba(255,255,255,0.6)", transition: "all 0.3s", backdropFilter: "blur(10px)" }}
             >
               {text.heroBtnExplore} ↓
             </a>
@@ -641,7 +676,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
-            style={{ display: "flex", justifyContent: "center", gap: "clamp(0px, 2vw, 12px)", marginTop: "56px", flexWrap: "wrap" }}
+            style={{ display: "flex", justifyContent: "flex-start", gap: "16px", marginTop: "48px", flexWrap: "wrap" }}
           >
             {[
               { label: "Students", value: "47.2L+", color: "#3D3580", icon: "👨‍🎓" },
