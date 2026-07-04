@@ -286,24 +286,32 @@ export default function PortalLayout({
   const resolvedTitle = title || currentConfig?.title || "Portal Dashboard";
   let resolvedSubtitle = subtitle || currentConfig?.subtitle || "";
   if (session?.user?.name) {
+    const s = session.user as any;
+    // Base replacement of default dummy names with actual logged-in user name
     resolvedSubtitle = resolvedSubtitle
-      .replace("Mrs. Sumathi Devi", session.user.name)
-      .replace("Sumathi Devi", session.user.name)
-      .replace("Arjun Kumar", session.user.name)
-      .replace("Arjun", session.user.name)
-      .replace("Rajesh Kumar", session.user.name)
-      .replace("Mr. Venkatesh R.", session.user.name)
-      .replace("Mr. Murugesan P.", session.user.name)
-      .replace("DEO Officer", session.user.name)
-      .replace("Commissioner", session.user.name)
-      .replace("Minister", session.user.name)
-      .replace("System Management", session.user.name);
+      .replace("Mrs. Sumathi Devi", s.name)
+      .replace("Sumathi Devi", s.name)
+      .replace("Arjun Kumar", s.name)
+      .replace("Arjun", s.name)
+      .replace("Rajesh Kumar", s.name)
+      .replace("Mr. Venkatesh R.", s.name)
+      .replace("Mr. Murugesan P.", s.name)
+      .replace("DEO Officer", s.name)
+      .replace("Commissioner", s.name)
+      .replace("Minister", s.name)
+      .replace("System Management", s.name);
 
-    if (userRole === "TEACHER") {
-      const subject = (session.user as any).subject || "General";
-      resolvedSubtitle = resolvedSubtitle
-        .replace("Mathematics", subject)
-        .replace(" · GHS Coimbatore", "");
+    if (s.schoolName && s.schoolDise) {
+      if (userRole === "TEACHER") {
+        const subject = s.subject || "General";
+        resolvedSubtitle = `${s.name} · ${subject}`;
+      } else {
+        resolvedSubtitle = `${s.name} · ${s.schoolName} · DISE: ${s.schoolDise}`;
+      }
+    } else if (userRole === "TEACHER") {
+      // Fallback if no school info
+      const subject = s.subject || "General";
+      resolvedSubtitle = `${s.name} · ${subject}`;
     }
   }
   const resolvedAvatarLetter = avatarLetter || currentConfig?.avatarLetter || "P";
