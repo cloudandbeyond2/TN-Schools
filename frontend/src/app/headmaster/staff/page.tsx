@@ -123,19 +123,19 @@ export default function StaffManagementPage() {
   // ── Excel download template ─────────────────────────────────────
   const downloadExcelTemplate = () => {
     const headers = [
-      "Teacher Name", "EMIS ID", "Subject Speciality", "Phone Number",
+      "Teacher Name", "ID", "Subject Speciality", "Phone Number",
       "Email Address", "Attendance Rate (%)", "Performance Index",
       "Leave Balance Used", "Password",
     ];
     const sampleData = [
       {
-        "Teacher Name": "Mrs. Sumathi Devi", "EMIS ID": "TCH201",
+        "Teacher Name": "Mrs. Sumathi Devi", "ID": "TCH201",
         "Subject Speciality": "Mathematics", "Phone Number": "9876543220",
         "Email Address": "sumathi@emis.tn.gov.in", "Attendance Rate (%)": 96,
         "Performance Index": "Excellent", "Leave Balance Used": 1, "Password": "password123",
       },
       {
-        "Teacher Name": "Mr. Rajan K.", "EMIS ID": "TCH202",
+        "Teacher Name": "Mr. Rajan K.", "ID": "TCH202",
         "Subject Speciality": "Science", "Phone Number": "9876543221",
         "Email Address": "rajan@emis.tn.gov.in", "Attendance Rate (%)": 92,
         "Performance Index": "Good", "Leave Balance Used": 0, "Password": "password123",
@@ -165,7 +165,7 @@ export default function StaffManagementPage() {
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         interface ExcelTeacherRow {
-          "Teacher Name"?: string; "EMIS ID"?: string; "Subject Speciality"?: string;
+          "Teacher Name"?: string; "ID"?: string; "Subject Speciality"?: string;
           "Phone Number"?: string; "Email Address"?: string;
           "Attendance Rate (%)"?: string | number; "Performance Index"?: string;
           "Leave Balance Used"?: string | number; "Password"?: string;
@@ -173,7 +173,7 @@ export default function StaffManagementPage() {
         const parsedData = XLSX.utils.sheet_to_json<ExcelTeacherRow>(sheet);
         const validated: ParsedPreviewTeacher[] = parsedData.map((row, idx) => {
           const name = row["Teacher Name"]?.toString().trim() || "";
-          const emisId = row["EMIS ID"]?.toString().trim() || "";
+          const emisId = row["ID"]?.toString().trim() || "";
           const subject = row["Subject Speciality"]?.toString().trim() || "";
           const phone = row["Phone Number"]?.toString().trim() || "";
           const email = row["Email Address"]?.toString().trim() || "";
@@ -192,7 +192,7 @@ export default function StaffManagementPage() {
             id: idx, name, emisId, subject: subject || "General",
             phone: phone || "Not Provided", email: email || "Not Provided",
             attendance, performance, leaveUsed, password, isValid,
-            validationError: !name ? "Name is missing" : !emisId ? "EMIS ID is missing" : undefined,
+            validationError: !name ? "Name is missing" : !emisId ? "ID is missing" : undefined,
           };
         });
         setPreviewTeachers(validated);
@@ -550,7 +550,7 @@ export default function StaffManagementPage() {
                   <input type="text" required value={editForm.name || ""} onChange={(e) => setEditForm({...editForm, name: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">EMIS ID (Cannot be changed)</label>
+                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">ID (Cannot be changed)</label>
                   <input type="text" disabled value={editForm.emisId || ""} className="w-full bg-slate-200 border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-600 cursor-not-allowed" />
                 </div>
               </div>

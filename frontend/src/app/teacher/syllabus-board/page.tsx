@@ -242,7 +242,7 @@ export default function TeacherSyllabusBoardPage() {
               <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No units found for this subject yet.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
               {unitCards.map((card) => (
                 <Link
                   key={card.unitId}
