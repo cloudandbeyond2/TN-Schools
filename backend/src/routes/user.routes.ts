@@ -173,6 +173,20 @@ router.post('/auth', async (req: Request, res: Response) => {
   try {
     const { loginType, email, password, rollNumber, phone } = req.body;
 
+    const withSchoolInfo = async (userData: any) => {
+      if (userData.schoolId) {
+        const school = await prisma.school.findUnique({
+          where: { id: userData.schoolId },
+          select: { name: true, dise: true }
+        });
+        if (school) {
+          userData.schoolName = school.name;
+          userData.schoolDise = school.dise;
+        }
+      }
+      return userData;
+    };
+
     if (loginType === 'student') {
       const inputRoll = rollNumber || email;
       const inputPhone = phone || password;
@@ -231,7 +245,7 @@ console.log({
 
 return res.json({
   success: true,
-  data: {
+  data: await withSchoolInfo({
     id: student.user.id,
     name: student.user.name,
     email: student.user.email || `${student.rollNumber}@tn.gov.in`,
@@ -243,7 +257,7 @@ return res.json({
     section: student.section,
     studentId: student.id,           // Student record ID (for leave, homework, etc.)
     rollNumber: student.rollNumber,  // Roll number for display
-  },
+  }),
 });
     } else {
       // Staff / Parent login by Email and Password
@@ -278,26 +292,26 @@ return res.json({
 
         return res.json({
             success: true,
-            data: {
+            data: await withSchoolInfo({
                 id: teacher?.id ?? pgUser.id,
                 name: teacher?.name ?? pgUser.name,
                 email: pgUser.email,
                 role: "TEACHER",
                 schoolId: teacher?.schoolId ?? pgUser.schoolId,
                 subject: teacher?.subject ?? "General",
-            },
+            }),
         });
     }
 
     return res.json({
         success: true,
-        data: {
+        data: await withSchoolInfo({
             id: pgUser.id,
             name: pgUser.name,
             email: pgUser.email,
             role: pgUser.role,
             schoolId: pgUser.schoolId,
-        },
+        }),
     });
 }
       // ── Step 2: Check headmasterStaff (MongoDB via Prisma) ──
@@ -311,14 +325,14 @@ return res.json({
         }
         return res.json({
           success: true,
-          data: {
+          data: await withSchoolInfo({
             id: String(staffMember.id),
             name: staffMember.name,
             email: staffMember.email || cleanEmail,
             role: 'TEACHER',
             schoolId: staffMember.schoolId || null,
             subject: staffMember.subject || 'General'
-          }
+          })
         });
       }
 
@@ -333,13 +347,13 @@ return res.json({
         }
         return res.json({
           success: true,
-          data: {
+          data: await withSchoolInfo({
             id: String(parentMember.id),
             name: parentMember.name,
             email: parentMember.email || cleanEmail,
             role: 'PARENT',
             schoolId: parentMember.schoolId || null
-          }
+          })
         });
       }
 

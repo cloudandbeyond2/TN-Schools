@@ -1,7 +1,7 @@
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 const CLASS_OPTIONS = ["1","2","3","4","5","6","7","8","9","10","11","12"];
 
@@ -19,18 +19,25 @@ const SUBJECT_PRESETS: Record<string, { icon: string; color: string }> = {
   Geography: { icon: "🗺️", color: "#0d9488" },
 };
 
-interface ParsedTopic {
-  topicNumber: number;
+interface ParsedLesson {
   name: string;
+  nameEnglish: string;
 }
 
 interface ParsedUnit {
   unitNumber: number;
-  name: string;
-  topics: ParsedTopic[];
+  primaryTitle: string;
+  secondaryTitle: string;
+  titleTamil?: string;
+  titleEnglish?: string;
+  description: string;
+  tip: string;
+  emoji: string;
+  lessons: ParsedLesson[];
 }
 
 interface PreviewData {
+  language?: string;
   subjectName: string;
   className: string;
   icon: string;
@@ -52,6 +59,7 @@ type Step = "upload" | "extracting" | "preview" | "saving" | "done";
 export default function SyllabusUploadPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+  const [view, setView] = useState<"upload" | "manage">("upload");
   const [step, setStep] = useState<Step>("upload");
   const [selectedClass, setSelectedClass] = useState("8");
   const [subjectName, setSubjectName] = useState("");
@@ -171,6 +179,34 @@ export default function SyllabusUploadPage() {
       themeClass="theme-superadmin"
       accentColor="#7c3aed"
     >
+      {/* View tabs */}
+      <div className="flex items-center gap-2 mb-6">
+        <button
+          onClick={() => setView("upload")}
+          className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${
+            view === "upload"
+              ? "bg-violet-600 text-white border-violet-600 shadow-sm"
+              : "bg-white dark:bg-slate-900/40 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-violet-400"
+          }`}
+        >
+          ⬆️ Upload PDF
+        </button>
+        <button
+          onClick={() => setView("manage")}
+          className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${
+            view === "manage"
+              ? "bg-violet-600 text-white border-violet-600 shadow-sm"
+              : "bg-white dark:bg-slate-900/40 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-violet-400"
+          }`}
+        >
+          🗂️ Manage Syllabus
+        </button>
+      </div>
+
+      {view === "manage" ? (
+        <ManageSyllabus API_URL={API_URL} />
+      ) : (
+      <>
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-8">
         {(["upload", "preview", "done"] as const).map((s, i) => {
@@ -363,12 +399,16 @@ export default function SyllabusUploadPage() {
               <span className="text-3xl">{preview.icon}</span>
               <div>
                 <h3 className="font-black text-lg text-slate-800 dark:text-white">{preview.subjectName}</h3>
-                <p className="text-xs text-slate-500 font-semibold">Class {preview.className} | {preview.pdfPages} pages</p>
+                <p className="text-xs text-slate-500 font-semibold">
+                  Class {preview.className}
+                  {preview.language ? ` | ${preview.language}` : ""}
+                  {preview.pdfPages ? ` | ${preview.pdfPages} pages` : ""}
+                </p>
               </div>
             </div>
             <div className="ml-auto flex items-center gap-3">
               <StatBadge label="Units" value={preview.totalUnits} bg="bg-violet-100 dark:bg-violet-950/40" text="text-violet-700 dark:text-violet-300" />
-              <StatBadge label="Topics" value={preview.totalTopics} bg="bg-emerald-100 dark:bg-emerald-950/40" text="text-emerald-700 dark:text-emerald-300" />
+              <StatBadge label="Lessons" value={preview.totalTopics} bg="bg-emerald-100 dark:bg-emerald-950/40" text="text-emerald-700 dark:text-emerald-300" />
             </div>
           </div>
 
@@ -376,33 +416,48 @@ export default function SyllabusUploadPage() {
           <div className="glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                Extracted Structure — Review Before Saving
+                Extracted Units — Review Before Saving
               </h3>
+              <p className="text-xs text-slate-500 mt-1">Each unit below becomes one visual card on the Syllabus Board.</p>
             </div>
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {preview.units.map((unit) => (
                 <div key={unit.unitNumber} className="px-6 py-4">
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-start gap-3 mb-2">
                     <span
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black text-white"
+                      className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-black text-white flex-shrink-0"
                       style={{ background: preview.color }}
                     >
                       {unit.unitNumber}
                     </span>
-                    <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">{unit.name}</h4>
-                    <span className="ml-auto text-[10px] font-bold text-slate-400 uppercase">
-                      {unit.topics.length} topic{unit.topics.length !== 1 ? "s" : ""}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-lg leading-none">{unit.emoji}</span>
+                        <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">{unit.primaryTitle}</h4>
+                        {unit.secondaryTitle && (
+                          <span className="text-xs italic text-slate-400">{unit.secondaryTitle}</span>
+                        )}
+                      </div>
+                      {unit.description && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{unit.description}</p>
+                      )}
+                      {unit.tip && (
+                        <p className="text-[11px] font-semibold mt-1" style={{ color: preview.color }}>💡 {unit.tip}</p>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase flex-shrink-0">
+                      {unit.lessons.length} lesson{unit.lessons.length !== 1 ? "s" : ""}
                     </span>
                   </div>
-                  {unit.topics.length > 0 && (
-                    <div className="ml-11 flex flex-wrap gap-1.5">
-                      {unit.topics.map((t) => (
+                  {unit.lessons.length > 0 && (
+                    <div className="ml-12 flex flex-wrap gap-1.5">
+                      {unit.lessons.map((lesson, i) => (
                         <span
-                          key={t.topicNumber}
+                          key={i}
                           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-700"
+                          title={lesson.nameEnglish}
                         >
-                          <span className="text-slate-400 font-bold">{unit.unitNumber}.{t.topicNumber}</span>
-                          {t.name}
+                          {lesson.name}
                         </span>
                       ))}
                     </div>
@@ -471,6 +526,8 @@ export default function SyllabusUploadPage() {
           </div>
         </div>
       )}
+      </>
+      )}
     </PortalLayout>
   );
 }
@@ -480,6 +537,264 @@ function StatBadge({ label, value, bg, text }: { label: string; value: number; b
     <div className={`flex items-center gap-2 px-3 py-2 rounded-xl ${bg} ${text}`}>
       <span className="text-lg font-black">{value}</span>
       <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Manage Syllabus — edit / delete subjects, units, and lessons
+// ─────────────────────────────────────────────────────────────────────────
+
+interface MTopic { id: string; name: string; topicNumber: number; }
+interface MUnit { id: string; name: string; unitNumber: number; isApproved: boolean; topics: MTopic[]; }
+interface MSubject { id: string; name: string; class: string; icon: string | null; color: string | null; }
+
+function ManageSyllabus({ API_URL }: { API_URL: string }) {
+  const [selectedClass, setSelectedClass] = useState("8");
+  const [subjects, setSubjects] = useState<MSubject[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const [expandedSubject, setExpandedSubject] = useState<string | null>(null);
+  const [units, setUnits] = useState<Record<string, MUnit[]>>({});
+  const [loadingUnits, setLoadingUnits] = useState<string | null>(null);
+  const [expandedUnit, setExpandedUnit] = useState<string | null>(null);
+
+  // Inline edit state: { kind: 'subject'|'unit'|'topic', id, value }
+  const [editing, setEditing] = useState<{ kind: string; id: string; value: string } | null>(null);
+
+  const flash = (msg: string) => { setNote(msg); setTimeout(() => setNote(null), 2500); };
+
+  const loadSubjects = useCallback(async () => {
+    setLoading(true); setErr(null);
+    try {
+      const res = await fetch(`${API_URL}/api/centralized-content/subjects?class=${selectedClass}`);
+      const json = await res.json();
+      if (json.success) setSubjects(json.data);
+      else setErr(json.error || "Failed to load subjects");
+    } catch (e: any) { setErr(e.message); }
+    finally { setLoading(false); }
+  }, [API_URL, selectedClass]);
+
+  useEffect(() => { loadSubjects(); }, [loadSubjects]);
+
+  const loadUnits = useCallback(async (subjectId: string) => {
+    setLoadingUnits(subjectId);
+    try {
+      const res = await fetch(`${API_URL}/api/centralized-content/subjects/${subjectId}/units`);
+      const json = await res.json();
+      if (json.success) setUnits((prev) => ({ ...prev, [subjectId]: json.data }));
+    } catch (e: any) { setErr(e.message); }
+    finally { setLoadingUnits(null); }
+  }, [API_URL]);
+
+  const toggleSubject = (id: string) => {
+    if (expandedSubject === id) { setExpandedSubject(null); return; }
+    setExpandedSubject(id);
+    if (!units[id]) loadUnits(id);
+  };
+
+  const api = async (method: string, path: string, body?: any) => {
+    setBusy(true); setErr(null);
+    try {
+      const res = await fetch(`${API_URL}/api/centralized-content${path}`, {
+        method,
+        headers: body ? { "Content-Type": "application/json" } : undefined,
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Request failed");
+      return json;
+    } finally { setBusy(false); }
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    const value = editing.value.trim();
+    if (!value) { setEditing(null); return; }
+    try {
+      if (editing.kind === "subject") {
+        await api("PUT", `/subjects/${editing.id}`, { name: value });
+        setSubjects((prev) => prev.map((s) => (s.id === editing.id ? { ...s, name: value } : s)));
+      } else if (editing.kind === "unit") {
+        await api("PUT", `/units/${editing.id}`, { name: value });
+        setUnits((prev) => {
+          const copy = { ...prev };
+          for (const sid of Object.keys(copy)) copy[sid] = copy[sid].map((u) => (u.id === editing.id ? { ...u, name: value } : u));
+          return copy;
+        });
+      } else if (editing.kind === "topic") {
+        await api("PUT", `/topics/${editing.id}`, { name: value });
+        setUnits((prev) => {
+          const copy = { ...prev };
+          for (const sid of Object.keys(copy)) copy[sid] = copy[sid].map((u) => ({ ...u, topics: u.topics.map((t) => (t.id === editing.id ? { ...t, name: value } : t)) }));
+          return copy;
+        });
+      }
+      flash("Saved");
+    } catch (e: any) { setErr(e.message); }
+    finally { setEditing(null); }
+  };
+
+  const deleteSubject = async (s: MSubject) => {
+    if (!confirm(`Delete subject "${s.name}" and ALL its units, lessons and content? This cannot be undone.`)) return;
+    try {
+      await api("DELETE", `/subjects/${s.id}`);
+      setSubjects((prev) => prev.filter((x) => x.id !== s.id));
+      flash("Subject deleted");
+    } catch (e: any) { setErr(e.message); }
+  };
+
+  const deleteUnit = async (subjectId: string, u: MUnit) => {
+    if (!confirm(`Delete unit "${u.name}" and its lessons?`)) return;
+    try {
+      await api("DELETE", `/units/${u.id}`);
+      setUnits((prev) => ({ ...prev, [subjectId]: (prev[subjectId] || []).filter((x) => x.id !== u.id) }));
+      flash("Unit deleted");
+    } catch (e: any) { setErr(e.message); }
+  };
+
+  const deleteTopic = async (subjectId: string, unitId: string, t: MTopic) => {
+    if (!confirm(`Delete lesson "${t.name}"?`)) return;
+    try {
+      await api("DELETE", `/topics/${t.id}`);
+      setUnits((prev) => ({ ...prev, [subjectId]: (prev[subjectId] || []).map((u) => (u.id === unitId ? { ...u, topics: u.topics.filter((x) => x.id !== t.id) } : u)) }));
+      flash("Lesson deleted");
+    } catch (e: any) { setErr(e.message); }
+  };
+
+  const EditRow = ({ onCancel }: { onCancel: () => void }) => (
+    <span className="inline-flex items-center gap-1.5">
+      <input
+        autoFocus
+        value={editing?.value || ""}
+        onChange={(e) => setEditing((prev) => (prev ? { ...prev, value: e.target.value } : prev))}
+        onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") onCancel(); }}
+        className="px-2 py-1 rounded-lg border border-violet-300 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-400 min-w-[220px]"
+      />
+      <button onClick={saveEdit} disabled={busy} className="text-xs font-bold text-emerald-600 hover:underline">Save</button>
+      <button onClick={onCancel} className="text-xs font-bold text-slate-400 hover:underline">Cancel</button>
+    </span>
+  );
+
+  return (
+    <div className="space-y-5">
+      {/* Class selector + refresh */}
+      <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 flex items-center gap-3 flex-wrap">
+        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Class</span>
+        <select
+          value={selectedClass}
+          onChange={(e) => { setSelectedClass(e.target.value); setExpandedSubject(null); }}
+          className="px-3 py-2 bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 font-extrabold rounded-xl border border-violet-200/30 focus:outline-none"
+        >
+          {CLASS_OPTIONS.map((c) => <option key={c} value={c}>{c}th Standard</option>)}
+        </select>
+        <button onClick={loadSubjects} className="ml-auto text-xs font-bold text-violet-600 hover:underline">↻ Refresh</button>
+      </div>
+
+      {note && <div className="px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 text-sm font-semibold">✓ {note}</div>}
+      {err && (
+        <div className="px-4 py-2.5 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 text-sm font-semibold flex items-center justify-between">
+          <span>⚠️ {err}</span>
+          <button onClick={() => setErr(null)} className="text-xs underline">Dismiss</button>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="w-10 h-10 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin mb-3" />
+          <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Loading subjects...</p>
+        </div>
+      ) : subjects.length === 0 ? (
+        <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
+          <span className="text-5xl block mb-4">📭</span>
+          <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No subjects for Class {selectedClass} yet.</p>
+          <p className="text-xs text-slate-500 mt-2">Use the Upload PDF tab to add one.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {subjects.map((s) => (
+            <div key={s.id} className="glass rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 overflow-hidden">
+              {/* Subject row */}
+              <div className="flex items-center gap-3 px-5 py-4">
+                <button onClick={() => toggleSubject(s.id)} className="text-slate-400 hover:text-slate-600 text-sm w-5">
+                  {expandedSubject === s.id ? "▼" : "▶"}
+                </button>
+                <span className="text-2xl">{s.icon || "📚"}</span>
+                {editing?.kind === "subject" && editing.id === s.id ? (
+                  <EditRow onCancel={() => setEditing(null)} />
+                ) : (
+                  <h3 className="font-black text-slate-800 dark:text-white flex-1 min-w-0 truncate" style={{ color: s.color || undefined }}>
+                    {s.name}
+                  </h3>
+                )}
+                <div className="ml-auto flex items-center gap-2">
+                  <button onClick={() => setEditing({ kind: "subject", id: s.id, value: s.name })} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200">✏️ Rename</button>
+                  <button onClick={() => deleteSubject(s)} disabled={busy} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100">🗑️ Delete</button>
+                </div>
+              </div>
+
+              {/* Units */}
+              {expandedSubject === s.id && (
+                <div className="border-t border-slate-100 dark:border-slate-800 px-5 py-3">
+                  {loadingUnits === s.id ? (
+                    <p className="text-xs text-slate-400 py-3">Loading units…</p>
+                  ) : (units[s.id] || []).length === 0 ? (
+                    <p className="text-xs text-slate-400 py-3">No units in this subject.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {(units[s.id] || []).map((u) => {
+                        const lessons = u.topics.filter((t) => t.topicNumber !== 1);
+                        return (
+                          <div key={u.id} className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30">
+                            <div className="flex items-center gap-2 px-3 py-2.5">
+                              <button onClick={() => setExpandedUnit(expandedUnit === u.id ? null : u.id)} className="text-slate-400 text-xs w-4">
+                                {expandedUnit === u.id ? "▼" : "▶"}
+                              </button>
+                              <span className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-black text-white flex-shrink-0" style={{ background: s.color || "#7c3aed" }}>{u.unitNumber}</span>
+                              {editing?.kind === "unit" && editing.id === u.id ? (
+                                <EditRow onCancel={() => setEditing(null)} />
+                              ) : (
+                                <span className="font-bold text-sm text-slate-700 dark:text-slate-200 flex-1 min-w-0 truncate">{u.name}</span>
+                              )}
+                              {u.isApproved && <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-600 text-white">Published</span>}
+                              <span className="text-[10px] text-slate-400 font-bold">{lessons.length} lesson{lessons.length !== 1 ? "s" : ""}</span>
+                              <button onClick={() => setEditing({ kind: "unit", id: u.id, value: u.name })} className="text-[11px] font-bold px-2 py-1 rounded-md bg-white dark:bg-slate-900 text-slate-500 hover:text-slate-700 border border-slate-200 dark:border-slate-700">✏️</button>
+                              <button onClick={() => deleteUnit(s.id, u)} disabled={busy} className="text-[11px] font-bold px-2 py-1 rounded-md bg-white dark:bg-slate-900 text-red-500 hover:text-red-700 border border-slate-200 dark:border-slate-700">🗑️</button>
+                            </div>
+
+                            {/* Lessons */}
+                            {expandedUnit === u.id && (
+                              <div className="px-3 pb-3 pl-11 space-y-1.5">
+                                {lessons.length === 0 ? (
+                                  <p className="text-[11px] text-slate-400">No lessons recorded for this unit.</p>
+                                ) : lessons.map((t) => (
+                                  <div key={t.id} className="flex items-center gap-2">
+                                    <span className="text-[10px] text-slate-400 font-bold w-6">{u.unitNumber}.{t.topicNumber - 1}</span>
+                                    {editing?.kind === "topic" && editing.id === t.id ? (
+                                      <EditRow onCancel={() => setEditing(null)} />
+                                    ) : (
+                                      <span className="text-xs text-slate-600 dark:text-slate-300 flex-1 min-w-0 truncate">{t.name}</span>
+                                    )}
+                                    <button onClick={() => setEditing({ kind: "topic", id: t.id, value: t.name })} className="text-[11px] text-slate-400 hover:text-slate-600">✏️</button>
+                                    <button onClick={() => deleteTopic(s.id, u.id, t)} disabled={busy} className="text-[11px] text-red-400 hover:text-red-600">🗑️</button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
