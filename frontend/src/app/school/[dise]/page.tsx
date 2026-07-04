@@ -126,6 +126,46 @@ export default function SchoolPortalPage() {
 
   return (
     <div style={cssVars} className="min-h-screen bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 antialiased">
+      <style>{`
+        /* Explicitly style the school portal buttons to prevent global CSS overrides */
+        .school-portal-btn-white {
+          background-color: #ffffff !important;
+          color: #0f172a !important;
+        }
+        .school-portal-btn-white:hover {
+          background-color: #f8fafc !important;
+          color: #0f172a !important;
+        }
+        .school-portal-btn-outline {
+          background-color: transparent !important;
+          border: 1px solid #cbd5e1 !important;
+          color: #334155 !important;
+        }
+        .dark .school-portal-btn-outline {
+          background-color: transparent !important;
+          border: 1px solid #334155 !important;
+          color: #f1f5f9 !important;
+        }
+        .school-portal-btn-outline:hover {
+          background-color: #f1f5f9 !important;
+          color: #0f172a !important;
+        }
+        .dark .school-portal-btn-outline:hover {
+          background-color: #1e293b !important;
+          color: #ffffff !important;
+        }
+        .school-portal-btn-accent {
+          color: #ffffff !important;
+        }
+        
+        /* Ensure faculty and class card titles are readable in light and dark mode */
+        .school-portal-card-title {
+          color: #0f172a !important;
+        }
+        .dark .school-portal-card-title {
+          color: #ffffff !important;
+        }
+      `}</style>
       {/* ─── Top contact bar ─── */}
       <div className="hidden md:block text-white text-[11px]" style={{ background: accent }}>
         <div className="max-w-6xl mx-auto px-4 h-9 flex items-center justify-between">
@@ -164,12 +204,12 @@ export default function SchoolPortalPage() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             {showStudent && (
-              <button onClick={() => setLoginModal("student")} className="hidden sm:inline-flex px-3.5 py-2 text-xs font-bold rounded-lg text-white shadow-sm hover:brightness-110 transition-all" style={{ background: accent }}>
+              <button onClick={() => setLoginModal("student")} className="hidden sm:inline-flex px-3.5 py-2 text-xs font-bold rounded-lg shadow-sm hover:brightness-110 transition-all school-portal-btn-accent" style={{ background: accent }}>
                 Student Login
               </button>
             )}
             {showParent && (
-              <button onClick={() => setLoginModal("parent")} className="hidden sm:inline-flex px-3.5 py-2 text-xs font-bold rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+              <button onClick={() => setLoginModal("parent")} className="hidden sm:inline-flex px-3.5 py-2 text-xs font-bold rounded-lg transition-colors school-portal-btn-outline">
                 Parent Login
               </button>
             )}
@@ -187,8 +227,8 @@ export default function SchoolPortalPage() {
               </a>
             ))}
             <div className="flex gap-2 py-3">
-              {showStudent && <button onClick={() => { setLoginModal("student"); setMobileNav(false); }} className="flex-1 py-2 text-xs font-bold rounded-lg text-white" style={{ background: accent }}>Student Login</button>}
-              {showParent && <button onClick={() => { setLoginModal("parent"); setMobileNav(false); }} className="flex-1 py-2 text-xs font-bold rounded-lg border border-slate-300 dark:border-slate-700">Parent Login</button>}
+              {showStudent && <button onClick={() => { setLoginModal("student"); setMobileNav(false); }} className="flex-1 py-2 text-xs font-bold rounded-lg school-portal-btn-accent" style={{ background: accent }}>Student Login</button>}
+              {showParent && <button onClick={() => { setLoginModal("parent"); setMobileNav(false); }} className="flex-1 py-2 text-xs font-bold rounded-lg school-portal-btn-outline">Parent Login</button>}
             </div>
           </div>
         )}
@@ -219,7 +259,7 @@ export default function SchoolPortalPage() {
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
               {showStudent && (
-                <button onClick={() => setLoginModal("student")} className="group px-6 py-3.5 bg-white text-slate-900 font-bold rounded-xl shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all text-sm flex items-center gap-2">
+                <button onClick={() => setLoginModal("student")} className="group px-6 py-3.5 font-bold rounded-xl shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all text-sm flex items-center gap-2 school-portal-btn-white">
                   <GraduationCap className="w-4 h-4" /> Student Login
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </button>
@@ -317,7 +357,7 @@ export default function SchoolPortalPage() {
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${accent}14`, color: accent }}>
                   <BookOpen className="w-5 h-5" />
                 </div>
-                <div className="text-base font-black text-slate-900 dark:text-white">
+                <div className="text-base font-black truncate school-portal-card-title">
                   Class {c.className}{c.section ? ` - ${c.section}` : ""}
                 </div>
                 <div className="text-xs text-slate-500 mt-0.5">{c.subject}</div>
@@ -346,7 +386,7 @@ export default function SchoolPortalPage() {
                   <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center text-white text-2xl font-black mb-3 shadow-md" style={{ background: `linear-gradient(135deg, ${accent}, ${accent}bb)` }}>
                     {t.name.charAt(0).toUpperCase()}
                   </div>
-                  <h3 className="text-sm font-black text-slate-900 dark:text-white truncate">{t.name}</h3>
+                  <h3 className="text-sm font-black truncate school-portal-card-title">{t.name}</h3>
                   <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: `${accent}14`, color: accent }}>{t.subject}</span>
                 </div>
               ))}
@@ -419,7 +459,7 @@ export default function SchoolPortalPage() {
             <h2 className="text-2xl md:text-3xl font-black">Ready to get started?</h2>
             <p className="mt-2 text-white/85 text-sm max-w-xl mx-auto">Access attendance, marks, homework and school updates through your secure portal.</p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-              {showStudent && <button onClick={() => setLoginModal("student")} className="px-7 py-3.5 bg-white text-slate-900 font-bold rounded-xl shadow-xl hover:-translate-y-0.5 transition-all text-sm flex items-center gap-2"><GraduationCap className="w-4 h-4" /> Student Login</button>}
+              {showStudent && <button onClick={() => setLoginModal("student")} className="px-7 py-3.5 font-bold rounded-xl shadow-xl hover:-translate-y-0.5 transition-all text-sm flex items-center gap-2 school-portal-btn-white"><GraduationCap className="w-4 h-4" /> Student Login</button>}
               {showParent && <button onClick={() => setLoginModal("parent")} className="px-7 py-3.5 bg-white/15 border border-white/40 text-white font-bold rounded-xl hover:bg-white/25 transition-colors text-sm flex items-center gap-2 backdrop-blur-sm"><Users className="w-4 h-4" /> Parent Login</button>}
             </div>
           </div>
@@ -458,8 +498,8 @@ export default function SchoolPortalPage() {
           <div>
             <h4 className="text-xs font-black text-white uppercase tracking-wider mb-4">Portal Access</h4>
             <div className="space-y-2.5">
-              {showStudent && <button onClick={() => setLoginModal("student")} className="w-full py-2.5 rounded-xl text-white text-xs font-bold" style={{ background: accent }}>🎓 Student Login</button>}
-              {showParent && <button onClick={() => setLoginModal("parent")} className="w-full py-2.5 rounded-xl border border-slate-700 text-slate-200 text-xs font-bold hover:bg-slate-800 transition-colors">👪 Parent Login</button>}
+              {showStudent && <button onClick={() => setLoginModal("student")} className="w-full py-2.5 rounded-xl text-white text-xs font-bold school-portal-btn-accent" style={{ background: accent }}>🎓 Student Login</button>}
+              {showParent && <button onClick={() => setLoginModal("parent")} className="w-full py-2.5 rounded-xl text-xs font-bold transition-colors school-portal-btn-outline">👪 Parent Login</button>}
             </div>
           </div>
         </div>
