@@ -3,6 +3,30 @@ import { prisma } from '../config/prisma';
 
 const router = Router();
 
+// Default gallery placeholders used when a school portal is first provisioned.
+const DEFAULT_GALLERY = [
+  { imageUrl: '/portal/g1.jpg', caption: 'Campus Life', order: 0 },
+  { imageUrl: '/portal/g2.jpg', caption: 'Classrooms', order: 1 },
+  { imageUrl: '/portal/g3.jpg', caption: 'Activities', order: 2 },
+  { imageUrl: '/portal/g4.jpg', caption: 'Events', order: 3 },
+];
+
+/**
+ * Ensure a school has a default public portal (landing page config + gallery).
+ * Idempotent: does nothing if a portal already exists for the school.
+ * Pass a Prisma transaction client (tx) to run inside an existing transaction.
+ */
+export async function createDefaultPortal(schoolId: string, client: typeof prisma = prisma) {
+  const existing = await client.schoolPortal.findUnique({ where: { schoolId } });
+  if (existing) return existing;
+  return client.schoolPortal.create({
+    data: {
+      schoolId,
+      gallery: { create: DEFAULT_GALLERY },
+    },
+  });
+}
+
 // GET /api/schools — List all schools
 router.get('/', async (req: Request, res: Response) => {
   try {
@@ -39,10 +63,14 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/schools — Create school
+// POST /api/schools — Create school (auto-provisions a default public portal)
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const school = await prisma.school.create({ data: req.body });
+    const school = await prisma.$transaction(async (tx) => {
+      const created = await tx.school.create({ data: req.body });
+      await createDefaultPortal(created.id, tx as unknown as typeof prisma);
+      return created;
+    });
     res.status(201).json({ success: true, data: school });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
@@ -131,6 +159,8 @@ router.post('/bulk', async (req: Request, res: Response) => {
           mediumOfInstruction: record.mediumOfInstruction || 'Tamil',
         },
       });
+      // Ensure every imported/updated school has a default portal (idempotent).
+      await createDefaultPortal(school.id);
       createdSchools.push(school);
     }
     res.json({ success: true, count: createdSchools.length, data: createdSchools });

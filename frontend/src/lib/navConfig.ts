@@ -396,6 +396,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Govt Schemes Update", href: "/headmaster/gov-schemes", icon: "Building2" },
 
       { label: "Extra Curricular & Info", href: "#", icon: "" },
+      { label: "Public Portal Page", href: "/headmaster/portal", icon: "Globe" },
       { label: "School Events", href: "/headmaster/events", icon: "PartyPopper" },
       { label: "Celebrations", href: "/headmaster/celebrations", icon: "PartyPopper" },
       { label: "Media Gallery", href: "/headmaster/gallery", icon: "Image" },
