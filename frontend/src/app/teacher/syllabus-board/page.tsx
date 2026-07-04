@@ -59,7 +59,6 @@ export default function TeacherSyllabusBoardPage() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  // Fetch subjects whenever the selected class changes
   useEffect(() => {
     const fetchSubjects = async () => {
       setLoadingSubjects(true);
@@ -134,6 +133,9 @@ export default function TeacherSyllabusBoardPage() {
     }
   };
 
+  const publishedCount = unitCards.filter((c) => c.isApproved).length;
+  const accent = selectedSubject?.color || "#f59e0b";
+
   return (
     <PortalLayout
       title="Class Syllabus Board"
@@ -143,18 +145,25 @@ export default function TeacherSyllabusBoardPage() {
       themeClass="theme-teacher"
       accentColor="#f59e0b"
     >
-      {/* Header: Class / Section selectors + subject tabs */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
         <div>
           <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1">
-            🗂️ Plan by Unit
+            Plan by Unit
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Pick your class & section, then browse each unit's visual summary before planning a lesson.
+            Pick your class &amp; section, then browse each unit&apos;s visual summary before planning a lesson.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Published count chip */}
+          {unitCards.length > 0 && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs rounded-xl border border-emerald-200/30 shadow-sm">
+              {publishedCount}/{unitCards.length} published
+            </span>
+          )}
+
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Class</span>
             <select
@@ -196,7 +205,7 @@ export default function TeacherSyllabusBoardPage() {
         <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
           <span className="text-5xl block mb-4">📭</span>
           <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No syllabus content yet for Class {selectedClass}</p>
-          <p className="text-xs text-slate-500 mt-2">Try Class 8, which has the full Math & Science unit board.</p>
+          <p className="text-xs text-slate-500 mt-2">Try Class 8, which has the full Math &amp; Science unit board.</p>
         </div>
       ) : (
         <>
@@ -238,21 +247,42 @@ export default function TeacherSyllabusBoardPage() {
                 <Link
                   key={card.unitId}
                   href={`/teacher/syllabus-board/${card.unitId}`}
-                  className="relative text-left rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all bg-white dark:bg-slate-950/40 block"
+                  className="relative text-left rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 bg-white dark:bg-slate-950/40 block group"
                   title={`${card.unitName} — open lesson insights (Class ${selectedClass}${selectedSection})`}
                 >
+                  {/* Published badge */}
                   {card.isApproved && (
-                    <span className="absolute top-2 right-2 z-10 text-[9px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-emerald-600 text-white shadow-sm">
-                      ✅ Published
+                    <span className="absolute top-2.5 right-2.5 z-10 text-[9px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-emerald-600 text-white shadow-sm">
+                      Published
                     </span>
                   )}
+
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 z-[5] bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4">
+                    <span className="text-white text-xs font-bold">
+                      Open lesson insights →
+                    </span>
+                  </div>
+
                   {card.imageUrl ? (
-                    <img src={card.imageUrl} alt={card.altText || card.unitName} className="w-full h-auto block" />
+                    <img src={card.imageUrl} alt={card.altText || card.unitName} className="w-full h-auto block group-hover:scale-[1.02] transition-transform duration-300" />
                   ) : (
                     <div className="h-40 flex items-center justify-center text-slate-400 text-xs font-semibold">
                       No visual available for Unit {card.unitNumber}
                     </div>
                   )}
+
+                  {/* Card footer */}
+                  <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">
+                      Unit {card.unitNumber}: {card.unitName}
+                    </p>
+                    <span
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ background: card.isApproved ? "#10b981" : "#d1d5db" }}
+                      title={card.isApproved ? "Published" : "Draft"}
+                    />
+                  </div>
                 </Link>
               ))}
             </div>

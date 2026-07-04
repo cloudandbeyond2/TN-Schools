@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { randomUUID } from 'crypto';
-import { PersonalGuideHabitLog, PersonalGuideReward, AIChat } from '../models/mongo';
+import { PersonalGuideHabitLog, PersonalGuideReward, AIChat, PersonalGuideTask, PersonalGuideResponse } from '../models/mongo';
 import https from 'https';
 
 const router = Router();
@@ -469,6 +469,200 @@ router.post('/marks', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('[POST /api/personal-guide/marks]', err.message);
     return res.status(500).json({ success: false, error: 'Failed to save student mark' });
+  }
+});
+
+
+// ─── TASK FLOW ROUTES ─────────────────────────────────────────────────────────
+
+// POST /api/personal-guide/tasks — Teacher creates a task for a student
+router.post('/tasks', async (req: Request, res: Response) => {
+  try {
+    const { teacherId, studentId, schoolId, title, question, taskType, dueDate } = req.body;
+    if (!teacherId || !studentId || !schoolId || !title || !question) {
+      return res.status(400).json({ success: false, error: 'teacherId, studentId, schoolId, title, and question are required' });
+    }
+    const task = await PersonalGuideTask.create({
+      teacherId, studentId, schoolId, title, question,
+      taskType: taskType || 'question',
+      status: 'pending',
+      dueDate: dueDate || null,
+    });
+    return res.status(201).json({ success: true, data: task, message: `Task "${title}" sent to student` });
+  } catch (err: any) {
+    console.error('[POST /api/personal-guide/tasks]', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to create task' });
+  }
+});
+
+// GET /api/personal-guide/tasks?studentId= — Student fetches their task inbox
+router.get('/tasks', async (req: Request, res: Response) => {
+  try {
+    const { studentId, teacherId, schoolId } = req.query;
+    const filter: any = {};
+    if (studentId) filter.studentId = String(studentId);
+    if (teacherId) filter.teacherId = String(teacherId);
+    if (schoolId) filter.schoolId = String(schoolId);
+
+    const tasks = await PersonalGuideTask.find(filter).sort({ createdAt: -1 });
+
+    // Attach responses to each task
+    const taskIds = tasks.map((t: any) => String(t._id));
+    const responses = await PersonalGuideResponse.find({ taskId: { $in: taskIds } });
+    const responseMap: any = {};
+    for (const r of responses) {
+      responseMap[r.taskId] = r;
+    }
+
+    const enriched = tasks.map((t: any) => ({
+      ...t.toObject(),
+      response: responseMap[String(t._id)] || null,
+    }));
+
+    return res.json({ success: true, data: enriched, count: enriched.length });
+  } catch (err: any) {
+    console.error('[GET /api/personal-guide/tasks]', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to fetch tasks' });
+  }
+});
+
+// POST /api/personal-guide/tasks/:taskId/respond — Student submits a response
+router.post('/tasks/:taskId/respond', async (req: Request, res: Response) => {
+  try {
+    const { taskId } = req.params;
+    const { studentId, responseText } = req.body;
+    if (!studentId || !responseText) {
+      return res.status(400).json({ success: false, error: 'studentId and responseText are required' });
+    }
+
+    const task = await PersonalGuideTask.findById(taskId);
+    if (!task) return res.status(404).json({ success: false, error: 'Task not found' });
+
+    // Upsert response
+    let existing = await PersonalGuideResponse.findOne({ taskId });
+    if (existing) {
+      existing.responseText = responseText;
+      existing.submittedAt = new Date();
+      await existing.save();
+    } else {
+      existing = await PersonalGuideResponse.create({
+        taskId,
+        studentId,
+        teacherId: task.teacherId,
+        responseText,
+        submittedAt: new Date(),
+      });
+    }
+
+    // Update task status to answered
+    task.status = 'answered';
+    await task.save();
+
+    return res.json({ success: true, data: existing, message: 'Response submitted!' });
+  } catch (err: any) {
+    console.error('[POST /api/personal-guide/tasks/:taskId/respond]', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to submit response' });
+  }
+});
+
+// POST /api/personal-guide/tasks/:taskId/suggest-feedback — Teacher requests AI generated feedback
+router.post('/tasks/:taskId/suggest-feedback', async (req: Request, res: Response) => {
+  try {
+    const { taskId } = req.params;
+    const task = await PersonalGuideTask.findById(taskId);
+    if (!task) return res.status(404).json({ success: false, error: 'Task not found' });
+
+    const response = await PersonalGuideResponse.findOne({ taskId });
+    if (!response) return res.status(404).json({ success: false, error: 'Student response not found' });
+
+    let studentGoal = 'learning growth';
+    let studentName = 'student';
+    try {
+      const studentPrisma = await prisma.student.findUnique({
+        where: { id: task.studentId },
+        include: { user: true }
+      });
+      if (studentPrisma && studentPrisma.user) {
+        studentName = studentPrisma.user.name;
+      }
+      
+      const guide = await prisma.personalGuide.findFirst({
+        where: { studentId: task.studentId }
+      });
+      if (guide) {
+        studentGoal = guide.goal || 'learning growth';
+      }
+    } catch (e) {
+      console.error('Error fetching student context:', e);
+    }
+
+    const prompt = `
+You are a warm school teacher writing a direct, friendly, and helpful growth-mindset feedback message for a student's answer.
+Student Name: ${studentName}
+Student's Career Goal: ${studentGoal}
+
+Task Question: "${task.question}"
+Student's Answer: "${response.responseText}"
+
+Write a warm, supportive feedback response talking directly to the student.
+Guidelines:
+1. Address the student directly by name (e.g. "Great effort, ${studentName}!" or "Excellent attempt, ${studentName}!"). NEVER call them "the student" or "Dear student" or "student". Talk to them in the second person ("you", "your").
+2. Use very simple, clear, and encouraging words. Avoid abstract academic terms.
+3. Provide an extremely simple, step-by-step practical trick/formula to do the task. For example, for essays: 
+   "Here is an easy 3-step trick:
+   1. Write a 3-sentence introduction.
+   2. List 2 details in the body.
+   3. Finish with 1 summary sentence.
+   Give this a try next time!"
+4. Keep the length under 60 words.
+
+Feedback:
+`;
+
+    const feedbackSuggestion = await callGemini(prompt);
+    return res.json({ success: true, feedback: feedbackSuggestion.trim() });
+  } catch (err: any) {
+    console.error('[POST /api/personal-guide/tasks/:taskId/suggest-feedback]', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to generate AI feedback tips' });
+  }
+});
+
+// PUT /api/personal-guide/tasks/:taskId/feedback — Teacher adds feedback
+router.put('/tasks/:taskId/feedback', async (req: Request, res: Response) => {
+  try {
+    const { taskId } = req.params;
+    const { teacherFeedback } = req.body;
+    if (!teacherFeedback) {
+      return res.status(400).json({ success: false, error: 'teacherFeedback is required' });
+    }
+
+    const response = await PersonalGuideResponse.findOneAndUpdate(
+      { taskId },
+      { teacherFeedback, reviewedAt: new Date() },
+      { new: true }
+    );
+    if (!response) return res.status(404).json({ success: false, error: 'Response not found for this task' });
+
+    // Mark task as reviewed
+    await PersonalGuideTask.findByIdAndUpdate(taskId, { status: 'reviewed' });
+
+    return res.json({ success: true, data: response, message: 'Feedback saved!' });
+  } catch (err: any) {
+    console.error('[PUT /api/personal-guide/tasks/:taskId/feedback]', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to save feedback' });
+  }
+});
+
+// DELETE /api/personal-guide/tasks/:taskId — Teacher deletes a task
+router.delete('/tasks/:taskId', async (req: Request, res: Response) => {
+  try {
+    const { taskId } = req.params;
+    await PersonalGuideTask.findByIdAndDelete(taskId);
+    await PersonalGuideResponse.deleteMany({ taskId });
+    return res.json({ success: true, message: 'Task deleted' });
+  } catch (err: any) {
+    console.error('[DELETE /api/personal-guide/tasks/:taskId]', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to delete task' });
   }
 });
 

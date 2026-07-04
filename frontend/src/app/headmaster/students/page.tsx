@@ -139,9 +139,9 @@ export default function StudentsMonitoringPage() {
   const [newClass, setNewClass] = useState("Class 10A");
   const [newPhone, setNewPhone] = useState("");
   const [newParentName, setNewParentName] = useState("");
-  const [newDistrict, setNewDistrict] = useState("Coimbatore");
+  const [newDistrict, setNewDistrict] = useState("");
   const [newState, setNewState] = useState("Tamil Nadu");
-  const [newCity, setNewCity] = useState("Coimbatore");
+  const [newCity, setNewCity] = useState("");
   const [newPincode, setNewPincode] = useState("");
   const [newRisk, setNewRisk] = useState<"High" | "Medium">("Medium");
   const [newAdmissionNumber, setNewAdmissionNumber] = useState("");
@@ -568,8 +568,8 @@ export default function StudentsMonitoringPage() {
           });
         }
         setNewName(""); setNewRollNumber(""); setNewClass("Class 10A"); setNewPhone("");
-        setNewParentName(""); setNewDistrict("Coimbatore"); setNewState("Tamil Nadu");
-        setNewCity("Coimbatore"); setNewPincode("");
+        setNewParentName(""); setNewDistrict(""); setNewState("Tamil Nadu");
+        setNewCity(""); setNewPincode("");
         setNewAdmissionNumber(""); setNewEmisNumber(""); setNewDob(""); setNewGender("");
         setNewBloodGroup(""); setNewReligion(""); setNewCommunity(""); setNewNationality("Indian");
         setNewMediumOfInstruction("English"); setNewSection("A"); setNewAcademicYear("2024-25");
@@ -1118,7 +1118,7 @@ export default function StudentsMonitoringPage() {
                     </div>
                     <div>
                       <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Pincode</label>
-                      <input type="text" required value={newPincode} onChange={(e) => setNewPincode(e.target.value)}
+                      <input type="text" value={newPincode} onChange={(e) => setNewPincode(e.target.value)}
                         placeholder="e.g. 641001"
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                     </div>

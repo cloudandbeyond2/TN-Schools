@@ -546,7 +546,7 @@ export default function NEETPrepPage() {
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-sm font-bold text-slate-800 dark:text-white">📊 Syllabus Coverage</h3>
         </div>
-        <div className="flex gap-2 mb-3">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-2 mb-3">
           {["Biology", "Chemistry", "Physics"].map((sub) => {
             const topicsForSub = topics.filter((t) => t.subject === sub);
             const done = topicsForSub.filter((t) => t.status === "Completed").length;
@@ -570,7 +570,7 @@ export default function NEETPrepPage() {
       </div>
 
       {/* ── Tabs ──────────────────────────────────────────────── */}
-      <div className="flex gap-1 bg-slate-100 dark:bg-slate-900 rounded-xl p-1 mb-5 w-fit">
+      <div className="flex flex-wrap gap-1 bg-slate-100 dark:bg-slate-900 rounded-xl p-1 mb-5 w-full sm:w-fit">
         {([
           { key: "syllabus", label: "📚 Syllabus Tracker" },
           { key: "tests", label: "📝 Mock Tests" },
@@ -860,7 +860,7 @@ export default function NEETPrepPage() {
               </div>
 
               <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-[10px] text-slate-500 mb-1 font-bold">MCQs (1m)</label>
                     <input type="number" min="0" max="120" value={mcqCount} onChange={(e) => setMcqCount(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-white focus:outline-none" />
@@ -920,7 +920,7 @@ export default function NEETPrepPage() {
                     </div>
 
                     {q.options && q.options.length > 0 && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-4">
                         {q.options.map((opt, oIdx) => (
                           <div key={oIdx} className="text-xs text-slate-600 dark:text-slate-400 font-semibold">
                             {opt}
@@ -1017,7 +1017,7 @@ export default function NEETPrepPage() {
                 <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Chapter Name *</label>
                 <input value={chapterForm.chapter} onChange={(e) => setChapterForm({ ...chapterForm, chapter: e.target.value })} type="text" placeholder="e.g. Genetics & Evolution" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-red-500" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Difficulty</label>
                   <select value={chapterForm.difficulty} onChange={(e) => setChapterForm({ ...chapterForm, difficulty: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-red-500">
@@ -1031,7 +1031,7 @@ export default function NEETPrepPage() {
                   <input value={chapterForm.totalQuestions} onChange={(e) => setChapterForm({ ...chapterForm, totalQuestions: e.target.value })} type="number" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Attempted</label>
                   <input value={chapterForm.attempted} onChange={(e) => setChapterForm({ ...chapterForm, attempted: e.target.value })} type="number" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none" />
@@ -1073,7 +1073,7 @@ export default function NEETPrepPage() {
                 <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Test Title *</label>
                 <input value={testForm.title} onChange={(e) => setTestForm({ ...testForm, title: e.target.value })} type="text" placeholder="e.g. NEET Mock Test #5 (Full Syllabus)" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-red-500" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Subject / Scope</label>
                   <select value={testForm.subject} onChange={(e) => setTestForm({ ...testForm, subject: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-red-500">
@@ -1088,7 +1088,7 @@ export default function NEETPrepPage() {
                   <input value={testForm.examDate} onChange={(e) => setTestForm({ ...testForm, examDate: e.target.value })} type="date" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-red-500" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Duration</label>
                   <input value={testForm.duration} onChange={(e) => setTestForm({ ...testForm, duration: e.target.value })} type="text" placeholder="e.g. 3 hrs 20 min" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none" />
@@ -1098,7 +1098,7 @@ export default function NEETPrepPage() {
                   <input value={testForm.maxScore} onChange={(e) => setTestForm({ ...testForm, maxScore: e.target.value })} type="number" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none" />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Total Students</label>
                   <input value={testForm.totalStudents} onChange={(e) => setTestForm({ ...testForm, totalStudents: e.target.value })} type="number" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none" />

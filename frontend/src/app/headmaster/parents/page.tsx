@@ -520,7 +520,7 @@ export default function ParentsPage() {
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-xl transition-all shadow-md"
+              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-xl transition-all shadow-md whitespace-nowrap"
             >
               + Register PTA Officer
             </button>
@@ -536,33 +536,31 @@ export default function ParentsPage() {
                 const displayWard = linkedNames ? linkedNames : (p.studentName !== "N/A" ? `${p.studentName} (${p.studentClass})` : "N/A");
 
                 return (
-                  <div key={p.id} className="p-4 border border-slate-200 rounded-xl bg-white/95 hover:bg-white text-slate-800 shadow-md transition-all duration-200 relative group">
-                    <div className="flex justify-between items-start pr-16">
-                      <div>
+                  <div key={p.id} className="p-4 border border-slate-200 rounded-xl bg-white/95 hover:bg-white text-slate-800 shadow-md transition-all duration-200 group">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex flex-col">
                         <div className="font-extrabold text-slate-900 text-xs sm:text-sm">{p.name}</div>
-                        <div className="text-[10px] sm:text-xs text-blue-600 font-bold mt-0.5">{p.role}</div>
-                      </div>
-                      <div className="text-right">
+                        <div className="text-[10px] sm:text-xs text-blue-600 font-bold mt-0.5 mb-1.5">{p.role}</div>
                         <div className="text-[10px] sm:text-xs text-slate-700 font-bold">{p.phone}</div>
-                        {p.email && <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium mt-0.5">{p.email}</div>}
+                        {p.email && <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium mt-0.5 break-all">{p.email}</div>}
                       </div>
+                      <button
+                        onClick={() => setParentToDelete(p)}
+                        className="shrink-0 text-[9px] text-red-600 hover:text-red-800 font-bold border border-red-200 hover:border-red-300 px-2 py-1 rounded-lg bg-red-50 transition-colors shadow-sm flex items-center gap-1"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Remove
+                      </button>
                     </div>
                     <div className="border-t border-slate-100 mt-2.5 pt-2 flex flex-col gap-1 text-[9px] sm:text-[10px] text-slate-500 font-semibold">
                       <span>Ward: <span className="text-slate-800 font-bold">{displayWard}</span></span>
-                      <div className="flex gap-4">
+                      <div className="flex flex-col sm:flex-row gap-1 sm:gap-4">
                         <span>Pwd: <span className="text-blue-650 font-bold">{p.password || "123456"}</span></span>
                         <span>Term: {p.term}</span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => setParentToDelete(p)}
-                      className="absolute top-4 right-4 text-[9px] text-red-600 hover:text-red-800 font-bold border border-red-200 hover:border-red-300 px-2 py-1 rounded-lg bg-red-50 transition-colors shadow-sm flex items-center gap-1"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Remove
-                    </button>
                   </div>
                 )
               })

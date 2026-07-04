@@ -1,6 +1,18 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import * as https from 'https';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+
+const pdfUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype === 'application/pdf') cb(null, true);
+    else cb(new Error('Only PDF files are allowed'));
+  }
+});
 
 const router = Router();
 
@@ -947,7 +959,7 @@ async function callGeminiJSON(prompt: string, schema: any): Promise<any> {
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
-      maxOutputTokens: 8192,
+      maxOutputTokens: 16384,
       responseMimeType: 'application/json',
       responseSchema: schema
     },
@@ -990,35 +1002,50 @@ async function callGeminiJSON(prompt: string, schema: any): Promise<any> {
     });
 
     req.on('error', (err) => reject(err));
-    req.setTimeout(60000, () => req.destroy(new Error('Gemini API timed out')));
+    req.setTimeout(120000, () => req.destroy(new Error('Gemini API timed out')));
     req.write(postData);
     req.end();
   });
 }
 
+const LANG_DETAIL_PROPS = {
+  keyConcepts: { type: 'ARRAY', items: { type: 'STRING' } },
+  realLifeConnections: { type: 'ARRAY', items: { type: 'STRING' } },
+  commonMisconceptions: { type: 'ARRAY', items: { type: 'STRING' } },
+  teachingFlow: {
+    type: 'ARRAY',
+    items: {
+      type: 'OBJECT',
+      properties: {
+        step: { type: 'STRING' },
+        minutes: { type: 'NUMBER' },
+        description: { type: 'STRING' }
+      },
+      required: ['step', 'minutes', 'description']
+    }
+  },
+  teacherScript: { type: 'STRING' },
+  studentKeyPoints: { type: 'ARRAY', items: { type: 'STRING' } }
+};
+const LANG_DETAIL_REQUIRED = ['keyConcepts', 'realLifeConnections', 'commonMisconceptions', 'teachingFlow', 'teacherScript', 'studentKeyPoints'];
+
+// Bilingual: the model returns the full insight set in both English and Tamil in one call.
 const UNIT_DETAIL_SCHEMA = {
   type: 'OBJECT',
   properties: {
-    keyConcepts: { type: 'ARRAY', items: { type: 'STRING' } },
-    realLifeConnections: { type: 'ARRAY', items: { type: 'STRING' } },
-    commonMisconceptions: { type: 'ARRAY', items: { type: 'STRING' } },
-    teachingFlow: {
-      type: 'ARRAY',
-      items: {
-        type: 'OBJECT',
-        properties: {
-          step: { type: 'STRING' },
-          minutes: { type: 'NUMBER' },
-          description: { type: 'STRING' }
-        },
-        required: ['step', 'minutes', 'description']
-      }
-    },
-    teacherScript: { type: 'STRING' },
-    studentKeyPoints: { type: 'ARRAY', items: { type: 'STRING' } }
+    en: { type: 'OBJECT', properties: LANG_DETAIL_PROPS, required: LANG_DETAIL_REQUIRED },
+    ta: { type: 'OBJECT', properties: LANG_DETAIL_PROPS, required: LANG_DETAIL_REQUIRED }
   },
-  required: ['keyConcepts', 'realLifeConnections', 'commonMisconceptions', 'teachingFlow', 'teacherScript', 'studentKeyPoints']
+  required: ['en', 'ta']
 };
+
+// Records written before bilingual support store the English fields at the top
+// level; wrap them so every consumer sees the same { en, ta } shape.
+function normalizeUnitDetail(raw: any): any {
+  if (!raw) return null;
+  if (raw.en) return raw;
+  return { en: raw, ta: null };
+}
 
 async function findOrCreateOverviewTopic(unitId: string) {
   const existing = await prisma.centralTopic.findFirst({ where: { unitId, topicNumber: 1 } });
@@ -1044,7 +1071,7 @@ router.get('/units/:id', async (req: Request, res: Response) => {
       const infographicRow = contents.find((c) => c.contentType === 'INFOGRAPHIC');
       const detailRow = contents.find((c) => c.contentType === 'UNIT_DETAIL');
       infographic = infographicRow ? { fileUrl: infographicRow.fileUrl, fileContent: infographicRow.fileContent } : null;
-      unitDetail = detailRow?.fileContent ? JSON.parse(detailRow.fileContent) : null;
+      unitDetail = detailRow?.fileContent ? normalizeUnitDetail(JSON.parse(detailRow.fileContent)) : null;
     }
 
     res.json({ success: true, data: { unit, infographic, unitDetail } });
@@ -1069,26 +1096,31 @@ router.post('/units/:id/generate-detail', async (req: Request, res: Response) =>
 
     const existing = await prisma.centralContent.findFirst({ where: { topicId: topic.id, contentType: 'UNIT_DETAIL' } });
     if (existing && !regenerate) {
-      return res.json({ success: true, cached: true, data: JSON.parse(existing.fileContent || '{}') });
+      return res.json({ success: true, cached: true, data: normalizeUnitDetail(JSON.parse(existing.fileContent || '{}')) });
     }
 
     // Ground the prompt in the same summary/tip already shown on the unit's infographic card, if present.
     const infographic = await prisma.centralContent.findFirst({ where: { topicId: topic.id, contentType: 'INFOGRAPHIC' } });
 
-    const prompt = `You are an experienced Tamil Nadu State Board teacher preparing to introduce a new unit to your class.
+    const prompt = `You are an experienced bilingual Tamil Nadu State Board teacher preparing to introduce a new unit to your class. You teach comfortably in both English and Tamil.
 
 Subject: ${unit.subject.name}
 Class: ${unit.subject.class}th Standard
 Unit ${unit.unitNumber}: ${unit.name}
 ${infographic?.fileContent ? `Existing short summary: ${infographic.fileContent}` : ''}
 
-Generate practical, classroom-ready lesson insights for this unit as JSON with these fields:
+Generate practical, classroom-ready lesson insights for this unit as a JSON object with TWO top-level keys, "en" (English) and "ta" (Tamil). Each of "en" and "ta" contains the SAME structure:
 - keyConcepts: 4-6 short bullet points (core ideas a student must walk away understanding)
 - realLifeConnections: 2-3 concrete, India/Tamil-Nadu-relevant real-life examples that make this unit relatable
 - commonMisconceptions: 2-3 mistakes or confusions students commonly have with this topic, so the teacher can pre-empt them
 - teachingFlow: an ordered lesson plan of 4-5 steps (e.g. Hook, Explain, Activity, Check Understanding, Wrap-up), each with a "step" name, "minutes" (rough duration out of a ~45 minute period), and a one-sentence "description" of what happens in that step
 - teacherScript: a warm, first-person paragraph (150-250 words) of how the teacher would actually open and explain this unit out loud to the class -- natural spoken classroom language, not textbook prose
 - studentKeyPoints: 5-8 short, simple takeaways written directly for a ${unit.subject.class}th-grade student to revise from (simpler language than keyConcepts)
+
+Rules for the Tamil ("ta") version:
+- Write natural, fluent, spoken classroom Tamil in Tamil script -- the way a real Tamil-medium teacher actually speaks, NOT a stiff word-for-word machine translation.
+- Technical and scientific terms may keep their common English form where that is what Tamil Nadu classrooms genuinely use (e.g. "rational numbers", "photosynthesis").
+- The "minutes" numbers and the number/order of teachingFlow steps must be identical across "en" and "ta".
 
 Keep everything concise and classroom-practical. Return only the JSON object.`;
 
@@ -1149,6 +1181,192 @@ router.put('/units/:id/approve', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('Error updating unit approval:', err);
     res.status(500).json({ success: false, error: err.message || 'Failed to update unit approval' });
+  }
+});
+
+// ===========================================================================
+// PDF Syllabus Upload — extract structure from a textbook PDF via AI
+// ===========================================================================
+
+const PDF_SYLLABUS_SCHEMA = {
+  type: 'OBJECT' as const,
+  properties: {
+    subjectName: { type: 'STRING' as const, description: 'The subject name detected from the PDF' },
+    units: {
+      type: 'ARRAY' as const,
+      items: {
+        type: 'OBJECT' as const,
+        properties: {
+          unitNumber: { type: 'INTEGER' as const },
+          name: { type: 'STRING' as const, description: 'Unit/chapter title' },
+          topics: {
+            type: 'ARRAY' as const,
+            items: {
+              type: 'OBJECT' as const,
+              properties: {
+                topicNumber: { type: 'INTEGER' as const },
+                name: { type: 'STRING' as const, description: 'Topic/subtopic title' }
+              },
+              required: ['topicNumber', 'name']
+            }
+          }
+        },
+        required: ['unitNumber', 'name', 'topics']
+      }
+    }
+  },
+  required: ['subjectName', 'units']
+};
+
+router.post('/upload-syllabus-pdf', pdfUpload.single('pdf'), async (req: Request, res: Response) => {
+  try {
+    const file = (req as any).file;
+    if (!file) {
+      return res.status(400).json({ success: false, error: 'PDF file is required' });
+    }
+
+    const { className, subjectName, icon, color } = req.body;
+    if (!className) {
+      return res.status(400).json({ success: false, error: 'className is required' });
+    }
+
+    // 1. Extract text from PDF
+    const pdfParse = require('pdf-parse');
+    const pdfData = await pdfParse(file.buffer);
+    const extractedText = pdfData.text;
+
+    if (!extractedText || extractedText.trim().length < 50) {
+      return res.status(400).json({ success: false, error: 'Could not extract enough text from the PDF. Make sure the PDF contains selectable text.' });
+    }
+
+    const textForAI = extractedText.substring(0, 30000);
+
+    // 2. Call Gemini to parse syllabus structure
+    const prompt = `You are analyzing a school textbook PDF for Tamil Nadu State Board, Class ${className}.
+
+The following is extracted text from the PDF. Identify the subject, all units/chapters, and their sub-topics/sections.
+
+Rules:
+- Extract the subject name from the content (e.g. "Mathematics", "Science", "Social Science")
+- Number units sequentially starting from 1
+- For each unit, extract the sub-topics/sections within it, numbered sequentially
+- Only include actual academic content — skip preface, acknowledgements, appendices, glossary, index pages
+- Use clean, properly capitalized titles
+- If the text is in Tamil, transliterate the unit/topic names to English${subjectName ? `\n- The subject is: ${subjectName}` : ''}
+
+PDF Text:
+${textForAI}`;
+
+    console.log(`[PDF Upload] Extracting syllabus from ${pdfData.numpages}-page PDF for Class ${className}...`);
+    const parsed = await callGeminiJSON(prompt, PDF_SYLLABUS_SCHEMA);
+
+    if (!parsed || !Array.isArray(parsed.units) || parsed.units.length === 0) {
+      return res.status(422).json({ success: false, error: 'AI could not identify any units in the PDF. Try a different PDF or ensure it contains a table of contents.' });
+    }
+
+    // 3. Preview mode — if confirm is not set, return the parsed structure for review
+    if (req.body.previewOnly === 'true') {
+      return res.json({
+        success: true,
+        preview: true,
+        data: {
+          subjectName: subjectName || parsed.subjectName,
+          className,
+          icon: icon || '📚',
+          color: color || '#6366f1',
+          units: parsed.units,
+          pdfPages: pdfData.numpages,
+          totalUnits: parsed.units.length,
+          totalTopics: parsed.units.reduce((sum: number, u: any) => sum + (u.topics?.length || 0), 0)
+        }
+      });
+    }
+
+    // 4. Create/upsert CentralSubject
+    const finalSubjectName = subjectName || parsed.subjectName;
+    let subject = await prisma.centralSubject.findFirst({
+      where: { class: className, name: finalSubjectName }
+    });
+
+    if (!subject) {
+      subject = await prisma.centralSubject.create({
+        data: {
+          class: className,
+          name: finalSubjectName,
+          icon: icon || '📚',
+          color: color || '#6366f1'
+        }
+      });
+    } else {
+      subject = await prisma.centralSubject.update({
+        where: { id: subject.id },
+        data: {
+          icon: icon || subject.icon,
+          color: color || subject.color
+        }
+      });
+    }
+
+    // 5. Create/upsert Units and Topics
+    const results: Array<{ unit: any; topics: any[] }> = [];
+
+    for (const u of parsed.units) {
+      const unitNum = Number(u.unitNumber);
+      if (!u.name || isNaN(unitNum)) continue;
+
+      let unitRecord;
+      try {
+        unitRecord = await prisma.centralUnit.create({
+          data: { subjectId: subject.id, name: u.name, unitNumber: unitNum }
+        });
+      } catch {
+        unitRecord = await prisma.centralUnit.update({
+          where: { subjectId_unitNumber: { subjectId: subject.id, unitNumber: unitNum } },
+          data: { name: u.name }
+        });
+      }
+
+      const topicRecords: any[] = [];
+      for (const t of (u.topics || [])) {
+        const topicNum = Number(t.topicNumber);
+        if (!t.name || isNaN(topicNum)) continue;
+
+        try {
+          const topicRecord = await prisma.centralTopic.create({
+            data: { unitId: unitRecord.id, name: t.name, topicNumber: topicNum }
+          });
+          topicRecords.push(topicRecord);
+        } catch {
+          try {
+            const updated = await prisma.centralTopic.update({
+              where: { unitId_topicNumber: { unitId: unitRecord.id, topicNumber: topicNum } },
+              data: { name: t.name }
+            });
+            topicRecords.push(updated);
+          } catch (e) {
+            console.error(`Failed to upsert topic ${topicNum} under unit ${unitNum}`, e);
+          }
+        }
+      }
+
+      results.push({ unit: unitRecord, topics: topicRecords });
+    }
+
+    console.log(`[PDF Upload] Done! Created ${results.length} units for ${finalSubjectName} Class ${className}`);
+
+    res.json({
+      success: true,
+      message: `Successfully extracted and saved ${results.length} units with their topics from the PDF.`,
+      data: {
+        subject,
+        units: results,
+        totalUnits: results.length,
+        totalTopics: results.reduce((sum, r) => sum + r.topics.length, 0)
+      }
+    });
+  } catch (err: any) {
+    console.error('[PDF Upload] Error:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to process PDF' });
   }
 });
 
