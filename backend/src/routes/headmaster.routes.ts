@@ -62,7 +62,7 @@ router.post('/students', async (req: Request, res: Response) => {
       bloodGroup, religion, community, nationality, mediumOfInstruction,
       class: cls, section, academicYear, fatherName, fatherOccupation,
       motherName, motherOccupation, parentEmail, phone, phoneNumber, parentName, address,
-      city, district, state, pincode, studentStatus, schoolId
+      city, district, state, pincode, studentStatus, schoolId, group
     } = req.body;
 
     if (!name) {
@@ -102,6 +102,7 @@ router.post('/students', async (req: Request, res: Response) => {
           schoolId,
           class: classVal,
           section: section || sectionVal || 'A',
+          group,
           rollNumber: cleanRoll,
           admissionNumber,
           emisNumber,
@@ -226,7 +227,7 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
         bloodGroup, religion, community, nationality, mediumOfInstruction,
         class: cls, section, academicYear, fatherName, fatherOccupation,
         motherName, motherOccupation, parentEmail, phone, phoneNumber, parentName, address,
-        city, district, state, pincode, studentStatus
+        city, district, state, pincode, studentStatus, group
       } = student;
 
       if (!name || !rollNumber) continue;
@@ -267,6 +268,7 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
             schoolId,
             class: classVal,
             section: section || 'A',
+            group,
             admissionNumber,
             emisNumber,
             dob: dob ? new Date(dob) : null,

@@ -34,6 +34,7 @@ interface ParsedPreviewStudent {
   mediumOfInstruction?: string;
   class: string;
   section?: string;
+  group?: string;
   academicYear?: string;
   fatherName?: string;
   fatherOccupation?: string;
@@ -67,6 +68,7 @@ interface ExcelStudentRow {
   "Medium of Instruction"?: string;
   "Class"?: string;
   "Section"?: string;
+  "Group"?: string;
   "Academic Year"?: string;
   "Father Name"?: string;
   "Father Occupation"?: string;
@@ -105,6 +107,7 @@ interface WatchlistStudent {
   risk?: "High" | "Medium";
   gender?: string;
   studentStatus?: string;
+  group?: string;
   createdAt?: string;
 }
 
@@ -140,6 +143,7 @@ export default function StudentsMonitoringPage() {
   const [newName, setNewName] = useState("");
   const [newRollNumber, setNewRollNumber] = useState("");
   const [newClass, setNewClass] = useState("Class 10A");
+  const [newGroup, setNewGroup] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newParentName, setNewParentName] = useState("");
   const [newDistrict, setNewDistrict] = useState("");
@@ -318,7 +322,7 @@ export default function StudentsMonitoringPage() {
     const headers = [
       "Full Name", "Admission Number", "Roll Number", "EMIS Number", "Date of Birth (YYYY-MM-DD)",
       "Gender", "Blood Group", "Religion", "Community", "Nationality",
-      "Medium of Instruction", "Class", "Section", "Academic Year",
+      "Medium of Instruction", "Class", "Section", "Group", "Academic Year",
       "Father Name", "Father Occupation", "Mother Name", "Mother Occupation",
       "Primary Contact Name", "Parent Email", "Phone Number",
       "Address", "City", "District", "State", "Pincode", "Student Status", "Risk Level"
@@ -336,8 +340,9 @@ export default function StudentsMonitoringPage() {
         "Community": "BC",
         "Nationality": "Indian",
         "Medium of Instruction": "English",
-        "Class": "Class 10",
+        "Class": "Class 11",
         "Section": "A",
+        "Group": "Computer Science",
         "Academic Year": "2024-25",
         "Father Name": "Sinnasamy M.",
         "Father Occupation": "Farmer",
@@ -368,6 +373,7 @@ export default function StudentsMonitoringPage() {
         "Medium of Instruction": "Tamil",
         "Class": "Class 9",
         "Section": "B",
+        "Group": "",
         "Academic Year": "2024-25",
         "Father Name": "Ramasamy A.",
         "Father Occupation": "Teacher",
@@ -430,6 +436,7 @@ export default function StudentsMonitoringPage() {
           const mediumOfInstruction = row["Medium of Instruction"]?.toString().trim() || "";
           const cls = row["Class"]?.toString().trim() || "Not Specified";
           const section = row["Section"]?.toString().trim() || "A";
+          const group = row["Group"]?.toString().trim() || "";
           const academicYear = row["Academic Year"]?.toString().trim() || "";
           const fatherName = row["Father Name"]?.toString().trim() || "";
           const fatherOccupation = row["Father Occupation"]?.toString().trim() || "";
@@ -465,6 +472,7 @@ export default function StudentsMonitoringPage() {
             mediumOfInstruction,
             class: cls,
             section,
+            group,
             academicYear,
             fatherName,
             fatherOccupation,
@@ -558,6 +566,7 @@ export default function StudentsMonitoringPage() {
           name: newName,
           rollNumber: newRollNumber,
           class: newClass,
+          group: (newClass.includes('11') || newClass.includes('12')) ? newGroup : undefined,
           phone: newPhone || "N/A",
           parentName: newParentName || "N/A",
           district: newDistrict || "N/A",
@@ -1265,6 +1274,25 @@ export default function StudentsMonitoringPage() {
                         <option value="H">H</option>
                       </select>
                     </div>
+                    {(newClass.includes("11") || newClass.includes("12")) && (
+                      <div className="col-span-2">
+                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Group</label>
+                        <select value={newGroup} onChange={(e) => setNewGroup(e.target.value)} className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-1.5 text-xs text-blue-900 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                          <option value="">Select Group</option>
+                          <option value="Computer Science">Computer Science</option>
+                          <option value="Bio-Maths">Bio-Maths</option>
+                          <option value="Biology">Biology</option>
+                          <option value="Commerce">Commerce</option>
+                          <option value="Commerce with Computer Applications">Commerce with Computer Applications</option>
+                          <option value="Computer Applications">Computer Applications</option>
+                          <option value="Pure Science">Pure Science</option>
+                          <option value="Humanities">Humanities</option>
+                          <option value="History">History</option>
+                          <option value="Vocational">Vocational</option>
+                          <option value="Agriculture / Technical Vocational">Agriculture / Technical Vocational</option>
+                        </select>
+                      </div>
+                    )}
                     <div>
                       <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Medium of Instruction</label>
                       <select value={newMediumOfInstruction} onChange={(e) => setNewMediumOfInstruction(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">

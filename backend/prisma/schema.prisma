@@ -93,6 +93,7 @@ model Student {
   schoolId              String
   class                 String
   section               String
+  group                 String?
   rollNumber            String?
   dob                   DateTime?
   gender                String?
