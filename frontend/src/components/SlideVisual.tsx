@@ -104,7 +104,7 @@ function ConceptMap({ graphicData, accent }: Pick<SlideVisualProps, "graphicData
           <line x1="160" y1="110" x2={cx} y2={cy} stroke={pri} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.4" />
           <circle cx={cx} cy={cy} r="30" fill="white" stroke={i % 2 === 0 ? pri : sec} strokeWidth="1.5" />
           <foreignObject x={cx - 26} y={cy - 26} width="52" height="52">
-            <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <p style={{ margin: 0, fontSize: '7px', lineHeight: '1.2', color: '#475569', fontFamily: 'sans-serif', fontWeight: 'bold', textAlign: 'center', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                 {values[i]}
               </p>
@@ -202,7 +202,7 @@ function ComparisonVisual({ graphicData, accent }: Pick<SlideVisualProps, "graph
             <rect x={isLeft ? 16 : 172} y={y} width="132" height="24" rx="8"
               fill="white" stroke={isLeft ? pri : sec} strokeWidth="0.8" strokeOpacity="0.3" />
             <foreignObject x={isLeft ? 20 : 176} y={y + 2} width="124" height="20">
-              <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <p style={{ margin: 0, fontSize: '7.5px', lineHeight: '1.1', color: '#334155', fontFamily: 'sans-serif', fontWeight: '500', textAlign: 'center', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {item}
                 </p>
@@ -250,7 +250,7 @@ function ProcessFlow({ graphicData, accent }: Pick<SlideVisualProps, "graphicDat
               0{i + 1}
             </text>
             <foreignObject x={x + 4} y={90} width="50" height="40">
-              <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <p style={{ margin: 0, fontSize: '6.5px', lineHeight: '1.2', color: color, fontFamily: 'sans-serif', fontWeight: 'bold', textAlign: 'center', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {step}
                 </p>
@@ -335,7 +335,7 @@ function ApplicationsGrid({ graphicData, accent }: Pick<SlideVisualProps, "graph
             <rect x={x} y={y} width="138" height="72" rx="12" fill={color} fillOpacity="0.04" />
             <text x={x + 20} y={y + 26} fontSize="18">{icons[i]}</text>
             <foreignObject x={x + 40} y={y + 8} width="88" height="56">
-              <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
                 <p style={{ margin: 0, fontSize: '7.5px', lineHeight: '1.25', color: '#334155', fontFamily: 'sans-serif', fontWeight: 'bold', textAlign: 'left', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {app}
                 </p>
@@ -375,7 +375,7 @@ function SummaryMap({ graphicData, accent, title }: Pick<SlideVisualProps, "grap
             <line x1={mx} y1={my} x2={ex} y2={ey} stroke={i % 2 === 0 ? pri : sec} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.5" />
             <rect x={ex - 46} y={ey - 18} width="92" height="36" rx="10" fill="white" stroke={i % 2 === 0 ? pri : sec} strokeWidth="1" strokeOpacity="0.4" />
             <foreignObject x={ex - 42} y={ey - 14} width="84" height="28">
-              <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <p style={{ margin: 0, fontSize: '6.5px', lineHeight: '1.15', color: '#334155', fontFamily: 'sans-serif', fontWeight: 'bold', textAlign: 'center', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {pt}
                 </p>
