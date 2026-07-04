@@ -14,6 +14,11 @@ const pdfUpload = multer({
   }
 });
 
+const generalUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 }
+});
+
 const router = Router();
 
 // ===========================================================================
@@ -40,6 +45,41 @@ const fallbackSubjects = [
     name: "Social Science",
     icon: "🌍",
     color: "#ec4899",
+  },
+  {
+    id: "sub-eng-10",
+    class: "10",
+    name: "English",
+    icon: "📖",
+    color: "#f59e0b",
+  },
+  {
+    id: "sub-tam-10",
+    class: "10",
+    name: "Tamil",
+    icon: "🗣️",
+    color: "#d97706",
+  },
+  {
+    id: "sub-chem-10",
+    class: "10",
+    name: "Chemistry",
+    icon: "🧪",
+    color: "#db2777",
+  },
+  {
+    id: "sub-bio-10",
+    class: "10",
+    name: "Biology",
+    icon: "🧬",
+    color: "#22c55e",
+  },
+  {
+    id: "sub-hist-10",
+    class: "10",
+    name: "History",
+    icon: "📜",
+    color: "#b45309",
   },
   {
     id: "sub-phy-11",
@@ -1442,10 +1482,12 @@ Skip covers, preface, acknowledgements, anthem, index and glossary — only real
 
     // --- Fallback path: text extraction (garbles Tamil, but better than nothing) ---
     if (!parsed || !Array.isArray(parsed.units) || parsed.units.length === 0) {
-      const pdfParse = require('pdf-parse');
-      const pdfData = await pdfParse(file.buffer);
-      pdfPages = pdfData.numpages;
+      const { PDFParse } = require('pdf-parse');
+      const parser = new PDFParse({ data: file.buffer });
+      const pdfData = await parser.getText();
+      pdfPages = pdfData.total;
       const extractedText = (pdfData.text || '').trim();
+      await parser.destroy();
       if (extractedText.length < 50) {
         return res.status(400).json({ success: false, error: 'Could not read this PDF. It may be a scanned image with no selectable text.' });
       }
@@ -1619,6 +1661,198 @@ Skip covers, preface, acknowledgements, anthem, index and glossary — only real
   } catch (err: any) {
     console.error('[PDF Upload] Error:', err);
     res.status(500).json({ success: false, error: err.message || 'Failed to process PDF' });
+  }
+});
+
+// POST /api/centralized-content/subjects/:subjectId/segregate-book-ai — Auto-segregate a single master book text to each unit/subunit
+router.post('/subjects/:subjectId/segregate-book-ai', generalUpload.single('file'), async (req: Request, res: Response) => {
+  try {
+    const { subjectId } = req.params;
+    let textContent = "";
+
+    if (req.file) {
+      console.log(`[Segregation AI] Received file: ${req.file.originalname} (${req.file.size} bytes), mime: ${req.file.mimetype}`);
+      const ext = path.extname(req.file.originalname).toLowerCase();
+      
+      if (ext === '.pdf' || req.file.mimetype === 'application/pdf') {
+        const { PDFParse } = require('pdf-parse');
+        const parser = new PDFParse({ data: req.file.buffer });
+        const data = await parser.getText();
+        textContent = data.text || "";
+        await parser.destroy();
+      } else if (ext === '.txt' || ext === '.md' || req.file.mimetype.startsWith('text/')) {
+        textContent = req.file.buffer.toString('utf8');
+      } else {
+        return res.status(400).json({ success: false, error: "Unsupported file format. Please upload a PDF, TXT, or MD file." });
+      }
+    } else if (req.body.textContent) {
+      console.log(`[Segregation AI] Received raw text content (${req.body.textContent.length} characters)`);
+      textContent = req.body.textContent;
+    }
+
+    if (!textContent || !textContent.trim()) {
+      return res.status(400).json({ success: false, error: "No textbook text content was uploaded or provided." });
+    }
+
+    // 1. Get all units and subunits for this subject
+    const units = await prisma.centralUnit.findMany({
+      where: { subjectId },
+      include: {
+        topics: {
+          orderBy: { topicNumber: 'asc' }
+        }
+      },
+      orderBy: { unitNumber: 'asc' }
+    });
+
+    if (units.length === 0) {
+      return res.status(400).json({ success: false, error: "Please load or scan the syllabus (units and subunits) first before auto-segregating the textbook." });
+    }
+
+    // Build the syllabus mapping index
+    const syllabusIndex: any[] = [];
+    for (const u of units) {
+      for (const t of u.topics) {
+        syllabusIndex.push({
+          subunitId: t.id,
+          subunitNumber: t.topicNumber,
+          subunitName: t.name,
+          unitNumber: u.unitNumber,
+          unitName: u.name
+        });
+      }
+    }
+
+    if (syllabusIndex.length === 0) {
+      return res.status(400).json({ success: false, error: "No subunits found inside the syllabus units. Please add subunits first." });
+    }
+
+    console.log(`[Segregation AI] Preparing to call Gemini to segregate content for ${syllabusIndex.length} subunits...`);
+
+    const prompt = `You are a professional educational curriculum AI assistant. Your task is to analyze the textbook/study document text and map/segregate the relevant details to each subunit in the syllabus index.
+    
+Syllabus Index (Subunits):
+${JSON.stringify(syllabusIndex, null, 2)}
+
+Textbook / Study Document Text (Extract):
+${textContent.substring(0, 75000)}
+
+Instructions:
+1. Carefully match the chapters and topics in the textbook text to the subunits in the syllabus index.
+2. For EACH subunit in the syllabus index, extract and generate:
+   - A clear, concise concept summary ('summary' key) in simple terms. If the syllabus or text uses Tamil (like Tamil language or bilingual text), keep the summary bilingual (Tamil and English text) or translate/explain in clean Tamil and English.
+   - Core revision/lecture notes ('notes' key), including key terms, formulas, rules, or historical dates.
+   - A list of 2 or 3 high-quality multiple choice questions ('mcqs' key) with options (e.g. "Option A: ...", "Option B: ...", "Option C: ...", "Option D: ..."), a correct answer string matching the selected option, and a detailed rationale explaining the choice.
+3. You MUST return exactly one entry in the 'segregatedContent' list for each subunitId in the syllabus index.
+4. Ensure the output strictly follows the schema.`;
+
+    const schema = {
+      type: 'OBJECT',
+      properties: {
+        segregatedContent: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              subunitId: { type: 'STRING', description: 'The unique topic ID of the subunit' },
+              summary: { type: 'STRING', description: 'Bilingual or high-quality concept summary' },
+              notes: { type: 'STRING', description: 'Bullet point revision notes, formulas, rules' },
+              mcqs: {
+                type: 'ARRAY',
+                items: {
+                  type: 'OBJECT',
+                  properties: {
+                    question: { type: 'STRING' },
+                    options: { type: 'ARRAY', items: { type: 'STRING' } },
+                    answer: { type: 'STRING', description: 'The correct option string, e.g., "Option A: ..."' },
+                    rationale: { type: 'STRING' }
+                  },
+                  required: ['question', 'options', 'answer', 'rationale']
+                }
+              }
+            },
+            required: ['subunitId', 'summary', 'notes', 'mcqs']
+          }
+        }
+      },
+      required: ['segregatedContent']
+    };
+
+    const result = await callGeminiJSON(prompt, schema);
+
+    if (!result || !Array.isArray(result.segregatedContent)) {
+      throw new Error("Invalid format received from Gemini AI. Expected segregatedContent array.");
+    }
+
+    console.log(`[Segregation AI] Gemini completed segregation. Syncing ${result.segregatedContent.length} items to database...`);
+
+    let createdSummaryCount = 0;
+    let createdNotesCount = 0;
+    let createdMcqCount = 0;
+
+    for (const item of result.segregatedContent) {
+      if (!item.subunitId) continue;
+
+      // Clean existing AI segregated content for this subunit first to avoid clutter
+      await prisma.centralContent.deleteMany({
+        where: {
+          topicId: item.subunitId,
+          contentType: { in: ['SUMMARY', 'NOTES', 'MCQ'] }
+        }
+      });
+
+      // 1. Create SUMMARY content
+      if (item.summary && item.summary.trim()) {
+        await prisma.centralContent.create({
+          data: {
+            topicId: item.subunitId,
+            contentType: 'SUMMARY',
+            title: 'AI Concept Summary',
+            fileContent: item.summary
+          }
+        });
+        createdSummaryCount++;
+      }
+
+      // 2. Create NOTES content
+      if (item.notes && item.notes.trim()) {
+        await prisma.centralContent.create({
+          data: {
+            topicId: item.subunitId,
+            contentType: 'NOTES',
+            title: 'Revision Notes & Formula Map',
+            fileContent: item.notes
+          }
+        });
+        createdNotesCount++;
+      }
+
+      // 3. Create MCQ content
+      if (item.mcqs && item.mcqs.length > 0) {
+        await prisma.centralContent.create({
+          data: {
+            topicId: item.subunitId,
+            contentType: 'MCQ',
+            title: 'Mastery assessment Quiz',
+            mcqs: item.mcqs
+          }
+        });
+        createdMcqCount++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully segregated textbook to all subunits. Created ${createdSummaryCount} summaries, ${createdNotesCount} revision sheets, and ${createdMcqCount} mastery quizzes.`,
+      data: {
+        summaries: createdSummaryCount,
+        notes: createdNotesCount,
+        mcqs: createdMcqCount
+      }
+    });
+  } catch (err: any) {
+    console.error('[Segregation AI] Error:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to auto-segregate textbook' });
   }
 });
 

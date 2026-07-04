@@ -385,6 +385,131 @@ async function main() {
           ]
         }
       ]
+    },
+    {
+      class: "10",
+      name: "English",
+      icon: "📖",
+      color: "#f59e0b",
+      units: [
+        {
+          unitNumber: 1,
+          name: "Prose: His First Flight",
+          topics: [
+            {
+              topicNumber: 1,
+              name: "Story Overview & Vocabulary",
+              contents: [
+                {
+                  contentType: "SUMMARY",
+                  title: "AI Concept Summary: His First Flight",
+                  fileContent: "His First Flight by Liam O'Flaherty is a symbolic story about a young seagull who is afraid to fly. His family tries to encourage and threaten him to take his first flight, but his fear overcomes him. Eventually, driven by extreme hunger, he dives for the fish his mother holds and successfully spreads his wings to fly, discovering his innate potential and conquering his fear."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      class: "10",
+      name: "Tamil",
+      icon: "🗣️",
+      color: "#d97706",
+      units: [
+        {
+          unitNumber: 1,
+          name: "அன்னை மொழியே",
+          topics: [
+            {
+              topicNumber: 1,
+              name: "செய்யுள் விளக்கம்",
+              contents: [
+                {
+                  contentType: "SUMMARY",
+                  title: "AI Concept Summary: அன்னை மொழியே",
+                  fileContent: "பாவலரேறு பெருஞ்சித்திரனாரின் 'அன்னை மொழியே' கவிதை தமிழ் மொழியின் தொன்மை, சிறப்பு, மற்றும் அதன் இலக்கிய வளம் ஆகியவற்றை விளக்குகிறது. அன்னைத் தமிழ் எழில் நிறைந்ததாகவும், பழமைக்கு பழமையாய்த் தோன்றிய நறுங்கனியாகவும் திகழ்கிறது என்று போற்றுகிறார்."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      class: "10",
+      name: "Chemistry",
+      icon: "🧪",
+      color: "#db2777",
+      units: [
+        {
+          unitNumber: 1,
+          name: "Atoms and Molecules",
+          topics: [
+            {
+              topicNumber: 1,
+              name: "Relative Atomic Mass (RAM)",
+              contents: [
+                {
+                  contentType: "SUMMARY",
+                  title: "AI Concept Summary: Relative Atomic Mass",
+                  fileContent: "Relative Atomic Mass (RAM) of an element is the ratio of the average mass of its atoms to 1/12th of the mass of a carbon-12 atom. It is denoted as Ar. Carbon-12 is taken as the standard reference scale since 1961."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      class: "10",
+      name: "Biology",
+      icon: "🧬",
+      color: "#22c55e",
+      units: [
+        {
+          unitNumber: 1,
+          name: "Plant Anatomy and Plant Physiology",
+          topics: [
+            {
+              topicNumber: 1,
+              name: "Tissue Systems",
+              contents: [
+                {
+                  contentType: "SUMMARY",
+                  title: "AI Concept Summary: Tissue Systems",
+                  fileContent: "Sachs classified tissue systems in plants into three major types: Epidermal tissue system, Ground/Fundamental tissue system, and Vascular tissue system. Epidermal tissue provides protection, ground tissue forms the bulk of the plant body, and vascular tissue (xylem and phloem) is responsible for transport of water and nutrients."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      class: "10",
+      name: "History",
+      icon: "📜",
+      color: "#b45309",
+      units: [
+        {
+          unitNumber: 1,
+          name: "Outbreak of World War I and its Aftermath",
+          topics: [
+            {
+              topicNumber: 1,
+              name: "Imperialist Rivalries",
+              contents: [
+                {
+                  contentType: "SUMMARY",
+                  title: "AI Concept Summary: Imperialist Rivalries",
+                  fileContent: "In the late 19th and early 20th centuries, European powers competed fiercely for colonies in Africa and Asia to secure raw materials and markets. This scramble led to conflicts and mutual suspicion among major powers like Britain, Germany, France, and Russia, setting the stage for global conflict."
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ];
 

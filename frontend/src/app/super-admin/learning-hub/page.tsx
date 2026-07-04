@@ -101,6 +101,7 @@ export default function CentralLearningHubAdmin() {
 
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [parsingSyllabus, setParsingSyllabus] = useState(false);
+  const [segregatingBook, setSegregatingBook] = useState(false);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   // Auto hide toast
@@ -340,6 +341,41 @@ export default function CentralLearningHubAdmin() {
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleBookSegregationUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedSubject) return;
+
+    setSegregatingBook(true);
+    setToast({ message: "AI is analyzing the master book. Splitting and generating summaries, revision sheets, and quizzes for all subunits. Please wait...", type: "success" });
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    fetch(`${API_URL}/api/centralized-content/subjects/${selectedSubject.id}/segregate-book-ai`, {
+      method: "POST",
+      body: formData
+    })
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          setToast({ message: `Successfully segregated master book! Created ${json.data.summaries} summaries, ${json.data.notes} notes, and ${json.data.mcqs} quizzes. 🤖📚`, type: "success" });
+          fetchUnits(selectedSubject.id);
+          setSelectedUnit(null);
+          setSelectedTopic(null);
+          setContents([]);
+        } else {
+          setToast({ message: json.error || "AI could not process the book segregation.", type: "error" });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        setToast({ message: "Error occurred while segregating the book.", type: "error" });
+      })
+      .finally(() => {
+        setSegregatingBook(false);
+      });
   };
 
   const handleAddTopic = async (e: React.FormEvent) => {
@@ -624,8 +660,8 @@ export default function CentralLearningHubAdmin() {
                     key={sub.id}
                     className={`p-3 rounded-xl border flex items-center justify-between transition-all group cursor-pointer ${
                       selectedSubject?.id === sub.id
-                        ? "bg-indigo-600/10 border-indigo-500/40 text-white"
-                        : "bg-slate-900/50 border-slate-850 hover:border-slate-700 text-slate-300"
+                        ? "bg-indigo-600 border-indigo-600 text-white shadow-md font-bold"
+                        : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/50 border-slate-200 dark:border-slate-850 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                     }`}
                     onClick={() => handleSelectSubject(sub)}
                   >
@@ -694,6 +730,21 @@ export default function CentralLearningHubAdmin() {
                     {parsingSyllabus ? "Mapping Units & Subunits..." : "AI Syllabus Scanner (Units & Subunits)"}
                   </span>
                 </div>
+
+                {/* AI Master Book Segregator */}
+                <div className="relative border border-dashed border-emerald-500/25 hover:border-emerald-400/50 bg-emerald-950/10 hover:bg-emerald-950/20 rounded-xl p-2.5 transition-all flex items-center justify-center gap-2 cursor-pointer group">
+                  <input
+                    type="file"
+                    accept=".pdf,.txt,.md"
+                    onChange={handleBookSegregationUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    disabled={segregatingBook}
+                  />
+                  <span className="text-sm select-none">📚</span>
+                  <span className="text-[10px] font-bold text-emerald-400 group-hover:text-emerald-300 uppercase tracking-wide select-none">
+                    {segregatingBook ? "Segregating Book via AI..." : "AI Book Segregator (Split to Subunits)"}
+                  </span>
+                </div>
               </div>
 
               {loadingUnits ? (
@@ -709,8 +760,8 @@ export default function CentralLearningHubAdmin() {
                       key={u.id}
                       className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                         selectedUnit?.id === u.id
-                          ? "bg-indigo-600/10 border-indigo-500/40 text-white font-bold"
-                          : "bg-slate-900/35 border-slate-850 text-slate-400 hover:text-slate-200 hover:border-slate-800"
+                          ? "bg-indigo-600 border-indigo-600 text-white font-bold shadow-sm"
+                          : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/35 border-slate-200 dark:border-slate-850 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                       }`}
                       onClick={() => {
                         setSelectedUnit(u);
@@ -777,8 +828,8 @@ export default function CentralLearningHubAdmin() {
                       key={t.id}
                       className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                         selectedTopic?.id === t.id
-                          ? "bg-indigo-600/10 border-indigo-500/40 text-white font-bold"
-                          : "bg-slate-900/35 border-slate-850 text-slate-400 hover:text-slate-200 hover:border-slate-800"
+                          ? "bg-indigo-600 border-indigo-600 text-white font-bold shadow-sm"
+                          : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/35 border-slate-200 dark:border-slate-850 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                       }`}
                       onClick={() => handleSelectTopic(t)}
                     >
@@ -988,7 +1039,7 @@ export default function CentralLearningHubAdmin() {
                 <div>
                   <label className="block text-xs text-slate-400 mb-1.5 font-bold">Choose Icon</label>
                   <div className="flex flex-wrap gap-2 mb-2 p-3 bg-slate-900 rounded-xl border border-slate-800">
-                    {["📐", "🔬", "📜", "🗣️", "🌍", "💻", "🌿", "🧪", "⚛️", "🩺", "📈", "🎨", "📚", "🌺"].map((emoji) => (
+                    {["📐", "🔬", "⚛️", "🧪", "🦁", "🐾", "🦋", "🐬", "🌿", "📜", "🗣️", "🌍", "💻", "🎨", "📚", "🎓"].map((emoji) => (
                       <button
                         key={emoji}
                         type="button"
@@ -1122,7 +1173,7 @@ export default function CentralLearningHubAdmin() {
                 <div>
                   <label className="block text-xs text-slate-400 mb-1.5 font-bold">Choose Icon</label>
                   <div className="flex flex-wrap gap-2 mb-2 p-3 bg-slate-900 rounded-xl border border-slate-800">
-                    {["📐", "🔬", "📜", "🗣️", "🌍", "💻", "🌿", "🧪", "⚛️", "🩺", "📈", "🎨", "📚", "🌺"].map((emoji) => (
+                    {["📐", "🔬", "⚛️", "🧪", "🦁", "🐾", "🦋", "🐬", "🌿", "📜", "🗣️", "🌍", "💻", "🎨", "📚", "🎓"].map((emoji) => (
                       <button
                         key={emoji}
                         type="button"

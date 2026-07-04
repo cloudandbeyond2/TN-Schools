@@ -4,6 +4,130 @@ import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
+import { 
+  Calculator, 
+  Atom, 
+  Globe, 
+  Laptop, 
+  BookOpen, 
+  Scroll, 
+  Orbit, 
+  Beaker, 
+  Dna,
+  Book,
+  PenTool,
+  Languages,
+  PawPrint
+} from "lucide-react";
+
+interface SubjectTheme {
+  icon: React.ComponentType<{ className?: string }>;
+  gradient: string;
+  glow: string;
+  text: string;
+  bgLight: string;
+}
+
+const SUBJECT_THEMES: Record<string, SubjectTheme> = {
+  mathematics: {
+    icon: Calculator,
+    gradient: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
+    glow: "rgba(99, 102, 241, 0.15)",
+    text: "text-indigo-600 dark:text-indigo-400",
+    bgLight: "bg-indigo-50/50 dark:bg-indigo-950/20"
+  },
+  science: {
+    icon: Atom,
+    gradient: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+    glow: "rgba(16, 185, 129, 0.15)",
+    text: "text-emerald-600 dark:text-emerald-400",
+    bgLight: "bg-emerald-50/50 dark:bg-emerald-950/20"
+  },
+  "social science": {
+    icon: Globe,
+    gradient: "linear-gradient(135deg, #ec4899 0%, #db2777 100%)",
+    glow: "rgba(236, 72, 153, 0.15)",
+    text: "text-pink-650 dark:text-pink-400",
+    bgLight: "bg-pink-50/50 dark:bg-pink-950/20"
+  },
+  physics: {
+    icon: Orbit,
+    gradient: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+    glow: "rgba(139, 92, 246, 0.15)",
+    text: "text-purple-650 dark:text-purple-400",
+    bgLight: "bg-purple-50/50 dark:bg-purple-950/20"
+  },
+  chemistry: {
+    icon: Beaker,
+    gradient: "linear-gradient(135deg, #db2777 0%, #c11f6c 100%)",
+    glow: "rgba(219, 39, 119, 0.15)",
+    text: "text-rose-650 dark:text-rose-400",
+    bgLight: "bg-rose-50/50 dark:bg-rose-950/20"
+  },
+  biology: {
+    icon: Dna,
+    gradient: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+    glow: "rgba(34, 197, 94, 0.15)",
+    text: "text-green-650 dark:text-green-400",
+    bgLight: "bg-green-50/50 dark:bg-green-950/20"
+  },
+  zoology: {
+    icon: PawPrint,
+    gradient: "linear-gradient(135deg, #059669 0%, #064e3b 100%)",
+    glow: "rgba(5, 150, 105, 0.15)",
+    text: "text-emerald-700 dark:text-emerald-400",
+    bgLight: "bg-emerald-50/50 dark:bg-emerald-950/20"
+  },
+  "computer science": {
+    icon: Laptop,
+    gradient: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+    glow: "rgba(59, 130, 246, 0.15)",
+    text: "text-blue-600 dark:text-blue-400",
+    bgLight: "bg-blue-50/50 dark:bg-blue-950/20"
+  },
+  english: {
+    icon: BookOpen,
+    gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+    glow: "rgba(245, 158, 11, 0.15)",
+    text: "text-amber-600 dark:text-amber-400",
+    bgLight: "bg-amber-50/50 dark:bg-amber-950/20"
+  },
+  tamil: {
+    icon: Languages,
+    gradient: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
+    glow: "rgba(217, 119, 6, 0.15)",
+    text: "text-amber-700 dark:text-amber-500",
+    bgLight: "bg-amber-50/50 dark:bg-amber-950/20"
+  },
+  history: {
+    icon: Scroll,
+    gradient: "linear-gradient(135deg, #b45309 0%, #78350f 100%)",
+    glow: "rgba(180, 83, 9, 0.15)",
+    text: "text-orange-700 dark:text-orange-400",
+    bgLight: "bg-orange-50/50 dark:bg-orange-950/20"
+  }
+};
+
+const getSubjectTheme = (name: string): SubjectTheme => {
+  const normalized = name.toLowerCase().trim();
+  if (SUBJECT_THEMES[normalized]) {
+    return SUBJECT_THEMES[normalized];
+  }
+  
+  for (const [key, val] of Object.entries(SUBJECT_THEMES)) {
+    if (normalized.includes(key) || key.includes(normalized)) {
+      return val;
+    }
+  }
+
+  return {
+    icon: BookOpen,
+    gradient: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
+    glow: "rgba(99, 102, 241, 0.15)",
+    text: "text-indigo-650 dark:text-indigo-400",
+    bgLight: "bg-indigo-50/50 dark:bg-indigo-950/20"
+  };
+};
 
 interface Subject {
   id: string;
@@ -293,40 +417,41 @@ export default function CentralizedContentPage() {
               <p className="text-xs text-slate-500 mt-2">Syllabus is being updated for Class {selectedClass}th. Check back soon!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
               {subjects.map((sub) => {
-                const subColor = getSubjectColor(sub);
+                const theme = getSubjectTheme(sub.name);
+                const SubjectIcon = theme.icon;
                 return (
                   <div
                     key={sub.id}
                     onClick={() => handleSelectSubject(sub)}
-                    className="glass rounded-2xl p-4 border border-slate-200 dark:border-slate-850 hover:border-slate-400 dark:hover:border-slate-700 hover:-translate-y-0.5 transition-all cursor-pointer group relative overflow-hidden flex flex-col justify-between h-40 bg-white dark:bg-slate-950/40 shadow-sm"
+                    className="glass rounded-2xl p-5 border border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-650 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col justify-between h-44 bg-white/70 dark:bg-slate-900/35 shadow-sm hover:shadow-md"
                   >
-                    {/* Background glow */}
+                    {/* Dynamic Glow Backdrops */}
                     <div 
-                      className="absolute -top-10 -right-10 w-20 h-20 rounded-full blur-3xl opacity-10 transition-opacity group-hover:opacity-20"
-                      style={{ backgroundColor: subColor }}
+                      className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-all duration-500"
+                      style={{ background: theme.gradient }}
                     ></div>
                     
-                    {/* Subject Icon & Grade Tag in Row */}
-                    <div className="flex justify-between items-start w-full">
+                    {/* Subject Icon & Class Tag in Row */}
+                    <div className="flex justify-between items-start w-full relative z-10">
                       <div 
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm transition-transform group-hover:scale-105"
-                        style={{ background: `linear-gradient(135deg, ${subColor}, ${subColor}dd)` }}
+                        className="w-11 h-11 rounded-xl flex items-center justify-center shadow-md transition-all duration-500 group-hover:scale-105 group-hover:rotate-3 text-white"
+                        style={{ background: theme.gradient }}
                       >
-                        {sub.icon || "📚"}
+                        <SubjectIcon className="w-5.5 h-5.5" />
                       </div>
-                      <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
+                      <span className="text-[9px] uppercase font-extrabold tracking-wider px-2.5 py-1 rounded-lg bg-slate-100/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border border-slate-200/20 shadow-xs">
                         Class {sub.class}
                       </span>
                     </div>
 
-                    <div className="mt-2">
-                      <h3 className="text-sm font-black text-black dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+                    <div className="mt-4 relative z-10">
+                      <h3 className="text-sm font-black text-slate-805 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
                         {sub.name}
                       </h3>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug line-clamp-2">
-                        Explore units, subunits, quizzes & AI modules.
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 leading-snug line-clamp-2">
+                        Explore interactive units, revisions & AI tutors.
                       </p>
                     </div>
                   </div>
@@ -352,18 +477,26 @@ export default function CentralizedContentPage() {
             </button>
 
             {/* Subject Details Header */}
-            <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900/30 flex items-center gap-4">
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm"
-                style={{ background: `linear-gradient(135deg, ${getSubjectColor(selectedSubject)}, ${getSubjectColor(selectedSubject)}dd)` }}
-              >
-                {selectedSubject.icon || "📚"}
-              </div>
-              <div>
-                <h3 className="font-bold text-base text-black dark:text-white">{selectedSubject.name}</h3>
-                <span className="text-[10px] uppercase font-bold text-slate-400">Class {selectedSubject.class}th Workspace</span>
-              </div>
-            </div>
+            {(() => {
+              const theme = getSubjectTheme(selectedSubject.name);
+              const SubjectIcon = theme.icon;
+              return (
+                <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-850 bg-white/90 dark:bg-slate-900/50 backdrop-blur-md flex items-center gap-4 shadow-sm">
+                  <div 
+                    className="w-12 h-12 rounded-xl flex items-center justify-center shadow-md text-white"
+                    style={{ background: theme.gradient }}
+                  >
+                    <SubjectIcon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-sm md:text-base text-slate-805 dark:text-slate-100">{selectedSubject.name}</h3>
+                    <span className="text-[9px] uppercase font-black tracking-wider text-indigo-500/80 dark:text-indigo-400 block mt-0.5">
+                      Class {selectedSubject.class}th Workspace
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Units Accordion */}
             <div className="glass rounded-3xl p-4 border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900/20 max-h-[calc(100vh-320px)] overflow-y-auto">
