@@ -239,18 +239,27 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
       if (existingStudent) continue;
 
       const cleanPhone = String(phone || phoneNumber || '').trim();
+      let finalMobile = cleanPhone || null;
+      if (finalMobile) {
+        const existingUser = await prisma.user.findFirst({ where: { mobile: finalMobile } });
+        if (existingUser) {
+          finalMobile = null; // Prevent unique constraint violation
+        }
+      }
+      
       const hashedPassword = await hashPassword(cleanPhone || '123456');
       
-      await prisma.$transaction(async (tx) => {
-        const user = await tx.user.create({
-          data: {
-            schoolId,
-            name,
-            mobile: cleanPhone || null,
-            passwordHash: hashedPassword,
-            role: 'STUDENT',
-          }
-        });
+      try {
+        await prisma.$transaction(async (tx) => {
+          const user = await tx.user.create({
+            data: {
+              schoolId,
+              name,
+              mobile: finalMobile,
+              passwordHash: hashedPassword,
+              role: 'STUDENT',
+            }
+          });
         const student = await tx.student.create({
           data: {
             userId: user.id,
@@ -292,11 +301,16 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
           });
 
           if (!parentUser) {
+            let parentMobile = cleanPhone || null;
+            if (parentMobile) {
+               const existingParentPhone = await tx.user.findFirst({ where: { mobile: parentMobile } });
+               if (existingParentPhone) parentMobile = null;
+            }
             parentUser = await tx.user.create({
               data: {
                 name: parentName || fatherName || motherName || 'Parent',
                 email: parentEmail.trim().toLowerCase(),
-                mobile: cleanPhone || null,
+                mobile: parentMobile,
                 passwordHash: await hashPassword(cleanPhone || '123456'),
                 role: 'PARENT',
                 schoolId,
@@ -304,6 +318,9 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
             });
           }
 
+          // The HeadmasterParent and ParentStudentLink models are currently not present in the Prisma schema,
+          // so we will skip their creation for now to prevent the 500 error on bulk import.
+          /*
           // Check if HeadmasterParent model exists
           let hmParent = await tx.headmasterParent.findFirst({
             where: { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
@@ -339,9 +356,13 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
               }
             });
           }
+          */
         }
       });
       createdCount++;
+      } catch (err) {
+        console.error("Error inserting student", student.name, err);
+      }
     }
 
     res.json({ success: true, created: createdCount });
@@ -446,6 +467,32 @@ router.delete('/students/:id', async (req: Request, res: Response) => {
     res.json({ success: true, message: 'Student deleted successfully' });
   } catch (err) {
     console.error('Error deleting student:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/students/bulk-delete — Bulk delete students
+router.post('/students/bulk-delete', async (req: Request, res: Response) => {
+  try {
+    const { studentIds } = req.body;
+    if (!Array.isArray(studentIds) || studentIds.length === 0) {
+      return res.status(400).json({ success: false, error: 'studentIds array is required' });
+    }
+
+    const students = await prisma.student.findMany({ where: { id: { in: studentIds } } });
+    const userIds = students.map(s => s.userId);
+
+    // Delete dependent records
+    await prisma.mark.deleteMany({ where: { studentId: { in: studentIds } } });
+    await prisma.attendance.deleteMany({ where: { studentId: { in: studentIds } } });
+    await prisma.scholarship.deleteMany({ where: { studentId: { in: studentIds } } });
+
+    await prisma.student.deleteMany({ where: { id: { in: studentIds } } });
+    await prisma.user.deleteMany({ where: { id: { in: userIds } } });
+
+    res.json({ success: true, message: 'Students deleted successfully' });
+  } catch (err) {
+    console.error('Error in bulk delete:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });
