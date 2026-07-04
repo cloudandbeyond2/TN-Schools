@@ -10,14 +10,19 @@ router.get('/', async (req: Request, res: Response) => {
     const { schoolId, subject, type, class: cls, search } = req.query;
 
     const rows: any[] = await prisma.$queryRaw`
-      SELECT * FROM "DigitalLibraryResource"
-      WHERE "isActive" = true
-        ${schoolId ? prisma.$queryRaw`AND "schoolId" = ${String(schoolId)}` : prisma.$queryRaw``}
-        ${subject ? prisma.$queryRaw`AND subject = ${String(subject)}` : prisma.$queryRaw``}
-        ${type ? prisma.$queryRaw`AND type = ${String(type)}` : prisma.$queryRaw``}
-        ${cls ? prisma.$queryRaw`AND class = ${String(cls)}` : prisma.$queryRaw``}
-        ${search ? prisma.$queryRaw`AND (title ILIKE ${'%' + String(search) + '%'} OR description ILIKE ${'%' + String(search) + '%'})` : prisma.$queryRaw``}
-      ORDER BY "uploadDate" DESC
+      SELECT r.*, u.name as "teacherName"
+      FROM "DigitalLibraryResource" r
+      LEFT JOIN "User" u ON r."teacherId" = u.id
+      WHERE r."isActive" = true
+        ${schoolId 
+          ? prisma.$queryRaw`AND (r."schoolId" = ${String(schoolId)} OR r."schoolId" IS NULL)` 
+          : prisma.$queryRaw`AND r."schoolId" IS NULL`
+        }
+        ${subject ? prisma.$queryRaw`AND r.subject = ${String(subject)}` : prisma.$queryRaw``}
+        ${type ? prisma.$queryRaw`AND r.type = ${String(type)}` : prisma.$queryRaw``}
+        ${cls ? prisma.$queryRaw`AND r.class = ${String(cls)}` : prisma.$queryRaw``}
+        ${search ? prisma.$queryRaw`AND (r.title ILIKE ${'%' + String(search) + '%'} OR r.description ILIKE ${'%' + String(search) + '%'})` : prisma.$queryRaw``}
+      ORDER BY r."uploadDate" DESC
     `;
 
     return res.json({ success: true, data: rows, count: rows.length });
@@ -26,22 +31,61 @@ router.get('/', async (req: Request, res: Response) => {
     // Fall back to Prisma ORM on raw query error
     try {
       const where: any = { isActive: true };
-      if (req.query.schoolId) where.schoolId = String(req.query.schoolId);
+      const conditions: any[] = [];
+
+      if (req.query.schoolId) {
+        conditions.push({
+          OR: [
+            { schoolId: String(req.query.schoolId) },
+            { schoolId: null }
+          ]
+        });
+      } else {
+        conditions.push({
+          schoolId: null
+        });
+      }
       if (req.query.subject)  where.subject  = String(req.query.subject);
       if (req.query.type)     where.type      = String(req.query.type);
       if (req.query.class)    where.class     = String(req.query.class);
       if (req.query.search) {
-        where.OR = [
-          { title: { contains: String(req.query.search), mode: 'insensitive' } },
-          { description: { contains: String(req.query.search), mode: 'insensitive' } },
-        ];
+        conditions.push({
+          OR: [
+            { title: { contains: String(req.query.search), mode: 'insensitive' } },
+            { description: { contains: String(req.query.search), mode: 'insensitive' } },
+          ]
+        });
       }
+
+      if (conditions.length > 0) {
+        where.AND = conditions;
+      }
+
       const data = await prisma.digitalLibraryResource.findMany({
         where,
         orderBy: { uploadDate: 'desc' },
       });
-      return res.json({ success: true, data, count: data.length });
+
+      const teacherIds = Array.from(new Set(data.map(item => item.teacherId).filter(Boolean)));
+      const teacherMap = new Map<string, string>();
+      if (teacherIds.length > 0) {
+        const users = await prisma.user.findMany({
+          where: { id: { in: teacherIds as string[] } },
+          select: { id: true, name: true }
+        });
+        users.forEach(u => {
+          teacherMap.set(u.id, u.name);
+        });
+      }
+
+      const dataWithTeacher = data.map(item => ({
+        ...item,
+        teacherName: item.teacherId ? teacherMap.get(item.teacherId) : undefined
+      }));
+
+      return res.json({ success: true, data: dataWithTeacher, count: dataWithTeacher.length });
     } catch (e2: any) {
+      console.error('[GET /api/digital-library] Fallback failed:', e2.message);
       return res.status(500).json({ success: false, error: 'Failed to fetch resources' });
     }
   }

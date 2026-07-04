@@ -62,6 +62,8 @@ export default function DigitalLibraryPage() {
   const [saving, setSaving] = useState(false);
   const [generatingAi, setGeneratingAi] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [quizQuestions, setQuizQuestions] = useState<Array<{ question: string; options: string[]; answerIndex: number }>>([]);
+  const [generatingQuiz, setGeneratingQuiz] = useState(false);
 
   const fetchResources = useCallback(async () => {
     setLoading(true);
@@ -83,10 +85,26 @@ export default function DigitalLibraryPage() {
     return matchSearch && (filterType === "All" || r.type === filterType) && (filterSubject === "All" || r.subject === filterSubject) && (filterClass === "All" || r.class === filterClass);
   });
 
-  const handleOpenAdd = () => { setForm(emptyForm); setEditId(null); setShowModal(true); };
+  const handleOpenAdd = () => { 
+    setForm(emptyForm); 
+    setQuizQuestions([]);
+    setEditId(null); 
+    setShowModal(true); 
+  };
   const handleOpenEdit = (r: LibraryResource) => {
+    let loadedQuiz: any[] = [];
+    if (r.aiContent) {
+      try {
+        const data = JSON.parse(r.aiContent);
+        if (Array.isArray(data.quiz)) {
+          loadedQuiz = data.quiz;
+        }
+      } catch (e) {}
+    }
     setForm({ title: r.title, type: r.type, subject: r.subject, class: r.class, size: r.size, description: r.description || "", tags: (r.tags || []).join(", "), fileUrl: r.fileUrl || "", aiContent: r.aiContent || "" });
-    setEditId(r.id); setShowModal(true);
+    setQuizQuestions(loadedQuiz);
+    setEditId(r.id); 
+    setShowModal(true);
   };
 
   const handleGenerateAi = async () => {
@@ -112,13 +130,81 @@ export default function DigitalLibraryPage() {
     }
   };
 
+  const handleGenerateAiQuiz = async () => {
+    if (!form.title) return Swal.fire({ icon: "warning", title: "Missing Title", text: "Please enter a resource title first." });
+    setGeneratingQuiz(true);
+    try {
+      const res = await fetch(`${API}/api/ai/generate-questions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          grade: form.class,
+          subject: form.subject,
+          topic: form.title,
+          difficulty: "Hard",
+          mcqCount: 10,
+          shortCount: 0,
+          longCount: 0
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.data && Array.isArray(data.data)) {
+        const letterMap: Record<string, number> = { A: 0, B: 1, C: 2, D: 3 };
+        const mappedQuestions = data.data
+          .filter((q: any) => q.type === "mcq" && q.options)
+          .map((q: any) => {
+            const cleanAnswer = q.answer.trim().charAt(0).toUpperCase();
+            return {
+              question: q.text,
+              options: q.options,
+              answerIndex: letterMap[cleanAnswer] !== undefined ? letterMap[cleanAnswer] : 0
+            };
+          });
+
+        if (mappedQuestions.length > 0) {
+          setQuizQuestions(mappedQuestions);
+          Swal.fire({ icon: "success", title: "Generated!", text: "Generated 10 hard multiple choice questions for your quiz." });
+        } else {
+          throw new Error("No MCQs returned");
+        }
+      } else {
+        throw new Error("Failed to generate quiz.");
+      }
+    } catch (e) {
+      Swal.fire({ icon: "error", title: "Error", text: "Failed to generate AI Quiz." });
+    } finally {
+      setGeneratingQuiz(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!form.title || !form.type || !form.subject || !form.class) {
       return Swal.fire({ icon: "error", title: "Oops...", text: "Title, Type, Subject and Class are required." });
     }
     setSaving(true);
     try {
-      const body = { ...form, tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean), schoolId, teacherId };
+      let explanation = "";
+      if (form.aiContent) {
+        try {
+          const parsed = JSON.parse(form.aiContent);
+          explanation = parsed.explanation || parsed.content || form.aiContent;
+        } catch (e) {
+          explanation = form.aiContent;
+        }
+      }
+      const aiContentJson = JSON.stringify({
+        explanation,
+        keyNotes: [],
+        quiz: quizQuestions
+      });
+
+      const body = { 
+        ...form, 
+        aiContent: aiContentJson,
+        tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean), 
+        schoolId, 
+        teacherId 
+      };
       const url = editId ? `${API}/api/digital-library/${editId}` : `${API}/api/digital-library`;
       const res = await fetch(url, { method: editId ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
@@ -384,7 +470,105 @@ export default function DigitalLibraryPage() {
                 <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Tags (comma separated)</label>
                 <input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="e.g. NEET, Board Exam, Revision" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500" />
               </div>
-              <button onClick={handleSave} disabled={saving} className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white font-bold rounded-xl text-xs transition-colors shadow-md">
+              
+              {/* 🎯 Practice Quiz Section */}
+              <div className="border-t border-slate-200 dark:border-slate-800 pt-4 mt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1">🎯 Practice Quiz Questions</h4>
+                    <p className="text-[9px] text-slate-400 mt-0.5">Assign custom or AI-generated MCQs to this study material.</p>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={handleGenerateAiQuiz} 
+                    disabled={generatingQuiz} 
+                    className="px-3 py-1.5 disabled:opacity-60 text-white text-[10px] font-black rounded-lg transition-colors whitespace-nowrap shadow-sm flex items-center gap-1 border-none cursor-pointer"
+                    style={{ background: 'linear-gradient(to right, #4f46e5, #9333ea)', color: '#ffffff' }}
+                  >
+                    {generatingQuiz ? "Generating 10 Qs..." : "🪄 Generate 10 Hard MCQs"}
+                  </button>
+                </div>
+
+                {/* Questions List & Manual Editor */}
+                <div className="space-y-3 max-h-[30vh] overflow-y-auto pr-1">
+                  {quizQuestions.map((q, qIdx) => (
+                    <div key={qIdx} className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 rounded-xl space-y-2.5 relative text-left">
+                      <button 
+                        type="button"
+                        onClick={() => setQuizQuestions(prev => prev.filter((_, idx) => idx !== qIdx))}
+                        className="absolute top-2.5 right-2.5 text-red-500 hover:text-red-700 text-xs font-extrabold border-none bg-transparent cursor-pointer"
+                      >
+                        ✕ Remove
+                      </button>
+                      
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-black uppercase text-indigo-600 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded">
+                          Question {qIdx + 1}
+                        </span>
+                        <input 
+                          value={q.question} 
+                          onChange={(e) => {
+                            const updated = [...quizQuestions];
+                            updated[qIdx].question = e.target.value;
+                            setQuizQuestions(updated);
+                          }}
+                          placeholder="Type question here..." 
+                          className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 dark:text-white"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        {q.options.map((opt, oIdx) => (
+                          <div key={oIdx} className="space-y-0.5">
+                            <label className="block text-[8px] font-bold text-slate-400">Option {oIdx + 1}</label>
+                            <input 
+                              value={opt} 
+                              onChange={(e) => {
+                                const updated = [...quizQuestions];
+                                updated[qIdx].options[oIdx] = e.target.value;
+                                setQuizQuestions(updated);
+                              }}
+                              placeholder={`Option ${oIdx + 1}`} 
+                              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-800 dark:text-white"
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <label className="text-[9px] font-semibold text-slate-500">Correct Option:</label>
+                        <select 
+                          value={q.answerIndex} 
+                          onChange={(e) => {
+                            const updated = [...quizQuestions];
+                            updated[qIdx].answerIndex = parseInt(e.target.value);
+                            setQuizQuestions(updated);
+                          }}
+                          className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-800 dark:text-white focus:outline-none"
+                        >
+                          {q.options.map((_, oIdx) => (
+                            <option key={oIdx} value={oIdx}>Option {oIdx + 1}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Add manual question button */}
+                  <button 
+                    type="button"
+                    onClick={() => setQuizQuestions(prev => [
+                      ...prev, 
+                      { question: "", options: ["", "", "", ""], answerIndex: 0 }
+                    ])}
+                    className="w-full py-2 border-2 border-dashed border-slate-200 dark:border-slate-800 text-slate-450 hover:text-slate-650 hover:border-slate-400 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 bg-transparent cursor-pointer"
+                  >
+                    ➕ Add Question Manually
+                  </button>
+                </div>
+              </div>
+
+              <button onClick={handleSave} disabled={saving} className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white font-bold rounded-xl text-xs transition-colors shadow-md border-none cursor-pointer">
                 {saving ? "Saving..." : editId ? "✅ Save Changes" : "📚 Upload to Digital Library"}
               </button>
             </div>

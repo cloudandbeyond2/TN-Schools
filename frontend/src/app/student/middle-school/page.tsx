@@ -224,6 +224,18 @@ export default function MiddleSchoolDashboard() {
       .finally(() => setLoadingBadges(false));
   }, [session]);
 
+  const [todayProgress, setTodayProgress] = useState<any>(null);
+
+  useEffect(() => {
+    if (!(session?.user as any)?.id) return;
+    fetch(`${API_BASE}/api/digital-library/progress/today?studentId=${(session?.user as any)?.id}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) setTodayProgress(json.data);
+      })
+      .catch((err) => console.error("Failed to load today progress:", err));
+  }, [session]);
+
   const userName = session?.user?.name || student?.user?.name || "Student";
   const subtitle = student 
     ? `Welcome back, ${userName}! · Class ${student.class} ${student.section} · You have earned ${earnedBadges.length} ${earnedBadges.length === 1 ? "badge" : "badges"}!`
@@ -290,27 +302,71 @@ export default function MiddleSchoolDashboard() {
           </div>
         </div>
 
-        {/* Recent Notifications */}
-        <div className="glass rounded-3xl p-4 sm:p-6 fade-in-3 flex flex-col border border-slate-200 dark:border-slate-700/50 shadow-2xl bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 text-left">
-          <div className="flex items-center gap-3 mb-4">
-            <Megaphone className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500 animate-pulse" />
-            <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white">Recent Notifications</h2>
-          </div>
-          <div className="flex-1 space-y-3">
-            {loadingNotifications ? (
-              <div className="text-center py-8 text-xs sm:text-sm text-slate-500">Loading notifications...</div>
-            ) : notifications.length > 0 ? (
-              notifications.map((n) => (
-                <div key={n.id} className="p-3 bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-700/50 hover:shadow-md transition-shadow">
-                  <div className="text-[11px] sm:text-xs text-black dark:text-slate-200 font-medium leading-relaxed">{n.message}</div>
-                  <div className="text-[9px] sm:text-[10px] text-slate-400 mt-2 font-semibold">
-                    {new Date(n.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+        <div className="space-y-6">
+          {/* Today's Learning Progress Card */}
+          <div className="glass rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent">
+            <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white mb-3 flex items-center gap-2">
+              <span>⏱️</span> Today's Study Progress
+            </h2>
+            {todayProgress ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <div className="text-left">
+                    <div className="text-[10px] text-slate-500 uppercase font-black">Logged Today</div>
+                    <div className="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{todayProgress.totalTimeSpentMinutes} mins</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-slate-500 uppercase font-black">Resources Studied</div>
+                    <div className="text-xl font-extrabold text-emerald-650 dark:text-emerald-400">{todayProgress.activeCount}</div>
                   </div>
                 </div>
-              ))
+
+                {todayProgress.recentResources && todayProgress.recentResources.length > 0 ? (
+                  <div className="space-y-2.5">
+                    <div className="text-[10px] text-slate-500 uppercase font-black text-left font-sans">Recent Activity</div>
+                    {todayProgress.recentResources.slice(0, 3).map((r: any) => (
+                      <div key={r.resourceId} className="bg-slate-50 dark:bg-slate-900/30 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/60 text-left space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate max-w-[70%]">{r.resourceTitle}</span>
+                          <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400">{r.progressPercent}%</span>
+                        </div>
+                        <div className="w-full bg-slate-200 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+                          <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${r.progressPercent}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-505 dark:text-slate-500 italic py-2 text-center">No study activity logged today yet.</p>
+                )}
+              </div>
             ) : (
-              <div className="text-center py-8 text-xs sm:text-sm text-slate-500">No new notifications.</div>
+              <div className="text-xs text-slate-500 py-4 text-center">Loading progress...</div>
             )}
+          </div>
+
+          {/* Recent Notifications */}
+          <div className="glass rounded-3xl p-4 sm:p-6 fade-in-3 flex flex-col border border-slate-200 dark:border-slate-700/50 shadow-2xl bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 text-left">
+            <div className="flex items-center gap-3 mb-4">
+              <Megaphone className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500 animate-pulse" />
+              <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white">Recent Notifications</h2>
+            </div>
+            <div className="flex-1 space-y-3">
+              {loadingNotifications ? (
+                <div className="text-center py-8 text-xs sm:text-sm text-slate-500">Loading notifications...</div>
+              ) : notifications.length > 0 ? (
+                notifications.map((n) => (
+                  <div key={n.id} className="p-3 bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-700/50 hover:shadow-md transition-shadow">
+                    <div className="text-[11px] sm:text-xs text-black dark:text-slate-200 font-medium leading-relaxed">{n.message}</div>
+                    <div className="text-[9px] sm:text-[10px] text-slate-400 mt-2 font-semibold">
+                      {new Date(n.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-xs sm:text-sm text-slate-500">No new notifications.</div>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { AIChat, Portfolio, LearningPath, Wellness } from '../models/mongo';
+import { AIChat, Portfolio, LearningPath, Wellness, LibraryCompanion } from '../models/mongo';
 import https from 'https';
 
 const router = Router();
@@ -879,6 +879,154 @@ Return a JSON object with a single key "content" containing the generated text (
     const result = await callGemini(prompt, true, schema);
     res.json({ success: true, data: result.content });
   } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/ai/companion
+router.post('/companion', async (req: Request, res: Response) => {
+  try {
+    const { resourceId, title, subject, grade, description, aiContent } = req.body;
+    if (!resourceId) {
+      return res.status(400).json({ success: false, error: "resourceId is required" });
+    }
+
+    // 1. Check MongoDB cache first
+    const cached = await LibraryCompanion.findOne({ resourceId });
+    if (cached && cached.flashcards && cached.flashcards.length > 0 && cached.visualMindMap) {
+      return res.json({ success: true, data: cached });
+    }
+
+    // 2. Generate new content using Gemini
+    const prompt = `
+You are an expert curriculum developer and teacher for Tamil Nadu (TN) Schools under the State Board (Samacheer Kalvi) syllabus.
+Generate a comprehensive AI Study Companion package for:
+Grade: ${grade}
+Subject: ${subject}
+Resource Title: ${title}
+Resource Description: ${description || ""}
+Additional Content context: ${aiContent || ""}
+
+Please analyze this resource and produce:
+1. **summary**: A structured, detailed, student-friendly text summary of the chapter/concept (approx 150-250 words, using basic HTML tags like <p>, <strong> for formatting).
+2. **keyPoints**: An array of 4 to 6 critical bullet takeaways from the topic.
+3. **formulas**: An array of important equations, scientific constants, or grammar rules/facts covered in this subject topic (provide 3-5 formulas if it's a science/math subject, or key rules/facts if it's a language/social study).
+4. **mindMap**: A text-based ASCII flowchart or Mermaid diagram outline representing the flow of concepts in this resource, formatted as a clear hierarchy or relationship graph.
+5. **examQuestions**: Exactly 5 important exam questions. For each question, provide a detailed model answer key and the number of marks (e.g. 1 for MCQ, 2 for short, 5 for long/essay).
+6. **flashcards**: Exactly 6 study flashcards. Each card must have an id (e.g. "fc-1"), front (a key term, question, or conceptual hint), and back (the matching explanation, definition, or model answer).
+7. **visualMindMap**: A tree hierarchy JSON structure for interactive rendering:
+   - topic: The main root topic title
+   - branches: An array of 3-5 subtopics, where each subtopic has a "title" and an array of "details" strings describing key points.
+
+You MUST return a JSON object that matches this exact schema:
+{
+  "summary": "...",
+  "keyPoints": ["...", "..."],
+  "formulas": ["...", "..."],
+  "mindMap": "...",
+  "examQuestions": [
+    { "question": "...", "answerKey": "...", "marks": 5 },
+    ...
+  ],
+  "flashcards": [
+    { "id": "fc-1", "front": "...", "back": "..." },
+    ...
+  ],
+  "visualMindMap": {
+    "topic": "...",
+    "branches": [
+      { "title": "...", "details": ["...", "..."] },
+      ...
+    ]
+  }
+}
+Return ONLY valid JSON matching this schema. Do not add markdown framing other than the JSON itself.
+`;
+
+    const schema = {
+      type: "OBJECT",
+      properties: {
+        summary: { type: "STRING" },
+        keyPoints: {
+          type: "ARRAY",
+          items: { type: "STRING" }
+        },
+        formulas: {
+          type: "ARRAY",
+          items: { type: "STRING" }
+        },
+        mindMap: { type: "STRING" },
+        examQuestions: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              question: { type: "STRING" },
+              answerKey: { type: "STRING" },
+              marks: { type: "INTEGER" }
+            },
+            required: ["question", "answerKey", "marks"]
+          }
+        },
+        flashcards: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              id: { type: "STRING" },
+              front: { type: "STRING" },
+              back: { type: "STRING" }
+            },
+            required: ["id", "front", "back"]
+          }
+        },
+        visualMindMap: {
+          type: "OBJECT",
+          properties: {
+            topic: { type: "STRING" },
+            branches: {
+              type: "ARRAY",
+              items: {
+                type: "OBJECT",
+                properties: {
+                  title: { type: "STRING" },
+                  details: {
+                    type: "ARRAY",
+                    items: { type: "STRING" }
+                  }
+                },
+                required: ["title", "details"]
+              }
+            }
+          },
+          required: ["topic", "branches"]
+        }
+      },
+      required: ["summary", "keyPoints", "formulas", "mindMap", "examQuestions", "flashcards", "visualMindMap"]
+    };
+
+    const result = await callGemini(prompt, true, schema);
+    
+    // 3. Cache the response in MongoDB (overwrite if exists, to update with flashcards/mindmaps)
+    const companion = await LibraryCompanion.findOneAndUpdate(
+      { resourceId },
+      {
+        $set: {
+          summary: result.summary,
+          keyPoints: result.keyPoints || [],
+          formulas: result.formulas || [],
+          mindMap: result.mindMap || "",
+          examQuestions: result.examQuestions || [],
+          flashcards: result.flashcards || [],
+          visualMindMap: result.visualMindMap || null
+        }
+      },
+      { new: true, upsert: true }
+    );
+
+    res.json({ success: true, data: companion });
+  } catch (err) {
+    console.error('[POST /api/ai/companion]', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });
