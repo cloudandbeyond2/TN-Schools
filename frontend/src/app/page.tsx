@@ -261,14 +261,14 @@ export default function HomePage() {
       <div className="hidden sm:block" style={{ background: "#022C22", color: "#A7F3D0", padding: "8px 0", fontSize: "12px", borderBottom: "1px solid rgba(167,243,208,0.2)" }}>
         <div className="px-4 md:px-8" style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "14px" }}>🇮🇳</span>
-            <span style={{ fontWeight: 600 }}>{text.govtName}</span>
-            <span style={{ opacity: 0.5 }}>|</span>
-            <span style={{ opacity: 0.9 }}>{text.deptName}</span>
+            <span style={{ fontSize: "14px", color: "#ffffff" }}>🇮🇳</span>
+            <span style={{ fontWeight: 600, color: "#ffffff" }}>{text.govtName}</span>
+            <span style={{ opacity: 0.5, color: "#ffffff" }}>|</span>
+            <span style={{ opacity: 0.9, color: "#ffffff" }}>{text.deptName}</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "16px", fontWeight: 500 }}>
             <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#34D399", display: "inline-block", boxShadow: "0 0 8px rgba(52,211,153,0.6)" }}></span>
+              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#34D399", color: "#ffffff", display: "inline-block", boxShadow: "0 0 8px rgba(52,211,153,0.6)" }}></span>
               {text.ftStatus}
             </span>
           </div>
@@ -380,7 +380,7 @@ export default function HomePage() {
 
         <div className="px-4 md:px-8" style={{ maxWidth: "1320px", margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "60px", alignItems: "center" }}>
-            
+
             {/* Left Content */}
             <div style={{ maxWidth: "600px" }}>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -438,7 +438,7 @@ export default function HomePage() {
               <div style={{ position: "absolute", top: "35%", right: "0%", width: "45%", height: "40%", borderRadius: "50%", overflow: "hidden", border: "8px solid white", boxShadow: "0 10px 30px rgba(16,185,129,0.3)", zIndex: 4 }}>
                 <img src="/bg-digital.png" alt="Digital" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
-              
+
               {/* Floating elements */}
               <div style={{ position: "absolute", top: "0", left: "20%", background: "#F59E0B", padding: "12px 24px", borderRadius: "20px", color: "white", fontWeight: 800, transform: "rotate(-10deg)", boxShadow: "0 8px 20px rgba(245,158,11,0.3)", zIndex: 5 }}>
                 🚀 AI Powered
@@ -532,7 +532,7 @@ export default function HomePage() {
             {text.features.map((f, i) => (
               <motion.div key={f.title} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }}
                 style={{ display: "flex", flexDirection: i % 2 === 0 ? "row" : "row-reverse", alignItems: "center", gap: "60px", flexWrap: "wrap" }}>
-                
+
                 <div style={{ flex: "1 1 400px" }}>
                   <div style={{ width: "100%", height: "300px", background: `${f.color}10`, borderRadius: "40px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "100px", position: "relative" }}>
                     {f.icon}
@@ -556,16 +556,16 @@ export default function HomePage() {
       {/* ═══════════════ TESTIMONIALS: SPOTLIGHT ═══════════════ */}
       <section id="testimonials" style={{ padding: "100px 0", background: "#ECFDF5", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", fontSize: "400px", color: "#D1FAE5", opacity: 0.5, fontWeight: 900, pointerEvents: "none" }}>"</div>
-        
+
         <div style={{ maxWidth: "800px", margin: "0 auto", padding: "0 2rem", position: "relative", zIndex: 1, textAlign: "center" }}>
           <span style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "2px", color: "#065F46", display: "inline-block", marginBottom: "24px" }}>{text.testTitleSub}</span>
-          
+
           <AnimatePresence mode="wait">
             <motion.div key={activeTestimonial} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} transition={{ duration: 0.5 }}>
               <p style={{ fontSize: "clamp(24px, 4vw, 32px)", color: "#022C22", fontWeight: 700, lineHeight: 1.5, fontStyle: "italic", marginBottom: "40px" }}>
                 "{testimonials[activeTestimonial].text}"
               </p>
-              
+
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: testimonials[activeTestimonial].color, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "24px", fontWeight: 800, marginBottom: "16px" }}>
                   {testimonials[activeTestimonial].avatar}
@@ -593,9 +593,9 @@ export default function HomePage() {
           <div style={{ position: "relative", zIndex: 1 }}>
             <h2 style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, color: "white", marginBottom: "20px" }}>{text.ctaTitle}</h2>
             <p style={{ color: "#D1FAE5", fontSize: "20px", maxWidth: "600px", margin: "0 auto 40px" }}>{text.ctaDesc}</p>
-            
+
             <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
-              <Link href="/login" style={{ background: "#F59E0B", color: "#78350F", padding: "16px 40px", borderRadius: "30px", fontWeight: 800, fontSize: "18px", textDecoration: "none", boxShadow: "0 8px 24px rgba(245,158,11,0.4)", transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform="scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform="scale(1)"}>
+              <Link href="/login" style={{ background: "#F59E0B", color: "#78350F", padding: "16px 40px", borderRadius: "30px", fontWeight: 800, fontSize: "18px", textDecoration: "none", boxShadow: "0 8px 24px rgba(245,158,11,0.4)", transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
                 🚀 {text.ctaBtnIn}
               </Link>
             </div>
