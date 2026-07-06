@@ -2062,5 +2062,164 @@ router.post('/topics/:id/generate-infographic', async (req: Request, res: Respon
   }
 });
 
+// JSON schema for AI visual presentation slides configuration
+const PRESENTATION_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    presentationTitle: { type: 'STRING', description: 'Title of the presentation (tailored to unit/subunit and grade standard)' },
+    slides: {
+      type: 'ARRAY',
+      description: 'A list of 6-8 structured educational slides covering the concepts in depth with pictorial layout guidance.',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          slideNumber: { type: 'INTEGER' },
+          title: { type: 'STRING', description: 'Slide Title (e.g. Cartesian Product Properties)' },
+          bulletPoints: {
+            type: 'ARRAY',
+            items: { type: 'STRING' },
+            description: '3-4 core takeaways, bullet points, formulas, or key lessons.'
+          },
+          visualLayoutDescription: {
+            type: 'STRING',
+            description: 'Highly descriptive guidance for drawing diagrams, pictorial maps, flow charts, or tables on this slide to explain the concepts visually.'
+          },
+          speakerNotes: {
+            type: 'STRING',
+            description: 'Detailed bilingual explanation in English and Tamil (pedagogical explanation for student understanding).'
+          }
+        },
+        required: ['slideNumber', 'title', 'bulletPoints', 'visualLayoutDescription', 'speakerNotes']
+      }
+    }
+  },
+  required: ['presentationTitle', 'slides']
+};
+
+// POST /api/centralized-content/topics/:id/generate-presentation — Generate a smart presentation slides deck using Gemini from uploaded materials
+router.post('/topics/:id/generate-presentation', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Get Topic (subunit) info
+    const topic = await prisma.centralTopic.findUnique({
+      where: { id },
+      include: {
+        unit: {
+          include: {
+            subject: true
+          }
+        },
+        contents: true
+      }
+    });
+
+    if (!topic) {
+      return res.status(404).json({ success: false, error: "Subunit not found" });
+    }
+
+    // 2. Extract content text from materials
+    let materialsText = "";
+    for (const content of topic.contents) {
+      if (content.fileContent) {
+        materialsText += `\n[Material Title: ${content.title}]\n${content.fileContent}\n`;
+      }
+      
+      // If it is a file URL, try to read the file
+      if (content.fileUrl && content.fileUrl.startsWith('/uploads/')) {
+        const filename = content.fileUrl.replace('/uploads/', '');
+        const filePath = path.join(__dirname, '../../uploads', filename);
+        
+        try {
+          if (fs.existsSync(filePath)) {
+            const ext = path.extname(filename).toLowerCase();
+            if (ext === '.txt' || ext === '.md') {
+              const txt = await fs.promises.readFile(filePath, 'utf8');
+              materialsText += `\n[Text File: ${content.title}]\n${txt}\n`;
+            } else if (ext === '.pdf') {
+              try {
+                const pdfParse = require('pdf-parse');
+                const fileBuffer = await fs.promises.readFile(filePath);
+                const pdfData = await pdfParse(fileBuffer);
+                materialsText += `\n[PDF File: ${content.title}]\n${pdfData.text || ""}\n`;
+              } catch (pdfErr) {
+                console.warn("pdf-parse failed, skipping full text extract for PDF:", filename);
+              }
+            }
+          }
+        } catch (fileErr: any) {
+          console.warn(`Could not read physical file ${filePath}:`, fileErr.message);
+        }
+      }
+    }
+
+    // fallback base context
+    const baseContext = `Topic: ${topic.name} (Subunit ${topic.topicNumber}), Unit: ${topic.unit.name} (Unit ${topic.unit.unitNumber}), Subject: ${topic.unit.subject.name}, Grade: Class ${topic.unit.subject.class}th`;
+
+    console.log(`[Presentation AI] Generating presentation slides for Topic ID ${id}. Context length: ${materialsText.length}`);
+
+    // 3. Formulate Prompt
+    const prompt = `You are a professional educational curriculum designer AI. Your task is to generate a comprehensive, highly structured visual educational presentation (slides configuration) for the subunit topic described below.
+    
+    Subunit Syllabus Details:
+    ${baseContext}
+    
+    Uploaded Study Materials (Parsed Text Extract):
+    ${materialsText ? materialsText.substring(0, 45000) : "No study materials uploaded yet. Use master board standard syllabus information for this topic."}
+    
+    Instructions:
+    1. Read and analyze the uploaded study materials text. Extract the core concepts, definitions, rules, formulas, and visual workflows.
+    2. Design 6 to 8 structured presentation slides.
+    3. For each slide, write a clear title.
+    4. Formulate 3-4 bulletPoints detailing the core conceptual points.
+    5. Write a detailed visualLayoutDescription that tells the system how to display the slides visually (describing diagrams, shapes, flowcharts, cartesian graphs, or pictorial arrows to map items).
+    6. Write detailed bilingual speakerNotes (in Tamil and English) explaining the slide's content pedagogically.
+    7. All generated content MUST be tailored to the grade level (${topic.unit.subject.class}th standard). Ensure the output strictly conforms to the requested JSON schema.`;
+
+    const result = await callGeminiJSON(prompt, PRESENTATION_SCHEMA);
+    
+    // Find or upsert database record
+    let contentRecord = await prisma.centralContent.findFirst({
+      where: {
+        topicId: id,
+        contentType: "PRESENTATION"
+      }
+    });
+
+    const { uploader, uploaderRole } = req.body;
+
+    if (contentRecord) {
+      contentRecord = await prisma.centralContent.update({
+        where: { id: contentRecord.id },
+        data: {
+          title: `${topic.name} AI Slides Presentation`,
+          presentation: result,
+          uploader: uploader || "Super Admin",
+          uploaderRole: uploaderRole || "SUPERADMIN"
+        }
+      });
+    } else {
+      contentRecord = await prisma.centralContent.create({
+        data: {
+          topicId: id,
+          contentType: "PRESENTATION",
+          title: `${topic.name} AI Slides Presentation`,
+          presentation: result,
+          uploader: uploader || "Super Admin",
+          uploaderRole: uploaderRole || "SUPERADMIN"
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: contentRecord.presentation
+    });
+  } catch (err: any) {
+    console.error("Error generating AI presentation:", err);
+    res.status(500).json({ success: false, error: err.message || "Failed to generate AI presentation slides" });
+  }
+});
+
 export default router;
 
