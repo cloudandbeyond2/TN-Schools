@@ -48,8 +48,7 @@ interface ParsedPreviewStudent {
   district: string;
   state: string;
   pincode: string;
-  studentStatus?: string;
-  risk: "High" | "Medium";
+  studentStatus: string;
   isValid: boolean;
   validationError?: string;
 }
@@ -83,7 +82,6 @@ interface ExcelStudentRow {
   "State"?: string;
   "Pincode"?: string;
   "Student Status"?: string;
-  "Risk Level"?: string;
 }
 
 interface ClassStat {
@@ -98,16 +96,17 @@ interface WatchlistStudent {
   name: string;
   rollNumber: string;
   class: string;
+  section?: string;
   phone: string;
   parentName: string;
   district: string;
   state: string;
   city: string;
   pincode: string;
-  risk?: "High" | "Medium";
-  gender?: string;
+  admissionNumber?: string;
   studentStatus?: string;
   group?: string;
+  gender?: string;
   createdAt?: string;
 }
 
@@ -140,6 +139,69 @@ export default function StudentsMonitoringPage() {
 
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewMode, setIsViewMode] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
+
+  const populateForm = (s: any) => {
+    setNewName(s.name || "");
+    setNewRollNumber(s.rollNumber || "");
+    let parsedClass = s.class || "";
+    if (parsedClass && !parsedClass.toLowerCase().startsWith("class")) {
+      parsedClass = `Class ${parsedClass.trim()}`;
+    }
+    setNewClass(parsedClass);
+    setNewSection(s.section || "A");
+    setNewGroup(s.group || "");
+    setNewPhone(s.phone || "");
+    setNewParentName(s.parentName || "");
+    setNewDistrict(s.district || "");
+    setNewState(s.state || "");
+    setNewCity(s.city || "");
+    setNewPincode(s.pincode || "");
+    setNewAdmissionNumber(s.admissionNumber || "");
+    setNewEmisNumber(s.emisNumber || "");
+    const formatToDateInput = (dateStr: any) => {
+      if (!dateStr) return "";
+      try {
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) return d.toISOString().split("T")[0];
+      } catch (e) {}
+      return String(dateStr);
+    };
+    setNewDob(formatToDateInput(s.dob));
+    setNewGender(s.gender || "");
+    setNewBloodGroup(s.bloodGroup || "");
+    setNewReligion(s.religion || "");
+    setNewCommunity(s.community || "");
+    setNewNationality(s.nationality || "Indian");
+    setNewMediumOfInstruction(s.mediumOfInstruction || "English");
+    setNewAcademicYear(s.academicYear || "");
+    setNewFatherName(s.fatherName || "");
+    setNewFatherOccupation(s.fatherOccupation || "");
+    setNewMotherName(s.motherName || "");
+    setNewMotherOccupation(s.motherOccupation || "");
+    setNewParentEmail(s.parentEmail || "");
+    setNewAddress(s.address || "");
+    setNewStudentStatus(s.studentStatus || "Active");
+  };
+
+  const handleOpenEdit = (s: any) => {
+    populateForm(s);
+    setIsViewMode(false);
+    setIsEditMode(true);
+    setEditingStudentId(s.id?.toString() || null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenView = (s: any) => {
+    populateForm(s);
+    setIsViewMode(true);
+    setIsEditMode(false);
+    setEditingStudentId(s.id?.toString() || null);
+    setIsModalOpen(true);
+  };
+
   const [newName, setNewName] = useState("");
   const [newRollNumber, setNewRollNumber] = useState("");
   const [newClass, setNewClass] = useState("Class 10A");
@@ -150,7 +212,6 @@ export default function StudentsMonitoringPage() {
   const [newState, setNewState] = useState("Tamil Nadu");
   const [newCity, setNewCity] = useState("");
   const [newPincode, setNewPincode] = useState("");
-  const [newRisk, setNewRisk] = useState<"High" | "Medium">("Medium");
   const [newAdmissionNumber, setNewAdmissionNumber] = useState("");
   const [newEmisNumber, setNewEmisNumber] = useState("");
   const [newDob, setNewDob] = useState("");
@@ -325,7 +386,7 @@ export default function StudentsMonitoringPage() {
       "Medium of Instruction", "Class", "Section", "Group", "Academic Year",
       "Father Name", "Father Occupation", "Mother Name", "Mother Occupation",
       "Primary Contact Name", "Parent Email", "Phone Number",
-      "Address", "City", "District", "State", "Pincode", "Student Status", "Risk Level"
+      "Address", "City", "District", "State", "Pincode", "Student Status"
     ];
     const sampleData = [
       {
@@ -356,8 +417,7 @@ export default function StudentsMonitoringPage() {
         "District": "Coimbatore",
         "State": "Tamil Nadu",
         "Pincode": "641001",
-        "Student Status": "Active",
-        "Risk Level": "High",
+        "Student Status": "Active"
       },
       {
         "Full Name": "Priya S.",
@@ -387,8 +447,7 @@ export default function StudentsMonitoringPage() {
         "District": "Coimbatore",
         "State": "Tamil Nadu",
         "Pincode": "641003",
-        "Student Status": "Active",
-        "Risk Level": "Medium",
+        "Student Status": "Active"
       }
     ];
     const worksheet = XLSX.utils.json_to_sheet(sampleData, { header: headers });
@@ -452,10 +511,7 @@ export default function StudentsMonitoringPage() {
           const pincode = row["Pincode"]?.toString().trim() || "Not Provided";
           const studentStatus = row["Student Status"]?.toString().trim() || "Active";
 
-          const rawRisk = row["Risk Level"]?.toString().trim() || "";
-          let risk: "High" | "Medium" = "Medium";
-          if (rawRisk && rawRisk.toLowerCase() === "high") risk = "High";
-          
+
           const isValid = name !== "" && rollNumber !== "";
           return {
             id: idx,
@@ -487,7 +543,6 @@ export default function StudentsMonitoringPage() {
             city,
             pincode,
             studentStatus,
-            risk,
             isValid,
             validationError: !name ? "Name is missing" : !rollNumber ? "Roll Number is missing" : undefined,
           };
@@ -559,8 +614,11 @@ export default function StudentsMonitoringPage() {
     if (!newName || !newRollNumber) return;
     setIsSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/api/headmaster/students`, {
-        method: "POST",
+      const url = isEditMode ? `${API_BASE}/api/headmaster/students/${editingStudentId}` : `${API_BASE}/api/headmaster/students`;
+      const method = isEditMode ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: newName,
@@ -591,8 +649,6 @@ export default function StudentsMonitoringPage() {
           parentEmail: newParentEmail,
           address: newAddress,
           studentStatus: newStudentStatus,
-
-          risk: newRisk,
           schoolId: mySchoolId || null,
         }),
       });
@@ -822,7 +878,13 @@ export default function StudentsMonitoringPage() {
                 </button>
               )}
               <button
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => {
+                  populateForm({});
+                  setIsViewMode(false);
+                  setIsEditMode(false);
+                  setEditingStudentId(null);
+                  setIsModalOpen(true);
+                }}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md"
               >
                 + Add Student / Roster
@@ -848,13 +910,11 @@ export default function StudentsMonitoringPage() {
                         className="rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-blue-500/30"
                       />
                     </th>
-                    <th>Student Name</th>
-                    <th>Roll No / Class</th>
-                    <th>Parent Name</th>
-                    <th>Location</th>
-                    <th>Risk Level</th>
-                    <th>Added On</th>
-                    <th>Actions</th>
+                    <th className="text-xs font-bold text-slate-500 uppercase tracking-wider py-4 text-left">Student Name</th>
+                    <th className="text-xs font-bold text-slate-500 uppercase tracking-wider py-4 text-left">Roll No / Class</th>
+                    <th className="text-xs font-bold text-slate-500 uppercase tracking-wider py-4 text-left">Section</th>
+                    <th className="text-xs font-bold text-slate-500 uppercase tracking-wider py-4 text-left">Parent Name</th>
+                    <th className="text-xs font-bold text-slate-500 uppercase tracking-wider py-4 text-left">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -875,19 +935,29 @@ export default function StudentsMonitoringPage() {
                         <div className="text-xs text-slate-300">{s.rollNumber}</div>
                         <div className="text-[10px] text-slate-500">{s.class}</div>
                       </td>
+                      <td className="text-xs font-bold text-slate-300">
+                        {s.section || "—"}
+                      </td>
                       <td>
                         <div className="text-xs text-slate-300">{s.parentName}</div>
                         <div className="text-[10px] text-slate-500">{s.phone}</div>
                       </td>
-                      <td className="text-[10px] text-slate-400">{s.city}, {s.district}</td>
                       <td>
-                        <span className={`badge ${s.risk === "High" ? "badge-red" : "badge-yellow"}`}>{s.risk} Risk</span>
-                      </td>
-                      <td className="text-[10px] text-slate-500">
-                        {s.createdAt ? new Date(s.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
-                      </td>
-                      <td>
-                        <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleOpenView(s)}
+                            className="p-1.5 bg-slate-500/10 text-slate-400 hover:bg-slate-500/20 rounded-md transition-colors"
+                            title="View Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenEdit(s)}
+                            className="p-1.5 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 rounded-md transition-colors"
+                            title="Edit Student"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                          </button>
                           {healthReports[s.id || s.rollNumber] ? (
                             <button
                               onClick={() => handleViewHealthReport(s)}
@@ -981,8 +1051,7 @@ export default function StudentsMonitoringPage() {
               watchlist.map((s) => (
                 <div
                   key={s.id || s.rollNumber}
-                  className={`p-3.5 rounded-xl border text-xs ${s.risk === "High" ? "border-red-500/20 bg-red-500/5" : "border-amber-500/20 bg-amber-500/5"
-                    }`}
+                  className="p-3.5 rounded-xl border text-xs border-amber-500/20 bg-amber-500/5"
                 >
                   <div className="flex justify-between items-start mb-1.5">
                     <div>
@@ -1007,7 +1076,7 @@ export default function StudentsMonitoringPage() {
                       )}
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <span className={`badge ${s.risk === "High" ? "badge-red" : "badge-yellow"}`}>{s.risk} Risk</span>
+
                       {s.id && (
                         <button
                           onClick={() => {
@@ -1041,7 +1110,7 @@ export default function StudentsMonitoringPage() {
           >
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold text-slate-800">
-                {previewStudents.length > 0 ? "📋 Preview Roster Import" : "🎓 Register New Student & Flag Risks"}
+                {previewStudents.length > 0 ? "📋 Preview Roster Import" : "🎓 Register New Student"}
               </h3>
               <button
                 onClick={() => { setIsModalOpen(false); setPreviewStudents([]); }}
@@ -1066,14 +1135,35 @@ export default function StudentsMonitoringPage() {
                   <div className="overflow-x-auto w-full">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
-                        <tr className="border-b border-slate-200 bg-slate-100 sticky top-0">
+                        <tr className="border-b border-slate-200 bg-slate-100 sticky top-0 whitespace-nowrap">
                           <th className="p-3 text-slate-700 font-semibold">Student Name</th>
+                          <th className="p-3 text-slate-700 font-semibold">Admission No</th>
                           <th className="p-3 text-slate-700 font-semibold">Roll Number</th>
+                          <th className="p-3 text-slate-700 font-semibold">EMIS Number</th>
+                          <th className="p-3 text-slate-700 font-semibold">DOB</th>
+                          <th className="p-3 text-slate-700 font-semibold">Gender</th>
+                          <th className="p-3 text-slate-700 font-semibold">Blood Group</th>
+                          <th className="p-3 text-slate-700 font-semibold">Religion</th>
+                          <th className="p-3 text-slate-700 font-semibold">Community</th>
+                          <th className="p-3 text-slate-700 font-semibold">Nationality</th>
+                          <th className="p-3 text-slate-700 font-semibold">Medium</th>
                           <th className="p-3 text-slate-700 font-semibold">Class</th>
-                          <th className="p-3 text-slate-700 font-semibold">Phone Number</th>
+                          <th className="p-3 text-slate-700 font-semibold">Section</th>
+                          <th className="p-3 text-slate-700 font-semibold">Group</th>
+                          <th className="p-3 text-slate-700 font-semibold">Academic Year</th>
+                          <th className="p-3 text-slate-700 font-semibold">Father Name</th>
+                          <th className="p-3 text-slate-700 font-semibold">Father Occ.</th>
+                          <th className="p-3 text-slate-700 font-semibold">Mother Name</th>
+                          <th className="p-3 text-slate-700 font-semibold">Mother Occ.</th>
                           <th className="p-3 text-slate-700 font-semibold">Parent Name</th>
+                          <th className="p-3 text-slate-700 font-semibold">Parent Email</th>
+                          <th className="p-3 text-slate-700 font-semibold">Phone Number</th>
                           <th className="p-3 text-slate-700 font-semibold">Address</th>
-                          <th className="p-3 text-slate-700 font-semibold">Risk Level</th>
+                          <th className="p-3 text-slate-700 font-semibold">City</th>
+                          <th className="p-3 text-slate-700 font-semibold">District</th>
+                          <th className="p-3 text-slate-700 font-semibold">State</th>
+                          <th className="p-3 text-slate-700 font-semibold">Pincode</th>
+                          <th className="p-3 text-slate-700 font-semibold">Student Status</th>
                           <th className="p-3 text-slate-700 font-semibold text-right">Status</th>
                         </tr>
                       </thead>
@@ -1081,24 +1171,38 @@ export default function StudentsMonitoringPage() {
                         {previewStudents.map((s) => (
                           <tr
                             key={s.id}
-                            className={s.isValid ? "hover:bg-slate-100/80 text-slate-800" : "bg-red-50/70 hover:bg-red-100/70 text-slate-800"}
+                            className={s.isValid ? "hover:bg-slate-100/80 text-slate-800 whitespace-nowrap" : "bg-red-50/70 hover:bg-red-100/70 text-slate-800 whitespace-nowrap"}
                           >
                             <td className="p-3 font-semibold text-slate-900">
                               {s.name || <span className="text-red-500 italic">Name Missing</span>}
                             </td>
+                            <td className="p-3 text-slate-700">{s.admissionNumber}</td>
                             <td className="p-3 text-slate-700">{s.rollNumber || <span className="text-red-500 italic">Roll Missing</span>}</td>
+                            <td className="p-3 text-slate-700">{s.emisNumber}</td>
+                            <td className="p-3 text-slate-700">{s.dob}</td>
+                            <td className="p-3 text-slate-700">{s.gender}</td>
+                            <td className="p-3 text-slate-700">{s.bloodGroup}</td>
+                            <td className="p-3 text-slate-700">{s.religion}</td>
+                            <td className="p-3 text-slate-700">{s.community}</td>
+                            <td className="p-3 text-slate-700">{s.nationality}</td>
+                            <td className="p-3 text-slate-700">{s.mediumOfInstruction}</td>
                             <td className="p-3 text-slate-800">{s.class}</td>
-                            <td className="p-3 text-slate-700">{s.phone}</td>
+                            <td className="p-3 text-slate-700">{s.section}</td>
+                            <td className="p-3 text-slate-700">{s.group}</td>
+                            <td className="p-3 text-slate-700">{s.academicYear}</td>
+                            <td className="p-3 text-slate-700">{s.fatherName}</td>
+                            <td className="p-3 text-slate-700">{s.fatherOccupation}</td>
+                            <td className="p-3 text-slate-700">{s.motherName}</td>
+                            <td className="p-3 text-slate-700">{s.motherOccupation}</td>
                             <td className="p-3 text-slate-700">{s.parentName}</td>
-                            <td className="p-3 text-slate-600 truncate max-w-[150px]" title={`${s.city}, ${s.district}, ${s.state} - ${s.pincode}`}>
-                              {s.city}, {s.district}
-                            </td>
-                            <td className="p-3">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.risk === "High" ? "bg-red-50 text-red-600 border border-red-200" : "bg-amber-50 text-amber-600 border border-amber-200"
-                                }`}>
-                                {s.risk}
-                              </span>
-                            </td>
+                            <td className="p-3 text-slate-700">{s.parentEmail}</td>
+                            <td className="p-3 text-slate-700">{s.phone}</td>
+                            <td className="p-3 text-slate-600 truncate max-w-[150px]">{s.address}</td>
+                            <td className="p-3 text-slate-700">{s.city}</td>
+                            <td className="p-3 text-slate-700">{s.district}</td>
+                            <td className="p-3 text-slate-700">{s.state}</td>
+                            <td className="p-3 text-slate-700">{s.pincode}</td>
+                            <td className="p-3 text-slate-700">{s.studentStatus}</td>
                             <td className="p-3 text-right">
                               {s.isValid ? (
                                 <span className="text-emerald-600 font-medium">✓ Ready</span>
@@ -1142,9 +1246,10 @@ export default function StudentsMonitoringPage() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-8">
                 {/* Manual Form */}
                 <form onSubmit={handleManualSubmit} className="space-y-4">
+                  <fieldset disabled={isViewMode}>
                   <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Manual Entry</div>
 
                   {/* Personal Details */}
@@ -1392,16 +1497,19 @@ export default function StudentsMonitoringPage() {
                     </div>
                   </div>
 
-                  <button type="submit" disabled={isSaving}
+                  {!isViewMode && <button type="submit" disabled={isSaving}
                     className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-4 flex items-center justify-center gap-2">
                     {isSaving ? (
                       <><div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving...</>
-                    ) : "💾 Save Student Record"}
-                  </button>
+                    ) : isEditMode ? "💾 Update Student Record" : "💾 Save Student Record"}
+                  </button>}
+</fieldset>
                 </form>
 
-                {/* Excel Import */}
-                <div className="border-l border-slate-200 pl-6 flex flex-col justify-between">
+                {!isEditMode && !isViewMode && (
+                  <>
+                    {/* Excel Import */}
+                    <div className="border-t border-slate-200 pt-6 flex flex-col justify-between">
                   <div className="space-y-4">
                     <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex justify-between items-center">
                       <span>Excel Import</span>
@@ -1443,6 +1551,8 @@ export default function StudentsMonitoringPage() {
                     * Data is stored in PostgreSQL — persists across sessions and refreshes.
                   </div>
                 </div>
+                  </>
+                )}
               </div>
             )}
           </div>
