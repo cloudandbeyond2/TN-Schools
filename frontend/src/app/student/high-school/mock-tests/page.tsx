@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
-import { BookOpen, Clock, FileText, CheckCircle, Play, ArrowLeft, Award, HelpCircle, ShieldAlert } from "lucide-react";
+import { BookOpen, Clock, FileText, CheckCircle, Play, ArrowLeft, Award, HelpCircle, ShieldAlert, Globe } from "lucide-react";
 import Swal from "sweetalert2";
 
 interface MockTest {
@@ -155,6 +155,8 @@ export default function MockTestsPage() {
   const [activeTest, setActiveTest] = useState<MockTest | null>(null);
   
   // Test execution state
+  const [testStatus, setTestStatus] = useState<"idle" | "instructions" | "running">("idle");
+  const [language, setLanguage] = useState<"English" | "Tamil">("English");
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [timeLeft, setTimeLeft] = useState(0);
   const [testFinished, setTestFinished] = useState(false);
@@ -240,13 +242,24 @@ export default function MockTestsPage() {
     return () => clearInterval(interval);
   }, [activeTest, timeLeft, testFinished]);
 
-  const handleStartTest = (test: MockTest) => {
+  const showInstructions = (test: MockTest) => {
     setActiveTest(test);
+    setTestStatus("instructions");
+  };
+
+  const handleStartTest = (test: MockTest) => {
     setAnswers({});
-    setTimeLeft(test.duration * 60);
+    const durationMins = Math.min(test.duration, 20); // Cap at 20 mins
+    setTimeLeft(durationMins * 60);
     setTestFinished(false);
     setScore(0);
     setMaxPossibleScore(test.questions.reduce((sum, q) => sum + q.marks, 0));
+    setTestStatus("running");
+  };
+
+  const exitTestMode = () => {
+    setActiveTest(null);
+    setTestStatus("idle");
   };
 
   const handleSelectMCQ = (qId: string, option: string) => {
@@ -296,11 +309,11 @@ export default function MockTestsPage() {
   };
 
   return (
-    <PortalLayout title="Mock Tests 📝" subtitle="High School Board Exam Preparation Repository" accentColor="#3b82f6">
-      <div className="space-y-6 text-left animate-in fade-in duration-300">
+    <PortalLayout title="Mock Tests 📝" subtitle="High School Board Exam Preparation Repository" accentColor="#3b82f6" hideSidebar={testStatus !== "idle"}>
+      <div key={testStatus} className="space-y-6 text-left animate-in fade-in duration-300">
         
         {/* If no test is currently active, show test catalog */}
-        {!activeTest ? (
+        {testStatus === "idle" || !activeTest ? (
           <>
             {/* Banner card */}
             <div className="relative overflow-hidden rounded-2xl md:rounded-[2.5rem] bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-6 md:p-8 shadow-xl border-2 md:border-4 border-blue-100 dark:border-blue-950">
@@ -324,7 +337,7 @@ export default function MockTestsPage() {
                   className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap border-2 ${
                     selectedSubject === sub
                       ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                      : "bg-[var(--bg-card)] border-slate-100 dark:border-slate-800 text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                      : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   {sub}
@@ -349,26 +362,26 @@ export default function MockTestsPage() {
                       </span>
                     </div>
 
-                    <h3 className="text-base font-bold text-[var(--text-heading)] mb-2 leading-snug">{test.title}</h3>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2 leading-snug">{test.title}</h3>
                     
                     <div className="grid grid-cols-3 gap-2 py-3 border-y border-[var(--border)] mb-4 text-center">
                       <div>
-                        <div className="text-[10px] text-[var(--text-muted)] font-medium">Duration</div>
-                        <div className="text-xs font-black text-[var(--text-heading)]">{test.duration} mins</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Duration</div>
+                        <div className="text-xs font-black text-slate-900 dark:text-white">{test.duration} mins</div>
                       </div>
                       <div>
-                        <div className="text-[10px] text-[var(--text-muted)] font-medium">Questions</div>
-                        <div className="text-xs font-black text-[var(--text-heading)]">{test.questionCount} Qs</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Questions</div>
+                        <div className="text-xs font-black text-slate-900 dark:text-white">{test.questionCount} Qs</div>
                       </div>
                       <div>
-                        <div className="text-[10px] text-[var(--text-muted)] font-medium">Marks</div>
-                        <div className="text-xs font-black text-[var(--text-heading)]">{test.totalMarks} Marks</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Marks</div>
+                        <div className="text-xs font-black text-slate-900 dark:text-white">{test.totalMarks} Marks</div>
                       </div>
                     </div>
                   </div>
 
                   <button
-                    onClick={() => handleStartTest(test)}
+                    onClick={() => showInstructions(test)}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/10"
                   >
                     <Play className="w-3.5 h-3.5 fill-white" /> Start Simulation
@@ -377,89 +390,144 @@ export default function MockTestsPage() {
               ))}
             </div>
           </>
-        ) : (
-          /* Active Test Execution Mode */
-          <div className="space-y-6">
-            
-            {/* Header controls & Timer */}
-            <div className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-4 md:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <button
-                  onClick={() => {
-                    if (!testFinished) {
-                      Swal.fire({
-                        title: "Quit Mock Exam?",
-                        text: "Progress in this simulation will be lost.",
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonColor: "#ef4444",
-                        cancelButtonColor: "#64748b",
-                        confirmButtonText: "Quit Test"
-                      }).then((res) => {
-                        if (res.isConfirmed) setActiveTest(null);
-                      });
-                    } else {
-                      setActiveTest(null);
-                    }
-                  }}
-                  className="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline mb-1 flex items-center gap-1"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" /> Back to mock repository
-                </button>
-                <h2 className="text-base md:text-lg font-black text-[var(--text-heading)]">{activeTest.title}</h2>
+        ) : testStatus === "instructions" ? (
+          <div className="fixed inset-0 z-[100] bg-[var(--bg-main)] overflow-y-auto w-full h-full p-4 md:p-8 flex items-center justify-center">
+            <div className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-3xl p-8 md:p-10 shadow-lg text-center max-w-2xl mx-auto w-full">
+              <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FileText className="w-10 h-10 text-blue-600 dark:text-blue-400" />
               </div>
-
-              {/* Time remaining indicator */}
-              <div className={`px-4 py-3 rounded-2xl flex items-center gap-2 border-2 ${
-                testFinished
-                  ? "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-850"
-                  : timeLeft < 300
-                  ? "bg-rose-500/10 border-rose-500 text-rose-600 animate-pulse font-black"
-                  : "bg-blue-500/10 border-blue-500 text-blue-600 font-bold"
-              }`}>
-                <Clock className="w-5 h-5" />
-                <div className="text-sm">
-                  {testFinished ? (
-                    <span className="font-bold text-slate-700 dark:text-slate-200">Exam Concluded</span>
-                  ) : (
-                    <span>Time Remaining: <strong className="font-mono">{formatTime(timeLeft)}</strong></span>
-                  )}
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Revision & Topic Cover Mode</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-md mx-auto">
+                You are about to start the <strong className="text-slate-800 dark:text-slate-200">{activeTest.title}</strong> module. Please read the instructions below before proceeding.
+              </p>
+              
+              <div className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 text-left space-y-4 border border-slate-100 dark:border-slate-800 mb-8">
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">Time Limit: 20 Minutes Max</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">This test is strictly timed to 20 minutes to simulate real exam pressure. Auto-submission occurs when time is up.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">Structured Sections</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">Questions are categorized into MCQs (1 Mark), Short Answers (2 Marks), and Detailed Answers (5 Marks).</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Globe className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">Bilingual Support</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">You can switch the interface between English and Tamil during the test using the language toggle in the header.</p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Questions container */}
-            <div className="space-y-6">
-              {activeTest.questions.map((q, idx) => {
-                const isCorrect = q.type === "mcq" && answers[q.id] === q.answer.trim().charAt(0);
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => exitTestMode()}
+                  className="flex-1 py-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleStartTest(activeTest)}
+                  className="flex-1 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
+                >
+                  <Play className="w-4 h-4" /> Begin Exam (Fullscreen)
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Active Test Execution Mode */
+          <div className="fixed inset-0 z-[100] bg-[var(--bg-main)] overflow-y-auto w-full h-full p-4 md:p-8">
+            <div className="max-w-5xl mx-auto space-y-6 pb-20">
+            
+            {/* Translations mapping inline for active test */}
+            {(() => {
+              const translations = {
+                English: {
+                  quit: "Quit Mock Exam?",
+                  quitText: "Progress in this simulation will be lost.",
+                  quitBtn: "Quit Test",
+                  back: "Back to mock repository",
+                  timeRem: "Time Remaining:",
+                  examConcluded: "Exam Concluded",
+                  secA: "Section A: Multiple Choice Questions (1 Mark)",
+                  secB: "Section B: Short Answers (2 Marks)",
+                  secC: "Section C: Detailed Answers (5 Marks)",
+                  question: "Question",
+                  mark: "Mark",
+                  marks: "Marks",
+                  modelKey: "Model Key Answer Guide",
+                  submit: "Conclude & Submit Mock Examination",
+                  evalReport: "Evaluation Report",
+                  finalScore: "Final Score",
+                  resimulate: "Re-simulate Exam",
+                  done: "Done",
+                  typeHere: "Type your exam solution sheet answer details here..."
+                },
+                Tamil: {
+                  quit: "தேர்வில் இருந்து வெளியேறவா?",
+                  quitText: "இந்தச் சிமுலேஷனில் உங்கள் முன்னேற்றம் இழக்கப்படும்.",
+                  quitBtn: "வெளியேறு",
+                  back: "மாதிரி தேர்விற்குத் திரும்பு",
+                  timeRem: "மீதமுள்ள நேரம்:",
+                  examConcluded: "தேர்வு முடிந்தது",
+                  secA: "பகுதி அ: பலவுள் தெரிவு வினாக்கள் (1 மதிப்பெண்)",
+                  secB: "பகுதி ஆ: குறு வினாக்கள் (2 மதிப்பெண்கள்)",
+                  secC: "பகுதி இ: விரிவான விடையளி (5 மதிப்பெண்கள்)",
+                  question: "கேள்வி",
+                  mark: "மதிப்பெண்",
+                  marks: "மதிப்பெண்கள்",
+                  modelKey: "மாதிரி விடைக்குறிப்பு",
+                  submit: "தேர்வை சமர்ப்பி",
+                  evalReport: "மதிப்பீட்டு அறிக்கை",
+                  finalScore: "இறுதி மதிப்பெண்",
+                  resimulate: "மீண்டும் தேர்வு எழுது",
+                  done: "முடித்தது",
+                  typeHere: "உங்கள் விடையை இங்கே தட்டச்சு செய்யவும்..."
+                }
+              };
+              const t = translations[language];
+
+              const mcqQuestions = activeTest.questions.filter(q => q.type === 'mcq' || q.marks === 1);
+              const shortQuestions = activeTest.questions.filter(q => q.type !== 'mcq' && q.marks > 1 && q.marks < 5);
+              const longQuestions = activeTest.questions.filter(q => q.type !== 'mcq' && q.marks >= 5);
+
+              const renderQuestion = (q: any, idx: number, globalIdx: number) => {
+                const isCorrect = q.type === 'mcq' && answers[q.id] === q.answer.trim().charAt(0);
                 return (
                   <div
                     key={q.id}
                     className={`bg-[var(--bg-card)] border-2 rounded-2xl p-5 md:p-6 transition-all ${
                       testFinished
-                        ? q.type === "mcq"
+                        ? q.type === 'mcq'
                           ? isCorrect
-                            ? "border-emerald-200 dark:border-emerald-950 bg-emerald-500/5"
-                            : "border-rose-200 dark:border-rose-950 bg-rose-500/5"
-                          : "border-slate-200 dark:border-slate-800"
-                        : "border-slate-100 dark:border-slate-800"
+                            ? 'border-emerald-200 dark:border-emerald-950 bg-emerald-500/5'
+                            : 'border-rose-200 dark:border-rose-950 bg-rose-500/5'
+                          : 'border-slate-200 dark:border-slate-800'
+                        : 'border-slate-100 dark:border-slate-800'
                     }`}
                   >
-                    <div className="flex justify-between items-start gap-4 mb-3">
-                      <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                        Question {idx + 1} · {q.type.toUpperCase()}
+                    <div className="flex items-center justify-between mb-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+                      <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        {t.question} {globalIdx + 1}
                       </h4>
-                      <span className="text-xs font-bold bg-[var(--bg-main)] px-2.5 py-1 rounded-lg border border-[var(--border)]">
-                        {q.marks} Mark{q.marks > 1 ? "s" : ""}
+                      <span className="text-xs font-bold bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+                        {q.marks} {q.marks === 1 ? t.mark : t.marks}
                       </span>
                     </div>
 
-                    <p className="text-sm font-semibold text-[var(--text-heading)] mb-4">{q.text}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white mb-4">{q.text}</p>
 
                     {/* MCQ Options */}
-                    {q.type === "mcq" && q.options && (
+                    {q.type === 'mcq' && q.options && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {q.options.map((opt, optIdx) => {
+                        {q.options.map((opt: string, optIdx: number) => {
                           const optionLetter = opt.trim().charAt(0);
                           const isSelected = answers[q.id] === optionLetter;
                           const isOptionCorrect = q.answer.trim().charAt(0) === optionLetter;
@@ -473,12 +541,12 @@ export default function MockTestsPage() {
                                 isSelected
                                   ? testFinished
                                     ? isOptionCorrect
-                                      ? "bg-emerald-500/20 border-emerald-500 text-emerald-800 dark:text-emerald-300"
-                                      : "bg-rose-500/20 border-rose-500 text-rose-800 dark:text-rose-300"
-                                    : "bg-blue-50/50 dark:bg-blue-950/20 border-blue-500 text-blue-700 dark:text-blue-300 font-bold"
+                                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-800 dark:text-emerald-300'
+                                      : 'bg-rose-500/20 border-rose-500 text-rose-800 dark:text-rose-300'
+                                    : 'bg-blue-50/50 dark:bg-blue-950/20 border-blue-500 text-blue-700 dark:text-blue-300 font-bold'
                                   : testFinished && isOptionCorrect
-                                  ? "bg-emerald-500/10 border-emerald-400 text-emerald-700 dark:text-emerald-300 font-bold"
-                                  : "bg-[var(--bg-main)] border-slate-100 dark:border-slate-900 text-[var(--text-main)] hover:border-slate-200 dark:hover:border-slate-800"
+                                  ? 'bg-emerald-500/10 border-emerald-400 text-emerald-700 dark:text-emerald-300 font-bold'
+                                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700'
                               }`}
                             >
                               {opt}
@@ -488,71 +556,184 @@ export default function MockTestsPage() {
                       </div>
                     )}
 
-                    {/* Short Answer */}
-                    {q.type === "short" && (
+                    {/* Short/Long Answer */}
+                    {q.type === 'short' && (
                       <div className="space-y-3">
                         <textarea
                           disabled={testFinished}
-                          rows={4}
-                          value={answers[q.id] || ""}
+                          rows={q.marks >= 5 ? 8 : 4}
+                          value={answers[q.id] || ''}
                           onChange={(e) => handleTextAnswer(q.id, e.target.value)}
-                          placeholder="Type your exam solution sheet answer details here..."
-                          className="w-full bg-[var(--input-bg)] border-2 border-[var(--input-border)] rounded-xl px-4 py-3 text-xs text-[var(--text-main)] focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all resize-none"
+                          placeholder={t.typeHere}
+                          className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all resize-none"
                         />
                         {testFinished && (
-                          <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl space-y-1">
-                            <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">Model Key Answer Guide</span>
-                            <p className="text-xs text-[var(--text-main)] leading-relaxed italic">"{q.answer}"</p>
+                          <div className="mt-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
+                            <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">{t.modelKey}</span>
+                            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed italic">"{q.answer}"</p>
                           </div>
                         )}
                       </div>
                     )}
                   </div>
                 );
-              })}
+              };
+
+              let globalQuestionIdx = 0;
+
+              return (
+                <>
+                  {/* Header controls & Timer */}
+                  <div className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-4 md:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <button
+                        onClick={() => {
+                          if (!testFinished) {
+                            Swal.fire({
+                              title: t.quit,
+                              text: t.quitText,
+                              icon: 'warning',
+                              showCancelButton: true,
+                              confirmButtonColor: '#ef4444',
+                              cancelButtonColor: '#64748b',
+                              confirmButtonText: t.quitBtn
+                            }).then((res) => {
+                              if (res.isConfirmed) exitTestMode();
+                            });
+                          } else {
+                            exitTestMode();
+                          }
+                        }}
+                        className="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline mb-1 flex items-center gap-1"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" /> {t.back}
+                      </button>
+                      <h2 className="text-base md:text-lg font-black text-slate-900 dark:text-white">{activeTest.title}</h2>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {/* Language Switch */}
+                      <button
+                        onClick={() => setLanguage(language === 'English' ? 'Tamil' : 'English')}
+                        className="px-3 py-1.5 rounded-lg border-2 border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
+                      >
+                        <Globe className="w-3.5 h-3.5" />
+                        {language === 'English' ? 'தமிழ்' : 'English'}
+                      </button>
+
+                      {/* Time remaining indicator */}
+                      <div className={`px-4 py-2.5 rounded-xl flex items-center gap-2 border-2 ${
+                        testFinished
+                          ? 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-850'
+                          : timeLeft < 300
+                          ? 'bg-rose-500/10 border-rose-500 text-rose-600 animate-pulse font-black'
+                          : 'bg-blue-500/10 border-blue-500 text-blue-600 font-bold'
+                      }`}>
+                        <Clock className="w-4 h-4" />
+                        <div className="text-xs">
+                          {testFinished ? (
+                            <span className="font-bold text-slate-700 dark:text-slate-200">{t.examConcluded}</span>
+                          ) : (
+                            <span>{t.timeRem} <strong className="font-mono text-sm">{formatTime(timeLeft)}</strong></span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section A: MCQs */}
+                  {mcqQuestions.length > 0 && (
+                    <div className="mb-8 mt-6">
+                      <h3 className="text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-4 border-b-2 border-blue-100 dark:border-blue-900/30 pb-2 inline-block">
+                        {t.secA}
+                      </h3>
+                      <div className="space-y-6">
+                        {mcqQuestions.map((q) => {
+                          const renderBlock = renderQuestion(q, 0, globalQuestionIdx);
+                          globalQuestionIdx++;
+                          return renderBlock;
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Section B: Short Answers */}
+                  {shortQuestions.length > 0 && (
+                    <div className="mb-8">
+                      <h3 className="text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-4 border-b-2 border-emerald-100 dark:border-emerald-900/30 pb-2 inline-block">
+                        {t.secB}
+                      </h3>
+                      <div className="space-y-6">
+                        {shortQuestions.map((q) => {
+                          const renderBlock = renderQuestion(q, 0, globalQuestionIdx);
+                          globalQuestionIdx++;
+                          return renderBlock;
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Section C: Detailed Answers */}
+                  {longQuestions.length > 0 && (
+                    <div className="mb-8">
+                      <h3 className="text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-4 border-b-2 border-purple-100 dark:border-purple-900/30 pb-2 inline-block">
+                        {t.secC}
+                      </h3>
+                      <div className="space-y-6">
+                        {longQuestions.map((q) => {
+                          const renderBlock = renderQuestion(q, 0, globalQuestionIdx);
+                          globalQuestionIdx++;
+                          return renderBlock;
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Test controller submission bar */}
+                  {!testFinished ? (
+                    <button
+                      onClick={handleFinishTest}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3.5 text-sm font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 mt-4"
+                    >
+                      <CheckCircle className="w-5 h-5" /> {t.submit}
+                    </button>
+                  ) : (
+                    <div className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-[2rem] p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 text-2xl font-bold">
+                          🏆
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-[var(--text-heading)] uppercase tracking-wider">{t.evalReport}</h4>
+                          <p className="text-xs text-[var(--text-muted)]">SSLC Simulator Grade Card</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-6">
+                        <div>
+                          <div className="text-[10px] text-[var(--text-muted)] font-medium">{t.finalScore}</div>
+                          <div className="text-lg font-black text-blue-600 dark:text-blue-400">{score} / {maxPossibleScore} {t.marks}</div>
+                        </div>
+                        <button
+                          onClick={() => handleStartTest(activeTest)}
+                          className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl px-5 py-3 text-xs font-bold transition-all"
+                        >
+                          {t.resimulate}
+                        </button>
+                        <button
+                          onClick={() => exitTestMode()}
+                          className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-5 py-3 text-xs font-bold transition-all shadow-md"
+                        >
+                          {t.done}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+
             </div>
-
-            {/* Test controller submission bar */}
-            {!testFinished ? (
-              <button
-                onClick={handleFinishTest}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3.5 text-sm font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
-              >
-                <CheckCircle className="w-5 h-5" /> Conclude & Submit Mock Examination
-              </button>
-            ) : (
-              <div className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-[2rem] p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 text-2xl font-bold">
-                    🏆
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-black text-[var(--text-heading)] uppercase tracking-wider">Evaluation Report</h4>
-                    <p className="text-xs text-[var(--text-muted)]">SSLC Simulator Grade Card</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-6">
-                  <div>
-                    <div className="text-[10px] text-[var(--text-muted)] font-medium">Final Score</div>
-                    <div className="text-lg font-black text-blue-600 dark:text-blue-400">{score} / {maxPossibleScore} Marks</div>
-                  </div>
-                  <button
-                    onClick={() => handleStartTest(activeTest)}
-                    className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl px-5 py-3 text-xs font-bold transition-all"
-                  >
-                    Re-simulate Exam
-                  </button>
-                  <button
-                    onClick={() => setActiveTest(null)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-5 py-3 text-xs font-bold transition-all shadow-md"
-                  >
-                    Done
-                  </button>
-                </div>
-              </div>
-            )}
-
           </div>
         )}
       </div>

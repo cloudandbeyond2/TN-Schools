@@ -18,6 +18,7 @@ interface PortalLayoutProps {
   navItems?: NavItem[];
   themeClass?: string;
   accentColor?: string;
+  hideSidebar?: boolean;
 }
 
 const translations = {
@@ -98,6 +99,7 @@ export default function PortalLayout({
   navItems,
   themeClass,
   accentColor,
+  hideSidebar = false,
 }: PortalLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -282,13 +284,13 @@ export default function PortalLayout({
   
   // Subject-wise filtering mapping for interactive modules
   const subjectRoutes: Record<string, string[]> = {
-    "Mathematics": ["/teacher/maths-formulas"],
-    "Science": ["/teacher/science-draw-mat", "/teacher/science-lab-support", "/teacher/chemistry-lab", "/teacher/zoology-centre"],
-    "Physics": ["/teacher/science-draw-mat", "/teacher/science-lab-support"],
-    "Chemistry": ["/teacher/chemistry-lab", "/teacher/science-lab-support"],
-    "Biology": ["/teacher/zoology-centre", "/teacher/science-lab-support"],
-    "Zoology": ["/teacher/zoology-centre", "/teacher/science-lab-support"],
-    "Botany": ["/teacher/science-lab-support"],
+    "Mathematics": ["/teacher/maths-formulas", "/teacher/3d-preview", "/teacher/neet-prep"],
+    "Science": ["/teacher/science-draw-mat", "/teacher/science-lab-support", "/teacher/chemistry-lab", "/teacher/zoology-centre", "/teacher/labs", "/teacher/neet-prep", "/teacher/3d-preview"],
+    "Physics": ["/teacher/science-draw-mat", "/teacher/science-lab-support", "/teacher/labs", "/teacher/neet-prep", "/teacher/3d-preview"],
+    "Chemistry": ["/teacher/chemistry-lab", "/teacher/science-lab-support", "/teacher/labs", "/teacher/neet-prep", "/teacher/3d-preview"],
+    "Biology": ["/teacher/zoology-centre", "/teacher/science-lab-support", "/teacher/labs", "/teacher/neet-prep", "/teacher/3d-preview"],
+    "Zoology": ["/teacher/zoology-centre", "/teacher/science-lab-support", "/teacher/labs", "/teacher/neet-prep", "/teacher/3d-preview"],
+    "Botany": ["/teacher/science-lab-support", "/teacher/labs", "/teacher/neet-prep", "/teacher/3d-preview"],
     "English": ["/teacher/language-coaching"],
     "Tamil": ["/teacher/language-coaching"],
     "Computer Science": ["/teacher/computer-education"],
@@ -297,7 +299,7 @@ export default function PortalLayout({
   const subjectRestrictedRoutes = new Set(Object.values(subjectRoutes).flat());
   const userSubject = (session?.user as any)?.subject || "";
 
-  const filteredNavItems: NavItem[] =
+  let filteredNavItems: NavItem[] =
     userRole === "SUPERADMIN"
       ? resolvedNavItems
       : resolvedNavItems.filter((item) => {
@@ -313,6 +315,25 @@ export default function PortalLayout({
           
           return true;
         });
+
+  // Clean up empty sections (headers and dividers without following links)
+  filteredNavItems = filteredNavItems.filter((item, i, arr) => {
+    if (item.href === "#" || item.label === "---") {
+      let hasChildren = false;
+      for (let j = i + 1; j < arr.length; j++) {
+        if (arr[j].href !== "#" && arr[j].label !== "---") {
+          hasChildren = true;
+          break;
+        }
+        if (arr[j].href === "#" || arr[j].label === "---") {
+          break;
+        }
+      }
+      return hasChildren;
+    }
+    return true;
+  });
+
   const resolvedTitle = title || currentConfig?.title || "Portal Dashboard";
   let resolvedSubtitle = subtitle || currentConfig?.subtitle || "";
   if (session?.user?.name) {
@@ -539,6 +560,7 @@ export default function PortalLayout({
           </button>
         </div>
       </aside>
+      )}
 
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
@@ -561,7 +583,10 @@ export default function PortalLayout({
       )}
 
       {/* Main Content Area */}
-      <div className="main-content relative min-h-screen">
+      <div 
+        className="main-content relative min-h-screen transition-all duration-300"
+        style={hideSidebar ? { marginLeft: 0, width: '100%' } : undefined}
+      >
         {/* Argon Header Background Gradient */}
         <div 
           className="absolute top-0 left-0 right-0 h-[300px] transition-all duration-300 pointer-events-none main-content-header-bg"
