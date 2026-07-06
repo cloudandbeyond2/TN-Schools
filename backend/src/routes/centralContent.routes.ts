@@ -19,6 +19,36 @@ const generalUpload = multer({
   limits: { fileSize: 50 * 1024 * 1024 }
 });
 
+const materialsStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const cleanedOriginal = path.basename(file.originalname, path.extname(file.originalname))
+      .replace(/[^a-zA-Z0-9_-]/g, '_');
+    cb(null, `${cleanedOriginal}-${uniqueSuffix}${path.extname(file.originalname)}`);
+  }
+});
+
+const materialsUpload = multer({
+  storage: materialsStorage,
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB per file limit
+  fileFilter: (req, file, cb) => {
+    const allowedExtensions = ['.pdf', '.docx', '.pptx', '.png', '.jpg', '.jpeg', '.txt', '.md'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedExtensions.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Unsupported file type: ${ext}`));
+    }
+  }
+});
+
 const router = Router();
 
 // ===========================================================================
@@ -723,13 +753,181 @@ router.delete('/topics/:id', async (req: Request, res: Response) => {
 router.delete('/contents/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.centralContent.delete({
-      where: { id }
-    });
+    
+    // Retrieve record first to find the fileUrl
+    const content = await prisma.centralContent.findUnique({ where: { id } });
+    
+    if (content) {
+      // Delete from database
+      await prisma.centralContent.delete({ where: { id } });
+
+      // Delete from disk if it was a file upload
+      if (content.fileUrl && content.fileUrl.startsWith('/uploads/')) {
+        const filename = content.fileUrl.replace('/uploads/', '');
+        const filePath = path.join(__dirname, '../../uploads', filename);
+        try {
+          if (fs.existsSync(filePath)) {
+            await fs.promises.unlink(filePath);
+            console.log(`Deleted file from disk: ${filePath}`);
+          }
+        } catch (delErr) {
+          console.warn(`Could not delete file ${filePath}:`, delErr);
+        }
+      }
+    }
+
     res.json({ success: true, message: "Content deleted successfully" });
   } catch (err: any) {
     console.error("Error deleting content", err);
     res.status(500).json({ success: false, error: err.message || "Failed to delete content" });
+  }
+});
+
+// POST /api/centralized-content/upload-materials — Multi-file upload for subunit workspace
+router.post('/upload-materials', (req, res, next) => {
+  materialsUpload.array('files', 10)(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ success: false, error: 'File size limit exceeded. Maximum size is 25MB.' });
+      }
+      return res.status(400).json({ success: false, error: `Upload error: ${err.message}` });
+    } else if (err) {
+      return res.status(400).json({ success: false, error: err.message });
+    }
+    next();
+  });
+}, async (req: Request, res: Response) => {
+  try {
+    const files = req.files as Express.Multer.File[];
+    if (!files || files.length === 0) {
+      return res.status(400).json({ success: false, error: "No files uploaded" });
+    }
+
+    const metadataList = JSON.parse(req.body.metadata || '[]');
+    const uploader = req.body.uploader || 'Super Admin';
+    const uploaderRole = req.body.uploaderRole || 'SUPERADMIN';
+
+    const createdContents = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const metadata = metadataList[i] || {};
+      
+      const topicId = metadata.topicId || req.body.topicId;
+      if (!topicId) {
+        return res.status(400).json({ success: false, error: `Topic ID is missing for file ${file.originalname}` });
+      }
+
+      const title = metadata.title || path.basename(file.originalname, path.extname(file.originalname));
+      const contentType = metadata.type || 'Reference';
+
+      let fileSizeStr = `${(file.size / 1024).toFixed(1)} KB`;
+      if (file.size >= 1024 * 1024) {
+        fileSizeStr = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+      }
+
+      const fileUrl = `/uploads/${file.filename}`;
+
+      const content = await prisma.centralContent.create({
+        data: {
+          topicId,
+          contentType,
+          title,
+          fileUrl,
+          fileSize: fileSizeStr,
+          uploader,
+          uploaderRole
+        }
+      });
+      createdContents.push(content);
+    }
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully uploaded ${createdContents.length} material(s)`,
+      data: createdContents
+    });
+  } catch (err: any) {
+    console.error("Error saving uploaded materials:", err);
+    res.status(500).json({ success: false, error: err.message || "Failed to save uploaded materials" });
+  }
+});
+
+// PUT /api/centralized-content/contents/:id/replace — Replace an existing material file
+router.put('/contents/:id/replace', (req, res, next) => {
+  materialsUpload.single('file')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ success: false, error: 'File size limit exceeded. Maximum size is 25MB.' });
+      }
+      return res.status(400).json({ success: false, error: `Upload error: ${err.message}` });
+    } else if (err) {
+      return res.status(400).json({ success: false, error: err.message });
+    }
+    next();
+  });
+}, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ success: false, error: "No file uploaded for replacement" });
+    }
+
+    const existing = await prisma.centralContent.findUnique({ where: { id } });
+    if (!existing) {
+      if (fs.existsSync(file.path)) {
+        await fs.promises.unlink(file.path);
+      }
+      return res.status(404).json({ success: false, error: "Material not found" });
+    }
+
+    let fileSizeStr = `${(file.size / 1024).toFixed(1)} KB`;
+    if (file.size >= 1024 * 1024) {
+      fileSizeStr = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    const fileUrl = `/uploads/${file.filename}`;
+
+    if (existing.fileUrl && existing.fileUrl.startsWith('/uploads/')) {
+      const oldFilename = existing.fileUrl.replace('/uploads/', '');
+      const oldPath = path.join(__dirname, '../../uploads', oldFilename);
+      try {
+        if (fs.existsSync(oldPath)) {
+          await fs.promises.unlink(oldPath);
+          console.log(`Deleted old replaced file: ${oldPath}`);
+        }
+      } catch (delErr) {
+        console.warn(`Could not delete old file ${oldPath}:`, delErr);
+      }
+    }
+
+    const uploader = req.body.uploader || existing.uploader || 'Super Admin';
+    const uploaderRole = req.body.uploaderRole || existing.uploaderRole || 'SUPERADMIN';
+    const title = req.body.title || path.basename(file.originalname, path.extname(file.originalname));
+    const contentType = req.body.type || existing.contentType;
+
+    const updated = await prisma.centralContent.update({
+      where: { id },
+      data: {
+        fileUrl,
+        fileSize: fileSizeStr,
+        title,
+        contentType,
+        uploader,
+        uploaderRole,
+        updatedAt: new Date()
+      }
+    });
+
+    res.json({
+      success: true,
+      message: "Material replaced successfully",
+      data: updated
+    });
+  } catch (err: any) {
+    console.error("Error replacing material:", err);
+    res.status(500).json({ success: false, error: err.message || "Failed to replace material" });
   }
 });
 
@@ -1664,196 +1862,190 @@ Skip covers, preface, acknowledgements, anthem, index and glossary — only real
   }
 });
 
-// POST /api/centralized-content/subjects/:subjectId/segregate-book-ai — Auto-segregate a single master book text to each unit/subunit
-router.post('/subjects/:subjectId/segregate-book-ai', generalUpload.single('file'), async (req: Request, res: Response) => {
-  try {
-    const { subjectId } = req.params;
-    let textContent = "";
-
-    if (req.file) {
-      console.log(`[Segregation AI] Received file: ${req.file.originalname} (${req.file.size} bytes), mime: ${req.file.mimetype}`);
-      const ext = path.extname(req.file.originalname).toLowerCase();
-      
-      if (ext === '.pdf' || req.file.mimetype === 'application/pdf') {
-        const { PDFParse } = require('pdf-parse');
-        const parser = new PDFParse({ data: req.file.buffer });
-        const data = await parser.getText();
-        textContent = data.text || "";
-        await parser.destroy();
-      } else if (ext === '.txt' || ext === '.md' || req.file.mimetype.startsWith('text/')) {
-        textContent = req.file.buffer.toString('utf8');
-      } else {
-        return res.status(400).json({ success: false, error: "Unsupported file format. Please upload a PDF, TXT, or MD file." });
+// JSON schema for AI visual study infographic mapping
+const INFOGRAPHIC_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    topicTitle: { type: 'STRING', description: 'Subject Standard and Topic name' },
+    overallSummary: { type: 'STRING', description: 'A brief, high-impact summary of what this subunit teaches.' },
+    visualFlow: {
+      type: 'ARRAY',
+      description: 'A step-by-step visual process flow or concept map nodes that explains the logic/steps of this topic sequentially.',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          stepNumber: { type: 'INTEGER' },
+          title: { type: 'STRING', description: 'Title of this step (e.g. Cartesian Definition)' },
+          description: { type: 'STRING', description: 'Brief explanation of this step (both in Tamil and English).' },
+          icon: { type: 'STRING', description: 'A single emoji representing this step (e.g. 🎒, 🧬, 📐)' }
+        },
+        required: ['stepNumber', 'title', 'description', 'icon']
       }
-    } else if (req.body.textContent) {
-      console.log(`[Segregation AI] Received raw text content (${req.body.textContent.length} characters)`);
-      textContent = req.body.textContent;
+    },
+    keyFormulasOrFacts: {
+      type: 'ARRAY',
+      description: 'Core rules, formulas, equations, or key historical facts to remember.',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          concept: { type: 'STRING', description: 'The rule/formula name (e.g. A x B = {(a,b) | a in A, b in B})' },
+          importance: { type: 'STRING', description: 'Why this rule is important or when to use it.' }
+        },
+        required: ['concept', 'importance']
+      }
+    },
+    mnemonics: {
+      type: 'ARRAY',
+      description: 'Creative learning tricks, rhymes, or acronyms to easily remember this concept.',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          phrase: { type: 'STRING', description: 'The mnemonic acronym or phrase (e.g. SOH CAH TOA)' },
+          meaning: { type: 'STRING', description: 'What the acronym stands for and how it applies to this topic.' }
+        },
+        required: ['phrase', 'meaning']
+      }
+    },
+    flashcards: {
+      type: 'ARRAY',
+      description: 'A set of 4 interactive study flashcards (Question on front, Answer/Explanation on back) for active recall.',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          front: { type: 'STRING', description: 'A quick conceptual question' },
+          back: { type: 'STRING', description: 'The brief, accurate answer/formula to memorize' }
+        },
+        required: ['front', 'back']
+      }
     }
+  },
+  required: ['topicTitle', 'overallSummary', 'visualFlow', 'keyFormulasOrFacts', 'mnemonics', 'flashcards']
+};
 
-    if (!textContent || !textContent.trim()) {
-      return res.status(400).json({ success: false, error: "No textbook text content was uploaded or provided." });
-    }
+// POST /api/centralized-content/topics/:id/generate-infographic — Generate a smart concept map / infographic using Gemini from uploaded PDFs/materials
+router.post('/topics/:id/generate-infographic', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
 
-    // 1. Get all units and subunits for this subject
-    const units = await prisma.centralUnit.findMany({
-      where: { subjectId },
+    // 1. Get Topic (subunit) info
+    const topic = await prisma.centralTopic.findUnique({
+      where: { id },
       include: {
-        topics: {
-          orderBy: { topicNumber: 'asc' }
-        }
-      },
-      orderBy: { unitNumber: 'asc' }
+        unit: {
+          include: {
+            subject: true
+          }
+        },
+        contents: true
+      }
     });
 
-    if (units.length === 0) {
-      return res.status(400).json({ success: false, error: "Please load or scan the syllabus (units and subunits) first before auto-segregating the textbook." });
+    if (!topic) {
+      return res.status(404).json({ success: false, error: "Subunit not found" });
     }
 
-    // Build the syllabus mapping index
-    const syllabusIndex: any[] = [];
-    for (const u of units) {
-      for (const t of u.topics) {
-        syllabusIndex.push({
-          subunitId: t.id,
-          subunitNumber: t.topicNumber,
-          subunitName: t.name,
-          unitNumber: u.unitNumber,
-          unitName: u.name
-        });
+    // 2. Extract content text from materials
+    let materialsText = "";
+    for (const content of topic.contents) {
+      if (content.fileContent) {
+        materialsText += `\n[Material Title: ${content.title}]\n${content.fileContent}\n`;
+      }
+      
+      // If it is a file URL, try to read the file
+      if (content.fileUrl && content.fileUrl.startsWith('/uploads/')) {
+        const filename = content.fileUrl.replace('/uploads/', '');
+        const filePath = path.join(__dirname, '../../uploads', filename);
+        
+        try {
+          if (fs.existsSync(filePath)) {
+            const ext = path.extname(filename).toLowerCase();
+            if (ext === '.txt' || ext === '.md') {
+              const txt = await fs.promises.readFile(filePath, 'utf8');
+              materialsText += `\n[Text File: ${content.title}]\n${txt}\n`;
+            } else if (ext === '.pdf') {
+              try {
+                const pdfParse = require('pdf-parse');
+                const fileBuffer = await fs.promises.readFile(filePath);
+                const pdfData = await pdfParse(fileBuffer);
+                materialsText += `\n[PDF File: ${content.title}]\n${pdfData.text || ""}\n`;
+              } catch (pdfErr) {
+                console.warn("pdf-parse failed, skipping full text extract for PDF:", filename);
+              }
+            }
+          }
+        } catch (fileErr: any) {
+          console.warn(`Could not read physical file ${filePath}:`, fileErr.message);
+        }
       }
     }
 
-    if (syllabusIndex.length === 0) {
-      return res.status(400).json({ success: false, error: "No subunits found inside the syllabus units. Please add subunits first." });
-    }
+    // fallback base context
+    const baseContext = `Topic: ${topic.name} (Subunit ${topic.topicNumber}), Unit: ${topic.unit.name} (Unit ${topic.unit.unitNumber}), Subject: ${topic.unit.subject.name}, Grade: Class ${topic.unit.subject.class}th`;
 
-    console.log(`[Segregation AI] Preparing to call Gemini to segregate content for ${syllabusIndex.length} subunits...`);
+    console.log(`[Infographic AI] Generating concept map for Topic ID ${id}. Context length: ${materialsText.length}`);
 
-    const prompt = `You are a professional educational curriculum AI assistant. Your task is to analyze the textbook/study document text and map/segregate the relevant details to each subunit in the syllabus index.
+    // 3. Formulate Prompt
+    const prompt = `You are a professional educational curriculum designer AI. Your task is to generate a comprehensive, highly structured visual study map / infographic JSON configuration for the subunit topic described below.
     
-Syllabus Index (Subunits):
-${JSON.stringify(syllabusIndex, null, 2)}
+    Subunit Syllabus Details:
+    ${baseContext}
+    
+    Uploaded Study Materials (Parsed Text Extract):
+    ${materialsText ? materialsText.substring(0, 45000) : "No study materials uploaded yet. Use master board standard syllabus information for this topic."}
+    
+    Instructions:
+    1. Read and analyze the uploaded study materials text. Extract the core concepts, logic flows, rules, formulas, and facts.
+    2. Write a brief overallSummary of the topic.
+    3. Generate a sequential, step-by-step visualFlow showing how a student should learn this concept step-by-step. Write short, clear descriptions in both English and Tamil (bilingual).
+    4. Compile keyFormulasOrFacts that are crucial to memorize for this topic.
+    5. Invent 2 or 3 memorable mnemonics or learning tricks (acronyms, word associations) to help students memorize key aspects of the topic.
+    6. Formulate 4 Q&A active recall flashcards (front = question, back = answer/formula).
+    7. All generated content MUST be tailored to the grade level (${topic.unit.subject.class}th standard). Ensure the output strictly conforms to the requested JSON schema.`;
 
-Textbook / Study Document Text (Extract):
-${textContent.substring(0, 75000)}
+    const result = await callGeminiJSON(prompt, INFOGRAPHIC_SCHEMA);
+    
+    // Find or upsert database record
+    let contentRecord = await prisma.centralContent.findFirst({
+      where: {
+        topicId: id,
+        contentType: "INFOGRAPHIC"
+      }
+    });
 
-Instructions:
-1. Carefully match the chapters and topics in the textbook text to the subunits in the syllabus index.
-2. For EACH subunit in the syllabus index, extract and generate:
-   - A clear, concise concept summary ('summary' key) in simple terms. If the syllabus or text uses Tamil (like Tamil language or bilingual text), keep the summary bilingual (Tamil and English text) or translate/explain in clean Tamil and English.
-   - Core revision/lecture notes ('notes' key), including key terms, formulas, rules, or historical dates.
-   - A list of 2 or 3 high-quality multiple choice questions ('mcqs' key) with options (e.g. "Option A: ...", "Option B: ...", "Option C: ...", "Option D: ..."), a correct answer string matching the selected option, and a detailed rationale explaining the choice.
-3. You MUST return exactly one entry in the 'segregatedContent' list for each subunitId in the syllabus index.
-4. Ensure the output strictly follows the schema.`;
+    const { uploader, uploaderRole } = req.body;
 
-    const schema = {
-      type: 'OBJECT',
-      properties: {
-        segregatedContent: {
-          type: 'ARRAY',
-          items: {
-            type: 'OBJECT',
-            properties: {
-              subunitId: { type: 'STRING', description: 'The unique topic ID of the subunit' },
-              summary: { type: 'STRING', description: 'Bilingual or high-quality concept summary' },
-              notes: { type: 'STRING', description: 'Bullet point revision notes, formulas, rules' },
-              mcqs: {
-                type: 'ARRAY',
-                items: {
-                  type: 'OBJECT',
-                  properties: {
-                    question: { type: 'STRING' },
-                    options: { type: 'ARRAY', items: { type: 'STRING' } },
-                    answer: { type: 'STRING', description: 'The correct option string, e.g., "Option A: ..."' },
-                    rationale: { type: 'STRING' }
-                  },
-                  required: ['question', 'options', 'answer', 'rationale']
-                }
-              }
-            },
-            required: ['subunitId', 'summary', 'notes', 'mcqs']
-          }
-        }
-      },
-      required: ['segregatedContent']
-    };
-
-    const result = await callGeminiJSON(prompt, schema);
-
-    if (!result || !Array.isArray(result.segregatedContent)) {
-      throw new Error("Invalid format received from Gemini AI. Expected segregatedContent array.");
-    }
-
-    console.log(`[Segregation AI] Gemini completed segregation. Syncing ${result.segregatedContent.length} items to database...`);
-
-    let createdSummaryCount = 0;
-    let createdNotesCount = 0;
-    let createdMcqCount = 0;
-
-    for (const item of result.segregatedContent) {
-      if (!item.subunitId) continue;
-
-      // Clean existing AI segregated content for this subunit first to avoid clutter
-      await prisma.centralContent.deleteMany({
-        where: {
-          topicId: item.subunitId,
-          contentType: { in: ['SUMMARY', 'NOTES', 'MCQ'] }
+    if (contentRecord) {
+      contentRecord = await prisma.centralContent.update({
+        where: { id: contentRecord.id },
+        data: {
+          title: `${topic.name} AI Infographic Map`,
+          infographic: result,
+          uploader: uploader || "Super Admin",
+          uploaderRole: uploaderRole || "SUPERADMIN"
         }
       });
-
-      // 1. Create SUMMARY content
-      if (item.summary && item.summary.trim()) {
-        await prisma.centralContent.create({
-          data: {
-            topicId: item.subunitId,
-            contentType: 'SUMMARY',
-            title: 'AI Concept Summary',
-            fileContent: item.summary
-          }
-        });
-        createdSummaryCount++;
-      }
-
-      // 2. Create NOTES content
-      if (item.notes && item.notes.trim()) {
-        await prisma.centralContent.create({
-          data: {
-            topicId: item.subunitId,
-            contentType: 'NOTES',
-            title: 'Revision Notes & Formula Map',
-            fileContent: item.notes
-          }
-        });
-        createdNotesCount++;
-      }
-
-      // 3. Create MCQ content
-      if (item.mcqs && item.mcqs.length > 0) {
-        await prisma.centralContent.create({
-          data: {
-            topicId: item.subunitId,
-            contentType: 'MCQ',
-            title: 'Mastery assessment Quiz',
-            mcqs: item.mcqs
-          }
-        });
-        createdMcqCount++;
-      }
+    } else {
+      contentRecord = await prisma.centralContent.create({
+        data: {
+          topicId: id,
+          contentType: "INFOGRAPHIC",
+          title: `${topic.name} AI Infographic Map`,
+          infographic: result,
+          uploader: uploader || "Super Admin",
+          uploaderRole: uploaderRole || "SUPERADMIN"
+        }
+      });
     }
 
     res.json({
       success: true,
-      message: `Successfully segregated textbook to all subunits. Created ${createdSummaryCount} summaries, ${createdNotesCount} revision sheets, and ${createdMcqCount} mastery quizzes.`,
-      data: {
-        summaries: createdSummaryCount,
-        notes: createdNotesCount,
-        mcqs: createdMcqCount
-      }
+      data: contentRecord.infographic
     });
   } catch (err: any) {
-    console.error('[Segregation AI] Error:', err);
-    res.status(500).json({ success: false, error: err.message || 'Failed to auto-segregate textbook' });
+    console.error("Error generating AI infographic:", err);
+    res.status(500).json({ success: false, error: err.message || "Failed to generate AI concept map" });
   }
 });
 
 export default router;
+

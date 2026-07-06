@@ -879,16 +879,20 @@ model CentralTopic {
 }
 
 model CentralContent {
-  id          String       @id @default(uuid())
-  topicId     String
-  contentType String
-  title       String
-  fileUrl     String?
-  fileContent String?
-  mcqs        Json?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @default(now()) @updatedAt
-  topic       CentralTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  id           String       @id @default(uuid())
+  topicId      String
+  contentType  String
+  title        String
+  fileUrl      String?
+  fileContent  String?
+  mcqs         Json?
+  infographic  Json?
+  fileSize     String?
+  uploader     String?
+  uploaderRole String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @default(now()) @updatedAt
+  topic        CentralTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
 }
 
 model Message {

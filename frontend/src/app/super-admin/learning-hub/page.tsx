@@ -27,10 +27,15 @@ interface Unit {
 
 interface Content {
   id: string;
-  contentType: "PDF" | "PPT" | "SUMMARY" | "NOTES" | "MCQ";
+  contentType: string;
   title: string;
   fileUrl: string | null;
   fileContent: string | null;
+  fileSize: string | null;
+  uploader: string | null;
+  uploaderRole: string | null;
+  createdAt: string;
+  infographic?: any;
   mcqs: Array<{
     question: string;
     options: string[];
@@ -99,10 +104,57 @@ export default function CentralLearningHubAdmin() {
     { question: "", options: ["", "", "", ""], answer: "A", rationale: "" }
   ]);
 
+  // Multi-file upload states
+  interface UploadingFile {
+    id: string;
+    file: File;
+    title: string;
+    type: string; // Textbook Chapter, Notes, Reference, Diagram
+    progress: number;
+    status: "idle" | "uploading" | "success" | "error";
+    errorMsg?: string;
+  }
+  const [uploadQueue, setUploadQueue] = useState<UploadingFile[]>([]);
+  const [dragging, setDragging] = useState(false);
+
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [parsingSyllabus, setParsingSyllabus] = useState(false);
-  const [segregatingBook, setSegregatingBook] = useState(false);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  // Infographic states for Admin
+  const [generatingInfographic, setGeneratingInfographic] = useState(false);
+  const [infographicPreviewData, setInfographicPreviewData] = useState<any>(null);
+  const [showInfographicPreview, setShowInfographicPreview] = useState(false);
+  const [flippedCards, setFlippedCards] = useState<Record<number, boolean>>({});
+
+  const handleGenerateInfographic = async () => {
+    if (!selectedTopic) return;
+    setGeneratingInfographic(true);
+    setToast({ message: "AI is analyzing materials and generating infographic study map...", type: "success" });
+    try {
+      const res = await fetch(`${API_URL}/api/centralized-content/topics/${selectedTopic.id}/generate-infographic`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uploader: session?.user?.name || "Super Admin",
+          uploaderRole: (session?.user as any)?.role || "SUPERADMIN"
+        })
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setToast({ message: "AI Infographic Map generated and saved successfully!", type: "success" });
+        // Refresh contents list to pick up the new infographic content record
+        await handleSelectTopic(selectedTopic);
+      } else {
+        throw new Error(json.error || "Failed to generate");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setToast({ message: `Generation failed: ${err.message || err}`, type: "error" });
+    } finally {
+      setGeneratingInfographic(false);
+    }
+  };
 
   // Auto hide toast
   useEffect(() => {
@@ -343,40 +395,7 @@ export default function CentralLearningHubAdmin() {
     reader.readAsDataURL(file);
   };
 
-  const handleBookSegregationUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedSubject) return;
 
-    setSegregatingBook(true);
-    setToast({ message: "AI is analyzing the master book. Splitting and generating summaries, revision sheets, and quizzes for all subunits. Please wait...", type: "success" });
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    fetch(`${API_URL}/api/centralized-content/subjects/${selectedSubject.id}/segregate-book-ai`, {
-      method: "POST",
-      body: formData
-    })
-      .then(res => res.json())
-      .then(json => {
-        if (json.success) {
-          setToast({ message: `Successfully segregated master book! Created ${json.data.summaries} summaries, ${json.data.notes} notes, and ${json.data.mcqs} quizzes. 🤖📚`, type: "success" });
-          fetchUnits(selectedSubject.id);
-          setSelectedUnit(null);
-          setSelectedTopic(null);
-          setContents([]);
-        } else {
-          setToast({ message: json.error || "AI could not process the book segregation.", type: "error" });
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        setToast({ message: "Error occurred while segregating the book.", type: "error" });
-      })
-      .finally(() => {
-        setSegregatingBook(false);
-      });
-  };
 
   const handleAddTopic = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -438,48 +457,185 @@ export default function CentralLearningHubAdmin() {
     }
   };
 
-  const handleAddContent = async (e: React.FormEvent) => {
+  // File queue management helpers
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    if (!newContent.title.trim() || !selectedTopic) return;
+    setDragging(true);
+  };
 
-    let finalPayload: any = {
-      topicId: selectedTopic.id,
-      contentType: newContent.contentType,
-      title: newContent.title
-    };
+  const handleDragLeave = () => {
+    setDragging(false);
+  };
 
-    if (newContent.contentType === "PDF" || newContent.contentType === "PPT") {
-      finalPayload.fileUrl = newContent.fileUrl;
-    } else if (newContent.contentType === "SUMMARY" || newContent.contentType === "NOTES") {
-      finalPayload.fileContent = newContent.fileContent;
-    } else if (newContent.contentType === "MCQ") {
-      finalPayload.mcqs = newMcqs.map(q => ({
-        question: q.question,
-        options: q.options,
-        answer: q.answer.startsWith("Option") ? q.answer : `Option ${q.answer}`,
-        rationale: q.rationale
-      }));
+  const addFilesToQueue = (files: FileList | null) => {
+    if (!files) return;
+    const allowedExtensions = ['.pdf', '.docx', '.pptx', '.png', '.jpg', '.jpeg', '.txt', '.md'];
+    const maxSizeBytes = 25 * 1024 * 1024; // 25MB
+
+    const newFiles: UploadingFile[] = [];
+    Array.from(files).forEach(file => {
+      const ext = "." + file.name.split('.').pop()?.toLowerCase();
+      let errorMsg = undefined;
+
+      if (!allowedExtensions.includes(ext)) {
+        errorMsg = "Unsupported file type";
+      } else if (file.size > maxSizeBytes) {
+        errorMsg = "File exceeds 25MB size limit";
+      }
+
+      newFiles.push({
+        id: Math.random().toString(36).substring(7),
+        file,
+        title: file.name.split('.').slice(0, -1).join('.'), // filename default
+        type: "Reference", // default material type tag
+        progress: 0,
+        status: errorMsg ? "error" : "idle",
+        errorMsg
+      });
+    });
+
+    setUploadQueue(prev => [...prev, ...newFiles]);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    addFilesToQueue(e.dataTransfer.files);
+  };
+
+  const handleFileBrowseSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    addFilesToQueue(e.target.files);
+    e.target.value = ""; // reset input
+  };
+
+  const removeQueueFile = (id: string) => {
+    setUploadQueue(prev => prev.filter(f => f.id !== id));
+  };
+
+  const updateQueueFileMetadata = (id: string, key: "title" | "type", value: string) => {
+    setUploadQueue(prev => prev.map(f => f.id === id ? { ...f, [key]: value } : f));
+  };
+
+  const handleUploadQueueMaterials = async () => {
+    const filesToUpload = uploadQueue.filter(f => f.status === "idle");
+    if (filesToUpload.length === 0) return;
+    if (!selectedTopic) return;
+
+    // Set uploading status
+    setUploadQueue(prev => prev.map(f => f.status === "idle" ? { ...f, status: "uploading", progress: 0 } : f));
+
+    // Upload files
+    const uploadPromises = filesToUpload.map(queueItem => {
+      return new Promise<void>((resolve) => {
+        const formData = new FormData();
+        formData.append("files", queueItem.file);
+        
+        const fileMetadata = [{
+          topicId: selectedTopic.id,
+          title: queueItem.title,
+          type: queueItem.type
+        }];
+        formData.append("metadata", JSON.stringify(fileMetadata));
+        formData.append("uploader", session?.user?.name || "Super Admin");
+        formData.append("uploaderRole", (session?.user as any)?.role || "SUPERADMIN");
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `${API_URL}/api/centralized-content/upload-materials`);
+        
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            setUploadQueue(prev => prev.map(f => f.id === queueItem.id ? { ...f, progress: percentComplete } : f));
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status === 201 || xhr.status === 200) {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              if (response.success) {
+                setUploadQueue(prev => prev.map(f => f.id === queueItem.id ? { ...f, status: "success", progress: 100 } : f));
+              } else {
+                setUploadQueue(prev => prev.map(f => f.id === queueItem.id ? { ...f, status: "error", errorMsg: response.error || "Upload failed" } : f));
+              }
+            } catch (e) {
+              setUploadQueue(prev => prev.map(f => f.id === queueItem.id ? { ...f, status: "error", errorMsg: "Invalid response format" } : f));
+            }
+          } else {
+            let errorMsg = "Server error";
+            try {
+              const resp = JSON.parse(xhr.responseText);
+              errorMsg = resp.error || errorMsg;
+            } catch (e) {}
+            setUploadQueue(prev => prev.map(f => f.id === queueItem.id ? { ...f, status: "error", errorMsg } : f));
+          }
+          resolve();
+        };
+
+        xhr.onerror = () => {
+          setUploadQueue(prev => prev.map(f => f.id === queueItem.id ? { ...f, status: "error", errorMsg: "Network error" } : f));
+          resolve();
+        };
+
+        xhr.send(formData);
+      });
+    });
+
+    await Promise.all(uploadPromises);
+
+    fetchContents(selectedTopic.id);
+    
+    const checkQueue = uploadQueue.filter(f => f.status === "error");
+    if (checkQueue.length === 0) {
+      setToast({ message: "All materials uploaded successfully!", type: "success" });
+      setTimeout(() => {
+        setShowAddContent(false);
+        setUploadQueue([]);
+      }, 1500);
+    } else {
+      setToast({ message: "Some files failed to upload. Check errors below.", type: "error" });
     }
+  };
 
+  const handleReplaceMaterialFile = async (contentId: string, file: File) => {
+    if (!file) return;
+    
+    if (file.size > 25 * 1024 * 1024) {
+      setToast({ message: `File size exceeds 25MB: ${file.name}`, type: "error" });
+      return;
+    }
+    
+    const allowedExtensions = ['.pdf', '.docx', '.pptx', '.png', '.jpg', '.jpeg', '.txt', '.md'];
+    const ext = "." + file.name.split('.').pop()?.toLowerCase();
+    if (!allowedExtensions.includes(ext)) {
+      setToast({ message: `Unsupported file type: ${file.name}`, type: "error" });
+      return;
+    }
+    
+    setToast({ message: `Replacing file for material...`, type: "success" });
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("uploader", session?.user?.name || "Super Admin");
+    formData.append("uploaderRole", (session?.user as any)?.role || "SUPERADMIN");
+    formData.append("title", file.name.split(".")[0]);
+    formData.append("type", "Reference");
+    
     try {
-      const res = await fetch(`${API_URL}/api/centralized-content/contents`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(finalPayload)
+      const res = await fetch(`${API_URL}/api/centralized-content/contents/${contentId}/replace`, {
+        method: "PUT",
+        body: formData
       });
       const json = await res.json();
       if (json.success) {
-        setToast({ message: "Content item uploaded successfully!", type: "success" });
-        setShowAddContent(false);
-        setNewContent({ contentType: "PDF", title: "", fileUrl: "", fileContent: "" });
-        setNewMcqs([{ question: "", options: ["", "", "", ""], answer: "A", rationale: "" }]);
-        fetchContents(selectedTopic.id);
+        setToast({ message: "Material file replaced successfully!", type: "success" });
+        if (selectedTopic) fetchContents(selectedTopic.id);
       } else {
-        setToast({ message: json.error || "Failed to upload content", type: "error" });
+        setToast({ message: json.error || "Failed to replace material file", type: "error" });
       }
     } catch (err) {
       console.error(err);
-      setToast({ message: "Network error occurred", type: "error" });
+      setToast({ message: "Network error occurred during replacement", type: "error" });
     }
   };
 
@@ -565,31 +721,6 @@ export default function CentralLearningHubAdmin() {
       }
       return { ...q, [field]: value };
     }));
-  };
-
-  // FileReader Mock upload helper
-  const handleLocalFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setNewContent(prev => ({ ...prev, title: prev.title || file.name.split(".")[0] }));
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setNewContent(prev => ({
-        ...prev,
-        fileContent: event.target?.result as string
-      }));
-    };
-
-    if (newContent.contentType === "PDF" || newContent.contentType === "PPT") {
-      // Mock uploading by resolving local file path or base64 mock
-      setNewContent(prev => ({
-        ...prev,
-        fileUrl: `/uploads/${file.name}` // local mock path
-      }));
-    } else {
-      reader.readAsText(file);
-    }
   };
 
   return (
@@ -731,20 +862,7 @@ export default function CentralLearningHubAdmin() {
                   </span>
                 </div>
 
-                {/* AI Master Book Segregator */}
-                <div className="relative border border-dashed border-emerald-500/25 hover:border-emerald-400/50 bg-emerald-950/10 hover:bg-emerald-950/20 rounded-xl p-2.5 transition-all flex items-center justify-center gap-2 cursor-pointer group">
-                  <input
-                    type="file"
-                    accept=".pdf,.txt,.md"
-                    onChange={handleBookSegregationUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    disabled={segregatingBook}
-                  />
-                  <span className="text-sm select-none">📚</span>
-                  <span className="text-[10px] font-bold text-emerald-400 group-hover:text-emerald-300 uppercase tracking-wide select-none">
-                    {segregatingBook ? "Segregating Book via AI..." : "AI Book Segregator (Split to Subunits)"}
-                  </span>
-                </div>
+
               </div>
 
               {loadingUnits ? (
@@ -915,92 +1033,209 @@ export default function CentralLearningHubAdmin() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {contents.map((item) => (
-                      <div
-                        key={item.id}
-                        className="p-4 rounded-2xl border border-slate-850 bg-slate-900/40 hover:bg-slate-900/70 transition-all flex flex-col gap-2"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-2">
-                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${
-                              item.contentType === "PDF" 
-                                ? "bg-red-500/10 border-red-500/20 text-red-400" 
-                                : item.contentType === "PPT" 
-                                ? "bg-amber-500/10 border-amber-500/20 text-amber-400" 
-                                : item.contentType === "SUMMARY" 
-                                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" 
-                                : item.contentType === "NOTES" 
-                                ? "bg-blue-500/10 border-blue-500/20 text-blue-400" 
-                                : "bg-purple-500/10 border-purple-500/20 text-purple-400"
-                            }`}>
-                              {item.contentType}
-                            </span>
-                            <h4 className="font-bold text-xs text-white leading-tight">{item.title}</h4>
-                          </div>
-                          <button
-                            onClick={() => handleDeleteContent(item.id)}
-                            className="text-xs hover:text-red-400 transition-colors p-1"
-                            title="Delete Material"
-                          >
-                            🗑️ Delete
-                          </button>
-                        </div>
+                    {contents.map((item) => {
+                      // Helpers for icons and styles
+                      const getFileIcon = (type: string, url: string | null) => {
+                        const t = type.toLowerCase();
+                        const u = (url || "").toLowerCase();
+                        if (u.endsWith(".pdf") || t === "pdf") return "📄";
+                        if (u.endsWith(".pptx") || u.endsWith(".ppt") || t === "ppt") return "📊";
+                        if (u.endsWith(".docx") || u.endsWith(".doc")) return "📝";
+                        if (u.endsWith(".png") || u.endsWith(".jpg") || u.endsWith(".jpeg")) return "🖼️";
+                        if (t.includes("notes") || t.includes("summary")) return "📝";
+                        return "📁";
+                      };
 
-                        {/* Expandable preview details */}
-                        <div className="text-[11px] text-slate-400 bg-slate-950/60 rounded-xl p-3 border border-slate-900">
-                          {item.fileUrl && (
-                            <p className="truncate">
-                              🔗 Link: <a href={item.fileUrl} target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline">{item.fileUrl}</a>
-                            </p>
-                          )}
-                          {item.fileContent && (
-                            <div className="whitespace-pre-line max-h-[100px] overflow-y-auto text-slate-300">
-                              {item.fileContent.length > 200 
-                                ? `${item.fileContent.slice(0, 200)}...` 
-                                : item.fileContent
-                              }
+                      const getTypeBadgeStyles = (type: string) => {
+                        const t = type.toLowerCase();
+                        if (t.includes("textbook")) return "bg-rose-500/10 border-rose-500/20 text-rose-400";
+                        if (t.includes("notes")) return "bg-sky-500/10 border-sky-500/20 text-sky-400";
+                        if (t.includes("diagram")) return "bg-amber-500/10 border-amber-500/20 text-amber-400";
+                        if (t.includes("reference")) return "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+                        return "bg-purple-500/10 border-purple-500/20 text-purple-400";
+                      };
+
+                      return (
+                        <div
+                          key={item.id}
+                          className="p-4 rounded-2xl border border-slate-850 bg-slate-900/40 hover:bg-slate-900/70 transition-all flex flex-col gap-3"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl" title="File type">
+                                {getFileIcon(item.contentType, item.fileUrl)}
+                              </span>
+                              <div>
+                                <h4 className="font-bold text-xs text-white leading-tight">{item.title}</h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded border ${getTypeBadgeStyles(item.contentType)}`}>
+                                    {item.contentType}
+                                  </span>
+                                  {item.fileSize && (
+                                    <span className="text-[10px] text-slate-500 font-mono">
+                                      💾 {item.fileSize}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          )}
-                          {item.mcqs && Array.isArray(item.mcqs) && (
-                            <div>
-                              <p className="font-bold text-white mb-1">📝 MCQ Quiz ({item.mcqs.length} Questions):</p>
-                              <ul className="list-disc pl-4 space-y-1">
-                                {item.mcqs.map((q: any, qi: number) => (
-                                  <li key={qi}>
-                                    <span className="font-semibold text-slate-300">{q.question}</span> 
-                                    <span className="text-indigo-400 ml-1">({q.answer})</span>
-                                  </li>
-                                ))}
-                              </ul>
+                            <div className="flex items-center gap-2">
+                              <label className="text-xs text-indigo-400 hover:text-indigo-300 font-bold cursor-pointer hover:underline flex items-center gap-1 p-1">
+                                🔄 Replace
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept=".pdf,.docx,.pptx,.png,.jpg,.jpeg,.txt,.md"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleReplaceMaterialFile(item.id, file);
+                                  }}
+                                />
+                              </label>
+                              <span className="text-slate-700">|</span>
+                              <button
+                                onClick={() => handleDeleteContent(item.id)}
+                                className="text-xs text-slate-400 hover:text-red-400 transition-colors flex items-center gap-1 p-1"
+                                title="Delete Material"
+                              >
+                                🗑️ Delete
+                              </button>
                             </div>
-                          )}
+                          </div>
+
+                          <div className="text-[11px] text-slate-400 bg-slate-950/60 rounded-xl p-3 border border-slate-900/60 flex flex-col gap-1.5">
+                            {item.fileUrl && (
+                              <p className="truncate">
+                                🔗 Link: <a href={`${API_URL}${item.fileUrl}`} target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline">{API_URL}{item.fileUrl}</a>
+                              </p>
+                            )}
+                            {item.fileContent && (
+                              <div className="whitespace-pre-line max-h-[100px] overflow-y-auto text-slate-300">
+                                {item.fileContent.length > 200 
+                                  ? `${item.fileContent.slice(0, 200)}...` 
+                                  : item.fileContent
+                                }
+                              </div>
+                            )}
+                            <div className="flex justify-between items-center text-[10px] text-slate-500 border-t border-slate-900/80 pt-1.5 mt-0.5">
+                              <span>Uploaded by: <strong className="text-slate-300">{item.uploader || "Admin"}</strong> ({item.uploaderRole || "SUPERADMIN"})</span>
+                              <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
               {/* Central AI Tutor Simulator Section */}
-              <div className="bg-gradient-to-r from-purple-950/30 to-indigo-950/30 border border-indigo-500/25 rounded-3xl p-5 space-y-4">
+              <div className={`border rounded-3xl p-5 space-y-4 transition-all ${
+                contents.length > 0
+                  ? "bg-gradient-to-r from-emerald-950/30 to-teal-950/30 border-emerald-500/25"
+                  : "bg-gradient-to-r from-purple-950/30 to-indigo-950/30 border-indigo-500/25"
+              }`}>
                 <div className="flex items-center gap-2.5">
-                  <span className="text-2xl">🤖</span>
+                  <span className="text-2xl">{contents.length > 0 ? "✅" : "🤖"}</span>
                   <div>
-                    <h4 className="text-sm font-bold text-white">AI Tutor Companion Active</h4>
+                    <h4 className="text-sm font-bold text-white">
+                      {contents.length > 0 ? "AI companion Primary Source Active" : "AI Tutor Companion Fallback"}
+                    </h4>
                     <p className="text-[10px] text-slate-400">
                       The AI Companion is automatically initialized for students mapping to this topic.
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-slate-950/50 p-3 rounded-xl border border-slate-900 text-xs text-slate-300">
+                <div className={`p-3 rounded-xl border text-xs transition-all ${
+                  contents.length > 0
+                    ? "bg-emerald-950/20 border-emerald-900/60 text-emerald-300"
+                    : "bg-slate-950/50 border-slate-900 text-slate-300"
+                }`}>
                   <span className="font-bold text-white block mb-1">Knowledge Feed Status:</span>
                   {contents.length > 0 
-                    ? `Ready. AI uses ${contents.length} centralized resource file(s) on this topic as context.`
+                    ? `Ready. ${contents.length} materials loaded — AI Companion is using this content as primary source.`
                     : "No materials loaded yet. AI will use global board curriculum templates for fallback."
                   }
                 </div>
               </div>
+
+              {/* Central AI Infographic Section */}
+              {(() => {
+                const infographicItem = contents.find(c => c.contentType === "INFOGRAPHIC");
+                return (
+                  <div className={`border rounded-3xl p-5 space-y-4 transition-all ${
+                    infographicItem
+                      ? "bg-gradient-to-r from-indigo-950/30 to-purple-950/30 border-indigo-500/25 animate-in fade-in"
+                      : "bg-slate-900/20 border-slate-800"
+                  }`}>
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-2xl">🎨</span>
+                        <div>
+                          <h4 className="text-sm font-bold text-white">AI Visual Study Infographic</h4>
+                          <p className="text-[10px] text-slate-400">
+                            Pre-generated interactive infographic for student visual active recall.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {infographicItem ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setInfographicPreviewData(infographicItem.infographic);
+                              setFlippedCards({});
+                              setShowInfographicPreview(true);
+                            }}
+                            className="px-2.5 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-lg text-[10px] font-bold transition-all"
+                          >
+                            🔍 Preview
+                          </button>
+                          <button
+                            disabled={generatingInfographic}
+                            onClick={handleGenerateInfographic}
+                            className="px-2.5 py-1 bg-purple-550 hover:bg-purple-500 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50"
+                          >
+                            {generatingInfographic ? "Generating..." : "⚡ Regenerate"}
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          disabled={generatingInfographic || contents.length === 0}
+                          onClick={handleGenerateInfographic}
+                          className="px-3 py-1 bg-indigo-650 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          title={contents.length === 0 ? "Upload reference materials first to extract content" : "Generate infographic"}
+                        >
+                          {generatingInfographic ? "Generating..." : "⚡ Generate Infographic"}
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="p-3 bg-slate-950/40 rounded-xl border border-slate-900/60 text-xs text-slate-300 flex justify-between items-center">
+                      <div>
+                        <span className="font-bold text-white block mb-0.5">Infographic Status:</span>
+                        {infographicItem 
+                          ? `Ready. Pre-generated AI Infographic Map will be displayed for students.`
+                          : contents.length === 0
+                          ? "No materials uploaded yet. Please upload study materials to enable infographic generation."
+                          : "Pre-generated map is missing. Generate it once so students can view it instantly."
+                        }
+                      </div>
+                      
+                      {infographicItem && (
+                        <button
+                          onClick={() => handleDeleteContent(infographicItem.id)}
+                          className="text-[10px] text-slate-500 hover:text-red-400 font-bold hover:underline py-0.5 px-1.5 border border-slate-800 rounded transition-colors"
+                          title="Delete Infographic"
+                        >
+                          🗑️ Delete
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ) : (
             <div className="glass p-6 rounded-3xl border border-slate-700/40 text-center text-slate-400 text-sm py-28">
@@ -1518,209 +1753,348 @@ export default function CentralLearningHubAdmin() {
         </div>
       )}
 
-      {/* 4. Add Content Modal */}
+      {/* 4. Add Content Modal (Multi-File Uploader Queue) */}
       {showAddContent && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div className="glass max-w-2xl w-full p-6 border border-slate-700 rounded-3xl space-y-4 my-8 bg-slate-950">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
+          <div className="glass max-w-3xl w-full p-6 border border-slate-700/60 rounded-3xl space-y-5 my-8 bg-slate-950/95 shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3.5 flex-shrink-0">
               <div>
-                <h3 className="font-bold text-base text-white">Upload Reference / AI Materials</h3>
-                <p className="text-[10px] text-slate-400">Target topic: {selectedTopic?.name}</p>
+                <h3 className="font-extrabold text-lg text-white tracking-wide">Upload Learning Materials</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Add textbooks, revision notes, diagrams, and reference sheets for: <span className="text-indigo-400 font-bold">{selectedTopic?.name}</span></p>
               </div>
-              <button onClick={() => setShowAddContent(false)} className="text-slate-400 hover:text-white text-lg">✕</button>
+              <button 
+                onClick={() => {
+                  setShowAddContent(false);
+                  setUploadQueue([]);
+                }} 
+                className="text-slate-400 hover:text-white hover:bg-slate-900 rounded-full p-1.5 transition-colors text-lg"
+              >
+                ✕
+              </button>
             </div>
 
-            <form onSubmit={handleAddContent} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-slate-400 mb-1.5 font-bold">Content Type</label>
-                  <select
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-indigo-500 focus:outline-none"
-                    value={newContent.contentType}
-                    onChange={(e) => setNewContent({ ...newContent, contentType: e.target.value as any })}
-                  >
-                    <option value="PDF">PDF Document Extract</option>
-                    <option value="PPT">PPT Lecture Slides</option>
-                    <option value="SUMMARY">AI Concept Summary (Text)</option>
-                    <option value="NOTES">Revision & Lecture Notes (Text)</option>
-                    <option value="MCQ">Mastery Assessment Quiz (MCQs)</option>
-                  </select>
-                </div>
+            {/* Drag & Drop Zone */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all flex flex-col items-center justify-center cursor-pointer relative group flex-shrink-0 ${
+                dragging 
+                  ? "border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/5 scale-[0.99]" 
+                  : "border-slate-800 hover:border-slate-700 bg-slate-900/25 hover:bg-slate-900/40"
+              }`}
+            >
+              <input
+                type="file"
+                multiple
+                accept=".pdf,.docx,.pptx,.png,.jpg,.jpeg,.txt,.md"
+                onChange={handleFileBrowseSelect}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <span className="text-4xl mb-3 select-none group-hover:scale-110 transition-transform duration-200">📥</span>
+              <p className="text-xs font-bold text-slate-300 uppercase tracking-wider select-none">
+                Drag & Drop Files Here
+              </p>
+              <p className="text-[11px] text-slate-400 mt-1 select-none">
+                or <span className="text-indigo-400 font-bold group-hover:underline">browse local files</span> from your computer
+              </p>
+              <p className="text-[10px] text-slate-505 mt-2.5 max-w-sm leading-relaxed select-none">
+                Supported formats: PDF, DOCX, PPTX, JPG, PNG, TXT, MD (Max 25MB per file)
+              </p>
+            </div>
 
+            {/* Queue List */}
+            {uploadQueue.length > 0 ? (
+              <div className="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[300px] min-h-[150px]">
+                <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-1 sticky top-0 bg-slate-950 py-1">Upload Queue ({uploadQueue.length})</h4>
+                
+                {uploadQueue.map((item) => (
+                  <div 
+                    key={item.id} 
+                    className={`p-3.5 rounded-xl border flex flex-col gap-3 transition-colors ${
+                      item.status === 'error' 
+                        ? 'bg-rose-950/15 border-rose-900/40' 
+                        : item.status === 'success' 
+                        ? 'bg-emerald-950/15 border-emerald-900/40'
+                        : 'bg-slate-900/40 border-slate-850'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2.5 truncate max-w-[80%]">
+                        <span className="text-xl">
+                          {item.file.name.endsWith('.pdf') ? '📄' : item.file.name.endsWith('.pptx') || item.file.name.endsWith('.ppt') ? '📊' : '📝'}
+                        </span>
+                        <div className="truncate">
+                          <p className="text-xs font-bold text-white truncate">{item.file.name}</p>
+                          <p className="text-[10px] text-slate-500 font-mono">💾 {(item.file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+                      </div>
+                      
+                      {item.status === 'idle' && (
+                        <button 
+                          type="button" 
+                          onClick={() => removeQueueFile(item.id)}
+                          className="text-[10px] text-slate-400 hover:text-red-400 font-bold p-1 hover:underline animate-in fade-in"
+                        >
+                          Remove
+                        </button>
+                      )}
+                      {item.status === 'success' && (
+                        <span className="text-[10px] text-emerald-400 font-extrabold uppercase bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">Success</span>
+                      )}
+                      {item.status === 'error' && (
+                        <span className="text-[10px] text-rose-400 font-extrabold uppercase bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded">Failed</span>
+                      )}
+                    </div>
+
+                    {/* Metadata Settings */}
+                    {item.status === 'idle' && (
+                      <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-900/60">
+                        <div>
+                          <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Label / Title</label>
+                          <input
+                            type="text"
+                            value={item.title}
+                            onChange={(e) => updateQueueFileMetadata(item.id, "title", e.target.value)}
+                            placeholder="Label for students/AI"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Material Type</label>
+                          <select
+                            value={item.type}
+                            onChange={(e) => updateQueueFileMetadata(item.id, "type", e.target.value)}
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-2 text-xs text-white focus:border-indigo-500 focus:outline-none font-medium"
+                          >
+                            <option value="Textbook Chapter">📖 Textbook Chapter</option>
+                            <option value="Notes">📝 Revision Notes</option>
+                            <option value="Reference">📚 Reference Guide</option>
+                            <option value="Diagram">📊 Educational Diagram</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Progress Bar */}
+                    {item.status === 'uploading' && (
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center text-[10px]">
+                          <span className="text-slate-400">Uploading file...</span>
+                          <span className="text-indigo-400 font-bold font-mono">{item.progress}%</span>
+                        </div>
+                        <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-900">
+                          <div 
+                            className="bg-indigo-500 h-full transition-all duration-150 rounded-full"
+                            style={{ width: `${item.progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {item.errorMsg && (
+                      <p className="text-[10px] text-rose-400 font-medium bg-rose-500/5 p-2 rounded-lg border border-rose-500/10">
+                        ⚠️ Error: {item.errorMsg}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center border border-slate-900 rounded-2xl bg-slate-900/10 py-10 min-h-[150px] flex-shrink-0 text-slate-500 text-xs">
+                No files added to upload queue.
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="pt-3 border-t border-slate-850 flex gap-3 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddContent(false);
+                  setUploadQueue([]);
+                }}
+                className="flex-1 py-2.5 rounded-xl border border-slate-800 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-900/40 transition-colors"
+                disabled={uploadQueue.some(f => f.status === 'uploading')}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleUploadQueueMaterials}
+                className="flex-1 py-2.5 bg-indigo-650 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all shadow-md shadow-indigo-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={
+                  uploadQueue.length === 0 || 
+                  uploadQueue.every(f => f.status === 'error' || f.status === 'success') ||
+                  uploadQueue.some(f => f.status === 'uploading')
+                }
+              >
+                {uploadQueue.some(f => f.status === 'uploading') ? "Uploading Materials..." : "Upload Materials"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 5. Infographic Preview Modal */}
+      {showInfographicPreview && infographicPreviewData && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="glass max-w-4xl w-full p-6 border border-slate-700/60 rounded-3xl space-y-6 my-8 bg-slate-950/95 shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3 flex-shrink-0">
+              <div>
+                <h3 className="font-black text-base md:text-lg text-white tracking-wide">🎨 Student View Preview: AI Infographic Map</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Topic: {selectedTopic?.name}</p>
+              </div>
+              <button 
+                onClick={() => {
+                  setShowInfographicPreview(false);
+                  setInfographicPreviewData(null);
+                }} 
+                className="text-slate-400 hover:text-white hover:bg-slate-900 rounded-full p-1.5 transition-colors text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-6 pr-1.5">
+              {/* 1. Header card */}
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 shadow-sm relative overflow-hidden flex flex-col md:flex-row gap-4 items-center flex-shrink-0">
+                <div className="absolute top-0 right-0 p-8 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl -mr-4 -mt-4"></div>
+                <span className="text-4xl">🧠</span>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1.5 font-bold">Material Title</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. TN Maths Book Extract"
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-indigo-500 focus:outline-none"
-                    value={newContent.title}
-                    onChange={(e) => setNewContent({ ...newContent, title: e.target.value })}
-                    required
-                  />
+                  <h4 className="font-black text-sm md:text-base text-indigo-455 dark:text-indigo-400">
+                    {infographicPreviewData.topicTitle || selectedTopic?.name}
+                  </h4>
+                  <p className="text-xs text-slate-350 mt-1 leading-relaxed font-medium">
+                    {infographicPreviewData.overallSummary}
+                  </p>
                 </div>
               </div>
 
-              {/* Dynamic Content Form Fields */}
-              {(newContent.contentType === "PDF" || newContent.contentType === "PPT") && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 font-bold">Document External URL</label>
-                    <input
-                      type="url"
-                      placeholder="e.g. https://www.textbookcorp.tn.gov.in/pdf/10th-Maths-EM.pdf"
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-indigo-500 focus:outline-none"
-                      value={newContent.fileUrl}
-                      onChange={(e) => setNewContent({ ...newContent, fileUrl: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  <div className="border border-dashed border-slate-800 p-4 rounded-xl flex items-center justify-between gap-4">
-                    <div>
-                      <span className="font-bold text-xs text-white block">Mock File Upload</span>
-                      <span className="text-[10px] text-slate-400">Choose a local file to auto-populate title & URL path.</span>
+              {/* 2. Visual Sequence Flow */}
+              <div className="space-y-4">
+                <h5 className="text-[11px] font-black uppercase text-slate-505 tracking-wider flex items-center gap-1.5">
+                  <span>🗺️</span> Conceptual Step-by-Step Flow
+                </h5>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {infographicPreviewData.visualFlow?.map((step: any, idx: number) => (
+                    <div key={idx} className="relative flex flex-col p-4 rounded-xl border border-slate-800 bg-slate-900/20 shadow-xs hover:border-indigo-850 transition-colors">
+                      <div className="flex justify-between items-center mb-2 flex-shrink-0">
+                        <span className="text-lg" title="Concept Icon">{step.icon || "💡"}</span>
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-indigo-950/40 text-indigo-400 rounded-md border border-indigo-500/10">
+                          Step {step.stepNumber || (idx + 1)}
+                        </span>
+                      </div>
+                      <h6 className="font-bold text-xs text-white leading-tight mb-1">{step.title}</h6>
+                      <p className="text-[11px] text-slate-450 leading-relaxed font-medium mt-1">
+                        {step.description}
+                      </p>
                     </div>
-                    <input
-                      type="file"
-                      accept=".pdf,.ppt,.pptx"
-                      onChange={handleLocalFileUpload}
-                      className="text-xs text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20"
-                    />
-                  </div>
+                  ))}
                 </div>
-              )}
+              </div>
 
-              {(newContent.contentType === "SUMMARY" || newContent.contentType === "NOTES") && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 font-bold">Text Document Content</label>
-                    <textarea
-                      placeholder="Write curriculum notes, formulas, summaries, and bilingual explanation mappings here..."
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-indigo-500 focus:outline-none h-44"
-                      value={newContent.fileContent}
-                      onChange={(e) => setNewContent({ ...newContent, fileContent: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  <div className="border border-dashed border-slate-800 p-4 rounded-xl flex items-center justify-between gap-4">
-                    <div>
-                      <span className="font-bold text-xs text-white block">Import Text File</span>
-                      <span className="text-[10px] text-slate-400">Select a local text/markdown file to populate content.</span>
-                    </div>
-                    <input
-                      type="file"
-                      accept=".txt,.md"
-                      onChange={handleLocalFileUpload}
-                      className="text-xs text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {newContent.contentType === "MCQ" && (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center border-b border-slate-850 pb-2">
-                    <span className="text-xs font-bold text-white">Quiz Questions Editor</span>
-                    <button
-                      type="button"
-                      onClick={handleAddQuestionField}
-                      className="text-xs font-black text-indigo-400 hover:text-indigo-300"
-                    >
-                      ➕ Add Question
-                    </button>
-                  </div>
-
-                  <div className="space-y-5 max-h-[300px] overflow-y-auto pr-1">
-                    {newMcqs.map((q, idx) => (
-                      <div key={idx} className="p-4 rounded-2xl border border-slate-900 bg-slate-950 relative space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-bold text-slate-400">Question #{idx + 1}</span>
-                          {newMcqs.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveQuestionField(idx)}
-                              className="text-[10px] text-red-400 hover:underline"
-                            >
-                              Remove
-                            </button>
-                          )}
-                        </div>
-
-                        <div>
-                          <input
-                            type="text"
-                            placeholder="Enter the question text"
-                            className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:border-indigo-500 focus:outline-none"
-                            value={q.question}
-                            onChange={(e) => handleMcqChange(idx, "question", e.target.value)}
-                            required
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          {q.options.map((opt, optIdx) => (
-                            <div key={optIdx} className="flex items-center gap-1.5">
-                              <span className="text-xs font-bold text-slate-400">{String.fromCharCode(65 + optIdx)})</span>
-                              <input
-                                type="text"
-                                placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
-                                className="flex-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-[11px] text-white focus:border-indigo-500 focus:outline-none"
-                                value={opt}
-                                onChange={(e) => handleMcqChange(idx, "options", e.target.value, optIdx)}
-                                required
-                              />
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-3">
-                          <div className="col-span-1">
-                            <label className="block text-[10px] text-slate-500 mb-1 font-bold">Correct Choice</label>
-                            <select
-                              className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
-                              value={q.answer}
-                              onChange={(e) => handleMcqChange(idx, "answer", e.target.value)}
-                            >
-                              <option value="Option A">Option A</option>
-                              <option value="Option B">Option B</option>
-                              <option value="Option C">Option C</option>
-                              <option value="Option D">Option D</option>
-                            </select>
-                          </div>
-                          <div className="col-span-2">
-                            <label className="block text-[10px] text-slate-500 mb-1 font-bold">AI Tutor Explanation / Rationale</label>
-                            <input
-                              type="text"
-                              placeholder="Explanation for students after answering"
-                              className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-[11px] text-white focus:border-indigo-500 focus:outline-none"
-                              value={q.rationale}
-                              onChange={(e) => handleMcqChange(idx, "rationale", e.target.value)}
-                            />
-                          </div>
-                        </div>
+              {/* 3. Key Formulas & Mnemonics split */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Formulas / Facts */}
+                <div className="space-y-3">
+                  <h5 className="text-[11px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+                    <span>🔑</span> Core Formulas & Facts
+                  </h5>
+                  <div className="space-y-2.5">
+                    {infographicPreviewData.keyFormulasOrFacts?.map((item: any, idx: number) => (
+                      <div key={idx} className="p-3.5 rounded-xl border border-amber-500/25 bg-amber-500/5 flex flex-col gap-1">
+                        <span className="font-mono font-bold text-xs text-amber-300 leading-snug break-words">
+                          {item.concept}
+                        </span>
+                        <span className="text-[10px] text-slate-400 leading-relaxed font-medium mt-0.5">
+                          {item.importance}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
 
-              <div className="pt-2 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowAddContent(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-800 text-xs font-bold text-slate-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2.5 bg-indigo-650 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all shadow-md"
-                >
-                  Upload Content
-                </button>
+                {/* Mnemonics */}
+                <div className="space-y-3">
+                  <h5 className="text-[11px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+                    <span>✨</span> AI Memory Tricks (Mnemonics)
+                  </h5>
+                  <div className="space-y-2.5">
+                    {infographicPreviewData.mnemonics?.map((item: any, idx: number) => (
+                      <div key={idx} className="p-3.5 rounded-xl border border-emerald-500/25 bg-emerald-500/5 flex flex-col gap-1">
+                        <span className="font-black text-xs text-emerald-350">
+                          💡 {item.phrase}
+                        </span>
+                        <span className="text-[10px] text-slate-400 leading-relaxed font-medium mt-0.5">
+                          {item.meaning}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </form>
+
+              {/* 4. Active Recall Flashcards */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h5 className="text-[11px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+                    <span>🃏</span> 3D Flip Flashcards (Active Recall)
+                  </h5>
+                  <span className="text-[10px] text-slate-550 font-medium">Click card to reveal answer</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                  {infographicPreviewData.flashcards?.map((card: any, idx: number) => {
+                    const isFlipped = !!flippedCards[idx];
+                    return (
+                      <div 
+                        key={idx}
+                        onClick={() => setFlippedCards(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                        className="h-32 [perspective:800px] cursor-pointer group"
+                      >
+                        <div 
+                          className={`relative w-full h-full duration-500 [transform-style:preserve-3d] transition-transform ${
+                            isFlipped ? '[transform:rotateY(180deg)]' : ''
+                          }`}
+                        >
+                          {/* Front face */}
+                          <div className="absolute inset-0 w-full h-full rounded-xl border border-slate-800 bg-slate-900 p-4 flex flex-col justify-between [backface-visibility:hidden] shadow-xs group-hover:border-indigo-850 transition-colors">
+                            <span className="text-[9px] font-black uppercase text-slate-500 tracking-wider">Question {idx + 1}</span>
+                            <p className="text-xs text-slate-200 font-bold leading-snug line-clamp-3 my-auto">
+                              {card.front}
+                            </p>
+                            <span className="text-[8px] text-slate-450 text-right mt-1 font-bold group-hover:text-indigo-400">🔄 CLICK TO REVEAL</span>
+                          </div>
+
+                          {/* Back face */}
+                          <div className="absolute inset-0 w-full h-full rounded-xl border border-indigo-500/35 bg-indigo-950/40 p-4 flex flex-col justify-between [backface-visibility:hidden] [transform:rotateY(180deg)] shadow-md">
+                            <span className="text-[9px] font-black uppercase text-indigo-455 tracking-wider">Answer / Fact</span>
+                            <p className="text-xs text-indigo-300 font-medium leading-snug line-clamp-4 my-auto">
+                              {card.back}
+                            </p>
+                            <span className="text-[8px] text-indigo-450 text-right mt-1 font-bold">🔄 CLICK TO FLIP BACK</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-800 flex justify-end flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowInfographicPreview(false);
+                  setInfographicPreviewData(null);
+                }}
+                className="py-2 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition-colors"
+              >
+                Close Preview
+              </button>
+            </div>
           </div>
         </div>
       )}

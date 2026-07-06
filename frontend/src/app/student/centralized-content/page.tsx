@@ -152,10 +152,11 @@ interface Unit {
 
 interface Content {
   id: string;
-  contentType: "PDF" | "PPT" | "SUMMARY" | "NOTES" | "MCQ";
+  contentType: string;
   title: string;
   fileUrl: string | null;
   fileContent: string | null;
+  infographic?: any;
   mcqs: Array<{
     question: string;
     options: string[];
@@ -180,7 +181,7 @@ export default function CentralizedContentPage() {
   const [contents, setContents] = useState<Content[]>([]);
   const [loadingContents, setLoadingContents] = useState<boolean>(false);
   
-  const [activeTab, setActiveTab] = useState<"materials" | "summary" | "notes" | "mcq" | "ai">("materials");
+  const [activeTab, setActiveTab] = useState<"materials" | "summary" | "notes" | "mcq" | "ai" | "infographic">("materials");
   
   // MCQ state
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
@@ -192,8 +193,26 @@ export default function CentralizedContentPage() {
   const [isAiTyping, setIsAiTyping] = useState<boolean>(false);
   const [aiLanguage, setAiLanguage] = useState<"bilingual" | "tamil" | "english">("bilingual");
   
+  // AI Infographic State
+  const [infographicData, setInfographicData] = useState<any>(null);
+  const [loadingInfographic, setLoadingInfographic] = useState<boolean>(false);
+  const [flippedCards, setFlippedCards] = useState<Record<number, boolean>>({});
+
+  const toggleFlipCard = (idx: number) => {
+    setFlippedCards(prev => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  useEffect(() => {
+    const infographicItem = contents.find(c => c.contentType === "INFOGRAPHIC");
+    if (infographicItem) {
+      setInfographicData(infographicItem.infographic);
+    } else {
+      setInfographicData(null);
+    }
+  }, [contents]);
 
   // Fetch student profile to get default class standard
   useEffect(() => {
@@ -277,6 +296,8 @@ export default function CentralizedContentPage() {
     setLoadingContents(true);
     setSelectedAnswers({});
     setShowMCQFeedback({});
+    setInfographicData(null);
+    setFlippedCards({});
     setActiveTab("materials");
     
     // Set initial welcome AI message focused on this topic
@@ -573,6 +594,7 @@ export default function CentralizedContentPage() {
                 <div className="px-6 bg-slate-100/30 dark:bg-slate-950/10 border-b border-slate-250/20 dark:border-slate-800/80 flex overflow-x-auto gap-2 py-2">
                   {[
                     { id: "materials", label: "📄 Study Materials", show: true },
+                    { id: "infographic", label: "🎨 AI Infographic Map", show: true },
                     { id: "summary", label: "📝 AI Summary", show: contents.some(c => c.contentType === "SUMMARY") },
                     { id: "notes", label: "📓 Revision Notes", show: contents.some(c => c.contentType === "NOTES") },
                     { id: "mcq", label: "🧠 MCQ Mastery Quiz", show: contents.some(c => c.contentType === "MCQ") },
@@ -611,42 +633,204 @@ export default function CentralizedContentPage() {
                           <h4 className="text-xs font-black uppercase text-slate-450 dark:text-slate-400 tracking-wider">Book Extracts & Presentations</h4>
                           
                           {(() => {
-                            const mats = contents.filter(c => c.contentType === "PDF" || c.contentType === "PPT");
+                            const mats = contents.filter(c => c.contentType === "PDF" || c.contentType === "PPT" || c.contentType.toLowerCase().includes("textbook") || c.contentType.toLowerCase().includes("reference") || c.contentType.toLowerCase().includes("diagram"));
                             if (mats.length === 0) {
                               return (
                                 <div className="text-center py-10 bg-slate-50/50 dark:bg-slate-900/20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
                                   <span className="text-4xl block mb-2">📁</span>
-                                  <p className="text-xs text-slate-500">No PDF/PPT documents uploaded for this subunit.</p>
+                                  <p className="text-xs text-slate-500">No documents uploaded for this subunit.</p>
                                 </div>
                               );
                             }
                             return (
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {mats.map((mat) => (
-                                  <a
-                                    key={mat.id}
-                                    href={mat.fileUrl || "#"}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-md transition-all group bg-slate-50/30 dark:bg-slate-900/10"
-                                  >
-                                    <span className="text-3xl group-hover:scale-110 transition-transform">
-                                      {mat.contentType === "PDF" ? "📕" : "📙"}
-                                    </span>
-                                    <div className="min-w-0 flex-1">
-                                      <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                        {mat.title}
-                                      </h5>
-                                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-1">
-                                        {mat.contentType} Document &bull; Click to open
+                                {mats.map((mat) => {
+                                  const getIcon = (type: string, url: string | null) => {
+                                    const t = type.toLowerCase();
+                                    const u = (url || "").toLowerCase();
+                                    if (u.endsWith(".pdf") || t === "pdf") return "📕";
+                                    if (u.endsWith(".pptx") || u.endsWith(".ppt") || t === "ppt") return "📙";
+                                    if (u.endsWith(".docx") || u.endsWith(".doc")) return "📘";
+                                    if (u.endsWith(".png") || u.endsWith(".jpg") || u.endsWith(".jpeg")) return "🖼️";
+                                    return "📄";
+                                  };
+
+                                  return (
+                                    <a
+                                      key={mat.id}
+                                      href={mat.fileUrl ? `${API_URL}${mat.fileUrl}` : "#"}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-md transition-all group bg-slate-50/30 dark:bg-slate-900/10"
+                                    >
+                                      <span className="text-3xl group-hover:scale-110 transition-transform">
+                                        {getIcon(mat.contentType, mat.fileUrl)}
                                       </span>
-                                    </div>
-                                    <span className="text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity font-bold">→</span>
-                                  </a>
-                                ))}
+                                      <div className="min-w-0 flex-1">
+                                        <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                          {mat.title}
+                                        </h5>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-1">
+                                          {mat.contentType} &bull; Click to open
+                                        </span>
+                                      </div>
+                                      <span className="text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity font-bold">→</span>
+                                    </a>
+                                  );
+                                })}
                               </div>
                             );
                           })()}
+                        </div>
+                      )}
+
+                      {/* T1.5: AI Infographic Visual Map */}
+                      {activeTab === "infographic" && (
+                        <div className="space-y-6 animate-in fade-in duration-300">
+                          {loadingInfographic ? (
+                            <div className="flex flex-col items-center justify-center py-20 flex-1">
+                              <div className="w-12 h-12 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin mb-4" />
+                              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider animate-pulse">Reading PDFs & Materials...</p>
+                              <p className="text-slate-500 text-[10px] mt-1.5">AI is drawing your interactive learning infographic map</p>
+                            </div>
+                          ) : !infographicData ? (
+                            <div className="text-center py-16 bg-slate-50 dark:bg-slate-900/10 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                              <span className="text-5xl block mb-3">🎨</span>
+                              <h4 className="font-bold text-sm text-black dark:text-white mb-2">Visual Infographic Map Not Available</h4>
+                              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                                A visual study map is not generated yet for this topic. Please ask your administrator or teacher to generate the AI concept map.
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-300">
+                              {/* 1. Header card */}
+                              <div className="p-5 rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 shadow-sm relative overflow-hidden flex flex-col md:flex-row gap-4 items-center">
+                                <div className="absolute top-0 right-0 p-8 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl -mr-4 -mt-4"></div>
+                                <span className="text-4xl">🧠</span>
+                                <div>
+                                  <h4 className="font-black text-sm md:text-base text-indigo-450 dark:text-indigo-400">
+                                    {infographicData.topicTitle || selectedTopic.name}
+                                  </h4>
+                                  <p className="text-xs text-slate-700 dark:text-slate-350 mt-1 leading-relaxed font-medium">
+                                    {infographicData.overallSummary}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* 2. Visual Sequence Flow */}
+                              <div className="space-y-4">
+                                <h5 className="text-[11px] font-black uppercase text-slate-450 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                                  <span>🗺️</span> Conceptual Step-by-Step Flow
+                                </h5>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                  {infographicData.visualFlow?.map((step: any, idx: number) => (
+                                    <div key={idx} className="relative flex flex-col p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/20 shadow-xs hover:border-indigo-400 dark:hover:border-indigo-800 transition-colors">
+                                      <div className="flex justify-between items-center mb-2 flex-shrink-0">
+                                        <span className="text-lg" title="Concept Icon">{step.icon || "💡"}</span>
+                                        <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-indigo-105 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 rounded-md border border-indigo-200/10">
+                                          Step {step.stepNumber || (idx + 1)}
+                                        </span>
+                                      </div>
+                                      <h6 className="font-bold text-xs text-black dark:text-white leading-tight mb-1">{step.title}</h6>
+                                      <p className="text-[11px] text-slate-650 dark:text-slate-400 leading-relaxed font-medium mt-1">
+                                        {step.description}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* 3. Key Formulas & Mnemonics split */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Formulas / Facts */}
+                                <div className="space-y-3">
+                                  <h5 className="text-[11px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
+                                    <span>🔑</span> Core Formulas & Facts
+                                  </h5>
+                                  <div className="space-y-2.5">
+                                    {infographicData.keyFormulasOrFacts?.map((item: any, idx: number) => (
+                                      <div key={idx} className="p-3.5 rounded-xl border border-amber-500/25 bg-amber-500/5 hover:bg-amber-500/10 transition-colors flex flex-col gap-1">
+                                        <span className="font-mono font-bold text-xs text-amber-850 dark:text-amber-300 leading-snug break-words">
+                                          {item.concept}
+                                        </span>
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium mt-0.5">
+                                          {item.importance}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Mnemonics */}
+                                <div className="space-y-3">
+                                  <h5 className="text-[11px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
+                                    <span>✨</span> AI Memory Tricks (Mnemonics)
+                                  </h5>
+                                  <div className="space-y-2.5">
+                                    {infographicData.mnemonics?.map((item: any, idx: number) => (
+                                      <div key={idx} className="p-3.5 rounded-xl border border-emerald-500/25 bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors flex flex-col gap-1">
+                                        <span className="font-black text-xs text-emerald-850 dark:text-emerald-300">
+                                          💡 {item.phrase}
+                                        </span>
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium mt-0.5">
+                                          {item.meaning}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* 4. Active Recall Flashcards */}
+                              <div className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                  <h5 className="text-[11px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
+                                    <span>🃏</span> 3D Flip Flashcards (Active Recall)
+                                  </h5>
+                                  <span className="text-[10px] text-slate-500 font-medium">Click card to reveal answer</span>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                  {infographicData.flashcards?.map((card: any, idx: number) => {
+                                    const isFlipped = !!flippedCards[idx];
+                                    return (
+                                      <div 
+                                        key={idx}
+                                        onClick={() => toggleFlipCard(idx)}
+                                        className="h-32 [perspective:800px] cursor-pointer group"
+                                      >
+                                        <div 
+                                          className={`relative w-full h-full duration-500 [transform-style:preserve-3d] transition-transform ${
+                                            isFlipped ? '[transform:rotateY(180deg)]' : ''
+                                          }`}
+                                        >
+                                          {/* Front face */}
+                                          <div className="absolute inset-0 w-full h-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col justify-between [backface-visibility:hidden] shadow-xs group-hover:border-indigo-400 dark:group-hover:border-indigo-850 transition-colors">
+                                            <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Question {idx + 1}</span>
+                                            <p className="text-xs text-slate-800 dark:text-slate-200 font-bold leading-snug line-clamp-3 my-auto">
+                                              {card.front}
+                                            </p>
+                                            <span className="text-[8px] text-slate-450 text-right mt-1 font-bold group-hover:text-indigo-500">🔄 CLICK TO REVEAL</span>
+                                          </div>
+
+                                          {/* Back face */}
+                                          <div className="absolute inset-0 w-full h-full rounded-xl border border-indigo-500/35 bg-indigo-950/20 dark:bg-indigo-950/40 p-4 flex flex-col justify-between [backface-visibility:hidden] [transform:rotateY(180deg)] shadow-md">
+                                            <span className="text-[9px] font-black uppercase text-indigo-400 tracking-wider">Answer / Fact</span>
+                                            <p className="text-xs text-indigo-300 font-medium leading-snug line-clamp-4 my-auto">
+                                              {card.back}
+                                            </p>
+                                            <span className="text-[8px] text-indigo-400/80 text-right mt-1 font-bold">🔄 CLICK TO FLIP BACK</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                            </div>
+                          )}
                         </div>
                       )}
 

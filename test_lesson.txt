@@ -1,0 +1,11 @@
+Cartesian Product of two sets A and B, denoted by A x B, is the set of all ordered pairs (a, b) such that a belongs to A and b belongs to B.
+A x B = { (a,b) | a in A, b in B }
+For example, if A = {1, 2} and B = {a, b}, then A x B = {(1, a), (1, b), (2, a), (2, b)}.
+Mnemonic: 'All Pairs' - pick one from the first set, and match with each one of the second set!
+Fact: The number of elements in A x B is the product of number of elements in A and B: n(A x B) = n(A) * n(B).
+Relations are subsets of Cartesian Products.
+A relation R from a non-empty set A to a non-empty set B is a subset of the Cartesian Product A x B.
+The domain of R is { a in A | (a, b) in R for some b in B }.
+The range of R is { b in B | (a, b) in R for some a in A }.
+The codomain of relation R is the entire set B.
+Range is always a subset of the Codomain.
