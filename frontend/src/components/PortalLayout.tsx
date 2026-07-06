@@ -279,10 +279,40 @@ export default function PortalLayout({
   const resolvedAccentColor = isDark ? "#2dce89" : (accentColor || currentConfig?.accentColor || "#6366f1");
   const resolvedThemeClass = themeClass || currentConfig?.themeClass || "theme-student";
   const resolvedNavItems = navItems || currentConfig?.navItems || [];
+  
+  // Subject-wise filtering mapping for interactive modules
+  const subjectRoutes: Record<string, string[]> = {
+    "Mathematics": ["/teacher/maths-formulas"],
+    "Science": ["/teacher/science-draw-mat", "/teacher/science-lab-support", "/teacher/chemistry-lab", "/teacher/zoology-centre"],
+    "Physics": ["/teacher/science-draw-mat", "/teacher/science-lab-support"],
+    "Chemistry": ["/teacher/chemistry-lab", "/teacher/science-lab-support"],
+    "Biology": ["/teacher/zoology-centre", "/teacher/science-lab-support"],
+    "Zoology": ["/teacher/zoology-centre", "/teacher/science-lab-support"],
+    "Botany": ["/teacher/science-lab-support"],
+    "English": ["/teacher/language-coaching"],
+    "Tamil": ["/teacher/language-coaching"],
+    "Computer Science": ["/teacher/computer-education"],
+  };
+
+  const subjectRestrictedRoutes = new Set(Object.values(subjectRoutes).flat());
+  const userSubject = (session?.user as any)?.subject || "";
+
   const filteredNavItems: NavItem[] =
     userRole === "SUPERADMIN"
       ? resolvedNavItems
-      : resolvedNavItems.filter((item) => item.href === "#" || item.label === "---" || !disabledRoutes.has(item.href));
+      : resolvedNavItems.filter((item) => {
+          if (item.href !== "#" && item.label !== "---" && disabledRoutes.has(item.href)) {
+            return false;
+          }
+          
+          if (userRole === "TEACHER" && subjectRestrictedRoutes.has(item.href)) {
+            // It's a restricted route, check if teacher's subject allows it
+            const allowedRoutesForSubject = subjectRoutes[userSubject] || [];
+            return allowedRoutesForSubject.includes(item.href);
+          }
+          
+          return true;
+        });
   const resolvedTitle = title || currentConfig?.title || "Portal Dashboard";
   let resolvedSubtitle = subtitle || currentConfig?.subtitle || "";
   if (session?.user?.name) {
