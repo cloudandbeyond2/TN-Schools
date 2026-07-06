@@ -186,6 +186,12 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
       { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
+
+      // ── Support & Safety ──────────────────────────────
+      { label: "---", href: "#", icon: "" },
+      { label: "Support & Safety", href: "#", icon: "" },
+      { label: "Personal Counsellor", href: "/student/counsellor", icon: "Heart" },
+      { label: "Report a Concern", href: "/student/report", icon: "ShieldAlert" },
     ],
   },
   STUDENT_HIGH: {
@@ -260,6 +266,12 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
       { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
+
+      // ── Support & Safety ──────────────────────────────
+      { label: "---", href: "#", icon: "" },
+      { label: "Support & Safety", href: "#", icon: "" },
+      { label: "Personal Counsellor", href: "/student/counsellor", icon: "Heart" },
+      { label: "Report a Concern", href: "/student/report", icon: "ShieldAlert" },
     ],
   },
   STUDENT_HIGHER: {
@@ -333,6 +345,12 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Learning Platform", href: "/student/higher-secondary/learning-platform", icon: "Monitor" },
       { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
+
+      // ── Support & Safety ──────────────────────────────
+      { label: "---", href: "#", icon: "" },
+      { label: "Support & Safety", href: "#", icon: "" },
+      { label: "Personal Counsellor", href: "/student/counsellor", icon: "Heart" },
+      { label: "Report a Concern", href: "/student/report", icon: "ShieldAlert" },
     ],
   },
 
