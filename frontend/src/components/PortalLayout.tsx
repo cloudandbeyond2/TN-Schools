@@ -560,7 +560,6 @@ export default function PortalLayout({
           </button>
         </div>
       </aside>
-      )}
 
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
