@@ -33,7 +33,7 @@
 ### Core Capabilities
 - Multi-role dashboards for 9 distinct roles (Minister to Student)
 - Real-time attendance, marks, and homework tracking
-- AI-powered lesson plan generation, grading (OCR), and question banks (via Gemini)
+- AI-powered lesson plan generation, grading (OCR), and question banks (via Smart Assistant)
 - Parent portal with child progress visibility and direct messaging
 - School asset, mid-day meal, PTA, and alumni management
 - State-wide analytics from Block to District to State level
@@ -50,7 +50,7 @@
 | **ORM** | Prisma | 5.10 |
 | **Primary DB** | PostgreSQL (Google Cloud SQL) | — |
 | **Secondary DB** | MongoDB Atlas (via Mongoose) | — |
-| **AI** | Google Gemini API | — |
+| **AI** | Google Smart Assistant API | — |
 | **Auth** | NextAuth.js | — |
 | **Deployment** | Vercel (frontend) + Cloud Run (backend) | — |
 
@@ -611,7 +611,7 @@ GET    /api/attendance/student/:studentId      Student's attendance history
 ### AI (`/api/ai/`)
 
 ```
-POST   /api/ai/lesson-plan      Generate lesson plan (Gemini AI)
+POST   /api/ai/lesson-plan      Generate lesson plan (Smart Assistant)
 POST   /api/ai/grade            AI-assisted OCR grading
 POST   /api/ai/questions        Generate question bank
 GET    /api/ai/chat             AI Q&A assistant
@@ -812,7 +812,7 @@ Minister:
 - Parent notifications on attendance updates
 - Headmaster portal (19 sub-pages scaffolded)
 - Teacher portal (34 sub-pages scaffolded)
-- AI lesson plan generation (Gemini)
+- AI lesson plan generation (Smart Assistant)
 - AI OCR grading
 - AI question bank generation
 - Portfolio management (skills, projects, achievements with sub-tables)

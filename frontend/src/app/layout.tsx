@@ -31,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${poppins.variable} ${notoSansTamil.variable} font-sans`}>
+      <body className={`${poppins.variable} ${notoSansTamil.variable} font-sans`} suppressHydrationWarning>
         <ThemeProvider>
           <NextAuthProvider>{children}</NextAuthProvider>
         </ThemeProvider>
