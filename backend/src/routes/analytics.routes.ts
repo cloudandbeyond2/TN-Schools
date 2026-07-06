@@ -6,13 +6,15 @@ import {
   listAcademicYears,
   currentAcademicYear,
   yearToDateRange,
+  normalizeYear,
+  yearVariants,
 } from '../services/kpi.service';
 
 const router = Router();
 
 function resolveYear(req: Request): string {
-  const y = req.query.academicYear ? String(req.query.academicYear) : '';
-  return /^\d{4}-\d{2}$/.test(y) ? y : currentAcademicYear();
+  const y = normalizeYear(req.query.academicYear ? String(req.query.academicYear) : '');
+  return y || currentAcademicYear();
 }
 
 // ─── GET /api/analytics/academic-years ───────────────────────────
@@ -133,8 +135,8 @@ router.get('/student/:studentId', async (req: Request, res: Response) => {
     if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
 
     // Past year with a snapshot → serve the snapshot
-    const history = await prisma.studentAcademicHistory.findUnique({
-      where: { studentId_academicYear: { studentId, academicYear: year } },
+    const history = await prisma.studentAcademicHistory.findFirst({
+      where: { studentId, academicYear: { in: yearVariants(year) } },
     });
     if (history) {
       return res.json({
@@ -168,7 +170,7 @@ router.get('/student/:studentId', async (req: Request, res: Response) => {
 
     const marks = await prisma.mark.groupBy({
       by: ['subject'],
-      where: { studentId, academicYear: year },
+      where: { studentId, academicYear: { in: yearVariants(year) } },
       _sum: { scored: true, maxMarks: true },
       _count: { _all: true },
     });
