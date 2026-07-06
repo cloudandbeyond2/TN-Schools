@@ -53,6 +53,7 @@ model School {
   teachers            Teacher[]
   timetables          Timetable[]
   users               User[]
+  promotionBatches    PromotionBatch[]
 
   @@index([beoId])
   @@index([deoId])
@@ -136,6 +137,8 @@ model Student {
   watchlistEntry        WatchlistStudent?
   injuryReports         InjuryReport[]
   storyProgress         StudentStoryProgress[]
+  promotionRecords      PromotionRecord[]
+  academicHistory       StudentAcademicHistory[]
   school                School                @relation(fields: [schoolId], references: [id])
 
   @@index([classRoomId])
@@ -1206,6 +1209,20 @@ enum ScholarshipStatus {
   DISBURSED
 }
 
+enum PromotionBatchStatus {
+  DRAFT
+  PENDING_BEO_APPROVAL
+  APPROVED
+  REJECTED
+}
+
+enum PromotionResult {
+  PROMOTED
+  DETAINED
+  TRANSFERRED
+  GRADUATED
+}
+
 model StoryBook {
   id            String                 @id @default(uuid())
   title         String
@@ -1370,6 +1387,9 @@ model CompetitiveExam {
   status               String   @default("Upcoming")
   eligibility          String   @default("N/A")
   website              String?
+  examLevel            String?
+  requiredSubjects     String[] @default([])
+  applicableGroups     String[] @default([])
   studentsEnrolled     Int      @default(0)
   studentsCleared      Int      @default(0)
   schoolId             String?
@@ -1379,4 +1399,68 @@ model CompetitiveExam {
 
   @@index([schoolId])
   @@index([teacherId])
+}
+
+// ─── Academic Year Promotion (HM initiates, BEO approves) ────────
+model PromotionBatch {
+  id               String               @id @default(uuid())
+  schoolId         String
+  school           School               @relation(fields: [schoolId], references: [id])
+  fromClass        String
+  fromAcademicYear String
+  toAcademicYear   String
+  status           PromotionBatchStatus @default(DRAFT)
+  submittedById    String?
+  submittedAt      DateTime?
+  reviewedById     String?
+  reviewedAt       DateTime?
+  reviewRemarks    String?
+  executedAt       DateTime?
+  records          PromotionRecord[]
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  @@unique([schoolId, fromClass, fromAcademicYear])
+  @@index([schoolId, status])
+  @@index([status])
+}
+
+model PromotionRecord {
+  id        String          @id @default(uuid())
+  batchId   String
+  batch     PromotionBatch  @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  studentId String
+  student   Student         @relation(fields: [studentId], references: [id])
+  result    PromotionResult @default(PROMOTED)
+  toClass   String?
+  toSection String?
+  toGroup   String?
+  remarks   String?
+  applied   Boolean         @default(false)
+
+  @@unique([batchId, studentId])
+  @@index([studentId])
+}
+
+model StudentAcademicHistory {
+  id                String           @id @default(uuid())
+  studentId         String
+  student           Student          @relation(fields: [studentId], references: [id])
+  schoolId          String
+  academicYear      String
+  class             String
+  section           String
+  group             String?
+  rollNumber        String?
+  result            PromotionResult?
+  attendancePct     Float?
+  daysPresent       Int?
+  totalWorkingDays  Int?
+  averageMarksPct   Float?
+  marksSummary      Json?
+  promotionRecordId String?
+  createdAt         DateTime         @default(now())
+
+  @@unique([studentId, academicYear])
+  @@index([schoolId, academicYear])
 }

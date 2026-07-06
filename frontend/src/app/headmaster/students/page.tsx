@@ -116,6 +116,40 @@ export default function StudentsMonitoringPage() {
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
   const [schools, setSchools] = useState<{ id: string; name: string }[]>([]);
   const [classStats] = useState<ClassStat[]>([]);
+  // Official TN HSC group codes (DGE Annexure I) for the 11th/12th Group field
+  const [hscGroups, setHscGroups] = useState<{ code: string; name: string; streamCategory: string }[]>([]);
+  const [streamLabels, setStreamLabels] = useState<Record<string, string>>({});
+  useEffect(() => {
+    fetch(`${API_BASE}/api/competitive-exams/groups`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success) {
+          setHscGroups(json.data);
+          setStreamLabels(json.streamLabels || {});
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Academic history modal (archived years written by promotion approvals)
+  const [historyStudent, setHistoryStudent] = useState<WatchlistStudent | null>(null);
+  const [historyRows, setHistoryRows] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const handleViewHistory = async (s: WatchlistStudent) => {
+    if (!s.id) return;
+    setHistoryStudent(s);
+    setHistoryLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/promotions/history/student/${s.id}`);
+      const json = await res.json();
+      setHistoryRows(json.success ? json.data : []);
+    } catch {
+      setHistoryRows([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
 
   const [watchlist, setWatchlist] = useState<WatchlistStudent[]>([]);
@@ -977,6 +1011,15 @@ export default function StudentsMonitoringPage() {
                           )}
                           {s.id && (
                             <button
+                              onClick={() => handleViewHistory(s)}
+                              className="p-1.5 bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 rounded-md transition-colors"
+                              title="Academic History"
+                            >
+                              <Clock className="w-4 h-4" />
+                            </button>
+                          )}
+                          {s.id && (
+                            <button
                               onClick={() => {
                                 setStudentToDelete(s);
                                 setIsDeleteConfirmOpen(true);
@@ -1381,21 +1424,20 @@ export default function StudentsMonitoringPage() {
                     </div>
                     {(newClass.includes("11") || newClass.includes("12")) && (
                       <div className="col-span-2">
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Group</label>
+                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">HSC Group (DGE code)</label>
                         <select value={newGroup} onChange={(e) => setNewGroup(e.target.value)} className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-1.5 text-xs text-blue-900 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
                           <option value="">Select Group</option>
-                          <option value="Computer Science">Computer Science</option>
-                          <option value="Bio-Maths">Bio-Maths</option>
-                          <option value="Biology">Biology</option>
-                          <option value="Commerce">Commerce</option>
-                          <option value="Commerce with Computer Applications">Commerce with Computer Applications</option>
-                          <option value="Computer Applications">Computer Applications</option>
-                          <option value="Pure Science">Pure Science</option>
-                          <option value="Humanities">Humanities</option>
-                          <option value="History">History</option>
-                          <option value="Vocational">Vocational</option>
-                          <option value="Agriculture / Technical Vocational">Agriculture / Technical Vocational</option>
+                          {Object.keys(streamLabels).map((stream) => (
+                            <optgroup key={stream} label={streamLabels[stream] || stream}>
+                              {hscGroups
+                                .filter((g) => g.streamCategory === stream)
+                                .map((g) => (
+                                  <option key={g.code} value={g.code}>{g.name}</option>
+                                ))}
+                            </optgroup>
+                          ))}
                         </select>
+                        <p className="text-[9px] text-slate-400 mt-1">Official Annexure-I group codes — used for competitive exam recommendations on the student panel.</p>
                       </div>
                     )}
                     <div>
@@ -1850,6 +1892,76 @@ export default function StudentsMonitoringPage() {
                 Delete Student
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Academic History Modal */}
+      {historyStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-[24px] w-full max-w-2xl p-6 shadow-2xl relative border border-slate-100 animate-in fade-in zoom-in-95 duration-200 text-left max-h-[85vh] overflow-y-auto">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-extrabold text-slate-800">Academic History</h3>
+                <p className="text-xs text-slate-500">{historyStudent.name} · Roll {historyStudent.rollNumber} · Currently Class {historyStudent.class}</p>
+              </div>
+              <button onClick={() => setHistoryStudent(null)} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-md">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            {historyLoading ? (
+              <div className="py-10 text-center text-slate-400 text-sm">Loading…</div>
+            ) : historyRows.length === 0 ? (
+              <div className="py-10 text-center text-slate-400 text-sm">
+                No archived academic years yet. History is written when a promotion batch is approved by the BEO.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {historyRows.map((row: any) => (
+                  <div key={row.id} className="border border-slate-200 rounded-2xl p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <span className="text-sm font-extrabold text-slate-800">Class {row.class} · Sec {row.section}</span>
+                        {row.group && <span className="text-xs font-bold text-violet-600 ml-2">Group {row.group}</span>}
+                        <div className="text-[11px] text-slate-500">{row.academicYear}{row.rollNumber ? ` · Roll ${row.rollNumber}` : ""}</div>
+                      </div>
+                      <div className="flex items-center gap-4 text-right">
+                        <div>
+                          <div className="text-[10px] text-slate-400 font-semibold">Attendance</div>
+                          <div className="text-sm font-extrabold text-slate-700">{row.attendancePct != null ? `${row.attendancePct}%` : "—"}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] text-slate-400 font-semibold">Avg Marks</div>
+                          <div className="text-sm font-extrabold text-slate-700">{row.averageMarksPct != null ? `${row.averageMarksPct}%` : "—"}</div>
+                        </div>
+                        {row.result && (
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
+                            row.result === "PROMOTED" || row.result === "GRADUATED"
+                              ? "bg-emerald-50 text-emerald-600"
+                              : row.result === "DETAINED"
+                              ? "bg-amber-50 text-amber-600"
+                              : "bg-slate-100 text-slate-500"
+                          }`}>
+                            {row.result}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {Array.isArray(row.marksSummary) && row.marksSummary.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+                        {row.marksSummary.map((m: any) => (
+                          <div key={m.subject} className="bg-slate-50 rounded-lg px-2.5 py-1.5 text-[11px] flex justify-between">
+                            <span className="font-semibold text-slate-600 truncate">{m.subject}</span>
+                            <span className={`font-extrabold ${m.pct != null && m.pct < 35 ? "text-rose-500" : "text-slate-700"}`}>
+                              {m.pct != null ? `${m.pct}%` : "—"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

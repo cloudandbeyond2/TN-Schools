@@ -1,5 +1,6 @@
 "use client";
 import PortalLayout from "@/components/PortalLayout";
+import KpiStrip from "@/components/kpi/KpiStrip";
 
 
 const districts = [
@@ -14,24 +15,8 @@ const districts = [
 export default function CommissionerDashboard() {
   return (
     <PortalLayout>
-      {/* State-level KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
-        {[
-          { label: "Total Schools", value: "37,404", icon: "🏫", color: "text-cyan-400", sub: "38 Districts" },
-          { label: "Total Students", value: "47.2 Lakh", icon: "👨‍🎓", color: "text-emerald-400", sub: "Enrolled 2025" },
-          { label: "State Attendance", value: "88.4%", icon: "📅", color: "text-amber-400", sub: "This quarter" },
-          { label: "Budget Utilized", value: "₹4,821 Cr", icon: "💰", color: "text-cyan-400", sub: "67% of allocation" },
-        ].map((kpi) => (
-          <div key={kpi.label} className="kpi-card">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{kpi.icon}</span>
-              <span className={`text-xs font-medium ${kpi.color}`}>{kpi.sub}</span>
-            </div>
-            <div className={`text-3xl font-bold ${kpi.color} mb-1`}>{kpi.value}</div>
-            <div className="text-xs text-slate-500">{kpi.label}</div>
-          </div>
-        ))}
-      </div>
+      {/* State-level KPIs — real academic-year analytics */}
+      <KpiStrip path="/api/analytics/state" title="State KPIs" />
 
       {/* Budget Utilization */}
       <div className="glass rounded-2xl p-6 mb-6 fade-in-2">

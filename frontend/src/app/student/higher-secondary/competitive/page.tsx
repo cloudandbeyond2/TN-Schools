@@ -1,8 +1,10 @@
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
+import GroupAwareExamList from "@/components/GroupAwareExamList";
 import Link from "next/link";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 const mockTests = [
   { name: "NEET Full Syllabus Mock 4", date: "Coming Sunday, 10:00 AM", duration: "3 Hours", status: "Upcoming", color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/30" },
@@ -18,6 +20,9 @@ const subjectCoverage = [
 
 export default function CompetitivePrepPage() {
   const [activeTab, setActiveTab] = useState("NEET");
+  const { data: session } = useSession();
+  const studentId = (session?.user as any)?.studentId || null;
+  const studentClass = (session?.user as any)?.class || null;
 
   return (
     <PortalLayout
@@ -48,8 +53,13 @@ export default function CompetitivePrepPage() {
         </Link>
       </div>
 
+      {/* Group-wise exam guidance (TN HSC Annexure-I groups) */}
+      <div className="mb-6">
+        <GroupAwareExamList studentId={studentId} studentClass={studentClass} />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
            

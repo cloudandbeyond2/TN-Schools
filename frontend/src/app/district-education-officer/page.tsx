@@ -1,5 +1,8 @@
 "use client";
+import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import KpiStrip from "@/components/kpi/KpiStrip";
+import { API_BASE } from "@/components/kpi/useKpis";
 
 
 const blocks = [
@@ -11,6 +14,21 @@ const blocks = [
 ];
 
 export default function DEODashboard() {
+  const [districts, setDistricts] = useState<string[]>([]);
+  const [district, setDistrict] = useState<string>("");
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/schools`)
+      .then((r) => r.json())
+      .then((json) => {
+        const list: any[] = Array.isArray(json) ? json : json.data || [];
+        const uniq = Array.from(new Set(list.map((s: any) => s.district).filter(Boolean))).sort() as string[];
+        setDistricts(uniq);
+        setDistrict((d) => d || uniq[0] || "");
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <PortalLayout
       title="DEO Dashboard"
@@ -20,24 +38,22 @@ export default function DEODashboard() {
       themeClass="theme-deo"
       accentColor="#ec4899"
     >
-      {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
-        {[
-          { label: "District Schools", value: "93", icon: "🏫", color: "text-pink-400", sub: "5 blocks" },
-          { label: "Total Students", value: "84,350", icon: "👨‍🎓", color: "text-emerald-400", sub: "Enrolled" },
-          { label: "District Attendance", value: "87%", icon: "📅", color: "text-amber-400", sub: "This month" },
-          { label: "Dropout Count", value: "171", icon: "⚠️", color: "text-red-400", sub: "This academic year" },
-        ].map((kpi) => (
-          <div key={kpi.label} className="kpi-card">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{kpi.icon}</span>
-              <span className={`text-xs font-medium ${kpi.color}`}>{kpi.sub}</span>
-            </div>
-            <div className={`text-3xl font-bold ${kpi.color} mb-1`}>{kpi.value}</div>
-            <div className="text-xs text-slate-500">{kpi.label}</div>
-          </div>
-        ))}
-      </div>
+      {/* Real academic-year KPIs for the selected district */}
+      <KpiStrip
+        path={district ? `/api/analytics/district/${encodeURIComponent(district)}` : null}
+        title={`District KPIs${district ? ` — ${district}` : ""}`}
+        controls={
+          <select
+            value={district}
+            onChange={(e) => setDistrict(e.target.value)}
+            className="bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"
+          >
+            {districts.map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+        }
+      />
 
       {/* Block-wise Comparison */}
       <div className="glass rounded-2xl p-6 mb-6 fade-in-2">

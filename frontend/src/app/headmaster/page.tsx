@@ -4,6 +4,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
+import { Users, GraduationCap, CalendarCheck, BookOpenCheck, TrendingUp, ArrowUpCircle } from "lucide-react";
+import KpiCard from "@/components/kpi/KpiCard";
+import AcademicYearSelect from "@/components/kpi/AcademicYearSelect";
+import DistributionBar from "@/components/kpi/DistributionBar";
+import { useKpis, useAcademicYears } from "@/components/kpi/useKpis";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -35,6 +40,12 @@ export default function HeadmasterDashboard() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [students, setStudents] = useState<StudentRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const { years, selected: academicYear, setSelected: setAcademicYear } = useAcademicYears();
+  const { data: kpis, loading: kpisLoading } = useKpis(
+    mySchoolId ? `/api/analytics/school/${mySchoolId}` : null,
+    academicYear
+  );
 
   const fetchDashboardData = useCallback(async () => {
     if (!mySchoolId) return;
@@ -68,53 +79,99 @@ export default function HeadmasterDashboard() {
 
   return (
     <PortalLayout>
-      {/* KPI Row */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-6 fade-in">
-        {[
-          {
-            label: "Total Students",
-            value: isLoading ? "..." : totalStudents.toString(),
-            icon: "👨‍🎓",
-            color: "text-blue-400",
-            bg: "bg-blue-500/10",
-            sub: "Watchlist records",
-          },
-          {
-            label: "Teaching Staff",
-            value: isLoading ? "..." : totalStaff.toString(),
-            icon: "👩‍🏫",
-            color: "text-amber-400",
-            bg: "bg-amber-500/10",
-            sub: isLoading ? "Loading..." : `${excellentStaff} excellent`,
-          },
-          {
-            label: "High Risk Students",
-            value: isLoading ? "..." : highRisk.toString(),
-            icon: "⚠️",
-            color: "text-red-400",
-            bg: "bg-red-500/10",
-            sub: "Needs intervention",
-          },
-          {
-            label: "Safe Students",
-            value: isLoading ? "..." : (totalStudents - highRisk).toString(),
-            icon: "✅",
-            color: "text-emerald-400",
-            bg: "bg-emerald-500/10",
-            sub: "Low / Medium risk",
-          },
-        ].map((kpi) => (
-          <div key={kpi.label} className="glass rounded-2xl p-3 sm:p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all shadow-sm">
-            <div className="flex flex-col text-left min-w-0">
-              <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{kpi.label}</span>
-              <span className={`text-sm sm:text-2xl font-black ${kpi.color} mt-1`}>{kpi.value}</span>
-              <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold mt-0.5 truncate">{kpi.sub}</span>
-            </div>
-            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-sm sm:text-lg ${kpi.bg} ${kpi.color} shrink-0 ml-2 shadow-sm`}>
-              {kpi.icon}
-            </div>
+      {/* Academic-year KPI header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 fade-in">
+        <div>
+          <h2 className="text-base font-semibold text-white">📊 School KPIs</h2>
+          <p className="text-[11px] text-slate-500">
+            {kpis?.source === "snapshot" ? "Archived year — data from academic history records" : "Live data for the selected academic year"}
+          </p>
+        </div>
+        <AcademicYearSelect years={years} value={academicYear} onChange={setAcademicYear} />
+      </div>
+
+      {/* KPI Row — real academic-year analytics */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-4 fade-in">
+        <KpiCard
+          label="Enrolled Students"
+          value={kpisLoading || !kpis ? "…" : kpis.enrollment.total}
+          icon={GraduationCap}
+          color="text-blue-400"
+          sub={academicYear ? `Academic year ${academicYear}` : undefined}
+        />
+        <KpiCard
+          label="Attendance"
+          value={kpisLoading || !kpis ? "…" : kpis.attendancePct != null ? `${kpis.attendancePct}%` : "—"}
+          icon={CalendarCheck}
+          color="text-emerald-400"
+          sub="School-wide average"
+        />
+        <KpiCard
+          label="Pass Rate"
+          value={kpisLoading || !kpis ? "…" : kpis.marks.passPct != null ? `${kpis.marks.passPct}%` : "—"}
+          icon={BookOpenCheck}
+          color="text-violet-400"
+          sub={kpis?.marks.averagePct != null ? `Avg marks ${kpis.marks.averagePct}%` : "Marks ≥ 35%"}
+        />
+        <KpiCard
+          label="Teaching Staff"
+          value={kpisLoading || !kpis ? "…" : kpis.teachers.total || totalStaff}
+          icon={Users}
+          color="text-amber-400"
+          sub={`${excellentStaff} rated excellent`}
+        />
+      </div>
+
+      {/* Distributions + promotion outcomes */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 fade-in-2">
+        <div className="lg:col-span-2 glass rounded-2xl p-5 border border-slate-800 space-y-5">
+          <DistributionBar title="Enrollment by class" data={kpis?.enrollment.byClass || {}} labelPrefix="Class " />
+          <DistributionBar title="Gender split" data={kpis?.enrollment.byGender || {}} />
+        </div>
+        <div className="glass rounded-2xl p-5 border border-slate-800">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Promotions ({academicYear || "—"})</span>
+            <Link href="/headmaster/promotions" className="text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1">
+              <ArrowUpCircle size={11} /> Manage →
+            </Link>
           </div>
-        ))}
+          {kpis ? (
+            <div className="space-y-2 text-xs">
+              {[
+                { label: "Promoted", value: kpis.promotions.promoted, color: "text-emerald-400" },
+                { label: "Graduated (12th)", value: kpis.promotions.graduated, color: "text-violet-400" },
+                { label: "Detained", value: kpis.promotions.detained, color: "text-amber-400" },
+                { label: "Transferred out", value: kpis.promotions.transferred, color: "text-slate-300" },
+              ].map((row) => (
+                <div key={row.label} className="flex justify-between">
+                  <span className="text-slate-400">{row.label}</span>
+                  <span className={`font-bold ${row.color}`}>{row.value}</span>
+                </div>
+              ))}
+              <div className="pt-2 mt-2 border-t border-slate-800 flex justify-between">
+                <span className="text-slate-500">Batches awaiting BEO</span>
+                <span className={`font-bold ${kpis.promotions.pendingBatches > 0 ? "text-amber-400" : "text-slate-300"}`}>
+                  {kpis.promotions.pendingBatches}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs text-slate-500">Loading…</div>
+          )}
+        </div>
+      </div>
+
+      {/* Risk summary row (live watchlist) */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-6 fade-in">
+        <KpiCard label="High Risk Students" value={isLoading ? "…" : highRisk} icon={TrendingUp} color="text-red-400" sub="Needs intervention" />
+        <KpiCard label="Safe Students" value={isLoading ? "…" : totalStudents - highRisk} color="text-emerald-400" sub="Low / medium risk" />
+        <KpiCard label="Watchlist Records" value={isLoading ? "…" : totalStudents} color="text-blue-400" sub="Student monitoring" />
+        <KpiCard
+          label="Detained This Year"
+          value={kpis ? kpis.promotions.detained : "…"}
+          color="text-amber-400"
+          sub="Re-enrolled in same class"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">

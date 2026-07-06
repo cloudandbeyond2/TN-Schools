@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import GroupAwareExamList from "@/components/GroupAwareExamList";
 import { useSession } from "next-auth/react";
 
 interface Exam {
@@ -65,6 +66,9 @@ const statusDot: Record<string, string> = {
 export default function StudentCompetitiveExamsPage() {
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
+  const studentId = (session?.user as any)?.studentId || null;
+  const studentClass = (session?.user as any)?.class || null;
+  const isHscStudent = ["11", "12"].includes(String(studentClass));
 
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
@@ -163,6 +167,9 @@ export default function StudentCompetitiveExamsPage() {
             ))}
           </div>
         </div>
+
+        {/* ── Group-wise guidance for 11th–12th (TN HSC groups) ── */}
+        {isHscStudent && <GroupAwareExamList studentId={studentId} studentClass={studentClass} />}
 
         {/* ── Tabs ────────────────────────────────────────────── */}
         <div className="flex gap-1 bg-slate-100 dark:bg-slate-900 rounded-xl p-1 w-fit">
