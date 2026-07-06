@@ -53,7 +53,7 @@ export default function PersonalKpiStrip({ studentId, title = "My Academic KPIs"
 
   if (!studentId) return null;
 
-  const v = (val: React.ReactNode) => (loading || !data ? "…" : val);
+  const v = (val: string | number): string | number => (loading || !data ? "…" : val);
   const dark = variant === "dark";
 
   return (

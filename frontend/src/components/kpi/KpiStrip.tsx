@@ -25,7 +25,7 @@ export default function KpiStrip({ path, extraParams, title = "Academic KPIs", v
   const { data: kpis, loading } = useKpis(path, academicYear, extraParams);
 
   const dark = variant === "dark";
-  const v = (val: React.ReactNode) => (loading || !kpis ? "…" : val);
+  const v = (val: string | number): string | number => (loading || !kpis ? "…" : val);
 
   return (
     <div className="mb-6">

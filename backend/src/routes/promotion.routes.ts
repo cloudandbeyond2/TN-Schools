@@ -1,17 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { yearToDateRange, yearVariants, normalizeYear } from '../services/kpi.service';
 
 const router = Router();
 
 // ─── Helpers ──────────────────────────────────────────────────────
-
-// "2024-25" → [2024-06-01, 2025-05-31] (TN academic year window)
-function yearToDateRange(academicYear: string): [Date, Date] | null {
-  const m = /^(\d{4})-(\d{2})$/.exec(academicYear || '');
-  if (!m) return null;
-  const startYear = parseInt(m[1], 10);
-  return [new Date(Date.UTC(startYear, 5, 1)), new Date(Date.UTC(startYear + 1, 4, 31, 23, 59, 59))];
-}
 
 function nextClass(fromClass: string): string | null {
   const n = parseInt(fromClass, 10);
@@ -20,9 +13,9 @@ function nextClass(fromClass: string): string | null {
 }
 
 function nextAcademicYear(year: string): string | null {
-  const m = /^(\d{4})-(\d{2})$/.exec(year || '');
-  if (!m) return null;
-  const start = parseInt(m[1], 10) + 1;
+  const norm = normalizeYear(year);
+  if (!norm) return null;
+  const start = parseInt(norm.slice(0, 4), 10) + 1;
   return `${start}-${String((start + 1) % 100).padStart(2, '0')}`;
 }
 
@@ -66,7 +59,7 @@ async function computeYearStats(studentIds: string[], academicYear: string): Pro
 
   const markGroups = await prisma.mark.groupBy({
     by: ['studentId', 'subject'],
-    where: { studentId: { in: studentIds }, academicYear },
+    where: { studentId: { in: studentIds }, academicYear: { in: yearVariants(academicYear) } },
     _sum: { scored: true, maxMarks: true },
     _count: { _all: true },
   });
@@ -116,17 +109,18 @@ router.get('/batches', async (req: Request, res: Response) => {
 // ─── POST /api/promotions/batches (HM creates draft) ─────────────
 router.post('/batches', async (req: Request, res: Response) => {
   try {
-    const { schoolId, fromClass, fromAcademicYear, toAcademicYear, submittedById } = req.body;
+    const { schoolId, fromClass, toAcademicYear, submittedById } = req.body;
+    const fromAcademicYear = normalizeYear(req.body.fromAcademicYear);
     if (!schoolId || !fromClass || !fromAcademicYear) {
-      return res.status(400).json({ success: false, error: 'schoolId, fromClass and fromAcademicYear are required' });
+      return res.status(400).json({ success: false, error: 'schoolId, fromClass and a valid fromAcademicYear (e.g. "2026-27") are required' });
     }
-    const toYear = toAcademicYear || nextAcademicYear(String(fromAcademicYear));
+    const toYear = normalizeYear(toAcademicYear) || nextAcademicYear(fromAcademicYear);
     if (!toYear) {
       return res.status(400).json({ success: false, error: 'fromAcademicYear must look like "2024-25"' });
     }
 
     const existing = await prisma.promotionBatch.findUnique({
-      where: { schoolId_fromClass_fromAcademicYear: { schoolId, fromClass: String(fromClass), fromAcademicYear: String(fromAcademicYear) } },
+      where: { schoolId_fromClass_fromAcademicYear: { schoolId, fromClass: String(fromClass), fromAcademicYear } },
     });
     if (existing) {
       return res.status(409).json({
@@ -156,7 +150,7 @@ router.post('/batches', async (req: Request, res: Response) => {
       data: {
         schoolId,
         fromClass: String(fromClass),
-        fromAcademicYear: String(fromAcademicYear),
+        fromAcademicYear,
         toAcademicYear: toYear,
         submittedById: submittedById || null,
         records: {
