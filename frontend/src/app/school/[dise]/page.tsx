@@ -209,7 +209,7 @@ export default function SchoolPortalPage() {
             <h1 className="text-4xl md:text-6xl font-black text-white leading-[1.05] drop-shadow-xl">
               {school.name}
             </h1>
-            <p className="mt-5 text-lg md:text-xl text-white/95 font-medium max-w-xl drop-shadow-md">
+            <p className="mt-5 text-lg md:text-xl text-white opacity-95 font-medium max-w-xl drop-shadow-md">
               {portal?.tagline || "Excellence in Education, Rooted in Values"}
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-2.5">
@@ -230,7 +230,7 @@ export default function SchoolPortalPage() {
                   <Users className="w-4 h-4" /> Parent Login
                 </button>
               )}
-              <a href="#about" className="px-5 py-3.5 text-white/90 font-semibold text-sm hover:text-white flex items-center gap-1 transition-colors">
+              <a href="#about" className="px-5 py-3.5 text-white opacity-90 font-semibold text-sm hover:opacity-100 flex items-center gap-1 transition-colors">
                 Explore <ChevronRight className="w-4 h-4" />
               </a>
             </div>
@@ -295,7 +295,7 @@ export default function SchoolPortalPage() {
                 </div>
                 <div>
                   <div className="text-sm font-black">{school.headmasterName && school.headmasterName !== "N/A" ? school.headmasterName : "The Headmaster"}</div>
-                  <div className="text-[11px] text-white/80 font-semibold">Headmaster · Principal</div>
+                  <div className="text-[11px] text-white opacity-80 font-semibold">Headmaster · Principal</div>
                 </div>
               </div>
             </div>
@@ -418,7 +418,7 @@ export default function SchoolPortalPage() {
         <section className="relative overflow-hidden" style={{ background: `linear-gradient(120deg, ${accent}, ${accent}cc)` }}>
           <div className="max-w-5xl mx-auto px-4 py-14 text-center text-white relative z-10">
             <h2 className="text-2xl md:text-3xl font-black text-white">Ready to get started?</h2>
-            <p className="mt-2 text-white/85 text-sm max-w-xl mx-auto">Access attendance, marks, homework and school updates through your secure portal.</p>
+            <p className="mt-2 text-white opacity-90 text-sm max-w-xl mx-auto">Access attendance, marks, homework and school updates through your secure portal.</p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
               {showStudent && <button onClick={() => setLoginModal("student")} className="px-7 py-3.5 font-bold rounded-xl shadow-xl hover:-translate-y-0.5 transition-all text-sm flex items-center gap-2 bg-white text-slate-900 hover:bg-slate-50"><GraduationCap className="w-4 h-4" /> Student Login</button>}
               {showParent && <button onClick={() => setLoginModal("parent")} className="px-7 py-3.5 bg-white/15 border border-white/40 text-white font-bold rounded-xl hover:bg-white/25 transition-colors text-sm flex items-center gap-2 backdrop-blur-sm"><Users className="w-4 h-4" /> Parent Login</button>}
@@ -475,13 +475,13 @@ export default function SchoolPortalPage() {
       {/* ─── Lightbox ─── */}
       {lightbox && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
-          <button className="absolute top-5 right-5 text-white/80 hover:text-white" onClick={() => setLightbox(null)} aria-label="Close">
+          <button className="absolute top-5 right-5 text-white opacity-80 hover:opacity-100" onClick={() => setLightbox(null)} aria-label="Close">
             <X className="w-7 h-7" />
           </button>
           <div className="max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={resolveAsset(lightbox.imageUrl)} alt={lightbox.caption || "Gallery"} className="w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl" />
-            {lightbox.caption && <p className="text-center text-white/90 text-sm font-semibold mt-4">{lightbox.caption}</p>}
+            {lightbox.caption && <p className="text-center text-white opacity-90 text-sm font-semibold mt-4">{lightbox.caption}</p>}
           </div>
         </div>
       )}
