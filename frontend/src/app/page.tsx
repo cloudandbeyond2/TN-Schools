@@ -261,14 +261,14 @@ export default function HomePage() {
       <div className="hidden sm:block" style={{ background: "#022C22", color: "#A7F3D0", padding: "8px 0", fontSize: "12px", borderBottom: "1px solid rgba(167,243,208,0.2)" }}>
         <div className="px-4 md:px-8" style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "14px", color: "#ffffff" }}>🇮🇳</span>
+            <span className="text-white" style={{ fontSize: "14px" }}>🇮🇳</span>
             <span style={{ fontWeight: 600, color: "#ffffff" }}>{text.govtName}</span>
             <span style={{ opacity: 0.5, color: "#ffffff" }}>|</span>
             <span style={{ opacity: 0.9, color: "#ffffff" }}>{text.deptName}</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "16px", fontWeight: 500 }}>
-            <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#34D399", color: "#ffffff", display: "inline-block", boxShadow: "0 0 8px rgba(52,211,153,0.6)" }}></span>
+            <span className="text-white" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#34D399", display: "inline-block", boxShadow: "0 0 8px rgba(52,211,153,0.6)" }}></span>
               {text.ftStatus}
             </span>
           </div>
@@ -591,7 +591,8 @@ export default function HomePage() {
           <div style={{ position: "absolute", bottom: "-20px", left: "10%", fontSize: "80px", opacity: 0.1, transform: "rotate(-15deg)" }}>🎒</div>
 
           <div style={{ position: "relative", zIndex: 1 }}>
-            <h2 style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, color: "white", marginBottom: "20px" }}>{text.ctaTitle}</h2>
+            <h2 className="text-white" style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, marginBottom: "20px", color: "#ffffff" }}>{text.ctaTitle}</h2>
+
             <p style={{ color: "#D1FAE5", fontSize: "20px", maxWidth: "600px", margin: "0 auto 40px" }}>{text.ctaDesc}</p>
 
             <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
@@ -618,14 +619,14 @@ export default function HomePage() {
           </div>
 
           <div>
-            <h4 style={{ fontSize: "14px", fontWeight: 800, color: "white", textTransform: "uppercase", marginBottom: "24px" }}>{text.ftPortals}</h4>
+            <h4 className="text-white" style={{ fontSize: "14px", fontWeight: 800, textTransform: "uppercase", marginBottom: "24px" }}>{text.ftPortals}</h4>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {portals.slice(0, 4).map(p => <Link key={p.href} href={p.href} style={{ color: "#A7F3D0", textDecoration: "none", fontSize: "14px", fontWeight: 500 }}>{p.label}</Link>)}
             </div>
           </div>
 
           <div>
-            <h4 style={{ fontSize: "14px", fontWeight: 800, color: "white", textTransform: "uppercase", marginBottom: "24px" }}>{text.ftAdmin}</h4>
+            <h4 className="text-white" style={{ fontSize: "14px", fontWeight: 800, color: "white", textTransform: "uppercase", marginBottom: "24px" }}>{text.ftAdmin}</h4>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {portals.slice(4).map(p => <Link key={p.href} href={p.href} style={{ color: "#A7F3D0", textDecoration: "none", fontSize: "14px", fontWeight: 500 }}>{p.label}</Link>)}
             </div>
@@ -634,9 +635,9 @@ export default function HomePage() {
 
         <div style={{ borderTop: "1px solid rgba(167,243,208,0.1)", padding: "30px 2rem" }}>
           <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
-            <p style={{ fontSize: "13px", margin: 0 }}>{text.ftCopy}</p>
+            <p className="text-white" style={{ fontSize: "13px", margin: 0 }}>{text.ftCopy}</p>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
-              <span>🇮🇳</span> <span style={{ fontWeight: 600, color: "white" }}>{text.ftGovt}</span>
+              <span className="text-white" >🇮🇳</span> <span style={{ fontWeight: 600, color: "white" }}>{text.ftGovt}</span>
             </div>
           </div>
         </div>

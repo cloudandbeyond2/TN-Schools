@@ -110,8 +110,8 @@
   --portal-light: rgba(45, 206, 137, 0.15) !important;
 }
 
-/* Force all buttons in dark mode to display white text */
-.dark button,
+/* Force primary buttons in dark mode to display white text */
+.dark button.btn-primary,
 .dark a.btn-primary {
   color: #ffffff !important;
 }
