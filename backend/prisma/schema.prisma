@@ -307,7 +307,6 @@ model WatchlistStudent {
   state               String   @default("N/A")
   city                String   @default("N/A")
   pincode             String   @default("N/A")
-  risk                String   @default("Medium")
   issue               String   @default("High absenteeism + decline in math score averages below threshold")
   attendance          Float?
   lastScore           Float?
@@ -320,7 +319,6 @@ model WatchlistStudent {
   student             Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
   @@index([schoolId])
-  @@index([risk])
 }
 
 model HeadmasterStaff {

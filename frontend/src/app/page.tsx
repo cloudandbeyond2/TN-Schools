@@ -8,7 +8,7 @@ import { Menu, X, MoreVertical } from "lucide-react";
 import { LucideIcon } from "@/components/LucideIcon";
 
 /* ─── Government Color Palette ─── */
-// New Palette: Deep Purple (#3D3580), Lavender (#7B7FC4), Golden Yellow (#F5B800), Warm Orange (#F07800), Red-Orange (#E84400)
+// New Palette: Deep Purple (#065F46), Lavender (#10B981), Golden Yellow (#F59E0B), Warm Orange (#F97316), Red-Orange (#0D9488)
 
 /* ─── Translations Dictionary ─── */
 const t = {
@@ -40,10 +40,10 @@ const t = {
     statTitle2: "Across Tamil Nadu",
     statDesc: "Real-time data-driven insights powering the entire state education ecosystem.",
     stats: [
-      { label: "Total Students", value: "47.2L", icon: "👨‍🎓", color: "#3D3580" },
-      { label: "Government Schools", value: "37,000+", icon: "🏫", color: "#7B7FC4" },
-      { label: "Dedicated Teachers", value: "2.1L", icon: "📚", color: "#F07800" },
-      { label: "Districts Covered", value: "38", icon: "🗺️", color: "#F5B800" },
+      { label: "Total Students", value: "47.2L", icon: "👨‍🎓", color: "#065F46" },
+      { label: "Government Schools", value: "37,000+", icon: "🏫", color: "#10B981" },
+      { label: "Dedicated Teachers", value: "2.1L", icon: "📚", color: "#F97316" },
+      { label: "Districts Covered", value: "38", icon: "🗺️", color: "#F59E0B" },
     ],
 
     featTitleSub: "Platform Features",
@@ -51,12 +51,12 @@ const t = {
     featTitle2: "Education Tools",
     featDesc: "Purpose-built AI and analytics tools for every stakeholder in the Tamil Nadu education ecosystem.",
     features: [
-      { title: "AI-Powered Tutoring", desc: "Personalized adaptive learning pathways using advanced AI for every student across Class 6–12.", icon: "🤖", color: "#3D3580" },
-      { title: "Real-time Analytics", desc: "Live dashboards tracking attendance, performance, and learning outcomes at every administrative level.", icon: "📊", color: "#7B7FC4" },
-      { title: "Adaptive Assessments", desc: "Smart question generation and AI-evaluated tests with instant feedback and personalized guidance.", icon: "🎯", color: "#F07800" },
-      { title: "Multi-Role Governance", desc: "8 dedicated portals from Student to Minister, each with role-specific insights and controls.", icon: "🛡️", color: "#3D3580" },
-      { title: "Live State Monitoring", desc: "Real-time command center for state-wide education health, KPI tracking and policy compliance.", icon: "📡", color: "#7B7FC4" },
-      { title: "Career & Scholarship", desc: "AI-driven career guidance, college admissions support, scholarship tracking and welfare schemes.", icon: "🎓", color: "#E84400" },
+      { title: "AI-Powered Tutoring", desc: "Personalized adaptive learning pathways using advanced AI for every student across Class 6–12.", icon: "🤖", color: "#065F46" },
+      { title: "Real-time Analytics", desc: "Live dashboards tracking attendance, performance, and learning outcomes at every administrative level.", icon: "📊", color: "#10B981" },
+      { title: "Adaptive Assessments", desc: "Smart question generation and AI-evaluated tests with instant feedback and personalized guidance.", icon: "🎯", color: "#F97316" },
+      { title: "Multi-Role Governance", desc: "8 dedicated portals from Student to Minister, each with role-specific insights and controls.", icon: "🛡️", color: "#065F46" },
+      { title: "Live State Monitoring", desc: "Real-time command center for state-wide education health, KPI tracking and policy compliance.", icon: "📡", color: "#10B981" },
+      { title: "Career & Scholarship", desc: "AI-driven career guidance, college admissions support, scholarship tracking and welfare schemes.", icon: "🎓", color: "#0D9488" },
     ],
 
     portalTitleSub: "Role-Based Access",
@@ -115,10 +115,10 @@ const t = {
     statTitle2: "கல்வி மாற்றம்",
     statDesc: "முழு மாநில கல்வி அமைப்பையும் இயக்கும் நிகழ்நேர தரவு உந்துதல் நுண்ணறிவு.",
     stats: [
-      { label: "மொத்த மாணவர்கள்", value: "47.2L", icon: "👨‍🎓", color: "#3D3580" },
-      { label: "அரசு பள்ளிகள்", value: "37,000+", icon: "🏫", color: "#7B7FC4" },
-      { label: "அர்ப்பணிப்புள்ள ஆசிரியர்கள்", value: "2.1L", icon: "📚", color: "#F07800" },
-      { label: "மாவட்டங்கள்", value: "38", icon: "🗺️", color: "#F5B800" },
+      { label: "மொத்த மாணவர்கள்", value: "47.2L", icon: "👨‍🎓", color: "#065F46" },
+      { label: "அரசு பள்ளிகள்", value: "37,000+", icon: "🏫", color: "#10B981" },
+      { label: "அர்ப்பணிப்புள்ள ஆசிரியர்கள்", value: "2.1L", icon: "📚", color: "#F97316" },
+      { label: "மாவட்டங்கள்", value: "38", icon: "🗺️", color: "#F59E0B" },
     ],
 
     featTitleSub: "தளத்தின் அம்சங்கள்",
@@ -126,12 +126,12 @@ const t = {
     featTitle2: "கல்வி கருவிகள்",
     featDesc: "தமிழ்நாடு கல்வி சூழல்மண்டலத்தில் உள்ள ஒவ்வொரு பங்குதாரருக்கும் AI மற்றும் பகுப்பாய்வு கருவிகள்.",
     features: [
-      { title: "AI-ஆதரவு பயிற்சி", desc: "வகுப்பு 6 முதல் 12 வரையிலான அனைத்து மாணவர்களுக்கும் AI மூலம் தனிப்பயனாக்கப்பட்ட கற்றல் வழிகள்.", icon: "🤖", color: "#3D3580" },
-      { title: "நிகழ்நேர பகுப்பாய்வு", desc: "ஒவ்வொரு நிலையிலும் வருகை, செயல்திறன் மற்றும் கற்றல் முடிவுகளைக் கண்காணிக்கும் நேரடி டாஷ்போர்டுகள்.", icon: "📊", color: "#7B7FC4" },
-      { title: "தழுவல் மதிப்பீடுகள்", desc: "உடனடி கருத்துக்களுடன் AI மதிப்பீடு செய்யும் தேர்வுகள் மற்றும் தனிப்பயன் வழிகாட்டுதல்.", icon: "🎯", color: "#F07800" },
-      { title: "பல-பங்கு நிர்வாகம்", desc: "மாணவர் முதல் அமைச்சர் வரை 8 பிரத்யேக இணையதளங்கள்.", icon: "🛡️", color: "#3D3580" },
-      { title: "நேரடி மாநில கண்காணிப்பு", desc: "மாநில அளவிலான KPI கண்காணிப்பு மற்றும் கொள்கை இணக்கத்திற்கான நிகழ்நேர மையம்.", icon: "📡", color: "#7B7FC4" },
-      { title: "தொழில் & உதவித்தொகை", desc: "AI வழிகாட்டுதல், கல்லூரி சேர்க்கை ஆதரவு மற்றும் உதவித்தொகை கண்காணிப்பு.", icon: "🎓", color: "#E84400" },
+      { title: "AI-ஆதரவு பயிற்சி", desc: "வகுப்பு 6 முதல் 12 வரையிலான அனைத்து மாணவர்களுக்கும் AI மூலம் தனிப்பயனாக்கப்பட்ட கற்றல் வழிகள்.", icon: "🤖", color: "#065F46" },
+      { title: "நிகழ்நேர பகுப்பாய்வு", desc: "ஒவ்வொரு நிலையிலும் வருகை, செயல்திறன் மற்றும் கற்றல் முடிவுகளைக் கண்காணிக்கும் நேரடி டாஷ்போர்டுகள்.", icon: "📊", color: "#10B981" },
+      { title: "தழுவல் மதிப்பீடுகள்", desc: "உடனடி கருத்துக்களுடன் AI மதிப்பீடு செய்யும் தேர்வுகள் மற்றும் தனிப்பயன் வழிகாட்டுதல்.", icon: "🎯", color: "#F97316" },
+      { title: "பல-பங்கு நிர்வாகம்", desc: "மாணவர் முதல் அமைச்சர் வரை 8 பிரத்யேக இணையதளங்கள்.", icon: "🛡️", color: "#065F46" },
+      { title: "நேரடி மாநில கண்காணிப்பு", desc: "மாநில அளவிலான KPI கண்காணிப்பு மற்றும் கொள்கை இணக்கத்திற்கான நிகழ்நேர மையம்.", icon: "📡", color: "#10B981" },
+      { title: "தொழில் & உதவித்தொகை", desc: "AI வழிகாட்டுதல், கல்லூரி சேர்க்கை ஆதரவு மற்றும் உதவித்தொகை கண்காணிப்பு.", icon: "🎓", color: "#0D9488" },
     ],
 
     portalTitleSub: "பங்கு-அடிப்படையிலான அணுகல்",
@@ -165,21 +165,21 @@ const t = {
 };
 
 const testimonials = [
-  { name: "Mrs. Sumathi Devi", role: "Mathematics Teacher, GHS Coimbatore", text: "The AI Lesson Planner has transformed how I prepare classes. My students' engagement has increased by 40% this semester.", avatar: "S", color: "#3D3580" },
-  { name: "Arjun Kumar", role: "Class 10 Student, GHSS Madurai", text: "The adaptive quizzes and AI tutor helped me understand concepts I struggled with. I scored 95% in my board exams!", avatar: "A", color: "#7B7FC4" },
-  { name: "Mr. Rajesh", role: "Parent, Chennai District", text: "I can track my daughter's progress in real-time. The notifications keep me connected with her school activities.", avatar: "R", color: "#F07800" },
-  { name: "Mr. Venkatesh R.", role: "Headmaster, GHS Coimbatore", text: "Managing 1200+ students has never been this efficient. The dashboard gives me a complete 360° view of the school.", avatar: "V", color: "#E84400" },
+  { name: "Mrs. Sumathi Devi", role: "Mathematics Teacher, GHS Coimbatore", text: "The AI Lesson Planner has transformed how I prepare classes. My students' engagement has increased by 40% this semester.", avatar: "S", color: "#065F46" },
+  { name: "Arjun Kumar", role: "Class 10 Student, GHSS Madurai", text: "The adaptive quizzes and AI tutor helped me understand concepts I struggled with. I scored 95% in my board exams!", avatar: "A", color: "#10B981" },
+  { name: "Mr. Rajesh", role: "Parent, Chennai District", text: "I can track my daughter's progress in real-time. The notifications keep me connected with her school activities.", avatar: "R", color: "#F97316" },
+  { name: "Mr. Venkatesh R.", role: "Headmaster, GHS Coimbatore", text: "Managing 1200+ students has never been this efficient. The dashboard gives me a complete 360° view of the school.", avatar: "V", color: "#0D9488" },
 ];
 
 const portalColors: Record<string, { bg: string; border: string; text: string }> = {
-  "/student": { bg: "#EEEDF8", border: "#3D3580", text: "#3D3580" },
-  "/parent": { bg: "#F0F0FA", border: "#7B7FC4", text: "#4a4e9e" },
-  "/teacher": { bg: "#FFF5E8", border: "#F07800", text: "#a05200" },
-  "/headmaster": { bg: "#FDF8E8", border: "#F5B800", text: "#8a6800" },
-  "/block-education-officer": { bg: "#FFF0E5", border: "#F07800", text: "#8a4500" },
-  "/district-education-officer": { bg: "#FDEEE8", border: "#E84400", text: "#c03300" },
-  "/commissioner": { bg: "#F0EFF9", border: "#3D3580", text: "#3D3580" },
-  "/minister": { bg: "#FBF0E8", border: "#E84400", text: "#c03300" },
+  "/student": { bg: "#F0FDF4", border: "#166534", text: "#166534" },
+  "/parent": { bg: "#ECFDF5", border: "#059669", text: "#047857" },
+  "/teacher": { bg: "#F0FDFA", border: "#0D9488", text: "#0F766E" },
+  "/headmaster": { bg: "#FFFBEB", border: "#D97706", text: "#B45309" },
+  "/block-education-officer": { bg: "#FEFCE8", border: "#CA8A04", text: "#A16207" },
+  "/district-education-officer": { bg: "#FFF7ED", border: "#EA580C", text: "#C2410C" },
+  "/commissioner": { bg: "#F0F9FF", border: "#0284C7", text: "#0369A1" },
+  "/minister": { bg: "#F5F3FF", border: "#7C3AED", text: "#6D28D9" },
 };
 
 /* ─── Typed Text Effect ─── */
@@ -225,13 +225,6 @@ export default function HomePage() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [lang, setLang] = useState<"en" | "ta">("en");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const heroImages = [
-    "/bg-school.png",
-    "/bg-classroom.png",
-    "/bg-digital.png"
-  ];
 
   const text = t[lang];
 
@@ -250,7 +243,7 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    const handleScroll = () => setIsNavScrolled(window.scrollY > 60);
+    const handleScroll = () => setIsNavScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -258,74 +251,58 @@ export default function HomePage() {
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
+    }, 6000);
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const slideTimer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-    }, 6000);
-    return () => clearInterval(slideTimer);
-  }, [heroImages.length]);
-
   return (
-    <div style={{ background: "#f5f5fb", fontFamily: "'Inter', 'Segoe UI', sans-serif", color: "#1a1a2e" }}>
-
+    <div style={{ background: "#FAFAFA", fontFamily: "'Inter', 'Segoe UI', sans-serif", color: "#064E3B", overflowX: "hidden" }}>
       {/* ═══════ GOVERNMENT TOP STRIP ═══════ */}
-      <div className="hidden sm:block" style={{ background: "#3D3580", color: "#ffffff", padding: "6px 0", fontSize: "11px" }}>
-        <div className="px-4 md:px-8" style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div className="hidden sm:block" style={{ background: "#022C22", color: "#A7F3D0", padding: "8px 0", fontSize: "12px", borderBottom: "1px solid rgba(167,243,208,0.2)" }}>
+        <div className="px-4 md:px-8" style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ color: "white" }}>🇮🇳</span>
-            <span style={{ fontWeight: 600, color: "white" }}>{text.govtName}</span>
-            <span style={{ opacity: 0.6, color: "white" }}>|</span>
-            <span style={{ opacity: 0.85, color: "white" }}>{text.deptName}</span>
+            <span style={{ fontSize: "14px" }}>🇮🇳</span>
+            <span style={{ fontWeight: 600 }}>{text.govtName}</span>
+            <span style={{ opacity: 0.5 }}>|</span>
+            <span style={{ opacity: 0.9 }}>{text.deptName}</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", opacity: 0.85 }}>
-            <span style={{ display: "flex", alignItems: "center", gap: "4px", color: "white" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80", display: "inline-block", color: "white" }}></span>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", fontWeight: 500 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#34D399", display: "inline-block", boxShadow: "0 0 8px rgba(52,211,153,0.6)" }}></span>
               {text.ftStatus}
             </span>
           </div>
         </div>
       </div>
 
-      {/* ═══════ ANNOUNCEMENT TICKER ═══════ */}
-      <div style={{ background: "#F07800", color: "#fff", padding: "8px 0", fontSize: "12px", overflow: "hidden" }}>
-        <div className="px-4 md:px-8" style={{ maxWidth: "1280px", margin: "0 auto" }}>
-          <span style={{ fontWeight: 500, color: "white" }}>{text.announcementText}</span>
-        </div>
-      </div>
-
       {/* ═══════ MAIN NAVBAR ═══════ */}
       <nav
         id="main-nav"
-        className="landing-nav"
         style={{
           position: "sticky",
           top: 0,
           zIndex: 100,
-          background: isNavScrolled ? "rgba(255,255,255,0.98)" : "#ffffff",
-          borderBottom: "2px solid #3D3580",
-          padding: "0",
-          boxShadow: isNavScrolled ? "0 2px 16px rgba(61,53,128,0.12)" : "none",
-          transition: "all 0.3s"
+          background: isNavScrolled ? "rgba(255, 255, 255, 0.95)" : "#FAFAFA",
+          backdropFilter: isNavScrolled ? "blur(12px)" : "none",
+          borderBottom: isNavScrolled ? "1px solid rgba(6, 95, 70, 0.1)" : "1px solid transparent",
+          transition: "all 0.3s ease",
+          padding: "16px 0"
         }}
       >
-        <div className="px-4 md:px-8" style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: "68px" }}>
+        <div className="px-4 md:px-8" style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           {/* Logo */}
-          <Link href="/" style={{ display: "flex", alignItems: "center", gap: "14px", textDecoration: "none" }} id="nav-logo">
-            <div style={{ width: "48px", height: "48px", background: "linear-gradient(135deg, #3D3580 0%, #7B7FC4 100%)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", boxShadow: "0 2px 8px rgba(61,53,128,0.3)" }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: "12px", textDecoration: "none" }}>
+            <div style={{ width: "42px", height: "42px", background: "#065F46", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", boxShadow: "0 4px 12px rgba(6,95,70,0.2)", transform: "rotate(-3deg)" }}>
               🏛️
             </div>
             <div>
-              <div style={{ fontSize: "16px", fontWeight: 800, color: "#3D3580", lineHeight: "1.2", letterSpacing: "-0.3px" }}>TN Schools</div>
-              <div className="hidden sm:block" style={{ fontSize: "10px", color: "#F07800", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px" }}>AI Smart Ecosystem</div>
+              <div style={{ fontSize: "18px", fontWeight: 800, color: "#065F46", lineHeight: "1.1", letterSpacing: "-0.5px" }}>TN Schools</div>
+              <div className="hidden sm:block" style={{ fontSize: "11px", color: "#10B981", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1.5px" }}>Digital Campus</div>
             </div>
           </Link>
 
-          {/* Center Nav Links */}
-          <div className="hidden lg:flex items-center" style={{ gap: "32px" }}>
+          {/* Desktop Links */}
+          <div className="hidden lg:flex items-center bg-white border border-gray-200 rounded-full px-6 py-2 shadow-sm" style={{ gap: "32px" }}>
             {[
               { label: text.navFeatures, href: "#features" },
               { label: text.navPortals, href: "#portals" },
@@ -335,8 +312,8 @@ export default function HomePage() {
               <a
                 key={link.href}
                 href={link.href}
-                style={{ fontSize: "13px", color: "#374151", fontWeight: 600, textDecoration: "none", transition: "color 0.2s" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#3D3580")}
+                style={{ fontSize: "14px", color: "#374151", fontWeight: 600, textDecoration: "none", transition: "color 0.2s" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#10B981")}
                 onMouseLeave={(e) => (e.currentTarget.style.color = "#374151")}
               >
                 {link.label}
@@ -344,719 +321,326 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Right: Lang Toggle + Auth (Desktop Only) */}
-          <div className="hidden lg:flex items-center gap-3">
-            {/* Language Toggle */}
-            <div style={{ display: "flex", background: "#f1f5f9", borderRadius: "8px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
+          {/* Actions */}
+          <div className="hidden lg:flex items-center gap-4">
+            {/* Lang Toggle */}
+            <div style={{ display: "flex", background: "#F3F4F6", borderRadius: "20px", overflow: "hidden", padding: "2px" }}>
               <button
                 onClick={() => setLang("en")}
-                style={{ fontSize: "12px", padding: "6px 14px", border: "none", cursor: "pointer", fontWeight: 700, background: lang === "en" ? "#3D3580" : "transparent", color: lang === "en" ? "#fff" : "#64748b", transition: "all 0.2s" }}
+                style={{ fontSize: "12px", padding: "6px 14px", border: "none", borderRadius: "18px", cursor: "pointer", fontWeight: 700, background: lang === "en" ? "#ffffff" : "transparent", color: lang === "en" ? "#065F46" : "#6B7280", boxShadow: lang === "en" ? "0 2px 4px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s" }}
               >EN</button>
               <button
                 onClick={() => setLang("ta")}
-                style={{ fontSize: "12px", padding: "6px 14px", border: "none", cursor: "pointer", fontWeight: 700, background: lang === "ta" ? "#3D3580" : "transparent", color: lang === "ta" ? "#fff" : "#64748b", transition: "all 0.2s" }}
+                style={{ fontSize: "12px", padding: "6px 14px", border: "none", borderRadius: "18px", cursor: "pointer", fontWeight: 700, background: lang === "ta" ? "#ffffff" : "transparent", color: lang === "ta" ? "#065F46" : "#6B7280", boxShadow: lang === "ta" ? "0 2px 4px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s" }}
               >தமிழ்</button>
             </div>
 
             {session ? (
-              <>
+              <div className="flex items-center gap-3">
                 <Link
                   href={getPortalLink()}
-                  style={{
-                    fontSize: "12px",
-                    color: "#3D3580",
-                    background: "#EEEDF8",
-                    border: "1.5px solid #3D3580",
-                    padding: "7px 16px",
-                    borderRadius: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    textDecoration: "none",
-                    cursor: "pointer",
-                    fontWeight: 700,
-                    boxShadow: "0 2px 8px rgba(61,53,128,0.1)",
-                    transition: "all 0.2s"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#3D3580";
-                    e.currentTarget.style.color = "#ffffff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#EEEDF8";
-                    e.currentTarget.style.color = "#3D3580";
-                  }}
+                  style={{ fontSize: "14px", color: "#065F46", background: "#ECFDF5", border: "2px solid #A7F3D0", padding: "8px 20px", borderRadius: "24px", display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", fontWeight: 700, transition: "all 0.2s" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#D1FAE5"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "#ECFDF5"; }}
                 >
-                  <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981", display: "inline-block" }}></span>
-                  <span className="hidden sm:inline">👤 {(session.user as any)?.name}</span>
-                  <span className="inline sm:hidden">👤 Portal</span>
+                  <span>👋 {(session.user as any)?.name}</span>
                 </Link>
                 <button
-                  id="nav-signout"
-                  className="hidden sm:block"
                   onClick={() => signOut({ callbackUrl: "/" })}
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    color: "#dc2626",
-                    background: "#fff5f5",
-                    border: "1.5px solid #fca5a5",
-                    padding: "7px 16px",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    transition: "all 0.2s"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#dc2626";
-                    e.currentTarget.style.color = "#ffffff";
-                    e.currentTarget.style.borderColor = "#dc2626";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#fff5f5";
-                    e.currentTarget.style.color = "#dc2626";
-                    e.currentTarget.style.borderColor = "#fca5a5";
-                  }}
+                  style={{ fontSize: "14px", fontWeight: 700, color: "#DC2626", background: "#FEF2F2", padding: "10px 16px", borderRadius: "24px", cursor: "pointer", border: "none" }}
                 >
-                  🚪 {text.navSignOut}
+                  {text.navSignOut}
                 </button>
-              </>
+              </div>
             ) : (
               <Link
                 href="/login"
-                id="nav-signin"
-                style={{ fontSize: "13px", fontWeight: 700, color: "#ffffff", background: "linear-gradient(135deg, #3D3580, #7B7FC4)", padding: "8px 20px", borderRadius: "8px", textDecoration: "none", boxShadow: "0 2px 8px rgba(61,53,128,0.3)", display: "flex", alignItems: "center", gap: "6px" }}
+                style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff", background: "#065F46", padding: "10px 24px", borderRadius: "24px", textDecoration: "none", boxShadow: "0 4px 12px rgba(6,95,70,0.3)", display: "flex", alignItems: "center", gap: "8px", transition: "transform 0.2s" }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
+                onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
               >
-                🔒 {text.navSignIn}
+                {text.navSignIn} →
               </Link>
             )}
           </div>
 
-          {/* Right: Hamburger Menu button */}
-          <div className="flex lg:hidden items-center">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-xl text-[#3D3580] hover:bg-[#EEEDF8] transition-colors focus:outline-none"
-              aria-label="Toggle Menu"
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          <div className="lg:hidden">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-emerald-800">
+              {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
           </div>
         </div>
-
-        {/* Mobile Menu Panel */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="lg:hidden bg-white border-t border-slate-100 overflow-hidden"
-            >
-              <div className="px-4 py-6 space-y-6 flex flex-col">
-                {/* Navigation Links */}
-                <div className="flex flex-col gap-4">
-                  {[
-                    { label: text.navFeatures, href: "#features" },
-                    { label: text.navPortals, href: "#portals" },
-                    { label: text.navImpact, href: "#stats" },
-                    { label: text.navTestimonials, href: "#testimonials" },
-                  ].map((link) => (
-                    <a
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="text-sm font-bold text-slate-700 hover:text-[#3D3580] transition-colors py-2 border-b border-slate-100"
-                    >
-                      {link.label}
-                    </a>
-                  ))}
-                </div>
-
-                {/* Language Toggle */}
-                <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                  <span className="text-sm font-bold text-slate-600">Language / மொழி</span>
-                  <div style={{ display: "flex", background: "#f1f5f9", borderRadius: "8px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
-                    <button
-                      onClick={() => { setLang("en"); setIsMobileMenuOpen(false); }}
-                      style={{ fontSize: "12px", padding: "6px 14px", border: "none", cursor: "pointer", fontWeight: 700, background: lang === "en" ? "#3D3580" : "transparent", color: lang === "en" ? "#fff" : "#64748b", transition: "all 0.2s" }}
-                    >EN</button>
-                    <button
-                      onClick={() => { setLang("ta"); setIsMobileMenuOpen(false); }}
-                      style={{ fontSize: "12px", padding: "6px 14px", border: "none", cursor: "pointer", fontWeight: 700, background: lang === "ta" ? "#3D3580" : "transparent", color: lang === "ta" ? "#fff" : "#64748b", transition: "all 0.2s" }}
-                    >தமிழ்</button>
-                  </div>
-                </div>
-
-                {/* Auth Button */}
-                <div className="pt-2">
-                  {session ? (
-                    <div className="flex flex-col gap-3">
-                      <Link
-                        href={getPortalLink()}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        style={{
-                          fontSize: "13px",
-                          color: "#3D3580",
-                          background: "#EEEDF8",
-                          border: "1.5px solid #3D3580",
-                          padding: "10px 16px",
-                          borderRadius: "8px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "8px",
-                          textDecoration: "none",
-                          fontWeight: 700,
-                          width: "100%"
-                        }}
-                      >
-                        <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981", display: "inline-block" }}></span>
-                        <span>👤 {(session.user as any)?.name}</span>
-                      </Link>
-                      <button
-                        onClick={() => { signOut({ callbackUrl: "/" }); setIsMobileMenuOpen(false); }}
-                        style={{
-                          fontSize: "13px",
-                          fontWeight: 700,
-                          color: "#dc2626",
-                          background: "#fff5f5",
-                          border: "1.5px solid #fca5a5",
-                          padding: "10px 16px",
-                          borderRadius: "8px",
-                          cursor: "pointer",
-                          width: "100%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "8px"
-                        }}
-                      >
-                        🚪 {text.navSignOut}
-                      </button>
-                    </div>
-                  ) : (
-                    <Link
-                      href="/login"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff", background: "linear-gradient(135deg, #3D3580, #7B7FC4)", padding: "12px 20px", borderRadius: "8px", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", width: "100%" }}
-                    >
-                      🔒 {text.navSignIn}
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </nav>
 
-      {/* ═══════════════ HERO SECTION — SLIDER THEME ═══════════════ */}
-      <section
-        id="hero"
-        style={{
-          position: "relative",
-          minHeight: "90vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "72px 0 80px",
-          overflow: "hidden",
-          borderBottom: "1px solid #e2e8f0"
-        }}
-      >
-        <AnimatePresence mode="popLayout">
-          <motion.div
-            key={currentSlide}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.2 }}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundImage: `url('${heroImages[currentSlide]}')`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              zIndex: 0
-            }}
-          />
-        </AnimatePresence>
+      {/* ═══════════════ SPLIT HERO SECTION ═══════════════ */}
+      <section id="hero" style={{ position: "relative", paddingTop: "60px", paddingBottom: "120px", overflow: "hidden" }}>
+        {/* Abstract Background Blobs */}
+        <div style={{ position: "absolute", top: "-100px", right: "-100px", width: "500px", height: "500px", borderRadius: "50%", background: "#D1FAE5", filter: "blur(80px)", zIndex: 0, opacity: 0.6 }} />
+        <div style={{ position: "absolute", bottom: "-50px", left: "-100px", width: "400px", height: "400px", borderRadius: "50%", background: "#FEF3C7", filter: "blur(60px)", zIndex: 0, opacity: 0.5 }} />
 
-        {/* Gradient Overlay for Text Readability */}
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "linear-gradient(to right, rgba(61,53,128,0.85) 0%, rgba(61,53,128,0.4) 100%)", zIndex: 0 }} />
-
-        <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 32px", textAlign: "left", position: "relative", zIndex: 1, background: "rgba(255, 255, 255, 0.1)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(255, 255, 255, 0.2)", borderRadius: "24px", boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}>
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255, 255, 255, 0.9)", border: "1.5px solid rgba(255, 255, 255, 0.5)", borderRadius: "100px", padding: "7px 18px", marginBottom: "28px", boxShadow: "0 2px 12px rgba(0,0,0,0.1)" }}
-          >
-            <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 6px #10b981", display: "inline-block" }}></span>
-            <span style={{ fontSize: "12px", color: "#3D3580", fontWeight: 800, letterSpacing: "0.5px" }}>{text.heroBadge}</span>
-          </motion.div>
-
-          {/* Hero Title */}
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.15 }}
-            style={{ fontSize: "clamp(40px, 6vw, 76px)", fontWeight: 900, color: "#ffffff", lineHeight: 1.1, marginBottom: "24px", letterSpacing: "-1.5px", textShadow: "0 2px 10px rgba(0,0,0,0.3)" }}
-          >
-            {text.heroTitle1}
-            <br />
-            <span style={{ color: "#F5B800", display: "inline-block", position: "relative" }}>
-              {text.heroTitle2}
-              <span style={{ position: "absolute", bottom: "-6px", left: 0, right: 0, height: "6px", background: "linear-gradient(90deg, #F07800, #F5B800)", borderRadius: "3px", opacity: 0.8 }}></span>
-            </span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            style={{ fontSize: "clamp(16px, 2vw, 20px)", color: "#f8fafc", maxWidth: "720px", marginBottom: "16px", lineHeight: 1.7, fontWeight: 500 }}
-          >
-            {text.heroSub}
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            style={{ fontSize: "15px", color: "#ffffff", marginBottom: "40px", height: "30px", fontWeight: 600, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}
-          >
-            <TypedText key={lang} texts={[text.heroType1, text.heroType2, text.heroType3]} speed={45} pause={2500} />
-          </motion.div>
-
-          {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            style={{ display: "flex", gap: "16px", justifyContent: "flex-start", flexWrap: "wrap" }}
-          >
-            {session ? (
-              <Link
-                href={
-                  (() => {
-                    const role = (session.user as any)?.role?.toUpperCase() || "STUDENT";
-                    if (role === "SUPERADMIN") return "/super-admin";
-                    if (role === "BEO") return "/block-education-officer";
-                    if (role === "DEO") return "/district-education-officer";
-                    return `/${role.toLowerCase()}`;
-                  })()
-                }
-                id="hero-goto-portal"
-                style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: "linear-gradient(135deg, #F07800, #E84400)", color: "#ffffff", padding: "16px 36px", borderRadius: "12px", textDecoration: "none", fontWeight: 800, fontSize: "16px", boxShadow: "0 6px 20px rgba(240,120,0,0.4)", transition: "all 0.3s" }}
-              >
-                🚀 {text.heroBtnGo}
-              </Link>
-            ) : (
-              <Link href="/login" id="hero-signin"
-                style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: "linear-gradient(135deg, #F07800, #E84400)", color: "#ffffff", padding: "16px 36px", borderRadius: "12px", textDecoration: "none", fontWeight: 800, fontSize: "16px", boxShadow: "0 6px 20px rgba(240,120,0,0.4)", transition: "all 0.3s" }}
-              >
-                🚀 {text.heroBtnSignIn}
-              </Link>
-            )}
-            <a href="#portals" id="hero-explore"
-              style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: "rgba(255,255,255,0.15)", color: "#ffffff", padding: "16px 36px", borderRadius: "12px", textDecoration: "none", fontWeight: 800, fontSize: "16px", border: "2px solid rgba(255,255,255,0.6)", transition: "all 0.3s", backdropFilter: "blur(10px)" }}
-            >
-              {text.heroBtnExplore} ↓
-            </a>
-          </motion.div>
-
-          {/* Hero Stats Strip */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            style={{ display: "flex", justifyContent: "flex-start", gap: "16px", marginTop: "48px", flexWrap: "wrap" }}
-          >
-            {[
-              { label: "Students", value: "47.2L+", color: "#3D3580", icon: "👨‍🎓" },
-              { label: "Schools", value: "37,000+", color: "#7B7FC4", icon: "🏫" },
-              { label: "Teachers", value: "2.1L+", color: "#F07800", icon: "📚" },
-              { label: "Districts", value: "38", color: "#F5B800", icon: "🗺️" },
-            ].map((s, i) => (
-              <div key={s.label} style={{ textAlign: "center", background: "#ffffff", border: `1.5px solid ${s.color}25`, borderTop: `3px solid ${s.color}`, borderRadius: "12px", padding: "18px 28px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", minWidth: "140px" }}>
-                <div style={{ fontSize: "20px", marginBottom: "4px" }}>{s.icon}</div>
-                <div style={{ fontSize: "clamp(20px, 2.5vw, 28px)", fontWeight: 900, color: s.color }}>{s.value}</div>
-                <div style={{ fontSize: "10px", color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginTop: "2px" }}>{s.label}</div>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ═══════ DIVIDER STRIP ═══════ */}
-      <div style={{ height: "5px", background: "linear-gradient(90deg, #3D3580, #7B7FC4, #F5B800, #F07800, #E84400)" }} />
-
-      {/* ═══════════════ STATS SECTION ═══════════════ */}
-      <section id="stats" style={{ background: "#ffffff", padding: "80px 0" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 2rem" }}>
-          <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "2px", color: "#F07800", display: "block", marginBottom: "8px" }}>{text.statTitleSub}</span>
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, color: "#3D3580", marginBottom: "12px", lineHeight: 1.2 }}>
-              {text.statTitle1} <span style={{ color: "#F07800" }}>{text.statTitle2}</span>
-            </h2>
-            <p style={{ color: "#6b7280", maxWidth: "520px", margin: "0 auto", fontSize: "15px", lineHeight: 1.6 }}>{text.statDesc}</p>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "24px" }}>
-            {text.stats.map((s, i) => (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                style={{
-                  background: "#fff",
-                  border: `2px solid ${s.color}20`,
-                  borderTop: `4px solid ${s.color}`,
-                  borderRadius: "12px",
-                  padding: "28px 24px",
-                  textAlign: "center",
-                  boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
-                  transition: "transform 0.2s, box-shadow 0.2s"
-                }}
-                whileHover={{ y: -4, boxShadow: "0 8px 32px rgba(0,0,0,0.10)" }}
-              >
-                <div style={{ fontSize: "36px", marginBottom: "12px" }}>{s.icon}</div>
-                <div style={{ fontSize: "clamp(28px, 3vw, 38px)", fontWeight: 900, color: s.color, marginBottom: "6px" }}>{s.value}</div>
-                <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>{s.label}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════ SECTION DIVIDER ═══════ */}
-      <div style={{ height: "1px", background: "linear-gradient(90deg, transparent, #e2e8f0, transparent)", maxWidth: "800px", margin: "0 auto" }} />
-
-      {/* ═══════════════ FEATURES SECTION ═══════════════ */}
-      <section id="features" style={{ background: "#f5f5fb", padding: "80px 0" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 2rem" }}>
-          <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "2px", color: "#7B7FC4", display: "block", marginBottom: "8px" }}>{text.featTitleSub}</span>
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, color: "#3D3580", marginBottom: "12px", lineHeight: 1.2 }}>
-              {text.featTitle1} <span style={{ color: "#7B7FC4" }}>{text.featTitle2}</span>
-            </h2>
-            <p style={{ color: "#6b7280", maxWidth: "520px", margin: "0 auto", fontSize: "15px", lineHeight: 1.6 }}>{text.featDesc}</p>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px" }}>
-            {text.features.map((f, i) => (
-              <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                style={{
-                  background: "#ffffff",
-                  borderRadius: "12px",
-                  padding: "28px",
-                  boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-                  border: "1px solid #e5e7eb",
-                  borderLeft: `4px solid ${f.color}`,
-                  transition: "transform 0.2s, box-shadow 0.2s"
-                }}
-                whileHover={{ y: -4, boxShadow: "0 8px 32px rgba(0,0,0,0.10)" }}
-              >
-                <div style={{ width: "52px", height: "52px", borderRadius: "12px", background: `${f.color}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "26px", marginBottom: "16px" }}>
-                  {f.icon}
+        <div className="px-4 md:px-8" style={{ maxWidth: "1320px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "60px", alignItems: "center" }}>
+            
+            {/* Left Content */}
+            <div style={{ maxWidth: "600px" }}>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                <div style={{ display: "inline-block", background: "#ECFDF5", border: "1px solid #10B981", color: "#065F46", padding: "6px 16px", borderRadius: "20px", fontSize: "13px", fontWeight: 700, marginBottom: "24px" }}>
+                  🌟 {text.heroBadge}
                 </div>
-                <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#111827", marginBottom: "8px" }}>{f.title}</h3>
-                <p style={{ fontSize: "13px", color: "#6b7280", lineHeight: 1.6, margin: 0 }}>{f.desc}</p>
+              </motion.div>
+
+              <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
+                style={{ fontSize: "clamp(48px, 6vw, 72px)", fontWeight: 900, color: "#022C22", lineHeight: 1.1, marginBottom: "24px", letterSpacing: "-2px" }}>
+                {text.heroTitle1}
+                <br />
+                <span style={{ color: "#10B981", position: "relative" }}>
+                  {text.heroTitle2}
+                  <svg style={{ position: "absolute", bottom: "-12px", left: 0, width: "100%", height: "16px" }} viewBox="0 0 200 16" preserveAspectRatio="none">
+                    <path d="M0,12 Q100,0 200,12" stroke="#F59E0B" strokeWidth="6" fill="none" strokeLinecap="round" />
+                  </svg>
+                </span>
+              </motion.h1>
+
+              <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
+                style={{ fontSize: "18px", color: "#4B5563", lineHeight: 1.7, marginBottom: "20px" }}>
+                {text.heroSub}
+              </motion.p>
+
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+                style={{ fontSize: "16px", color: "#065F46", fontWeight: 700, background: "#D1FAE5", display: "inline-block", padding: "8px 16px", borderRadius: "8px", marginBottom: "40px" }}>
+                <TypedText key={lang} texts={[text.heroType1, text.heroType2, text.heroType3]} speed={50} pause={3000} />
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+                {session ? (
+                  <Link href={getPortalLink()} style={{ background: "#065F46", color: "white", padding: "16px 32px", borderRadius: "30px", fontWeight: 800, fontSize: "16px", textDecoration: "none", boxShadow: "0 8px 24px rgba(6,95,70,0.3)" }}>
+                    {text.heroBtnGo} →
+                  </Link>
+                ) : (
+                  <Link href="/login" style={{ background: "#065F46", color: "white", padding: "16px 32px", borderRadius: "30px", fontWeight: 800, fontSize: "16px", textDecoration: "none", boxShadow: "0 8px 24px rgba(6,95,70,0.3)" }}>
+                    {text.heroBtnSignIn} →
+                  </Link>
+                )}
+                <a href="#portals" style={{ background: "white", color: "#065F46", border: "2px solid #E5E7EB", padding: "16px 32px", borderRadius: "30px", fontWeight: 800, fontSize: "16px", textDecoration: "none" }}>
+                  {text.heroBtnExplore} ↓
+                </a>
+              </motion.div>
+            </div>
+
+            {/* Right Content: Dynamic School Collage */}
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8 }} style={{ position: "relative", height: "500px" }}>
+              <div style={{ position: "absolute", top: "10%", right: "10%", width: "60%", height: "50%", borderRadius: "24px", overflow: "hidden", border: "8px solid white", boxShadow: "0 20px 40px rgba(0,0,0,0.1)", zIndex: 3, transform: "rotate(4deg)" }}>
+                <img src="/bg-school.png" alt="School" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              </div>
+              <div style={{ position: "absolute", bottom: "10%", left: "5%", width: "55%", height: "45%", borderRadius: "24px", overflow: "hidden", border: "8px solid white", boxShadow: "0 20px 40px rgba(0,0,0,0.1)", zIndex: 2, transform: "rotate(-6deg)" }}>
+                <img src="/bg-classroom.png" alt="Classroom" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              </div>
+              <div style={{ position: "absolute", top: "35%", right: "0%", width: "45%", height: "40%", borderRadius: "50%", overflow: "hidden", border: "8px solid white", boxShadow: "0 10px 30px rgba(16,185,129,0.3)", zIndex: 4 }}>
+                <img src="/bg-digital.png" alt="Digital" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              </div>
+              
+              {/* Floating elements */}
+              <div style={{ position: "absolute", top: "0", left: "20%", background: "#F59E0B", padding: "12px 24px", borderRadius: "20px", color: "white", fontWeight: 800, transform: "rotate(-10deg)", boxShadow: "0 8px 20px rgba(245,158,11,0.3)", zIndex: 5 }}>
+                🚀 AI Powered
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ EMERALD STATS RIBBON ═══════════════ */}
+      <section id="stats" style={{ background: "#065F46", padding: "60px 0", position: "relative", zIndex: 10, marginTop: "-40px", borderRadius: "40px", margin: "0 16px", boxShadow: "0 20px 50px rgba(6,95,70,0.2)" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "32px", textAlign: "center" }}>
+            {text.stats.map((s, i) => (
+              <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+                <div style={{ fontSize: "40px", marginBottom: "8px" }}>{s.icon}</div>
+                <div style={{ fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 900, color: "#FCD34D", lineHeight: 1 }}>{s.value}</div>
+                <div style={{ fontSize: "14px", color: "#A7F3D0", fontWeight: 600, textTransform: "uppercase", letterSpacing: "1px", marginTop: "8px" }}>{s.label}</div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══════ SECTION DIVIDER ═══════ */}
-      <div style={{ height: "1px", background: "linear-gradient(90deg, transparent, #e2e8f0, transparent)", maxWidth: "800px", margin: "0 auto" }} />
-
-      {/* ═══════════════ PORTALS SECTION ═══════════════ */}
-      <section id="portals" style={{ background: "#ffffff", padding: "80px 0" }}>
+      {/* ═══════════════ PORTALS: BENTO BOX ═══════════════ */}
+      <section id="portals" style={{ padding: "120px 0 80px", background: "#FAFAFA" }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
-          <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "2px", color: "#3D3580", display: "block", marginBottom: "8px" }}>{text.portalTitleSub}</span>
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, color: "#3D3580", marginBottom: "12px", lineHeight: 1.2 }}>
-              {text.portalTitle1} <span style={{ color: "#F07800" }}>{text.portalTitle2}</span>
+          <div style={{ textAlign: "center", marginBottom: "64px" }}>
+            <span style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "2px", color: "#10B981", display: "inline-block", background: "#ECFDF5", padding: "6px 16px", borderRadius: "20px", marginBottom: "12px" }}>{text.portalTitleSub}</span>
+            <h2 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 900, color: "#022C22", marginBottom: "16px" }}>
+              {text.portalTitle1} <span style={{ color: "#F59E0B" }}>{text.portalTitle2}</span>
             </h2>
-            <p style={{ color: "#6b7280", maxWidth: "520px", margin: "0 auto", fontSize: "15px", lineHeight: 1.6 }}>{text.portalDesc}</p>
+            <p style={{ color: "#4B5563", maxWidth: "600px", margin: "0 auto", fontSize: "16px", lineHeight: 1.6 }}>{text.portalDesc}</p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px", gridAutoRows: "180px" }}>
             {portals.map((portal, i) => {
               const pColor = portalColors[portal.href] || { bg: "#f3f4f6", border: "#6b7280", text: "#374151" };
+              // Make Student & Teacher larger in the grid
+              const isLarge = portal.href === "/student" || portal.href === "/teacher";
               return (
-                <motion.div
+                <Link
                   key={portal.href}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.07 }}
-                  whileHover={{ y: -5, boxShadow: `0 12px 40px ${pColor.border}30` }}
+                  href={portal.href}
+                  style={{
+                    display: "flex", flexDirection: "column", justifyContent: "center",
+                    gridColumn: isLarge ? "span 2" : "span 1",
+                    gridRow: isLarge ? "span 2" : "span 1",
+                    background: "#ffffff", borderRadius: "32px", padding: "32px",
+                    border: `2px solid ${pColor.border}20`,
+                    textDecoration: "none", position: "relative", overflow: "hidden",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.04)", transition: "all 0.3s"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-6px)";
+                    e.currentTarget.style.boxShadow = `0 16px 40px ${pColor.border}30`;
+                    e.currentTarget.style.borderColor = pColor.border;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.04)";
+                    e.currentTarget.style.borderColor = `${pColor.border}20`;
+                  }}
                 >
-                  <Link
-                    href={portal.href}
-                    id={`portal-link-${portal.href.replace(/\//g, "").replace(/-/g, "_")}`}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "12px",
-                      background: "#ffffff",
-                      borderRadius: "12px",
-                      padding: "24px",
-                      border: `1px solid ${pColor.border}40`,
-                      borderTop: `4px solid ${pColor.border}`,
-                      textDecoration: "none",
-                      boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-                      transition: "all 0.25s",
-                      height: "100%"
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                      <div style={{ width: "52px", height: "52px", borderRadius: "12px", background: pColor.bg, display: "flex", alignItems: "center", justifyContent: "center", color: pColor.text, flexShrink: 0 }}>
-                        <LucideIcon name={portal.icon} className="w-8 h-8" />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: "15px", fontWeight: 700, color: "#111827", marginBottom: "2px" }}>{portal.label}</div>
-                        <div style={{ fontSize: "11px", color: pColor.text, fontWeight: 600, background: pColor.bg, padding: "2px 8px", borderRadius: "100px", display: "inline-block" }}>
-                          {portal.href === "/student" ? "Class 6–12" :
-                            portal.href === "/teacher" ? "All Teachers" :
-                              portal.href === "/parent" ? "All Parents" :
-                                portal.href === "/headmaster" ? "School Head" :
-                                  portal.href === "/block-education-officer" ? "BEO" :
-                                    portal.href === "/district-education-officer" ? "DEO" :
-                                      portal.href === "/commissioner" ? "Commissioner" : "Minister"}
-                        </div>
-                      </div>
-                    </div>
-                    <p style={{ fontSize: "12px", color: "#6b7280", lineHeight: 1.6, margin: 0 }}>{portal.desc}</p>
-                    <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "auto", paddingTop: "4px" }}>
-                      <span style={{ fontSize: "12px", fontWeight: 600, color: pColor.text }}>{text.portalEnter}</span>
-                      <span style={{ color: pColor.border, fontWeight: 700 }}>→</span>
-                    </div>
-                  </Link>
-                </motion.div>
+                  <div style={{ width: "64px", height: "64px", borderRadius: "20px", background: pColor.bg, display: "flex", alignItems: "center", justifyContent: "center", color: pColor.text, marginBottom: "20px" }}>
+                    <LucideIcon name={portal.icon} className="w-8 h-8" />
+                  </div>
+                  <h3 style={{ fontSize: isLarge ? "28px" : "20px", fontWeight: 800, color: "#111827", marginBottom: "8px" }}>{portal.label}</h3>
+                  {isLarge && <p style={{ color: "#6B7280", fontSize: "15px", lineHeight: 1.6, marginBottom: "16px" }}>{portal.desc}</p>}
+                  <div style={{ display: "inline-block", fontSize: "12px", color: pColor.text, fontWeight: 700, background: pColor.bg, padding: "6px 12px", borderRadius: "100px", alignSelf: "flex-start" }}>
+                    {text.portalEnter} →
+                  </div>
+                </Link>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* ═══════ BLUE DIVIDER ═══════ */}
-      <div style={{ height: "4px", background: "linear-gradient(90deg, #3D3580, #7B7FC4, #F5B800, #F07800, #E84400)" }} />
-
-      {/* ═══════════════ TESTIMONIALS SECTION ═══════════════ */}
-      <section id="testimonials" style={{ background: "#f5f5fb", padding: "80px 0" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 2rem" }}>
-          <div style={{ textAlign: "center", marginBottom: "56px" }}>
-            <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "2px", color: "#F07800", display: "block", marginBottom: "8px" }}>{text.testTitleSub}</span>
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, color: "#3D3580", marginBottom: "12px" }}>
-              {text.testTitle1} <span style={{ color: "#F07800" }}>{text.testTitle2}</span>
+      {/* ═══════════════ FEATURES: ZIG-ZAG ═══════════════ */}
+      <section id="features" style={{ padding: "80px 0 120px", background: "#ffffff" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 2rem" }}>
+          <div style={{ textAlign: "center", marginBottom: "80px" }}>
+            <h2 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 900, color: "#022C22", marginBottom: "16px" }}>
+              {text.featTitle1} <span style={{ color: "#10B981" }}>{text.featTitle2}</span>
             </h2>
-            <p style={{ color: "#6b7280", maxWidth: "520px", margin: "0 auto", fontSize: "15px", lineHeight: 1.6 }}>{text.testDesc}</p>
+            <p style={{ color: "#4B5563", maxWidth: "600px", margin: "0 auto", fontSize: "16px", lineHeight: 1.6 }}>{text.featDesc}</p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
-            {testimonials.map((t, i) => (
-              <motion.div
-                key={i}
-                style={{
-                  background: "#ffffff",
-                  borderRadius: "12px",
-                  padding: "28px",
-                  border: "1px solid #e5e7eb",
-                  borderLeft: `4px solid ${t.color}`,
-                  boxShadow: i === activeTestimonial ? `0 8px 32px ${t.color}25` : "0 2px 12px rgba(0,0,0,0.06)",
-                  transition: "all 0.3s",
-                  transform: i === activeTestimonial ? "translateY(-4px)" : "none"
-                }}
-                onMouseEnter={() => setActiveTestimonial(i)}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-                  <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: t.color, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "16px", flexShrink: 0 }}>
-                    {t.avatar}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#111827" }}>{t.name}</div>
-                    <div style={{ fontSize: "11px", color: "#6b7280" }}>{t.role}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "80px" }}>
+            {text.features.map((f, i) => (
+              <motion.div key={f.title} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }}
+                style={{ display: "flex", flexDirection: i % 2 === 0 ? "row" : "row-reverse", alignItems: "center", gap: "60px", flexWrap: "wrap" }}>
+                
+                <div style={{ flex: "1 1 400px" }}>
+                  <div style={{ width: "100%", height: "300px", background: `${f.color}10`, borderRadius: "40px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "100px", position: "relative" }}>
+                    {f.icon}
+                    <div style={{ position: "absolute", bottom: "-20px", right: i % 2 === 0 ? "-20px" : "auto", left: i % 2 !== 0 ? "-20px" : "auto", width: "100px", height: "100px", background: f.color, borderRadius: "50%", opacity: 0.1 }} />
                   </div>
                 </div>
-                <p style={{ fontSize: "13px", color: "#374151", lineHeight: 1.7, fontStyle: "italic", margin: 0 }}>"{t.text}"</p>
-                <div style={{ display: "flex", gap: "2px", marginTop: "12px" }}>
-                  {[1, 2, 3, 4, 5].map(s => <span key={s} style={{ color: "#FFB800", fontSize: "14px" }}>★</span>)}
+
+                <div style={{ flex: "1 1 400px" }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "48px", height: "48px", background: f.color, color: "white", borderRadius: "16px", fontSize: "20px", marginBottom: "20px" }}>
+                    {i + 1}
+                  </div>
+                  <h3 style={{ fontSize: "32px", fontWeight: 800, color: "#022C22", marginBottom: "16px", lineHeight: 1.2 }}>{f.title}</h3>
+                  <p style={{ fontSize: "18px", color: "#4B5563", lineHeight: 1.7 }}>{f.desc}</p>
                 </div>
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "32px" }}>
+      {/* ═══════════════ TESTIMONIALS: SPOTLIGHT ═══════════════ */}
+      <section id="testimonials" style={{ padding: "100px 0", background: "#ECFDF5", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", fontSize: "400px", color: "#D1FAE5", opacity: 0.5, fontWeight: 900, pointerEvents: "none" }}>"</div>
+        
+        <div style={{ maxWidth: "800px", margin: "0 auto", padding: "0 2rem", position: "relative", zIndex: 1, textAlign: "center" }}>
+          <span style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "2px", color: "#065F46", display: "inline-block", marginBottom: "24px" }}>{text.testTitleSub}</span>
+          
+          <AnimatePresence mode="wait">
+            <motion.div key={activeTestimonial} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} transition={{ duration: 0.5 }}>
+              <p style={{ fontSize: "clamp(24px, 4vw, 32px)", color: "#022C22", fontWeight: 700, lineHeight: 1.5, fontStyle: "italic", marginBottom: "40px" }}>
+                "{testimonials[activeTestimonial].text}"
+              </p>
+              
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: testimonials[activeTestimonial].color, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "24px", fontWeight: 800, marginBottom: "16px" }}>
+                  {testimonials[activeTestimonial].avatar}
+                </div>
+                <div style={{ fontSize: "20px", fontWeight: 800, color: "#022C22" }}>{testimonials[activeTestimonial].name}</div>
+                <div style={{ fontSize: "14px", color: "#065F46", fontWeight: 600 }}>{testimonials[activeTestimonial].role}</div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: "40px" }}>
             {testimonials.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveTestimonial(i)}
-                style={{ width: i === activeTestimonial ? "28px" : "8px", height: "8px", borderRadius: "100px", background: i === activeTestimonial ? "#3D3580" : "#d1d5db", border: "none", cursor: "pointer", transition: "all 0.3s" }}
-              />
+              <button key={i} onClick={() => setActiveTestimonial(i)} style={{ width: i === activeTestimonial ? "40px" : "12px", height: "12px", borderRadius: "6px", background: i === activeTestimonial ? "#065F46" : "#A7F3D0", border: "none", cursor: "pointer", transition: "all 0.3s" }} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══════ DIVIDER ═══════ */}
-      <div style={{ height: "1px", background: "#e2e8f0" }} />
+      {/* ═══════════════ PLAYFUL CTA SECTION ═══════════════ */}
+      <section style={{ padding: "100px 16px" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", background: "linear-gradient(135deg, #065F46, #10B981)", borderRadius: "40px", padding: "80px 40px", textAlign: "center", position: "relative", overflow: "hidden", boxShadow: "0 24px 50px rgba(6,95,70,0.3)" }}>
+          <div style={{ position: "absolute", top: "-50px", right: "10%", fontSize: "100px", opacity: 0.1, transform: "rotate(15deg)" }}>🎓</div>
+          <div style={{ position: "absolute", bottom: "-20px", left: "10%", fontSize: "80px", opacity: 0.1, transform: "rotate(-15deg)" }}>🎒</div>
 
-      {/* ═══════════════ CTA SECTION — LIGHT THEME ═══════════════ */}
-      <section
-        style={{
-          background: "linear-gradient(160deg, #eeedf8 0%, #ffffff 50%, #fff5e8 100%)",
-          padding: "80px 0",
-          position: "relative",
-          overflow: "hidden",
-          borderTop: "1px solid #e2e8f0"
-        }}
-      >
-        {/* Decorative elements */}
-        <div style={{ position: "absolute", top: "-60px", right: "-60px", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, rgba(61,53,128,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "-60px", left: "-60px", width: "260px", height: "260px", borderRadius: "50%", background: "radial-gradient(circle, rgba(240,120,0,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
-
-        <div style={{ maxWidth: "800px", margin: "0 auto", padding: "0 2rem", textAlign: "center", position: "relative", zIndex: 1 }}>
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            {/* Badge */}
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "#ffffff", border: "1.5px solid #10b981", padding: "7px 18px", borderRadius: "100px", marginBottom: "24px", boxShadow: "0 2px 10px rgba(16,185,129,0.15)" }}>
-              <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 6px #10b981", display: "inline-block" }}></span>
-              <span style={{ fontSize: "11px", color: "#065f46", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px" }}>{text.ctaBadge}</span>
-            </div>
-
-            <h2 style={{ fontSize: "clamp(26px, 4vw, 44px)", fontWeight: 900, color: "#3D3580", marginBottom: "16px", lineHeight: 1.2, letterSpacing: "-0.5px" }}>
-              {text.ctaTitle}
-            </h2>
-            <p style={{ color: "#64748b", fontSize: "16px", lineHeight: 1.7, marginBottom: "40px", maxWidth: "600px", margin: "0 auto 40px" }}>
-              {text.ctaDesc}
-            </p>
-
-            {/* Buttons */}
-            <div style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
-              <Link href="/login" id="cta-signin"
-                style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "linear-gradient(135deg, #F07800, #E84400)", color: "#ffffff", padding: "14px 32px", borderRadius: "10px", textDecoration: "none", fontWeight: 700, fontSize: "15px", boxShadow: "0 4px 18px rgba(240,120,0,0.35)", transition: "all 0.2s" }}
-              >
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <h2 style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, color: "white", marginBottom: "20px" }}>{text.ctaTitle}</h2>
+            <p style={{ color: "#D1FAE5", fontSize: "20px", maxWidth: "600px", margin: "0 auto 40px" }}>{text.ctaDesc}</p>
+            
+            <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
+              <Link href="/login" style={{ background: "#F59E0B", color: "#78350F", padding: "16px 40px", borderRadius: "30px", fontWeight: 800, fontSize: "18px", textDecoration: "none", boxShadow: "0 8px 24px rgba(245,158,11,0.4)", transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform="scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform="scale(1)"}>
                 🚀 {text.ctaBtnIn}
               </Link>
-              <a href="#portals" id="cta-explore"
-                style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#ffffff", color: "#3D3580", padding: "14px 32px", borderRadius: "10px", textDecoration: "none", fontWeight: 700, fontSize: "15px", border: "2px solid #3D3580", transition: "all 0.2s" }}
-              >
-                {text.ctaBtnBrowse}
-              </a>
             </div>
-
-            {/* Trust badges */}
-            <div style={{ display: "flex", justifyContent: "center", gap: "32px", marginTop: "48px", flexWrap: "wrap" }}>
-              {[
-                { icon: "🔒", label: "Govt. Secured Platform" },
-                { icon: "🇮🇳", label: "Made in India" },
-                { icon: "✅", label: "ISO Certified" },
-                { icon: "🏆", label: "Award Winning" },
-              ].map((b) => (
-                <div key={b.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span style={{ fontSize: "18px" }}>{b.icon}</span>
-                  <span style={{ fontSize: "12px", color: "#64748b", fontWeight: 600 }}>{b.label}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* ═══════════════ FOOTER ═══════════════ */}
-      <footer id="footer" style={{ background: "#111827", color: "#9ca3af" }}>
-        {/* Footer Top */}
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "56px 2rem 40px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "40px", marginBottom: "40px" }}>
-            {/* Brand */}
-            <div style={{ gridColumn: "span 1" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-                <div style={{ width: "44px", height: "44px", background: "linear-gradient(135deg, #3D3580, #7B7FC4)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" }}>🏛️</div>
-                <div>
-                  <div style={{ fontSize: "14px", fontWeight: 800, color: "#ffffff" }}>TN Schools</div>
-                  <div style={{ fontSize: "10px", color: "#F07800", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>AI Smart Ecosystem</div>
-                </div>
+      <footer style={{ background: "#022C22", color: "#A7F3D0", paddingTop: "80px" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "60px", marginBottom: "60px" }}>
+          <div>
+            <Link href="/" style={{ display: "flex", alignItems: "center", gap: "12px", textDecoration: "none", marginBottom: "20px" }}>
+              <div style={{ width: "42px", height: "42px", background: "white", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>🏛️</div>
+              <div>
+                <div style={{ fontSize: "20px", fontWeight: 900, color: "white" }}>TN Schools</div>
+                <div style={{ fontSize: "12px", color: "#34D399", fontWeight: 700, textTransform: "uppercase" }}>Digital Campus</div>
               </div>
-              <p style={{ fontSize: "12px", lineHeight: 1.7, color: "#6b7280", maxWidth: "240px" }}>
-                An official AI-powered platform for the Tamil Nadu School Education Department.
-              </p>
-              <div style={{ marginTop: "16px", display: "flex", alignItems: "center", gap: "6px", fontSize: "11px" }}>
-                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80" }}></span>
-                <span style={{ color: "#4ade80", fontWeight: 600 }}>{text.ftStatus}</span>
-              </div>
-            </div>
+            </Link>
+            <p style={{ fontSize: "14px", lineHeight: 1.8, color: "#6EE7B7", maxWidth: "260px" }}>An official AI-powered platform for the Tamil Nadu School Education Department.</p>
+          </div>
 
-            {/* Portals */}
-            <div>
-              <h4 style={{ fontSize: "11px", fontWeight: 700, color: "#ffffff", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "16px" }}>{text.ftPortals}</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {portals.slice(0, 4).map((p) => (
-                  <Link key={p.href} href={p.href} style={{ fontSize: "12px", color: "#6b7280", textDecoration: "none", transition: "color 0.2s" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#F07800")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#6b7280")}
-                  >{p.label}</Link>
-                ))}
-              </div>
+          <div>
+            <h4 style={{ fontSize: "14px", fontWeight: 800, color: "white", textTransform: "uppercase", marginBottom: "24px" }}>{text.ftPortals}</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {portals.slice(0, 4).map(p => <Link key={p.href} href={p.href} style={{ color: "#A7F3D0", textDecoration: "none", fontSize: "14px", fontWeight: 500 }}>{p.label}</Link>)}
             </div>
+          </div>
 
-            {/* Administration */}
-            <div>
-              <h4 style={{ fontSize: "11px", fontWeight: 700, color: "#ffffff", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "16px" }}>{text.ftAdmin}</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {portals.slice(4).map((p) => (
-                  <Link key={p.href} href={p.href} style={{ fontSize: "12px", color: "#6b7280", textDecoration: "none", transition: "color 0.2s" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#F07800")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#6b7280")}
-                  >{p.label}</Link>
-                ))}
-              </div>
-            </div>
-
-            {/* Resources */}
-            <div>
-              <h4 style={{ fontSize: "11px", fontWeight: 700, color: "#ffffff", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "16px" }}>{text.ftRes}</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {[text.ftHelp, text.ftDoc, text.ftPrivacy, text.ftTerms].map((link) => (
-                  <a key={link} href="#" style={{ fontSize: "12px", color: "#6b7280", textDecoration: "none", transition: "color 0.2s" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#F07800")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#6b7280")}
-                  >{link}</a>
-                ))}
-              </div>
+          <div>
+            <h4 style={{ fontSize: "14px", fontWeight: 800, color: "white", textTransform: "uppercase", marginBottom: "24px" }}>{text.ftAdmin}</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {portals.slice(4).map(p => <Link key={p.href} href={p.href} style={{ color: "#A7F3D0", textDecoration: "none", fontSize: "14px", fontWeight: 500 }}>{p.label}</Link>)}
             </div>
           </div>
         </div>
 
-        {/* Footer Bottom */}
-        <div style={{ borderTop: "1px solid #1f2937", padding: "20px 2rem" }}>
-          <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
-            <p style={{ fontSize: "11px", color: "#4b5563", margin: 0 }}>{text.ftCopy}</p>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "#4b5563" }}>
-              <span>🇮🇳</span>
-              <span>{text.ftGovt}</span>
+        <div style={{ borderTop: "1px solid rgba(167,243,208,0.1)", padding: "30px 2rem" }}>
+          <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+            <p style={{ fontSize: "13px", margin: 0 }}>{text.ftCopy}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
+              <span>🇮🇳</span> <span style={{ fontWeight: 600, color: "white" }}>{text.ftGovt}</span>
             </div>
           </div>
         </div>
       </footer>
-    </div >
+    </div>
   );
 }
