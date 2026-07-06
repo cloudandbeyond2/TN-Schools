@@ -157,6 +157,7 @@ interface Content {
   fileUrl: string | null;
   fileContent: string | null;
   infographic?: any;
+  presentation?: any;
   mcqs: Array<{
     question: string;
     options: string[];
@@ -181,7 +182,7 @@ export default function CentralizedContentPage() {
   const [contents, setContents] = useState<Content[]>([]);
   const [loadingContents, setLoadingContents] = useState<boolean>(false);
   
-  const [activeTab, setActiveTab] = useState<"materials" | "summary" | "notes" | "mcq" | "ai" | "infographic">("materials");
+  const [activeTab, setActiveTab] = useState<"materials" | "summary" | "notes" | "mcq" | "ai" | "infographic" | "presentation">("materials");
   
   // MCQ state
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
@@ -202,6 +203,10 @@ export default function CentralizedContentPage() {
     setFlippedCards(prev => ({ ...prev, [idx]: !prev[idx] }));
   };
 
+  // AI Presentation State
+  const [presentationData, setPresentationData] = useState<any>(null);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -211,6 +216,16 @@ export default function CentralizedContentPage() {
       setInfographicData(infographicItem.infographic);
     } else {
       setInfographicData(null);
+    }
+  }, [contents]);
+
+  useEffect(() => {
+    const presentationItem = contents.find(c => c.contentType === "PRESENTATION");
+    if (presentationItem) {
+      setPresentationData(presentationItem.presentation);
+      setCurrentSlideIndex(0);
+    } else {
+      setPresentationData(null);
     }
   }, [contents]);
 
@@ -594,7 +609,8 @@ export default function CentralizedContentPage() {
                 <div className="px-6 bg-slate-100/30 dark:bg-slate-950/10 border-b border-slate-250/20 dark:border-slate-800/80 flex overflow-x-auto gap-2 py-2">
                   {[
                     { id: "materials", label: "📄 Study Materials", show: true },
-                    { id: "infographic", label: "🎨 AI Infographic Map", show: true },
+                    { id: "infographic", label: "🎨 AI Infographic Map", show: contents.some(c => c.contentType === "INFOGRAPHIC") },
+                    { id: "presentation", label: "📊 AI Presentation Slides", show: contents.some(c => c.contentType === "PRESENTATION") },
                     { id: "summary", label: "📝 AI Summary", show: contents.some(c => c.contentType === "SUMMARY") },
                     { id: "notes", label: "📓 Revision Notes", show: contents.some(c => c.contentType === "NOTES") },
                     { id: "mcq", label: "🧠 MCQ Mastery Quiz", show: contents.some(c => c.contentType === "MCQ") },
@@ -829,6 +845,121 @@ export default function CentralizedContentPage() {
                                 </div>
                               </div>
 
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* T1.7: AI Presentation Slides */}
+                      {activeTab === "presentation" && (
+                        <div className="space-y-6 animate-in fade-in duration-300">
+                          {!presentationData ? (
+                            <div className="text-center py-16 bg-slate-50 dark:bg-slate-900/10 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                              <span className="text-5xl block mb-3">📊</span>
+                              <h4 className="font-bold text-sm text-black dark:text-white mb-2">Slides Presentation Not Available</h4>
+                              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                                A presentation slide deck is not generated yet for this topic. Please ask your administrator or teacher to generate the AI slides.
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="flex-1 flex flex-col gap-6">
+                              {(() => {
+                                const currentSlide = presentationData.slides?.[currentSlideIndex];
+                                if (!currentSlide) return <p className="text-slate-500 text-center py-10">Slide not found.</p>;
+                                
+                                return (
+                                  <div className="flex-1 flex flex-col gap-5">
+                                    {/* Slide Content Layout */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 flex-1">
+                                      
+                                      {/* Left: Text bullets content */}
+                                      <div className="p-6 rounded-2xl bg-slate-50/50 dark:bg-slate-900/40 border border-slate-205 dark:border-slate-800/80 flex flex-col justify-between shadow-xs">
+                                        <div className="space-y-4">
+                                          <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 border border-indigo-200/20 dark:border-indigo-500/20 rounded-md">
+                                            Slide {currentSlide.slideNumber} of {presentationData.slides.length}
+                                          </span>
+                                          <h4 className="text-base md:text-lg font-black text-black dark:text-white leading-tight">
+                                            {currentSlide.title}
+                                          </h4>
+                                          
+                                          <ul className="space-y-3.5 pt-2">
+                                            {currentSlide.bulletPoints?.map((bp: string, bpi: number) => (
+                                              <li key={bpi} className="text-xs md:text-sm text-slate-700 dark:text-slate-200 flex items-start gap-2.5 leading-relaxed font-medium">
+                                                <span className="text-indigo-555 dark:text-indigo-400 select-none mt-0.5">•</span>
+                                                <span>{bp}</span>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      </div>
+
+                                      {/* Right: Pictorial / Diagram representation guidance */}
+                                      <div className="p-6 rounded-2xl border border-teal-500/20 dark:border-teal-500/15 bg-teal-500/5 relative overflow-hidden flex flex-col justify-between group">
+                                        {/* Blueprint background grid effect */}
+                                        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0ea5e912_1px,transparent_1px),linear-gradient(to_bottom,#0ea5e912_1px,transparent_1px)] bg-[size:14px_24px] pointer-events-none opacity-40"></div>
+                                        
+                                        <div className="relative z-10 space-y-3">
+                                          <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-200/20 dark:border-teal-500/20 rounded-md">
+                                            📐 Visual Illustration Blueprint
+                                          </span>
+                                          <h5 className="text-xs font-extrabold text-slate-800 dark:text-slate-200">Pictorial Concept Representation:</h5>
+                                          <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed font-medium">
+                                            {currentSlide.visualLayoutDescription}
+                                          </p>
+                                        </div>
+                                        
+                                        <div className="relative z-10 mt-4 text-[10px] text-teal-600 dark:text-teal-400 font-bold flex items-center gap-1 bg-teal-950/20 dark:bg-teal-950/30 p-2 rounded-lg border border-teal-500/10">
+                                          <span>🎨</span>
+                                          <span>Visual layout reference for conceptual modeling.</span>
+                                        </div>
+                                      </div>
+
+                                    </div>
+
+                                    {/* Speaker Notes / Explanation */}
+                                    <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/30 leading-relaxed text-xs text-slate-705 dark:text-slate-300">
+                                      <span className="font-bold text-slate-800 dark:text-white block mb-1">📢 Presenter Notes & bilingual Explanation:</span>
+                                      <p className="whitespace-pre-line leading-relaxed font-medium text-slate-600 dark:text-slate-350">
+                                        {currentSlide.speakerNotes}
+                                      </p>
+                                    </div>
+
+                                    {/* Navigation Actions */}
+                                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex justify-between items-center">
+                                      <div className="flex gap-2">
+                                        <button
+                                          type="button"
+                                          disabled={currentSlideIndex === 0}
+                                          onClick={() => setCurrentSlideIndex(prev => prev - 1)}
+                                          className="py-1.5 px-3 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-250 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                                        >
+                                          ◀ Previous
+                                        </button>
+                                        <button
+                                          type="button"
+                                          disabled={currentSlideIndex >= (presentationData.slides?.length || 0) - 1}
+                                          onClick={() => setCurrentSlideIndex(prev => prev + 1)}
+                                          className="py-1.5 px-3 rounded-lg bg-indigo-650 hover:bg-indigo-600 text-white text-xs font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                                        >
+                                          Next ▶
+                                        </button>
+                                      </div>
+
+                                      <div className="flex items-center gap-1.5">
+                                        {presentationData.slides?.map((_: any, idx: number) => (
+                                          <span 
+                                            key={idx} 
+                                            onClick={() => setCurrentSlideIndex(idx)}
+                                            className={`w-2 h-2 rounded-full cursor-pointer transition-all ${
+                                              currentSlideIndex === idx ? "bg-indigo-650 dark:bg-indigo-500 w-4" : "bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600"
+                                            }`}
+                                          />
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
                             </div>
                           )}
                         </div>

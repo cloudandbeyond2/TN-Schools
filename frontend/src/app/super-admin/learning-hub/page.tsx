@@ -36,6 +36,7 @@ interface Content {
   uploaderRole: string | null;
   createdAt: string;
   infographic?: any;
+  presentation?: any;
   mcqs: Array<{
     question: string;
     options: string[];
@@ -153,6 +154,40 @@ export default function CentralLearningHubAdmin() {
       setToast({ message: `Generation failed: ${err.message || err}`, type: "error" });
     } finally {
       setGeneratingInfographic(false);
+    }
+  };
+
+  // Presentation states for Admin
+  const [generatingPresentation, setGeneratingPresentation] = useState(false);
+  const [presentationPreviewData, setPresentationPreviewData] = useState<any>(null);
+  const [showPresentationPreview, setShowPresentationPreview] = useState(false);
+  const [currentPreviewSlide, setCurrentPreviewSlide] = useState(0);
+
+  const handleGeneratePresentation = async () => {
+    if (!selectedTopic) return;
+    setGeneratingPresentation(true);
+    setToast({ message: "AI is analyzing materials and generating interactive lecture presentation...", type: "success" });
+    try {
+      const res = await fetch(`${API_URL}/api/centralized-content/topics/${selectedTopic.id}/generate-presentation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uploader: session?.user?.name || "Super Admin",
+          uploaderRole: (session?.user as any)?.role || "SUPERADMIN"
+        })
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setToast({ message: "AI Presentation generated and saved successfully!", type: "success" });
+        await handleSelectTopic(selectedTopic);
+      } else {
+        throw new Error(json.error || "Failed to generate");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setToast({ message: `Presentation generation failed: ${err.message || err}`, type: "error" });
+    } finally {
+      setGeneratingPresentation(false);
     }
   };
 
@@ -1236,6 +1271,83 @@ export default function CentralLearningHubAdmin() {
                   </div>
                 );
               })()}
+
+              {/* Central AI Presentation section */}
+              {(() => {
+                const presentationItem = contents.find(c => c.contentType === "PRESENTATION");
+                return (
+                  <div className={`border rounded-3xl p-5 space-y-4 transition-all ${
+                    presentationItem
+                      ? "bg-gradient-to-r from-emerald-950/20 to-teal-950/20 border-teal-500/25 animate-in fade-in"
+                      : "bg-slate-900/20 border-slate-800"
+                  }`}>
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-2xl">📊</span>
+                        <div>
+                          <h4 className="text-sm font-bold text-white">AI Slides Presentation</h4>
+                          <p className="text-[10px] text-slate-400">
+                            Pre-generated interactive lesson slide deck covering the subunit.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {presentationItem ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setPresentationPreviewData(presentationItem.presentation);
+                              setCurrentPreviewSlide(0);
+                              setShowPresentationPreview(true);
+                            }}
+                            className="px-2.5 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-lg text-[10px] font-bold transition-all"
+                          >
+                            🔍 Preview Slides
+                          </button>
+                          <button
+                            disabled={generatingPresentation}
+                            onClick={handleGeneratePresentation}
+                            className="px-2.5 py-1 bg-purple-550 hover:bg-purple-500 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50"
+                          >
+                            {generatingPresentation ? "Generating..." : "⚡ Regenerate"}
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          disabled={generatingPresentation || contents.length === 0}
+                          onClick={handleGeneratePresentation}
+                          className="px-3 py-1 bg-indigo-650 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          title={contents.length === 0 ? "Upload reference materials first to extract content" : "Generate presentation"}
+                        >
+                          {generatingPresentation ? "Generating..." : "⚡ Generate Presentation"}
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="p-3 bg-slate-950/40 rounded-xl border border-slate-900/60 text-xs text-slate-350 flex justify-between items-center">
+                      <div>
+                        <span className="font-bold text-white block mb-0.5">Presentation Status:</span>
+                        {presentationItem 
+                          ? `Ready. Pre-generated AI Slides deck is available for student learning.`
+                          : contents.length === 0
+                          ? "No materials uploaded yet. Please upload study materials to enable presentation generation."
+                          : "Pre-generated slide deck is missing. Generate it once so students can study visually."
+                        }
+                      </div>
+                      
+                      {presentationItem && (
+                        <button
+                          onClick={() => handleDeleteContent(presentationItem.id)}
+                          className="text-[10px] text-slate-500 hover:text-red-400 font-bold hover:underline py-0.5 px-1.5 border border-slate-800 rounded transition-colors"
+                          title="Delete Presentation"
+                        >
+                          🗑️ Delete
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ) : (
             <div className="glass p-6 rounded-3xl border border-slate-700/40 text-center text-slate-400 text-sm py-28">
@@ -2089,6 +2201,140 @@ export default function CentralLearningHubAdmin() {
                 onClick={() => {
                   setShowInfographicPreview(false);
                   setInfographicPreviewData(null);
+                }}
+                className="py-2 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition-colors"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 6. Presentation Preview Modal */}
+      {showPresentationPreview && presentationPreviewData && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-250">
+          <div className="glass max-w-4xl w-full p-6 border border-slate-700/60 rounded-3xl space-y-6 my-8 bg-slate-950/95 shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3 flex-shrink-0">
+              <div>
+                <h3 className="font-black text-base md:text-lg text-white tracking-wide">🎨 Student View Preview: AI Slides Presentation</h3>
+                <p className="text-xs text-slate-400 mt-0.5">{presentationPreviewData.presentationTitle || selectedTopic?.name}</p>
+              </div>
+              <button 
+                onClick={() => {
+                  setShowPresentationPreview(false);
+                  setPresentationPreviewData(null);
+                }} 
+                className="text-slate-400 hover:text-white hover:bg-slate-900 rounded-full p-1.5 transition-colors text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Slide Area */}
+            <div className="flex-1 flex flex-col gap-6 overflow-y-auto min-h-[300px]">
+              {(() => {
+                const currentSlide = presentationPreviewData.slides?.[currentPreviewSlide];
+                if (!currentSlide) return <p className="text-slate-500 text-center py-10">Slide not found.</p>;
+                
+                return (
+                  <div className="flex-1 flex flex-col gap-5">
+                    {/* Slide Content Layout */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 flex-1">
+                      
+                      {/* Left: Text bullets content */}
+                      <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-850 flex flex-col justify-between">
+                        <div className="space-y-4">
+                          <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-md">
+                            Slide {currentSlide.slideNumber} of {presentationPreviewData.slides.length}
+                          </span>
+                          <h4 className="text-base font-black text-white leading-tight">
+                            {currentSlide.title}
+                          </h4>
+                          
+                          <ul className="space-y-3.5 pt-2">
+                            {currentSlide.bulletPoints?.map((bp: string, bpi: number) => (
+                              <li key={bpi} className="text-xs md:text-sm text-slate-205 flex items-start gap-2.5 leading-relaxed font-medium">
+                                <span className="text-indigo-400 select-none mt-0.5">•</span>
+                                <span>{bp}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Right: Pictorial / Diagram representation guidance */}
+                      <div className="p-6 rounded-2xl border border-teal-500/15 bg-teal-500/5 relative overflow-hidden flex flex-col justify-between group">
+                        {/* Blueprint background grid effect */}
+                        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0ea5e912_1px,transparent_1px),linear-gradient(to_bottom,#0ea5e912_1px,transparent_1px)] bg-[size:14px_24px] pointer-events-none opacity-40"></div>
+                        
+                        <div className="relative z-10 space-y-3">
+                          <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-md">
+                            📐 Visual Illustration Blueprint
+                          </span>
+                          <h5 className="text-xs font-extrabold text-slate-200">Pictorial Concept Representation:</h5>
+                          <p className="text-xs text-slate-355 leading-relaxed font-medium">
+                            {currentSlide.visualLayoutDescription}
+                          </p>
+                        </div>
+                        
+                        <div className="relative z-10 mt-4 text-[10px] text-teal-400 font-bold flex items-center gap-1 bg-teal-950/30 p-2 rounded-lg border border-teal-500/10">
+                          <span>💡</span>
+                          <span>Students will see custom animations matching this blueprint guide.</span>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* Speaker Notes / Explanation */}
+                    <div className="p-4 rounded-xl border border-slate-850 bg-slate-900/30 leading-relaxed text-xs text-slate-300">
+                      <span className="font-bold text-white block mb-1">📢 Presenter Notes & bilingual Explanation:</span>
+                      <p className="whitespace-pre-line leading-relaxed font-medium text-slate-350">
+                        {currentSlide.speakerNotes}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Navigation and Close Actions */}
+            <div className="pt-3 border-t border-slate-800 flex justify-between items-center flex-shrink-0">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={currentPreviewSlide === 0}
+                  onClick={() => setCurrentPreviewSlide(prev => prev - 1)}
+                  className="py-1.5 px-3 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-xs font-bold text-slate-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  ◀ Previous Slide
+                </button>
+                <button
+                  type="button"
+                  disabled={currentPreviewSlide >= (presentationPreviewData.slides?.length || 0) - 1}
+                  onClick={() => setCurrentPreviewSlide(prev => prev + 1)}
+                  className="py-1.5 px-3 rounded-lg bg-indigo-650 hover:bg-indigo-500 text-xs font-bold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Next Slide ▶
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {presentationPreviewData.slides?.map((_: any, idx: number) => (
+                  <span 
+                    key={idx} 
+                    onClick={() => setCurrentPreviewSlide(idx)}
+                    className={`w-2 h-2 rounded-full cursor-pointer transition-all ${
+                      currentPreviewSlide === idx ? "bg-indigo-500 w-4" : "bg-slate-700 hover:bg-slate-600"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPresentationPreview(false);
+                  setPresentationPreviewData(null);
                 }}
                 className="py-2 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition-colors"
               >

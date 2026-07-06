@@ -887,6 +887,7 @@ model CentralContent {
   fileContent  String?
   mcqs         Json?
   infographic  Json?
+  presentation Json?
   fileSize     String?
   uploader     String?
   uploaderRole String?
