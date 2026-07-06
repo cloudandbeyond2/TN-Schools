@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import KpiStrip from "@/components/kpi/KpiStrip";
 
 const kpiData = [
   { label: "Enrollment Rate", value: 94.2, target: 100, unit: "%", icon: "👨‍🎓", trend: "+2.1%", color: "text-red-400", bg: "from-red-500 to-orange-500" },
@@ -21,6 +22,9 @@ export default function MinisterKPIPage() {
       <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
         <p className="text-xs text-red-300">🎯 <strong>Ministerial KPI Dashboard</strong> — Tracking 8 strategic objectives for Tamil Nadu Education 2025. Click any KPI card for detailed breakdown.</p>
       </div>
+
+      {/* Real state-wide academic-year analytics */}
+      <KpiStrip path="/api/analytics/state" title="Live State KPIs (Academic Year)" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {kpiData.map(k => {

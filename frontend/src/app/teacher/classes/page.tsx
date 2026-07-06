@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import KpiStrip from "@/components/kpi/KpiStrip";
 
 // ─── Types ─────────────────────────────────────────────────────
 interface ClassRoom {
@@ -241,6 +242,9 @@ export default function ClassesPage() {
   // ─── Render ────────────────────────────────────────────────
   return (
     <PortalLayout title="My Classes" subtitle="Manage your sections, student rosters, and schedules">
+      {/* Academic-year school KPIs */}
+      <KpiStrip path={schoolId ? `/api/analytics/school/${schoolId}` : null} title="School KPIs" variant="light" />
+
       {/* Toast */}
       {toast && (
         <div className={`mb-5 px-4 py-3 rounded-xl text-xs font-semibold border shadow-sm fade-in ${toast.type === "success"

@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import PersonalKpiStrip from "@/components/kpi/PersonalKpiStrip";
 import Link from "next/link";
 
 const API = () => {
@@ -174,6 +175,15 @@ export default function ParentDashboard() {
             </button>
           ))}
         </div>
+      )}
+
+      {/* ── Academic-year KPIs for the selected child ────── */}
+      {activeChild && (
+        <PersonalKpiStrip
+          studentId={activeChild.studentId}
+          title={`${activeChild.name.split(" ")[0]}'s Academic KPIs`}
+          variant="dark"
+        />
       )}
 
       {/* ── No children linked state ─────────────────────── */}

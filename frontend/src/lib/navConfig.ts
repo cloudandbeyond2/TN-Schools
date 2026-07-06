@@ -113,6 +113,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
+      { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
     ],
   },
   STUDENT_MIDDLE: {
@@ -146,6 +147,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
+      { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "Extracurriculars", href: "/student/activities", icon: "Smile" },
       { label: "Sports & Athletics", href: "/student/sports", icon: "Activity" },
@@ -204,6 +206,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
+      { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "Extracurriculars", href: "/student/activities", icon: "Smile" },
       { label: "Sports & Athletics", href: "/student/sports", icon: "Activity" },
@@ -261,6 +264,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
+      { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "Extracurriculars", href: "/student/activities", icon: "Smile" },
       { label: "Sports & Athletics", href: "/student/sports", icon: "Activity" },
@@ -377,6 +381,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       { label: "People & Staff", href: "#", icon: "" },
       { label: "Student Monitoring", href: "/headmaster/students", icon: "GraduationCap" },
+      { label: "Promotions", href: "/headmaster/promotions", icon: "TrendingUp" },
       { label: "Staff Management", href: "/headmaster/staff", icon: "User" },
       { label: "Temporary Staff", href: "/headmaster/temporary-staff", icon: "Users" },
       { label: "Parents Details", href: "/headmaster/parents", icon: "Users" },
@@ -414,6 +419,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#8b5cf6",
     navItems: [
       { label: "Dashboard", href: "/block-education-officer", icon: "Home" },
+      { label: "Promotion Approvals", href: "/block-education-officer/promotions", icon: "TrendingUp" },
       { label: "Manage Headmasters", href: "/block-education-officer/headmasters", icon: "Building" },
       { label: "School Comparisons", href: "/block-education-officer/schools", icon: "Building" },
       { label: "Attendance Analytics", href: "/block-education-officer/attendance", icon: "Calendar" },

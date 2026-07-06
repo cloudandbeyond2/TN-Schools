@@ -63,6 +63,8 @@ import neetPrepRoutes from './routes/neetPrep.routes';
 import competitiveExamsRoutes from './routes/competitiveExams.routes';
 import libraryProgressRoutes from './routes/libraryProgress.routes';
 import flashcardRoutes from './routes/flashcards.routes';
+import promotionRoutes from './routes/promotion.routes';
+import analyticsRoutes from './routes/analytics.routes';
 
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
@@ -194,6 +196,8 @@ app.use('/api/neet-prep', neetPrepRoutes);
 app.use('/api/competitive-exams', competitiveExamsRoutes);
 app.use('/api/digital-library/progress', libraryProgressRoutes);
 app.use('/api/digital-library/flashcards', flashcardRoutes);
+app.use('/api/promotions', promotionRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
