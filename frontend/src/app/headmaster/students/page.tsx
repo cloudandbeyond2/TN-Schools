@@ -218,6 +218,12 @@ export default function StudentsMonitoringPage() {
     setNewParentEmail(s.parentEmail || "");
     setNewAddress(s.address || "");
     setNewStudentStatus(s.studentStatus || "Active");
+
+    // Reset validation errors
+    setRollError("");
+    setPhoneError("");
+    setPincodeError("");
+    setEmisError("");
   };
 
   const handleOpenEdit = (s: any) => {
@@ -238,7 +244,7 @@ export default function StudentsMonitoringPage() {
 
   const [newName, setNewName] = useState("");
   const [newRollNumber, setNewRollNumber] = useState("");
-  const [newClass, setNewClass] = useState("Class 10A");
+  const [newClass, setNewClass] = useState("Class 6");
   const [newGroup, setNewGroup] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newParentName, setNewParentName] = useState("");
@@ -264,6 +270,56 @@ export default function StudentsMonitoringPage() {
   const [newParentEmail, setNewParentEmail] = useState("");
   const [newAddress, setNewAddress] = useState("");
   const [newStudentStatus, setNewStudentStatus] = useState("Active");
+
+  // Live input validations
+  const [pincodeError, setPincodeError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [rollError, setRollError] = useState("");
+  const [emisError, setEmisError] = useState("");
+
+  const handleRollChange = (val: string) => {
+    // Only allow alphanumeric characters, uppercase them for standard format
+    const cleaned = val.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    setNewRollNumber(cleaned);
+    if (cleaned.length < 3 && cleaned.length > 0) {
+      setRollError("Roll number must be at least 3 alphanumeric characters");
+    } else {
+      setRollError("");
+    }
+  };
+
+  const handlePhoneChange = (val: string) => {
+    // Limit to numeric, max 10 chars
+    const cleaned = val.replace(/\D/g, "").slice(0, 10);
+    setNewPhone(cleaned);
+    if (cleaned.length > 0 && cleaned.length < 10) {
+      setPhoneError("Phone number must be exactly 10 digits");
+    } else {
+      setPhoneError("");
+    }
+  };
+
+  const handlePincodeChange = (val: string) => {
+    // Limit to numeric, max 6 chars
+    const cleaned = val.replace(/\D/g, "").slice(0, 6);
+    setNewPincode(cleaned);
+    if (cleaned.length > 0 && cleaned.length < 6) {
+      setPincodeError("Pincode must be exactly 6 digits");
+    } else {
+      setPincodeError("");
+    }
+  };
+
+  const handleEmisChange = (val: string) => {
+    // Only allow digits, max 16 digits
+    const cleaned = val.replace(/\D/g, "").slice(0, 16);
+    setNewEmisNumber(cleaned);
+    if (cleaned.length > 0 && cleaned.length < 16) {
+      setEmisError("EMIS Number must be exactly 16 digits");
+    } else {
+      setEmisError("");
+    }
+  };
 
 
   const [isUploading, setIsUploading] = useState(false);
@@ -714,7 +770,16 @@ export default function StudentsMonitoringPage() {
   // ── Save single manual entry to PostgreSQL ──────────────────────
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName || !newRollNumber) return;
+    if (!newName.trim()) return;
+    if (!newRollNumber.trim()) {
+      setRollError("Roll Number is required");
+      return;
+    }
+    if (rollError || phoneError || pincodeError || emisError) {
+      showToast("❌ Please fix validation errors in the form first.", "error");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const url = isEditMode ? `${API_BASE}/api/headmaster/students/${editingStudentId}` : `${API_BASE}/api/headmaster/students`;
@@ -770,9 +835,14 @@ export default function StudentsMonitoringPage() {
         setNewCity(""); setNewPincode("");
         setNewAdmissionNumber(""); setNewEmisNumber(""); setNewDob(""); setNewGender("");
         setNewBloodGroup(""); setNewReligion(""); setNewCommunity(""); setNewNationality("Indian");
-        setNewMediumOfInstruction("English"); setNewSection("A"); setNewAcademicYear("2024-25");
         setNewFatherName(""); setNewFatherOccupation(""); setNewMotherName(""); setNewMotherOccupation("");
         setNewParentEmail(""); setNewAddress(""); setNewStudentStatus("Active");
+
+        // Clear error states
+        setRollError("");
+        setPhoneError("");
+        setPincodeError("");
+        setEmisError("");
 
         setIsModalOpen(false);
         fetchWatchlist();
@@ -957,8 +1027,8 @@ export default function StudentsMonitoringPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2 glass rounded-2xl p-6 border border-slate-800">
+      <div className="mb-6">
+        <div className="w-full glass rounded-2xl p-6 border border-slate-800">
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-base font-semibold text-white">🏫 Student Watchlist Overview</h2>
             <div className="flex items-center gap-3">
@@ -1149,65 +1219,6 @@ export default function StudentsMonitoringPage() {
             </div>
           )}
         </div>
-
-
-        {/* Watchlist */}
-        <div className="glass rounded-2xl p-6 border border-slate-800">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-white">⚠️ Student Watchlist</h2>
-            {isLoading && <div className="w-4 h-4 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />}
-          </div>
-          <div className="space-y-4 max-h-[450px] overflow-y-auto pr-1">
-            {watchlist.length === 0 && !isLoading ? (
-              <div className="text-center py-8 text-slate-500 text-xs">No students in watchlist. Add one using the form.</div>
-            ) : (
-              watchlist.map((s) => (
-                <div
-                  key={s.id || s.rollNumber}
-                  className="p-3.5 rounded-xl border text-xs border-amber-500/20 bg-amber-500/5"
-                >
-                  <div className="flex justify-between items-start mb-1.5">
-                    <div>
-                      <h4 className="font-bold text-white text-sm">{s.name}</h4>
-                      <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-slate-500 font-semibold mt-0.5">
-                        <span>{s.class}</span>
-                        <span>•</span>
-                        <span>Roll: {s.rollNumber || "N/A"}</span>
-                        <span>•</span>
-                        <span>Ph: {s.phone || "N/A"}</span>
-                      </div>
-                      <div className="text-[10px] text-slate-400 mt-1">
-                        Parent: <span className="font-medium text-slate-300">{s.parentName || "N/A"}</span>
-                      </div>
-                      <div className="text-[9px] text-slate-500 mt-0.5 leading-relaxed">
-                        Address: {s.city}, {s.district}, {s.state} - {s.pincode}
-                      </div>
-                      {s.createdAt && (
-                        <div className="text-[9px] text-slate-600 mt-0.5">
-                          Added: {new Date(s.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-
-                      {s.id && (
-                        <button
-                          onClick={() => {
-                            setStudentToDelete(s);
-                            setIsDeleteConfirmOpen(true);
-                          }}
-                          className="text-[10px] text-red-400 hover:text-red-300 font-semibold transition-colors"
-                        >
-                          ✕ Remove
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
       </div>
 
       {/* ── Bulk Import Template Card ─────────────────────────────────── */}
@@ -1297,7 +1308,7 @@ export default function StudentsMonitoringPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
-            className="w-full max-w-4xl rounded-3xl p-6 space-y-6 relative transition-all duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar"
+            className="w-full max-w-4xl rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-6 relative transition-all duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar"
             style={{
               background: "#ffffff",
               border: "1px solid rgba(0, 0, 0, 0.08)",
@@ -1305,8 +1316,8 @@ export default function StudentsMonitoringPage() {
             }}
           >
             {/* Modal Header with Tabs */}
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-3 gap-2.5">
+              <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => setModalTab("manual")}
@@ -1334,7 +1345,7 @@ export default function StudentsMonitoringPage() {
               </div>
               <button
                 onClick={() => { setIsModalOpen(false); setPreviewStudents([]); setModalTab("manual"); }}
-                className="text-slate-500 hover:text-slate-800 text-xs font-semibold"
+                className="text-slate-500 hover:text-slate-800 text-xs font-semibold self-end sm:self-auto"
               >
                 ✕ Close
               </button>
@@ -1477,7 +1488,7 @@ export default function StudentsMonitoringPage() {
                     <div className="pt-1 pb-2 border-b border-slate-200">
                       <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Personal Details</h4>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="col-span-2">
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Full Name</label>
                         <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)}
@@ -1547,37 +1558,60 @@ export default function StudentsMonitoringPage() {
                     <div className="pt-3 pb-2 border-b border-slate-200">
                       <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Academic Details</h4>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Admission Number</label>
                         <input type="text" value={newAdmissionNumber} onChange={(e) => setNewAdmissionNumber(e.target.value)}
+                          placeholder="e.g. ADM2026101"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">EMIS Number</label>
-                        <input type="text" value={newEmisNumber} onChange={(e) => setNewEmisNumber(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                          EMIS Number
+                          <span className="ml-1 text-slate-400 font-normal">(16 digits)</span>
+                        </label>
+                        <input type="text" value={newEmisNumber} onChange={(e) => handleEmisChange(e.target.value)}
+                          placeholder="e.g. 3302100010101234"
+                          maxLength={16}
+                          className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-colors ${
+                            emisError
+                              ? "border-red-400 focus:border-red-500 focus:bg-white"
+                              : newEmisNumber.length === 16
+                              ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                              : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                          }`} />
+                        {emisError && (
+                          <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{emisError}</p>
+                        )}
                       </div>
                       <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Roll Number</label>
-                        <input type="text" required value={newRollNumber} onChange={(e) => setNewRollNumber(e.target.value)}
+                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                          Roll Number
+                          <span className="ml-1 text-red-500">*</span>
+                        </label>
+                        <input type="text" required value={newRollNumber} onChange={(e) => handleRollChange(e.target.value)}
                           placeholder="e.g. HM10101"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none transition-colors ${
+                            rollError
+                              ? "border-red-400 focus:border-red-500 focus:bg-white"
+                              : newRollNumber.length >= 3
+                              ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                              : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                          }`} />
+                        {rollError && (
+                          <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{rollError}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Academic Year</label>
                         <input type="text" value={newAcademicYear} onChange={(e) => setNewAcademicYear(e.target.value)}
+                          placeholder="e.g. 2024-25"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Class</label>
                         <select required value={newClass} onChange={(e) => setNewClass(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
                           <option value="">Select Class</option>
-                          <option value="Class 1">Class 1</option>
-                          <option value="Class 2">Class 2</option>
-                          <option value="Class 3">Class 3</option>
-                          <option value="Class 4">Class 4</option>
-                          <option value="Class 5">Class 5</option>
                           <option value="Class 6">Class 6</option>
                           <option value="Class 7">Class 7</option>
                           <option value="Class 8">Class 8</option>
@@ -1641,25 +1675,29 @@ export default function StudentsMonitoringPage() {
                     <div className="pt-3 pb-2 border-b border-slate-200">
                       <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Parent / Guardian Details</h4>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Name</label>
                         <input type="text" value={newFatherName} onChange={(e) => setNewFatherName(e.target.value)}
+                          placeholder="e.g. Ramasamy"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Occupation</label>
                         <input type="text" value={newFatherOccupation} onChange={(e) => setNewFatherOccupation(e.target.value)}
+                          placeholder="e.g. Farmer"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Name</label>
                         <input type="text" value={newMotherName} onChange={(e) => setNewMotherName(e.target.value)}
+                          placeholder="e.g. Lakshmi"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Occupation</label>
                         <input type="text" value={newMotherOccupation} onChange={(e) => setNewMotherOccupation(e.target.value)}
+                          placeholder="e.g. Homemaker"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
@@ -1671,13 +1709,27 @@ export default function StudentsMonitoringPage() {
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Parent Email</label>
                         <input type="email" value={newParentEmail} onChange={(e) => setNewParentEmail(e.target.value)}
+                          placeholder="e.g. parent@example.com"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Phone Number</label>
-                        <input type="text" required value={newPhone} onChange={(e) => setNewPhone(e.target.value)}
+                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                          Phone Number
+                          <span className="ml-1 text-red-500">*</span>
+                        </label>
+                        <input type="text" required value={newPhone} onChange={(e) => handlePhoneChange(e.target.value)}
                           placeholder="e.g. 9876543210"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          maxLength={10}
+                          className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none transition-colors ${
+                            phoneError
+                              ? "border-red-400 focus:border-red-500 focus:bg-white"
+                              : newPhone.length === 10
+                              ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                              : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                          }`} />
+                        {phoneError && (
+                          <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{phoneError}</p>
+                        )}
                       </div>
                     </div>
 
@@ -1685,10 +1737,11 @@ export default function StudentsMonitoringPage() {
                     <div className="pt-3 pb-2 border-b border-slate-200">
                       <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Address Details</h4>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="col-span-2">
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Address</label>
                         <input type="text" value={newAddress} onChange={(e) => setNewAddress(e.target.value)}
+                          placeholder="e.g. 123 Main Street"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
@@ -1710,10 +1763,23 @@ export default function StudentsMonitoringPage() {
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Pincode</label>
-                        <input type="text" value={newPincode} onChange={(e) => setNewPincode(e.target.value)}
+                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                          Pincode
+                          <span className="ml-1 text-slate-400 font-normal">(6 digits)</span>
+                        </label>
+                        <input type="text" value={newPincode} onChange={(e) => handlePincodeChange(e.target.value)}
                           placeholder="e.g. 641001"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          maxLength={6}
+                          className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-colors ${
+                            pincodeError
+                              ? "border-red-400 focus:border-red-500 focus:bg-white"
+                              : newPincode.length === 6
+                              ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                              : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                          }`} />
+                        {pincodeError && (
+                          <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{pincodeError}</p>
+                        )}
                       </div>
                     </div>
 
