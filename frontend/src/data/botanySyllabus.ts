@@ -15,7 +15,7 @@ const grade8: BotanyGrade = {
   units: [
     {
       id: "plant-world", title: "The Plant World", titleTa: "தாவர உலகம்", textbookRef: "Class 8 Science · Unit 17 · p.215",
-      emoji: "🌿", color: "lime",
+      emoji: "🌿", color: "emerald",
       objectives: ["Group plants into herbs, shrubs, trees and climbers.", "Describe the parts of a plant and their jobs.", "Tell flowering from non-flowering plants."],
       concepts: [
         { heading: "Kinds of plants", body: "Plants come in many forms — soft herbs, woody shrubs and tall trees, plus creepers and climbers. Sorting them helps us study and use them." },
@@ -62,7 +62,7 @@ const grade10: BotanyGrade = {
   units: [
     {
       id: "plant-nutrition", title: "Nutrition & Photosynthesis", textbookRef: "Class 10 Science · Unit 12 · p.174",
-      emoji: "☀️", color: "lime",
+      emoji: "☀️", color: "emerald",
       objectives: ["Write the photosynthesis equation.", "Explain the role of chlorophyll and stomata.", "Describe how plants store food."],
       concepts: [
         { heading: "Making food from light", body: "Green plants use sunlight, water and carbon dioxide to make glucose and release oxygen. Chlorophyll in the leaves captures the light energy." },
@@ -106,7 +106,7 @@ const grade11: BotanyGrade = {
   units: [
     {
       id: "plant-kingdom", title: "Plant Kingdom", titleTa: "தாவர வகைப்பாடு", textbookRef: "Class 11 Bio-Botany · Chapter",
-      emoji: "🌱", color: "lime",
+      emoji: "🌱", color: "emerald",
       objectives: ["Classify plants from algae to flowering plants.", "Use features like seeds and vascular tissue.", "Give examples of each group."],
       concepts: [
         { heading: "From simple to seed plants", body: "Plants range from simple algae and mosses, through ferns, up to seed plants — gymnosperms (naked seeds) and angiosperms (flowering plants)." },

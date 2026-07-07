@@ -65,6 +65,7 @@ import libraryProgressRoutes from './routes/libraryProgress.routes';
 import flashcardRoutes from './routes/flashcards.routes';
 import promotionRoutes from './routes/promotion.routes';
 import analyticsRoutes from './routes/analytics.routes';
+import scienceLabsRoutes from './routes/scienceLabs.routes';
 
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
@@ -198,6 +199,7 @@ app.use('/api/digital-library/progress', libraryProgressRoutes);
 app.use('/api/digital-library/flashcards', flashcardRoutes);
 app.use('/api/promotions', promotionRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/science', scienceLabsRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
