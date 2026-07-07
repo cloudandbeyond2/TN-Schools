@@ -109,7 +109,7 @@ app.use(helmet());
 // ─── Rate Limiting ───────────────────────────────────────────────
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: process.env.NODE_ENV === 'development' ? 999999 : 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'Too many login attempts, please try again later.' },
@@ -118,7 +118,7 @@ app.use('/api/users/auth', loginLimiter);
 
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: process.env.NODE_ENV === 'development' ? 999999 : 300,
   standardHeaders: true,
   legacyHeaders: false,
 });

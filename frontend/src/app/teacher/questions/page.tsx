@@ -46,6 +46,14 @@ export default function QuestionGeneratorPage() {
   const [actionStatus, setActionStatus] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
 
+  // Manual Question state
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [manualType, setManualType] = useState<"mcq" | "short" | "long">("mcq");
+  const [manualText, setManualText] = useState("");
+  const [manualAnswer, setManualAnswer] = useState("");
+  const [manualMarks, setManualMarks] = useState(1);
+  const [manualOptions, setManualOptions] = useState<string[]>(["", "", "", ""]);
+
   // Fetch from Question Bank DB on mount / view switch
   const fetchQuestionBank = async () => {
     try {
@@ -290,6 +298,91 @@ export default function QuestionGeneratorPage() {
     );
   };
 
+  const handleAddManualQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!manualText.trim() || !manualAnswer.trim()) {
+      Swal.fire({ icon: "error", title: "Error", text: "Please fill in the question text and answer." });
+      return;
+    }
+
+    const newQ: Question = {
+      id: `manual-${Date.now()}`,
+      type: manualType,
+      text: manualText,
+      options: manualType === "mcq" ? manualOptions.map((opt, i) => `${String.fromCharCode(65 + i)}) ${opt}`) : [],
+      answer: manualAnswer,
+      marks: Number(manualMarks),
+      grade,
+      subject,
+      topic,
+      difficulty,
+    };
+
+    if (activeView === "generator") {
+      setQuestions((prev) => [...prev, newQ]);
+      setShowQuestions(true);
+      setIsManualModalOpen(false);
+      resetManualForm();
+      Swal.fire({
+        icon: "success",
+        title: "Added!",
+        text: "Question added to your session list. Click 'Save to Question Bank' when ready.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else {
+      // Save directly to DB
+      try {
+        const cleanQ = {
+          type: manualType,
+          text: manualText,
+          options: manualType === "mcq" ? manualOptions.map((opt, i) => `${String.fromCharCode(65 + i)}) ${opt}`) : [],
+          answer: manualAnswer,
+          marks: Number(manualMarks),
+          grade,
+          subject,
+          topic,
+          difficulty,
+        };
+
+        const res = await fetch(`${API_URL}/api/teacher/questions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            questions: [cleanQ],
+            schoolId,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          Swal.fire({
+            icon: "success",
+            title: "Saved!",
+            text: "Question saved directly to the database.",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+          fetchQuestionBank();
+          setIsManualModalOpen(false);
+          resetManualForm();
+        } else {
+          Swal.fire({ icon: "error", title: "Save Failed", text: data.error || "Failed to save question." });
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire({ icon: "error", title: "Error", text: "Failed to connect to backend server." });
+      }
+    }
+  };
+
+  const resetManualForm = () => {
+    setManualText("");
+    setManualAnswer("");
+    setManualMarks(manualType === "mcq" ? 1 : manualType === "short" ? 2 : 5);
+    setManualOptions(["", "", "", ""]);
+  };
+
   return (
     <PortalLayout
       title="Question Generator"
@@ -332,6 +425,8 @@ export default function QuestionGeneratorPage() {
                   onChange={(e) => setGrade(e.target.value)}
                   className="w-full bg-[var(--bg-card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)]"
                 >
+                  <option>Grade 6</option>
+                  <option>Grade 7</option>
                   <option>Grade 8</option>
                   <option>Grade 9</option>
                   <option>Grade 10</option>
@@ -351,6 +446,7 @@ export default function QuestionGeneratorPage() {
                   <option>Science</option>
                   <option>English</option>
                   <option>Social Science</option>
+                  <option>Tamil</option>
                 </select>
               </div>
 
@@ -428,6 +524,13 @@ export default function QuestionGeneratorPage() {
                 {isGenerating ? "Synthesizing Questions..." : "⚡ Generate Questions"}
               </button>
             </form>
+            <hr className="border-[var(--border)] my-4" />
+            <button
+              onClick={() => { resetManualForm(); setIsManualModalOpen(true); }}
+              className="w-full py-2.5 rounded-xl border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/5 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+            >
+              ➕ Manually Add Question
+            </button>
           </div>
 
           {/* Output Column */}
@@ -563,7 +666,15 @@ export default function QuestionGeneratorPage() {
       ) : (
         /* Saved Bank Tab View */
         <div className="theme-card p-6 min-h-[400px]">
-          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4">🗂️ Active Question Bank</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-base font-semibold text-[var(--text-heading)]">🗂️ Active Question Bank</h2>
+            <button
+              onClick={() => { resetManualForm(); setIsManualModalOpen(true); }}
+              className="px-3 py-1.5 rounded-lg bg-[var(--primary)] hover:bg-amber-600 text-xs font-bold text-white shadow-sm flex items-center gap-1.5"
+            >
+              ➕ Manually Add Question
+            </button>
+          </div>
           
           {loadingBank ? (
             <div className="text-center py-12 text-xs text-[var(--text-muted)]">Loading bank repository...</div>
@@ -647,6 +758,129 @@ export default function QuestionGeneratorPage() {
               ))}
             </div>
           )}
+        </div>
+      )}
+      {isManualModalOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4 text-left">
+            <div className="flex justify-between items-center border-b border-[var(--border)] pb-3">
+              <h3 className="text-[var(--text-heading)] font-bold text-base">➕ Add Question Manually</h3>
+              <button onClick={() => setIsManualModalOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text-heading)]">✕</button>
+            </div>
+            
+            <form onSubmit={handleAddManualQuestion} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-[var(--text-muted)] block mb-1">Type</label>
+                  <select
+                    value={manualType}
+                    onChange={(e) => {
+                      const type = e.target.value as any;
+                      setManualType(type);
+                      setManualMarks(type === "mcq" ? 1 : type === "short" ? 2 : 5);
+                    }}
+                    className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none"
+                  >
+                    <option value="mcq">Multiple Choice (MCQ)</option>
+                    <option value="short">Short Answer</option>
+                    <option value="long">Long Answer</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-[var(--text-muted)] block mb-1">Marks</label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    value={manualMarks}
+                    onChange={(e) => setManualMarks(Number(e.target.value))}
+                    className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-[var(--text-muted)] block mb-1">Question Text</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={manualText}
+                  onChange={(e) => setManualText(e.target.value)}
+                  placeholder="Type the question statement here..."
+                  className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none"
+                />
+              </div>
+
+              {manualType === "mcq" && (
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-[var(--text-muted)] block">MCQ Options (excluding prefix like A))</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {manualOptions.map((opt, i) => (
+                      <div key={i} className="flex items-center gap-1">
+                        <span className="text-xs font-bold text-[var(--text-muted)]">{String.fromCharCode(65 + i)})</span>
+                        <input
+                          type="text"
+                          required={manualType === "mcq"}
+                          value={opt}
+                          onChange={(e) => {
+                            const newOpts = [...manualOptions];
+                            newOpts[i] = e.target.value;
+                            setManualOptions(newOpts);
+                          }}
+                          placeholder={`Option ${String.fromCharCode(65 + i)}`}
+                          className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-2 py-1.5 text-xs text-[var(--text-heading)] focus:outline-none"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs font-semibold text-[var(--text-muted)] block mb-1">
+                  {manualType === "mcq" ? "Correct Answer (Option Letter)" : "Model Answer / Explanation"}
+                </label>
+                {manualType === "mcq" ? (
+                  <select
+                    value={manualAnswer}
+                    onChange={(e) => setManualAnswer(e.target.value)}
+                    className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none"
+                  >
+                    <option value="">Select correct option...</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                  </select>
+                ) : (
+                  <textarea
+                    required
+                    rows={2}
+                    value={manualAnswer}
+                    onChange={(e) => setManualAnswer(e.target.value)}
+                    placeholder="Provide the correct answer guide or explanation..."
+                    className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none"
+                  />
+                )}
+              </div>
+
+              <div className="flex gap-3 justify-end pt-3 border-t border-[var(--border)]">
+                <button
+                  type="button"
+                  onClick={() => setIsManualModalOpen(false)}
+                  className="px-4 py-2 border border-[var(--border)] rounded-xl text-xs font-semibold text-[var(--text-muted)] hover:bg-[var(--bg-main)]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[var(--primary)] hover:bg-amber-600 rounded-xl text-xs font-bold text-white shadow-sm"
+                >
+                  {activeView === "generator" ? "Add to List" : "Save directly to DB"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </PortalLayout>

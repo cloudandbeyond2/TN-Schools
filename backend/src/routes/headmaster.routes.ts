@@ -462,6 +462,8 @@ router.delete('/students/:id', async (req: Request, res: Response) => {
     await prisma.mark.deleteMany({ where: { studentId: id } });
     await prisma.attendance.deleteMany({ where: { studentId: id } });
     await prisma.scholarship.deleteMany({ where: { studentId: id } });
+    await prisma.promotionRecord.deleteMany({ where: { studentId: id } });
+    await prisma.studentAcademicHistory.deleteMany({ where: { studentId: id } });
 
     await prisma.student.delete({ where: { id } });
     await prisma.user.delete({ where: { id: student.userId } });
@@ -488,6 +490,8 @@ router.post('/students/bulk-delete', async (req: Request, res: Response) => {
     await prisma.mark.deleteMany({ where: { studentId: { in: studentIds } } });
     await prisma.attendance.deleteMany({ where: { studentId: { in: studentIds } } });
     await prisma.scholarship.deleteMany({ where: { studentId: { in: studentIds } } });
+    await prisma.promotionRecord.deleteMany({ where: { studentId: { in: studentIds } } });
+    await prisma.studentAcademicHistory.deleteMany({ where: { studentId: { in: studentIds } } });
 
     await prisma.student.deleteMany({ where: { id: { in: studentIds } } });
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });

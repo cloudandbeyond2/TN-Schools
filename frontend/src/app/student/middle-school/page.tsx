@@ -166,6 +166,8 @@ export default function MiddleSchoolDashboard() {
   const [loadingBadges, setLoadingBadges] = useState(true);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(true);
+  const [recentMarks, setRecentMarks] = useState<any[]>([]);
+  const [loadingMarks, setLoadingMarks] = useState(true);
 
   useEffect(() => {
     if (session?.user) {
@@ -193,6 +195,17 @@ export default function MiddleSchoolDashboard() {
           setStudent(activeStudent);
 
           if (activeStudent) {
+            // Fetch student marks
+            fetch(`${API_BASE}/api/students/${activeStudent.id}/marks`)
+              .then((mRes) => mRes.json())
+              .then((mJson) => {
+                if (mJson.success && Array.isArray(mJson.data)) {
+                  setRecentMarks(mJson.data.slice(0, 5));
+                }
+              })
+              .catch((err) => console.error(err))
+              .finally(() => setLoadingMarks(false));
+
             const schoolId = (session?.user as any)?.schoolId;
             const url = schoolId
               ? `${API_BASE}/api/teacher/badges?schoolId=${schoolId}`
@@ -346,6 +359,44 @@ export default function MiddleSchoolDashboard() {
               </div>
             ) : (
               <div className="text-xs text-slate-500 py-4 text-center">Loading progress...</div>
+            )}
+          </div>
+
+          {/* Recent Assessment Marks Card */}
+          <div className="glass rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
+            <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white mb-3 flex items-center gap-2">
+              <span>🎯</span> Recent Assessment Marks
+            </h2>
+            {loadingMarks ? (
+              <div className="text-xs text-slate-500 py-4 text-center">Loading marks...</div>
+            ) : recentMarks.length > 0 ? (
+              <div className="space-y-3">
+                {recentMarks.map((m) => (
+                  <div key={m.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-150 dark:border-slate-800">
+                    <div>
+                      <div className="text-[10px] text-slate-500 font-bold uppercase">{m.subject}</div>
+                      <div className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                        {m.examType.replace("Assessment: ", "")}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-black text-indigo-600 dark:text-indigo-400 font-mono">
+                        {m.scored} / {m.maxMarks}
+                      </div>
+                      <div className="text-[9px] font-bold text-slate-400">
+                        {new Date(m.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-xs text-slate-505 dark:text-slate-500 italic">No assessments completed yet.</p>
+                <Link href="/student/assessments" className="inline-block mt-3 text-xs font-bold text-indigo-650 dark:text-indigo-400 hover:underline">
+                  Take your first test →
+                </Link>
+              </div>
             )}
           </div>
 
