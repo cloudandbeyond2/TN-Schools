@@ -370,16 +370,96 @@ export default function HomePage() {
             </button>
           </div>
         </div>
+
+        {/* Mobile Dropdown Menu Drawer */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              style={{ overflow: "hidden" }}
+              className="lg:hidden w-full border-t border-emerald-900/10 bg-white/95 backdrop-blur-md"
+            >
+              <div className="px-6 py-6 flex flex-col gap-6 max-h-[85vh] overflow-y-auto">
+                <div className="flex flex-col gap-4">
+                  {[
+                    { label: text.navFeatures, href: "#features" },
+                    { label: text.navPortals, href: "#portals" },
+                    { label: text.navImpact, href: "#stats" },
+                    { label: text.navTestimonials, href: "#testimonials" },
+                  ].map((link) => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="text-base font-semibold text-emerald-950 hover:text-emerald-500 transition-colors py-1"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+                
+                <hr className="border-emerald-800/10" />
+
+                <div className="flex flex-col gap-5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-emerald-800/60">Language / மொழி</span>
+                    <div style={{ display: "flex", background: "#F3F4F6", borderRadius: "20px", overflow: "hidden", padding: "2px" }}>
+                      <button
+                        onClick={() => { setLang("en"); setIsMobileMenuOpen(false); }}
+                        style={{ fontSize: "11px", padding: "5px 12px", border: "none", borderRadius: "18px", cursor: "pointer", fontWeight: 700, background: lang === "en" ? "#ffffff" : "transparent", color: lang === "en" ? "#065F46" : "#6B7280", boxShadow: lang === "en" ? "0 2px 4px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s" }}
+                      >EN</button>
+                      <button
+                        onClick={() => { setLang("ta"); setIsMobileMenuOpen(false); }}
+                        style={{ fontSize: "11px", padding: "5px 12px", border: "none", borderRadius: "18px", cursor: "pointer", fontWeight: 700, background: lang === "ta" ? "#ffffff" : "transparent", color: lang === "ta" ? "#065F46" : "#6B7280", boxShadow: lang === "ta" ? "0 2px 4px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s" }}
+                      >தமிழ்</button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    {session ? (
+                      <div className="flex flex-col gap-3">
+                        <Link
+                          href={getPortalLink()}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          style={{ fontSize: "14px", color: "#065F46", background: "#ECFDF5", border: "2px solid #A7F3D0", padding: "10px 20px", borderRadius: "24px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", textDecoration: "none", fontWeight: 700 }}
+                        >
+                          <i className="fi fi-rr-hand-wave"></i> {(session.user as any)?.name}
+                        </Link>
+                        <button
+                          onClick={() => { signOut({ callbackUrl: "/" }); setIsMobileMenuOpen(false); }}
+                          style={{ width: "100%", fontSize: "14px", fontWeight: 700, color: "#DC2626", background: "#FEF2F2", padding: "12px 16px", borderRadius: "24px", cursor: "pointer", border: "none" }}
+                        >
+                          {text.navSignOut}
+                        </button>
+                      </div>
+                    ) : (
+                      <Link
+                        href="/login"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        style={{ fontSize: "14px", fontWeight: 700, color: "#ffffff", background: "#065F46", padding: "12px 24px", borderRadius: "24px", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                      >
+                        {text.navSignIn} →
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* ═══════════════ SPLIT HERO SECTION ═══════════════ */}
-      <section id="hero" style={{ position: "relative", paddingTop: "60px", paddingBottom: "120px", overflow: "hidden" }}>
+      <section id="hero" className="relative pt-12 pb-20 md:pt-16 md:pb-28 overflow-hidden">
         {/* Abstract Background Blobs */}
         <div style={{ position: "absolute", top: "-100px", right: "-100px", width: "500px", height: "500px", borderRadius: "50%", background: "#D1FAE5", filter: "blur(80px)", zIndex: 0, opacity: 0.6 }} />
         <div style={{ position: "absolute", bottom: "-50px", left: "-100px", width: "400px", height: "400px", borderRadius: "50%", background: "#FEF3C7", filter: "blur(60px)", zIndex: 0, opacity: 0.5 }} />
 
-        <div className="px-4 md:px-8" style={{ maxWidth: "1320px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "60px", alignItems: "center" }}>
+        <div className="px-4 md:px-8 max-w-[1320px] mx-auto relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-[60px] items-center">
 
             {/* Left Content */}
             <div style={{ maxWidth: "600px" }}>
@@ -390,7 +470,7 @@ export default function HomePage() {
               </motion.div>
 
               <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
-                style={{ fontSize: "clamp(48px, 6vw, 72px)", fontWeight: 900, color: "#022C22", lineHeight: 1.1, marginBottom: "24px", letterSpacing: "-2px" }}>
+                style={{ fontSize: "clamp(36px, 6vw, 72px)", fontWeight: 900, color: "#022C22", lineHeight: 1.1, marginBottom: "24px", letterSpacing: "-2px" }}>
                 {text.heroTitle1}
                 <br />
                 <span style={{ color: "#10B981", position: "relative" }}>
@@ -428,7 +508,7 @@ export default function HomePage() {
             </div>
 
             {/* Right Content: Dynamic School Collage */}
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8 }} style={{ position: "relative", height: "500px" }}>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8 }} className="relative h-[320px] sm:h-[420px] md:h-[500px] w-full">
               <div style={{ position: "absolute", top: "10%", right: "10%", width: "60%", height: "50%", borderRadius: "24px", overflow: "hidden", border: "8px solid white", boxShadow: "0 20px 40px rgba(0,0,0,0.1)", zIndex: 3, transform: "rotate(4deg)" }}>
                 <img src="/bg-school.png" alt="School" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
@@ -449,9 +529,9 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════ EMERALD STATS RIBBON ═══════════════ */}
-      <section id="stats" style={{ background: "#065F46", padding: "60px 0", position: "relative", zIndex: 10, marginTop: "-40px", borderRadius: "40px", margin: "0 16px", boxShadow: "0 20px 50px rgba(6,95,70,0.2)" }}>
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "32px", textAlign: "center" }}>
+      <section id="stats" className="relative z-10 -mt-10 mx-4 bg-[#065F46] py-10 md:py-16 px-6 md:px-12 rounded-[30px] md:rounded-[40px]" style={{ boxShadow: "0 20px 50px rgba(6,95,70,0.2)" }}>
+        <div className="max-w-[1280px] mx-auto px-4 md:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
             {text.stats.map((s, i) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
                 <div style={{ fontSize: "40px", marginBottom: "8px", color: "#FCD34D" }}>{s.icon}</div>
@@ -464,9 +544,9 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════ PORTALS: BENTO BOX ═══════════════ */}
-      <section id="portals" style={{ padding: "120px 0 80px", background: "#FAFAFA" }}>
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
-          <div style={{ textAlign: "center", marginBottom: "64px" }}>
+      <section id="portals" className="py-16 md:py-24 bg-[#FAFAFA]">
+        <div className="max-w-[1280px] mx-auto px-6 md:px-8">
+          <div className="text-center mb-16">
             <span style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "2px", color: "#10B981", display: "inline-block", background: "#ECFDF5", padding: "6px 16px", borderRadius: "20px", marginBottom: "12px" }}>{text.portalTitleSub}</span>
             <h2 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 900, color: "#022C22", marginBottom: "16px" }}>
               {text.portalTitle1} <span style={{ color: "#F59E0B" }}>{text.portalTitle2}</span>
@@ -474,7 +554,7 @@ export default function HomePage() {
             <p style={{ color: "#4B5563", maxWidth: "600px", margin: "0 auto", fontSize: "16px", lineHeight: 1.6 }}>{text.portalDesc}</p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px", gridAutoRows: "180px" }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 grid-flow-row-dense gap-6 auto-rows-auto lg:auto-rows-[200px]">
             {portals.map((portal, i) => {
               const pColor = portalColors[portal.href] || { bg: "#f3f4f6", border: "#6b7280", text: "#374151" };
               // Make Student & Teacher larger in the grid
@@ -483,14 +563,12 @@ export default function HomePage() {
                 <Link
                   key={portal.href}
                   href={portal.href}
+                  className={`flex flex-col justify-center bg-white rounded-[32px] p-5 sm:p-7 relative overflow-hidden shadow-sm transition-all duration-300 ${
+                    isLarge ? "col-span-1 sm:col-span-2 row-span-1 sm:row-span-2" : "col-span-1 row-span-1"
+                  }`}
                   style={{
-                    display: "flex", flexDirection: "column", justifyContent: "center",
-                    gridColumn: isLarge ? "span 2" : "span 1",
-                    gridRow: isLarge ? "span 2" : "span 1",
-                    background: "#ffffff", borderRadius: "32px", padding: "32px",
                     border: `2px solid ${pColor.border}20`,
-                    textDecoration: "none", position: "relative", overflow: "hidden",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.04)", transition: "all 0.3s"
+                    textDecoration: "none"
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "translateY(-6px)";
@@ -503,12 +581,20 @@ export default function HomePage() {
                     e.currentTarget.style.borderColor = `${pColor.border}20`;
                   }}
                 >
-                  <div style={{ width: "64px", height: "64px", borderRadius: "20px", background: pColor.bg, display: "flex", alignItems: "center", justifyContent: "center", color: pColor.text, marginBottom: "20px" }}>
-                    <LucideIcon name={portal.icon} className="w-8 h-8" />
+                  <div
+                    className="rounded-[16px] flex items-center justify-center mb-3 sm:mb-4 w-11 h-11 sm:w-12 sm:h-12"
+                    style={{ background: pColor.bg, color: pColor.text }}
+                  >
+                    <LucideIcon name={portal.icon} className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
-                  <h3 style={{ fontSize: isLarge ? "28px" : "20px", fontWeight: 800, color: "#111827", marginBottom: "8px" }}>{portal.label}</h3>
-                  {isLarge && <p style={{ color: "#6B7280", fontSize: "15px", lineHeight: 1.6, marginBottom: "16px" }}>{portal.desc}</p>}
-                  <div style={{ display: "inline-block", fontSize: "12px", color: pColor.text, fontWeight: 700, background: pColor.bg, padding: "6px 12px", borderRadius: "100px", alignSelf: "flex-start" }}>
+                  <h3 className="text-base sm:text-lg font-extrabold text-gray-900 mb-1 sm:mb-2">{portal.label}</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4 line-clamp-2 leading-relaxed">
+                    {portal.desc}
+                  </p>
+                  <div
+                    className="inline-flex items-center text-[10px] sm:text-xs font-bold px-3 py-1 sm:px-4 sm:py-1.5 rounded-full mt-auto"
+                    style={{ color: pColor.text, background: pColor.bg }}
+                  >
                     {text.portalEnter} →
                   </div>
                 </Link>
@@ -519,28 +605,32 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════ FEATURES: ZIG-ZAG ═══════════════ */}
-      <section id="features" style={{ padding: "80px 0 120px", background: "#ffffff" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 2rem" }}>
-          <div style={{ textAlign: "center", marginBottom: "80px" }}>
+      <section id="features" className="py-16 md:py-24 bg-white">
+        <div className="max-w-[1200px] mx-auto px-6 md:px-8">
+          <div className="text-center mb-16">
             <h2 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 900, color: "#022C22", marginBottom: "16px" }}>
               {text.featTitle1} <span style={{ color: "#10B981" }}>{text.featTitle2}</span>
             </h2>
             <p style={{ color: "#4B5563", maxWidth: "600px", margin: "0 auto", fontSize: "16px", lineHeight: 1.6 }}>{text.featDesc}</p>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "80px" }}>
+          <div className="flex flex-col gap-16 md:gap-24">
             {text.features.map((f, i) => (
-              <motion.div key={f.title} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }}
-                style={{ display: "flex", flexDirection: i % 2 === 0 ? "row" : "row-reverse", alignItems: "center", gap: "60px", flexWrap: "wrap" }}>
-
-                <div style={{ flex: "1 1 400px" }}>
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                className={`flex flex-col md:flex-row ${i % 2 === 0 ? "" : "md:flex-row-reverse"} items-center gap-10 md:gap-[60px]`}
+              >
+                <div className="w-full md:w-1/2">
                   <div style={{ width: "100%", height: "300px", background: `${f.color}10`, borderRadius: "40px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "100px", position: "relative", color: f.color }}>
                     {f.icon}
                     <div style={{ position: "absolute", bottom: "-20px", right: i % 2 === 0 ? "-20px" : "auto", left: i % 2 !== 0 ? "-20px" : "auto", width: "100px", height: "100px", background: f.color, borderRadius: "50%", opacity: 0.1 }} />
                   </div>
                 </div>
 
-                <div style={{ flex: "1 1 400px" }}>
+                <div className="w-full md:w-1/2">
                   <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "48px", height: "48px", background: f.color, color: "white", borderRadius: "16px", fontSize: "20px", marginBottom: "20px" }}>
                     {i + 1}
                   </div>
@@ -585,8 +675,8 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════ PLAYFUL CTA SECTION ═══════════════ */}
-      <section style={{ padding: "100px 16px" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", background: "linear-gradient(135deg, #065F46, #10B981)", borderRadius: "40px", padding: "80px 40px", textAlign: "center", position: "relative", overflow: "hidden", boxShadow: "0 24px 50px rgba(6,95,70,0.3)" }}>
+      <section className="py-12 px-4 md:py-20 md:px-8">
+        <div className="max-w-[1200px] mx-auto rounded-[30px] md:rounded-[40px] py-12 px-6 md:py-20 md:px-10 text-center relative overflow-hidden bg-gradient-to-br from-[#065F46] to-[#10B981]" style={{ boxShadow: "0 24px 50px rgba(6,95,70,0.3)" }}>
           <div style={{ position: "absolute", top: "-50px", right: "10%", fontSize: "100px", opacity: 0.1, transform: "rotate(15deg)" }}><i className="fi fi-rr-graduation-cap"></i></div>
           <div style={{ position: "absolute", bottom: "-20px", left: "10%", fontSize: "80px", opacity: 0.1, transform: "rotate(-15deg)" }}><i className="fi fi-rr-backpack"></i></div>
 
