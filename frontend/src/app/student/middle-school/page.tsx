@@ -436,6 +436,19 @@ export default function MiddleSchoolDashboard() {
               </div>
             </div>
           </Link>
+
+          {/* My Leave History */}
+          <Link href="/student/leave" className="block glass rounded-3xl p-4 sm:p-6 border border-sky-200 dark:border-sky-700/50 bg-gradient-to-br from-sky-50 to-white dark:from-sky-950/10 dark:to-transparent text-left hover:-translate-y-1 transition-transform shadow-lg cursor-pointer">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">📅</span>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white flex items-center gap-2">
+                  My Leave History
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Submit new leave requests, check status of submissions, and view school calendar logs.</p>
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
 
