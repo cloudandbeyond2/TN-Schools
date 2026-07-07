@@ -423,6 +423,19 @@ export default function MiddleSchoolDashboard() {
               )}
             </div>
           </div>
+
+          {/* My Health Report */}
+          <Link href="/student/health" className="block glass rounded-3xl p-4 sm:p-6 border border-rose-200 dark:border-rose-700/50 bg-gradient-to-br from-rose-50 to-white dark:from-rose-950/10 dark:to-transparent text-left hover:-translate-y-1 transition-transform shadow-lg cursor-pointer">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">❤️</span>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white flex items-center gap-2">
+                  My Health Report
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Check your physical health metrics, height/weight charts, and wellness logs.</p>
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
 

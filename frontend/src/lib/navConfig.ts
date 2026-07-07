@@ -175,14 +175,14 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Extracurriculars", href: "/student/activities", icon: "Smile" },
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
-      { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
+      // { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
       { label: "Wellness", href: "/student/wellness", icon: "Smile" },
 
       // ── School & Career ───────────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "School & Career", href: "#", icon: "" },
       { label: "Announcements", href: "/student/announcements", icon: "Megaphone" },
-      { label: "My Badges", href: "/student/middle-school/badges", icon: "Award" },
+      // { label: "My Badges", href: "/student/middle-school/badges", icon: "Award" },
       { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
       { label: "Digital Portfolio", href: "/student/middle-school/portfolio", icon: "FolderOpen" },
       { label: "Learning Platform", href: "/student/middle-school/learning-platform", icon: "Monitor" },
