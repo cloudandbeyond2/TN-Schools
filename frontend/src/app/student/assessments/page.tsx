@@ -304,6 +304,7 @@ export default function StudentAssessmentsPage() {
               </button>
             </div>
           </div>
+        </div>
         )}
 
         {selectedTopic && (
