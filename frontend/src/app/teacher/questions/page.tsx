@@ -353,6 +353,7 @@ export default function QuestionGeneratorPage() {
                   <option>Science</option>
                   <option>English</option>
                   <option>Social Science</option>
+                  <option>Tamil</option>
                 </select>
               </div>
 
