@@ -4,21 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
-import { 
-  AlertTriangle, 
-  Plus, 
-  Search, 
-  Mail, 
-  Edit, 
-  CheckCircle, 
-  Trash2, 
-  X, 
-  Users, 
-  Percent, 
-  TrendingDown, 
-  FileText, 
-  Check 
-} from "lucide-react";
+import { AlertTriangle, Plus, Search, Mail, Edit, CheckCircle, Trash2, X, Users, Percent, TrendingDown, FileText, Check, Circle, Clipboard, Lightbulb } from "lucide-react";
 
 interface AtRiskStudent {
   id: string;
@@ -303,7 +289,7 @@ export default function RiskAlertsPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: studentObj.userId,
-            message: `📚 Learning Support: A few helpful Mathematics practice exercises have been added to your portal to help you catch up and improve. Let's work together to boost your score!`
+            message: ` Learning Support: A few helpful Mathematics practice exercises have been added to your portal to help you catch up and improve. Let's work together to boost your score!`
           })
         });
       }
@@ -401,7 +387,7 @@ export default function RiskAlertsPage() {
 
         <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="block text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider">🔴 High Risk</span>
+            <span className="block text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider"><Circle className="w-4 h-4 inline-block mr-1 text-inherit" /> High Risk</span>
             <span className="text-2xl font-black text-rose-500">{stats.highRisk}</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-450">
@@ -411,7 +397,7 @@ export default function RiskAlertsPage() {
 
         <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="block text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider">🟡 Medium Risk</span>
+            <span className="block text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider"><Circle className="w-4 h-4 inline-block mr-1 text-inherit" /> Medium Risk</span>
             <span className="text-2xl font-black text-amber-500">{stats.medRisk}</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-450">
@@ -421,7 +407,7 @@ export default function RiskAlertsPage() {
 
         <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="block text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider">📬 Notified Parents</span>
+            <span className="block text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider"><Mail className="w-4 h-4 inline-block mr-1 text-inherit" /> Notified Parents</span>
             <span className="text-2xl font-black text-emerald-500">{stats.notifiedCount}</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-450">
@@ -470,7 +456,7 @@ export default function RiskAlertsPage() {
       <div className="theme-card p-6 border border-[var(--border)] shadow-sm">
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-sm font-bold text-[var(--text-heading)] uppercase tracking-wider flex items-center gap-2">
-            <span>📋 Watchlist Early-Warning Indicators</span>
+            <span><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> Watchlist Early-Warning Indicators</span>
           </h2>
         </div>
 
@@ -536,7 +522,7 @@ export default function RiskAlertsPage() {
                           {st.attendance}%
                         </div>
                         <div className="text-[9px] text-[var(--text-muted)] mt-0.5">
-                          {st.attendance < 75 ? "⚠️ Below limit" : "Good"}
+                          {st.attendance < 75 ? " Below limit" : "Good"}
                         </div>
                       </td>
 
@@ -546,7 +532,7 @@ export default function RiskAlertsPage() {
                           {st.lastScore}%
                         </div>
                         <div className="text-[9px] text-[var(--text-muted)] mt-0.5">
-                          {st.lastScore < 40 ? "⚠️ Critical" : "Passing"}
+                          {st.lastScore < 40 ? " Critical" : "Passing"}
                         </div>
                       </td>
 
@@ -694,7 +680,7 @@ export default function RiskAlertsPage() {
             {/* Modal Header */}
             <div className="flex justify-between items-center px-6 py-4 border-b border-[var(--border)]">
               <h3 className="text-sm font-black text-[var(--text-heading)] uppercase tracking-wider">
-                {editingAlert ? `✏️ Edit Risk Alert: ${editingAlert.name}` : "⚠️ Flag Student for Watchlist"}
+                {editingAlert ? ` Edit Risk Alert: ${editingAlert.name}` : " Flag Student for Watchlist"}
               </h3>
               <button 
                 onClick={() => setIsFormOpen(false)}
@@ -880,7 +866,7 @@ export default function RiskAlertsPage() {
               </div>
 
               <div className="p-3 bg-rose-500/10 rounded-xl border border-rose-500/10 text-[10px] text-rose-300 leading-normal">
-                💡 <strong>Important Note:</strong> Sending this alert will dispatch a push notification to both the Parent Portal (linked to {notifyStudent.parentName}) and the Student Portal.
+                <Lightbulb className="w-4 h-4 inline-block mr-1 text-inherit" /> <strong>Important Note:</strong> Sending this alert will dispatch a push notification to both the Parent Portal (linked to {notifyStudent.parentName}) and the Student Portal.
               </div>
 
               {/* Modal Actions */}

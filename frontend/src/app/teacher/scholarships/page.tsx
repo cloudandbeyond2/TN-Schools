@@ -1,4 +1,5 @@
 "use client";
+import { Users, CheckCircle, AlertTriangle, Coins, Clipboard, Check, Landmark, Star, Search } from "lucide-react";
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -128,10 +129,10 @@ export default function ScholarshipsPage() {
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6 fade-in">
         {[
-          { label: "Eligible Students", value: String(stats.eligible), icon: "👨‍🎓", color: "text-amber-400", sub: "Across all classes" },
-          { label: "Approved Grants", value: String(stats.approved), icon: "✅", color: "text-emerald-400", sub: "Disbursals active" },
-          { label: "Action Needed", value: String(stats.actionNeeded), icon: "⚠️", color: "text-red-400", sub: "Pending verifications" },
-          { label: "Fund Value Rate", value: `₹${stats.funds.toLocaleString()}`, icon: "💰", color: "text-cyan-400", sub: "Estimated Monthly" },
+          { label: "Eligible Students", value: String(stats.eligible), icon: <Users className="w-5 h-5 text-inherit" />, color: "text-amber-400", sub: "Across all classes" },
+          { label: "Approved Grants", value: String(stats.approved), icon: <CheckCircle className="w-5 h-5 text-inherit" />, color: "text-emerald-400", sub: "Disbursals active" },
+          { label: "Action Needed", value: String(stats.actionNeeded), icon: <AlertTriangle className="w-5 h-5 text-inherit" />, color: "text-red-400", sub: "Pending verifications" },
+          { label: "Fund Value Rate", value: `₹${stats.funds.toLocaleString()}`, icon: <Coins className="w-5 h-5 text-inherit" />, color: "text-cyan-400", sub: "Estimated Monthly" },
         ].map((kpi) => (
           <div key={kpi.label} className="kpi-card">
             <div className="flex items-center justify-between mb-3">
@@ -147,7 +148,7 @@ export default function ScholarshipsPage() {
       {/* Main content table */}
       <div className="theme-card p-6 border border-[var(--border)] mb-6">
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-base font-semibold text-[var(--text-heading)]">📋 Scheme Applicants & Verifications</h2>
+          <h2 className="text-base font-semibold text-[var(--text-heading)]"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> Scheme Applicants & Verifications</h2>
           <button className="px-3.5 py-1.5 bg-[var(--bg-card)] hover:bg-slate-700 text-[var(--text-heading)] rounded-lg text-xs font-semibold transition-colors">
             Export Roster Details
           </button>
@@ -227,7 +228,7 @@ export default function ScholarshipsPage() {
 
       {/* Guidelines details */}
       <div className="theme-card p-6 border border-[var(--border)]">
-        <h2 className="text-base font-semibold text-[var(--text-heading)] mb-3">🏛️ Tamil Nadu Government Scheme Notes</h2>
+        <h2 className="text-base font-semibold text-[var(--text-heading)] mb-3"><Landmark className="w-4 h-4 inline-block mr-1 text-inherit" /> Tamil Nadu Government Scheme Notes</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 text-xs text-[var(--text-muted)]">
           <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-xl border border-[var(--border)]">
             <h4 className="text-sm font-bold text-[var(--text-heading)] mb-1">Pudhumai Penn Scheme</h4>

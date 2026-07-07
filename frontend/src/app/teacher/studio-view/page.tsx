@@ -242,7 +242,7 @@ function StudioViewContent() {
             className={`p-2 rounded-lg border ${theme.border} ${theme.bgCard} hover:scale-105 transition-transform shadow-sm`}
             title="Toggle Theme"
           >
-            {isDarkMode ? "☀️" : "🌙"}
+            {isDarkMode ? "" : ""}
           </button>
         </div>
       </header>
@@ -288,7 +288,7 @@ function StudioViewContent() {
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {slide.bullets?.map((b: string, idx: number) => {
-                            const icons = ["🎯", "💡", "🚀", "🌟", "🔍", "📈", "🧩", "⚙️", "📚", "🎨"];
+                            const icons = ["", "", "", "", "", "", "", "", "", ""];
                             const icon = icons[idx % icons.length];
                             
                             // Split colon if exists for title/desc
@@ -353,7 +353,7 @@ function StudioViewContent() {
                 onClick={() => speakPodcast(currentPlan.planData?.podcast?.script || [])} 
                 className="w-24 h-24 shrink-0 rounded-full bg-white text-orange-600 flex items-center justify-center text-4xl shadow-2xl hover:scale-110 transition-transform z-10 border-4 border-white/40"
               >
-                {isPlayingPodcast ? "⏹" : "▶️"}
+                {isPlayingPodcast ? "" : "▶"}
               </button>
             </div>
             

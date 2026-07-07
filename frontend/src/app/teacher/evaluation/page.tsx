@@ -1,4 +1,6 @@
 "use client";
+import { CheckCircle, Edit3, Bot, File, RefreshCw, Save } from "lucide-react";
+
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -151,7 +153,7 @@ export default function EvaluationPage() {
     >
       {toastMessage && (
         <div className="fixed top-5 right-5 bg-emerald-500 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2">
-          <span>✅</span> {toastMessage}
+          <span><CheckCircle className="w-4 h-4 inline mr-1 text-emerald-500" /></span> {toastMessage}
         </div>
       )}
       {loading ? (
@@ -161,7 +163,7 @@ export default function EvaluationPage() {
           {/* Submissions List Panel */}
           <div className="xl:col-span-1 flex flex-col gap-4">
             <div className="theme-card p-4">
-              <h3 className="text-[var(--text-heading)] font-semibold text-xs mb-3 uppercase tracking-wider">📄 Submissions</h3>
+              <h3 className="text-[var(--text-heading)] font-semibold text-xs mb-3 uppercase tracking-wider"><File className="w-4 h-4 inline-block mr-1 text-inherit" /> Submissions</h3>
               
               <div className="flex flex-col gap-2">
                 {submissions.map((sub) => {
@@ -205,7 +207,7 @@ export default function EvaluationPage() {
               {/* Student Answer Sheet (Digitized) */}
               <div className="theme-card p-5 flex flex-col h-[500px]">
                 <div className="flex items-center gap-2 border-b border-[var(--border)] pb-3 mb-4">
-                  <span className="text-lg">📝</span>
+                  <span className="text-lg"><Edit3 className="w-4 h-4 inline mr-1" /></span>
                   <div>
                     <h3 className="text-[var(--text-heading)] font-semibold text-xs">Digitized Answer Paper</h3>
                     <p className="text-[10px] text-[var(--text-muted)]">Auto-extracted OCR handwriting transcript</p>
@@ -229,7 +231,7 @@ export default function EvaluationPage() {
                 <div>
                   <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 mb-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">🤖</span>
+                      <span className="text-lg"><Bot className="w-4 h-4 inline mr-1 text-blue-500" /></span>
                       <div>
                         <h3 className="text-[var(--text-heading)] font-semibold text-xs">AI Feedback Workspace</h3>
                         <p className="text-[10px] text-[var(--text-muted)]">Edit scores and insert diagnostic remarks</p>
@@ -293,13 +295,13 @@ export default function EvaluationPage() {
                     }}
                     className="flex-1 py-2.5 rounded-xl border border-[var(--border)] text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-slate-850 transition-colors"
                   >
-                    🔄 Reset AI Grades
+                    <RefreshCw className="w-4 h-4 inline-block mr-1 text-inherit" /> Reset AI Grades
                   </button>
                   <button
                     onClick={handleSubmitEvaluation}
                     className="flex-1 py-2.5 rounded-xl bg-[var(--primary)] hover:bg-amber-600 text-xs font-bold text-white transition-colors"
                   >
-                    💾 Submit Evaluation
+                    <Save className="w-4 h-4 inline-block mr-1 text-inherit" /> Submit Evaluation
                   </button>
                 </div>
               </div>

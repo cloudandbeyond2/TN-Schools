@@ -6,7 +6,7 @@ import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import InteractiveInfographic from "@/components/InteractiveInfographic";
 import SlideVisual from "@/components/SlideVisual";
-import { MoreVertical, X } from "lucide-react";
+import { MoreVertical, X, Megaphone, Save, Sparkles, BookOpen, BarChart, Bot, CheckCircle, Globe, Hourglass, FileText, Video, Folder, Star, Book, Check, Monitor, Eye, Target, Clipboard, Timer } from "lucide-react";
 
 const syllabusOptions = ["TN State Board (Samacheer Kalvi)", "CBSE", "ICSE"];
 const grades = ["Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
@@ -591,7 +591,7 @@ export default function LessonPlannerPage() {
             {/* Generate Form */}
             <div className={`p-4 rounded-2xl border ${theme.border} ${theme.bgCardSoft} shadow-sm backdrop-blur-xl`}>
               <h2 className={`${theme.text} font-bold text-xs mb-4 flex items-center gap-2`}>
-                <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500">📁</span> Document Sources
+                <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500"><Folder className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Document Sources
               </h2>
 
               <form onSubmit={handleGenerate} className="space-y-4">
@@ -632,7 +632,7 @@ export default function LessonPlannerPage() {
                 {/* Section Targeting */}
                 <div>
                   <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>
-                    Section <span className="text-amber-500">★</span>
+                    Section <span className="text-amber-500"><Star className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
                   </label>
                   <div className="flex gap-1.5 flex-wrap">
                     {sections.map((sec) => (
@@ -640,13 +640,12 @@ export default function LessonPlannerPage() {
                         key={sec}
                         type="button"
                         onClick={() => setSection(sec)}
-                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all border ${
-                          section === sec
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all border ${section === sec
                             ? "bg-amber-500 text-slate-900 border-amber-500 shadow-md shadow-amber-500/25"
                             : `${theme.inputBg} ${theme.border} ${theme.textMuted} hover:border-amber-400`
-                        }`}
+                          }`}
                       >
-                        {sec === "All" ? "📢 All" : sec}
+                        {sec === "All" ? <><Megaphone className="w-3 h-3 inline mr-1" /> All</> : sec}
                       </button>
                     ))}
                   </div>
@@ -682,17 +681,17 @@ export default function LessonPlannerPage() {
                 </div>
 
                 <div>
-                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>📖 Upload Chapter PDF</label>
+                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}><Book className="w-4 h-4 inline-block mr-1 text-inherit" /> Upload Chapter PDF</label>
                   <div className="flex gap-2">
                     <input type="file" accept=".pdf,.txt" onChange={handleFileUpload} className="hidden" id="pdf-upload" />
                     <label
                       htmlFor="pdf-upload"
                       className={`flex-1 ${theme.inputBg} border border-dashed ${theme.border} hover:border-amber-500 rounded-xl px-3 py-2.5 text-xs ${theme.textMuted} cursor-pointer flex items-center justify-center gap-2 truncate transition-all`}
                     >
-                      {isReadingFile ? "⏳ Reading..." : fileName ? `📄 ${fileName.substring(0, 15)}...` : "📁 Choose File..."}
+                      {isReadingFile ? " Reading..." : fileName ? ` ${fileName.substring(0, 15)}...` : " Choose File..."}
                     </label>
                   </div>
-                  {uploadedText && <span className="text-[9px] text-emerald-500 font-bold block mt-1.5">✓ PDF context loaded into AI workspace.</span>}
+                  {uploadedText && <span className="text-[9px] text-emerald-500 font-bold block mt-1.5"><Check className="w-4 h-4 inline-block mr-1 text-inherit" /> PDF context loaded into AI workspace.</span>}
                 </div>
 
                 <button
@@ -700,7 +699,7 @@ export default function LessonPlannerPage() {
                   disabled={isGenerating}
                   className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 disabled:opacity-50 text-slate-900 text-xs font-black uppercase tracking-wider transition-all transform hover:scale-[1.02] shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
                 >
-                  {isGenerating ? "Synthesizing..." : "⚡ Generate Lesson"}
+                  {isGenerating ? "Synthesizing..." : " Generate Lesson"}
                 </button>
               </form>
             </div>
@@ -743,9 +742,8 @@ export default function LessonPlannerPage() {
                     >
                       <div className="truncate font-bold flex-1">
                         <span>{plan.topic}</span>
-                        <span className={`block text-[9px] mt-0.5 font-medium ${
-                          currentPlan?.id === plan.id ? 'text-amber-600 dark:text-amber-500' : theme.textMuted
-                        }`}>
+                        <span className={`block text-[9px] mt-0.5 font-medium ${currentPlan?.id === plan.id ? 'text-amber-600 dark:text-amber-500' : theme.textMuted
+                          }`}>
                           {plan.grade}{plan.section ? ` · §${plan.section}` : " · All"} · {plan.subject}
                           {plan.isPublished && <span className="ml-1.5 text-emerald-500">● Live</span>}
                         </span>
@@ -758,7 +756,7 @@ export default function LessonPlannerPage() {
                         }}
                         className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity font-bold px-2 hover:scale-110"
                       >
-                        ✕
+                        <X className="w-4 h-4 inline-block mr-1 text-inherit" />
                       </button>
                     </div>
                   ))}
@@ -779,9 +777,9 @@ export default function LessonPlannerPage() {
               {currentPlan && !isGenerating && (
                 <div className="flex bg-slate-900/10 dark:bg-slate-900 rounded-xl p-1 shadow-inner border border-slate-200 dark:border-slate-800">
                   {[
-                    { id: "overview", label: "Overview", icon: "📑" },
-                    { id: "chat", label: "AI Tutor", icon: "🤖" },
-                    { id: "studio", label: "Studio", icon: "✨" }
+                    { id: "overview", label: "Overview", icon: <FileText className="w-5 h-5" /> },
+                    { id: "chat", label: "AI Tutor", icon: <Bot className="w-5 h-5" /> },
+                    { id: "studio", label: "Studio", icon: <Sparkles className="w-5 h-5" /> }
                   ].map(tab => (
                     <button
                       key={tab.id}
@@ -815,7 +813,7 @@ export default function LessonPlannerPage() {
                     className="px-3 py-1.5 rounded-lg text-[10px] font-black text-slate-700 dark:text-white bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 transition-all"
                     title="Fullscreen projection for the class"
                   >
-                    🖥️ PRESENT
+                    <Monitor className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> PRESENT
                   </button>
 
                   {currentPlan.id === "temp-unsaved" && (
@@ -823,20 +821,19 @@ export default function LessonPlannerPage() {
                       onClick={handleSave}
                       className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 rounded-lg text-[10px] font-black text-white transition-transform hover:scale-105 shadow-md shadow-indigo-500/20"
                     >
-                      💾 SAVE
+                      <><Save className="w-3 h-3 inline mr-1" /> SAVE</>
                     </button>
                   )}
 
                   <button
                     onClick={() => handlePublish(!currentPlan.isPublished)}
                     disabled={publishing}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black text-white transition-transform hover:scale-105 shadow-md disabled:opacity-60 ${
-                      currentPlan.isPublished
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black text-black transition-transform hover:scale-105 shadow-md disabled:opacity-60 ${currentPlan.isPublished
                         ? "bg-slate-600 hover:bg-slate-700"
                         : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20"
-                    }`}
+                      }`}
                   >
-                    {publishing ? "..." : currentPlan.isPublished ? "UNPUBLISH" : "📢 PUBLISH TO CLASS"}
+                    {publishing ? "..." : currentPlan.isPublished ? "UNPUBLISH" : <><Megaphone className="w-3 h-3 inline mr-1" /> PUBLISH TO CLASS</>}
                   </button>
                 </>
               )}
@@ -850,19 +847,19 @@ export default function LessonPlannerPage() {
                 <div className={`max-w-md w-full p-8 rounded-3xl border ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center text-center`}>
                   <div className="relative mb-8">
                     <div className="w-16 h-16 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin" />
-                    <div className="absolute inset-0 flex items-center justify-center text-amber-500 text-xl">✨</div>
+                    <div className="absolute inset-0 flex items-center justify-center text-amber-500"><Sparkles className="w-6 h-6" /></div>
                   </div>
                   <h3 className={`${theme.text} font-bold text-lg mb-4`}>Synthesizing Knowledge...</h3>
                   <div className="space-y-3 w-full">
                     {steps.map((stepText, idx) => {
                       let statusClass = theme.textMuted;
-                      let icon = "○";
+                      let icon: any = "○";
                       if (idx < currentStep) {
                         statusClass = "text-emerald-500 font-bold";
-                        icon = "✅";
+                        icon = <CheckCircle className="w-4 h-4 text-emerald-500" />;
                       } else if (idx === currentStep) {
                         statusClass = "text-amber-500 font-bold animate-pulse";
-                        icon = "⏳";
+                        icon = <Hourglass className="w-5 h-5" />;
                       }
                       return (
                         <div key={idx} className={`text-xs text-left flex items-start gap-3 ${statusClass} transition-colors`}>
@@ -877,7 +874,7 @@ export default function LessonPlannerPage() {
             ) : !currentPlan ? (
               <div className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto">
                 <div className="w-24 h-24 mb-6 rounded-3xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-5xl animate-bounce">
-                  📓
+                  <Book className="w-4 h-4 inline-block mr-1 text-inherit" />
                 </div>
                 <h2 className={`${theme.text} font-black text-2xl mb-3`}>Intelligence Class Workspace</h2>
                 <p className={`text-sm ${theme.textMuted} leading-relaxed`}>
@@ -911,7 +908,7 @@ export default function LessonPlannerPage() {
                     {/* Student-facing preview banner + language toggle */}
                     <div className={`p-4 rounded-2xl border ${theme.border} bg-gradient-to-r from-emerald-500/5 to-teal-500/5 flex flex-wrap items-center justify-between gap-3`}>
                       <p className={`text-xs font-bold ${theme.textMuted} flex items-center gap-2`}>
-                        <span className="text-base">👁️</span> This is what students see when you publish — clear key points + the infographic.
+                        <span className="text-base"><Eye className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /></span> This is what students see when you publish — clear key points + the infographic.
                       </p>
                       <div className="flex bg-slate-900/10 dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-800">
                         {(["en", "ta"] as const).map((l) => (
@@ -930,7 +927,7 @@ export default function LessonPlannerPage() {
                     {currentPlan.planData?.studentKeyPoints && (
                       <div className={`p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm`}>
                         <h3 className="text-sm font-bold text-emerald-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                          <span className="text-xl">🎯</span> Key Points to Remember
+                          <span className="text-xl"><Target className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Key Points to Remember
                         </h3>
                         <ul className="grid grid-cols-1 xl:grid-cols-2 gap-3">
                           {(currentPlan.planData.studentKeyPoints[lang] || currentPlan.planData.studentKeyPoints.en || []).map((pt, i) => (
@@ -947,7 +944,7 @@ export default function LessonPlannerPage() {
                     {currentPlan.planData?.infographic && (
                       <div className={`p-2 xl:p-4 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm overflow-hidden`}>
                         <h3 className="text-sm font-bold text-violet-500 uppercase tracking-widest mb-2 px-3 pt-2 flex items-center gap-2">
-                          <span className="text-xl">📊</span> Concept Infographic
+                          <span className="text-xl"><BarChart className="w-4 h-4 inline mr-1 text-emerald-500" /></span> Concept Infographic
                         </h3>
                         <InteractiveInfographic topic={currentPlan.topic} subject={currentPlan.subject} data={currentPlan.planData.infographic} />
                       </div>
@@ -955,7 +952,7 @@ export default function LessonPlannerPage() {
 
                     <div className={`p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm`}>
                       <h3 className="text-sm font-bold text-indigo-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <span className="text-xl">📋</span> Lesson Objectives
+                        <span className="text-xl"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Lesson Objectives
                       </h3>
                       <ul className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                         {currentPlan.planData?.objectives?.map((obj, i) => (
@@ -968,7 +965,7 @@ export default function LessonPlannerPage() {
 
                     <div className={`p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm`}>
                       <h3 className="text-sm font-bold text-amber-500 uppercase tracking-widest mb-6 flex items-center gap-2">
-                        <span className="text-xl">⏱️</span> Pedagogical Timeline
+                        <span className="text-xl"><Timer className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Pedagogical Timeline
                       </h3>
                       <div className="relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px xl:before:mx-auto xl:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 dark:before:via-slate-700 before:to-transparent space-y-8">
                         {currentPlan.planData?.timeline?.map((item, i) => (
@@ -1000,7 +997,7 @@ export default function LessonPlannerPage() {
                   `}>
                     <div className={`p-3 xl:p-4 border-b flex justify-between items-center shrink-0 ${isDarkMode ? 'bg-[#202c33] border-[#202c33]' : 'bg-[#f0f2f5] border-[#d1d7db]'}`}>
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xl shadow-sm">🤖</div>
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xl shadow-sm"><Bot className="w-4 h-4 inline mr-1 text-blue-500" /></div>
                         <div>
                           <h3 className={`font-bold text-sm ${isDarkMode ? 'text-[#e9edef]' : 'text-[#111b21]'}`}>AI Co-Teacher</h3>
                           <p className="text-[11px] text-[#00a884] font-medium">Online</p>
@@ -1053,12 +1050,12 @@ export default function LessonPlannerPage() {
                 {activeTab === "studio" && (
                   <div className="flex-1 grid grid-cols-2 xl:grid-cols-3 gap-3 xl:gap-6 h-full content-start overflow-y-auto pb-8">
                     {[
-                      { id: "slides", label: "Slide Deck", icon: "🖼️", desc: "Interactive concept slides", bg: "from-blue-500 to-indigo-600" },
-                      { id: "visualExplain", label: "Infographic", icon: "📊", desc: "Interactive visual mapping", bg: "from-emerald-400 to-teal-500" },
-                      { id: "podcast", label: "Audio Podcast", icon: "🎙️", desc: "AI generated host summary", bg: "from-amber-400 to-orange-500" },
-                      { id: "video", label: "Generate Video", icon: "🎥", desc: "Animated lecture simulation", bg: "from-rose-400 to-red-500" },
-                      { id: "bilingual", label: "Bilingual Glossary", icon: "🌐", desc: "Tamil translation matrix", bg: "from-violet-500 to-purple-600" },
-                      { id: "assessment", label: "Exit Tickets", icon: "✍️", desc: "Quick assessment MCQs", bg: "from-cyan-400 to-blue-500" }
+                      { id: "slides", label: "Slide Deck", icon: "", desc: "Interactive concept slides", bg: "from-blue-500 to-indigo-600" },
+                      { id: "visualExplain", label: "Infographic", icon: <BarChart className="w-5 h-5" />, desc: "Interactive visual mapping", bg: "from-emerald-400 to-teal-500" },
+                      { id: "podcast", label: "Audio Podcast", icon: "", desc: "AI generated host summary", bg: "from-amber-400 to-orange-500" },
+                      { id: "video", label: "Generate Video", icon: <Video className="w-5 h-5" />, desc: "Animated lecture simulation", bg: "from-rose-400 to-red-500" },
+                      { id: "bilingual", label: "Bilingual Glossary", icon: <Globe className="w-5 h-5" />, desc: "Tamil translation matrix", bg: "from-violet-500 to-purple-600" },
+                      { id: "assessment", label: "Exit Tickets", icon: "", desc: "Quick assessment MCQs", bg: "from-cyan-400 to-blue-500" }
                     ].map((tool) => (
                       <div
                         key={tool.id}
@@ -1094,8 +1091,8 @@ export default function LessonPlannerPage() {
         <div className="fixed inset-0 z-[100] bg-white text-slate-900 flex flex-col">
           {/* Background decoration */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100 rounded-full blur-[100px] opacity-50" />
-             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-100 rounded-full blur-[100px] opacity-50" />
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100 rounded-full blur-[100px] opacity-50" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-100 rounded-full blur-[100px] opacity-50" />
           </div>
 
           {/* Top bar */}
@@ -1120,7 +1117,7 @@ export default function LessonPlannerPage() {
             {presentIndex === 0 ? (
               <div className="text-center animate-in fade-in zoom-in duration-500 max-w-5xl">
                 <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-indigo-50 text-6xl mb-8 shadow-inner border border-indigo-100">
-                  {currentPlan.planData?.infographic?.heroIcon || "📚"}
+                  {currentPlan.planData?.infographic?.heroIcon || <BookOpen className="w-12 h-12" />}
                 </div>
                 <h1 className="text-5xl xl:text-7xl font-black text-slate-900 mb-6 leading-tight tracking-tight drop-shadow-sm">{currentPlan.topic}</h1>
                 <p className="text-slate-500 text-xl xl:text-2xl font-semibold tracking-wide uppercase">{currentPlan.syllabus}</p>
@@ -1128,26 +1125,26 @@ export default function LessonPlannerPage() {
             ) : presentIndex <= presentPoints.length ? (
               <div className="max-w-4xl w-full text-left animate-in fade-in slide-in-from-right-8 duration-400 bg-white rounded-[2.5rem] p-10 xl:p-16 shadow-2xl border border-slate-100 flex flex-col md:flex-row items-center gap-8 xl:gap-12 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-60"></div>
-                
+
                 <div className="shrink-0 flex flex-col items-center justify-center w-32 h-32 xl:w-48 xl:h-48 rounded-[2rem] bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-xl shadow-emerald-500/30 transform -rotate-3 transition-transform relative z-10">
                   <span className="text-5xl xl:text-7xl font-black mb-1">{presentIndex}</span>
                   <span className="text-xs xl:text-sm uppercase tracking-widest font-bold opacity-80">Key Point</span>
                 </div>
-                
+
                 <div className="flex-1 relative z-10">
-                   {(() => {
-                     const pt = presentPoints[presentIndex - 1] || "";
-                     const splitIdx = pt.indexOf(':');
-                     if (splitIdx > 0 && splitIdx < 50) {
-                        return (
-                          <>
-                            <h3 className="text-2xl xl:text-3xl font-black text-emerald-600 mb-4 uppercase tracking-wide">{pt.substring(0, splitIdx)}</h3>
-                            <p className="text-3xl xl:text-5xl font-bold text-slate-800 leading-snug tracking-tight">{pt.substring(splitIdx + 1).trim()}</p>
-                          </>
-                        )
-                     }
-                     return <p className="text-3xl xl:text-5xl font-bold text-slate-800 leading-snug tracking-tight">{pt}</p>;
-                   })()}
+                  {(() => {
+                    const pt = presentPoints[presentIndex - 1] || "";
+                    const splitIdx = pt.indexOf(':');
+                    if (splitIdx > 0 && splitIdx < 50) {
+                      return (
+                        <>
+                          <h3 className="text-2xl xl:text-3xl font-black text-emerald-600 mb-4 uppercase tracking-wide">{pt.substring(0, splitIdx)}</h3>
+                          <p className="text-3xl xl:text-5xl font-bold text-slate-800 leading-snug tracking-tight">{pt.substring(splitIdx + 1).trim()}</p>
+                        </>
+                      )
+                    }
+                    return <p className="text-3xl xl:text-5xl font-bold text-slate-800 leading-snug tracking-tight">{pt}</p>;
+                  })()}
                 </div>
               </div>
             ) : (

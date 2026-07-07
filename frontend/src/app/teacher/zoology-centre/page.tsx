@@ -5,20 +5,7 @@ import Swal from "sweetalert2";
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import {
-  Bug,
-  Dna,
-  Leaf,
-  Microscope,
-  Info,
-  Search,
-  Grid3X3,
-  X,
-  Fish,
-  Bird,
-  PawPrint,
-  Tractor
-} from "lucide-react";
+import { Bug, Dna, Leaf, Microscope, Info, Search, Grid3X3, X, Fish, Bird, PawPrint, Tractor, Globe, Package, Smile, Activity } from "lucide-react";
 
 type Specimen = {
   id: string;
@@ -116,7 +103,7 @@ export default function ZoologyCentrePage() {
       showCancelButton: true,
       confirmButtonColor: "#10b981",
       cancelButtonColor: "#f43f5e",
-      confirmButtonText: "Yes, release it! 🌿"
+      confirmButtonText: "Yes, release it! "
     });
 
     if (!result.isConfirmed) return;
@@ -128,7 +115,7 @@ export default function ZoologyCentrePage() {
       if (res.ok) {
         Swal.fire({
           title: "Released!",
-          text: `Released ${name} back to nature! 🌿`,
+          text: `Released ${name} back to nature! `,
           icon: "success",
           confirmButtonColor: "#10b981"
         });
@@ -176,7 +163,7 @@ export default function ZoologyCentrePage() {
         setModalOpen(false);
         Swal.fire({
           title: "Success!",
-          text: isEdit ? "Specimen updated! 🦋" : "Yay! New specimen requested! 🦋",
+          text: isEdit ? "Specimen updated! " : "Yay! New specimen requested! ",
           icon: "success",
           confirmButtonColor: "#10b981"
         });
@@ -189,7 +176,7 @@ export default function ZoologyCentrePage() {
 
   return (
     <PortalLayout
-      title="Animal & Nature Centre! 🦁"
+      title="Animal & Nature Centre! "
       subtitle="Explore bugs, DNA, frogs, and cool biology stuff!"
     >
       <div className="flex flex-col gap-8">
@@ -299,13 +286,13 @@ export default function ZoologyCentrePage() {
             </div>
           ) : (
             <div className="text-center py-20 text-slate-500 text-sm font-bold bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] border-4 border-dashed border-slate-200 dark:border-slate-700">
-              No creatures found yet! Go catch some. 🦋
+              No creatures found yet! Go catch some. <Bug className="w-4 h-4 inline-block mr-1 text-inherit" />
             </div>
           )}
 
           <div className="mt-8 flex justify-center">
             <button className="text-sm font-black text-emerald-600 bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-300 px-8 py-3 rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-sm">
-              Show Everything! 🌍
+              Show Everything! <Globe className="w-4 h-4 inline-block mr-1 text-inherit" />
             </button>
           </div>
         </div>
@@ -325,16 +312,16 @@ export default function ZoologyCentrePage() {
 
             <form onSubmit={handleRequest} className="space-y-6">
               <div>
-                <label className="block text-sm font-black text-slate-600 uppercase tracking-wider mb-2">What is it called? 🦋</label>
+                <label className="block text-sm font-black text-slate-600 uppercase tracking-wider mb-2">What is it called? <Bug className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <input required name="name" type="text" defaultValue={currentSpec?.name || ""} placeholder="e.g., Giant Beetle" className="w-full bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-5 text-base font-bold focus:outline-none focus:border-emerald-400 transition-all shadow-sm" />
               </div>
               
               <div>
-                <label className="block text-sm font-black text-slate-600 uppercase tracking-wider mb-2">What kind is it? 📦</label>
+                <label className="block text-sm font-black text-slate-600 uppercase tracking-wider mb-2">What kind is it? <Package className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <select required name="type" defaultValue={currentSpec?.type || "Permanent"} className="w-full bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-5 text-base font-bold focus:outline-none focus:border-emerald-400 transition-all shadow-sm">
-                  <option value="Permanent">Microscope Slide 🔬</option>
-                  <option value="Live Prep">Live Creature! 🐛</option>
-                  <option value="3D Model">Plastic Model 🧸</option>
+                  <option value="Permanent">Microscope Slide <Microscope className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
+                  <option value="Live Prep">Live Creature! <Bug className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
+                  <option value="3D Model">Plastic Model <Smile className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
                 </select>
               </div>
 
@@ -343,7 +330,7 @@ export default function ZoologyCentrePage() {
                   Nevermind
                 </button>
                 <button type="submit" className="flex-1 py-4 rounded-2xl text-base font-black text-slate-900 bg-emerald-400 hover:bg-emerald-300 transition-all shadow-lg shadow-emerald-500/30 active:scale-95">
-                  Get It! 🐾 
+                  Get It! <Activity className="w-4 h-4 inline-block mr-1 text-inherit" /> 
                 </button>
               </div>
             </form>

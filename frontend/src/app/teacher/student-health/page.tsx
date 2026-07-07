@@ -32,7 +32,7 @@ export default function TeacherStudentHealthPage() {
   const handleUpdate = (e: React.FormEvent) => {
     e.preventDefault();
     setShowUpdateModal(false);
-    showToast("Health record updated successfully! 🏥");
+    showToast("Health record updated successfully! ");
   };
 
   // Mock data for currently selected student
@@ -56,7 +56,7 @@ export default function TeacherStudentHealthPage() {
   const bmiStatus = getBmiStatus(healthData.bmi);
 
   return (
-    <PortalLayout title="Student Health Report 🏥" subtitle="Track and manage student physical well-being.">
+    <PortalLayout title="Student Health Report " subtitle="Track and manage student physical well-being.">
       <div className="mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />

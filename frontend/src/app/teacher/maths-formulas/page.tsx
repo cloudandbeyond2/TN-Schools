@@ -2,22 +2,7 @@
 
 import React, { useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
-import { 
-  Calculator, 
-  Search,
-  Sigma,
-  Pi,
-  DivideSquare,
-  BookOpen,
-  Copy,
-  Star,
-  Check,
-  Zap,
-  Gamepad2,
-  BrainCircuit,
-  Joystick,
-  GraduationCap
-} from "lucide-react";
+import { Calculator, Search, Sigma, Pi, DivideSquare, BookOpen, Copy, Star, Check, Zap, Gamepad2, BrainCircuit, Joystick, GraduationCap, X } from "lucide-react";
 
 import { samacheerFormulas, SamacheerFormula } from "@/data/samacheer-formulas";
 
@@ -66,9 +51,9 @@ export default function MathsFormulasPage() {
     navigator.clipboard.writeText(textToCopy).then(() => {
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
-      showToast("Formula magically copied! ✨");
+      showToast("Formula magically copied! ");
     }).catch(() => {
-      showToast("Failed to copy formula 😢");
+      showToast("Failed to copy formula ");
     });
   };
 
@@ -81,8 +66,8 @@ export default function MathsFormulasPage() {
   const toggleGameMode = () => {
     setGameMode(!gameMode);
     setRevealed(new Set()); 
-    if (!gameMode) showToast("🎮 Game Mode Activated! Test your memory!");
-    else showToast("📚 Switched back to Study Mode.");
+    if (!gameMode) showToast(" Game Mode Activated! Test your memory!");
+    else showToast(" Switched back to Study Mode.");
   };
 
   const toggleReveal = (id: number) => {
@@ -91,7 +76,7 @@ export default function MathsFormulasPage() {
       if (next.has(id)) next.delete(id);
       else {
         next.add(id);
-        showToast("Great memory! +10 XP 🌟");
+        showToast("Great memory! +10 XP ");
       }
       return next;
     });
@@ -357,7 +342,7 @@ export default function MathsFormulasPage() {
                   onClick={() => setModalOpen(false)}
                   className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all"
                 >
-                  ✕
+                  <X className="w-4 h-4 inline-block mr-1 text-inherit" />
                 </button>
              </div>
              <div className="p-6 flex flex-col flex-1">

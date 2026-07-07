@@ -2,25 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
-import { 
-  Pencil, 
-  Eraser, 
-  Circle, 
-  Square, 
-  Type, 
-  Download, 
-  Share2, 
-  Atom, 
-  Palette,
-  Undo,
-  Redo,
-  Save,
-  Trash2,
-  Image as ImageIcon,
-  Rocket,
-  Upload,
-  X
-} from "lucide-react";
+import { Pencil, Eraser, Circle, Square, Type, Download, Share2, Atom, Palette, Undo, Redo, Save, Trash2, Image as ImageIcon, Rocket, Upload, X, Star } from "lucide-react";
 
 export default function ScienceDrawMatPage() {
   const [activeTool, setActiveTool] = useState("pencil");
@@ -195,7 +177,7 @@ export default function ScienceDrawMatPage() {
           const y = (canvas.height - height) / 2;
           ctx.drawImage(img, x, y, width, height);
           saveState(shapes, texts, stickers);
-          showToast("Diagram imported successfully! 🖼️");
+          showToast("Diagram imported successfully! ");
         }
       };
       if (event.target?.result) {
@@ -215,7 +197,7 @@ export default function ScienceDrawMatPage() {
     setShapes([]);
     setTexts([]);
     setStickers([]);
-    showToast("Canvas Cleared! ✨");
+    showToast("Canvas Cleared! ");
     saveState([], [], []);
   };
 
@@ -366,12 +348,12 @@ export default function ScienceDrawMatPage() {
     link.download = 'science-drawing.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
-    showToast("Downloaded drawing as PNG! 🖼️");
+    showToast("Downloaded drawing as PNG! ");
   };
 
   return (
     <PortalLayout
-      title="Science Draw Mat 🎨"
+      title="Science Draw Mat "
       subtitle="Draw, erase, type, and create awesome science diagrams!"
     >
       <div className="flex flex-col xl:flex-row gap-6 min-h-[calc(100vh-140px)] xl:h-[calc(100vh-140px)] overflow-y-auto xl:overflow-hidden">
@@ -386,7 +368,7 @@ export default function ScienceDrawMatPage() {
                   setActiveTool(tool.id);
                   setCurrentShape(null);
                   isDrawingRef.current = false;
-                  showToast(`Selected: ${tool.label} ✨`);
+                  showToast(`Selected: ${tool.label} `);
                 }}
                 className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 relative group shrink-0
                   ${activeTool === tool.id 
@@ -476,7 +458,7 @@ export default function ScienceDrawMatPage() {
               </button>
               <button onClick={() => {
                 handleDownload();
-                showToast("Awesome drawing saved! 🌟");
+                showToast("Awesome drawing saved! ");
               }} className="flex items-center gap-2 px-4 py-2 md:px-6 md:py-2.5 text-xs md:text-sm font-black text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
                 <Save className="w-4 h-4" />
                 Save to Portfolio
@@ -619,7 +601,7 @@ export default function ScienceDrawMatPage() {
                   </div>
                   <div className="p-4 bg-indigo-50 dark:bg-slate-900 rounded-2xl border-2 border-indigo-100 dark:border-slate-700">
                     <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
-                      ✏️ Tip: Pick a color from the left menu and start drawing on the canvas!
+                      <Pencil className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Tip: Pick a color from the left menu and start drawing on the canvas!
                     </p>
                   </div>
                 </div>
@@ -674,7 +656,7 @@ export default function ScienceDrawMatPage() {
                   </label>
                   <div className="p-4 bg-emerald-50 dark:bg-slate-900 rounded-2xl border-2 border-emerald-100 dark:border-slate-700 mt-2">
                     <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                      🟦 Tip: Click and drag on the canvas to create your shape!
+                      <Square className="w-4 h-4 inline-block mr-1 text-inherit" /> Tip: Click and drag on the canvas to create your shape!
                     </p>
                   </div>
                 </div>
@@ -715,7 +697,7 @@ export default function ScienceDrawMatPage() {
                   </div>
                   <div className="p-4 bg-blue-50 dark:bg-slate-900 rounded-2xl border-2 border-blue-100 dark:border-slate-700 mt-2">
                     <p className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                      🔤 Tip: Click anywhere on the canvas to add a new text box! The text will show in your selected color.
+                      <Type className="w-4 h-4 inline-block mr-1 text-inherit" /> Tip: Click anywhere on the canvas to add a new text box! The text will show in your selected color.
                     </p>
                   </div>
                 </div>
@@ -739,7 +721,7 @@ export default function ScienceDrawMatPage() {
                   </div>
                   <div className="p-4 bg-purple-50 dark:bg-slate-900 rounded-2xl border-2 border-purple-100 dark:border-slate-700 mt-2">
                     <p className="text-xs font-bold text-purple-600 dark:text-purple-400">
-                      ⭐ Tip: Click on the canvas to place a fun science sticker!
+                      <Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Tip: Click on the canvas to place a fun science sticker!
                     </p>
                   </div>
                 </div>

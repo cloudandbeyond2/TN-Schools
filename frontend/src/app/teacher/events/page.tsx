@@ -1,4 +1,6 @@
 "use client";
+import { Calendar } from "lucide-react";
+
 
 import PortalLayout from "@/components/PortalLayout";
 import { useState, useEffect } from "react";
@@ -33,7 +35,7 @@ export default function TeacherEventsPage() {
   const [eventDate, setEventDate] = useState("");
   const [type, setType] = useState("Competition");
   const [clubId, setClubId] = useState("");
-  const [icon, setIcon] = useState("🏆");
+  const [icon, setIcon] = useState("");
   const [themeColor, setThemeColor] = useState("text-amber-600 dark:text-amber-400");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -96,7 +98,7 @@ export default function TeacherEventsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 text-left">
         {/* Create Event Form */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <h2 className="text-sm font-bold text-slate-800 dark:text-white mb-4">📅 Schedule New Event</h2>
+          <h2 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Calendar className="w-4 h-4 inline-block mr-1 text-inherit" /> Schedule New Event</h2>
           <form onSubmit={handleCreateEvent} className="space-y-4">
             <div>
               <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">Event Title *</label>

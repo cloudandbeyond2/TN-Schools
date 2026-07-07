@@ -1,4 +1,6 @@
 "use client";
+import { Zap, FolderOpen, Settings, Star, HelpCircle, Save, Pencil, RefreshCw, Archive, Trash } from "lucide-react";
+
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -141,7 +143,7 @@ export default function QuestionGeneratorPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setActionStatus("✓ Saved successfully!");
+        setActionStatus(" Saved successfully!");
         Swal.fire({
           icon: "success",
           title: "Saved!",
@@ -303,7 +305,7 @@ export default function QuestionGeneratorPage() {
             activeView === "generator" ? "border-[var(--primary)] text-amber-550" : "border-transparent text-[var(--text-muted)]"
           }`}
         >
-          ⚡ AI Question Generator
+          <Zap className="w-4 h-4 inline-block mr-1 text-inherit" /> AI Question Generator
         </button>
         <button
           onClick={() => {
@@ -314,7 +316,7 @@ export default function QuestionGeneratorPage() {
             activeView === "bank" ? "border-[var(--primary)] text-amber-550" : "border-transparent text-[var(--text-muted)]"
           }`}
         >
-          📂 Question Bank DB ({dbQuestions.length})
+          <FolderOpen className="w-4 h-4 inline-block mr-1 text-inherit" /> Question Bank DB ({dbQuestions.length})
         </button>
       </div>
 
@@ -322,7 +324,7 @@ export default function QuestionGeneratorPage() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Settings Column */}
           <div className="theme-card p-6 h-fit">
-            <h2 className="text-[var(--text-heading)] font-semibold text-sm mb-4">⚙️ Generator Configuration</h2>
+            <h2 className="text-[var(--text-heading)] font-semibold text-sm mb-4"><Settings className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Generator Configuration</h2>
 
             <form onSubmit={handleGenerate} className="space-y-4">
               <div>
@@ -425,7 +427,7 @@ export default function QuestionGeneratorPage() {
                 disabled={isGenerating}
                 className="w-full mt-2 py-3 rounded-xl bg-[var(--primary)] hover:opacity-90 disabled:opacity-50 text-xs font-semibold text-white shadow-sm transition-opacity flex items-center justify-center gap-2"
               >
-                {isGenerating ? "Synthesizing Questions..." : "⚡ Generate Questions"}
+                {isGenerating ? "Synthesizing Questions..." : " Generate Questions"}
               </button>
             </form>
           </div>
@@ -434,7 +436,7 @@ export default function QuestionGeneratorPage() {
           <div className="xl:col-span-2 flex flex-col min-h-[400px]">
             {!isGenerating && !showQuestions && (
               <div className="theme-card p-8 flex-1 flex flex-col items-center justify-center text-center border-dashed">
-                <span className="text-4xl mb-4">❓</span>
+                <span className="text-4xl mb-4"><HelpCircle className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
                 <h3 className="text-[var(--text-heading)] font-semibold text-sm">No Questions Generated</h3>
                 <p className="text-xs text-[var(--text-muted)] max-w-sm mt-1">
                   Configure your grade, subject, and question distribution metrics, then trigger the generator to construct exam content.
@@ -473,7 +475,7 @@ export default function QuestionGeneratorPage() {
                       onClick={handleSaveToBank}
                       className="px-3 py-1.5 rounded-lg bg-[var(--primary)] hover:bg-amber-600 text-xs font-bold text-white shadow-sm flex items-center gap-1"
                     >
-                      💾 Save to Question Bank
+                      <Save className="w-4 h-4 inline-block mr-1 text-inherit" /> Save to Question Bank
                     </button>
                   </div>
                 </div>
@@ -543,13 +545,13 @@ export default function QuestionGeneratorPage() {
                             onClick={() => handleEdit(q)}
                             className="text-[10px] font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] flex items-center gap-1"
                           >
-                            ✏️ Edit
+                            <Pencil className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Edit
                           </button>
                           <button
                             onClick={() => handleRegenerateItem(q.id)}
                             className="text-[10px] font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] flex items-center gap-1"
                           >
-                            🔄 Regenerate
+                            <RefreshCw className="w-4 h-4 inline-block mr-1 text-inherit" /> Regenerate
                           </button>
                         </div>
                       )}
@@ -563,7 +565,7 @@ export default function QuestionGeneratorPage() {
       ) : (
         /* Saved Bank Tab View */
         <div className="theme-card p-6 min-h-[400px]">
-          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4">🗂️ Active Question Bank</h2>
+          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4"><Archive className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Active Question Bank</h2>
           
           {loadingBank ? (
             <div className="text-center py-12 text-xs text-[var(--text-muted)]">Loading bank repository...</div>
@@ -585,7 +587,7 @@ export default function QuestionGeneratorPage() {
                     onClick={() => setExpandedFolders((prev) => ({ ...prev, [folderName]: !prev[folderName] }))}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">{expandedFolders[folderName] ? "📂" : "📁"}</span>
+                      <span className="text-xl">{expandedFolders[folderName] ? "" : ""}</span>
                       <h3 className="font-semibold text-sm text-[var(--text-heading)]">{folderName}</h3>
                     </div>
                     <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
@@ -634,8 +636,8 @@ export default function QuestionGeneratorPage() {
                             <span className="text-emerald-500 font-semibold font-mono">Ans: {q.answer}</span>
                             {editingId !== q.id && (
                               <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => handleEdit(q)} className="text-[var(--text-muted)] hover:text-[var(--primary)]">✏️ Edit</button>
-                                <button onClick={() => handleDelete(q.id)} className="text-red-500 hover:text-red-400">🗑️ Delete</button>
+                                <button onClick={() => handleEdit(q)} className="text-[var(--text-muted)] hover:text-[var(--primary)]"><Pencil className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Edit</button>
+                                <button onClick={() => handleDelete(q.id)} className="text-red-500 hover:text-red-400"><Trash className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Delete</button>
                               </div>
                             )}
                           </div>

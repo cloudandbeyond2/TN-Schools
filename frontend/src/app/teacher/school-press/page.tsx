@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
-import { Camera, Send, CheckCircle, Search, Upload, Trash2, Check } from "lucide-react";
+import { Camera, Send, CheckCircle, Search, Upload, Trash2, Check, X, Newspaper } from "lucide-react";
 
 export default function SchoolPressPage() {
   const { data: session } = useSession();
@@ -246,7 +246,7 @@ export default function SchoolPressPage() {
                           onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))}
                           className="absolute top-1 right-1 w-6 h-6 bg-black/50 text-white rounded-full flex items-center justify-center text-[10px] hover:bg-red-500 transition-colors"
                         >
-                          ✕
+                          <X className="w-4 h-4 inline-block mr-1 text-inherit" />
                         </button>
                       </div>
                     ))}
@@ -281,7 +281,7 @@ export default function SchoolPressPage() {
         <div className="space-y-6">
           <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 shadow-sm flex flex-col h-auto xl:h-[calc(100vh-140px)] xl:sticky xl:top-24">
             <h3 className="text-base font-bold text-[var(--text-heading)] mb-4 flex items-center gap-2">
-              <span className="text-xl">📰</span>
+              <span className="text-xl"><Newspaper className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
               Recent Publications
             </h3>
 

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import KpiStrip from "@/components/kpi/KpiStrip";
+import { Building2, CheckCircle, Save, Edit3, BookOpen, GraduationCap, Clipboard, DoorOpen, Clock, Users, X } from "lucide-react";
 
 // ─── Types ─────────────────────────────────────────────────────
 interface ClassRoom {
@@ -258,10 +259,10 @@ export default function ClassesPage() {
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Classes", value: classes.length, icon: "🏫", color: "text-amber-500" },
-          { label: "Active Classes", value: activeCount, icon: "✅", color: "text-emerald-500" },
-          { label: "Total Students", value: totalStudents, icon: "🎓", color: "text-violet-500" },
-          { label: "Subjects Taught", value: uniqueSubjects.length, icon: "📚", color: "text-sky-500" },
+          { label: "Total Classes", value: classes.length, icon: <Building2 className="w-5 h-5" />, color: "text-amber-500" },
+          { label: "Active Classes", value: activeCount, icon: <CheckCircle className="w-5 h-5" />, color: "text-emerald-500" },
+          { label: "Total Students", value: totalStudents, icon: <GraduationCap className="w-5 h-5" />, color: "text-violet-500" },
+          { label: "Subjects Taught", value: uniqueSubjects.length, icon: <BookOpen className="w-5 h-5" />, color: "text-sky-500" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
             <div className="flex items-center justify-between mb-1">
@@ -277,7 +278,7 @@ export default function ClassesPage() {
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 mb-5 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm font-bold text-slate-800 dark:text-white">📋 Class Directory</h2>
+            <h2 className="text-sm font-bold text-slate-800 dark:text-white"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> Class Directory</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Create and manage all your assigned class sections stored in PostgreSQL.
             </p>
@@ -302,7 +303,7 @@ export default function ClassesPage() {
               onClick={openAdd}
               className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-md whitespace-nowrap"
             >
-              + Create Class
+              <Building2 className="inline w-4 h-4 mr-2" /> Create Class
             </button>
           </div>
         </div>
@@ -316,9 +317,9 @@ export default function ClassesPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-          <span className="text-5xl block mb-4">🏫</span>
+          <span className="text-5xl block mb-4"><Building2 className="w-4 h-4 inline mr-1 text-amber-500" /></span>
           <h3 className="text-sm font-bold text-slate-700 dark:text-white mb-2">
-            {classes.length === 0 ? "No Classes Created Yet" : "No Matching Classes Found"}
+            {classes.length === 0 ? <><CheckCircle className="inline w-5 h-5 mr-2" /> No classes yet</> : "No Matching Classes Found"}
           </h3>
           <p className="text-xs text-slate-400 mb-5">
             {classes.length === 0
@@ -330,7 +331,7 @@ export default function ClassesPage() {
               onClick={openAdd}
               className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-md"
             >
-              + Create First Class
+              <Building2 className="inline w-4 h-4 mr-2" /> Create First Class
             </button>
           )}
         </div>
@@ -364,7 +365,7 @@ export default function ClassesPage() {
                     onClick={() => openEdit(c)}
                     className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded-lg font-bold text-[10px] transition-all"
                   >
-                    Edit Details
+                    <Edit3 className="inline w-3 h-3 mr-1" /> Edit Details
                   </button>
                   <button
                     onClick={() => handleDelete(c)}
@@ -432,7 +433,7 @@ export default function ClassesPage() {
                       <td className="px-5 py-3.5 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
                         {c.roomNumber ? (
                           <span className="inline-flex items-center gap-1.5">
-                            <span className="text-sm">🚪</span>
+                            <span className="text-sm"><DoorOpen className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
                             <span>{c.roomNumber}</span>
                           </span>
                         ) : (
@@ -444,7 +445,7 @@ export default function ClassesPage() {
                       <td className="px-5 py-3.5 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
                         {c.schedule ? (
                           <span className="inline-flex items-center gap-1.5">
-                            <span className="text-sm">⏰</span>
+                            <span className="text-sm"><Clock className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
                             <span>{c.schedule}</span>
                           </span>
                         ) : (
@@ -456,7 +457,7 @@ export default function ClassesPage() {
                       <td className="px-5 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
                         {c.totalStudents > 0 ? (
                           <span className="inline-flex items-center gap-1.5">
-                            <span className="text-sm">👥</span>
+                            <span className="text-sm"><Users className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
                             <span>{c.totalStudents}</span>
                           </span>
                         ) : (
@@ -514,7 +515,7 @@ export default function ClassesPage() {
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 px-6 py-4">
               <div>
                 <h3 className="text-sm font-bold text-slate-800 dark:text-white">
-                  {editingId ? "✏️ Edit Class" : "🏫 Create New Class"}
+                  {editingId ? <><Edit3 className="inline w-4 h-4 mr-1" /> Edit Class</> : <><Building2 className="inline w-4 h-4 mr-1" /> Create New Class</>}
                 </h3>
                 <p className="text-[10px] text-slate-400 mt-0.5">
                   {editingId ? "Update class details in PostgreSQL." : "Add a new class section to your registry."}
@@ -524,7 +525,7 @@ export default function ClassesPage() {
                 onClick={closeModal}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
               >
-                ✕ Close
+                <X className="w-4 h-4 inline-block mr-1 text-inherit" /> Close
               </button>
             </div>
 
@@ -640,8 +641,8 @@ export default function ClassesPage() {
                 {submitting
                   ? "Saving to PostgreSQL..."
                   : editingId
-                    ? "💾 Save Changes"
-                    : "🏫 Create Class"}
+                    ? <><Save className="inline w-4 h-4 mr-1" /> Save Changes</>
+                    : <><Building2 className="inline w-4 h-4 mr-1" /> Create Class</>}
               </button>
             </form>
           </div>

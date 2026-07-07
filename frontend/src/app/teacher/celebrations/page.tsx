@@ -3,23 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import { 
-  PartyPopper, 
-  CalendarDays, 
-  Gift, 
-  Cake,
-  Clock,
-  CheckCircle2,
-  Users,
-  X,
-  Star,
-  Music,
-  Smile,
-  Building,
-  Loader2,
-  ChevronLeft,
-  ChevronRight
-} from "lucide-react";
+import { PartyPopper, CalendarDays, Gift, Cake, Clock, CheckCircle2, Users, X, Star, Music, Smile, Building, Loader2, ChevronLeft, ChevronRight, CheckCircle, Edit, Calendar } from "lucide-react";
 
 interface Celebration {
   id: string;
@@ -48,9 +32,9 @@ export default function CelebrationsPage() {
   const [isLoading, setIsLoading] = useState(true);
   
   const [preparations, setPreparations] = useState([
-    { id: 1, task: "Decorate Main Hall 🎈", assignedTo: "Art Club", status: "In Progress", color: "pink" },
-    { id: 2, task: "Order Cake for Principal's B'day 🎂", assignedTo: "Admin Staff", status: "Completed", color: "emerald" },
-    { id: 3, task: "Setup Audio System 🎵", assignedTo: "IT Support", status: "Pending", color: "amber" },
+    { id: 1, task: "Decorate Main Hall ", assignedTo: "Art Club", status: "In Progress", color: "pink" },
+    { id: 2, task: "Order Cake for Principal's B'day ", assignedTo: "Admin Staff", status: "Completed", color: "emerald" },
+    { id: 3, task: "Setup Audio System ", assignedTo: "IT Support", status: "Pending", color: "amber" },
   ]);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -122,9 +106,9 @@ export default function CelebrationsPage() {
     const task = formData.get("task") as string;
     const assignedTo = formData.get("assignedTo") as string;
     
-    setPreparations([...preparations, { id: Date.now(), task: task + " ✨", assignedTo, status: "Pending", color: "blue" }]);
+    setPreparations([...preparations, { id: Date.now(), task: task + " ", assignedTo, status: "Pending", color: "blue" }]);
     setModalOpen(false);
-    showToast("Awesome! New task added! 🎉");
+    showToast("Awesome! New task added! ");
   };
 
   const cycleStatus = (id: number) => {
@@ -134,7 +118,7 @@ export default function CelebrationsPage() {
         let nextColor = "amber";
         if (p.status === "Pending") { nextStatus = "In Progress"; nextColor = "blue"; }
         else if (p.status === "In Progress") { nextStatus = "Completed"; nextColor = "emerald"; }
-        showToast(`Task marked as ${nextStatus}! ${nextStatus === 'Completed' ? 'Great job! 🌟' : ''}`);
+        showToast(`Task marked as ${nextStatus}! ${nextStatus === 'Completed' ? 'Great job! ' : ''}`);
         return { ...p, status: nextStatus, color: nextColor };
       }
       return p;
@@ -171,7 +155,7 @@ export default function CelebrationsPage() {
 
   return (
     <PortalLayout
-      title="School Celebrations! 🎉"
+      title="School Celebrations! "
       subtitle="Keep track of all the exciting events and school celebrations!"
     >
       <div className="flex flex-col gap-8">
@@ -193,7 +177,7 @@ export default function CelebrationsPage() {
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl font-black tracking-wider text-xs uppercase mb-4 border-2 border-white/30 rotate-[-2deg]">
                 <Star className="w-4 h-4 text-yellow-300" /> School Events
               </div>
-              <h2 className="text-4xl font-black tracking-tight mb-3 drop-shadow-md">Celebrations! 🎈</h2>
+              <h2 className="text-4xl font-black tracking-tight mb-3 drop-shadow-md">Celebrations! <PartyPopper className="w-4 h-4 inline-block mr-1 text-inherit" /></h2>
               <p className="text-pink-55 font-bold max-w-xl text-base leading-relaxed">
                 Check out all the exciting celebrations, festivals, and achievements happening at our school. Stay updated and participate in school events!
               </p>
@@ -346,7 +330,7 @@ export default function CelebrationsPage() {
                         <Gift className="w-12 h-12 text-slate-400" />
                       </div>
                       <h3 className="text-2xl font-black text-slate-700 dark:text-slate-300">No holidays listed</h3>
-                      <p className="text-base font-bold text-slate-550 mt-2">All days are working days! 📝</p>
+                      <p className="text-base font-bold text-slate-550 mt-2">All days are working days! <Edit className="w-4 h-4 inline-block mr-1 text-inherit" /></p>
                     </div>
                   )}
 
@@ -355,7 +339,7 @@ export default function CelebrationsPage() {
                       {/* Year Section Header */}
                       <div className="flex items-center gap-4 py-2">
                         <span className="text-base font-black text-rose-500 bg-rose-50 dark:bg-slate-900 border border-rose-100 dark:border-slate-800 px-4 py-1.5 rounded-2xl shadow-sm rotate-[-1deg]">
-                          📅 {year} Government Holidays
+                          <Calendar className="w-4 h-4 inline-block mr-1 text-inherit" /> {year} Government Holidays
                         </span>
                         <div className="flex-1 h-[2px] bg-gradient-to-r from-rose-200 to-transparent dark:from-slate-700" />
                       </div>
@@ -455,11 +439,11 @@ export default function CelebrationsPage() {
             </div>
             <form onSubmit={handleAddTask} className="p-4 space-y-5">
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">The Task 📝</label>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">The Task <Edit className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <input required name="task" type="text" placeholder="e.g., Buy balloons!" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-xl py-3 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-amber-300 transition-all" />
               </div>
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Who's doing it? 🧑‍🤝‍🧑</label>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Who's doing it? </label>
                 <input required name="assignedTo" type="text" placeholder="e.g., The Party Committee" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-xl py-3 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-amber-300 transition-all" />
               </div>
               <div className="pt-4 flex gap-3">
@@ -467,7 +451,7 @@ export default function CelebrationsPage() {
                   Cancel
                 </button>
                 <button type="submit" className="flex-1 py-3 rounded-2xl text-sm font-black text-amber-900 bg-amber-400 hover:bg-amber-300 transition-all shadow-lg shadow-amber-500/30 border-2 border-amber-200 active:scale-95">
-                  Add It! ✅
+                  Add It! <CheckCircle className="w-4 h-4 inline ml-1" />
                 </button>
               </div>
             </form>
@@ -583,7 +567,7 @@ export default function CelebrationsPage() {
                 </div>
               ) : (
                 <p className="text-center text-xs font-bold text-slate-400 italic">
-                  Click on any highlighted day (pink for events, amber for holidays) to see details! 🎉
+                  Click on any highlighted day (pink for events, amber for holidays) to see details! <PartyPopper className="w-4 h-4 inline-block mr-1 text-inherit" />
                 </p>
               )}
             </div>

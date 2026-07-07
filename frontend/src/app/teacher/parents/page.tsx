@@ -1,4 +1,6 @@
 "use client";
+import { GraduationCap, Building2, Users, Inbox, User, X } from "lucide-react";
+
 
 import React, { useState, useEffect, useRef } from "react";
 import PortalLayout from "@/components/PortalLayout";
@@ -78,7 +80,7 @@ export default function TeacherParentsPage() {
       }
     } catch (err) {
       console.error(err);
-      setToast({ message: "❌ Failed to fetch database records.", type: "error" });
+      setToast({ message: " Failed to fetch database records.", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -273,7 +275,7 @@ export default function TeacherParentsPage() {
         const rawData = XLSX.utils.sheet_to_json(ws);
 
         if (rawData.length === 0) {
-          setToast({ message: "⚠️ Excel file appears to be empty.", type: "error" });
+          setToast({ message: " Excel file appears to be empty.", type: "error" });
           setIsUploading(false);
           return;
         }
@@ -291,7 +293,7 @@ export default function TeacherParentsPage() {
         })).filter((p) => p.name && p.phone && p.role);
 
         if (parentsData.length === 0) {
-          setToast({ message: "⚠️ No valid records found. Ensure columns 'Parent Name', 'Role', and 'Phone Number' are populated.", type: "error" });
+          setToast({ message: " No valid records found. Ensure columns 'Parent Name', 'Role', and 'Phone Number' are populated.", type: "error" });
           setIsUploading(false);
           return;
         }
@@ -436,7 +438,7 @@ export default function TeacherParentsPage() {
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm mb-6">
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6">
           <div>
-            <h2 className="text-base font-bold text-slate-850 dark:text-white">👥 Parents & PTA Registry</h2>
+            <h2 className="text-base font-bold text-slate-850 dark:text-white"><Users className="w-4 h-4 inline-block mr-1 text-inherit" /> Parents & PTA Registry</h2>
             <p className="text-xs text-slate-550 dark:text-slate-400 leading-relaxed">
               Verify parent contact details, assign them to schools, and update PTA designations.
             </p>
@@ -454,7 +456,7 @@ export default function TeacherParentsPage() {
               onClick={downloadSampleExcel}
               className="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5"
             >
-              📥 Template
+              <Inbox className="w-4 h-4 inline-block mr-1 text-inherit" /> Template
             </button>
 
             <button
@@ -462,7 +464,7 @@ export default function TeacherParentsPage() {
               disabled={isUploading}
               className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5"
             >
-              {isUploading ? "Uploading..." : "📊 Excel Upload"}
+              {isUploading ? "Uploading..." : " Excel Upload"}
             </button>
             <input
               type="file"
@@ -491,7 +493,7 @@ export default function TeacherParentsPage() {
           </div>
         ) : filteredParents.length === 0 ? (
           <div className="text-center py-16 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-            <span className="text-4xl block mb-2">👥</span>
+            <span className="text-4xl block mb-2"><Users className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
             <span className="text-xs text-slate-400 font-medium">No parent records found.</span>
           </div>
         ) : (
@@ -532,11 +534,11 @@ export default function TeacherParentsPage() {
                       <div className="text-[10px] text-slate-400 font-mono">{p.email || "No Email"}</div>
                     </td>
                     <td className="px-4 py-3 text-xs">
-                      <div className="font-semibold text-slate-705 dark:text-slate-200">🎓 {p.studentName}</div>
+                      <div className="font-semibold text-slate-705 dark:text-slate-200"><GraduationCap className="w-4 h-4 inline mr-1 text-indigo-500" /> {p.studentName}</div>
                       <div className="text-[10px] text-slate-450">Class {p.studentClass} · {p.term}</div>
                     </td>
                     <td className="px-4 py-3 text-xs text-blue-600 dark:text-blue-400 font-semibold">
-                      🏫 {getSchoolName(p.schoolId)}
+                      <Building2 className="w-4 h-4 inline mr-1 text-slate-400" /> {getSchoolName(p.schoolId)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
@@ -568,13 +570,13 @@ export default function TeacherParentsPage() {
           <div className="w-full max-w-md rounded-3xl p-6 space-y-5 relative bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl">
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
               <h3 className="text-sm font-bold text-slate-850 dark:text-white">
-                👤 {editingId ? "Edit Parent Details" : "Register Student Parent"}
+                <User className="w-4 h-4 inline-block mr-1 text-inherit" /> {editingId ? "Edit Parent Details" : "Register Student Parent"}
               </h3>
               <button
                 onClick={handleModalClose}
                 className="text-slate-450 hover:text-slate-700 dark:hover:text-white text-xs"
               >
-                ✕ Close
+                <X className="w-4 h-4 inline-block mr-1 text-inherit" /> Close
               </button>
             </div>
 

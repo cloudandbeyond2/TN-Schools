@@ -614,7 +614,7 @@ export default function TeacherPersonalGuidePage() {
                                             <Sparkles className="w-3 h-3" />
                                             {generatingAI === task._id
                                               ? "Thinking..."
-                                              : "✨ Auto-Suggest AI"}
+                                              : " Auto-Suggest AI"}
                                           </button>
                                           <button
                                             onClick={() =>

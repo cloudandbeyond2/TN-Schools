@@ -1,4 +1,6 @@
 "use client";
+import { BarChart, Edit3, TrendingUp, Sparkles, Trophy, Edit, Target, Check, Activity, Calendar, Timer, Users, Zap, File, Printer, Star, Key, X } from "lucide-react";
+
 
 import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
@@ -528,10 +530,10 @@ export default function NEETPrepPage() {
       {/* ── KPI Row ───────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Chapters Tracked", value: topics.length, icon: "🧬", color: "text-red-500", bg: "bg-red-50 dark:bg-red-950/20" },
-          { label: "Completed Syllabus", value: `${completedCount}/${topics.length}`, icon: "✓", color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
-          { label: "Tests Scheduled", value: tests.length, icon: "📝", color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950/20" },
-          { label: "Avg Class Accuracy", value: `${avgClassScore}%`, icon: "🎯", color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20" },
+          { label: "Chapters Tracked", value: topics.length, icon: <Activity className="w-5 h-5" />, color: "text-red-500", bg: "bg-red-50 dark:bg-red-950/20" },
+          { label: "Completed Syllabus", value: `${completedCount}/${topics.length}`, icon: <Check className="w-5 h-5" />, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
+          { label: "Tests Scheduled", value: tests.length, icon: <Edit className="w-5 h-5" />, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950/20" },
+          { label: "Avg Class Accuracy", value: `${avgClassScore}%`, icon: <Target className="w-5 h-5" />, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
             <div className={`w-9 h-9 ${kpi.bg} rounded-xl flex items-center justify-center text-lg mb-3`}>{kpi.icon}</div>
@@ -544,7 +546,7 @@ export default function NEETPrepPage() {
       {/* ── Syllabus Progress Bars ────────────────────────────── */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 mb-5 shadow-sm">
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-white">📊 Syllabus Coverage</h3>
+          <h3 className="text-sm font-bold text-slate-800 dark:text-white"><BarChart className="w-4 h-4 inline mr-1 text-emerald-500" /> Syllabus Coverage</h3>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-2 mb-3">
           {["Biology", "Chemistry", "Physics"].map((sub) => {
@@ -572,11 +574,11 @@ export default function NEETPrepPage() {
       {/* ── Tabs ──────────────────────────────────────────────── */}
       <div className="flex flex-wrap gap-1 bg-slate-100 dark:bg-slate-900 rounded-xl p-1 mb-5 w-full sm:w-fit">
         {([
-          { key: "syllabus", label: "📚 Syllabus Tracker" },
-          { key: "tests", label: "📝 Mock Tests" },
-          { key: "reports", label: "📈 Student Reports" },
-          { key: "gemini", label: "✨ Gemini AI Generator" },
-          { key: "analytics", label: "📊 Analytics" },
+          { key: "syllabus", label: " Syllabus Tracker" },
+          { key: "tests", label: " Mock Tests" },
+          { key: "reports", label: " Student Reports" },
+          { key: "gemini", label: " Gemini AI Generator" },
+          { key: "analytics", label: " Analytics" },
         ] as const).map((tab) => (
           <button
             key={tab.key}
@@ -639,7 +641,7 @@ export default function NEETPrepPage() {
                         {topic.subject}
                       </span>
                       <span className={`text-[10px] px-2.5 py-1 rounded-full font-semibold border ${statusColor[topic.status] || ""}`}>
-                        {topic.status === "Completed" ? "✓ " : topic.status === "In Progress" ? "● " : "○ "}
+                        {topic.status === "Completed" ? " " : topic.status === "In Progress" ? "● " : "○ "}
                         {topic.status}
                       </span>
                     </div>
@@ -668,7 +670,7 @@ export default function NEETPrepPage() {
                         disabled={generatingChapterId === topic.id}
                         className="text-[10px] px-2 py-0.5 bg-indigo-500/10 text-indigo-700 hover:bg-indigo-500/20 border border-indigo-500/20 rounded font-bold transition-colors disabled:opacity-50"
                       >
-                        {generatingChapterId === topic.id ? "Generating..." : "🪄 Auto-Generate"}
+                        {generatingChapterId === topic.id ? "Generating..." : " Auto-Generate"}
                       </button>
                       <div className="flex gap-1 shrink-0">
                         <button onClick={() => handleOpenEditChapter(topic)} className="text-[10px] px-2 py-0.5 bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 border border-amber-500/20 rounded font-bold">Edit</button>
@@ -687,7 +689,7 @@ export default function NEETPrepPage() {
       {activeTab === "tests" && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-sm font-bold text-slate-700 dark:text-white">📝 All Mock Tests</h3>
+            <h3 className="text-sm font-bold text-slate-700 dark:text-white"><Edit3 className="w-4 h-4 inline mr-1" /> All Mock Tests</h3>
             <button onClick={handleOpenAddTest} className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-xl transition-all shadow-md">
               + Schedule Test
             </button>
@@ -702,14 +704,14 @@ export default function NEETPrepPage() {
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-base">📝</span>
+                      <span className="text-base"><Edit3 className="w-4 h-4 inline mr-1" /></span>
                       <h4 className="text-sm font-bold text-slate-800 dark:text-white leading-tight">{test.title}</h4>
                       <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${subjectColor[test.subject] || "bg-slate-100"}`}>{test.subject}</span>
                     </div>
                     <div className="flex flex-wrap gap-3 text-[10px] text-slate-400 mt-1">
-                      <span>📅 Date: {test.examDate}</span>
-                      <span>⏱ Duration: {test.duration}</span>
-                      <span>👥 Registered Students: {test.totalStudents}</span>
+                      <span><Calendar className="w-4 h-4 inline-block mr-1 text-inherit" /> Date: {test.examDate}</span>
+                      <span><Timer className="w-4 h-4 inline-block mr-1 text-inherit" /> Duration: {test.duration}</span>
+                      <span><Users className="w-4 h-4 inline-block mr-1 text-inherit" /> Registered Students: {test.totalStudents}</span>
                     </div>
                   </div>
 
@@ -740,7 +742,7 @@ export default function NEETPrepPage() {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h3 className="text-sm font-bold text-slate-800 dark:text-white">📈 Daily NEET Completion Report</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white"><TrendingUp className="w-4 h-4 inline mr-1 text-indigo-500" /> Daily NEET Completion Report</h3>
                 <p className="text-[10px] text-slate-400 mt-0.5">Real-time student syllabus completion rates and dailyum study activities</p>
               </div>
               <div className="text-xs font-semibold text-slate-500 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
@@ -804,7 +806,7 @@ export default function NEETPrepPage() {
                         </td>
                         <td className="px-4 py-3.5">
                           <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 px-2 py-1 rounded-lg">
-                            ⚡ {std.lastActivity}
+                            <Zap className="w-4 h-4 inline-block mr-1 text-inherit" /> {std.lastActivity}
                           </span>
                         </td>
                       </tr>
@@ -822,7 +824,7 @@ export default function NEETPrepPage() {
         <div className="space-y-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-5">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">✨</span>
+              <span className="text-3xl"><Sparkles className="w-4 h-4 inline mr-1 text-amber-500" /></span>
               <div>
                 <h3 className="text-sm font-bold text-slate-800 dark:text-white">Gemini AI Study Sheet Generator</h3>
                 <p className="text-[10px] text-slate-400 mt-0.5">Generate high-quality practice question sheets (MCQ, Short, Long) instantly using Gemini API.</p>
@@ -887,7 +889,7 @@ export default function NEETPrepPage() {
                       Gemini Generating study sheet...
                     </>
                   ) : (
-                    <>✨ Generate Q&A Sheet</>
+                    <><Sparkles className="w-4 h-4 inline mr-1 text-amber-500" /> Generate Q&A Sheet</>
                   )}
                 </button>
               </div>
@@ -899,11 +901,11 @@ export default function NEETPrepPage() {
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6 animate-in fade-in duration-300">
               <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div>
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-white">📄 Generated Practice Sheet: {aiTopic}</h4>
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-white"><File className="w-4 h-4 inline-block mr-1 text-inherit" /> Generated Practice Sheet: {aiTopic}</h4>
                   <p className="text-[9px] text-slate-400 mt-0.5">Difficulty: {aiDifficulty} · {generatedQuestions.length} Questions</p>
                 </div>
                 <button onClick={() => window.print()} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 text-[10px] font-bold rounded-xl border border-slate-200 dark:border-slate-700">
-                  Print / Save PDF 🖨️
+                  Print / Save PDF <Printer className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" />
                 </button>
               </div>
 
@@ -931,7 +933,7 @@ export default function NEETPrepPage() {
 
                     <div className="bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/60 rounded-xl p-3.5 mt-2">
                       <div className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">
-                        🔑 Answer Key
+                        <Key className="w-4 h-4 inline-block mr-1 text-inherit" /> Answer Key
                       </div>
                       <p className="text-xs text-slate-700 dark:text-slate-300 font-bold">
                         {q.answer}
@@ -950,7 +952,7 @@ export default function NEETPrepPage() {
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4">📊 Subject-wise Avg Score</h4>
+              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><BarChart className="w-4 h-4 inline mr-1 text-emerald-500" /> Subject-wise Avg Score</h4>
               {["Biology", "Chemistry", "Physics"].map((sub) => {
                 const subTopics = topics.filter((t) => t.subject === sub && t.attempted > 0);
                 const subAttempted = subTopics.reduce((a, t) => a + t.attempted, 0);
@@ -974,7 +976,7 @@ export default function NEETPrepPage() {
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4">🏆 Top Mock Performers</h4>
+              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Trophy className="w-4 h-4 inline mr-1 text-amber-500" /> Top Mock Performers</h4>
               <div className="space-y-3">
                 {[
                   { name: "Priya Sundaram", score: 695, rank: 1 },
@@ -999,10 +1001,10 @@ export default function NEETPrepPage() {
           <div className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 px-6 py-4">
               <div>
-                <h3 className="text-sm font-bold text-slate-800 dark:text-white">{editChapterId ? "✏️ Edit NEET Chapter" : "📖 Add NEET Chapter"}</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">{editChapterId ? " Edit NEET Chapter" : " Add NEET Chapter"}</h3>
                 <p className="text-[10px] text-slate-400 mt-0.5">Track a chapter in the NEET syllabus</p>
               </div>
-              <button onClick={() => setShowChapterModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">✕ Close</button>
+              <button onClick={() => setShowChapterModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><X className="w-4 h-4 inline-block mr-1 text-inherit" /> Close</button>
             </div>
             <div className="p-6 space-y-4">
               <div>
@@ -1050,7 +1052,7 @@ export default function NEETPrepPage() {
                 </select>
               </div>
               <button onClick={handleSaveChapter} disabled={saving} className="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-xs transition-colors shadow-md disabled:opacity-60">
-                {saving ? "Saving..." : editChapterId ? "Save Changes" : "🧬 Add Chapter"}
+                {saving ? "Saving..." : editChapterId ? "Save Changes" : " Add Chapter"}
               </button>
             </div>
           </div>
@@ -1063,10 +1065,10 @@ export default function NEETPrepPage() {
           <div className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 px-6 py-4">
               <div>
-                <h3 className="text-sm font-bold text-slate-800 dark:text-white">{editTestId ? "✏️ Edit NEET Mock Test" : "📝 Schedule NEET Mock Test"}</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">{editTestId ? " Edit NEET Mock Test" : " Schedule NEET Mock Test"}</h3>
                 <p className="text-[10px] text-slate-400 mt-0.5">Schedule a mock exam for students</p>
               </div>
-              <button onClick={() => setShowTestModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">✕ Close</button>
+              <button onClick={() => setShowTestModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><X className="w-4 h-4 inline-block mr-1 text-inherit" /> Close</button>
             </div>
             <div className="p-6 space-y-4">
               <div>
@@ -1113,7 +1115,7 @@ export default function NEETPrepPage() {
                 </div>
               </div>
               <button onClick={handleSaveTest} disabled={saving} className="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-xs transition-colors shadow-md disabled:opacity-60">
-                {saving ? "Saving..." : editTestId ? "Save Changes" : "📝 Schedule Mock Test"}
+                {saving ? "Saving..." : editTestId ? "Save Changes" : " Schedule Mock Test"}
               </button>
             </div>
           </div>

@@ -4,24 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
-import {
-  FlaskConical,
-  Flame,
-  Droplets,
-  Wind,
-  ShieldAlert,
-  Calendar,
-  BookOpen,
-  AlertTriangle,
-  X,
-  Sparkles,
-  Zap,
-  Eye,
-  Microscope,
-  Trash2,
-  Settings,
-  PlusCircle
-} from "lucide-react";
+import { FlaskConical, Flame, Droplets, Wind, ShieldAlert, Calendar, BookOpen, AlertTriangle, X, Sparkles, Zap, Eye, Microscope, Trash2, Settings, PlusCircle, CheckCircle, MapPin, Tag, Star, Clock, Stethoscope, Rocket } from "lucide-react";
 
 interface Experiment {
   id: string;
@@ -251,13 +234,13 @@ export default function ChemistryLabPage() {
   );
 
   const safetyAlerts = [
-    { msg: "Remember your safety goggles! 🥽", level: "warning" },
-    { msg: "Don't mix the red and green potions! 💥", level: "critical" }
+    { msg: "Remember your safety goggles! ", level: "warning" },
+    { msg: "Don't mix the red and green potions! ", level: "critical" }
   ];
 
   return (
     <PortalLayout
-      title="Magic Chemistry Lab! 🧪"
+      title="Magic Chemistry Lab! "
       subtitle="Mix potions, watch colors change, and learn science!"
     >
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 text-left">
@@ -286,7 +269,7 @@ export default function ChemistryLabPage() {
                 <button onClick={() => {
                   const colors = ["bg-red-500", "bg-green-500", "bg-blue-500", "bg-yellow-500", "bg-pink-500"];
                   setPotionColor(colors[Math.floor(Math.random() * colors.length)]);
-                  showToast("Mixed a new potion! 🫧");
+                  showToast("Mixed a new potion! ");
                 }} className="bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 rounded-2xl p-4 flex items-center gap-4 border-2 border-purple-100 dark:border-slate-600 transition-all active:scale-95 cursor-pointer shadow-sm">
                   <div className={`w-12 h-12 rounded-full ${potionColor} flex items-center justify-center shadow-inner border-2 border-white/50 transition-colors duration-500`}>
                     <Sparkles className="w-6 h-6 text-white animate-pulse" />
@@ -302,7 +285,7 @@ export default function ChemistryLabPage() {
                   </div>
                   <div className="text-left">
                     <div className="text-xs font-black text-orange-500 dark:text-orange-400 uppercase tracking-widest">Bunsen Burners</div>
-                    <div className="text-xl font-black text-slate-800 dark:text-white drop-shadow-sm">Ready! 🔥</div>
+                    <div className="text-xl font-black text-slate-800 dark:text-white drop-shadow-sm">Ready! <Flame className="w-4 h-4 inline-block mr-1 text-inherit" /></div>
                   </div>
                 </div>
               </div>
@@ -319,7 +302,7 @@ export default function ChemistryLabPage() {
                 Cool Experiments!
               </h3>
               <div className="flex gap-3 w-full sm:w-auto">
-                <button onClick={() => showToast("Calendar view coming soon! 📅")} className="flex-1 sm:flex-none px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-black text-sm rounded-2xl hover:bg-slate-200 transition-colors border border-slate-200 dark:border-slate-600">Calendar</button>
+                <button onClick={() => showToast("Calendar view coming soon! ")} className="flex-1 sm:flex-none px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-black text-sm rounded-2xl hover:bg-slate-200 transition-colors border border-slate-200 dark:border-slate-600">Calendar</button>
                 <button onClick={handleOpenCreate} className="flex-1 sm:flex-none px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white font-black text-sm rounded-2xl shadow-lg shadow-teal-500/30 active:scale-95 transition-all">+ Add New</button>
               </div>
             </div>
@@ -492,7 +475,7 @@ export default function ChemistryLabPage() {
                     <div key={ing.id} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 text-xs">
                       <div>
                         <div className="font-black text-slate-800 dark:text-white">{ing.name}</div>
-                        <div className="text-slate-400 font-semibold mt-0.5">📍 {ing.location}</div>
+                        <div className="text-slate-400 font-semibold mt-0.5"><MapPin className="w-4 h-4 inline-block mr-1 text-inherit" /> {ing.location}</div>
                       </div>
                       <span className={`px-2 py-0.5 rounded-lg border font-black ${ing.status === "Low Stock" ? "bg-amber-100 text-amber-600 border-amber-200" :
                         ing.status === "Needs Maintenance" ? "bg-rose-100 text-rose-600 border-rose-200" :
@@ -509,13 +492,13 @@ export default function ChemistryLabPage() {
             ) : null}
 
             <div className="grid grid-cols-2 gap-4">
-              <button onClick={() => showToast("Opening the big book of chemicals! 📚")} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border-4 border-indigo-100 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-indigo-600 dark:text-indigo-400 group">
+              <button onClick={() => showToast("Opening the big book of chemicals! ")} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border-4 border-indigo-100 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-indigo-600 dark:text-indigo-400 group">
                 <div className="w-12 h-12 bg-indigo-100 dark:bg-slate-900 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                   <BookOpen className="w-6 h-6" />
                 </div>
                 Book of Secrets
               </button>
-              <button onClick={() => showToast("Looking in the cupboards! 🔍")} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border-4 border-emerald-100 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-emerald-600 dark:text-emerald-400 group">
+              <button onClick={() => showToast("Looking in the cupboards! ")} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border-4 border-emerald-100 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-emerald-600 dark:text-emerald-400 group">
                 <div className="w-12 h-12 bg-emerald-100 dark:bg-slate-900 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                   <FlaskConical className="w-6 h-6" />
                 </div>
@@ -542,7 +525,7 @@ export default function ChemistryLabPage() {
           <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] w-full max-w-md shadow-2xl border-4 border-teal-100 dark:border-slate-700 animate-in zoom-in-95 p-2">
             <div className="flex justify-between items-center p-6 bg-teal-50 dark:bg-slate-900 rounded-[2rem] mb-4">
               <h3 className="text-xl font-black text-teal-600 dark:text-teal-400">
-                {isEdit ? "⚙️ Modify Experiment" : "Plan a New Experiment! 🔬"}
+                {isEdit ? " Modify Experiment" : "Plan a New Experiment! "}
               </h3>
               <button
                 onClick={() => setModalOpen(false)}
@@ -554,7 +537,7 @@ export default function ChemistryLabPage() {
 
             <form onSubmit={handleSaveExperiment} className="p-4 space-y-5">
               <div>
-                <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">What are we doing? 🔬</label>
+                <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">What are we doing? <Microscope className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <input
                   required
                   name="title"
@@ -567,7 +550,7 @@ export default function ChemistryLabPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Who's joining? 👥</label>
+                  <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Who's joining? </label>
                   <input
                     required
                     name="classSection"
@@ -578,7 +561,7 @@ export default function ChemistryLabPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Category 🏷️</label>
+                  <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Category <Tag className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                   <input
                     required
                     name="type"
@@ -592,7 +575,7 @@ export default function ChemistryLabPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">When? ⏰</label>
+                  <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">When? <Clock className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                   <input
                     required
                     name="date"
@@ -603,16 +586,16 @@ export default function ChemistryLabPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Status 🩺</label>
+                  <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Status <Stethoscope className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                   <select
                     required
                     name="status"
                     defaultValue={currentExp?.status || "scheduled"}
                     className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-xl py-3 px-4 text-sm font-semibold focus:outline-none focus:border-teal-500 transition-all"
                   >
-                    <option value="scheduled">Scheduled 📅</option>
-                    <option value="completed">Completed ✅</option>
-                    <option value="active">Active 🚀</option>
+                    <option value="scheduled">Scheduled <Calendar className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
+                    <option value="completed">Completed <CheckCircle className="w-4 h-4 inline ml-1 text-emerald-500" /></option>
+                    <option value="active">Active <Rocket className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
                   </select>
                 </div>
               </div>

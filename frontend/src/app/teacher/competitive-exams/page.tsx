@@ -1,4 +1,6 @@
 "use client";
+import { BarChart, Edit, Clipboard, Trophy, Target, Globe, BookOpen, Archive, X } from "lucide-react";
+
 
 import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
@@ -40,13 +42,13 @@ const categoryColor: Record<string, string> = {
 };
 
 const categoryIcon: Record<string, string> = {
-  Medical: "🏥",
-  Engineering: "⚙️",
-  "Civil Services": "🏛️",
-  Banking: "🏦",
-  Defence: "🛡️",
-  Law: "⚖️",
-  Other: "📖",
+  Medical: "",
+  Engineering: "",
+  "Civil Services": "",
+  Banking: "",
+  Defence: "",
+  Law: "",
+  Other: "",
 };
 
 const statusColor: Record<string, string> = {
@@ -231,10 +233,10 @@ export default function CompetitiveExamsPage() {
       {/* ── KPI Cards ─────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Exams Tracked", value: examsList.length, icon: "📋", color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950/20" },
-          { label: "Registration Open", value: registrationOpenCount, icon: "📝", color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20" },
-          { label: "Students Enrolled", value: totalEnrolled, icon: "👩‍🎓", color: "text-violet-500", bg: "bg-violet-50 dark:bg-violet-950/20" },
-          { label: "Clearance Rate", value: `${successRate}%`, icon: "🏆", color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
+          { label: "Total Exams Tracked", value: examsList.length, icon: <Clipboard className="w-5 h-5" />, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950/20" },
+          { label: "Registration Open", value: registrationOpenCount, icon: <Edit className="w-5 h-5" />, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20" },
+          { label: "Students Enrolled", value: totalEnrolled, icon: "", color: "text-violet-500", bg: "bg-violet-50 dark:bg-violet-950/20" },
+          { label: "Clearance Rate", value: `${successRate}%`, icon: <Trophy className="w-5 h-5" />, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
             <div className={`w-9 h-9 ${kpi.bg} rounded-xl flex items-center justify-center text-lg mb-3`}>{kpi.icon}</div>
@@ -246,7 +248,7 @@ export default function CompetitiveExamsPage() {
 
       {/* ── Category Quick Filter ─────────────────────────────── */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 mb-5 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4">🎯 Exam Categories</h3>
+        <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Target className="w-4 h-4 inline-block mr-1 text-inherit" /> Exam Categories</h3>
         <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
           {(["All", "Medical", "Engineering", "Civil Services", "Defence", "Law", "Banking"] as const).map((cat) => {
             const isAll = cat === "All";
@@ -259,7 +261,7 @@ export default function CompetitiveExamsPage() {
                   : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 hover:border-amber-300"
                 }`}
               >
-                <span className="text-xl mb-0.5">{isAll ? "📚" : categoryIcon[cat]}</span>
+                <span className="text-xl mb-0.5">{isAll ? "" : categoryIcon[cat]}</span>
                 <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300 text-center leading-tight">{cat}</span>
               </button>
             );
@@ -270,9 +272,9 @@ export default function CompetitiveExamsPage() {
       {/* ── Tabs ──────────────────────────────────────────────── */}
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-900 rounded-xl p-1 mb-5 w-fit">
         {([
-          { key: "exams", label: "📋 All Exams" },
-          { key: "materials", label: "📚 Study Materials" },
-          { key: "results", label: "🏆 Results Summary" },
+          { key: "exams", label: " All Exams" },
+          { key: "materials", label: " Study Materials" },
+          { key: "results", label: " Results Summary" },
         ] as const).map((tab) => (
           <button
             key={tab.key}
@@ -335,7 +337,7 @@ export default function CompetitiveExamsPage() {
                     {/* Header */}
                     <div className="flex items-start gap-3 mb-3">
                       <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shrink-0">
-                        {categoryIcon[exam.category] || "📖"}
+                        {categoryIcon[exam.category] || ""}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-bold text-slate-800 dark:text-white group-hover:text-amber-500 transition-colors leading-tight">{exam.examName}</h4>
@@ -385,7 +387,7 @@ export default function CompetitiveExamsPage() {
                     </div>
 
                     {/* Eligibility */}
-                    <p className="text-[10px] text-slate-400 mb-3 font-semibold">📋 {exam.eligibility}</p>
+                    <p className="text-[10px] text-slate-400 mb-3 font-semibold"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> {exam.eligibility}</p>
 
                     {/* Footer */}
                     <div className="flex justify-between items-center border-t border-slate-100 dark:border-slate-800 pt-3 gap-2">
@@ -396,7 +398,7 @@ export default function CompetitiveExamsPage() {
                           rel="noopener noreferrer"
                           className="text-[10px] text-blue-500 hover:underline truncate max-w-32 block"
                         >
-                          🌐 {exam.website}
+                          <Globe className="w-4 h-4 inline-block mr-1 text-inherit" /> {exam.website}
                         </a>
                       ) : (
                         <span className="text-[10px] text-slate-400">No URL</span>
@@ -418,7 +420,7 @@ export default function CompetitiveExamsPage() {
       {activeTab === "materials" && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-sm font-bold text-slate-700 dark:text-white">📚 Exam Study Materials</h3>
+            <h3 className="text-sm font-bold text-slate-700 dark:text-white"><BookOpen className="w-4 h-4 inline-block mr-1 text-inherit" /> Exam Study Materials</h3>
           </div>
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
@@ -460,7 +462,7 @@ export default function CompetitiveExamsPage() {
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4">📊 Exam-wise Clearance Rate</h4>
+              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><BarChart className="w-4 h-4 inline mr-1 text-emerald-500" /> Exam-wise Clearance Rate</h4>
               {examsList.filter((e) => e.studentsEnrolled > 0).map((e) => {
                 const rate = Math.round((e.studentsCleared / e.studentsEnrolled) * 100);
                 return (
@@ -481,7 +483,7 @@ export default function CompetitiveExamsPage() {
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4">🗂 Category Breakdown</h4>
+              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Archive className="w-4 h-4 inline-block mr-1 text-inherit" /> Category Breakdown</h4>
               {["Medical", "Engineering", "Civil Services", "Defence", "Law"].map((cat) => {
                 const catExams = examsList.filter((e) => e.category === cat);
                 const enrolled = catExams.reduce((a, e) => a + e.studentsEnrolled, 0);
@@ -514,14 +516,14 @@ export default function CompetitiveExamsPage() {
           <div className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 px-6 py-4">
               <div>
-                <h3 className="text-sm font-bold text-slate-800 dark:text-white">{editId ? "✏️ Edit Competitive Exam" : "📋 Add Competitive Exam"}</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">{editId ? " Edit Competitive Exam" : " Add Competitive Exam"}</h3>
                 <p className="text-[10px] text-slate-400 mt-0.5">Track a competitive exam for your students</p>
               </div>
               <button
                 onClick={() => setShowModal(false)}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
               >
-                ✕ Close
+                <X className="w-4 h-4 inline-block mr-1 text-inherit" /> Close
               </button>
             </div>
             <div className="p-6 space-y-4">
@@ -580,7 +582,7 @@ export default function CompetitiveExamsPage() {
                 </select>
               </div>
               <button onClick={handleSave} disabled={saving} className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white font-bold rounded-xl text-xs transition-colors shadow-md">
-                {saving ? "Saving..." : editId ? "Save Changes" : "📋 Add Exam to Tracker"}
+                {saving ? "Saving..." : editId ? "Save Changes" : " Add Exam to Tracker"}
               </button>
             </div>
           </div>

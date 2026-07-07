@@ -4,22 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
-import {
-  Palette,
-  Music,
-  Tent,
-  Ticket,
-  MapPin,
-  CalendarHeart,
-  X,
-  Sparkles,
-  Heart,
-  Camera,
-  Star,
-  Plus,
-  Pencil,
-  Trash2
-} from "lucide-react";
+import { Palette, Music, Tent, Ticket, MapPin, CalendarHeart, X, Sparkles, Heart, Camera, Star, Plus, Pencil, Trash2, Hourglass, PartyPopper, Briefcase, User, Handshake, Edit, Calendar, Target } from "lucide-react";
 
 type CulturalEvent = {
   id: string;
@@ -72,7 +57,7 @@ export default function CulturalEventsPage() {
     setRegisterModalOpen(false);
     Swal.fire({
       title: "Registered!",
-      text: "Yay! You are registered for the event! 🎉",
+      text: "Yay! You are registered for the event! ",
       icon: "success",
       confirmButtonColor: "#f43f5e"
     });
@@ -98,7 +83,7 @@ export default function CulturalEventsPage() {
       showCancelButton: true,
       confirmButtonColor: "#f43f5e",
       cancelButtonColor: "#94a3b8",
-      confirmButtonText: "Yes, cancel it! 🗑️"
+      confirmButtonText: "Yes, cancel it! "
     });
 
     if (!result.isConfirmed) return;
@@ -154,7 +139,7 @@ export default function CulturalEventsPage() {
         setEventModalOpen(false);
         Swal.fire({
           title: "Success!",
-          text: isEdit ? "Event updated successfully! ✨" : "New event created! 🎉",
+          text: isEdit ? "Event updated successfully! " : "New event created! ",
           icon: "success",
           confirmButtonColor: "#f43f5e"
         });
@@ -176,7 +161,7 @@ export default function CulturalEventsPage() {
 
   return (
     <PortalLayout
-      title="Culture & Fun! 🎭"
+      title="Culture & Fun! "
       subtitle="Join the dance, art, and music festivals!"
     >
       <div className="flex flex-col gap-8">
@@ -196,16 +181,16 @@ export default function CulturalEventsPage() {
             <div className="inline-flex items-center gap-2 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-4 py-2 mb-4 font-black tracking-widest text-xs uppercase rounded-2xl shadow-sm rotate-[-2deg] border-2 border-yellow-200 dark:border-yellow-700/50">
               <Star className="w-4 h-4" /> The Big Event!
             </div>
-            <h2 className="text-4xl md:text-6xl font-black text-slate-800 dark:text-white mb-4 tracking-tight drop-shadow-sm">Tamil Heritage Month ✨</h2>
+            <h2 className="text-4xl md:text-6xl font-black text-slate-800 dark:text-white mb-4 tracking-tight drop-shadow-sm">Tamil Heritage Month <Sparkles className="w-4 h-4 inline-block mr-1 text-inherit" /></h2>
             <p className="text-slate-600 dark:text-slate-300 font-bold mb-8 text-sm md:text-lg leading-relaxed">
               Let's celebrate our rich culture together! There will be yummy food, beautiful dances, traditional games, and lots of fun!
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <button onClick={() => setRegisterModalOpen(true)} className="w-full py-4 bg-rose-500 text-white font-black text-sm rounded-2xl transition-all shadow-md shadow-rose-500/30 hover:bg-rose-600 hover:scale-105 active:scale-95 border-b-4 border-rose-700 flex items-center justify-center gap-2">
-                Join the Fun! 🎫
+                Join the Fun! <Ticket className="w-4 h-4 inline-block mr-1 text-inherit" />
               </button>
-              <button onClick={() => Swal.fire({ title: 'Schedule', text: 'Downloading the fun schedule! 📅', icon: 'info' })} className="w-full py-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-sm rounded-2xl transition-all shadow-sm hover:bg-slate-200 dark:hover:bg-slate-600 border-2 border-slate-200 dark:border-slate-600 flex items-center justify-center gap-2">
+              <button onClick={() => Swal.fire({ title: 'Schedule', text: 'Downloading the fun schedule! ', icon: 'info' })} className="w-full py-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-sm rounded-2xl transition-all shadow-sm hover:bg-slate-200 dark:hover:bg-slate-600 border-2 border-slate-200 dark:border-slate-600 flex items-center justify-center gap-2">
                 See What's Happening
               </button>
               <button onClick={handleOpenCreate} className="w-full py-4 bg-emerald-400 text-emerald-900 font-black text-sm rounded-2xl transition-all shadow-md shadow-emerald-400/30 hover:scale-105 active:scale-95 border-b-4 border-emerald-600 flex items-center justify-center gap-2">
@@ -228,9 +213,9 @@ export default function CulturalEventsPage() {
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
             {loading ? (
-              <div className="col-span-1 xl:col-span-3 text-center py-10 font-bold text-slate-500">Loading events... ⏳</div>
+              <div className="col-span-1 xl:col-span-3 text-center py-10 font-bold text-slate-500">Loading events... <Hourglass className="w-4 h-4 inline-block mr-1 text-inherit" /></div>
             ) : events.length === 0 ? (
-              <div className="col-span-1 xl:col-span-3 text-center py-10 font-bold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-3xl border-4 border-dashed border-slate-200 dark:border-slate-700">No events yet! Go add some! 🎉</div>
+              <div className="col-span-1 xl:col-span-3 text-center py-10 font-bold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-3xl border-4 border-dashed border-slate-200 dark:border-slate-700">No events yet! Go add some! <PartyPopper className="w-4 h-4 inline-block mr-1 text-inherit" /></div>
             ) : events.map((evt, i) => {
               const { icon, color } = getEventStyle(evt.title);
               return (
@@ -297,7 +282,7 @@ export default function CulturalEventsPage() {
             </div>
             <form onSubmit={handleRegister} className="p-4 space-y-6">
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Which Event? 🎭</label>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Which Event? <Ticket className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <select required name="event" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-rose-300 transition-all">
                   {events.map((e) => (
                     <option key={e.id} value={e.title}>{e.title}</option>
@@ -306,11 +291,11 @@ export default function CulturalEventsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Class 🎒</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Class <Briefcase className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                   <input required name="class" type="text" placeholder="e.g., 9th A" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-rose-300 transition-all" />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">How Many? 🧑‍🤝‍🧑</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">How Many? <User className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /><Handshake className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /><User className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                   <input required name="count" type="number" min="1" max="60" placeholder="10" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-rose-300 transition-all" />
                 </div>
               </div>
@@ -319,7 +304,7 @@ export default function CulturalEventsPage() {
                   Cancel
                 </button>
                 <button type="submit" className="flex-1 py-4 rounded-2xl text-sm font-black text-grey bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 transition-all shadow-lg shadow-rose-500/30 active:scale-95 border-b-4 border-rose-700">
-                  Register! 🎉
+                  Register! <PartyPopper className="w-4 h-4 inline-block mr-1 text-inherit" />
                 </button>
               </div>
             </form>
@@ -333,7 +318,7 @@ export default function CulturalEventsPage() {
           <div className="bg-white dark:bg-slate-800 rounded-[3rem] w-full max-w-md shadow-2xl border-4 border-purple-200 dark:border-slate-700 animate-in zoom-in-95 p-3">
             <div className="flex justify-between items-center p-6 bg-purple-50 dark:bg-slate-900 rounded-[2.5rem] mb-6">
               <h3 className="text-2xl font-black text-purple-600 dark:text-purple-400">
-                {isEdit ? "Edit Event 🎨" : "New Event! 🎪"}
+                {isEdit ? "Edit Event " : "New Event! "}
               </h3>
               <button onClick={() => setEventModalOpen(false)} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-full text-slate-400 hover:text-purple-500 hover:scale-110 transition-all shadow-sm">
                 <X className="w-6 h-6" />
@@ -341,29 +326,29 @@ export default function CulturalEventsPage() {
             </div>
             <form onSubmit={handleSaveEvent} className="p-4 space-y-6">
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Event Title ✨</label>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Event Title <Sparkles className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <input required name="title" defaultValue={currentEvent?.title} type="text" placeholder="e.g., Annual Arts Fest" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all" />
               </div>
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Description 📝</label>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Description <Edit className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <textarea required name="description" defaultValue={currentEvent?.description} placeholder="What's this event about?" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all resize-none h-24" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Date 📅</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Date <Calendar className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                   <input required name="eventDate" defaultValue={currentEvent ? new Date(currentEvent.eventDate).toISOString().substring(0, 10) : ""} type="date" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all" />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Location 📍</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Location <MapPin className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                   <input required name="location" defaultValue={currentEvent?.location} type="text" placeholder="e.g., Auditorium" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Status 🎯</label>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Status <Target className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <select required name="status" defaultValue={currentEvent?.status || "Upcoming"} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all">
-                  <option value="Upcoming">Upcoming ⏳</option>
-                  <option value="Planning">Planning 📝</option>
-                  <option value="Open Now!">Open Now! 🎉</option>
+                  <option value="Upcoming">Upcoming <Hourglass className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
+                  <option value="Planning">Planning <Edit className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
+                  <option value="Open Now!">Open Now! <PartyPopper className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
                 </select>
               </div>
               <div className="pt-6 flex gap-4">

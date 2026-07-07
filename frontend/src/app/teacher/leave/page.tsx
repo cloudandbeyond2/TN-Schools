@@ -1,4 +1,6 @@
 "use client";
+import { Building2, Users, File, Clipboard, User } from "lucide-react";
+
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -155,28 +157,28 @@ export default function LeaveRequestsPage() {
 
   const statCards = [
     {
-      icon: "📄",
+      icon: <File className="w-5 h-5" />,
       accent: "bg-sky-400/70",
       iconBg: "bg-sky-400/10",
       label: "Total Leave Records",
       value: requests.length,
     },
     {
-      icon: "🏫",
+      icon: <Building2 className="w-5 h-5" />,
       accent: "bg-violet-400/70",
       iconBg: "bg-violet-400/10",
       label: "Classes Covered",
       value: "6 – 12",
     },
     {
-      icon: "👥",
+      icon: <Users className="w-5 h-5" />,
       accent: "bg-emerald-400/70",
       iconBg: "bg-emerald-400/10",
       label: "Total Students",
       value: staffList.length,
     },
     {
-      icon: "🏛️",
+      icon: "",
       accent: "bg-amber-400/70",
       iconBg: "bg-amber-400/10",
       label: "School",
@@ -228,7 +230,7 @@ export default function LeaveRequestsPage() {
           {/* Leave Application Form */}
           <div className="theme-card p-4 sm:p-5 lg:p-6 border border-[var(--border)] h-fit rounded-2xl bg-[var(--bg-card)] min-w-0">
             <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4">
-              📄 Request Leave
+              <File className="w-4 h-4 inline-block mr-1 text-inherit" /> Request Leave
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -322,7 +324,7 @@ export default function LeaveRequestsPage() {
           <div className="xl:col-span-2 theme-card p-4 sm:p-5 lg:p-6 border border-[var(--border)] space-y-5 rounded-2xl bg-[var(--bg-card)] flex flex-col justify-between min-w-0">
             <div className="min-w-0">
               <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4">
-                📋 Previous Request History
+                <Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> Previous Request History
               </h2>
 
               {toast && (
@@ -395,7 +397,7 @@ export default function LeaveRequestsPage() {
                           {req.reason}
                         </p>
                         <p className="text-xs text-[var(--text-heading)] font-medium truncate">
-                          👤 {req.studentName}
+                          <User className="w-4 h-4 inline-block mr-1 text-inherit" /> {req.studentName}
                         </p>
                       </div>
                     ))}

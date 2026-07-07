@@ -1,4 +1,6 @@
 "use client";
+import { Search, X, MessageCircle } from "lucide-react";
+
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -24,6 +26,8 @@ export default function StudentProfilesPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClass, setSelectedClass] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
@@ -157,33 +161,63 @@ export default function StudentProfilesPage() {
     return matchesSearch && matchesClass;
   });
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedClass]);
+
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  const paginatedStudents = filteredStudents.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <PortalLayout title="Student Profiles" subtitle="View and search comprehensive records, EMIS profiles, and performance details.">
       {/* Search and Filters */}
-      <div className="theme-card p-5 mb-6 border border-[var(--border)] flex flex-col xl:flex-row gap-4 justify-between items-center fade-in">
-        <div className="flex-1 w-full flex gap-3">
-          <input
-            type="text"
-            placeholder="Search by student name or EMIS ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-4 py-2.5 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors"
-          />
-          <select
-            value={selectedClass}
-            onChange={(e) => setSelectedClass(e.target.value)}
-            className="bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors w-32"
-          >
-            <option value="All">All Classes</option>
-            {teacherClasses.map((cls) => (
-              <option key={cls.id} value={`${cls.className}${cls.section}`}>
-                Class {cls.className}{cls.section}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="text-xs text-[var(--text-muted)] font-semibold self-end xl:self-auto shrink-0">
-          Showing {filteredStudents.length} students
+      <div className="theme-card p-5 mb-6 border border-[var(--border)] flex flex-col gap-4 fade-in">
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+          {/* Class Tabs */}
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setSelectedClass("All")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                selectedClass === "All"
+                  ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-md shadow-[var(--primary)]/20"
+                  : "bg-[var(--bg-main)] border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
+              }`}
+            >
+              All Classes
+            </button>
+            {teacherClasses.map((cls) => {
+              const val = `${cls.className}${cls.section}`;
+              return (
+                <button
+                  key={cls.id}
+                  onClick={() => setSelectedClass(val)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                    selectedClass === val
+                      ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-md shadow-[var(--primary)]/20"
+                      : "bg-[var(--bg-main)] border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                  }`}
+                >
+                  {val}
+                </button>
+              );
+            })}
+          </div>
+          
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <input
+              type="text"
+              placeholder="Search by student name or EMIS ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full md:w-64 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-4 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors"
+            />
+            <div className="text-xs text-[var(--text-muted)] font-semibold shrink-0">
+              Showing {filteredStudents.length} students
+            </div>
+          </div>
         </div>
       </div>
 
@@ -225,8 +259,9 @@ export default function StudentProfilesPage() {
       ) : filteredStudents.length === 0 ? (
         <div className="text-center py-12 text-xs text-[var(--text-muted)]">No student records found matching the query.</div>
       ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
-          {filteredStudents.map((student) => (
+        <>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+            {paginatedStudents.map((student) => (
             <div
               key={student.id}
               className="theme-card p-5 border border-[var(--border)] flex flex-col justify-between hover:-translate-y-1 hover:shadow-xl transition-all"
@@ -264,11 +299,40 @@ export default function StudentProfilesPage() {
                 onClick={() => handleViewFullProfile(student)}
                 className="w-full py-2 bg-[var(--bg-card)] hover:bg-slate-700 text-[var(--text-heading)] hover:text-[var(--text-heading)] font-bold rounded-xl text-xs transition-colors border border-[var(--border)]"
               >
-                🔍 View Full Profile
+                <Search className="w-4 h-4 inline-block mr-1 text-inherit" /> View Full Profile
               </button>
             </div>
           ))}
-        </div>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 theme-card border border-[var(--border)]">
+              <div className="text-xs text-[var(--text-muted)] font-semibold">
+                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredStudents.length)} of {filteredStudents.length} entries
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-[var(--border)] rounded-xl text-xs font-bold hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-[var(--text-heading)] disabled:hover:border-[var(--border)] transition-all"
+                >
+                  Prev
+                </button>
+                <div className="px-4 py-2 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl text-xs font-bold text-[var(--primary)]">
+                  {currentPage} / {totalPages}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border border-[var(--border)] rounded-xl text-xs font-bold hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-[var(--text-heading)] disabled:hover:border-[var(--border)] transition-all"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Profile Detail Modal */}
@@ -279,7 +343,7 @@ export default function StudentProfilesPage() {
               onClick={() => setSelectedStudent(null)}
               className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-[var(--text-heading)] text-lg p-2"
             >
-              ✕
+              <X className="w-4 h-4 inline-block mr-1 text-inherit" />
             </button>
 
             {/* Modal Header */}
@@ -369,7 +433,7 @@ export default function StudentProfilesPage() {
                 Close Profile
               </button>
               <button className="px-5 py-2.5 bg-[var(--primary)] hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition-colors">
-                💬 Message Parent
+                <MessageCircle className="w-4 h-4 inline-block mr-1 text-inherit" /> Message Parent
               </button>
             </div>
           </div>
