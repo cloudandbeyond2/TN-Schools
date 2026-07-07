@@ -516,6 +516,7 @@ export default function PortalLayout({
 
   const subjectRestrictedRoutes = new Set(Object.values(subjectRoutes).flat());
   const userSubject = (session?.user as any)?.subject || "";
+  const userClass = (session?.user as any)?.class || "";
 
   let filteredNavItems: NavItem[] =
     userRole === "SUPERADMIN"
@@ -529,6 +530,11 @@ export default function PortalLayout({
             // It's a restricted route, check if teacher's subject allows it
             const allowedRoutesForSubject = subjectRoutes[userSubject] || [];
             return allowedRoutesForSubject.includes(item.href);
+          }
+
+          if (item.label === "Maths Formulas") {
+            const classNum = String(userClass).match(/\d+/)?.[0];
+            return classNum === "6";
           }
           
           return true;
@@ -683,7 +689,6 @@ export default function PortalLayout({
   // Adjust avatar parameters dynamically using session profile data
   const displayName = session?.user?.name || resolvedTitle;
   const displayEmail = session?.user?.email || resolvedSubtitle;
-  const userClass = (session?.user as any)?.class;
   const userSection = (session?.user as any)?.section;
   const classDisplay = userClass && userSection ? `Class ${userClass} - ${userSection}` : (userClass ? `Class ${userClass}` : "");
   const letter = displayName ? displayName.charAt(0).toUpperCase() : resolvedAvatarLetter;

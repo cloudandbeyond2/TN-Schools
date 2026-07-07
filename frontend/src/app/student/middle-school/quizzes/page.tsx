@@ -223,9 +223,42 @@ const quizCategories = [
   { name: "Tamil & English", icon: "📖", color: "from-purple-500 to-pink-600", active: 6, completed: 12 },
 ];
 
-const dailyChallenges = [
-  { title: "Algebra Basics (இயற்கணிதம்)", category: "Math", reward: "+50 XP", difficulty: "Medium", timeLimit: "5 mins", color: "text-emerald-600 dark:text-emerald-400", bgBorder: "border-emerald-500/30" },
-  { title: "Indus Valley Civilization", category: "Social", reward: "+75 XP", difficulty: "Hard", timeLimit: "10 mins", color: "text-amber-600 dark:text-amber-400", bgBorder: "border-amber-500/30" },
+const dailyRotations = [
+  // Sunday
+  [
+    { title: "Solar System Speed Run (சூரிய குடும்பம்)", category: "Science", reward: "+50 XP", difficulty: "Easy", timeLimit: "4 mins", color: "text-blue-650 dark:text-blue-400", bgBorder: "border-blue-500/30" },
+    { title: "Decimal Division Quest (தசம வகுத்தல்)", category: "Math", reward: "+75 XP", difficulty: "Medium", timeLimit: "8 mins", color: "text-emerald-650 dark:text-emerald-400", bgBorder: "border-emerald-500/30" }
+  ],
+  // Monday
+  [
+    { title: "Ohm's Law Explorer (மின்னோட்டம்)", category: "Science", reward: "+60 XP", difficulty: "Medium", timeLimit: "6 mins", color: "text-blue-650 dark:text-blue-400", bgBorder: "border-blue-500/30" },
+    { title: "Fractions Master (பின்னங்கள்)", category: "Math", reward: "+40 XP", difficulty: "Easy", timeLimit: "5 mins", color: "text-emerald-650 dark:text-emerald-400", bgBorder: "border-emerald-500/30" }
+  ],
+  // Tuesday
+  [
+    { title: "Indus Valley Secrets (சிந்துவெளி நாகரிகம்)", category: "Social", reward: "+70 XP", difficulty: "Hard", timeLimit: "10 mins", color: "text-amber-650 dark:text-amber-400", bgBorder: "border-amber-500/30" },
+    { title: "Bilingual Synonyms Race (இணைச்சொற்கள்)", category: "Languages", reward: "+50 XP", difficulty: "Easy", timeLimit: "5 mins", color: "text-purple-650 dark:text-purple-400", bgBorder: "border-purple-500/30" }
+  ],
+  // Wednesday
+  [
+    { title: "Cell Structure Quiz (செல் அமைப்பு)", category: "Science", reward: "+80 XP", difficulty: "Hard", timeLimit: "12 mins", color: "text-blue-650 dark:text-blue-400", bgBorder: "border-blue-500/30" },
+    { title: "Algebra Sprint (இயற்கணிதம்)", category: "Math", reward: "+50 XP", difficulty: "Medium", timeLimit: "7 mins", color: "text-emerald-650 dark:text-emerald-400", bgBorder: "border-emerald-500/30" }
+  ],
+  // Thursday
+  [
+    { title: "Brave Tamil Kings (தமிழ் மன்னர்கள்)", category: "Social", reward: "+75 XP", difficulty: "Medium", timeLimit: "8 mins", color: "text-amber-650 dark:text-amber-400", bgBorder: "border-amber-500/30" },
+    { title: "English Grammar Mastery (இலக்கணம்)", category: "Languages", reward: "+40 XP", difficulty: "Easy", timeLimit: "5 mins", color: "text-purple-650 dark:text-purple-400", bgBorder: "border-purple-500/30" }
+  ],
+  // Friday
+  [
+    { title: "Force and Motion (விசை மற்றும் இயக்கம்)", category: "Science", reward: "+60 XP", difficulty: "Medium", timeLimit: "6 mins", color: "text-blue-650 dark:text-blue-400", bgBorder: "border-blue-500/30" },
+    { title: "Percentage Power Up (சதவீதம்)", category: "Math", reward: "+70 XP", difficulty: "Hard", timeLimit: "9 mins", color: "text-emerald-650 dark:text-emerald-400", bgBorder: "border-emerald-500/30" }
+  ],
+  // Saturday
+  [
+    { title: "Indian Freedom Struggle (விடுதலைப் போராட்டம்)", category: "Social", reward: "+90 XP", difficulty: "Hard", timeLimit: "15 mins", color: "text-amber-650 dark:text-amber-400", bgBorder: "border-amber-500/30" },
+    { title: "Sentence Transformation (வாக்கியம்)", category: "Languages", reward: "+50 XP", difficulty: "Medium", timeLimit: "6 mins", color: "text-purple-650 dark:text-purple-400", bgBorder: "border-purple-500/30" }
+  ]
 ];
 
 const recentBadges = [
@@ -236,6 +269,14 @@ const recentBadges = [
 
 export default function FunQuizzesPage() {
   const [activeTab, setActiveTab] = useState("all");
+
+  const dayOfWeek = new Date().getDay();
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const dayNamesTa = ["ஞாயிறு", "திங்கள்", "செவ்வாய்", "புதன்", "வியாழன்", "வெள்ளி", "சனி"];
+  
+  const dailyChallenges = dailyRotations[dayOfWeek];
+  const currentDayName = dayNames[dayOfWeek];
+  const currentDayNameTa = dayNamesTa[dayOfWeek];
 
   return (
     <PortalLayout
@@ -280,9 +321,12 @@ export default function FunQuizzesPage() {
              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 blur-3xl rounded-full"></div>
              <div className="absolute bottom-0 right-10 text-9xl opacity-10 rotate-12 pointer-events-none">🎮</div>
              
-             <h2 className="text-2xl font-black text-black dark:text-white mb-6 flex items-center gap-2 relative z-10">
-               <span className="text-3xl">🎯</span> Daily Challenges
-             </h2>
+              <h2 className="text-2xl font-black text-black dark:text-white mb-2 flex items-center gap-2 relative z-10">
+                <span className="text-3xl">🎯</span> Daily Challenges
+              </h2>
+              <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-6 relative z-10">
+                📅 Today is {currentDayName} ({currentDayNameTa}) — Complete today's puzzles to extend your streak!
+              </p>
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
                {dailyChallenges.map((challenge, idx) => (
