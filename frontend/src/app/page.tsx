@@ -258,15 +258,15 @@ export default function HomePage() {
   return (
     <div style={{ background: "#FAFAFA", fontFamily: "'Inter', 'Segoe UI', sans-serif", color: "#064E3B", overflowX: "hidden" }}>
       {/* ═══════ GOVERNMENT TOP STRIP ═══════ */}
-      <div className="hidden sm:block" style={{ background: "#022C22", color: "#A7F3D0", padding: "8px 0", fontSize: "12px", borderBottom: "1px solid rgba(167,243,208,0.2)" }}>
-        <div className="px-4 md:px-8" style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span className="text-white" style={{ fontSize: "14px" }}><i className="fi fi-rr-flag"></i></span>
+      <div style={{ background: "#022C22", color: "#A7F3D0", padding: "8px 0", fontSize: "11px", borderBottom: "1px solid rgba(167,243,208,0.2)" }}>
+        <div className="px-4 md:px-8" style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            <span className="text-white" style={{ fontSize: "13px" }}><i className="fi fi-rr-flag"></i></span>
             <span style={{ fontWeight: 600, color: "#ffffff" }}>{text.govtName}</span>
             <span style={{ opacity: 0.5, color: "#ffffff" }}>|</span>
             <span style={{ opacity: 0.9, color: "#ffffff" }}>{text.deptName}</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", fontWeight: 500 }}>
+          <div className="hidden sm:flex" style={{ alignItems: "center", gap: "16px", fontWeight: 500 }}>
             <span className="text-white" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#34D399", display: "inline-block", boxShadow: "0 0 8px rgba(52,211,153,0.6)" }}></span>
               {text.ftStatus}
