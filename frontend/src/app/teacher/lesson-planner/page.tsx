@@ -9,7 +9,7 @@ import SlideVisual from "@/components/SlideVisual";
 import { MoreVertical, X, Megaphone, Save, Sparkles, BookOpen, BarChart, Bot, CheckCircle, Globe, Hourglass, FileText, Video, Folder, Star, Book, Check, Monitor, Eye, Target, Clipboard, Timer } from "lucide-react";
 
 const syllabusOptions = ["TN State Board (Samacheer Kalvi)", "CBSE", "ICSE"];
-const grades = ["Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
+const grades = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
 const subjects = ["Mathematics", "Science", "Social Science", "English", "Tamil"];
 const sections = ["All", "A", "B", "C", "D", "E"];
 
@@ -56,7 +56,7 @@ export default function LessonPlannerPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const [syllabus, setSyllabus] = useState(syllabusOptions[0]);
-  const [grade, setGrade] = useState(grades[2]); // Grade 10
+  const [grade, setGrade] = useState(grades[4]); // Grade 10
   const [subject, setSubject] = useState(subjects[0]); // Maths
   const [section, setSection] = useState<string>("All"); // Section targeting
   const [topic, setTopic] = useState("Pythagoras Theorem & Trigonometry");

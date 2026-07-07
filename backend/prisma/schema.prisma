@@ -138,6 +138,9 @@ model Student {
   injuryReports         InjuryReport[]
   storyProgress         StudentStoryProgress[]
   promotionRecords      PromotionRecord[]
+  labAttempts           StudentExperimentAttempt[]
+  readingProgress       ReadingTracker[]
+  projectSubmissions    ProjectSubmission[]
   academicHistory       StudentAcademicHistory[]
   school                School                @relation(fields: [schoolId], references: [id])
 
@@ -1468,4 +1471,124 @@ model StudentAcademicHistory {
 
   @@unique([studentId, academicYear])
   @@index([schoolId, academicYear])
+}
+
+// ─── Science Labs & Centers Module Models ───
+
+model ScienceBook {
+  id            String           @id @default(uuid())
+  bookName      String
+  grade         String
+  medium        String
+  volume        String
+  pdfUrl        String
+  coverImageUrl String
+  year          String           @default("2024")
+  chapters      ScienceChapter[]
+  createdAt     DateTime         @default(now())
+}
+
+model ScienceChapter {
+  id              String          @id @default(uuid())
+  bookId          String
+  chapterNumber   Int
+  title           String
+  summary         String          @db.Text
+  importantPoints String[]
+  mindMapData     Json
+  flowchartData   Json
+  vocabulary      Json
+  formulaSheet    Json?
+  assets3d        String[]
+  createdAt       DateTime        @default(now())
+  book            ScienceBook     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  assignments     LabAssignment[]
+  readingProgress ReadingTracker[]
+}
+
+model VirtualLab {
+  id          String          @id @default(uuid())
+  name        String
+  icon        String
+  description String
+  experiments LabExperiment[]
+}
+
+model LabExperiment {
+  id               String                     @id @default(uuid())
+  labId            String
+  title            String
+  grade            String
+  medium           String
+  difficulty       String
+  materialsNeeded  String[]
+  safetyGuide      String[]
+  steps            Json
+  simulationConfig Json
+  videoUrl         String?
+  narrationUrls    Json
+  createdAt        DateTime                   @default(now())
+  lab              VirtualLab                 @relation(fields: [labId], references: [id], onDelete: Cascade)
+  attempts         StudentExperimentAttempt[]
+}
+
+model StudentExperimentAttempt {
+  id           String        @id @default(uuid())
+  studentId    String
+  experimentId String
+  timeSpentSec Int
+  completed    Boolean       @default(false)
+  score        Int?
+  findings     String?
+  createdAt    DateTime      @default(now())
+  student      Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  experiment   LabExperiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+}
+
+model ReadingTracker {
+  id           String         @id @default(uuid())
+  studentId    String
+  chapterId    String
+  pagesRead    Int
+  timeSpentSec Int
+  completed    Boolean        @default(false)
+  updatedAt    DateTime       @updatedAt
+  student      Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  chapter      ScienceChapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+}
+
+model ScienceProject {
+  id          String              @id @default(uuid())
+  title       String
+  grade       String
+  topic       String
+  difficulty  String
+  materials   String[]
+  steps       Json
+  rubric      Json
+  createdAt   DateTime            @default(now())
+  submissions ProjectSubmission[]
+}
+
+model ProjectSubmission {
+  id            String         @id @default(uuid())
+  projectId     String
+  studentId     String
+  submissionUrl String
+  marksScored   Int?
+  feedback      String?
+  gradedBy      String?
+  createdAt     DateTime       @default(now())
+  project       ScienceProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  student       Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model LabAssignment {
+  id          String         @id @default(uuid())
+  chapterId   String
+  teacherId   String
+  classRoomId String
+  dueDate     DateTime
+  createdAt   DateTime       @default(now())
+  chapter     ScienceChapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 }

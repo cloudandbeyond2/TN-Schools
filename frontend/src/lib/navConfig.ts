@@ -159,6 +159,9 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Science Labs & Centers ────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Science Labs & Centers", href: "#", icon: "" },
+      { label: "Science Campus", href: "/student/science-campus", icon: "Sparkles" },
+      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
+      { label: "Botany Centre", href: "/student/botany-centre", icon: "Leaf" },
       { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
       { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
       { label: "Chemistry Lab", href: "/student/chemistry-lab", icon: "FlaskConical" },
@@ -239,6 +242,9 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Science Labs & Centers ────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Science Labs & Centers", href: "#", icon: "" },
+      { label: "Science Campus", href: "/student/science-campus", icon: "Sparkles" },
+      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
+      { label: "Botany Centre", href: "/student/botany-centre", icon: "Leaf" },
       { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
       { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
       { label: "Chemistry Lab", href: "/student/chemistry-lab", icon: "FlaskConical" },
@@ -319,6 +325,9 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Science Labs & Centers ────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Science Labs & Centers", href: "#", icon: "" },
+      { label: "Science Campus", href: "/student/science-campus", icon: "Sparkles" },
+      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
+      { label: "Botany Centre", href: "/student/botany-centre", icon: "Leaf" },
       { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
       { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
       { label: "Chemistry Lab", href: "/student/chemistry-lab", icon: "FlaskConical" },
@@ -609,3 +618,65 @@ export const roleConfigs: Record<string, PortalConfig> = {
     ],
   },
 };
+
+// ============================================================================
+// Higher-secondary group / stream menus.
+// Class 11-12 students pick a group (Science / Commerce / Computer Science).
+// The "Science Labs & Centers" section of the sidebar swaps to match.
+// ============================================================================
+
+export type StudentGroup = "Science" | "Commerce" | "ComputerScience";
+
+// The section header label used to locate the block inside a nav config.
+const SCIENCE_SECTION_LABEL = "Science Labs & Centers";
+
+// Items shown under the section for each group (header excluded).
+export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
+  Science: [
+    { label: "Science Campus", href: "/student/science-campus", icon: "Sparkles" },
+    { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
+    { label: "Botany Centre", href: "/student/botany-centre", icon: "Leaf" },
+    { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
+    { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
+    { label: "Chemistry Center", href: "/student/chemistry-lab", icon: "FlaskConical" },
+    { label: "Zoology Centre", href: "/student/zoology-centre", icon: "Target" },
+    { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
+  ],
+  Commerce: [
+    { label: "Commerce Campus", href: "/student/science-campus", icon: "Sparkles" },
+    { label: "Book Library", href: "/student/science-library", icon: "BookOpen" },
+    { label: "Commerce & Business Lab", href: "/student/science/commerce-lab", icon: "Briefcase" },
+    { label: "Accountancy Practice", href: "/student/science/accountancy", icon: "Calculator" },
+    { label: "Economics Data Center", href: "/student/science/economics", icon: "TrendingUp" },
+    { label: "Business Statistics", href: "/student/science/business-stats", icon: "BarChart3" },
+    { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
+    { label: "Career Guidance", href: "/student/career", icon: "Compass" },
+  ],
+  ComputerScience: [
+    { label: "CS Campus", href: "/student/science-campus", icon: "Sparkles" },
+    { label: "Book Library", href: "/student/science-library", icon: "BookOpen" },
+    { label: "Programming Lab", href: "/student/science/programming-lab", icon: "Code" },
+    { label: "Computer Science Lab", href: "/student/science/cs-lab", icon: "Cpu" },
+    { label: "Web Technology Lab", href: "/student/science/web-tech", icon: "Globe" },
+    { label: "Database & SQL Lab", href: "/student/science/database-lab", icon: "Database" },
+    { label: "AI & Machine Learning", href: "/student/science/ai-ml", icon: "Bot" },
+    { label: "Robotics & AI Lab", href: "/student/science/robotics", icon: "Bot" },
+    { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
+  ],
+};
+
+// Return a copy of `items` with the Science Labs & Centers section replaced by
+// the section that matches the student's group. Non-Science groups only.
+export function applyStudentGroup(items: NavItem[], group: StudentGroup): NavItem[] {
+  if (group === "Science") return items;
+  const start = items.findIndex((it) => it.label === SCIENCE_SECTION_LABEL);
+  if (start === -1) return items;
+  // The section runs until the next "---" separator (or end of list).
+  let end = items.findIndex((it, i) => i > start && it.label === "---");
+  if (end === -1) end = items.length;
+  return [
+    ...items.slice(0, start + 1),
+    ...GROUP_SCIENCE_SECTIONS[group],
+    ...items.slice(end),
+  ];
+}

@@ -114,7 +114,7 @@ export default function LoginPage() {
         {/* Top Branding */}
         <div className="relative z-10 p-12">
           <div className="flex items-center gap-4">
-            <span className="text-5xl drop-shadow-lg">🏛️</span>
+            <span className="text-5xl drop-shadow-lg text-white"><i className="fi fi-rr-bank"></i></span>
             <div>
               <h2 className="text-2xl font-black text-white leading-tight tracking-tight drop-shadow-md">Tamil Nadu Schools</h2>
               <p className="text-sm text-amber-400 font-bold tracking-widest uppercase mt-1 drop-shadow-md">Government of Tamil Nadu</p>
@@ -136,9 +136,17 @@ export default function LoginPage() {
 
       {/* Right Column - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative bg-white dark:bg-slate-950">
+        {/* Back to Webportal */}
+        <Link 
+          href="/" 
+          className="absolute top-8 right-8 flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 transition-colors z-10"
+        >
+          <i className="fi fi-rr-arrow-left"></i> Back to Webportal
+        </Link>
+
         {/* Mobile Branding (Only visible on small screens) */}
         <div className="absolute top-8 left-8 lg:hidden flex items-center gap-2">
-          <span className="text-2xl">🏛️</span>
+          <span className="text-2xl text-slate-800 dark:text-white"><i className="fi fi-rr-bank"></i></span>
           <div>
             <h2 className="text-sm font-black text-slate-800 dark:text-white leading-tight">TN Schools</h2>
             <p className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">Government of Tamil Nadu</p>
@@ -163,7 +171,7 @@ export default function LoginPage() {
                 : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                 }`}
             >
-              🎓 Student Login
+              <i className="fi fi-rr-graduation-cap mr-2"></i> Student Login
             </button>
             <button
               type="button"
@@ -173,14 +181,14 @@ export default function LoginPage() {
                 : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                 }`}
             >
-              💼 Parents & Staffs
+              <i className="fi fi-rr-briefcase mr-2"></i> Parents & Staffs
             </button>
           </div>
 
           {/* Error */}
           {error && (
             <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 text-xs px-4 py-3 rounded-xl flex items-start gap-2 mb-6">
-              <span className="mt-0.5">⚠️</span>
+              <span className="mt-0.5"><i className="fi fi-rr-triangle-warning"></i></span>
               <span>{error}</span>
             </div>
           )}
@@ -281,7 +289,7 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  <span>🔒</span>
+                  <span><i className="fi fi-rr-lock"></i></span>
                   <span>Sign In to Account</span>
                 </>
               )}

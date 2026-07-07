@@ -33,6 +33,7 @@ export default function ManageHeadmastersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   // Form fields
   const [name, setName] = useState("");
@@ -91,13 +92,14 @@ export default function ManageHeadmastersPage() {
     setMobile("");
     setPassword("");
     setSchoolId("");
+    setModalError(null);
     setIsModalOpen(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    setToast(null);
+    setModalError(null);
 
     const endpoint = editingId ? `${API_URL}/api/users/${editingId}` : `${API_URL}/api/users`;
     const method = editingId ? "PUT" : "POST";
@@ -121,17 +123,25 @@ export default function ManageHeadmastersPage() {
 
       const data = await res.json();
       if (data.success) {
+        // Success: show page-level toast and close modal
         setToast({ message: successMsg, type: "success" });
         handleModalClose();
         fetchHeadmasters();
+        setTimeout(() => setToast(null), 5000);
       } else {
-        setToast({ message: `⚠️ ${data.error || "Request failed."}`, type: "error" });
+        // Error: show inside the modal so it's not hidden behind the overlay
+        const errMsg = data.error || "Request failed.";
+        const friendlyMsg = errMsg.toLowerCase().includes("mobile") || errMsg.toLowerCase().includes("phone")
+          ? "⚠️ This mobile number is already registered. Please use a different number."
+          : errMsg.toLowerCase().includes("email")
+          ? "⚠️ This email address is already in use. Please use a different email."
+          : `⚠️ ${errMsg}`;
+        setModalError(friendlyMsg);
       }
     } catch (err) {
-      setToast({ message: "❌ Network error. Please try again.", type: "error" });
+      setModalError("❌ Network error. Please check your connection and try again.");
     } finally {
       setSubmitting(false);
-      setTimeout(() => setToast(null), 5000);
     }
   };
 
@@ -309,6 +319,23 @@ export default function ManageHeadmastersPage() {
               </button>
             </div>
 
+            {/* Inline error banner — visible INSIDE the modal, not behind it */}
+            {modalError && (
+              <div className="flex items-start gap-2.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-xs font-semibold animate-pulse-once">
+                <span className="text-base leading-none mt-0.5">🚫</span>
+                <div className="flex-1">
+                  <p className="font-bold text-red-800 dark:text-red-200 mb-0.5">Registration Failed</p>
+                  <p className="font-medium text-red-600 dark:text-red-300">{modalError}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setModalError(null)}
+                  className="text-red-400 hover:text-red-600 dark:hover:text-red-200 text-sm font-bold leading-none mt-0.5 shrink-0"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold">Full Name</label>

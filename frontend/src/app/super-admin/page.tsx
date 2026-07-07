@@ -4,33 +4,33 @@ import Link from "next/link";
 import { useState } from "react";
 
 const systemStats = [
-  { label: "Total Users", value: "49.3L+", icon: "👥", color: "text-violet-400", sub: "All roles combined", bg: "bg-violet-500/10 border-violet-500/20" },
-  { label: "Active Schools", value: "37,404", icon: "🏫", color: "text-emerald-400", sub: "State-wide", bg: "bg-emerald-500/10 border-emerald-500/20" },
-  { label: "AI API Status", value: "Online", icon: "🤖", color: "text-cyan-400", sub: "All models active", bg: "bg-cyan-500/10 border-cyan-500/20" },
-  { label: "System Uptime", value: "99.9%", icon: "✅", color: "text-amber-400", sub: "Last 30 days", bg: "bg-amber-500/10 border-amber-500/20" },
-  { label: "Active Portals", value: "9 / 9", icon: "🏛️", color: "text-blue-400", sub: "All online", bg: "bg-blue-500/10 border-blue-500/20" },
-  { label: "Modules Enabled", value: "42", icon: "🔧", color: "text-orange-400", sub: "of 48 total", bg: "bg-orange-500/10 border-orange-500/20" },
-  { label: "Syllabus Items", value: "2,840", icon: "📚", color: "text-pink-400", sub: "Class 6–12", bg: "bg-pink-500/10 border-pink-500/20" },
-  { label: "Data Sync", value: "Live", icon: "🔄", color: "text-green-400", sub: "All pipelines OK", bg: "bg-green-500/10 border-green-500/20" },
+  { label: "Total Users", value: "49.3L+", icon: <i className="fi fi-rr-users"></i>, color: "text-violet-400", sub: "All roles combined", bg: "bg-violet-500/10 border-violet-500/20" },
+  { label: "Active Schools", value: "37,404", icon: <i className="fi fi-rr-building"></i>, color: "text-emerald-400", sub: "State-wide", bg: "bg-emerald-500/10 border-emerald-500/20" },
+  { label: "AI API Status", value: "Online", icon: <i className="fi fi-rr-robot"></i>, color: "text-cyan-400", sub: "All models active", bg: "bg-cyan-500/10 border-cyan-500/20" },
+  { label: "System Uptime", value: "99.9%", icon: <i className="fi fi-rr-check-circle"></i>, color: "text-amber-400", sub: "Last 30 days", bg: "bg-amber-500/10 border-amber-500/20" },
+  { label: "Active Portals", value: "9 / 9", icon: <i className="fi fi-rr-bank"></i>, color: "text-blue-400", sub: "All online", bg: "bg-blue-500/10 border-blue-500/20" },
+  { label: "Modules Enabled", value: "42", icon: <i className="fi fi-rr-settings"></i>, color: "text-orange-400", sub: "of 48 total", bg: "bg-orange-500/10 border-orange-500/20" },
+  { label: "Syllabus Items", value: "2,840", icon: <i className="fi fi-rr-book-alt"></i>, color: "text-pink-400", sub: "Class 6–12", bg: "bg-pink-500/10 border-pink-500/20" },
+  { label: "Data Sync", value: "Live", icon: <i className="fi fi-rr-refresh"></i>, color: "text-green-400", sub: "All pipelines OK", bg: "bg-green-500/10 border-green-500/20" },
 ];
 
 const quickActions = [
-  { label: "User Management", href: "/super-admin/users", icon: "👥", desc: "Create, edit & deactivate users", color: "from-violet-600 to-purple-700", badge: "49.3L users" },
-  { label: "Role & Permissions", href: "/super-admin/roles", icon: "🔐", desc: "Permission matrix for all roles", color: "from-blue-600 to-indigo-700", badge: "9 roles" },
-  { label: "School Management", href: "/super-admin/schools", icon: "🏫", desc: "Add, edit & manage all schools", color: "from-emerald-600 to-teal-700", badge: "37,404 schools" },
-  { label: "Headmaster Mgmt", href: "/super-admin/headmasters", icon: "👤", desc: "Assign & transfer headmasters", color: "from-cyan-600 to-sky-700", badge: "37K+ HMs" },
-  { label: "Learning Hub Admin", href: "/super-admin/learning-hub", icon: "📚", desc: "Manage central learning content, materials & AI", color: "from-indigo-650 to-indigo-850", badge: "Active" },
-  { label: "Syllabus Manager", href: "/super-admin/syllabus", icon: "📖", desc: "Class/subject/chapter management", color: "from-amber-600 to-orange-700", badge: "Class 6–12" },
-  { label: "Material Library", href: "/super-admin/materials", icon: "📦", desc: "Upload & manage learning content", color: "from-pink-600 to-rose-700", badge: "2.8K items" },
-  { label: "Department Modules", href: "/super-admin/modules", icon: "🗓️", desc: "Enable/disable portal modules", color: "from-fuchsia-600 to-violet-700", badge: "48 modules" },
-  { label: "AI Integration", href: "/super-admin/ai-config", icon: "🤖", desc: "API keys, models & token limits", color: "from-slate-600 to-slate-800", badge: "3 APIs" },
-  { label: "Data Flow Monitor", href: "/super-admin/data-flow", icon: "🔄", desc: "Pipeline health & sync status", color: "from-green-600 to-emerald-800", badge: "Live" },
-  { label: "Feature Toggles", href: "/super-admin/features", icon: "🔧", desc: "Global feature flag control", color: "from-orange-600 to-red-700", badge: "42 on / 6 off" },
-  { label: "Announcements", href: "/super-admin/announcements", icon: "📢", desc: "Broadcast to all portals", color: "from-yellow-600 to-amber-700", badge: "Push now" },
-  { label: "Page Management", href: "/super-admin/pages", icon: "📄", desc: "Dynamic portal pages", color: "from-indigo-600 to-blue-700", badge: "12 pages" },
-  { label: "Manage Ministers", href: "/super-admin/ministers", icon: "🏛️", desc: "Top-level governance users", color: "from-red-600 to-rose-700", badge: "1 active" },
-  { label: "System Logs", href: "/super-admin/logs", icon: "📋", desc: "Audit trail & event history", color: "from-slate-700 to-gray-800", badge: "Real-time" },
-  { label: "Portal Settings", href: "/super-admin/settings", icon: "⚙️", desc: "Global platform configuration", color: "from-slate-600 to-slate-800", badge: "Config" },
+  { label: "User Management", href: "/super-admin/users", icon: <i className="fi fi-rr-users"></i>, desc: "Create, edit & deactivate users", color: "from-violet-600 to-purple-700", badge: "49.3L users" },
+  { label: "Role & Permissions", href: "/super-admin/roles", icon: <i className="fi fi-rr-lock"></i>, desc: "Permission matrix for all roles", color: "from-blue-600 to-indigo-700", badge: "9 roles" },
+  { label: "School Management", href: "/super-admin/schools", icon: <i className="fi fi-rr-building"></i>, desc: "Add, edit & manage all schools", color: "from-emerald-600 to-teal-700", badge: "37,404 schools" },
+  { label: "Headmaster Mgmt", href: "/super-admin/headmasters", icon: <i className="fi fi-rr-user"></i>, desc: "Assign & transfer headmasters", color: "from-cyan-600 to-sky-700", badge: "37K+ HMs" },
+  { label: "Learning Hub Admin", href: "/super-admin/learning-hub", icon: <i className="fi fi-rr-book-alt"></i>, desc: "Manage central learning content, materials & AI", color: "from-indigo-650 to-indigo-850", badge: "Active" },
+  { label: "Syllabus Manager", href: "/super-admin/syllabus", icon: <i className="fi fi-rr-book-open-cover"></i>, desc: "Class/subject/chapter management", color: "from-amber-600 to-orange-700", badge: "Class 6–12" },
+  { label: "Material Library", href: "/super-admin/materials", icon: <i className="fi fi-rr-box"></i>, desc: "Upload & manage learning content", color: "from-pink-600 to-rose-700", badge: "2.8K items" },
+  { label: "Department Modules", href: "/super-admin/modules", icon: <i className="fi fi-rr-calendar"></i>, desc: "Enable/disable portal modules", color: "from-fuchsia-600 to-violet-700", badge: "48 modules" },
+  { label: "AI Integration", href: "/super-admin/ai-config", icon: <i className="fi fi-rr-robot"></i>, desc: "API keys, models & token limits", color: "from-slate-600 to-slate-800", badge: "3 APIs" },
+  { label: "Data Flow Monitor", href: "/super-admin/data-flow", icon: <i className="fi fi-rr-refresh"></i>, desc: "Pipeline health & sync status", color: "from-green-600 to-emerald-800", badge: "Live" },
+  { label: "Feature Toggles", href: "/super-admin/features", icon: <i className="fi fi-rr-settings"></i>, desc: "Global feature flag control", color: "from-orange-600 to-red-700", badge: "42 on / 6 off" },
+  { label: "Announcements", href: "/super-admin/announcements", icon: <i className="fi fi-rr-megaphone"></i>, desc: "Broadcast to all portals", color: "from-yellow-600 to-amber-700", badge: "Push now" },
+  { label: "Page Management", href: "/super-admin/pages", icon: <i className="fi fi-rr-document"></i>, desc: "Dynamic portal pages", color: "from-indigo-600 to-blue-700", badge: "12 pages" },
+  { label: "Manage Ministers", href: "/super-admin/ministers", icon: <i className="fi fi-rr-bank"></i>, desc: "Top-level governance users", color: "from-red-600 to-rose-700", badge: "1 active" },
+  { label: "System Logs", href: "/super-admin/logs", icon: <i className="fi fi-rr-clipboard"></i>, desc: "Audit trail & event history", color: "from-slate-700 to-gray-800", badge: "Real-time" },
+  { label: "Portal Settings", href: "/super-admin/settings", icon: <i className="fi fi-rr-settings"></i>, desc: "Global platform configuration", color: "from-slate-600 to-slate-800", badge: "Config" },
 ];
 
 const recentActivity = [
@@ -74,12 +74,12 @@ export default function SuperAdminDashboard() {
       {/* Header Banner */}
       <div className="mb-6 p-4 bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 rounded-2xl flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-white">🛠️ Super Admin Control Center</h1>
+          <h1 className="text-lg font-bold text-white"><i className="fi fi-rr-tools mr-2"></i>Super Admin Control Center</h1>
           <p className="text-xs text-slate-400 mt-1">Full system governance — users, schools, AI, content, and portal management</p>
         </div>
         <div className="flex gap-2">
           <Link href="/super-admin/announcements" className="text-xs font-bold bg-amber-500 text-slate-900 px-3 py-1.5 rounded-lg hover:bg-amber-400 transition">
-            📢 Broadcast
+            <i className="fi fi-rr-megaphone mr-1"></i> Broadcast
           </Link>
           <Link href="/super-admin/schools" className="text-xs font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-500 transition">
             + Add School
@@ -91,7 +91,7 @@ export default function SuperAdminDashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-6 fade-in">
         {systemStats.map((kpi) => (
           <div key={kpi.label} className={`rounded-xl p-3 border ${kpi.bg} text-center`}>
-            <div className="text-xl mb-1">{kpi.icon}</div>
+            <div className={`text-xl mb-1 ${kpi.color}`}>{kpi.icon}</div>
             <div className={`text-base font-extrabold ${kpi.color}`}>{kpi.value}</div>
             <div className="text-[9px] text-slate-500 leading-tight mt-0.5">{kpi.label}</div>
           </div>
@@ -101,7 +101,7 @@ export default function SuperAdminDashboard() {
       {/* Quick Actions — Tabbed */}
       <div className="glass rounded-2xl p-6 mb-6 fade-in-2">
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-          <h2 className="text-base font-semibold text-white">⚡ Management Modules</h2>
+          <h2 className="text-base font-semibold text-white"><i className="fi fi-rr-bolt text-amber-400 mr-2"></i>Management Modules</h2>
           <div className="flex gap-2 flex-wrap">
             {(["all", "people", "academics", "system", "governance"] as const).map((tab) => (
               <button
@@ -113,7 +113,9 @@ export default function SuperAdminDashboard() {
                     : "bg-slate-800 text-slate-400 hover:text-white border border-slate-700"
                 }`}
               >
-                {tab === "all" ? "All Modules" : tab === "people" ? "👥 People" : tab === "academics" ? "📚 Academics" : tab === "system" ? "⚙️ System" : "🏛️ Governance"}
+                <span className="flex items-center gap-1">
+                  {tab === "all" ? "All Modules" : tab === "people" ? <><i className="fi fi-rr-users"></i> People</> : tab === "academics" ? <><i className="fi fi-rr-book-alt"></i> Academics</> : tab === "system" ? <><i className="fi fi-rr-settings"></i> System</> : <><i className="fi fi-rr-bank"></i> Governance</>}
+                </span>
               </button>
             ))}
           </div>
@@ -126,7 +128,7 @@ export default function SuperAdminDashboard() {
               href={action.href}
               className="group bg-slate-900/70 hover:bg-slate-800/90 border border-slate-800 hover:border-slate-600 rounded-xl p-4 transition-all hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center text-xl mb-3 shadow-lg`}>
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center text-xl text-white mb-3 shadow-lg`}>
                 {action.icon}
               </div>
               <div className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors leading-tight">{action.label}</div>
@@ -142,7 +144,7 @@ export default function SuperAdminDashboard() {
 
         {/* Recent Activity */}
         <div className="glass rounded-2xl p-6">
-          <h2 className="text-base font-semibold text-white mb-4">📋 Recent Activity</h2>
+          <h2 className="text-base font-semibold text-white mb-4"><i className="fi fi-rr-clipboard mr-2"></i>Recent Activity</h2>
           <div className="space-y-2">
             {recentActivity.map((item, i) => (
               <div key={i} className="flex items-center gap-3 bg-slate-900/40 rounded-xl px-3 py-2.5 border border-slate-800/50">
@@ -163,7 +165,7 @@ export default function SuperAdminDashboard() {
 
         {/* Portal Health */}
         <div className="glass rounded-2xl p-6">
-          <h2 className="text-base font-semibold text-white mb-4">🏛️ Portal Health Monitor</h2>
+          <h2 className="text-base font-semibold text-white mb-4"><i className="fi fi-rr-bank mr-2"></i>Portal Health Monitor</h2>
           <div className="space-y-2.5">
             {portalHealth.map((portal) => (
               <div key={portal.name} className="flex items-center gap-3">

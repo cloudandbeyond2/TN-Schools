@@ -65,6 +65,7 @@ import libraryProgressRoutes from './routes/libraryProgress.routes';
 import flashcardRoutes from './routes/flashcards.routes';
 import promotionRoutes from './routes/promotion.routes';
 import analyticsRoutes from './routes/analytics.routes';
+import scienceLabsRoutes from './routes/scienceLabs.routes';
 
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
@@ -109,7 +110,7 @@ app.use(helmet());
 // ─── Rate Limiting ───────────────────────────────────────────────
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: process.env.NODE_ENV === 'development' ? 999999 : 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'Too many login attempts, please try again later.' },
@@ -118,7 +119,7 @@ app.use('/api/users/auth', loginLimiter);
 
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: process.env.NODE_ENV === 'development' ? 999999 : 300,
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -198,6 +199,7 @@ app.use('/api/digital-library/progress', libraryProgressRoutes);
 app.use('/api/digital-library/flashcards', flashcardRoutes);
 app.use('/api/promotions', promotionRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/science', scienceLabsRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {

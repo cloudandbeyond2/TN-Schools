@@ -147,6 +147,61 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
+/* ------------------- STUDENT MARKS ENDPOINTS ------------------- */
+// GET /api/students/:id/marks - Get all marks for a student
+router.get('/:id/marks', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const student = await prisma.student.findFirst({
+      where: { OR: [{ id }, { userId: id }] }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+    const marks = await prisma.mark.findMany({
+      where: { studentId: student.id },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ success: true, data: marks });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/students/:id/marks - Save assessment marks for a student
+router.post('/:id/marks', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { subject, examType, maxMarks, scored } = req.body;
+    const student = await prisma.student.findFirst({
+      where: { OR: [{ id }, { userId: id }] }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+    
+    const pct = (scored / (maxMarks || 100)) * 100;
+    let grade = "E";
+    if (pct >= 90) grade = "A1";
+    else if (pct >= 80) grade = "A2";
+    else if (pct >= 70) grade = "B1";
+    else if (pct >= 60) grade = "B2";
+    else if (pct >= 50) grade = "C";
+    else if (pct >= 35) grade = "D";
+
+    const newMark = await prisma.mark.create({
+      data: {
+        studentId: student.id,
+        subject,
+        examType,
+        maxMarks: maxMarks || 100,
+        scored,
+        grade,
+        academicYear: "2024-25"
+      }
+    });
+    res.json({ success: true, data: newMark });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // GET /api/students — List with filters
 router.get('/', async (req: Request, res: Response) => {
   try {

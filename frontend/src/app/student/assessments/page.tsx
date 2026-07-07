@@ -23,6 +23,7 @@ export default function StudentAssessmentsPage() {
   const { data: session } = useSession();
   const [profile, setProfile] = useState<any>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [studentMarks, setStudentMarks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [currentTestQuestions, setCurrentTestQuestions] = useState<Question[]>([]);
@@ -90,6 +91,13 @@ export default function StudentAssessmentsPage() {
             });
             setQuestions(matched);
           }
+          
+          // 3. Fetch student marks
+          const marksRes = await fetch(`${API_URL}/api/students/${studentProfile.id}/marks`);
+          const marksData = await marksRes.json();
+          if (marksData.success) {
+            setStudentMarks(marksData.data);
+          }
         }
       }
     } catch (err) {
@@ -154,7 +162,7 @@ export default function StudentAssessmentsPage() {
     setAnswers((prev) => ({ ...prev, [qId]: val }));
   };
 
-  const handleSubmitTest = () => {
+  const handleSubmitTest = async () => {
     let finalScore = 0;
     currentTestQuestions.forEach((q) => {
       if (q.type === "mcq") {
@@ -180,6 +188,32 @@ export default function StudentAssessmentsPage() {
       icon: "success",
       confirmButtonColor: "#6366f1",
     });
+
+    // Save mark to database!
+    if (profile && selectedTopic) {
+      try {
+        const dashIndex = selectedTopic.indexOf(" - ");
+        const subject = dashIndex !== -1 ? selectedTopic.substring(0, dashIndex).trim() : "General";
+        const topic = dashIndex !== -1 ? selectedTopic.substring(dashIndex + 3).trim() : selectedTopic;
+        
+        const res = await fetch(`${API_URL}/api/students/${profile.id}/marks`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subject,
+            examType: `Assessment: ${topic}`,
+            maxMarks: totalMarks,
+            scored: finalScore
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          setStudentMarks(prev => [json.data, ...prev]);
+        }
+      } catch (err) {
+        console.error("Error saving assessment mark:", err);
+      }
+    }
   };
 
   return (
@@ -225,28 +259,58 @@ export default function StudentAssessmentsPage() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.entries(topicsMap).map(([topicKey, list]) => (
-                      <div
-                        key={topicKey}
-                        className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-900 transition-all flex flex-col justify-between"
-                      >
-                        <div>
-                          <div className="flex items-center gap-2 text-indigo-500 font-bold text-xs mb-2">
-                            <BookOpen className="w-4 h-4" />
-                            <span>Syllabus Test</span>
-                          </div>
-                          <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">{topicKey}</h4>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">{list.length} generated questions</p>
-                        </div>
+                    {Object.entries(topicsMap).map(([topicKey, list]) => {
+                      const dashIndex = topicKey.indexOf(" - ");
+                      const sub = dashIndex !== -1 ? topicKey.substring(0, dashIndex).trim() : "General";
+                      const top = dashIndex !== -1 ? topicKey.substring(dashIndex + 3).trim() : topicKey;
+                      
+                      // Find student's previous attempt for this topic
+                      const prevAttempt = studentMarks.find(
+                        (m) => m.subject.toLowerCase() === sub.toLowerCase() && m.examType === `Assessment: ${top}`
+                      );
 
-                        <button
-                          onClick={() => startAssessment(topicKey)}
-                          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2"
+                      return (
+                        <div
+                          key={topicKey}
+                          className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-900 transition-all flex flex-col justify-between"
                         >
-                          Start Test <ArrowRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+                          <div>
+                            <div className="flex items-center gap-2 text-indigo-500 font-bold text-xs mb-2">
+                              <BookOpen className="w-4 h-4" />
+                              <span>Syllabus Test</span>
+                            </div>
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">{topicKey}</h4>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">{list.length} generated questions</p>
+                          </div>
+
+                          {prevAttempt ? (
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-xl">
+                                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                                  <CheckCircle className="w-4 h-4 text-emerald-500" /> Completed
+                                </span>
+                                <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                                  {prevAttempt.scored} / {prevAttempt.maxMarks} Marks
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => startAssessment(topicKey)}
+                                className="w-full border-2 border-indigo-100 dark:border-indigo-950 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/10 rounded-xl py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2"
+                              >
+                                Retry Test <RefreshCw className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => startAssessment(topicKey)}
+                              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2"
+                            >
+                              Start Test <ArrowRight className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
