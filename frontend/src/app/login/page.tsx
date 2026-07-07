@@ -136,6 +136,14 @@ export default function LoginPage() {
 
       {/* Right Column - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative bg-white dark:bg-slate-950">
+        {/* Back to Webportal */}
+        <Link 
+          href="/" 
+          className="absolute top-8 right-8 flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 transition-colors z-10"
+        >
+          <i className="fi fi-rr-arrow-left"></i> Back to Webportal
+        </Link>
+
         {/* Mobile Branding (Only visible on small screens) */}
         <div className="absolute top-8 left-8 lg:hidden flex items-center gap-2">
           <span className="text-2xl text-slate-800 dark:text-white"><i className="fi fi-rr-bank"></i></span>
