@@ -156,10 +156,42 @@ import Link from "next/link";
 import { useState } from "react";
 
 const featuredLabs = [
-  { id: 1, title: "Ohm's Law Verification", subject: "Physics", duration: "25 mins", level: "Class 10", icon: "⚡", color: "from-blue-500 to-cyan-500", image: "circuit.png" },
-  { id: 2, title: "Acid-Base Titration", subject: "Chemistry", duration: "30 mins", level: "Class 11", icon: "🧪", color: "from-emerald-500 to-teal-500", image: "flask.png" },
-  { id: 3, title: "Human Heart Dissection (3D)", subject: "Biology", duration: "45 mins", level: "Class 12", icon: "🫀", color: "from-rose-500 to-pink-500", image: "heart.png" },
+  // Class 6
+  { id: 601, cls: 6, title: "Measuring Length & Motion", subject: "Physics", duration: "15 mins", level: "Class 6", icon: "📏", color: "from-blue-500 to-cyan-500" },
+  { id: 602, cls: 6, title: "States of Matter", subject: "Chemistry", duration: "15 mins", level: "Class 6", icon: "💧", color: "from-emerald-500 to-teal-500" },
+  { id: 603, cls: 6, title: "Parts of a Plant", subject: "Biology", duration: "15 mins", level: "Class 6", icon: "🌱", color: "from-lime-500 to-green-500" },
+  // Class 7
+  { id: 701, cls: 7, title: "Heat & Temperature", subject: "Physics", duration: "18 mins", level: "Class 7", icon: "🌡️", color: "from-blue-500 to-cyan-500" },
+  { id: 702, cls: 7, title: "Acids, Bases & Salts", subject: "Chemistry", duration: "20 mins", level: "Class 7", icon: "⚗️", color: "from-emerald-500 to-teal-500" },
+  { id: 703, cls: 7, title: "Digestion in Humans", subject: "Biology", duration: "20 mins", level: "Class 7", icon: "🍽️", color: "from-lime-500 to-green-500" },
+  // Class 8
+  { id: 801, cls: 8, title: "Force & Pressure", subject: "Physics", duration: "20 mins", level: "Class 8", icon: "🧲", color: "from-blue-500 to-cyan-500" },
+  { id: 802, cls: 8, title: "Atomic Structure Basics", subject: "Chemistry", duration: "22 mins", level: "Class 8", icon: "⚛️", color: "from-emerald-500 to-teal-500" },
+  { id: 803, cls: 8, title: "Microorganisms", subject: "Biology", duration: "20 mins", level: "Class 8", icon: "🦠", color: "from-lime-500 to-green-500" },
+  { id: 804, cls: 8, title: "Intro to Programming (Scratch)", subject: "Computer Science", duration: "25 mins", level: "Class 8", icon: "🧩", color: "from-purple-500 to-fuchsia-500" },
+  // Class 9
+  { id: 901, cls: 9, title: "Laws of Motion", subject: "Physics", duration: "25 mins", level: "Class 9", icon: "🚀", color: "from-blue-500 to-cyan-500" },
+  { id: 902, cls: 9, title: "Periodic Classification", subject: "Chemistry", duration: "25 mins", level: "Class 9", icon: "🔬", color: "from-emerald-500 to-teal-500" },
+  { id: 903, cls: 9, title: "Cell Structure", subject: "Biology", duration: "22 mins", level: "Class 9", icon: "🧫", color: "from-lime-500 to-green-500" },
+  { id: 904, cls: 9, title: "Algorithms & Flowcharts", subject: "Computer Science", duration: "25 mins", level: "Class 9", icon: "🔁", color: "from-purple-500 to-fuchsia-500" },
+  // Class 10
+  { id: 1001, cls: 10, title: "Ohm's Law Verification", subject: "Physics", duration: "25 mins", level: "Class 10", icon: "⚡", color: "from-blue-500 to-cyan-500" },
+  { id: 1002, cls: 10, title: "Types of Chemical Reactions", subject: "Chemistry", duration: "28 mins", level: "Class 10", icon: "🧪", color: "from-emerald-500 to-teal-500" },
+  { id: 1003, cls: 10, title: "Human Circulatory System (3D)", subject: "Biology", duration: "30 mins", level: "Class 10", icon: "🫀", color: "from-rose-500 to-pink-500" },
+  { id: 1004, cls: 10, title: "Python Basics", subject: "Computer Science", duration: "30 mins", level: "Class 10", icon: "🐍", color: "from-purple-500 to-fuchsia-500" },
+  // Class 11
+  { id: 1101, cls: 11, title: "Projectile Motion", subject: "Physics", duration: "30 mins", level: "Class 11", icon: "🎯", color: "from-blue-500 to-cyan-500" },
+  { id: 1102, cls: 11, title: "Acid-Base Titration", subject: "Chemistry", duration: "30 mins", level: "Class 11", icon: "⚗️", color: "from-emerald-500 to-teal-500" },
+  { id: 1103, cls: 11, title: "Photosynthesis Simulation", subject: "Biology", duration: "28 mins", level: "Class 11", icon: "🌿", color: "from-lime-500 to-green-500" },
+  { id: 1104, cls: 11, title: "C++ Loops & Arrays", subject: "Computer Science", duration: "35 mins", level: "Class 11", icon: "💻", color: "from-purple-500 to-fuchsia-500" },
+  // Class 12
+  { id: 1201, cls: 12, title: "Semiconductor Diodes", subject: "Physics", duration: "35 mins", level: "Class 12", icon: "🔌", color: "from-blue-500 to-cyan-500" },
+  { id: 1202, cls: 12, title: "Electrochemistry Cell", subject: "Chemistry", duration: "35 mins", level: "Class 12", icon: "🔋", color: "from-emerald-500 to-teal-500" },
+  { id: 1203, cls: 12, title: "Human Heart Dissection (3D)", subject: "Biology", duration: "45 mins", level: "Class 12", icon: "🫀", color: "from-rose-500 to-pink-500" },
+  { id: 1204, cls: 12, title: "Database SQL Queries", subject: "Computer Science", duration: "35 mins", level: "Class 12", icon: "🗄️", color: "from-purple-500 to-fuchsia-500" },
 ];
+
+const LAB_CLASSES = [6, 7, 8, 9, 10, 11, 12];
 
 const completedLabs = [
   { title: "Photosynthesis Simulation", date: "June 15, 2026", score: "95%" },
@@ -168,6 +200,13 @@ const completedLabs = [
 
 export default function VirtualLabsPage() {
   const [activeCategory, setActiveCategory] = useState("All");
+  const [activeClass, setActiveClass] = useState<number | "All">("All");
+
+  const visibleLabs = featuredLabs.filter(
+    (lab) =>
+      (activeCategory === "All" || lab.subject === activeCategory) &&
+      (activeClass === "All" || lab.cls === activeClass)
+  );
 
   return (
     <PortalLayout
@@ -178,10 +217,26 @@ export default function VirtualLabsPage() {
       themeClass="theme-student"
       accentColor="#06b6d4"
     >
+      {/* class-wise split */}
+      <div className="mb-4 flex flex-col gap-2">
+        <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Choose your class</span>
+        <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700/50 w-fit overflow-x-auto">
+          {(["All", ...LAB_CLASSES] as (number | "All")[]).map(cl => (
+            <button
+              key={cl}
+              onClick={() => setActiveClass(cl)}
+              className={`px-3.5 sm:px-4 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeClass === cl ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" : "text-black dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400"}`}
+            >
+              {cl === "All" ? "All Classes" : `Class ${cl}`}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700/50 w-fit overflow-x-auto">
            {["All", "Physics", "Chemistry", "Biology", "Computer Science"].map(cat => (
-             <button 
+             <button
                key={cat}
                onClick={() => setActiveCategory(cat)}
                className={`px-4 sm:px-6 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeCategory === cat ? "bg-cyan-600 text-white shadow-lg shadow-cyan-600/20" : "text-black dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400"}`}
@@ -190,7 +245,7 @@ export default function VirtualLabsPage() {
              </button>
            ))}
         </div>
-        
+
         <button className="px-4 py-2 border border-cyan-500/50 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 rounded-xl text-sm font-bold transition-colors flex items-center gap-2">
            <span>🥽</span> Launch AR Mode
         </button>
@@ -206,8 +261,13 @@ export default function VirtualLabsPage() {
                 <span className="text-2xl">✨</span> Recommended for You
               </h2>
               
+              {visibleLabs.length === 0 && (
+                <div className="rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-8 text-center text-sm font-bold text-slate-500 dark:text-slate-400">
+                  No experiments for this class & subject yet — try another class.
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                 {featuredLabs.filter(lab => activeCategory === "All" || lab.subject === activeCategory).map((lab) => (
+                 {visibleLabs.map((lab) => (
                    <div key={lab.id} className="bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-700/50 overflow-hidden hover:-translate-y-1 hover:border-cyan-500/50 transition-all group flex flex-col cursor-pointer">
                       <div className={`h-32 bg-gradient-to-br ${lab.color} relative flex items-center justify-center text-6xl group-hover:scale-105 transition-transform origin-bottom`}>
                          <div className="absolute inset-0 bg-black/20"></div>

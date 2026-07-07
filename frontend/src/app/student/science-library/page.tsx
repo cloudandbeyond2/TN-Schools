@@ -3,8 +3,8 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import PortalLayout from "@/components/PortalLayout";
-import { BookOpen, Search, ExternalLink, Filter, Layers, ChevronRight } from "lucide-react";
-import { SCIENCE_BOOKS, ALL_CLASSES, ALL_SUBJECTS, TN_BOOKS_SOURCE, type ScienceBook } from "@/data/scienceLibrary";
+import { BookOpen, Search, FileText, Filter, Layers, ChevronRight } from "lucide-react";
+import { SCIENCE_BOOKS, ALL_CLASSES, ALL_SUBJECTS, type ScienceBook } from "@/data/scienceLibrary";
 
 const SUBJECT_COLOR: Record<string, string> = {
   Science: "bg-emerald-100 text-emerald-700",
@@ -88,42 +88,61 @@ export default function ScienceLibraryPage() {
         </div>
       </div>
 
-      {/* book detail drawer */}
+      {/* book detail drawer — PDF opens embedded in this popup (no website links) */}
       {open && (
         <div className="fixed inset-0 z-[100] bg-black/60 flex items-start justify-center p-4 overflow-y-auto" onClick={() => setOpen(null)}>
-          <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-2xl my-8 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="p-7 border-b-2 border-slate-100 dark:border-slate-700 flex items-center gap-4">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-4xl my-8 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b-2 border-slate-100 dark:border-slate-700 flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white shadow"><BookOpen className="w-7 h-7" /></div>
-              <div>
+              <div className="flex-1">
                 <h2 className="text-xl font-black text-slate-800 dark:text-slate-100">Class {open.class} · {open.subject}</h2>
                 <p className="text-xs font-bold text-slate-400">{open.medium} Medium · Samacheer Kalvi {open.year}</p>
               </div>
+              <button onClick={() => setOpen(null)}
+                className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-black hover:bg-slate-200 dark:hover:bg-slate-600">✕</button>
             </div>
-            <div className="p-7">
-              <div className="flex flex-wrap gap-2 mb-5">
-                <a href={open.pdfUrl || open.sourceUrl} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 text-white text-sm font-black hover:bg-sky-600">
-                  <BookOpen className="w-4 h-4" /> Read / Download PDF <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+
+            <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-5">
+              {/* embedded PDF reader */}
+              <div className="lg:col-span-2">
+                <div className="flex items-center gap-2 mb-3">
+                  <FileText className="w-4 h-4 text-sky-600" />
+                  <h3 className="text-sm font-black text-slate-700 dark:text-slate-200">Book PDF</h3>
+                </div>
+                {open.pdfUrl || open.sourceUrl ? (
+                  <div className="rounded-2xl overflow-hidden border-2 border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+                    <iframe
+                      src={open.pdfUrl || open.sourceUrl}
+                      title={`Class ${open.class} ${open.subject} PDF`}
+                      className="w-full h-[70vh]"
+                    />
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-10 text-center">
+                    <div className="text-4xl mb-2">📄</div>
+                    <p className="text-sm font-bold text-slate-500 dark:text-slate-300">PDF will appear here once your teacher uploads it.</p>
+                  </div>
+                )}
               </div>
-              {open.chapters ? (
-                <>
-                  <h3 className="text-sm font-black text-slate-700 dark:text-slate-200 mb-3">Chapters — open the Learning Hub</h3>
-                  <div className="space-y-2">
+
+              {/* chapters (internal Learning Hub links) */}
+              <div className="lg:col-span-1">
+                <h3 className="text-sm font-black text-slate-700 dark:text-slate-200 mb-3">Chapters</h3>
+                {open.chapters ? (
+                  <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
                     {open.chapters.map((ch, i) => (
                       <Link key={i}
                         href={`/student/chapter-hub?class=${open.class}&subject=${encodeURIComponent(open.subject)}&medium=${open.medium}&chapter=${encodeURIComponent(ch)}`}
-                        className="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 hover:border-sky-300 transition-all">
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{i + 1}. {ch}</span>
-                        <ChevronRight className="w-4 h-4 text-sky-500" />
+                        className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 hover:border-sky-300 transition-all">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{i + 1}. {ch}</span>
+                        <ChevronRight className="w-4 h-4 text-sky-500 shrink-0" />
                       </Link>
                     ))}
                   </div>
-                </>
-              ) : (
-                <p className="text-sm text-slate-400 font-medium">Chapter list for this book will appear here once imported. Use the PDF link above to read it now.</p>
-              )}
-              <p className="text-[11px] text-slate-400 mt-5">Source: official Tamil Nadu textbooks portal ({TN_BOOKS_SOURCE}).</p>
+                ) : (
+                  <p className="text-xs text-slate-400 font-medium">Chapter list will appear here once this book is imported.</p>
+                )}
+              </div>
             </div>
           </div>
         </div>

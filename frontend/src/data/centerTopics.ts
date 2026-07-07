@@ -204,6 +204,100 @@ export const CENTER_TOPICS: Record<string, CenterTopics> = {
       { heading: "Browse", items: [I("By Class","🎓"),I("By Subject","📚"),I("By Chapter","🔖")] },
     ],
   },
+
+  // ── Commerce group ──────────────────────────────────────────
+  "commerce-lab": {
+    slug: "commerce-lab", title: "Commerce & Business Lab", titleTa: "வணிகவியல் ஆய்வகம்",
+    tagline: "Trade, banking, GST and entrepreneurship — simulated.",
+    icon: "Briefcase", grad: "from-amber-500 to-orange-500",
+    groups: [
+      { heading: "Business", items: [I("Types of Business","🏢"),I("Sole Trader","🧑‍💼"),I("Partnership","🤝"),I("Company","🏛️"),I("Entrepreneurship","🚀")] },
+      { heading: "Trade & Money", items: [I("Banking","🏦"),I("GST & Tax","🧾"),I("Stock Market","📈"),I("Import/Export","🚢"),I("E-Commerce","🛒")] },
+      { heading: "Practice", items: [I("Business Plan Builder","📋"),I("Invoice Simulator","🧮"),I("Case Studies","📂")] },
+    ],
+  },
+  "accountancy": {
+    slug: "accountancy", title: "Accountancy Practice Lab", titleTa: "கணக்கியல் ஆய்வகம்",
+    tagline: "From journal entries to final accounts — step by step.",
+    icon: "Calculator", grad: "from-emerald-500 to-teal-600",
+    groups: [
+      { heading: "Books of Accounts", items: [I("Journal","📓"),I("Ledger","📗"),I("Cash Book","💵"),I("Trial Balance","⚖️")] },
+      { heading: "Final Accounts", items: [I("Trading Account","📊"),I("Profit & Loss","💹"),I("Balance Sheet","🧾"),I("Depreciation","📉")] },
+      { heading: "Practice", items: [I("Ledger Simulator","🖥️"),I("Worked Examples","✏️"),I("Self-Test","☑️")] },
+    ],
+  },
+  "economics": {
+    slug: "economics", title: "Economics Data Center", titleTa: "பொருளியல் மையம்",
+    tagline: "Micro to macro — demand, supply and national income.",
+    icon: "TrendingUp", grad: "from-sky-500 to-blue-600",
+    groups: [
+      { heading: "Micro", items: [I("Demand & Supply","⚖️"),I("Elasticity","📐"),I("Market Types","🏪"),I("Cost & Revenue","💰")] },
+      { heading: "Macro", items: [I("National Income","🇮🇳"),I("Money & Banking","🏦"),I("Inflation","🎈"),I("Budget","📑")] },
+      { heading: "India Data", items: [I("GDP Trends","📈"),I("Population","👥"),I("Live Indicators","🛰️")] },
+    ],
+  },
+  "business-stats": {
+    slug: "business-stats", title: "Business Statistics Lab", titleTa: "வணிகப் புள்ளியியல்",
+    tagline: "Turn numbers into charts, averages and insight.",
+    icon: "BarChart3", grad: "from-indigo-500 to-violet-600",
+    groups: [
+      { heading: "Measures", items: [I("Mean","➗"),I("Median","🔢"),I("Mode","📊"),I("Standard Deviation","📐")] },
+      { heading: "Tools", items: [I("Bar & Pie Charts","📊"),I("Index Numbers","🔖"),I("Correlation","🔗"),I("Time Series","🕰️")] },
+      { heading: "Practice", items: [I("Data Interpreter","🖥️"),I("Chart Builder","🎨")] },
+    ],
+  },
+
+  // ── Computer Science group ──────────────────────────────────
+  "programming-lab": {
+    slug: "programming-lab", title: "Programming Lab", titleTa: "நிரலாக்க ஆய்வகம்",
+    tagline: "Write and run C++, Python and Java in the browser.",
+    icon: "Code", grad: "from-cyan-500 to-sky-600",
+    groups: [
+      { heading: "Languages", items: [I("C++","➕"),I("Python","🐍"),I("Java","☕"),I("C","🔤")] },
+      { heading: "Concepts", items: [I("Variables","📦"),I("Loops","🔁"),I("Functions","🧩"),I("Arrays","🗂️"),I("OOP","🏗️")] },
+      { heading: "Practice", items: [I("Code Editor","⌨️"),I("Debug Challenge","🐞"),I("Mini Projects","🚀")] },
+    ],
+  },
+  "cs-lab": {
+    slug: "cs-lab", title: "Computer Science Lab", titleTa: "கணினி அறிவியல் ஆய்வகம்",
+    tagline: "Data structures, operating systems and digital logic.",
+    icon: "Cpu", grad: "from-sky-500 to-blue-600",
+    groups: [
+      { heading: "Fundamentals", items: [I("Number Systems","🔢"),I("Boolean Logic","⚙️"),I("Logic Gates","🚪"),I("Computer Architecture","🖥️")] },
+      { heading: "Data Structures", items: [I("Stack","📚"),I("Queue","🚶"),I("Linked List","🔗"),I("Trees","🌳"),I("Sorting","🔀")] },
+      { heading: "Systems", items: [I("Operating System","🖲️"),I("Networking","🌐"),I("Cyber Safety","🛡️")] },
+    ],
+  },
+  "web-tech": {
+    slug: "web-tech", title: "Web Technology Lab", titleTa: "வலைத் தொழில்நுட்பம்",
+    tagline: "Build a live web page with HTML, CSS and JavaScript.",
+    icon: "Globe", grad: "from-orange-500 to-red-500",
+    groups: [
+      { heading: "HTML", items: [I("Tags & Structure","🏷️"),I("Forms","📝"),I("Tables","🔲"),I("Media","🖼️")] },
+      { heading: "CSS", items: [I("Selectors","🎯"),I("Layout","📐"),I("Flexbox","🧱"),I("Responsive","📱")] },
+      { heading: "JavaScript", items: [I("Variables","📦"),I("Events","⚡"),I("DOM","🌲"),I("Live Preview","👀")] },
+    ],
+  },
+  "database-lab": {
+    slug: "database-lab", title: "Database & SQL Lab", titleTa: "தரவுத்தள ஆய்வகம்",
+    tagline: "Design tables and run real SQL queries.",
+    icon: "Database", grad: "from-purple-500 to-fuchsia-600",
+    groups: [
+      { heading: "Concepts", items: [I("Tables","🔲"),I("Keys","🔑"),I("Relationships","🔗"),I("Normalization","🧹")] },
+      { heading: "SQL", items: [I("SELECT","🔍"),I("INSERT","➕"),I("JOIN","🔗"),I("GROUP BY","📊"),I("Query Runner","⌨️")] },
+      { heading: "Practice", items: [I("Sample Database","🗄️"),I("Challenges","🏆")] },
+    ],
+  },
+  "ai-ml": {
+    slug: "ai-ml", title: "AI & Machine Learning Lab", titleTa: "செயற்கை நுண்ணறிவு ஆய்வகம்",
+    tagline: "Explore datasets and train no-code models.",
+    icon: "Bot", grad: "from-emerald-500 to-teal-600",
+    groups: [
+      { heading: "Foundations", items: [I("What is AI?","🤖"),I("Datasets","🗂️"),I("Features","🔧"),I("Ethics","⚖️")] },
+      { heading: "Learn", items: [I("Classification","🏷️"),I("Regression","📈"),I("Clustering","🫧"),I("Neural Nets","🧠")] },
+      { heading: "Build", items: [I("Image Classifier","🖼️"),I("Chatbot Demo","💬"),I("Model Playground","🎛️")] },
+    ],
+  },
 };
 
 export function getCenterTopics(slug: string): CenterTopics | undefined {

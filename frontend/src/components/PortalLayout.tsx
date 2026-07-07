@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
-import { roleConfigs, NavItem } from "@/lib/navConfig";
+import { roleConfigs, NavItem, applyStudentGroup, StudentGroup } from "@/lib/navConfig";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useTheme } from "next-themes";
 import { LucideIcon } from "@/components/LucideIcon";
@@ -307,6 +307,7 @@ export default function PortalLayout({
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationsList, setNotificationsList] = useState<any[]>([]);
   const [activeStudentLevel, setActiveStudentLevel] = useState("STUDENT_HIGHER");
+  const [studentGroup, setStudentGroup] = useState<StudentGroup>("Science");
   const [disabledRoutes, setDisabledRoutes] = useState<Set<string>>(new Set());
   const { data: session, status } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -396,6 +397,24 @@ export default function PortalLayout({
     setMounted(true);
   }, []);
 
+  // Keep the sidebar's group (Science / Commerce / Computer Science) in sync
+  // with the choice made on the Science Campus page.
+  useEffect(() => {
+    const readGroup = () => {
+      const g = localStorage.getItem("studentGroup");
+      if (g === "Science" || g === "Commerce" || g === "ComputerScience") {
+        setStudentGroup(g);
+      }
+    };
+    readGroup();
+    window.addEventListener("studentGroupChange", readGroup);
+    window.addEventListener("storage", readGroup);
+    return () => {
+      window.removeEventListener("studentGroupChange", readGroup);
+      window.removeEventListener("storage", readGroup);
+    };
+  }, []);
+
   useEffect(() => {
     if (pathname.startsWith("/student/middle-school")) {
       localStorage.setItem("studentLevel", "STUDENT_MIDDLE");
@@ -474,7 +493,12 @@ export default function PortalLayout({
   const isDark = mounted && theme === "dark";
   const resolvedAccentColor = isDark ? "#2dce89" : (accentColor || currentConfig?.accentColor || "#6366f1");
   const resolvedThemeClass = themeClass || currentConfig?.themeClass || "theme-student";
-  const resolvedNavItems = navItems || currentConfig?.navItems || [];
+  let resolvedNavItems = navItems || currentConfig?.navItems || [];
+  // Higher-secondary students in the Commerce / Computer Science group get a
+  // group-specific "Science Labs & Centers" section.
+  if (!navItems && userRole === "STUDENT_HIGHER") {
+    resolvedNavItems = applyStudentGroup(resolvedNavItems, studentGroup);
+  }
   
   // Subject-wise filtering mapping for interactive modules
   const subjectRoutes: Record<string, string[]> = {
