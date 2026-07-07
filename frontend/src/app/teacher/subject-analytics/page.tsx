@@ -1,4 +1,6 @@
 "use client";
+import { Bot, BarChart, CheckCircle, TrendingUp, Microscope, Book, BookOpen, Pencil, Star, Trash, X } from "lucide-react";
+
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -226,7 +228,7 @@ export default function SubjectAnalyticsPage() {
         year: "numeric",
       });
       setProjectionResult(
-        `Based on current velocity (approx. ${(1.8 + (syllabusProgressPct / 120)).toFixed(1)} lessons/week) and upcoming holidays, the Science syllabus is projected to be fully completed by ${dateStr}. This is ${Math.round(days / 6) + 1} days ahead of the state-mandated deadline! 🎉`
+        `Based on current velocity (approx. ${(1.8 + (syllabusProgressPct / 120)).toFixed(1)} lessons/week) and upcoming holidays, the Science syllabus is projected to be fully completed by ${dateStr}. This is ${Math.round(days / 6) + 1} days ahead of the state-mandated deadline! `
       );
     }, 1200);
   };
@@ -420,28 +422,28 @@ export default function SubjectAnalyticsPage() {
           {
             label: "Syllabus Progress",
             value: `${syllabusProgressPct}%`,
-            icon: "📖",
+            icon: <Book className="w-5 h-5" />,
             color: "text-amber-400",
             sub: "Goal: 100% by Dec",
           },
           {
             label: "Class Average",
             value: `${classAvgScore}%`,
-            icon: "📈",
+            icon: <TrendingUp className="w-5 h-5" />,
             color: "text-emerald-400",
             sub: "State Avg: 68%",
           },
           {
             label: "Chapters Taught",
             value: `${chaptersTaughtCount} / ${totalChaptersCount}`,
-            icon: "🔬",
+            icon: <Microscope className="w-5 h-5" />,
             color: "text-blue-400",
             sub: `${totalChaptersCount - chaptersTaughtCount} remaining`,
           },
           {
             label: "Syllabus Status",
             value: syllabusStatus,
-            icon: "✅",
+            icon: <CheckCircle className="w-5 h-5" />,
             color: "text-cyan-400",
             sub: "Velocity healthy",
           },
@@ -518,7 +520,7 @@ export default function SubjectAnalyticsPage() {
           <div className="xl:col-span-2 theme-card p-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
               <h2 className="text-base font-semibold text-[var(--text-heading)] flex items-center gap-2">
-                <span>📚</span> Chapter Coverage Directory
+                <span><BookOpen className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Chapter Coverage Directory
                 <button
                   onClick={handleAddClick}
                   className="ml-2 text-xs bg-purple-600 hover:bg-purple-700 text-white px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 transition-colors"
@@ -577,14 +579,14 @@ export default function SubjectAnalyticsPage() {
                         className="text-xs text-blue-500 hover:text-blue-600 bg-blue-50 dark:bg-blue-500/10 p-1.5 rounded-lg border border-blue-200 dark:border-blue-500/20"
                         title="Edit Progress"
                       >
-                        ✏️
+                        <Pencil className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" />
                       </button>
                       <button
                         onClick={() => handleDeleteChapter(chapter.id)}
                         className="text-xs text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-500/10 p-1.5 rounded-lg border border-red-200 dark:border-red-500/20"
                         title="Delete"
                       >
-                        🗑️
+                        <Trash className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" />
                       </button>
                     </div>
                   </div>
@@ -624,7 +626,7 @@ export default function SubjectAnalyticsPage() {
             {/* AI Syllabus Planner Assistant */}
             <div className="glass rounded-2xl p-6 border border-slate-800">
               <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-1.5">
-                <span>🤖</span> AI Syllabus Deadline Predictor
+                <span><Bot className="w-4 h-4 inline mr-1 text-blue-500" /></span> AI Syllabus Deadline Predictor
               </h2>
               <p className="text-xs text-slate-400 leading-relaxed mb-4">
                 Calculates syllabus completion schedules by correlating class progress trends against
@@ -635,7 +637,7 @@ export default function SubjectAnalyticsPage() {
                 disabled={isProjecting}
                 className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
               >
-                {isProjecting ? "Analyzing Teaching Velocity..." : "⚡ Run AI Deadline Analysis"}
+                {isProjecting ? "Analyzing Teaching Velocity..." : " Run AI Deadline Analysis"}
               </button>
 
               {isProjecting && (
@@ -654,7 +656,7 @@ export default function SubjectAnalyticsPage() {
 
             {/* Score distribution visual report */}
             <div className="glass rounded-2xl p-6 border border-slate-800">
-              <h2 className="text-base font-semibold text-white mb-4">📊 Grade Distribution — Science</h2>
+              <h2 className="text-base font-semibold text-white mb-4"><BarChart className="w-4 h-4 inline mr-1 text-emerald-500" /> Grade Distribution — Science</h2>
               <div className="space-y-3.5">
                 {distribution.map((item) => (
                   <div key={item.grade} className="space-y-1">
@@ -683,13 +685,13 @@ export default function SubjectAnalyticsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-[var(--bg-card)] border border-[var(--border)] w-full max-w-md p-6 rounded-2xl shadow-xl relative">
             <h3 className="text-base font-bold text-[var(--text-heading)] mb-4">
-              {modalMode === "add" ? "➕ Add New Syllabus Chapter" : "📝 Edit Chapter Progress"}
+              {modalMode === "add" ? " Add New Syllabus Chapter" : " Edit Chapter Progress"}
             </h3>
             <button
               onClick={() => setShowModal(false)}
               className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-[var(--text-heading)]"
             >
-              ✕
+              <X className="w-4 h-4 inline-block mr-1 text-inherit" />
             </button>
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div>

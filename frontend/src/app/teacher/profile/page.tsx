@@ -1,4 +1,6 @@
 "use client";
+import { CheckCircle, Building2, Settings, Star, Pencil, X } from "lucide-react";
+
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -179,7 +181,7 @@ export default function TeacherProfilePage() {
               <div className="relative z-10 w-full">
                 <div className="flex items-center justify-center gap-1.5 mb-1">
                   <h2 className="text-lg font-bold text-[var(--text-heading)]">{profile.name}</h2>
-                  <span className="text-xs" title="EMIS Verified Staff">✅</span>
+                  <span className="text-xs" title="EMIS Verified Staff"><CheckCircle className="w-4 h-4 inline mr-1 text-emerald-500" /></span>
                 </div>
 
                 <p className="text-xs font-semibold text-[var(--primary)] px-2.5 py-0.5 bg-[var(--primary)]/10 rounded-full inline-block mb-4 border border-[var(--primary)]/20">
@@ -187,7 +189,7 @@ export default function TeacherProfilePage() {
                 </p>
 
                 <p className="text-xs text-[var(--text-muted)] font-medium mb-1 flex items-center justify-center gap-1.5">
-                  <span>🏢</span> {profile.schoolName}
+                  <span><Building2 className="w-4 h-4 inline-block mr-1 text-inherit" /></span> {profile.schoolName}
                 </p>
                 <p className="text-[11px] text-[var(--text-muted)] font-semibold truncate mb-6">
                   {profile.email}
@@ -247,7 +249,7 @@ export default function TeacherProfilePage() {
 
         {/* Right Columns: Edit form */}
         <div className="xl:col-span-2 theme-card p-6 border border-[var(--border)]">
-          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4">⚙️ Profile Details</h2>
+          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4"><Settings className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Profile Details</h2>
 
           {loading ? (
             <div className="py-32 text-center text-xs text-[var(--text-muted)]">
@@ -391,7 +393,7 @@ export default function TeacherProfilePage() {
                     onClick={() => setIsEditing(true)}
                     className="px-6 py-2.5 bg-[var(--primary)] hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-md flex items-center gap-2"
                   >
-                    ✏️ Edit Profile
+                    <Pencil className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Edit Profile
                   </button>
                 ) : (
                   <>
@@ -403,14 +405,14 @@ export default function TeacherProfilePage() {
                       }}
                       className="px-6 py-2.5 bg-[var(--bg-card-hover)] border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] font-bold rounded-xl text-xs transition-all"
                     >
-                      ❌ Cancel
+                      <X className="w-4 h-4 inline-block mr-1 text-inherit" /> Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={saving}
                       className="px-6 py-2.5 bg-[var(--primary)] hover:bg-amber-600 disabled:bg-[var(--bg-card)] disabled:text-[var(--text-muted)] text-slate-950 font-bold rounded-xl text-xs transition-all shadow-md flex items-center gap-2"
                     >
-                      {saving ? "Saving..." : "💾 Save Profile Details"}
+                      {saving ? "Saving..." : " Save Profile Details"}
                     </button>
                   </>
                 )}

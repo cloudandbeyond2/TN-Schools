@@ -1,4 +1,6 @@
 "use client";
+import { AlertTriangle, User, CheckCircle, Timer, Star, MessageSquare, Globe } from "lucide-react";
+
 
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
@@ -120,8 +122,8 @@ export default function TeacherUnitDetailPage() {
         }
         setSuccessMsg(
           regenerate
-            ? "Regenerated in English & Tamil ✨"
-            : "AI lesson insights generated in English & Tamil ✨"
+            ? "Regenerated in English & Tamil "
+            : "AI lesson insights generated in English & Tamil "
         );
       } else {
         setError(json.error || "AI generation failed.");
@@ -151,7 +153,7 @@ export default function TeacherUnitDetailPage() {
       const json = await res.json();
       if (json.success) {
         setUnit((prev) => (prev ? { ...prev, isApproved } : prev));
-        setSuccessMsg(isApproved ? "Published to students! ✅" : "Unpublished.");
+        setSuccessMsg(isApproved ? "Published to students!" : "Unpublished.");
       } else {
         setError(json.error || "Could not update approval status.");
       }
@@ -263,7 +265,7 @@ export default function TeacherUnitDetailPage() {
                       color: accent,
                     }}
                   >
-                    {unit.subject.icon || "📚"} {unit.subject.name} · Class {unit.subject.class} · Unit {unit.unitNumber}
+                    {unit.subject.icon || ""} {unit.subject.name} · Class {unit.subject.class} · Unit {unit.unitNumber}
                   </span>
                   <span
                     className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-lg ${
@@ -272,7 +274,7 @@ export default function TeacherUnitDetailPage() {
                         : "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400"
                     }`}
                   >
-                    {unit.isApproved ? "✅ Published to Students" : "📝 Draft"}
+                    {unit.isApproved ? <><CheckCircle className="w-4 h-4 inline mr-1" /> Published to Students</> : " Draft"}
                   </span>
                 </div>
 
@@ -291,10 +293,10 @@ export default function TeacherUnitDetailPage() {
                     style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
                   >
                     {generating
-                      ? "✨ Generating..."
+                      ? " Generating..."
                       : detail
-                      ? "🔁 Regenerate (EN + தமிழ்)"
-                      : "✨ Generate AI Insights (EN + தமிழ்)"}
+                      ? " Regenerate (EN + தமிழ்)"
+                      : " Generate AI Insights (EN + தமிழ்)"}
                   </button>
 
                   {detail && (
@@ -307,13 +309,13 @@ export default function TeacherUnitDetailPage() {
                           : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm"
                       }`}
                     >
-                      {saving ? "Saving..." : unit.isApproved ? "Unpublish" : "✅ Approve & Publish"}
+                      {saving ? "Saving..." : unit.isApproved ? "Unpublish" : <><CheckCircle className="w-4 h-4 inline mr-1" /> Approve & Publish</>}
                     </button>
                   )}
                 </div>
 
                 {error && (
-                  <p className="text-xs text-rose-600 mt-3 font-semibold">⚠️ {error}</p>
+                  <p className="text-xs text-rose-600 mt-3 font-semibold"><AlertTriangle className="w-4 h-4 inline mr-1 text-amber-500" /> {error}</p>
                 )}
                 {successMsg && (
                   <p className="text-xs text-emerald-600 mt-3 font-semibold">{successMsg}</p>
@@ -341,7 +343,7 @@ export default function TeacherUnitDetailPage() {
           {/* ── Empty state ── */}
           {!detail && !generating && (
             <div className="text-center p-14 glass rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
-              <span className="text-5xl block mb-4">🧑‍🏫</span>
+              <span className="text-5xl block mb-4"><User className="w-4 h-4 inline mr-1 text-indigo-500" /></span>
               <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
                 No lesson insights yet for this unit.
               </p>
@@ -386,7 +388,7 @@ export default function TeacherUnitDetailPage() {
                             : undefined
                         }
                       >
-                        {l === "en" ? "🇬🇧 English" : "🇮🇳 தமிழ்"}
+                        {l === "en" ? " English" : " தமிழ்"}
                       </button>
                     );
                   })}
@@ -404,7 +406,7 @@ export default function TeacherUnitDetailPage() {
 
                   {/* Key Concepts */}
                   <InsightCard
-                    emoji="🧠"
+                    emoji=""
                     title={lang === "en" ? "Key Concepts" : "முக்கிய கருத்துகள்"}
                     subtitle={
                       lang === "en"
@@ -423,7 +425,7 @@ export default function TeacherUnitDetailPage() {
 
                   {/* Real-life Connections */}
                   <InsightCard
-                    emoji="🌍"
+                    emoji=""
                     title={lang === "en" ? "Real-life Connections" : "நிஜ வாழ்க்கை இணைப்புகள்"}
                     subtitle={
                       lang === "en"
@@ -442,7 +444,7 @@ export default function TeacherUnitDetailPage() {
 
                   {/* Common Misconceptions */}
                   <InsightCard
-                    emoji="⚠️"
+                    emoji=""
                     title={lang === "en" ? "Common Misconceptions" : "பொதுவான தவறான கருத்துகள்"}
                     subtitle={
                       lang === "en"
@@ -461,7 +463,7 @@ export default function TeacherUnitDetailPage() {
 
                   {/* Student Key Points */}
                   <InsightCard
-                    emoji="🎯"
+                    emoji=""
                     title={lang === "en" ? "Student Key Points" : "மாணவர் முக்கிய குறிப்புகள்"}
                     subtitle={
                       lang === "en"
@@ -485,7 +487,7 @@ export default function TeacherUnitDetailPage() {
                       style={{ background: `linear-gradient(90deg, ${accent}, ${accent}55)` }}
                     />
                     <h3 className="text-sm font-black text-black dark:text-white mb-1">
-                      ⏱️{" "}
+                      <Timer className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" />{" "}
                       {lang === "en"
                         ? "Suggested Teaching Flow"
                         : "பரிந்துரைக்கப்பட்ட கற்பித்தல் திட்டம்"}
@@ -545,7 +547,7 @@ export default function TeacherUnitDetailPage() {
                       style={{ background: "linear-gradient(90deg, #6366f1, #8b5cf6)" }}
                     />
                     <h3 className="text-sm font-black text-black dark:text-white mb-1">
-                      🗣️{" "}
+                      <MessageSquare className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" />{" "}
                       {lang === "en"
                         ? "How I&apos;d Explain This to My Class"
                         : "என் வகுப்பிற்கு இதை எப்படி விளக்குவேன்"}
@@ -565,7 +567,7 @@ export default function TeacherUnitDetailPage() {
                 </div>
               ) : (
                 <div className="text-center p-10 glass rounded-3xl border border-dashed border-amber-300 dark:border-amber-700">
-                  <span className="text-4xl block mb-3">🌐</span>
+                  <span className="text-4xl block mb-3"><Globe className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
                   <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
                     Tamil not generated for this unit yet.
                   </p>

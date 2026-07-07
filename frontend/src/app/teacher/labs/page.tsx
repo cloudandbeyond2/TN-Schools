@@ -1,4 +1,6 @@
 "use client";
+import { AlertTriangle, Bot, CheckCircle, FlaskConical, Users, Check, User, Star, Microscope } from "lucide-react";
+
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -134,7 +136,7 @@ export default function ScienceLabsPage() {
         Swal.fire({
           icon: "success",
           title: "Safety Status Updated",
-          text: `Safety verification is now ${!currentVal ? "Verified ✓" : "Unverified ✕"}.`,
+          text: `Safety verification is now ${!currentVal ? "Verified " : "Unverified "}.`,
           timer: 1500,
           showConfirmButton: false,
         });
@@ -325,7 +327,7 @@ export default function ScienceLabsPage() {
             let nextProgress = student.progressVal + Math.floor(Math.random() * 15) + 5;
             if (nextProgress >= 100) {
               nextProgress = 100;
-              return { ...student, progressVal: 100, statusText: "Finished experiment ✓" };
+              return { ...student, progressVal: 100, statusText: "Finished experiment " };
             }
             
             let statusText = student.statusText;
@@ -468,7 +470,7 @@ export default function ScienceLabsPage() {
           <div className="lg:col-span-2 theme-card p-6 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-bold text-[var(--text-heading)]">🧪 Titration Simulation (Teacher Console)</h2>
+                <h2 className="text-base font-bold text-[var(--text-heading)]"><FlaskConical className="w-4 h-4 inline-block mr-1 text-inherit" /> Titration Simulation (Teacher Console)</h2>
                 <button
                   onClick={() => {
                     setNaohVolume(0);
@@ -537,7 +539,7 @@ export default function ScienceLabsPage() {
                       : "bg-indigo-600 hover:bg-indigo-700 text-white"
                   }`}
                 >
-                  {isFlowing ? "⏹ Stop Flow" : "▶ Start Constant Flow"}
+                  {isFlowing ? " Stop Flow" : "▶ Start Constant Flow"}
                 </button>
               </div>
 
@@ -589,7 +591,7 @@ export default function ScienceLabsPage() {
           <div className="glass rounded-2xl border border-slate-800 p-6 flex flex-col justify-between">
             <div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                <h3 className="font-bold text-white text-base">👥 Student Workspace Monitor</h3>
+                <h3 className="font-bold text-white text-base"><Users className="w-4 h-4 inline-block mr-1 text-inherit" /> Student Workspace Monitor</h3>
                 <span className="text-[10px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded-full self-start sm:self-auto">
                   {liveStudents.length} Online
                 </span>
@@ -625,7 +627,7 @@ export default function ScienceLabsPage() {
             </div>
 
             <div className="p-3 bg-red-950/20 border border-red-500/20 rounded-xl mt-4">
-              <span className="block text-[10px] uppercase font-bold text-red-400 mb-1">⚠️ Safety Meter</span>
+              <span className="block text-[10px] uppercase font-bold text-red-400 mb-1"><AlertTriangle className="w-4 h-4 inline mr-1 text-amber-500" /> Safety Meter</span>
               <div className="flex items-center gap-3">
                 <div className="flex-1 bg-slate-800 rounded-full h-2 overflow-hidden">
                   <div className="bg-emerald-500 h-full rounded-full w-[96%]" />
@@ -645,7 +647,7 @@ export default function ScienceLabsPage() {
         {/* Lab Sessions */}
         <div className="lg:col-span-2 theme-card p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-            <h2 className="text-base font-semibold text-[var(--text-heading)]">🧪 Experimental Lab Sessions</h2>
+            <h2 className="text-base font-semibold text-[var(--text-heading)]"><FlaskConical className="w-4 h-4 inline-block mr-1 text-inherit" /> Experimental Lab Sessions</h2>
             <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-start">
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
@@ -726,7 +728,7 @@ export default function ScienceLabsPage() {
                           : "bg-slate-50 text-slate-500 dark:bg-slate-500/10 dark:text-slate-400"
                       }`}
                     >
-                      {exp.status === "active" ? "🔥" : exp.status === "completed" ? "✅" : "📅"}
+                      {exp.status === "active" ? "" : exp.status === "completed" ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : ""}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
@@ -779,7 +781,7 @@ export default function ScienceLabsPage() {
                     )}
                     {exp.status === "completed" && (
                       <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
-                        ✓ Completed
+                        <Check className="w-4 h-4 inline-block mr-1 text-inherit" /> Completed
                       </span>
                     )}
                   </div>
@@ -791,7 +793,7 @@ export default function ScienceLabsPage() {
 
         {/* AI Manual Creator */}
         <div className="glass rounded-2xl p-6 border border-slate-800">
-          <h2 className="text-base font-semibold text-white mb-4">🤖 AI Lab Manual Builder</h2>
+          <h2 className="text-base font-semibold text-white mb-4"><Bot className="w-4 h-4 inline mr-1 text-blue-500" /> AI Lab Manual Builder</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-xs text-slate-400 mb-1.5 font-medium">Experiment Topic</label>
@@ -824,7 +826,7 @@ export default function ScienceLabsPage() {
               disabled={isGenerating}
               className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
             >
-              {isGenerating ? "Compiling Lab Blueprint..." : "🔬 Generate Lab Manual"}
+              {isGenerating ? "Compiling Lab Blueprint..." : " Generate Lab Manual"}
             </button>
           </div>
 
@@ -836,12 +838,12 @@ export default function ScienceLabsPage() {
                 <span className="text-xs text-slate-300 font-semibold">AI Assistant working...</span>
               </div>
               <div className="text-[10px] space-y-1.5">
-                <div className={generationStep >= 1 ? "text-emerald-400" : "text-slate-500"}>✓ Verifying Tamil Nadu Science Syllabus guidelines...</div>
+                <div className={generationStep >= 1 ? "text-emerald-400" : "text-slate-500"}><Check className="w-4 h-4 inline-block mr-1 text-inherit" /> Verifying Tamil Nadu Science Syllabus guidelines...</div>
                 <div className={generationStep >= 2 ? "text-emerald-400" : "text-slate-500"}>
-                  {generationStep >= 2 ? "✓ Drafting detailed safety manual and procedure..." : "· Drafting detailed safety manual and procedure..."}
+                  {generationStep >= 2 ? " Drafting detailed safety manual and procedure..." : "· Drafting detailed safety manual and procedure..."}
                 </div>
                 <div className={generationStep >= 3 ? "text-emerald-400" : "text-slate-500"}>
-                  {generationStep >= 3 ? "✓ Formulating quiz and observations table..." : "· Formulating quiz and observations table..."}
+                  {generationStep >= 3 ? " Formulating quiz and observations table..." : "· Formulating quiz and observations table..."}
                 </div>
               </div>
             </div>
@@ -876,7 +878,7 @@ export default function ScienceLabsPage() {
                 </ol>
               </div>
               <div className="p-2 bg-red-950/20 border border-red-500/20 rounded-lg">
-                <h4 className="text-[10px] uppercase font-bold text-red-400 mb-0.5">⚠️ Safety Precaution:</h4>
+                <h4 className="text-[10px] uppercase font-bold text-red-400 mb-0.5"><AlertTriangle className="w-4 h-4 inline mr-1 text-amber-500" /> Safety Precaution:</h4>
                 <p className="text-[10.5px] text-red-300/80 leading-relaxed">{generatedManual.safety}</p>
               </div>
             </div>
@@ -886,7 +888,7 @@ export default function ScienceLabsPage() {
 
       {/* Lab Roster & Grading */}
       <div className="glass rounded-2xl p-6 border border-slate-800">
-        <h2 className="text-base font-semibold text-white mb-5">👩‍🔬 Student Lab Roster & Grades</h2>
+        <h2 className="text-base font-semibold text-white mb-5"><User className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /><Microscope className="w-4 h-4 inline-block mr-1 text-inherit" /> Student Lab Roster & Grades</h2>
         {studentGrades.length === 0 ? (
           <div className="text-center py-6 text-xs text-slate-400">No students found.</div>
         ) : (

@@ -4,19 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
-import { 
-  Users, 
-  CheckCircle2, 
-  AlertCircle, 
-  TrendingUp, 
-  Calendar, 
-  Filter, 
-  Save, 
-  Check, 
-  ArrowRight,
-  ClipboardList,
-  Grid
-} from "lucide-react";
+import { Users, CheckCircle2, AlertCircle, TrendingUp, Calendar, Filter, Save, Check, ArrowRight, ClipboardList, Grid, Clipboard } from "lucide-react";
 
 interface AttendanceStudent {
   id: string;
@@ -464,7 +452,7 @@ export default function AttendancePage() {
           <div className="glass rounded-2xl p-6 border border-slate-800">
             <div className="flex items-center justify-between mb-5 border-b border-slate-800 pb-3">
               <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                <span className="text-blue-500">📋</span>
+                <span className="text-blue-500"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
                 <span>Roster Checklist — Class {selectedClass}</span>
               </h2>
               <span className="text-[10px] text-slate-500 font-semibold uppercase">Date: {selectedDate}</span>
@@ -600,7 +588,7 @@ export default function AttendancePage() {
         <div className="glass rounded-2xl p-6 border border-slate-800">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-5 border-b border-slate-800 pb-3 gap-2">
             <h2 className="text-base font-semibold text-white flex items-center gap-2">
-              <span className="text-blue-500">📅</span>
+              <span className="text-blue-500"><Calendar className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
               <span>Weekly Attendance Summary — Class {selectedClass}</span>
             </h2>
             {weeklyRange && (

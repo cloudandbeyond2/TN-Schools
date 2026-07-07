@@ -1,4 +1,6 @@
 "use client";
+import { CheckCircle, MessageSquare, Bot, Zap, Megaphone } from "lucide-react";
+
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -160,7 +162,7 @@ export default function CommunicationPage() {
     >
       {toastMessage && (
         <div className="fixed top-5 right-5 bg-emerald-500 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2">
-          <span>✅</span> {toastMessage}
+          <span><CheckCircle className="w-4 h-4 inline mr-1 text-emerald-500" /></span> {toastMessage}
         </div>
       )}
 
@@ -171,7 +173,7 @@ export default function CommunicationPage() {
           {/* Chat sidebar contacts */}
           <div className="lg:col-span-1 theme-card p-4 flex flex-col gap-4 overflow-y-auto">
             <div className="flex justify-between items-center border-b border-[var(--border)] pb-3">
-              <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider">💬 Inbox Chats</h3>
+              <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider"><MessageSquare className="w-4 h-4 inline mr-1" /> Inbox Chats</h3>
               <span className="badge badge-yellow">Active</span>
             </div>
 
@@ -271,7 +273,7 @@ export default function CommunicationPage() {
             <div>
               <div className="border-b border-[var(--border)] pb-3 mb-4">
                 <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider flex items-center gap-1.5">
-                  <span>🤖</span> AI Smart Composer
+                  <span><Bot className="w-4 h-4 inline mr-1 text-blue-500" /></span> AI Smart Composer
                 </h3>
                 <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Generate translation-ready bilingual updates</p>
               </div>
@@ -318,10 +320,10 @@ export default function CommunicationPage() {
                 onClick={handleGenerateAIDraft}
                 className="w-full py-2.5 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] text-xs font-semibold text-[var(--text-heading)] border border-[var(--border)] flex items-center justify-center gap-1 shadow-sm transition-all"
               >
-                ⚡ Insert AI Draft
+                <Zap className="w-4 h-4 inline-block mr-1 text-inherit" /> Insert AI Draft
               </button>
               <div className="p-3 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl text-[10px] text-[var(--text-muted)] leading-relaxed italic">
-                📢 AI generates messages both in **Tamil** and **English** so parents can select their preferred reading medium.
+                <Megaphone className="w-4 h-4 inline-block mr-1 text-inherit" /> AI generates messages both in **Tamil** and **English** so parents can select their preferred reading medium.
               </div>
             </div>
           </div>

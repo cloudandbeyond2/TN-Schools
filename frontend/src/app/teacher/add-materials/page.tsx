@@ -1,4 +1,6 @@
 "use client";
+import { BookOpen, Folder, Archive, Star, X } from "lucide-react";
+
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
@@ -294,7 +296,7 @@ export default function AddMaterialsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Upload form */}
         <div className="theme-card p-6 border border-[var(--border)]">
-          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4">📚 Upload New Resource</h2>
+          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4"><BookOpen className="w-4 h-4 inline-block mr-1 text-inherit" /> Upload New Resource</h2>
           <form onSubmit={handleUpload} className="space-y-4">
             <div>
               <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Resource Title</label>
@@ -356,7 +358,7 @@ export default function AddMaterialsPage() {
                 onClick={handleFileSelectClick}
                 className="border-2 border-dashed border-[var(--border)] hover:border-[var(--primary)]/50 hover:bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-2xl p-6 text-center cursor-pointer transition-all"
               >
-                <span className="text-3xl block mb-2">📁</span>
+                <span className="text-3xl block mb-2"><Folder className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
                 <span className="text-xs text-[var(--text-muted)] font-medium block">
                   {selectedFileName ? `${selectedFileName} (${selectedFileSize})` : "Click to select study resource file"}
                 </span>
@@ -377,7 +379,7 @@ export default function AddMaterialsPage() {
         {/* Directory details */}
         <div className="lg:col-span-2 theme-card p-6 border border-[var(--border)]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <h2 className="text-base font-semibold text-[var(--text-heading)]">🗂️ Study Materials Directory</h2>
+            <h2 className="text-base font-semibold text-[var(--text-heading)]"><Archive className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Study Materials Directory</h2>
             
             <div className="flex flex-wrap gap-1.5 p-1 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl">
               {(["All", "Notes", "Worksheet", "Video Reference", "Exam Prep"] as const).map((tab) => (
@@ -431,7 +433,7 @@ export default function AddMaterialsPage() {
                       onClick={() => handleDelete(m.id)}
                       className="p-2 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 rounded-lg text-xs transition-colors"
                     >
-                      ✕ Delete
+                      <X className="w-4 h-4 inline-block mr-1 text-inherit" /> Delete
                     </button>
                   </div>
                 </div>

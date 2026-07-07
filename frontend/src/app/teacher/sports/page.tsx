@@ -4,22 +4,8 @@
 // import { useState, useEffect } from "react";
 // import { useSession } from "next-auth/react";
 // import Swal from "sweetalert2";
-// import { 
-//   Trophy, 
-//   Activity, 
-//   Users, 
-//   Calendar, 
-//   Heart, 
-//   PlusCircle, 
-//   X, 
-//   Edit, 
-//   UserPlus, 
-//   Check, 
-//   AlertTriangle,
-//   UserCheck,
-//   Search,
-//   Sliders
-// } from "lucide-react";
+// import { //   Trophy, //   Activity, //   Users, //   Calendar, //   Heart, //   PlusCircle, //   X, //   Edit, //   UserPlus, //   Check, //   AlertTriangle, //   UserCheck, //   Search, //   Sliders
+//, Search, Sliders, UserPlus, Calendar, Zap, Trophy, AlertTriangle } from "lucide-react";
 
 // const API_BASE = "http://localhost:5000";
 
@@ -89,7 +75,7 @@
 //   const [teamStudent, setTeamStudent] = useState<RosterStudent | null>(null);
 //   const [teamName, setTeamName] = useState("School Football Team");
 //   const [teamRole, setTeamRole] = useState("Midfielder");
-//   const [teamIcon, setTeamIcon] = useState("⚽");
+//   const [teamIcon, setTeamIcon] = useState("");
 //   const [teamColor, setTeamColor] = useState("from-blue-500 to-cyan-500");
 //   const [teamMatch, setTeamMatch] = useState("Inter-school Championship");
 //   const [teamDate, setTeamDate] = useState("Friday, 4:00 PM");
@@ -101,7 +87,7 @@
 //   const [eventTitle, setEventTitle] = useState("Basketball Team Tryouts");
 //   const [eventDate, setEventDate] = useState("Nov 15, 2026");
 //   const [eventType, setEventType] = useState("Selection Trials");
-//   const [eventIcon, setEventIcon] = useState("🏀");
+//   const [eventIcon, setEventIcon] = useState("");
 //   const [isSavingEvent, setIsSavingEvent] = useState(false);
 
 //   const handleOpenEventModal = (student: RosterStudent) => {
@@ -217,11 +203,11 @@
 //         headers: { "Content-Type": "application/json" },
 //         body: JSON.stringify({
 //           stats: [
-//             { label: "Sprint Speed", value: sprintVal, score: sprintScore, icon: "⚡", color: "bg-amber-500" },
-//             { label: "Shot Put", value: shotPutVal, score: shotPutScore, icon: "☄️", color: "bg-orange-500" },
-//             { label: "Cardio Endurance", value: cardioVal, score: cardioScore, icon: "🫀", color: "bg-rose-500" },
-//             { label: "Agility", value: agilityVal, score: agilityScore, icon: "🤸‍♂️", color: "bg-blue-500" },
-//             { label: "Overall Fitness", value: overallVal, score: overallScore, icon: "💪", color: "bg-emerald-500" }
+//             { label: "Sprint Speed", value: sprintVal, score: sprintScore, icon: "", color: "bg-amber-500" },
+//             { label: "Shot Put", value: shotPutVal, score: shotPutScore, icon: "", color: "bg-orange-500" },
+//             { label: "Cardio Endurance", value: cardioVal, score: cardioScore, icon: "", color: "bg-rose-500" },
+//             { label: "Agility", value: agilityVal, score: agilityScore, icon: "", color: "bg-blue-500" },
+//             { label: "Overall Fitness", value: overallVal, score: overallScore, icon: "", color: "bg-emerald-500" }
 //           ]
 //         })
 //       });
@@ -328,13 +314,13 @@
 //           onClick={() => setActiveTab("roster")}
 //           className={`flex-1 xl:flex-initial px-6 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeTab === "roster" ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20" : "text-black dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400"}`}
 //         >
-//           📋 Student Roster & Scores
+//            Student Roster & Scores
 //         </button>
 //         <button 
 //           onClick={() => setActiveTab("injuries")}
 //           className={`flex-1 xl:flex-initial px-6 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeTab === "injuries" ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20" : "text-black dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400"}`}
 //         >
-//           🚑 Injury Tracker ({injuries.filter(i => i.status === 'Pending' || i.status === 'Under Treatment').length})
+//            Injury Tracker ({injuries.filter(i => i.status === 'Pending' || i.status === 'Under Treatment').length})
 //         </button>
 //       </div>
 
@@ -584,7 +570,7 @@
 //         <div className="space-y-6">
 //           <div className="theme-card p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
 //             <h2 className="text-lg font-bold text-black dark:text-white mb-6 flex items-center gap-2">
-//               <span className="text-xl">🚑</span> Active Injury Reports & Medical Status
+//               <span className="text-xl"></span> Active Injury Reports & Medical Status
 //             </h2>
 
 //             {injuries.length === 0 ? (
@@ -615,7 +601,7 @@
 //                       <p className="text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl">{report.description || "No descriptions detailed"}</p>
                       
 //                       <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-//                         📅 Event: {report.date} · Filed: {new Date(report.createdAt).toLocaleDateString()}
+//                          Event: {report.date} · Filed: {new Date(report.createdAt).toLocaleDateString()}
 //                       </div>
 //                     </div>
 
@@ -673,7 +659,7 @@
 //               {/* 100m Sprint */}
 //               <div className="space-y-2 border-b border-slate-100 dark:border-slate-800/50 pb-3">
 //                 <div className="flex justify-between font-bold">
-//                   <span>⚡ 100m Running Sprint</span>
+//                   <span><Zap className="w-4 h-4 inline mr-1 text-amber-500" /> 100m Running Sprint</span>
 //                   <span className="text-cyan-600 dark:text-cyan-400">{sprintScore} Pts</span>
 //                 </div>
 //                 <div className="grid grid-cols-3 gap-3 items-center">
@@ -699,7 +685,7 @@
 //               {/* Shot Put */}
 //               <div className="space-y-2 border-b border-slate-100 dark:border-slate-800/50 pb-3">
 //                 <div className="flex justify-between font-bold">
-//                   <span>☄️ Shot Put Distance</span>
+//                   <span> Shot Put Distance</span>
 //                   <span className="text-cyan-600 dark:text-cyan-400">{shotPutScore} Pts</span>
 //                 </div>
 //                 <div className="grid grid-cols-3 gap-3 items-center">
@@ -725,7 +711,7 @@
 //               {/* Cardio */}
 //               <div className="space-y-2 border-b border-slate-100 dark:border-slate-800/50 pb-3">
 //                 <div className="flex justify-between font-bold">
-//                   <span>🫀 Cardio Endurance</span>
+//                   <span> Cardio Endurance</span>
 //                   <span className="text-cyan-600 dark:text-cyan-400">{cardioScore} Pts</span>
 //                 </div>
 //                 <div className="grid grid-cols-3 gap-3 items-center">
@@ -751,7 +737,7 @@
 //               {/* Agility */}
 //               <div className="space-y-2 border-b border-slate-100 dark:border-slate-800/50 pb-3">
 //                 <div className="flex justify-between font-bold">
-//                   <span>🤸‍♂️ Agility</span>
+//                   <span> Agility</span>
 //                   <span className="text-cyan-600 dark:text-cyan-400">{agilityScore} Pts</span>
 //                 </div>
 //                 <div className="grid grid-cols-3 gap-3 items-center">
@@ -777,7 +763,7 @@
 //               {/* Overall Fitness */}
 //               <div className="space-y-2 pb-3">
 //                 <div className="flex justify-between font-bold">
-//                   <span>💪 Overall Athletic Grade</span>
+//                   <span> Overall Athletic Grade</span>
 //                   <span className="text-cyan-600 dark:text-cyan-400">{overallScore} Pts</span>
 //                 </div>
 //                 <div className="grid grid-cols-3 gap-3 items-center">
@@ -852,12 +838,12 @@
 //                   onChange={(e) => {
 //                     setTeamName(e.target.value);
 //                     // Match icons & color gradients based on sport choice
-//                     if (e.target.value.includes("Football")) { setTeamIcon("⚽"); setTeamColor("from-blue-500 to-cyan-500"); }
-//                     else if (e.target.value.includes("Athletics") || e.target.value.includes("Sprint")) { setTeamIcon("🏃‍♂️"); setTeamColor("from-orange-500 to-amber-500"); }
-//                     else if (e.target.value.includes("Basketball")) { setTeamIcon("🏀"); setTeamColor("from-orange-600 to-red-500"); }
-//                     else if (e.target.value.includes("Volleyball")) { setTeamIcon("🏐"); setTeamColor("from-indigo-500 to-purple-500"); }
-//                     else if (e.target.value.includes("Kabaddi") || e.target.value.includes("Kho-Kho")) { setTeamIcon("🤼"); setTeamColor("from-amber-600 to-amber-800"); }
-//                     else { setTeamIcon("🏆"); setTeamColor("from-emerald-500 to-teal-500"); }
+//                     if (e.target.value.includes("Football")) { setTeamIcon(""); setTeamColor("from-blue-500 to-cyan-500"); }
+//                     else if (e.target.value.includes("Athletics") || e.target.value.includes("Sprint")) { setTeamIcon(""); setTeamColor("from-orange-500 to-amber-500"); }
+//                     else if (e.target.value.includes("Basketball")) { setTeamIcon(""); setTeamColor("from-orange-600 to-red-500"); }
+//                     else if (e.target.value.includes("Volleyball")) { setTeamIcon(""); setTeamColor("from-indigo-500 to-purple-500"); }
+//                     else if (e.target.value.includes("Kabaddi") || e.target.value.includes("Kho-Kho")) { setTeamIcon(""); setTeamColor("from-amber-600 to-amber-800"); }
+//                     else { setTeamIcon(""); setTeamColor("from-emerald-500 to-teal-500"); }
 //                   }}
 //                   className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs text-black dark:text-white focus:outline-none focus:border-cyan-550"
 //                 >
@@ -1003,12 +989,12 @@
 //                     onChange={(e) => setEventIcon(e.target.value)}
 //                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs text-black dark:text-white focus:outline-none focus:border-emerald-550"
 //                   >
-//                     <option value="🏆">🏆 Tournament</option>
-//                     <option value="🏀">🏀 Basketball</option>
-//                     <option value="⚽">⚽ Football</option>
-//                     <option value="🏃‍♂️">🏃‍♂️ Athletics / Sprint</option>
-//                     <option value="🏐">🏐 Volleyball</option>
-//                     <option value="📅">📅 General Date</option>
+//                     <option value=""><Trophy className="w-4 h-4 inline mr-1 text-amber-500" /> Tournament</option>
+//                     <option value=""> Basketball</option>
+//                     <option value=""> Football</option>
+//                     <option value=""> Athletics / Sprint</option>
+//                     <option value=""> Volleyball</option>
+//                     <option value=""> General Date</option>
 //                   </select>
 //                 </div>
 //               </div>
@@ -1066,25 +1052,25 @@ const SECTION_METRICS: {
   [key: string]: Array<{ label: string; defaultVal: string; icon: string; color: string }>
 } = {
   middle: [
-    { label: "Sprint Speed (100m)", defaultVal: "14.5s", icon: "⚡", color: "bg-amber-500" },
-    { label: "Standing Broad Jump", defaultVal: "1.85m", icon: "📏", color: "bg-cyan-500" },
-    { label: "Shuttle Run (Agility)", defaultVal: "10.6s", icon: "🏃", color: "bg-blue-500" },
-    { label: "Flexibility (Sit & Reach)", defaultVal: "Excellent", icon: "🧘", color: "bg-rose-500" },
-    { label: "Overall Fitness", defaultVal: "Grade A", icon: "💪", color: "bg-emerald-500" }
+    { label: "Sprint Speed (100m)", defaultVal: "14.5s", icon: "", color: "bg-amber-500" },
+    { label: "Standing Broad Jump", defaultVal: "1.85m", icon: "", color: "bg-cyan-500" },
+    { label: "Shuttle Run (Agility)", defaultVal: "10.6s", icon: "", color: "bg-blue-500" },
+    { label: "Flexibility (Sit & Reach)", defaultVal: "Excellent", icon: "", color: "bg-rose-500" },
+    { label: "Overall Fitness", defaultVal: "Grade A", icon: "", color: "bg-emerald-500" }
   ],
   high: [
-    { label: "Sprint Speed", defaultVal: "12.5s", icon: "⚡", color: "bg-amber-500" },
-    { label: "Shot Put", defaultVal: "9.8m", icon: "⚪", color: "bg-orange-500" },
-    { label: "Cardio Endurance", defaultVal: "Excellent", icon: "❤️", color: "bg-rose-500" },
-    { label: "Agility", defaultVal: "Above Average", icon: "🏃", color: "bg-blue-500" },
-    { label: "Overall Fitness", defaultVal: "Grade A", icon: "💪", color: "bg-emerald-500" }
+    { label: "Sprint Speed", defaultVal: "12.5s", icon: "", color: "bg-amber-500" },
+    { label: "Shot Put", defaultVal: "9.8m", icon: "", color: "bg-orange-500" },
+    { label: "Cardio Endurance", defaultVal: "Excellent", icon: "", color: "bg-rose-500" },
+    { label: "Agility", defaultVal: "Above Average", icon: "", color: "bg-blue-500" },
+    { label: "Overall Fitness", defaultVal: "Grade A", icon: "", color: "bg-emerald-500" }
   ],
   hsc: [
-    { label: "Sprint Speed (100m)", defaultVal: "12.1s", icon: "⚡", color: "bg-amber-500" },
-    { label: "Shot Put", defaultVal: "11.2m", icon: "⚪", color: "bg-orange-500" },
-    { label: "Beep Test (Cardio)", defaultVal: "Level 9.5", icon: "🏃", color: "bg-rose-500" },
-    { label: "Agility (Shuttle Run)", defaultVal: "Above Average", icon: "🏃", color: "bg-blue-500" },
-    { label: "Overall Fitness", defaultVal: "Grade A", icon: "💪", color: "bg-emerald-500" }
+    { label: "Sprint Speed (100m)", defaultVal: "12.1s", icon: "", color: "bg-amber-500" },
+    { label: "Shot Put", defaultVal: "11.2m", icon: "", color: "bg-orange-500" },
+    { label: "Beep Test (Cardio)", defaultVal: "Level 9.5", icon: "", color: "bg-rose-500" },
+    { label: "Agility (Shuttle Run)", defaultVal: "Above Average", icon: "", color: "bg-blue-500" },
+    { label: "Overall Fitness", defaultVal: "Grade A", icon: "", color: "bg-emerald-500" }
   ]
 };
 
@@ -1152,7 +1138,7 @@ export default function PETeacherSportsPage() {
   const [teamStudent, setTeamStudent] = useState<RosterStudent | null>(null);
   const [teamName, setTeamName] = useState("School Football Team");
   const [teamRole, setTeamRole] = useState("Midfielder");
-  const [teamIcon, setTeamIcon] = useState("⚽");
+  const [teamIcon, setTeamIcon] = useState("");
   const [teamColor, setTeamColor] = useState("from-blue-500 to-cyan-500");
   const [teamMatch, setTeamMatch] = useState("Inter-school Championship");
   const [teamDate, setTeamDate] = useState("Friday, 4:00 PM");
@@ -1164,7 +1150,7 @@ export default function PETeacherSportsPage() {
   const [eventTitle, setEventTitle] = useState("Basketball Team Tryouts");
   const [eventDate, setEventDate] = useState("Nov 15, 2026");
   const [eventType, setEventType] = useState("Selection Trials");
-  const [eventIcon, setEventIcon] = useState("🏀");
+  const [eventIcon, setEventIcon] = useState("");
   const [isSavingEvent, setIsSavingEvent] = useState(false);
 
   const handleOpenEventModal = (student: RosterStudent) => {
@@ -1419,13 +1405,13 @@ export default function PETeacherSportsPage() {
           onClick={() => setActiveTab("roster")}
           className={`flex-1 xl:flex-initial px-6 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeTab === "roster" ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20" : "text-black dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400"}`}
         >
-          📋 Student Roster & Scores
+           Student Roster & Scores
         </button>
         <button
           onClick={() => setActiveTab("injuries")}
           className={`flex-1 xl:flex-initial px-6 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeTab === "injuries" ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20" : "text-black dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400"}`}
         >
-          🚑 Injury Tracker ({injuries.filter(i => i.status === 'Pending' || i.status === 'Under Treatment').length})
+           Injury Tracker ({injuries.filter(i => i.status === 'Pending' || i.status === 'Under Treatment').length})
         </button>
       </div>
 
@@ -1780,7 +1766,7 @@ export default function PETeacherSportsPage() {
         <div className="space-y-6">
           <div className="theme-card p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
             <h2 className="text-lg font-bold text-black dark:text-white mb-6 flex items-center gap-2">
-              <span className="text-xl">🚑</span> Active Injury Reports & Medical Status
+              <span className="text-xl"></span> Active Injury Reports & Medical Status
             </h2>
 
             {injuries.length === 0 ? (
@@ -1811,7 +1797,7 @@ export default function PETeacherSportsPage() {
                       <p className="text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl">{report.description || "No descriptions detailed"}</p>
 
                       <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-                        📅 Event: {report.date} · Filed: {new Date(report.createdAt).toLocaleDateString()}
+                         Event: {report.date} · Filed: {new Date(report.createdAt).toLocaleDateString()}
                       </div>
                     </div>
 
@@ -1953,12 +1939,12 @@ export default function PETeacherSportsPage() {
                   onChange={(e) => {
                     setTeamName(e.target.value);
                     // Match icons & color gradients based on sport choice
-                    if (e.target.value.includes("Football")) { setTeamIcon("⚽"); setTeamColor("from-blue-500 to-cyan-500"); }
-                    else if (e.target.value.includes("Athletics") || e.target.value.includes("Sprint")) { setTeamIcon("🏃‍♂️"); setTeamColor("from-orange-500 to-amber-500"); }
-                    else if (e.target.value.includes("Basketball")) { setTeamIcon("🏀"); setTeamColor("from-orange-600 to-red-500"); }
-                    else if (e.target.value.includes("Volleyball")) { setTeamIcon("🏐"); setTeamColor("from-indigo-500 to-purple-500"); }
-                    else if (e.target.value.includes("Kabaddi") || e.target.value.includes("Kho-Kho")) { setTeamIcon("🤼"); setTeamColor("from-amber-600 to-amber-800"); }
-                    else { setTeamIcon("🏆"); setTeamColor("from-emerald-500 to-teal-500"); }
+                    if (e.target.value.includes("Football")) { setTeamIcon(""); setTeamColor("from-blue-500 to-cyan-500"); }
+                    else if (e.target.value.includes("Athletics") || e.target.value.includes("Sprint")) { setTeamIcon(""); setTeamColor("from-orange-500 to-amber-500"); }
+                    else if (e.target.value.includes("Basketball")) { setTeamIcon(""); setTeamColor("from-orange-600 to-red-500"); }
+                    else if (e.target.value.includes("Volleyball")) { setTeamIcon(""); setTeamColor("from-indigo-500 to-purple-500"); }
+                    else if (e.target.value.includes("Kabaddi") || e.target.value.includes("Kho-Kho")) { setTeamIcon(""); setTeamColor("from-amber-600 to-amber-800"); }
+                    else { setTeamIcon(""); setTeamColor("from-emerald-500 to-teal-500"); }
                   }}
                   className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs text-black dark:text-white focus:outline-none focus:border-cyan-550"
                 >
@@ -2104,12 +2090,12 @@ export default function PETeacherSportsPage() {
                     onChange={(e) => setEventIcon(e.target.value)}
                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-250 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs text-black dark:text-white focus:outline-none focus:border-emerald-550"
                   >
-                    <option value="🏆">🏆 Tournament</option>
-                    <option value="🏀">🏀 Basketball</option>
-                    <option value="⚽">⚽ Football</option>
-                    <option value="🏃‍♂️">🏃‍♂️ Athletics / Sprint</option>
-                    <option value="🏐">🏐 Volleyball</option>
-                    <option value="📅">📅 General Date</option>
+                    <option value=""><Trophy className="w-4 h-4 inline mr-1 text-amber-500" /> Tournament</option>
+                    <option value=""> Basketball</option>
+                    <option value=""> Football</option>
+                    <option value=""> Athletics / Sprint</option>
+                    <option value=""> Volleyball</option>
+                    <option value=""> General Date</option>
                   </select>
                 </div>
               </div>

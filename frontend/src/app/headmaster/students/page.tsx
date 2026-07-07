@@ -218,6 +218,12 @@ export default function StudentsMonitoringPage() {
     setNewParentEmail(s.parentEmail || "");
     setNewAddress(s.address || "");
     setNewStudentStatus(s.studentStatus || "Active");
+
+    // Reset validation errors
+    setRollError("");
+    setPhoneError("");
+    setPincodeError("");
+    setEmisError("");
   };
 
   const handleOpenEdit = (s: any) => {
@@ -238,7 +244,7 @@ export default function StudentsMonitoringPage() {
 
   const [newName, setNewName] = useState("");
   const [newRollNumber, setNewRollNumber] = useState("");
-  const [newClass, setNewClass] = useState("Class 10A");
+  const [newClass, setNewClass] = useState("Class 6");
   const [newGroup, setNewGroup] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newParentName, setNewParentName] = useState("");
@@ -265,14 +271,66 @@ export default function StudentsMonitoringPage() {
   const [newAddress, setNewAddress] = useState("");
   const [newStudentStatus, setNewStudentStatus] = useState("Active");
 
+  // Live input validations
+  const [pincodeError, setPincodeError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [rollError, setRollError] = useState("");
+  const [emisError, setEmisError] = useState("");
+
+  const handleRollChange = (val: string) => {
+    // Only allow alphanumeric characters, uppercase them for standard format
+    const cleaned = val.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    setNewRollNumber(cleaned);
+    if (cleaned.length < 3 && cleaned.length > 0) {
+      setRollError("Roll number must be at least 3 alphanumeric characters");
+    } else {
+      setRollError("");
+    }
+  };
+
+  const handlePhoneChange = (val: string) => {
+    // Limit to numeric, max 10 chars
+    const cleaned = val.replace(/\D/g, "").slice(0, 10);
+    setNewPhone(cleaned);
+    if (cleaned.length > 0 && cleaned.length < 10) {
+      setPhoneError("Phone number must be exactly 10 digits");
+    } else {
+      setPhoneError("");
+    }
+  };
+
+  const handlePincodeChange = (val: string) => {
+    // Limit to numeric, max 6 chars
+    const cleaned = val.replace(/\D/g, "").slice(0, 6);
+    setNewPincode(cleaned);
+    if (cleaned.length > 0 && cleaned.length < 6) {
+      setPincodeError("Pincode must be exactly 6 digits");
+    } else {
+      setPincodeError("");
+    }
+  };
+
+  const handleEmisChange = (val: string) => {
+    // Only allow digits, max 16 digits
+    const cleaned = val.replace(/\D/g, "").slice(0, 16);
+    setNewEmisNumber(cleaned);
+    if (cleaned.length > 0 && cleaned.length < 16) {
+      setEmisError("EMIS Number must be exactly 16 digits");
+    } else {
+      setEmisError("");
+    }
+  };
+
 
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [previewStudents, setPreviewStudents] = useState<ParsedPreviewStudent[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [modalTab, setModalTab] = useState<"manual" | "excel">("manual");
   const [studentToDelete, setStudentToDelete] = useState<WatchlistStudent | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -437,7 +495,7 @@ export default function StudentsMonitoringPage() {
         "Medium of Instruction": "English",
         "Class": "Class 11",
         "Section": "A",
-        "Group": "Computer Science",
+        "Group": "2502",
         "Academic Year": "2024-25",
         "Father Name": "Sinnasamy M.",
         "Father Occupation": "Farmer",
@@ -484,9 +542,76 @@ export default function StudentsMonitoringPage() {
         "Student Status": "Active"
       }
     ];
-    const worksheet = XLSX.utils.json_to_sheet(sampleData, { header: headers });
+
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Student Template");
+
+    // ── Sheet 1: Student Template ────────────────────────────────
+    const ws1 = XLSX.utils.json_to_sheet(sampleData, { header: headers });
+    // Column widths
+    ws1["!cols"] = headers.map(h => ({ wch: Math.max(h.length + 2, 18) }));
+    XLSX.utils.book_append_sheet(workbook, ws1, "Student Template");
+
+    // ── Sheet 2: HSC Groups Reference ───────────────────────────
+    const hscGroupsData = [
+      { "Note": "For Class 11 & 12 only. Enter ONLY the Group Code (e.g. 2502) in the Group column.", "Code": "", "Group Name": "", "Stream": "" },
+      { "Note": "", "Code": "CODE", "Group Name": "GROUP NAME (Subjects)", "Stream": "STREAM" },
+      { "Note": "", "Code": "1001", "Group Name": "Tamil, English, History, Geography", "Stream": "Arts" },
+      { "Note": "", "Code": "1002", "Group Name": "Tamil, English, Economics, Commerce", "Stream": "Arts" },
+      { "Note": "", "Code": "1003", "Group Name": "Tamil, English, History, Economics", "Stream": "Arts" },
+      { "Note": "", "Code": "1004", "Group Name": "Tamil, English, Accountancy, Commerce", "Stream": "Arts" },
+      { "Note": "", "Code": "1005", "Group Name": "Tamil, English, Civics, Geography", "Stream": "Arts" },
+      { "Note": "", "Code": "1101", "Group Name": "Tamil, English, Computer Applications, Accountancy", "Stream": "Vocational" },
+      { "Note": "", "Code": "1102", "Group Name": "Tamil, English, Computer Science, Mathematics", "Stream": "Vocational" },
+      { "Note": "", "Code": "2501", "Group Name": "Physics, Chemistry, Statistics, Mathematics", "Stream": "Science (with Mathematics)" },
+      { "Note": "", "Code": "2502", "Group Name": "Physics, Chemistry, Computer Science, Mathematics", "Stream": "Science (with Mathematics)" },
+      { "Note": "", "Code": "2503", "Group Name": "Physics, Chemistry, Biology, Mathematics", "Stream": "Science (with Mathematics)" },
+      { "Note": "", "Code": "2504", "Group Name": "Physics, Chemistry, Bio-Chemistry, Mathematics", "Stream": "Science (with Mathematics)" },
+      { "Note": "", "Code": "2505", "Group Name": "Physics, Chemistry, Communicative English, Mathematics", "Stream": "Science (with Mathematics)" },
+      { "Note": "", "Code": "2506", "Group Name": "Physics, Chemistry, Mathematics, Home Science", "Stream": "Science (with Mathematics)" },
+      { "Note": "", "Code": "2601", "Group Name": "Physics, Chemistry, Biology, Computer Science", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2602", "Group Name": "Physics, Chemistry, Biology, Micro-Biology", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2603", "Group Name": "Physics, Chemistry, Biology, Bio-Chemistry", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2604", "Group Name": "Physics, Chemistry, Biology, General Nursing", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2605", "Group Name": "Physics, Chemistry, Biology, Nutrition and Dietetics", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2606", "Group Name": "Physics, Chemistry, Biology, Communicative English", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2607", "Group Name": "Physics, Chemistry, Biology, Home Science", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2608", "Group Name": "Physics, Chemistry, Botany, Zoology", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2701", "Group Name": "Statistics, Economics, Commerce, Accountancy", "Stream": "Commerce" },
+      { "Note": "", "Code": "2702", "Group Name": "Economics, Commerce, Accountancy, Computer Applications", "Stream": "Commerce" },
+      { "Note": "", "Code": "2703", "Group Name": "Communicative English, Economics, Commerce, Accountancy", "Stream": "Commerce" },
+      { "Note": "", "Code": "2704", "Group Name": "Economics, Commerce, Accountancy, Business Mathematics", "Stream": "Commerce" },
+    ];
+    const ws2 = XLSX.utils.json_to_sheet(hscGroupsData, {
+      header: ["Note", "Code", "Group Name", "Stream"]
+    });
+    ws2["!cols"] = [{ wch: 60 }, { wch: 8 }, { wch: 60 }, { wch: 28 }];
+    XLSX.utils.book_append_sheet(workbook, ws2, "HSC Groups Reference");
+
+    // ── Sheet 3: Field Guide ────────────────────────────────────
+    const fieldGuideData = [
+      { "Field": "Gender", "Accepted Values": "Male | Female | Other", "Notes": "Case sensitive" },
+      { "Field": "Blood Group", "Accepted Values": "A+ | A- | B+ | B- | O+ | O- | AB+ | AB-", "Notes": "Use + and - symbols" },
+      { "Field": "Religion", "Accepted Values": "Hindu | Muslim | Christian | Other", "Notes": "" },
+      { "Field": "Community", "Accepted Values": "BC | MBC | SC | ST | OC | OBC | Other", "Notes": "Tamil Nadu reservation categories" },
+      { "Field": "Nationality", "Accepted Values": "Indian", "Notes": "Default: Indian" },
+      { "Field": "Medium of Instruction", "Accepted Values": "English | Tamil | Telugu | Urdu | Hindi", "Notes": "Default: English" },
+      { "Field": "Class", "Accepted Values": "Class 1 … Class 12 (or just 1 … 12)", "Notes": "e.g. Class 10, Class 11" },
+      { "Field": "Section", "Accepted Values": "A | B | C | D | ...", "Notes": "Single uppercase letter" },
+      { "Field": "Group", "Accepted Values": "Group code from Sheet 2 (e.g. 2502)", "Notes": "Only for Class 11 & 12. Leave blank for Classes 1-10." },
+      { "Field": "Academic Year", "Accepted Values": "2023-24 | 2024-25 | 2025-26", "Notes": "Format: YYYY-YY" },
+      { "Field": "Student Status", "Accepted Values": "Active | Inactive | Transfer | Dropout | Passed Out", "Notes": "Default: Active" },
+      { "Field": "Date of Birth", "Accepted Values": "YYYY-MM-DD format", "Notes": "e.g. 2008-05-12" },
+      { "Field": "Phone Number", "Accepted Values": "10-digit mobile number", "Notes": "e.g. 9876543210" },
+      { "Field": "Pincode", "Accepted Values": "6-digit pincode", "Notes": "e.g. 641001" },
+      { "Field": "Roll Number", "Accepted Values": "Any unique string", "Notes": "REQUIRED. Must be unique per school." },
+      { "Field": "Full Name", "Accepted Values": "Student full name", "Notes": "REQUIRED." },
+    ];
+    const ws3 = XLSX.utils.json_to_sheet(fieldGuideData, {
+      header: ["Field", "Accepted Values", "Notes"]
+    });
+    ws3["!cols"] = [{ wch: 24 }, { wch: 50 }, { wch: 38 }];
+    XLSX.utils.book_append_sheet(workbook, ws3, "Field Guide");
+
     XLSX.writeFile(workbook, "student_import_template.xlsx");
   };
 
@@ -645,7 +770,16 @@ export default function StudentsMonitoringPage() {
   // ── Save single manual entry to PostgreSQL ──────────────────────
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName || !newRollNumber) return;
+    if (!newName.trim()) return;
+    if (!newRollNumber.trim()) {
+      setRollError("Roll Number is required");
+      return;
+    }
+    if (rollError || phoneError || pincodeError || emisError) {
+      showToast("❌ Please fix validation errors in the form first.", "error");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const url = isEditMode ? `${API_BASE}/api/headmaster/students/${editingStudentId}` : `${API_BASE}/api/headmaster/students`;
@@ -701,9 +835,14 @@ export default function StudentsMonitoringPage() {
         setNewCity(""); setNewPincode("");
         setNewAdmissionNumber(""); setNewEmisNumber(""); setNewDob(""); setNewGender("");
         setNewBloodGroup(""); setNewReligion(""); setNewCommunity(""); setNewNationality("Indian");
-        setNewMediumOfInstruction("English"); setNewSection("A"); setNewAcademicYear("2024-25");
         setNewFatherName(""); setNewFatherOccupation(""); setNewMotherName(""); setNewMotherOccupation("");
         setNewParentEmail(""); setNewAddress(""); setNewStudentStatus("Active");
+
+        // Clear error states
+        setRollError("");
+        setPhoneError("");
+        setPincodeError("");
+        setEmisError("");
 
         setIsModalOpen(false);
         fetchWatchlist();
@@ -719,6 +858,7 @@ export default function StudentsMonitoringPage() {
 
   // ── Delete student ──────────────────────────────────────────────
   const handleDelete = async (id: string) => {
+    setDeleting(true);
     try {
       const res = await fetch(`${API_BASE}/api/headmaster/students/${id}`, { method: "DELETE" });
       const json = await res.json();
@@ -731,6 +871,7 @@ export default function StudentsMonitoringPage() {
     } catch {
       showToast("🔴 Could not delete — server error.", "error");
     } finally {
+      setDeleting(false);
       setIsDeleteConfirmOpen(false);
       setStudentToDelete(null);
     }
@@ -886,8 +1027,8 @@ export default function StudentsMonitoringPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2 glass rounded-2xl p-6 border border-slate-800">
+      <div className="mb-6">
+        <div className="w-full glass rounded-2xl p-6 border border-slate-800">
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-base font-semibold text-white">🏫 Student Watchlist Overview</h2>
             <div className="flex items-center gap-3">
@@ -1078,64 +1219,88 @@ export default function StudentsMonitoringPage() {
             </div>
           )}
         </div>
+      </div>
 
-
-        {/* Watchlist */}
-        <div className="glass rounded-2xl p-6 border border-slate-800">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-white">⚠️ Student Watchlist</h2>
-            {isLoading && <div className="w-4 h-4 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />}
+      {/* ── Bulk Import Template Card ─────────────────────────────────── */}
+      <div className="glass rounded-2xl p-6 border border-slate-800 mb-6 fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400 text-xl shrink-0">
+              📊
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-white">Bulk Student Import</h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">Download the Excel template, fill student data, and upload to register hundreds of students at once.</p>
+            </div>
           </div>
-          <div className="space-y-4 max-h-[450px] overflow-y-auto pr-1">
-            {watchlist.length === 0 && !isLoading ? (
-              <div className="text-center py-8 text-slate-500 text-xs">No students in watchlist. Add one using the form.</div>
-            ) : (
-              watchlist.map((s) => (
-                <div
-                  key={s.id || s.rollNumber}
-                  className="p-3.5 rounded-xl border text-xs border-amber-500/20 bg-amber-500/5"
-                >
-                  <div className="flex justify-between items-start mb-1.5">
-                    <div>
-                      <h4 className="font-bold text-white text-sm">{s.name}</h4>
-                      <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-slate-500 font-semibold mt-0.5">
-                        <span>{s.class}</span>
-                        <span>•</span>
-                        <span>Roll: {s.rollNumber || "N/A"}</span>
-                        <span>•</span>
-                        <span>Ph: {s.phone || "N/A"}</span>
-                      </div>
-                      <div className="text-[10px] text-slate-400 mt-1">
-                        Parent: <span className="font-medium text-slate-300">{s.parentName || "N/A"}</span>
-                      </div>
-                      <div className="text-[9px] text-slate-500 mt-0.5 leading-relaxed">
-                        Address: {s.city}, {s.district}, {s.state} - {s.pincode}
-                      </div>
-                      {s.createdAt && (
-                        <div className="text-[9px] text-slate-600 mt-0.5">
-                          Added: {new Date(s.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-
-                      {s.id && (
-                        <button
-                          onClick={() => {
-                            setStudentToDelete(s);
-                            setIsDeleteConfirmOpen(true);
-                          }}
-                          className="text-[10px] text-red-400 hover:text-red-300 font-semibold transition-colors"
-                        >
-                          ✕ Remove
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+          <div className="flex gap-3 shrink-0">
+            <button
+              onClick={downloadExcelTemplate}
+              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-emerald-600/20 whitespace-nowrap"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Download Template (.xlsx)
+            </button>
+            <button
+              onClick={() => {
+                populateForm({});
+                setIsViewMode(false);
+                setIsEditMode(false);
+                setEditingStudentId(null);
+                setModalTab("excel");
+                setIsModalOpen(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 text-xs font-bold rounded-xl transition-all whitespace-nowrap"
+            >
+              📤 Upload Now
+            </button>
           </div>
+        </div>
+
+        {/* Template columns reference */}
+        <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">📋 Template Columns Reference</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-1.5">
+            {[
+              { col: "Full Name", req: true },
+              { col: "Roll Number", req: true },
+              { col: "Admission Number", req: false },
+              { col: "EMIS Number", req: false },
+              { col: "Date of Birth (YYYY-MM-DD)", req: false },
+              { col: "Gender", req: false },
+              { col: "Blood Group", req: false },
+              { col: "Religion", req: false },
+              { col: "Community", req: false },
+              { col: "Nationality", req: false },
+              { col: "Medium of Instruction", req: false },
+              { col: "Class", req: false },
+              { col: "Section", req: false },
+              { col: "Group", req: false },
+              { col: "Academic Year", req: false },
+              { col: "Father Name", req: false },
+              { col: "Mother Name", req: false },
+              { col: "Primary Contact Name", req: false },
+              { col: "Phone Number", req: false },
+              { col: "Parent Email", req: false },
+              { col: "Address", req: false },
+              { col: "City", req: false },
+              { col: "District", req: false },
+              { col: "State", req: false },
+              { col: "Pincode", req: false },
+              { col: "Student Status", req: false },
+            ].map(({ col, req }) => (
+              <div key={col} className="flex items-center gap-1.5">
+                {req ? (
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                ) : (
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0" />
+                )}
+                <span className={`text-[10px] font-medium truncate ${ req ? "text-slate-200" : "text-slate-400" }`}>{col}</span>
+                {req && <span className="text-[8px] text-red-400 font-bold shrink-0">*</span>}
+              </div>
+            ))}
+          </div>
+          <p className="text-[9px] text-slate-500 mt-3"><span className="text-red-400">*</span> Required columns. All other columns are optional but recommended.</p>
         </div>
       </div>
 
@@ -1143,20 +1308,44 @@ export default function StudentsMonitoringPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
-            className="w-full max-w-4xl rounded-3xl p-6 space-y-6 relative transition-all duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar"
+            className="w-full max-w-4xl rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-6 relative transition-all duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar"
             style={{
               background: "#ffffff",
               border: "1px solid rgba(0, 0, 0, 0.08)",
               boxShadow: "0 20px 50px rgba(0, 0, 0, 0.15)",
             }}
           >
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-slate-800">
-                {previewStudents.length > 0 ? "📋 Preview Roster Import" : "🎓 Register New Student"}
-              </h3>
+            {/* Modal Header with Tabs */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-3 gap-2.5">
+              <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setModalTab("manual")}
+                  disabled={previewStudents.length > 0}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    modalTab === "manual"
+                      ? "bg-white text-slate-800 shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  ✏️ Manual Entry
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModalTab("excel")}
+                  disabled={previewStudents.length > 0}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    modalTab === "excel"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  📊 Excel Import
+                </button>
+              </div>
               <button
-                onClick={() => { setIsModalOpen(false); setPreviewStudents([]); }}
-                className="text-slate-500 hover:text-slate-800 text-xs font-semibold"
+                onClick={() => { setIsModalOpen(false); setPreviewStudents([]); setModalTab("manual"); }}
+                className="text-slate-500 hover:text-slate-800 text-xs font-semibold self-end sm:self-auto"
               >
                 ✕ Close
               </button>
@@ -1288,8 +1477,9 @@ export default function StudentsMonitoringPage() {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-8">
-                {/* Manual Form */}
+              <div className="flex flex-col gap-4">
+                {/* ── MANUAL ENTRY TAB ── */}
+                {modalTab === "manual" && (
                 <form onSubmit={handleManualSubmit} className="space-y-4">
                   <fieldset disabled={isViewMode}>
                     <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Manual Entry</div>
@@ -1298,7 +1488,7 @@ export default function StudentsMonitoringPage() {
                     <div className="pt-1 pb-2 border-b border-slate-200">
                       <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Personal Details</h4>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="col-span-2">
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Full Name</label>
                         <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)}
@@ -1368,37 +1558,60 @@ export default function StudentsMonitoringPage() {
                     <div className="pt-3 pb-2 border-b border-slate-200">
                       <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Academic Details</h4>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Admission Number</label>
                         <input type="text" value={newAdmissionNumber} onChange={(e) => setNewAdmissionNumber(e.target.value)}
+                          placeholder="e.g. ADM2026101"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">EMIS Number</label>
-                        <input type="text" value={newEmisNumber} onChange={(e) => setNewEmisNumber(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                          EMIS Number
+                          <span className="ml-1 text-slate-400 font-normal">(16 digits)</span>
+                        </label>
+                        <input type="text" value={newEmisNumber} onChange={(e) => handleEmisChange(e.target.value)}
+                          placeholder="e.g. 3302100010101234"
+                          maxLength={16}
+                          className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-colors ${
+                            emisError
+                              ? "border-red-400 focus:border-red-500 focus:bg-white"
+                              : newEmisNumber.length === 16
+                              ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                              : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                          }`} />
+                        {emisError && (
+                          <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{emisError}</p>
+                        )}
                       </div>
                       <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Roll Number</label>
-                        <input type="text" required value={newRollNumber} onChange={(e) => setNewRollNumber(e.target.value)}
+                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                          Roll Number
+                          <span className="ml-1 text-red-500">*</span>
+                        </label>
+                        <input type="text" required value={newRollNumber} onChange={(e) => handleRollChange(e.target.value)}
                           placeholder="e.g. HM10101"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none transition-colors ${
+                            rollError
+                              ? "border-red-400 focus:border-red-500 focus:bg-white"
+                              : newRollNumber.length >= 3
+                              ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                              : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                          }`} />
+                        {rollError && (
+                          <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{rollError}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Academic Year</label>
                         <input type="text" value={newAcademicYear} onChange={(e) => setNewAcademicYear(e.target.value)}
+                          placeholder="e.g. 2024-25"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Class</label>
                         <select required value={newClass} onChange={(e) => setNewClass(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
                           <option value="">Select Class</option>
-                          <option value="Class 1">Class 1</option>
-                          <option value="Class 2">Class 2</option>
-                          <option value="Class 3">Class 3</option>
-                          <option value="Class 4">Class 4</option>
-                          <option value="Class 5">Class 5</option>
                           <option value="Class 6">Class 6</option>
                           <option value="Class 7">Class 7</option>
                           <option value="Class 8">Class 8</option>
@@ -1462,25 +1675,29 @@ export default function StudentsMonitoringPage() {
                     <div className="pt-3 pb-2 border-b border-slate-200">
                       <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Parent / Guardian Details</h4>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Name</label>
                         <input type="text" value={newFatherName} onChange={(e) => setNewFatherName(e.target.value)}
+                          placeholder="e.g. Ramasamy"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Occupation</label>
                         <input type="text" value={newFatherOccupation} onChange={(e) => setNewFatherOccupation(e.target.value)}
+                          placeholder="e.g. Farmer"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Name</label>
                         <input type="text" value={newMotherName} onChange={(e) => setNewMotherName(e.target.value)}
+                          placeholder="e.g. Lakshmi"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Occupation</label>
                         <input type="text" value={newMotherOccupation} onChange={(e) => setNewMotherOccupation(e.target.value)}
+                          placeholder="e.g. Homemaker"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
@@ -1492,13 +1709,27 @@ export default function StudentsMonitoringPage() {
                       <div>
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Parent Email</label>
                         <input type="email" value={newParentEmail} onChange={(e) => setNewParentEmail(e.target.value)}
+                          placeholder="e.g. parent@example.com"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Phone Number</label>
-                        <input type="text" required value={newPhone} onChange={(e) => setNewPhone(e.target.value)}
+                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                          Phone Number
+                          <span className="ml-1 text-red-500">*</span>
+                        </label>
+                        <input type="text" required value={newPhone} onChange={(e) => handlePhoneChange(e.target.value)}
                           placeholder="e.g. 9876543210"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          maxLength={10}
+                          className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none transition-colors ${
+                            phoneError
+                              ? "border-red-400 focus:border-red-500 focus:bg-white"
+                              : newPhone.length === 10
+                              ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                              : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                          }`} />
+                        {phoneError && (
+                          <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{phoneError}</p>
+                        )}
                       </div>
                     </div>
 
@@ -1506,10 +1737,11 @@ export default function StudentsMonitoringPage() {
                     <div className="pt-3 pb-2 border-b border-slate-200">
                       <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Address Details</h4>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="col-span-2">
                         <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Address</label>
                         <input type="text" value={newAddress} onChange={(e) => setNewAddress(e.target.value)}
+                          placeholder="e.g. 123 Main Street"
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
@@ -1531,10 +1763,23 @@ export default function StudentsMonitoringPage() {
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                       </div>
                       <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Pincode</label>
-                        <input type="text" value={newPincode} onChange={(e) => setNewPincode(e.target.value)}
+                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                          Pincode
+                          <span className="ml-1 text-slate-400 font-normal">(6 digits)</span>
+                        </label>
+                        <input type="text" value={newPincode} onChange={(e) => handlePincodeChange(e.target.value)}
                           placeholder="e.g. 641001"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          maxLength={6}
+                          className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-colors ${
+                            pincodeError
+                              ? "border-red-400 focus:border-red-500 focus:bg-white"
+                              : newPincode.length === 6
+                              ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                              : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                          }`} />
+                        {pincodeError && (
+                          <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{pincodeError}</p>
+                        )}
                       </div>
                     </div>
 
@@ -1546,17 +1791,16 @@ export default function StudentsMonitoringPage() {
                     </button>}
                   </fieldset>
                 </form>
+                )} {/* end manual tab */}
 
-                {!isEditMode && !isViewMode && (
-                  <>
-                    {/* Excel Import */}
-                    <div className="border-t border-slate-200 pt-6 flex flex-col justify-between">
-                      <div className="space-y-4">
+                {/* ── EXCEL IMPORT TAB ── */}
+                {modalTab === "excel" && (
+                  <div className="space-y-4 py-2">
                         <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex justify-between items-center">
-                          <span>Excel Import</span>
+                          <span>📊 Excel / CSV Bulk Import</span>
                           <button onClick={downloadExcelTemplate} type="button"
-                            className="text-[10px] text-blue-600 hover:text-blue-700 font-bold underline cursor-pointer">
-                            📥 Get Template
+                            className="flex items-center gap-1.5 text-[10px] bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg cursor-pointer transition-colors">
+                            <Download className="w-3 h-3" /> Download Template
                           </button>
                         </div>
                         <div
@@ -1587,13 +1831,8 @@ export default function StudentsMonitoringPage() {
                           accept=".xlsx,.xls,.csv"
                           className="hidden"
                         />
-                      </div>
-                      <div className="text-[10px] text-slate-400 italic leading-relaxed pt-4">
-                        * Data is stored in PostgreSQL — persists across sessions and refreshes.
-                      </div>
-                    </div>
-                  </>
-                )}
+                  </div>
+                )} {/* end excel tab */}
               </div>
             )}
           </div>
@@ -1858,38 +2097,61 @@ export default function StudentsMonitoringPage() {
       )}
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && studentToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-[24px] w-full max-w-md p-6 shadow-2xl relative border border-slate-100 animate-in fade-in zoom-in-95 duration-200 text-left">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
-                <Trash2 className="w-5 h-5" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-white dark:bg-slate-950 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            {/* Red top accent bar */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-red-500 to-rose-600" />
+
+            <div className="p-6">
+              {/* Icon + Title */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-500/15 flex items-center justify-center shrink-0">
+                  <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-white">Delete Student</h3>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">This action cannot be undone</p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <h3 className="text-lg font-extrabold text-slate-800">
-                  Delete Student
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Are you sure you want to delete <span className="font-semibold text-slate-700">{studentToDelete.name}</span>? This action cannot be undone and will delete all dependent health records, marks, and attendance records.
+
+              {/* Message */}
+              <div className="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-xl px-4 py-3 mb-5">
+                <p className="text-xs text-slate-750 dark:text-slate-300 leading-relaxed">
+                  Are you sure you want to permanently delete{" "}
+                  <span className="font-bold text-red-600 dark:text-red-400">&ldquo;{studentToDelete.name}&rdquo;</span>?
+                </p>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                  All dependent health reports, marks, and attendance records will be permanently removed.
                 </p>
               </div>
-            </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setIsDeleteConfirmOpen(false);
-                  setStudentToDelete(null);
-                }}
-                className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(studentToDelete.id!)}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-red-600/10 active:scale-95"
-              >
-                Delete Student
-              </button>
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setIsDeleteConfirmOpen(false);
+                    setStudentToDelete(null);
+                  }}
+                  disabled={deleting}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-655 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(studentToDelete.id!)}
+                  disabled={deleting}
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5"
+                >
+                  {deleting ? (
+                    <>
+                      <span className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>Yes, Delete</>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

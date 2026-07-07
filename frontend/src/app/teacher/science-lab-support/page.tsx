@@ -4,23 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
-import {
-  Beaker,
-  Settings,
-  AlertTriangle,
-  Wrench,
-  ClipboardCheck,
-  Package,
-  PlusCircle,
-  FileText,
-  Search,
-  Eye,
-  Microscope,
-  Zap,
-  Flame,
-  X,
-  Trash2
-} from "lucide-react";
+import { Beaker, Settings, AlertTriangle, Wrench, ClipboardCheck, Package, PlusCircle, FileText, Search, Eye, Microscope, Zap, Flame, X, Trash2, CheckCircle, Rocket, Star, FlaskConical, MapPin, Construction, Hash, Stethoscope } from "lucide-react";
 
 interface InventoryItem {
   id: string;
@@ -246,7 +230,7 @@ export default function ScienceLabSupportPage() {
 
   return (
     <PortalLayout
-      title="Science Lab Support 🧪"
+      title="Science Lab Support "
       subtitle="Discover cool equipment, manage inventory logs, and track safety checklist."
     >
       <div className="flex flex-col gap-8">
@@ -257,7 +241,7 @@ export default function ScienceLabSupportPage() {
             <div className="text-left">
               <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Lab Power Level</p>
               <h3 className="text-4xl font-black text-emerald-500 dark:text-emerald-400 drop-shadow-sm">{powerLevel}%</h3>
-              <p className="text-sm text-emerald-600 font-bold mt-2">Ready for Action! 🚀</p>
+              <p className="text-sm text-emerald-600 font-bold mt-2">Ready for Action! <Rocket className="w-4 h-4 inline-block mr-1 text-inherit" /></p>
             </div>
             <div className="w-16 h-16 rounded-[1.5rem] bg-emerald-100 dark:bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-500/20">
               <Zap className="w-8 h-8" />
@@ -268,7 +252,7 @@ export default function ScienceLabSupportPage() {
             <div className="text-left">
               <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Broken Stuff</p>
               <h3 className="text-4xl font-black text-rose-500 dark:text-rose-400 drop-shadow-sm">{brokenCount}</h3>
-              <p className="text-sm text-rose-600 font-bold mt-2">Needs Fixing 🛠️</p>
+              <p className="text-sm text-rose-600 font-bold mt-2">Needs Fixing <Wrench className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /></p>
             </div>
             <div className="w-16 h-16 rounded-[1.5rem] bg-rose-100 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400 flex items-center justify-center border border-rose-200 dark:border-rose-500/20">
               <Wrench className="w-8 h-8" />
@@ -279,7 +263,7 @@ export default function ScienceLabSupportPage() {
             <div className="text-left">
               <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Low Stock Gear</p>
               <h3 className="text-4xl font-black text-amber-500 dark:text-amber-400 drop-shadow-sm">{lowStockCount}</h3>
-              <p className="text-sm text-amber-600 font-bold mt-2">Refill Needed 🧪</p>
+              <p className="text-sm text-amber-600 font-bold mt-2">Refill Needed <FlaskConical className="w-4 h-4 inline-block mr-1 text-inherit" /></p>
             </div>
             <div className="w-16 h-16 rounded-[1.5rem] bg-amber-100 dark:bg-amber-500/10 text-amber-500 dark:text-amber-400 flex items-center justify-center border border-amber-200 dark:border-amber-500/20">
               <AlertTriangle className="w-8 h-8" />
@@ -414,7 +398,7 @@ export default function ScienceLabSupportPage() {
 
                         <h4 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-2 relative z-10 text-left">{item.item}</h4>
                         <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-6 flex items-center gap-2 relative z-10 text-left">
-                          📍 {item.location}
+                          <MapPin className="w-4 h-4 inline-block mr-1 text-inherit" /> {item.location}
                         </p>
 
                         <div className="mt-auto flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 relative z-10">
@@ -458,7 +442,7 @@ export default function ScienceLabSupportPage() {
                 <div className="w-24 h-24 bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-full flex items-center justify-center mb-6 animate-pulse">
                   <FileText className="w-12 h-12 text-slate-400" />
                 </div>
-                <h3 className="text-2xl font-black text-slate-700 dark:text-slate-300">Building this section! 🚧</h3>
+                <h3 className="text-2xl font-black text-slate-700 dark:text-slate-300">Building this section! <Construction className="w-4 h-4 inline-block mr-1 text-inherit" /></h3>
                 <p className="text-base font-bold text-slate-500 mt-2">Check back soon for more cool stuff.</p>
               </div>
             )}
@@ -473,7 +457,7 @@ export default function ScienceLabSupportPage() {
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-md shadow-2xl border-4 border-slate-100 dark:border-slate-800 animate-in zoom-in-95 p-2">
             <div className="flex justify-between items-center p-6 bg-slate-50 dark:bg-slate-950 rounded-[2rem] mb-4">
               <h3 className="text-xl font-black text-blue-600 dark:text-blue-400">
-                {isEdit ? "⚙️ Modify Lab Gear" : "🧪 Add New Lab Gear!"}
+                {isEdit ? " Modify Lab Gear" : " Add New Lab Gear!"}
               </h3>
               <button 
                 onClick={() => setModalOpen(false)} 
@@ -485,7 +469,7 @@ export default function ScienceLabSupportPage() {
             
             <form onSubmit={handleSaveItem} className="p-4 space-y-5">
               <div className="text-left">
-                <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">What is it? 📦</label>
+                <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">What is it? <Package className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <input 
                   required 
                   name="item" 
@@ -497,7 +481,7 @@ export default function ScienceLabSupportPage() {
               </div>
               
               <div className="text-left">
-                <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Where does it live? 📍</label>
+                <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Where does it live? <MapPin className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <input 
                   required 
                   name="location" 
@@ -510,7 +494,7 @@ export default function ScienceLabSupportPage() {
               
               <div className="grid grid-cols-2 gap-4 text-left">
                 <div>
-                  <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">How Many? 🔢</label>
+                  <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">How Many? <Hash className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                   <input 
                     required 
                     name="count" 
@@ -521,16 +505,16 @@ export default function ScienceLabSupportPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Status 🩺</label>
+                  <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Status <Stethoscope className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                   <select 
                     required 
                     name="status" 
                     defaultValue={currentItem?.status || "Good"}
                     className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white rounded-xl py-3 px-4 text-sm font-semibold focus:outline-none focus:border-blue-500 transition-all"
                   >
-                    <option value="Good">Good ✅</option>
-                    <option value="Low Stock">Low Stock ⚠️</option>
-                    <option value="Needs Maintenance">Broken ❌</option>
+                    <option value="Good">Good <CheckCircle className="w-4 h-4 inline ml-1 text-emerald-500" /></option>
+                    <option value="Low Stock">Low Stock <AlertTriangle className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
+                    <option value="Needs Maintenance">Broken <X className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
                   </select>
                 </div>
               </div>

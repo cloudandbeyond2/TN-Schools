@@ -4,23 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
-import { 
-  Monitor, 
-  Terminal, 
-  Code2, 
-  Cpu, 
-  BookMarked,
-  Trophy,
-  X,
-  Keyboard,
-  Gamepad2,
-  Rocket,
-  Zap,
-  Sparkles,
-  Plus,
-  Pencil,
-  Trash2
-} from "lucide-react";
+import { Monitor, Terminal, Code2, Cpu, BookMarked, Trophy, X, Keyboard, Gamepad2, Rocket, Zap, Sparkles, Plus, Pencil, Trash2, Building2, Hourglass, FileText, Wrench, Edit, Laptop } from "lucide-react";
 
 type ComputerModule = {
   id: string;
@@ -83,7 +67,7 @@ export default function ComputerEducationPage() {
       showCancelButton: true,
       confirmButtonColor: "#6366f1",
       cancelButtonColor: "#94a3b8",
-      confirmButtonText: "Yes, delete it! 🗑️"
+      confirmButtonText: "Yes, delete it! "
     });
 
     if (!result.isConfirmed) return;
@@ -138,7 +122,7 @@ export default function ComputerEducationPage() {
         setModalOpen(false);
         Swal.fire({
           title: "Success!",
-          text: isEdit ? "Module updated! ✨" : "New module added! 🚀",
+          text: isEdit ? "Module updated! " : "New module added! ",
           icon: "success",
           confirmButtonColor: "#6366f1"
         });
@@ -170,7 +154,7 @@ export default function ComputerEducationPage() {
 
   return (
     <PortalLayout
-      title="Computer Lab! 💻"
+      title="Computer Lab! "
       subtitle="Code, Play, and Learn Technology!"
     >
       <div className="flex flex-col gap-8">
@@ -219,9 +203,9 @@ export default function ComputerEducationPage() {
               
               <div className="space-y-6">
                 {loading ? (
-                  <div className="text-center py-10 font-bold text-slate-500">Loading modules... ⏳</div>
+                  <div className="text-center py-10 font-bold text-slate-500">Loading modules... <Hourglass className="w-4 h-4 inline-block mr-1 text-inherit" /></div>
                 ) : modules.length === 0 ? (
-                  <div className="text-center py-10 font-bold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-3xl border-4 border-dashed border-slate-200 dark:border-slate-700">No modules yet! Add some code paths! 🚀</div>
+                  <div className="text-center py-10 font-bold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-3xl border-4 border-dashed border-slate-200 dark:border-slate-700">No modules yet! Add some code paths! <Rocket className="w-4 h-4 inline-block mr-1 text-inherit" /></div>
                 ) : modules.map((mod, i) => {
                   const { icon, color, progress, students } = getModuleStyle(mod.title, i);
                   return (
@@ -283,7 +267,7 @@ export default function ComputerEducationPage() {
               <h3 className="text-xl font-black text-amber-900 dark:text-amber-100 mb-2">Rewards & Badges!</h3>
               <p className="text-sm font-bold text-slate-500 mb-6">Give kids cool digital stickers for typing fast or finishing code!</p>
               
-              <button onClick={() => Swal.fire({title: 'Stickers!', text: 'Opening sticker book! 🌟', icon: 'success'})} className="w-full py-3 rounded-2xl bg-amber-400 text-amber-900 font-black text-sm shadow-lg shadow-amber-500/30 hover:bg-amber-300 active:scale-95 transition-all border-b-4 border-amber-500">
+              <button onClick={() => Swal.fire({title: 'Stickers!', text: 'Opening sticker book! ', icon: 'success'})} className="w-full py-3 rounded-2xl bg-amber-400 text-amber-900 font-black text-sm shadow-lg shadow-amber-500/30 hover:bg-amber-300 active:scale-95 transition-all border-b-4 border-amber-500">
                 Give out Stickers!
               </button>
             </div>
@@ -297,12 +281,12 @@ export default function ComputerEducationPage() {
               </h3>
               
               <div className="space-y-4">
-                <button onClick={() => Swal.fire({title: 'Plans', text: 'Opening Lesson Plans... 📚', icon: 'info'})} className="w-full text-left p-4 rounded-2xl border-4 border-slate-100 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-slate-600 hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-slate-700 dark:text-slate-200 flex items-center gap-3 group">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-emerald-100 text-slate-400 group-hover:text-emerald-500 transition-colors">📑</div>
+                <button onClick={() => Swal.fire({title: 'Plans', text: 'Opening Lesson Plans... ', icon: 'info'})} className="w-full text-left p-4 rounded-2xl border-4 border-slate-100 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-slate-600 hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-slate-700 dark:text-slate-200 flex items-center gap-3 group">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-emerald-100 text-slate-400 group-hover:text-emerald-500 transition-colors"><FileText className="w-4 h-4 inline-block mr-1 text-inherit" /></div>
                   Lesson Plans
                 </button>
-                <button onClick={() => Swal.fire({title: 'Fix It', text: 'Fixing computer bugs! 🐛', icon: 'info'})} className="w-full text-left p-4 rounded-2xl border-4 border-slate-100 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-slate-600 hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-slate-700 dark:text-slate-200 flex items-center gap-3 group">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-emerald-100 text-slate-400 group-hover:text-emerald-500 transition-colors">🔧</div>
+                <button onClick={() => Swal.fire({title: 'Fix It', text: 'Fixing computer bugs! ', icon: 'info'})} className="w-full text-left p-4 rounded-2xl border-4 border-slate-100 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-slate-600 hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-slate-700 dark:text-slate-200 flex items-center gap-3 group">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-emerald-100 text-slate-400 group-hover:text-emerald-500 transition-colors"><Wrench className="w-4 h-4 inline-block mr-1 text-inherit" /></div>
                   Fix It Guide
                 </button>
               </div>
@@ -317,7 +301,7 @@ export default function ComputerEducationPage() {
             <div className="bg-white dark:bg-slate-800 rounded-[3rem] w-full max-w-md shadow-2xl border-4 border-indigo-200 dark:border-slate-700 animate-in zoom-in-95 p-3">
               <div className="flex justify-between items-center p-6 bg-indigo-50 dark:bg-slate-900 rounded-[2.5rem] mb-6">
                 <h3 className="text-2xl font-black text-indigo-600 dark:text-indigo-400">
-                  {isEdit ? "Edit Level! 🔧" : "Add a New Level! 🚀"}
+                  {isEdit ? "Edit Level! " : "Add a New Level! "}
                 </h3>
                 <button onClick={() => setModalOpen(false)} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-full text-slate-400 hover:text-indigo-500 hover:scale-110 transition-all shadow-sm">
                   <X className="w-6 h-6" />
@@ -325,16 +309,16 @@ export default function ComputerEducationPage() {
               </div>
               <form onSubmit={handleSaveModule} className="p-4 space-y-6">
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 font-mono">Level Name 🎮</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 font-mono">Level Name <Gamepad2 className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                   <input required name="title" defaultValue={currentModule?.title} type="text" placeholder="e.g., Making a Robot!" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all font-mono" />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 font-mono">Description 📝</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 font-mono">Description <Edit className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                   <input required name="description" defaultValue={currentModule?.description} type="text" placeholder="What will they learn?" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 font-mono">Type 💻</label>
+                    <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 font-mono">Type <Laptop className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                     <select required name="moduleType" defaultValue={currentModule?.moduleType || "Coding"} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all">
                       <option value="Coding">Coding</option>
                       <option value="Hardware">Hardware</option>
@@ -343,7 +327,7 @@ export default function ComputerEducationPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 font-mono">Grade 🏫</label>
+                    <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2 font-mono">Grade <Building2 className="w-4 h-4 inline" /></label>
                     <select required name="gradeLevel" defaultValue={currentModule?.gradeLevel || "All Grades"} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all">
                       <option value="All Grades">All Grades</option>
                       <option value="Primary">Primary</option>
@@ -358,7 +342,7 @@ export default function ComputerEducationPage() {
                     Nevermind
                   </button>
                   <button type="submit" className="flex-1 py-4 rounded-2xl text-sm font-black text-white bg-indigo-500 hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-500/30 active:scale-95 border-b-4 border-indigo-700">
-                    {isEdit ? "Update It! ✨" : "Add It! 🚀"}
+                    {isEdit ? "Update It! " : "Add It! "}
                   </button>
                 </div>
               </form>

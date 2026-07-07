@@ -1,4 +1,6 @@
 "use client";
+import { Sparkles, CheckCircle, BookOpen, GraduationCap, Eye, FolderOpen, Menu, Package, X, Target, Plus } from "lucide-react";
+
 
 import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
@@ -24,7 +26,7 @@ interface LibraryResource {
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-const typeIcon: Record<string, string> = { PDF: "📄", Video: "🎬", "E-Book": "📚", Worksheet: "📋", PPT: "📊", Audio: "🎵" };
+const typeIcon: Record<string, string> = { PDF: "", Video: "", "E-Book": "", Worksheet: "", PPT: "", Audio: "" };
 const typeColor: Record<string, string> = {
   PDF: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
   Video: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
@@ -263,10 +265,10 @@ export default function DigitalLibraryPage() {
       {/* ── KPI Cards ─────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Resources", value: resources.length, icon: "📚", color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950/20" },
-          { label: "Total Downloads", value: totalDownloads, icon: "⬇️", color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
-          { label: "Total Views", value: totalViews, icon: "👁", color: "text-violet-500", bg: "bg-violet-50 dark:bg-violet-950/20" },
-          { label: "Subjects Covered", value: new Set(resources.map((r) => r.subject)).size, icon: "🎓", color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20" },
+          { label: "Total Resources", value: resources.length, icon: <BookOpen className="w-5 h-5" />, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950/20" },
+          { label: "Total Downloads", value: totalDownloads, icon: "⬇", color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
+          { label: "Total Views", value: totalViews, icon: <Eye className="w-5 h-5" />, color: "text-violet-500", bg: "bg-violet-50 dark:bg-violet-950/20" },
+          { label: "Subjects Covered", value: new Set(resources.map((r) => r.subject)).size, icon: <GraduationCap className="w-5 h-5" />, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
             <div className={`w-9 h-9 ${kpi.bg} rounded-xl flex items-center justify-center text-lg mb-3`}>{kpi.icon}</div>
@@ -278,7 +280,7 @@ export default function DigitalLibraryPage() {
 
       {/* ── Resource Type Quick Access ─────────────────────────── */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 mb-5 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4">📂 Resource Categories</h3>
+        <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><FolderOpen className="w-4 h-4 inline-block mr-1 text-inherit" /> Resource Categories</h3>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
           {Object.entries(typeIcon).map(([type, icon]) => {
             const count = resources.filter((r) => r.type === type).length;
@@ -309,7 +311,7 @@ export default function DigitalLibraryPage() {
           </select>
           <div className="flex items-center gap-2">
             <button onClick={() => setViewMode("grid")} className={`p-2 rounded-lg text-xs transition-all ${viewMode === "grid" ? "bg-amber-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>⊞</button>
-            <button onClick={() => setViewMode("list")} className={`p-2 rounded-lg text-xs transition-all ${viewMode === "list" ? "bg-amber-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>☰</button>
+            <button onClick={() => setViewMode("list")} className={`p-2 rounded-lg text-xs transition-all ${viewMode === "list" ? "bg-amber-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}><Menu className="w-4 h-4 inline-block mr-1 text-inherit" /></button>
           </div>
           <button onClick={handleOpenAdd} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-md whitespace-nowrap">⬆ Upload Resource</button>
         </div>
@@ -331,7 +333,7 @@ export default function DigitalLibraryPage() {
           {filtered.map((resource) => (
             <div key={resource.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all group">
               <div className="flex items-start gap-3 mb-3">
-                <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shrink-0">{typeIcon[resource.type] || "📄"}</div>
+                <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shrink-0">{typeIcon[resource.type] || ""}</div>
                 <div className="flex-1 min-w-0">
                   <h4 className="text-xs font-bold text-slate-800 dark:text-white group-hover:text-amber-500 transition-colors leading-tight">{resource.title}</h4>
                   <div className="flex items-center gap-1.5 mt-1">
@@ -346,7 +348,7 @@ export default function DigitalLibraryPage() {
               </div>
               <div className="flex justify-between items-center border-t border-slate-100 dark:border-slate-800 pt-3">
                 <div className="flex gap-3 text-[10px] text-slate-400">
-                  <span>⬇ {resource.downloads}</span><span>👁 {resource.views}</span><span>📦 {resource.size}</span>
+                  <span>⬇ {resource.downloads}</span><span><Eye className="w-4 h-4 inline-block mr-1 text-inherit" /> {resource.views}</span><span><Package className="w-4 h-4 inline-block mr-1 text-inherit" /> {resource.size}</span>
                 </div>
                 <div className="flex gap-1">
                   <button onClick={() => handleOpenEdit(resource)} className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded-lg font-bold text-[10px] transition-all">Edit</button>
@@ -370,7 +372,7 @@ export default function DigitalLibraryPage() {
                   <tr key={resource.id} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-amber-50/30 dark:hover:bg-amber-500/5 transition-colors">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{typeIcon[resource.type] || "📄"}</span>
+                        <span className="text-lg">{typeIcon[resource.type] || ""}</span>
                         <div>
                           <div className="text-xs font-bold text-slate-800 dark:text-white">{resource.title}</div>
                           <div className="text-[10px] text-slate-400">{new Date(resource.uploadDate).toLocaleDateString()}</div>
@@ -403,10 +405,10 @@ export default function DigitalLibraryPage() {
           <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 px-6 py-4">
               <div>
-                <h3 className="text-sm font-bold text-slate-800 dark:text-white">{editId ? "✏️ Edit Resource" : "⬆ Upload New Resource"}</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">{editId ? " Edit Resource" : "⬆ Upload New Resource"}</h3>
                 <p className="text-[10px] text-slate-400 mt-0.5">Add educational materials to the digital library</p>
               </div>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">✕ Close</button>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><X className="w-4 h-4 inline-block mr-1 text-inherit" /> Close</button>
             </div>
             <div className="p-6 space-y-4">
               <div>
@@ -451,11 +453,11 @@ export default function DigitalLibraryPage() {
                   <div className="mt-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">✨ AI Study Notes Fallback</h4>
+                        <h4 className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1"><Sparkles className="w-4 h-4 inline mr-1 text-amber-500" /> AI Study Notes Fallback</h4>
                         <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80 mt-0.5 max-w-[250px]">Since there is no URL, you can auto-generate study notes for students to read instead.</p>
                       </div>
                       <button onClick={handleGenerateAi} disabled={generatingAi} className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white text-[10px] font-bold rounded-lg transition-colors whitespace-nowrap shadow-sm">
-                        {generatingAi ? "Generating..." : form.aiContent ? "🔄 Regenerate Notes" : "🪄 Generate Notes"}
+                        {generatingAi ? "Generating..." : form.aiContent ? " Regenerate Notes" : " Generate Notes"}
                       </button>
                     </div>
                     {form.aiContent && <div className="mt-2 p-2 bg-white/60 dark:bg-black/20 rounded-lg text-[10px] text-slate-600 dark:text-slate-300 line-clamp-3 italic">"{form.aiContent.replace(/<[^>]+>/g, '').slice(0, 150)}..."</div>}
@@ -471,11 +473,11 @@ export default function DigitalLibraryPage() {
                 <input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="e.g. NEET, Board Exam, Revision" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500" />
               </div>
               
-              {/* 🎯 Practice Quiz Section */}
+              {/* <Target className="w-4 h-4 inline-block mr-1 text-inherit" /> Practice Quiz Section */}
               <div className="border-t border-slate-200 dark:border-slate-800 pt-4 mt-4">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h4 className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1">🎯 Practice Quiz Questions</h4>
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1"><Target className="w-4 h-4 inline-block mr-1 text-inherit" /> Practice Quiz Questions</h4>
                     <p className="text-[9px] text-slate-400 mt-0.5">Assign custom or AI-generated MCQs to this study material.</p>
                   </div>
                   <button 
@@ -485,7 +487,7 @@ export default function DigitalLibraryPage() {
                     className="px-3 py-1.5 disabled:opacity-60 text-white text-[10px] font-black rounded-lg transition-colors whitespace-nowrap shadow-sm flex items-center gap-1 border-none cursor-pointer"
                     style={{ background: 'linear-gradient(to right, #4f46e5, #9333ea)', color: '#ffffff' }}
                   >
-                    {generatingQuiz ? "Generating 10 Qs..." : "🪄 Generate 10 Hard MCQs"}
+                    {generatingQuiz ? "Generating 10 Qs..." : " Generate 10 Hard MCQs"}
                   </button>
                 </div>
 
@@ -498,7 +500,7 @@ export default function DigitalLibraryPage() {
                         onClick={() => setQuizQuestions(prev => prev.filter((_, idx) => idx !== qIdx))}
                         className="absolute top-2.5 right-2.5 text-red-500 hover:text-red-700 text-xs font-extrabold border-none bg-transparent cursor-pointer"
                       >
-                        ✕ Remove
+                        <X className="w-4 h-4 inline-block mr-1 text-inherit" /> Remove
                       </button>
                       
                       <div className="space-y-1">
@@ -563,13 +565,13 @@ export default function DigitalLibraryPage() {
                     ])}
                     className="w-full py-2 border-2 border-dashed border-slate-200 dark:border-slate-800 text-slate-450 hover:text-slate-650 hover:border-slate-400 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 bg-transparent cursor-pointer"
                   >
-                    ➕ Add Question Manually
+                    <Plus className="w-4 h-4 inline-block mr-1 text-inherit" /> Add Question Manually
                   </button>
                 </div>
               </div>
 
               <button onClick={handleSave} disabled={saving} className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white font-bold rounded-xl text-xs transition-colors shadow-md border-none cursor-pointer">
-                {saving ? "Saving..." : editId ? "✅ Save Changes" : "📚 Upload to Digital Library"}
+                {saving ? "Saving..." : editId ? <><CheckCircle className="w-4 h-4 inline mr-1" /> Save Changes</> : " Upload to Digital Library"}
               </button>
             </div>
           </div>

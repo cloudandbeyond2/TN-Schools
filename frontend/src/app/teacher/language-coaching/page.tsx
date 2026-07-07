@@ -2,26 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import PortalLayout from "@/components/PortalLayout";
-import { 
-  Languages, 
-  Mic, 
-  PlayCircle, 
-  TrendingUp,
-  MessageCircle,
-  Headphones,
-  Star,
-  Activity,
-  CheckCircle2,
-  Volume2,
-  Sparkles,
-  Bot,
-  User,
-  BookA,
-  Award,
-  X,
-  Send,
-  ArrowRight
-} from "lucide-react";
+import { Languages, Mic, PlayCircle, TrendingUp, MessageCircle, Headphones, Star, Activity, CheckCircle2, Volume2, Sparkles, Bot, User, BookA, Award, X, Send, ArrowRight, Building, Cat } from "lucide-react";
 
 type ChatMessage = { sender: "ai" | "user"; text: string; audio?: string };
 
@@ -42,7 +23,7 @@ export default function LanguageCoachingPage() {
   // Chat state
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    { sender: "ai", text: "Hi! Enna help venum? You can talk to me in Tamil or English! 😊" },
+    { sender: "ai", text: "Hi! Enna help venum? You can talk to me in Tamil or English! " },
   ]);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
@@ -116,7 +97,7 @@ export default function LanguageCoachingPage() {
 
     } catch (err) {
       console.error("Error accessing mic:", err);
-      showToast("Please allow microphone permissions to practice! 🎙️");
+      showToast("Please allow microphone permissions to practice! ");
     }
   };
 
@@ -135,7 +116,7 @@ export default function LanguageCoachingPage() {
     
     setIsRecording(false);
     setWaveHeights([10, 20, 30, 20, 10]);
-    showToast("Great job! Your voice sounds confident! ⭐");
+    showToast("Great job! Your voice sounds confident! ");
   };
 
   const toggleRecord = () => {
@@ -171,16 +152,16 @@ export default function LanguageCoachingPage() {
         reply = "Great question! You can ask: \n\n\"Is the bank closed tomorrow?\"";
         audioTxt = "Is the bank closed tomorrow?";
       } else if (lowerMsg.includes("hello") || lowerMsg.includes("hi")) {
-        reply = "Hello! Epdi irukkinga? Ready to practice some English today? 😊";
+        reply = "Hello! Epdi irukkinga? Ready to practice some English today? ";
         audioTxt = "Hello! Epdi irukkinga? Ready to practice some English today?";
       } else if (lowerMsg.includes("enna panra") || lowerMsg.includes("enna panringa") || lowerMsg.includes("enna seikiraai")) {
-        reply = "Naan unga kooda pesitu iruken! (I am talking with you!) In English you can ask: 'What are you doing?'. Try asking me that! 🌟";
+        reply = "Naan unga kooda pesitu iruken! (I am talking with you!) In English you can ask: 'What are you doing?'. Try asking me that! ";
         audioTxt = "I am talking with you. In English you can ask: What are you doing?";
       } else if (lowerMsg.includes("name enna") || lowerMsg.includes("unoda name") || lowerMsg.includes("unga name") || lowerMsg.includes("peyar enna")) {
-        reply = "En name Maya! Super kelvi. In English, you can ask: 'What is your name?'. Can you type that for me? 🙌";
+        reply = "En name Maya! Super kelvi. In English, you can ask: 'What is your name?'. Can you type that for me? ";
         audioTxt = "My name is Maya. In English, you can ask: What is your name?";
       } else if (lowerMsg.includes("how are you") || lowerMsg.includes("eppadi irukka") || lowerMsg.includes("epdi irukka")) {
-        reply = "I'm doing great, nandri! How are you doing today? 👍";
+        reply = "I'm doing great, nandri! How are you doing today? ";
         audioTxt = "I'm doing great, nandri! How are you doing today?";
       }
 
@@ -237,7 +218,7 @@ export default function LanguageCoachingPage() {
       tamil: "பேருந்து நிலையத்தில்", 
       desc: "Ask for the correct bus route.", 
       diff: "Easy", 
-      emoji: "🚌",
+      emoji: "",
       dialogues: [
         { char: "You", txt: "Excuse me, does this bus go to Gandhipuram?" },
         { char: "Conductor", txt: "No, this goes to Singanallur. You need bus number 11." },
@@ -250,7 +231,7 @@ export default function LanguageCoachingPage() {
       tamil: "நேர்காணலில்", 
       desc: "Introduce yourself confidently.", 
       diff: "Medium", 
-      emoji: "💼",
+      emoji: "",
       dialogues: [
         { char: "Interviewer", txt: "Please introduce yourself." },
         { char: "You", txt: "Hi, I am Arjun. I recently completed my schooling and I am eager to learn." },
@@ -263,7 +244,7 @@ export default function LanguageCoachingPage() {
       tamil: "மருத்துவரிடம்", 
       desc: "Explain your fever and cold.", 
       diff: "Easy", 
-      emoji: "🏥",
+      emoji: "",
       dialogues: [
         { char: "Doctor", txt: "What seems to be the problem today?" },
         { char: "You", txt: "I have had a mild fever and a cold since yesterday." },
@@ -274,7 +255,7 @@ export default function LanguageCoachingPage() {
 
   return (
     <PortalLayout
-      title="Spoken English Hub! 🗣️"
+      title="Spoken English Hub! "
       subtitle="Speak fearlessly! Learn English using Tamil."
     >
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
@@ -548,9 +529,9 @@ export default function LanguageCoachingPage() {
             </h3>
             <div className="space-y-3">
                {[
-                 { name: "Fearless Speaker", desc: "Spoke 10 sentences today", icon: "🦁", color: "amber" },
-                 { name: "Hospital Helper", desc: "Completed Doctor Roleplay", icon: "🏥", color: "rose" },
-                 { name: "Tanglish Master", desc: "Used AI bridge 5 times", icon: "🤖", color: "indigo" }
+                 { name: "Fearless Speaker", desc: "Spoke 10 sentences today", icon: <Cat className="w-5 h-5" />, color: "amber" },
+                 { name: "Hospital Helper", desc: "Completed Doctor Roleplay", icon: <Building className="w-5 h-5" />, color: "rose" },
+                 { name: "Tanglish Master", desc: "Used AI bridge 5 times", icon: <Bot className="w-5 h-5" />, color: "indigo" }
                ].map((b, i) => (
                  <div key={i} className={`flex items-center gap-3 p-3 rounded-2xl bg-${b.color}-50/50 border border-${b.color}-100`}>
                     <div className="text-3xl drop-shadow-sm">{b.icon}</div>
@@ -634,7 +615,7 @@ export default function LanguageCoachingPage() {
                 ) : (
                   <button 
                     onClick={() => {
-                      showToast("Awesome! You completed the roleplay! 🎉");
+                      showToast("Awesome! You completed the roleplay! ");
                       setActiveRoleplay(null);
                     }}
                     className="px-8 py-3 bg-emerald-500 text-white font-black rounded-xl hover:bg-emerald-600 active:scale-95 transition-all flex items-center gap-2"

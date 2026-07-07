@@ -1,4 +1,6 @@
 "use client";
+import { Mailbox, Book } from "lucide-react";
+
 
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
@@ -203,7 +205,7 @@ export default function TeacherSyllabusBoardPage() {
         </div>
       ) : subjects.length === 0 ? (
         <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
-          <span className="text-5xl block mb-4">📭</span>
+          <span className="text-5xl block mb-4"><Mailbox className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
           <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No syllabus content yet for Class {selectedClass}</p>
           <p className="text-xs text-slate-500 mt-2">Try Class 8, which has the full Math &amp; Science unit board.</p>
         </div>
@@ -225,7 +227,7 @@ export default function TeacherSyllabusBoardPage() {
                     : undefined
                 }
               >
-                <span>{sub.icon || "📚"}</span> {sub.name}
+                <span>{sub.icon || ""}</span> {sub.name}
               </button>
             ))}
           </div>
@@ -238,7 +240,7 @@ export default function TeacherSyllabusBoardPage() {
             </div>
           ) : unitCards.length === 0 ? (
             <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
-              <span className="text-5xl block mb-4">📖</span>
+              <span className="text-5xl block mb-4"><Book className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
               <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No units found for this subject yet.</p>
             </div>
           ) : (

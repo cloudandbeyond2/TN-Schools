@@ -1,4 +1,6 @@
 "use client";
+import { CheckCircle, Plus, Zap, Edit, Bell, Clipboard, X } from "lucide-react";
+
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -243,7 +245,7 @@ export default function HomeworkPage() {
                 <ul style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
                   ${parsed.files.map((file: any) => `
                     <li style="display: flex; align-items: center; gap: 8px; font-size: 13px; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; border: 1px dashed #cbd5e1;">
-                      <span style="font-size: 16px;">${file.kind === 'pdf' ? '📄' : '🖼️'}</span>
+                      <span style="font-size: 16px;">${file.kind === 'pdf' ? '' : ''}</span>
                       <a href="${file.url}" target="_blank" rel="noopener noreferrer" style="text-decoration: underline; color: #0d9488; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                         ${file.name}
                       </a>
@@ -322,7 +324,7 @@ export default function HomeworkPage() {
     >
       {toastMessage && (
         <div className="fixed top-5 right-5 bg-emerald-500 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2">
-          <span>✅</span> {toastMessage}
+          <span><CheckCircle className="w-4 h-4 inline mr-1 text-emerald-500" /></span> {toastMessage}
         </div>
       )}
 
@@ -351,7 +353,7 @@ export default function HomeworkPage() {
             onClick={() => setShowCreateModal(true)}
             className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[var(--primary)] hover:bg-amber-600 transition-colors"
           >
-            ➕ Create Assignment
+            <Plus className="w-4 h-4 inline-block mr-1 text-inherit" /> Create Assignment
           </button>
         </div>
 
@@ -362,7 +364,7 @@ export default function HomeworkPage() {
             {/* Homework Cards List */}
             <div className="space-y-4">
               <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider mb-1">
-                📝 Assignments ({activeAssignments.length})
+                <Edit className="w-4 h-4 inline-block mr-1 text-inherit" /> Assignments ({activeAssignments.length})
               </h3>
               
               {activeAssignments.map((hw) => {
@@ -421,7 +423,7 @@ export default function HomeworkPage() {
                         onClick={handleSendReminder}
                         className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-amber-400 border border-[var(--primary)]/20 hover:bg-[var(--primary)]/10 transition-all flex items-center gap-1.5"
                       >
-                        <span>🔔</span> Send Parent Reminders
+                        <span><Bell className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Send Parent Reminders
                       </button>
                     )}
                   </div>
@@ -436,7 +438,7 @@ export default function HomeworkPage() {
                 {selectedHw.status !== "draft" && (
                   <div className="theme-card p-6 border border-[var(--border)]">
                     <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider mb-4">
-                      📋 Submission Roster
+                      <Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> Submission Roster
                     </h3>
 
                     {loadingSubs ? (
@@ -507,8 +509,8 @@ export default function HomeworkPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="theme-card w-full max-w-lg border border-[var(--border)] overflow-hidden shadow-2xl">
             <div className="px-6 py-4 border-b border-[var(--border)] flex justify-between items-center">
-              <h3 className="text-[var(--text-heading)] font-semibold text-base">➕ Assign Homework</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-550 hover:text-[var(--text-heading)] text-lg">✕</button>
+              <h3 className="text-[var(--text-heading)] font-semibold text-base"><Plus className="w-4 h-4 inline mr-1" /> Assign Homework</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-slate-550 hover:text-[var(--text-heading)] text-lg"><X className="w-4 h-4 inline-block mr-1 text-inherit" /></button>
             </div>
 
             <form onSubmit={handleCreateHomework} className="p-6 space-y-4">
@@ -565,7 +567,7 @@ export default function HomeworkPage() {
                     disabled={isGeneratingAI}
                     className="text-[10px] text-amber-400 hover:text-amber-350 flex items-center gap-1 font-semibold"
                   >
-                    <span>⚡</span> {isGeneratingAI ? "Drafting..." : "Draft Homework with AI"}
+                    <span><Zap className="w-4 h-4 inline mr-1 text-amber-500" /></span> {isGeneratingAI ? "Drafting..." : "Draft Homework with AI"}
                   </button>
                 </div>
 

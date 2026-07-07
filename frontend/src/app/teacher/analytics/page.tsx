@@ -1,4 +1,6 @@
 "use client";
+import { BarChart, TrendingUp, Calendar, Edit, Target, Clipboard, AlertTriangle } from "lucide-react";
+
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -231,10 +233,10 @@ export default function AnalyticsPage() {
         {/* KPI Summaries Row */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
           {[
-            { label: "Class Average Score", value: `${summary.avgScore}%`, icon: "📈", color: "text-amber-400", desc: "Term average" },
-            { label: "Mean Attendance", value: `${summary.attendance}%`, icon: "📅", color: "text-emerald-400", desc: "This semester" },
-            { label: "Homework Completes", value: `${summary.hwRate}%`, icon: "📝", color: "text-blue-400", desc: "Last 5 tasks" },
-            { label: "Interventions Flashed", value: `${summary.riskCount}`, icon: "⚠️", color: "text-red-400", desc: "Action required" },
+            { label: "Class Average Score", value: `${summary.avgScore}%`, icon: <TrendingUp className="w-5 h-5" />, color: "text-amber-400", desc: "Term average" },
+            { label: "Mean Attendance", value: `${summary.attendance}%`, icon: <Calendar className="w-5 h-5" />, color: "text-emerald-400", desc: "This semester" },
+            { label: "Homework Completes", value: `${summary.hwRate}%`, icon: <Edit className="w-5 h-5" />, color: "text-blue-400", desc: "Last 5 tasks" },
+            { label: "Interventions Flashed", value: `${summary.riskCount}`, icon: <AlertTriangle className="w-5 h-5" />, color: "text-red-400", desc: "Action required" },
           ].map((kpi) => (
             <div key={kpi.label} className="kpi-card">
               <div className="flex items-center justify-between mb-3">
@@ -302,7 +304,7 @@ export default function AnalyticsPage() {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               {/* Grade Distribution Chart */}
               <div className="theme-card p-6">
-                <h3 className="text-[var(--text-heading)] font-semibold text-xs mb-6 uppercase tracking-wider">📊 Grade Distribution</h3>
+                <h3 className="text-[var(--text-heading)] font-semibold text-xs mb-6 uppercase tracking-wider"><BarChart className="w-4 h-4 inline mr-1 text-emerald-500" /> Grade Distribution</h3>
 
                 <div className="flex items-end justify-between h-40 gap-3 px-2">
                   {distribution.map((d) => (
@@ -324,7 +326,7 @@ export default function AnalyticsPage() {
 
               {/* Subject Mastery checklist */}
               <div className="xl:col-span-2 theme-card p-6">
-                <h3 className="text-[var(--text-heading)] font-semibold text-xs mb-5 uppercase tracking-wider">🎯 Concept Mastery Index</h3>
+                <h3 className="text-[var(--text-heading)] font-semibold text-xs mb-5 uppercase tracking-wider"><Target className="w-4 h-4 inline-block mr-1 text-inherit" /> Concept Mastery Index</h3>
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {mastery.map((m) => (
@@ -364,7 +366,7 @@ export default function AnalyticsPage() {
             <div className="theme-card p-6">
               <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-4 mb-6">
                 <div>
-                  <h3 className="text-[var(--text-heading)] font-semibold text-sm">📋 Student Diagnostics Directory</h3>
+                  <h3 className="text-[var(--text-heading)] font-semibold text-sm"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> Student Diagnostics Directory</h3>
                   <p className="text-xs text-slate-550">Review performance details and key concept gaps of each pupil.</p>
                 </div>
 
