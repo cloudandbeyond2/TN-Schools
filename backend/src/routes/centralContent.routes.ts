@@ -1679,7 +1679,7 @@ Skip covers, preface, acknowledgements, anthem, index and glossary — only real
 
     // --- Primary path: let Gemini read the PDF pages (accurate for Tamil script) ---
     try {
-      const base64Pdf = await slicePdfPages(file.buffer, 25);
+      const base64Pdf = await slicePdfPages(file.buffer, 150);
       console.log(`[PDF Upload] Sending first pages to Gemini (vision) for Class ${className}...`);
       parsed = await callGeminiWithPdf(promptBase, base64Pdf, PDF_SYLLABUS_SCHEMA);
     } catch (visionErr: any) {
@@ -1698,7 +1698,7 @@ Skip covers, preface, acknowledgements, anthem, index and glossary — only real
         return res.status(400).json({ success: false, error: 'Could not read this PDF. It may be a scanned image with no selectable text.' });
       }
       console.log('[PDF Upload] Falling back to text extraction...');
-      parsed = await callGeminiJSON(`${promptBase}\n\nTextbook text (may be imperfectly encoded):\n${extractedText.substring(0, 30000)}`, PDF_SYLLABUS_SCHEMA);
+      parsed = await callGeminiJSON(`${promptBase}\n\nTextbook text (may be imperfectly encoded):\n${extractedText.substring(0, 250000)}`, PDF_SYLLABUS_SCHEMA);
     }
 
     if (!parsed || !Array.isArray(parsed.units) || parsed.units.length === 0) {
