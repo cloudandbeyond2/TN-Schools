@@ -1,5 +1,5 @@
 "use client";
-import { Building2, Users, File, Clipboard, User } from "lucide-react";
+import { Building2, Users, File, Clipboard, User, School } from "lucide-react";
 
 
 import React, { useState, useEffect } from "react";
@@ -178,7 +178,7 @@ export default function LeaveRequestsPage() {
       value: staffList.length,
     },
     {
-      icon: "",
+      icon: <School className="w-5 h-5 text-amber-500" />,
       accent: "bg-amber-400/70",
       iconBg: "bg-amber-400/10",
       label: "School",
