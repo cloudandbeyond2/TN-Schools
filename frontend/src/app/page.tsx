@@ -40,10 +40,10 @@ const t = {
     statTitle2: "Across Tamil Nadu",
     statDesc: "Real-time data-driven insights powering the entire state education ecosystem.",
     stats: [
-      { label: "Total Students", value: "47.2L", icon: "👨‍🎓", color: "#065F46" },
-      { label: "Government Schools", value: "37,000+", icon: "🏫", color: "#10B981" },
-      { label: "Dedicated Teachers", value: "2.1L", icon: "📚", color: "#F97316" },
-      { label: "Districts Covered", value: "38", icon: "🗺️", color: "#F59E0B" },
+      { label: "Total Students", value: "47.2L", icon: <i className="fi fi-rr-graduation-cap"></i>, color: "#065F46" },
+      { label: "Government Schools", value: "37,000+", icon: <i className="fi fi-rr-building"></i>, color: "#10B981" },
+      { label: "Dedicated Teachers", value: "2.1L", icon: <i className="fi fi-rr-book-alt"></i>, color: "#F97316" },
+      { label: "Districts Covered", value: "38", icon: <i className="fi fi-rr-map"></i>, color: "#F59E0B" },
     ],
 
     featTitleSub: "Platform Features",
@@ -51,12 +51,12 @@ const t = {
     featTitle2: "Education Tools",
     featDesc: "Purpose-built AI and analytics tools for every stakeholder in the Tamil Nadu education ecosystem.",
     features: [
-      { title: "AI-Powered Tutoring", desc: "Personalized adaptive learning pathways using advanced AI for every student across Class 6–12.", icon: "🤖", color: "#065F46" },
-      { title: "Real-time Analytics", desc: "Live dashboards tracking attendance, performance, and learning outcomes at every administrative level.", icon: "📊", color: "#10B981" },
-      { title: "Adaptive Assessments", desc: "Smart question generation and AI-evaluated tests with instant feedback and personalized guidance.", icon: "🎯", color: "#F97316" },
-      { title: "Multi-Role Governance", desc: "8 dedicated portals from Student to Minister, each with role-specific insights and controls.", icon: "🛡️", color: "#065F46" },
-      { title: "Live State Monitoring", desc: "Real-time command center for state-wide education health, KPI tracking and policy compliance.", icon: "📡", color: "#10B981" },
-      { title: "Career & Scholarship", desc: "AI-driven career guidance, college admissions support, scholarship tracking and welfare schemes.", icon: "🎓", color: "#0D9488" },
+      { title: "AI-Powered Tutoring", desc: "Personalized adaptive learning pathways using advanced AI for every student across Class 6–12.", icon: <i className="fi fi-rr-robot"></i>, color: "#065F46" },
+      { title: "Real-time Analytics", desc: "Live dashboards tracking attendance, performance, and learning outcomes at every administrative level.", icon: <i className="fi fi-rr-chart-histogram"></i>, color: "#10B981" },
+      { title: "Adaptive Assessments", desc: "Smart question generation and AI-evaluated tests with instant feedback and personalized guidance.", icon: <i className="fi fi-rr-bullseye"></i>, color: "#F97316" },
+      { title: "Multi-Role Governance", desc: "8 dedicated portals from Student to Minister, each with role-specific insights and controls.", icon: <i className="fi fi-rr-shield"></i>, color: "#065F46" },
+      { title: "Live State Monitoring", desc: "Real-time command center for state-wide education health, KPI tracking and policy compliance.", icon: <i className="fi fi-rr-rss"></i>, color: "#10B981" },
+      { title: "Career & Scholarship", desc: "AI-driven career guidance, college admissions support, scholarship tracking and welfare schemes.", icon: <i className="fi fi-rr-graduation-cap"></i>, color: "#0D9488" },
     ],
 
     portalTitleSub: "Role-Based Access",
@@ -115,10 +115,10 @@ const t = {
     statTitle2: "கல்வி மாற்றம்",
     statDesc: "முழு மாநில கல்வி அமைப்பையும் இயக்கும் நிகழ்நேர தரவு உந்துதல் நுண்ணறிவு.",
     stats: [
-      { label: "மொத்த மாணவர்கள்", value: "47.2L", icon: "👨‍🎓", color: "#065F46" },
-      { label: "அரசு பள்ளிகள்", value: "37,000+", icon: "🏫", color: "#10B981" },
-      { label: "அர்ப்பணிப்புள்ள ஆசிரியர்கள்", value: "2.1L", icon: "📚", color: "#F97316" },
-      { label: "மாவட்டங்கள்", value: "38", icon: "🗺️", color: "#F59E0B" },
+      { label: "மொத்த மாணவர்கள்", value: "47.2L", icon: <i className="fi fi-rr-graduation-cap"></i>, color: "#065F46" },
+      { label: "அரசு பள்ளிகள்", value: "37,000+", icon: <i className="fi fi-rr-building"></i>, color: "#10B981" },
+      { label: "அர்ப்பணிப்புள்ள ஆசிரியர்கள்", value: "2.1L", icon: <i className="fi fi-rr-book-alt"></i>, color: "#F97316" },
+      { label: "மாவட்டங்கள்", value: "38", icon: <i className="fi fi-rr-map"></i>, color: "#F59E0B" },
     ],
 
     featTitleSub: "தளத்தின் அம்சங்கள்",
@@ -126,12 +126,12 @@ const t = {
     featTitle2: "கல்வி கருவிகள்",
     featDesc: "தமிழ்நாடு கல்வி சூழல்மண்டலத்தில் உள்ள ஒவ்வொரு பங்குதாரருக்கும் AI மற்றும் பகுப்பாய்வு கருவிகள்.",
     features: [
-      { title: "AI-ஆதரவு பயிற்சி", desc: "வகுப்பு 6 முதல் 12 வரையிலான அனைத்து மாணவர்களுக்கும் AI மூலம் தனிப்பயனாக்கப்பட்ட கற்றல் வழிகள்.", icon: "🤖", color: "#065F46" },
-      { title: "நிகழ்நேர பகுப்பாய்வு", desc: "ஒவ்வொரு நிலையிலும் வருகை, செயல்திறன் மற்றும் கற்றல் முடிவுகளைக் கண்காணிக்கும் நேரடி டாஷ்போர்டுகள்.", icon: "📊", color: "#10B981" },
-      { title: "தழுவல் மதிப்பீடுகள்", desc: "உடனடி கருத்துக்களுடன் AI மதிப்பீடு செய்யும் தேர்வுகள் மற்றும் தனிப்பயன் வழிகாட்டுதல்.", icon: "🎯", color: "#F97316" },
-      { title: "பல-பங்கு நிர்வாகம்", desc: "மாணவர் முதல் அமைச்சர் வரை 8 பிரத்யேக இணையதளங்கள்.", icon: "🛡️", color: "#065F46" },
-      { title: "நேரடி மாநில கண்காணிப்பு", desc: "மாநில அளவிலான KPI கண்காணிப்பு மற்றும் கொள்கை இணக்கத்திற்கான நிகழ்நேர மையம்.", icon: "📡", color: "#10B981" },
-      { title: "தொழில் & உதவித்தொகை", desc: "AI வழிகாட்டுதல், கல்லூரி சேர்க்கை ஆதரவு மற்றும் உதவித்தொகை கண்காணிப்பு.", icon: "🎓", color: "#0D9488" },
+      { title: "AI-ஆதரவு பயிற்சி", desc: "வகுப்பு 6 முதல் 12 வரையிலான அனைத்து மாணவர்களுக்கும் AI மூலம் தனிப்பயனாக்கப்பட்ட கற்றல் வழிகள்.", icon: <i className="fi fi-rr-robot"></i>, color: "#065F46" },
+      { title: "நிகழ்நேர பகுப்பாய்வு", desc: "ஒவ்வொரு நிலையிலும் வருகை, செயல்திறன் மற்றும் கற்றல் முடிவுகளைக் கண்காணிக்கும் நேரடி டாஷ்போர்டுகள்.", icon: <i className="fi fi-rr-chart-histogram"></i>, color: "#10B981" },
+      { title: "தழுவல் மதிப்பீடுகள்", desc: "உடனடி கருத்துக்களுடன் AI மதிப்பீடு செய்யும் தேர்வுகள் மற்றும் தனிப்பயன் வழிகாட்டுதல்.", icon: <i className="fi fi-rr-bullseye"></i>, color: "#F97316" },
+      { title: "பல-பங்கு நிர்வாகம்", desc: "மாணவர் முதல் அமைச்சர் வரை 8 பிரத்யேக இணையதளங்கள்.", icon: <i className="fi fi-rr-shield"></i>, color: "#065F46" },
+      { title: "நேரடி மாநில கண்காணிப்பு", desc: "மாநில அளவிலான KPI கண்காணிப்பு மற்றும் கொள்கை இணக்கத்திற்கான நிகழ்நேர மையம்.", icon: <i className="fi fi-rr-rss"></i>, color: "#10B981" },
+      { title: "தொழில் & உதவித்தொகை", desc: "AI வழிகாட்டுதல், கல்லூரி சேர்க்கை ஆதரவு மற்றும் உதவித்தொகை கண்காணிப்பு.", icon: <i className="fi fi-rr-graduation-cap"></i>, color: "#0D9488" },
     ],
 
     portalTitleSub: "பங்கு-அடிப்படையிலான அணுகல்",
@@ -261,7 +261,7 @@ export default function HomePage() {
       <div className="hidden sm:block" style={{ background: "#022C22", color: "#A7F3D0", padding: "8px 0", fontSize: "12px", borderBottom: "1px solid rgba(167,243,208,0.2)" }}>
         <div className="px-4 md:px-8" style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span className="text-white" style={{ fontSize: "14px" }}>🇮🇳</span>
+            <span className="text-white" style={{ fontSize: "14px" }}><i className="fi fi-rr-flag"></i></span>
             <span style={{ fontWeight: 600, color: "#ffffff" }}>{text.govtName}</span>
             <span style={{ opacity: 0.5, color: "#ffffff" }}>|</span>
             <span style={{ opacity: 0.9, color: "#ffffff" }}>{text.deptName}</span>
@@ -292,8 +292,8 @@ export default function HomePage() {
         <div className="px-4 md:px-8" style={{ maxWidth: "1320px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           {/* Logo */}
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: "12px", textDecoration: "none" }}>
-            <div style={{ width: "42px", height: "42px", background: "#065F46", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", boxShadow: "0 4px 12px rgba(6,95,70,0.2)", transform: "rotate(-3deg)" }}>
-              🏛️
+            <div style={{ width: "42px", height: "42px", background: "#065F46", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", boxShadow: "0 4px 12px rgba(6,95,70,0.2)", transform: "rotate(-3deg)", color: "white" }}>
+              <i className="fi fi-rr-bank"></i>
             </div>
             <div>
               <div style={{ fontSize: "18px", fontWeight: 800, color: "#065F46", lineHeight: "1.1", letterSpacing: "-0.5px" }}>TN Schools</div>
@@ -343,7 +343,7 @@ export default function HomePage() {
                   onMouseEnter={(e) => { e.currentTarget.style.background = "#D1FAE5"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = "#ECFDF5"; }}
                 >
-                  <span>👋 {(session.user as any)?.name}</span>
+                  <span><i className="fi fi-rr-hand-wave"></i> {(session.user as any)?.name}</span>
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
@@ -385,7 +385,7 @@ export default function HomePage() {
             <div style={{ maxWidth: "600px" }}>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                 <div style={{ display: "inline-block", background: "#ECFDF5", border: "1px solid #10B981", color: "#065F46", padding: "6px 16px", borderRadius: "20px", fontSize: "13px", fontWeight: 700, marginBottom: "24px" }}>
-                  🌟 {text.heroBadge}
+                  <i className="fi fi-rr-star"></i> {text.heroBadge}
                 </div>
               </motion.div>
 
@@ -441,7 +441,7 @@ export default function HomePage() {
 
               {/* Floating elements */}
               <div style={{ position: "absolute", top: "0", left: "20%", background: "#F59E0B", padding: "12px 24px", borderRadius: "20px", color: "white", fontWeight: 800, transform: "rotate(-10deg)", boxShadow: "0 8px 20px rgba(245,158,11,0.3)", zIndex: 5 }}>
-                🚀 AI Powered
+                <i className="fi fi-rr-rocket"></i> AI Powered
               </div>
             </motion.div>
           </div>
@@ -454,7 +454,7 @@ export default function HomePage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "32px", textAlign: "center" }}>
             {text.stats.map((s, i) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
-                <div style={{ fontSize: "40px", marginBottom: "8px" }}>{s.icon}</div>
+                <div style={{ fontSize: "40px", marginBottom: "8px", color: "#FCD34D" }}>{s.icon}</div>
                 <div style={{ fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 900, color: "#FCD34D", lineHeight: 1 }}>{s.value}</div>
                 <div style={{ fontSize: "14px", color: "#A7F3D0", fontWeight: 600, textTransform: "uppercase", letterSpacing: "1px", marginTop: "8px" }}>{s.label}</div>
               </motion.div>
@@ -534,7 +534,7 @@ export default function HomePage() {
                 style={{ display: "flex", flexDirection: i % 2 === 0 ? "row" : "row-reverse", alignItems: "center", gap: "60px", flexWrap: "wrap" }}>
 
                 <div style={{ flex: "1 1 400px" }}>
-                  <div style={{ width: "100%", height: "300px", background: `${f.color}10`, borderRadius: "40px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "100px", position: "relative" }}>
+                  <div style={{ width: "100%", height: "300px", background: `${f.color}10`, borderRadius: "40px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "100px", position: "relative", color: f.color }}>
                     {f.icon}
                     <div style={{ position: "absolute", bottom: "-20px", right: i % 2 === 0 ? "-20px" : "auto", left: i % 2 !== 0 ? "-20px" : "auto", width: "100px", height: "100px", background: f.color, borderRadius: "50%", opacity: 0.1 }} />
                   </div>
@@ -587,8 +587,8 @@ export default function HomePage() {
       {/* ═══════════════ PLAYFUL CTA SECTION ═══════════════ */}
       <section style={{ padding: "100px 16px" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", background: "linear-gradient(135deg, #065F46, #10B981)", borderRadius: "40px", padding: "80px 40px", textAlign: "center", position: "relative", overflow: "hidden", boxShadow: "0 24px 50px rgba(6,95,70,0.3)" }}>
-          <div style={{ position: "absolute", top: "-50px", right: "10%", fontSize: "100px", opacity: 0.1, transform: "rotate(15deg)" }}>🎓</div>
-          <div style={{ position: "absolute", bottom: "-20px", left: "10%", fontSize: "80px", opacity: 0.1, transform: "rotate(-15deg)" }}>🎒</div>
+          <div style={{ position: "absolute", top: "-50px", right: "10%", fontSize: "100px", opacity: 0.1, transform: "rotate(15deg)" }}><i className="fi fi-rr-graduation-cap"></i></div>
+          <div style={{ position: "absolute", bottom: "-20px", left: "10%", fontSize: "80px", opacity: 0.1, transform: "rotate(-15deg)" }}><i className="fi fi-rr-backpack"></i></div>
 
           <div style={{ position: "relative", zIndex: 1 }}>
             <h2 className="text-white" style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, marginBottom: "20px", color: "#ffffff" }}>{text.ctaTitle}</h2>
@@ -597,7 +597,7 @@ export default function HomePage() {
 
             <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
               <Link href="/login" style={{ background: "#F59E0B", color: "#78350F", padding: "16px 40px", borderRadius: "30px", fontWeight: 800, fontSize: "18px", textDecoration: "none", boxShadow: "0 8px 24px rgba(245,158,11,0.4)", transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
-                🚀 {text.ctaBtnIn}
+                <i className="fi fi-rr-rocket"></i> {text.ctaBtnIn}
               </Link>
             </div>
           </div>
@@ -609,7 +609,7 @@ export default function HomePage() {
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "60px", marginBottom: "60px" }}>
           <div>
             <Link href="/" style={{ display: "flex", alignItems: "center", gap: "12px", textDecoration: "none", marginBottom: "20px" }}>
-              <div style={{ width: "42px", height: "42px", background: "white", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>🏛️</div>
+              <div style={{ width: "42px", height: "42px", background: "white", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", color: "#065F46" }}><i className="fi fi-rr-bank"></i></div>
               <div>
                 <div style={{ fontSize: "20px", fontWeight: 900, color: "white" }}>TN Schools</div>
                 <div style={{ fontSize: "12px", color: "#34D399", fontWeight: 700, textTransform: "uppercase" }}>Digital Campus</div>
@@ -637,7 +637,7 @@ export default function HomePage() {
           <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
             <p className="text-white" style={{ fontSize: "13px", margin: 0 }}>{text.ftCopy}</p>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
-              <span className="text-white" >🇮🇳</span> <span style={{ fontWeight: 600, color: "white" }}>{text.ftGovt}</span>
+              <span className="text-white" ><i className="fi fi-rr-flag"></i></span> <span style={{ fontWeight: 600, color: "white" }}>{text.ftGovt}</span>
             </div>
           </div>
         </div>
