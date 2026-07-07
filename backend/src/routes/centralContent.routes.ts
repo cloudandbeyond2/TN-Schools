@@ -1551,6 +1551,7 @@ async function slicePdfPages(buffer: Buffer, maxPages: number): Promise<string> 
 
 // Remove NULL bytes and C0 control chars (keeping tab/newline/CR) — Postgres
 // text columns reject NUL, and stray control chars slip in from AI/PDF output.
+// Also cleans up duplicate Tamil combining diacritics and double characters caused by PDF stream overlaps.
 function cleanStr(s: any): string {
   const str = String(s == null ? '' : s);
   let out = '';
@@ -1558,6 +1559,14 @@ function cleanStr(s: any): string {
     const c = str.charCodeAt(i);
     if (c === 9 || c === 10 || c === 13 || (c >= 32 && c !== 127)) out += str[i];
   }
+  
+  // 1. Fix consecutive duplicate Tamil diacritics (e.g. க்் -> க், ரோோ -> ரோ, ம்் -> ம்)
+  out = out.replace(/([\u0BBE-\u0BCD])\1+/g, '$1');
+  
+  // 2. Fix consecutive duplicate Tamil letters caused by overlapping PDF rendering text layers
+  out = out.replace(/றற/g, 'ற');
+  out = out.replace(/னன/g, 'ன');
+
   return out.trim();
 }
 
