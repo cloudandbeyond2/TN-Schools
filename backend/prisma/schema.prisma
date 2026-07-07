@@ -54,6 +54,7 @@ model School {
   timetables          Timetable[]
   users               User[]
   promotionBatches    PromotionBatch[]
+  proxyAssignments    ProxyAssignment[]
 
   @@index([beoId])
   @@index([deoId])
@@ -246,7 +247,8 @@ model Timetable {
   endTime   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  school    School   @relation(fields: [schoolId], references: [id])
+  school           School            @relation(fields: [schoolId], references: [id])
+  proxyAssignments ProxyAssignment[]
 
   @@unique([schoolId, class, section, dayOfWeek, period])
 }
@@ -1591,4 +1593,22 @@ model LabAssignment {
   dueDate     DateTime
   createdAt   DateTime       @default(now())
   chapter     ScienceChapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+}
+
+model ProxyAssignment {
+  id              String    @id @default(uuid())
+  schoolId        String
+  date            DateTime
+  period          Int
+  timetableId     String
+  absentTeacherId String
+  proxyTeacherId  String
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school          School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  timetable       Timetable @relation(fields: [timetableId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, date, period, timetableId])
 }

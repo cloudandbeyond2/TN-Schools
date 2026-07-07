@@ -66,6 +66,7 @@ import flashcardRoutes from './routes/flashcards.routes';
 import promotionRoutes from './routes/promotion.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import scienceLabsRoutes from './routes/scienceLabs.routes';
+import timetableRoutes from './routes/timetable.routes';
 
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
@@ -200,6 +201,7 @@ app.use('/api/digital-library/flashcards', flashcardRoutes);
 app.use('/api/promotions', promotionRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/science', scienceLabsRoutes);
+app.use('/api/timetable', timetableRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {

@@ -1,0 +1,481 @@
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import PortalLayout from "@/components/PortalLayout";
+import { 
+  Calendar, 
+  Clock, 
+  AlertCircle, 
+  CheckCircle2, 
+  BookOpen, 
+  Users, 
+  FileText, 
+  HelpCircle, 
+  CheckSquare, 
+  ArrowRight,
+  Coffee,
+  Bookmark
+} from "lucide-react";
+
+interface TimetableSlot {
+  id: string;
+  schoolId: string;
+  class: string;
+  section: string;
+  dayOfWeek: number;
+  period: number;
+  subject: string;
+  teacherId: string | null;
+  startTime: string;
+  endTime: string;
+}
+
+interface ProxyAssignment {
+  id: string;
+  schoolId: string;
+  date: string;
+  period: number;
+  timetableId: string;
+  absentTeacherId: string;
+  proxyTeacherId: string;
+  notes: string | null;
+  timetable?: TimetableSlot;
+  school?: {
+    name: string;
+  };
+}
+
+const DAYS_OF_WEEK = [
+  { value: 1, label: "Monday", short: "Mon" },
+  { value: 2, label: "Tuesday", short: "Tue" },
+  { value: 3, label: "Wednesday", short: "Wed" },
+  { value: 4, label: "Thursday", short: "Thu" },
+  { value: 5, label: "Friday", short: "Fri" }
+];
+
+export default function TeacherTimetablePage() {
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  const teacherId = user?.id || "";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  // State variables
+  const [timetable, setTimetable] = useState<TimetableSlot[]>([]);
+  const [proxies, setProxies] = useState<ProxyAssignment[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Date and Day Selectors
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  });
+  const [activeDayOfWeek, setActiveDayOfWeek] = useState<number>(1);
+
+  // Sync date selection to active day of week (Mon-Fri)
+  useEffect(() => {
+    if (selectedDate) {
+      const d = new Date(selectedDate);
+      const day = d.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+      if (day === 0 || day === 6) {
+        setActiveDayOfWeek(1); // Default to Monday for weekends
+      } else {
+        setActiveDayOfWeek(day);
+      }
+    }
+  }, [selectedDate]);
+
+  // Fetch all timetable and proxy data
+  const fetchData = useCallback(async () => {
+    if (!teacherId) return;
+    setLoading(true);
+    try {
+      // 1. Fetch Teacher Timetable
+      const timetableRes = await fetch(`${API_URL}/api/timetable/teacher/${teacherId}`);
+      const timetableData = await timetableRes.json();
+      if (timetableData.success) {
+        setTimetable(timetableData.data);
+      }
+
+      // 2. Fetch Teacher Proxy Assignments (duties)
+      const proxiesRes = await fetch(`${API_URL}/api/timetable/proxy/teacher/${teacherId}`);
+      const proxiesData = await proxiesRes.json();
+      if (proxiesData.success) {
+        setProxies(proxiesData.data);
+      }
+
+      // 3. Fetch teachers map
+      if (user?.schoolId) {
+        const teachersRes = await fetch(`${API_URL}/api/timetable/teachers?schoolId=${user.schoolId}`);
+        const teachersData = await teachersRes.json();
+        if (teachersData.success) {
+          setTeachers(teachersData.data);
+        }
+      }
+    } catch (e) {
+      console.error("Error loading teacher timetable", e);
+    } finally {
+      setLoading(false);
+    }
+  }, [teacherId, user?.schoolId, API_URL]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Resolve Teacher Name helper
+  const getTeacherName = (tId: string | null) => {
+    if (!tId) return "Teacher";
+    if (tId === teacherId) return "You";
+    const found = teachers.find(t => t.id === tId);
+    return found ? found.name : "Teacher";
+  };
+
+  // Filter regular timetable slots for the active day of week
+  const regularSlots = timetable.filter(s => s.dayOfWeek === activeDayOfWeek);
+
+  // Get proxy duties for the selected date
+  const selectedDateProxies = proxies.filter(p => {
+    const pDate = p.date.split("T")[0];
+    return pDate === selectedDate;
+  });
+
+  // Distinguish between duties where the teacher is proxy (substituting) vs absent
+  const substitutingDuties = selectedDateProxies.filter(p => p.proxyTeacherId === teacherId || p.proxyTeacherId === user?.id);
+  const absentCoverages = selectedDateProxies.filter(p => p.absentTeacherId === teacherId || p.absentTeacherId === user?.id);
+
+  // Construct the dynamic daily period schedule by combining regular schedule and overlaying proxies
+  const dailySchedule = [1, 2, 3, 4, 5].map(periodNumber => {
+    const times = periodNumber === 1 ? { start: "09:30", end: "10:15" } : 
+                  periodNumber === 2 ? { start: "10:15", end: "11:00" } : 
+                  periodNumber === 3 ? { start: "11:15", end: "12:00" } : 
+                  periodNumber === 4 ? { start: "12:00", end: "12:45" } : { start: "13:30", end: "14:15" };
+
+    // 1. Check if there is an active proxy where this teacher is covering this period today
+    const proxyDuty = substitutingDuties.find(p => p.period === periodNumber);
+    if (proxyDuty) {
+      return {
+        period: periodNumber,
+        isProxyDuty: true,
+        isCoveredByAnother: false,
+        subject: proxyDuty.timetable?.subject || "Substitution",
+        classSection: `${proxyDuty.timetable?.class || ""}${proxyDuty.timetable?.section || ""}`,
+        originalTeacher: getTeacherName(proxyDuty.absentTeacherId),
+        startTime: proxyDuty.timetable?.startTime || times.start,
+        endTime: proxyDuty.timetable?.endTime || times.end,
+        notes: proxyDuty.notes || "Assigned by Headmaster"
+      };
+    }
+
+    // 2. Check if the teacher has a regular slot in this period
+    const regularSlot = regularSlots.find(s => s.period === periodNumber);
+    
+    // Check if this regular slot is covered by a proxy because this teacher is absent today
+    const isCovered = absentCoverages.find(p => p.period === periodNumber);
+
+    if (regularSlot) {
+      return {
+        period: periodNumber,
+        isProxyDuty: false,
+        isCoveredByAnother: !!isCovered,
+        proxyTeacherName: isCovered ? getTeacherName(isCovered.proxyTeacherId) : null,
+        subject: regularSlot.subject,
+        classSection: `${regularSlot.class}${regularSlot.section}`,
+        originalTeacher: "You",
+        startTime: regularSlot.startTime,
+        endTime: regularSlot.endTime,
+        notes: isCovered ? `Covered by proxy: ${getTeacherName(isCovered.proxyTeacherId)}` : ""
+      };
+    }
+
+    // 3. Free period
+    return {
+      period: periodNumber,
+      isFree: true,
+      startTime: times.start,
+      endTime: times.end,
+    };
+  });
+
+  // Divide schedule into teaching classes and free periods
+  const activeTeachingPeriods = dailySchedule.filter(s => !s.isFree);
+  const freePeriods = dailySchedule.filter(s => s.isFree);
+
+  return (
+    <PortalLayout
+      title="Timetable & Proxies"
+      subtitle={user?.name ? `${user.name} · Teacher Schedule Dashboard` : "Teacher Portal"}
+      avatarLetter={user?.name ? user.name.charAt(0) : "T"}
+      avatarColor="#f59e0b"
+      themeClass="theme-teacher"
+      accentColor="#f59e0b"
+    >
+      {/* Date selector controls */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
+        <div>
+          <h2 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+            <span>📅 Selected Date View</span>
+          </h2>
+          <p className="text-[11px] text-slate-500 mt-1">
+            Check your schedule, free periods, and proxy duties for this date.
+          </p>
+        </div>
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors w-full sm:w-auto"
+        />
+      </div>
+
+      {/* Proxy Duty Alerts Section */}
+      {selectedDateProxies.length > 0 && (
+        <div className="space-y-3.5 mb-6">
+          {substitutingDuties.map(p => (
+            <div key={p.id} className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 rounded-2xl flex gap-3 shadow-sm">
+              <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+              <div>
+                <strong className="text-xs font-black block uppercase tracking-wider">🤝 Substitution Proxy Duty Alert</strong>
+                <p className="text-xs mt-1 font-semibold leading-relaxed">
+                  Headmaster has assigned you to cover <strong className="underline">Period {p.period}</strong> today for class <strong className="text-slate-850 dark:text-white font-extrabold">{p.timetable?.class}{p.timetable?.section} ({p.timetable?.subject})</strong> in place of absent colleague <strong className="underline">{getTeacherName(p.absentTeacherId)}</strong>.
+                </p>
+                {p.notes && <span className="text-[10px] block mt-1.5 opacity-80">HM Note: "{p.notes}"</span>}
+              </div>
+            </div>
+          ))}
+
+          {absentCoverages.map(p => (
+            <div key={p.id} className="p-4 bg-slate-100/80 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-850 text-slate-650 dark:text-slate-400 rounded-2xl flex gap-3 shadow-sm">
+              <CheckCircle2 className="w-5 h-5 shrink-0 text-slate-450 mt-0.5" />
+              <div>
+                <strong className="text-xs font-black block uppercase tracking-wider">ℹ️ Class Coverage Notification (Absent)</strong>
+                <p className="text-xs mt-1 font-medium leading-relaxed">
+                  Your regular <strong className="underline">Period {p.period}</strong> class with <strong className="font-bold">{p.timetable?.class}{p.timetable?.section}</strong> is covered today by substitute teacher <strong className="text-slate-850 dark:text-white font-extrabold">{getTeacherName(p.proxyTeacherId)}</strong>.
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Main schedule card with Day selectors */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5 mb-6">
+          <div>
+            <h2 className="text-sm font-bold text-slate-800 dark:text-white">🗓️ Weekly Schedule & Active Period Mappings</h2>
+            <p className="text-[10px] text-slate-500 mt-1">
+              Select a weekday to load your schedule timeline.
+            </p>
+          </div>
+
+          {/* Days Tabs selector */}
+          <div className="flex bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900 p-1 rounded-xl w-full sm:w-auto">
+            {DAYS_OF_WEEK.map((day) => (
+              <button
+                key={day.value}
+                onClick={() => {
+                  const current = new Date(selectedDate);
+                  const currentDay = current.getDay();
+                  const diff = day.value - currentDay;
+                  current.setDate(current.getDate() + diff);
+                  setSelectedDate(current.toISOString().split("T")[0]);
+                }}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                  activeDayOfWeek === day.value
+                    ? "bg-amber-500 text-white shadow-md font-extrabold"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                }`}
+              >
+                {day.short}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-6 h-6 border-2 border-amber-500/20 border-t-amber-500 animate-spin rounded-full mb-2" />
+            <span className="text-xs text-slate-400 font-medium">Fetching schedule...</span>
+          </div>
+        ) : (
+          /* COLUMN-WISE SCHEDULE DIVISION */
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* COLUMN 1: Active Classes & Teaching Duties */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 mb-2">
+                <span className="text-lg">📚</span>
+                <h3 className="text-xs font-bold text-slate-850 dark:text-white uppercase tracking-wider">
+                  Teaching Schedule ({activeTeachingPeriods.length})
+                </h3>
+              </div>
+
+              {activeTeachingPeriods.length === 0 ? (
+                <div className="text-center py-12 bg-slate-50/50 dark:bg-slate-950/20 border-2 border-dashed border-slate-150 dark:border-slate-850 rounded-2xl">
+                  <span className="text-2xl block mb-1">☕</span>
+                  <h4 className="text-xs font-bold text-slate-650 dark:text-white">No Teaching Classes today</h4>
+                  <p className="text-[10px] text-slate-400 mt-1 max-w-[200px] mx-auto leading-relaxed">
+                    You have no scheduled teaching classes for this day. Enjoy your free time!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {activeTeachingPeriods.map((slot) => (
+                    <div
+                      key={`slot-${slot.period}`}
+                      className={`p-5 rounded-2xl border bg-white dark:bg-slate-950 flex flex-col justify-between gap-4 relative overflow-hidden transition-all shadow-sm ${
+                        slot.isProxyDuty 
+                          ? "border-l-4 border-l-amber-500 border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10" 
+                          : slot.isCoveredByAnother 
+                          ? "border-l-4 border-l-slate-300 border-slate-200 dark:border-slate-850 opacity-70" 
+                          : "border-l-4 border-l-emerald-500 border-slate-100 dark:border-slate-900"
+                      }`}
+                    >
+                      {/* Period Header */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
+                            slot.isProxyDuty 
+                              ? "bg-amber-500 text-white" 
+                              : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10"
+                          }`}>
+                            Period {slot.period}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> {slot.startTime} - {slot.endTime}
+                          </span>
+                        </div>
+
+                        {slot.isProxyDuty && (
+                          <span className="text-[9px] font-black bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/25 px-2 py-0.5 rounded-md">
+                            Proxy Substitute
+                          </span>
+                        )}
+
+                        {slot.isCoveredByAnother && (
+                          <span className="text-[9px] font-black bg-slate-100 dark:bg-slate-900 text-slate-505 px-2 py-0.5 rounded-md">
+                            Covered by Substitute
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Subject Name & Classroom details */}
+                      <div>
+                        <h4 className="text-xs font-black text-slate-850 dark:text-white">
+                          {slot.subject}
+                        </h4>
+                        <div className="text-[10px] text-slate-500 mt-1 font-semibold flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5" /> Class <strong className="text-slate-700 dark:text-slate-350">{slot.classSection}</strong>
+                        </div>
+                      </div>
+
+                      {/* Display substitute actions if not covered */}
+                      {!slot.isCoveredByAnother ? (
+                        <div className="flex flex-wrap gap-2 border-t border-slate-100 dark:border-slate-900 pt-3.5 mt-1.5">
+                          <Link
+                            href="/teacher/lesson-planner"
+                            className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 dark:bg-slate-900 dark:hover:bg-slate-850 dark:text-slate-300 text-[10px] font-black rounded-lg transition-colors flex items-center gap-1 border border-slate-150 dark:border-slate-800"
+                          >
+                            <FileText className="w-3 h-3" /> Lesson Plan
+                          </Link>
+                          <Link
+                            href="/teacher/questions"
+                            className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 dark:bg-slate-900 dark:hover:bg-slate-850 dark:text-slate-300 text-[10px] font-black rounded-lg transition-colors flex items-center gap-1 border border-slate-150 dark:border-slate-800"
+                          >
+                            <HelpCircle className="w-3 h-3" /> Q-Generator
+                          </Link>
+                          <Link
+                            href="/teacher/evaluation"
+                            className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 dark:bg-slate-900 dark:hover:bg-slate-850 dark:text-slate-300 text-[10px] font-black rounded-lg transition-colors flex items-center gap-1 border border-slate-150 dark:border-slate-800"
+                          >
+                            <CheckSquare className="w-3 h-3" /> Grading
+                          </Link>
+                        </div>
+                      ) : (
+                        <div className="p-2.5 bg-slate-50/50 dark:bg-slate-900/35 text-[10px] text-slate-500 rounded-xl leading-relaxed">
+                          🧑‍🏫 <strong>{slot.proxyTeacherName}</strong> is covering this class. You are off-duty.
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* COLUMN 2: Free & Preparation Periods */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 mb-2">
+                <span className="text-lg">☕</span>
+                <h3 className="text-xs font-bold text-slate-850 dark:text-white uppercase tracking-wider">
+                  Prep Time & Free Periods ({freePeriods.length})
+                </h3>
+              </div>
+
+              {freePeriods.length === 0 ? (
+                <div className="text-center py-12 bg-slate-50/50 dark:bg-slate-950/20 border-2 border-dashed border-slate-150 dark:border-slate-850 rounded-2xl">
+                  <span className="text-2xl block mb-1">🏃‍♂️</span>
+                  <h4 className="text-xs font-bold text-slate-650 dark:text-white">Full Schedule Today</h4>
+                  <p className="text-[10px] text-slate-400 mt-1 max-w-[200px] mx-auto leading-relaxed">
+                    You have classes scheduled in every single period today. Stay energized!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3.5">
+                  {freePeriods.map((slot) => (
+                    <div
+                      key={`free-${slot.period}`}
+                      className="p-4 bg-slate-50/40 dark:bg-slate-950/10 border border-dashed border-slate-200 dark:border-slate-850 rounded-2xl flex flex-col gap-3 transition-all hover:border-slate-300 dark:hover:border-slate-800"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-450 dark:text-slate-400 bg-slate-200/50 dark:bg-slate-800 px-2.5 py-0.5 rounded-md">
+                            Period {slot.period}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> {slot.startTime} - {slot.endTime}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-amber-600 dark:text-amber-400 font-extrabold flex items-center gap-1">
+                          <Coffee className="w-3.5 h-3.5" /> Prep Hours
+                        </span>
+                      </div>
+
+                      {/* Prep suggestions content block */}
+                      <div>
+                        <h4 className="text-[11px] font-bold text-slate-700 dark:text-slate-350">
+                          Preparation / Lesson Planning Time
+                        </h4>
+                        <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                          Use this period to structure your upcoming classes, draft evaluations, or review student reports.
+                        </p>
+                      </div>
+
+                      {/* Short suggestions links */}
+                      <div className="flex gap-3 pt-2.5 border-t border-slate-100 dark:border-slate-850">
+                        <Link
+                          href="/teacher/add-materials"
+                          className="text-[10px] font-bold text-amber-500 hover:text-amber-600 flex items-center gap-0.5 transition-colors"
+                        >
+                          <Bookmark className="w-3 h-3" /> Upload Materials <ArrowRight className="w-2.5 h-2.5" />
+                        </Link>
+                        <Link
+                          href="/teacher/student-profiles"
+                          className="text-[10px] font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-250 flex items-center gap-0.5 transition-colors"
+                        >
+                          <Users className="w-3 h-3" /> Student Profiles <ArrowRight className="w-2.5 h-2.5" />
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
+        )}
+      </div>
+    </PortalLayout>
+  );
+}

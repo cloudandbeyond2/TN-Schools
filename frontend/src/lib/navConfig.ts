@@ -372,6 +372,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#f59e0b",
     navItems: [
       { label: "My Classes", href: "/teacher/classes", icon: "Building" },
+      { label: "Timetable & Proxies", href: "/teacher/timetable", icon: "Calendar" },
       { label: "Science Labs", href: "/teacher/labs", icon: "FlaskConical" },
       { label: "Subject Analytics", href: "/teacher/subject-analytics", icon: "Activity" },
 
