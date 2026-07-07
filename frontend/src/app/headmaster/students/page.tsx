@@ -271,8 +271,10 @@ export default function StudentsMonitoringPage() {
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [previewStudents, setPreviewStudents] = useState<ParsedPreviewStudent[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [modalTab, setModalTab] = useState<"manual" | "excel">("manual");
   const [studentToDelete, setStudentToDelete] = useState<WatchlistStudent | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -437,7 +439,7 @@ export default function StudentsMonitoringPage() {
         "Medium of Instruction": "English",
         "Class": "Class 11",
         "Section": "A",
-        "Group": "Computer Science",
+        "Group": "2502",
         "Academic Year": "2024-25",
         "Father Name": "Sinnasamy M.",
         "Father Occupation": "Farmer",
@@ -484,9 +486,76 @@ export default function StudentsMonitoringPage() {
         "Student Status": "Active"
       }
     ];
-    const worksheet = XLSX.utils.json_to_sheet(sampleData, { header: headers });
+
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Student Template");
+
+    // ── Sheet 1: Student Template ────────────────────────────────
+    const ws1 = XLSX.utils.json_to_sheet(sampleData, { header: headers });
+    // Column widths
+    ws1["!cols"] = headers.map(h => ({ wch: Math.max(h.length + 2, 18) }));
+    XLSX.utils.book_append_sheet(workbook, ws1, "Student Template");
+
+    // ── Sheet 2: HSC Groups Reference ───────────────────────────
+    const hscGroupsData = [
+      { "Note": "For Class 11 & 12 only. Enter ONLY the Group Code (e.g. 2502) in the Group column.", "Code": "", "Group Name": "", "Stream": "" },
+      { "Note": "", "Code": "CODE", "Group Name": "GROUP NAME (Subjects)", "Stream": "STREAM" },
+      { "Note": "", "Code": "1001", "Group Name": "Tamil, English, History, Geography", "Stream": "Arts" },
+      { "Note": "", "Code": "1002", "Group Name": "Tamil, English, Economics, Commerce", "Stream": "Arts" },
+      { "Note": "", "Code": "1003", "Group Name": "Tamil, English, History, Economics", "Stream": "Arts" },
+      { "Note": "", "Code": "1004", "Group Name": "Tamil, English, Accountancy, Commerce", "Stream": "Arts" },
+      { "Note": "", "Code": "1005", "Group Name": "Tamil, English, Civics, Geography", "Stream": "Arts" },
+      { "Note": "", "Code": "1101", "Group Name": "Tamil, English, Computer Applications, Accountancy", "Stream": "Vocational" },
+      { "Note": "", "Code": "1102", "Group Name": "Tamil, English, Computer Science, Mathematics", "Stream": "Vocational" },
+      { "Note": "", "Code": "2501", "Group Name": "Physics, Chemistry, Statistics, Mathematics", "Stream": "Science (with Mathematics)" },
+      { "Note": "", "Code": "2502", "Group Name": "Physics, Chemistry, Computer Science, Mathematics", "Stream": "Science (with Mathematics)" },
+      { "Note": "", "Code": "2503", "Group Name": "Physics, Chemistry, Biology, Mathematics", "Stream": "Science (with Mathematics)" },
+      { "Note": "", "Code": "2504", "Group Name": "Physics, Chemistry, Bio-Chemistry, Mathematics", "Stream": "Science (with Mathematics)" },
+      { "Note": "", "Code": "2505", "Group Name": "Physics, Chemistry, Communicative English, Mathematics", "Stream": "Science (with Mathematics)" },
+      { "Note": "", "Code": "2506", "Group Name": "Physics, Chemistry, Mathematics, Home Science", "Stream": "Science (with Mathematics)" },
+      { "Note": "", "Code": "2601", "Group Name": "Physics, Chemistry, Biology, Computer Science", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2602", "Group Name": "Physics, Chemistry, Biology, Micro-Biology", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2603", "Group Name": "Physics, Chemistry, Biology, Bio-Chemistry", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2604", "Group Name": "Physics, Chemistry, Biology, General Nursing", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2605", "Group Name": "Physics, Chemistry, Biology, Nutrition and Dietetics", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2606", "Group Name": "Physics, Chemistry, Biology, Communicative English", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2607", "Group Name": "Physics, Chemistry, Biology, Home Science", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2608", "Group Name": "Physics, Chemistry, Botany, Zoology", "Stream": "Science (with Biology)" },
+      { "Note": "", "Code": "2701", "Group Name": "Statistics, Economics, Commerce, Accountancy", "Stream": "Commerce" },
+      { "Note": "", "Code": "2702", "Group Name": "Economics, Commerce, Accountancy, Computer Applications", "Stream": "Commerce" },
+      { "Note": "", "Code": "2703", "Group Name": "Communicative English, Economics, Commerce, Accountancy", "Stream": "Commerce" },
+      { "Note": "", "Code": "2704", "Group Name": "Economics, Commerce, Accountancy, Business Mathematics", "Stream": "Commerce" },
+    ];
+    const ws2 = XLSX.utils.json_to_sheet(hscGroupsData, {
+      header: ["Note", "Code", "Group Name", "Stream"]
+    });
+    ws2["!cols"] = [{ wch: 60 }, { wch: 8 }, { wch: 60 }, { wch: 28 }];
+    XLSX.utils.book_append_sheet(workbook, ws2, "HSC Groups Reference");
+
+    // ── Sheet 3: Field Guide ────────────────────────────────────
+    const fieldGuideData = [
+      { "Field": "Gender", "Accepted Values": "Male | Female | Other", "Notes": "Case sensitive" },
+      { "Field": "Blood Group", "Accepted Values": "A+ | A- | B+ | B- | O+ | O- | AB+ | AB-", "Notes": "Use + and - symbols" },
+      { "Field": "Religion", "Accepted Values": "Hindu | Muslim | Christian | Other", "Notes": "" },
+      { "Field": "Community", "Accepted Values": "BC | MBC | SC | ST | OC | OBC | Other", "Notes": "Tamil Nadu reservation categories" },
+      { "Field": "Nationality", "Accepted Values": "Indian", "Notes": "Default: Indian" },
+      { "Field": "Medium of Instruction", "Accepted Values": "English | Tamil | Telugu | Urdu | Hindi", "Notes": "Default: English" },
+      { "Field": "Class", "Accepted Values": "Class 1 … Class 12 (or just 1 … 12)", "Notes": "e.g. Class 10, Class 11" },
+      { "Field": "Section", "Accepted Values": "A | B | C | D | ...", "Notes": "Single uppercase letter" },
+      { "Field": "Group", "Accepted Values": "Group code from Sheet 2 (e.g. 2502)", "Notes": "Only for Class 11 & 12. Leave blank for Classes 1-10." },
+      { "Field": "Academic Year", "Accepted Values": "2023-24 | 2024-25 | 2025-26", "Notes": "Format: YYYY-YY" },
+      { "Field": "Student Status", "Accepted Values": "Active | Inactive | Transfer | Dropout | Passed Out", "Notes": "Default: Active" },
+      { "Field": "Date of Birth", "Accepted Values": "YYYY-MM-DD format", "Notes": "e.g. 2008-05-12" },
+      { "Field": "Phone Number", "Accepted Values": "10-digit mobile number", "Notes": "e.g. 9876543210" },
+      { "Field": "Pincode", "Accepted Values": "6-digit pincode", "Notes": "e.g. 641001" },
+      { "Field": "Roll Number", "Accepted Values": "Any unique string", "Notes": "REQUIRED. Must be unique per school." },
+      { "Field": "Full Name", "Accepted Values": "Student full name", "Notes": "REQUIRED." },
+    ];
+    const ws3 = XLSX.utils.json_to_sheet(fieldGuideData, {
+      header: ["Field", "Accepted Values", "Notes"]
+    });
+    ws3["!cols"] = [{ wch: 24 }, { wch: 50 }, { wch: 38 }];
+    XLSX.utils.book_append_sheet(workbook, ws3, "Field Guide");
+
     XLSX.writeFile(workbook, "student_import_template.xlsx");
   };
 
@@ -719,6 +788,7 @@ export default function StudentsMonitoringPage() {
 
   // ── Delete student ──────────────────────────────────────────────
   const handleDelete = async (id: string) => {
+    setDeleting(true);
     try {
       const res = await fetch(`${API_BASE}/api/headmaster/students/${id}`, { method: "DELETE" });
       const json = await res.json();
@@ -731,6 +801,7 @@ export default function StudentsMonitoringPage() {
     } catch {
       showToast("🔴 Could not delete — server error.", "error");
     } finally {
+      setDeleting(false);
       setIsDeleteConfirmOpen(false);
       setStudentToDelete(null);
     }
@@ -1139,6 +1210,89 @@ export default function StudentsMonitoringPage() {
         </div>
       </div>
 
+      {/* ── Bulk Import Template Card ─────────────────────────────────── */}
+      <div className="glass rounded-2xl p-6 border border-slate-800 mb-6 fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400 text-xl shrink-0">
+              📊
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-white">Bulk Student Import</h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">Download the Excel template, fill student data, and upload to register hundreds of students at once.</p>
+            </div>
+          </div>
+          <div className="flex gap-3 shrink-0">
+            <button
+              onClick={downloadExcelTemplate}
+              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-emerald-600/20 whitespace-nowrap"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Download Template (.xlsx)
+            </button>
+            <button
+              onClick={() => {
+                populateForm({});
+                setIsViewMode(false);
+                setIsEditMode(false);
+                setEditingStudentId(null);
+                setModalTab("excel");
+                setIsModalOpen(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 text-xs font-bold rounded-xl transition-all whitespace-nowrap"
+            >
+              📤 Upload Now
+            </button>
+          </div>
+        </div>
+
+        {/* Template columns reference */}
+        <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">📋 Template Columns Reference</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-1.5">
+            {[
+              { col: "Full Name", req: true },
+              { col: "Roll Number", req: true },
+              { col: "Admission Number", req: false },
+              { col: "EMIS Number", req: false },
+              { col: "Date of Birth (YYYY-MM-DD)", req: false },
+              { col: "Gender", req: false },
+              { col: "Blood Group", req: false },
+              { col: "Religion", req: false },
+              { col: "Community", req: false },
+              { col: "Nationality", req: false },
+              { col: "Medium of Instruction", req: false },
+              { col: "Class", req: false },
+              { col: "Section", req: false },
+              { col: "Group", req: false },
+              { col: "Academic Year", req: false },
+              { col: "Father Name", req: false },
+              { col: "Mother Name", req: false },
+              { col: "Primary Contact Name", req: false },
+              { col: "Phone Number", req: false },
+              { col: "Parent Email", req: false },
+              { col: "Address", req: false },
+              { col: "City", req: false },
+              { col: "District", req: false },
+              { col: "State", req: false },
+              { col: "Pincode", req: false },
+              { col: "Student Status", req: false },
+            ].map(({ col, req }) => (
+              <div key={col} className="flex items-center gap-1.5">
+                {req ? (
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                ) : (
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0" />
+                )}
+                <span className={`text-[10px] font-medium truncate ${ req ? "text-slate-200" : "text-slate-400" }`}>{col}</span>
+                {req && <span className="text-[8px] text-red-400 font-bold shrink-0">*</span>}
+              </div>
+            ))}
+          </div>
+          <p className="text-[9px] text-slate-500 mt-3"><span className="text-red-400">*</span> Required columns. All other columns are optional but recommended.</p>
+        </div>
+      </div>
+
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -1150,12 +1304,36 @@ export default function StudentsMonitoringPage() {
               boxShadow: "0 20px 50px rgba(0, 0, 0, 0.15)",
             }}
           >
+            {/* Modal Header with Tabs */}
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-slate-800">
-                {previewStudents.length > 0 ? "📋 Preview Roster Import" : "🎓 Register New Student"}
-              </h3>
+              <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
+                <button
+                  type="button"
+                  onClick={() => setModalTab("manual")}
+                  disabled={previewStudents.length > 0}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    modalTab === "manual"
+                      ? "bg-white text-slate-800 shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  ✏️ Manual Entry
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModalTab("excel")}
+                  disabled={previewStudents.length > 0}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    modalTab === "excel"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  📊 Excel Import
+                </button>
+              </div>
               <button
-                onClick={() => { setIsModalOpen(false); setPreviewStudents([]); }}
+                onClick={() => { setIsModalOpen(false); setPreviewStudents([]); setModalTab("manual"); }}
                 className="text-slate-500 hover:text-slate-800 text-xs font-semibold"
               >
                 ✕ Close
@@ -1288,8 +1466,9 @@ export default function StudentsMonitoringPage() {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-8">
-                {/* Manual Form */}
+              <div className="flex flex-col gap-4">
+                {/* ── MANUAL ENTRY TAB ── */}
+                {modalTab === "manual" && (
                 <form onSubmit={handleManualSubmit} className="space-y-4">
                   <fieldset disabled={isViewMode}>
                     <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Manual Entry</div>
@@ -1546,17 +1725,16 @@ export default function StudentsMonitoringPage() {
                     </button>}
                   </fieldset>
                 </form>
+                )} {/* end manual tab */}
 
-                {!isEditMode && !isViewMode && (
-                  <>
-                    {/* Excel Import */}
-                    <div className="border-t border-slate-200 pt-6 flex flex-col justify-between">
-                      <div className="space-y-4">
+                {/* ── EXCEL IMPORT TAB ── */}
+                {modalTab === "excel" && (
+                  <div className="space-y-4 py-2">
                         <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex justify-between items-center">
-                          <span>Excel Import</span>
+                          <span>📊 Excel / CSV Bulk Import</span>
                           <button onClick={downloadExcelTemplate} type="button"
-                            className="text-[10px] text-blue-600 hover:text-blue-700 font-bold underline cursor-pointer">
-                            📥 Get Template
+                            className="flex items-center gap-1.5 text-[10px] bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg cursor-pointer transition-colors">
+                            <Download className="w-3 h-3" /> Download Template
                           </button>
                         </div>
                         <div
@@ -1587,13 +1765,8 @@ export default function StudentsMonitoringPage() {
                           accept=".xlsx,.xls,.csv"
                           className="hidden"
                         />
-                      </div>
-                      <div className="text-[10px] text-slate-400 italic leading-relaxed pt-4">
-                        * Data is stored in PostgreSQL — persists across sessions and refreshes.
-                      </div>
-                    </div>
-                  </>
-                )}
+                  </div>
+                )} {/* end excel tab */}
               </div>
             )}
           </div>
@@ -1858,38 +2031,61 @@ export default function StudentsMonitoringPage() {
       )}
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && studentToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-[24px] w-full max-w-md p-6 shadow-2xl relative border border-slate-100 animate-in fade-in zoom-in-95 duration-200 text-left">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
-                <Trash2 className="w-5 h-5" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-white dark:bg-slate-950 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            {/* Red top accent bar */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-red-500 to-rose-600" />
+
+            <div className="p-6">
+              {/* Icon + Title */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-500/15 flex items-center justify-center shrink-0">
+                  <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-white">Delete Student</h3>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">This action cannot be undone</p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <h3 className="text-lg font-extrabold text-slate-800">
-                  Delete Student
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Are you sure you want to delete <span className="font-semibold text-slate-700">{studentToDelete.name}</span>? This action cannot be undone and will delete all dependent health records, marks, and attendance records.
+
+              {/* Message */}
+              <div className="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-xl px-4 py-3 mb-5">
+                <p className="text-xs text-slate-750 dark:text-slate-300 leading-relaxed">
+                  Are you sure you want to permanently delete{" "}
+                  <span className="font-bold text-red-600 dark:text-red-400">&ldquo;{studentToDelete.name}&rdquo;</span>?
+                </p>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                  All dependent health reports, marks, and attendance records will be permanently removed.
                 </p>
               </div>
-            </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setIsDeleteConfirmOpen(false);
-                  setStudentToDelete(null);
-                }}
-                className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(studentToDelete.id!)}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-red-600/10 active:scale-95"
-              >
-                Delete Student
-              </button>
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setIsDeleteConfirmOpen(false);
+                    setStudentToDelete(null);
+                  }}
+                  disabled={deleting}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-655 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(studentToDelete.id!)}
+                  disabled={deleting}
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5"
+                >
+                  {deleting ? (
+                    <>
+                      <span className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>Yes, Delete</>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
