@@ -31,6 +31,7 @@ export default function BlockSchoolsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [pincodeError, setPincodeError] = useState("");
 
   // Form Fields
   const [dise, setDise] = useState("");
@@ -96,9 +97,21 @@ export default function BlockSchoolsPage() {
     setDistrict("");
     setBlock("");
     setPincode("");
+    setPincodeError("");
     setSchoolType("Government");
     setMediumOfInstruction("Tamil");
     setIsModalOpen(false);
+  };
+
+  const handlePincodeChange = (val: string) => {
+    // Allow only digits, max 6
+    const cleaned = val.replace(/\D/g, "").slice(0, 6);
+    setPincode(cleaned);
+    if (cleaned.length > 0 && cleaned.length < 6) {
+      setPincodeError("Pincode must be exactly 6 digits");
+    } else {
+      setPincodeError("");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,8 +120,14 @@ export default function BlockSchoolsPage() {
       setToast({ message: "⚠️ School DISE code and name are required", type: "error" });
       return;
     }
+    // Pincode restriction: must be empty or exactly 6 digits
+    if (pincode.trim() && !/^\d{6}$/.test(pincode.trim())) {
+      setPincodeError("Pincode must be exactly 6 digits");
+      return;
+    }
     setSubmitting(true);
     setToast(null);
+    setPincodeError("");
 
     const payload = {
       dise: dise.trim(),
@@ -527,14 +546,35 @@ export default function BlockSchoolsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] text-slate-550 dark:text-slate-400 mb-1 font-semibold">Pincode</label>
+                  <label className="block text-[10px] text-slate-550 dark:text-slate-400 mb-1 font-semibold">
+                    Pincode
+                    <span className="ml-1 text-slate-400 font-normal">(6 digits)</span>
+                  </label>
                   <input
                     type="text"
+                    inputMode="numeric"
                     value={pincode}
-                    onChange={(e) => setPincode(e.target.value)}
+                    onChange={(e) => handlePincodeChange(e.target.value)}
                     placeholder="641045"
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-violet-500 transition-colors"
+                    maxLength={6}
+                    className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none transition-colors ${
+                      pincodeError
+                        ? "border-red-400 dark:border-red-500 focus:border-red-500"
+                        : pincode.length === 6
+                        ? "border-emerald-400 dark:border-emerald-600 focus:border-emerald-500"
+                        : "border-slate-200 dark:border-slate-800 focus:border-violet-500"
+                    }`}
                   />
+                  {pincodeError && (
+                    <p className="mt-1 text-[10px] text-red-500 font-semibold flex items-center gap-1">
+                      ⚠️ {pincodeError}
+                    </p>
+                  )}
+                  {!pincodeError && pincode.length === 6 && (
+                    <p className="mt-1 text-[10px] text-emerald-500 font-semibold flex items-center gap-1">
+                      ✓ Valid pincode
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-[10px] text-slate-550 dark:text-slate-400 mb-1 font-semibold">School Type</label>
