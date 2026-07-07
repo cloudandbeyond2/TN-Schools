@@ -135,25 +135,38 @@ export default function LoginPage() {
       </div>
 
       {/* Right Column - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative bg-white dark:bg-slate-950">
-        {/* Back to Webportal */}
-        <Link 
-          href="/" 
-          className="absolute top-8 right-8 flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 transition-colors z-10"
-        >
-          <i className="fi fi-rr-arrow-left"></i> Back to Webportal
-        </Link>
+      <div className="w-full lg:w-1/2 flex flex-col min-h-screen p-6 sm:p-12 bg-emerald-950 lg:bg-white dark:bg-slate-950 relative overflow-hidden">
+        {/* Mobile Background Image (hidden on lg) */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 mix-blend-overlay lg:hidden"
+          style={{ backgroundImage: `url('/bg-school.png')` }}
+        />
+        {/* Mobile Gradient Overlay (hidden on lg) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-900/80 to-emerald-900/60 lg:hidden" style={{ zIndex: 0 }} />
 
-        {/* Mobile Branding (Only visible on small screens) */}
-        <div className="absolute top-8 left-8 lg:hidden flex items-center gap-2">
-          <span className="text-2xl text-slate-800 dark:text-white"><i className="fi fi-rr-bank"></i></span>
-          <div>
-            <h2 className="text-sm font-black text-slate-800 dark:text-white leading-tight">TN Schools</h2>
-            <p className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">Government of Tamil Nadu</p>
+        {/* Top Header Row */}
+        <div className="w-full flex items-center justify-between gap-4 mb-8 lg:absolute lg:top-8 lg:left-8 lg:right-8 lg:mb-0 px-2 sm:px-0 relative z-10">
+          {/* Mobile Branding (Only visible on small screens) */}
+          <div className="lg:hidden flex items-center gap-2">
+            <span className="text-2xl text-amber-400 lg:text-slate-800 dark:lg:text-white"><i className="fi fi-rr-bank"></i></span>
+            <div>
+              <h2 className="text-sm font-black text-white lg:text-slate-800 dark:lg:text-white leading-tight">TN Schools</h2>
+              <p className="text-[9px] text-amber-300 lg:text-emerald-600 dark:lg:text-emerald-400 font-bold uppercase tracking-wider">Government of Tamil Nadu</p>
+            </div>
           </div>
+
+          {/* Back to Webportal */}
+          <Link 
+            href="/" 
+            className="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-100 hover:text-white lg:text-slate-500 lg:hover:text-emerald-600 dark:lg:text-slate-400 dark:lg:hover:text-emerald-400 transition-colors ml-auto z-10"
+          >
+            <i className="fi fi-rr-arrow-left"></i> Back to Webportal
+          </Link>
         </div>
 
-        <div className="w-full max-w-md bg-white dark:bg-slate-950 rounded-3xl p-8 sm:p-0 shadow-2xl sm:shadow-none sm:bg-transparent sm:dark:bg-transparent mt-12 lg:mt-0">
+        {/* Center Container for Form */}
+        <div className="flex-1 flex items-center justify-center relative z-10">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl lg:shadow-none lg:bg-transparent lg:dark:bg-transparent">
           <div className="mb-8">
             <h2 className="text-3xl font-black text-slate-900 dark:text-white">Welcome Back</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">
@@ -162,26 +175,26 @@ export default function LoginPage() {
           </div>
 
           {/* Tab Toggle */}
-          <div className="flex bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-800 mb-8">
+          <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl sm:p-1.5 sm:rounded-2xl border border-slate-200/50 dark:border-slate-800 mb-8">
             <button
               type="button"
               onClick={() => { setLoginType("student"); setError(null); }}
-              className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all ${loginType === "student"
+              className={`flex-1 py-2.5 sm:py-3 text-[11px] sm:text-xs font-bold rounded-lg sm:rounded-xl transition-all flex items-center justify-center gap-1.5 ${loginType === "student"
                 ? "bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 shadow-sm border border-slate-200/50 dark:border-slate-700/50"
                 : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                 }`}
             >
-              <i className="fi fi-rr-graduation-cap mr-2"></i> Student Login
+              <i className="fi fi-rr-graduation-cap"></i> Student Login
             </button>
             <button
               type="button"
               onClick={() => { setLoginType("staff"); setError(null); }}
-              className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all ${loginType === "staff"
+              className={`flex-1 py-2.5 sm:py-3 text-[11px] sm:text-xs font-bold rounded-lg sm:rounded-xl transition-all flex items-center justify-center gap-1.5 ${loginType === "staff"
                 ? "bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 shadow-sm border border-slate-200/50 dark:border-slate-700/50"
                 : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                 }`}
             >
-              <i className="fi fi-rr-briefcase mr-2"></i> Parents & Staffs
+              <i className="fi fi-rr-briefcase"></i> Parents & Staffs
             </button>
           </div>
 
@@ -304,6 +317,7 @@ export default function LoginPage() {
             <br />
             <span className="opacity-70 mt-1 block">TN Smart Education Portal v2.0</span>
           </p>
+          </div>
         </div>
       </div>
     </div>
