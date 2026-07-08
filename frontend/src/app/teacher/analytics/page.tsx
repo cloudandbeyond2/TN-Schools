@@ -292,7 +292,7 @@ export default function AnalyticsPage() {
               </div>
               <div className="space-y-3">
                 <div className="h-8 bg-slate-850 rounded w-full" />
-                {[1, 2, 3, 4, 5].map((n) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                   <div key={n} className="h-10 bg-slate-800 rounded w-full" />
                 ))}
               </div>

@@ -52,7 +52,9 @@ const DAYS_OF_WEEK = [
   { value: 2, label: "Tuesday", short: "Tue" },
   { value: 3, label: "Wednesday", short: "Wed" },
   { value: 4, label: "Thursday", short: "Thu" },
-  { value: 5, label: "Friday", short: "Fri" }
+  { value: 5, label: "Friday", short: "Fri" },
+  { value: 6, label: "Saturday", short: "Sat" },
+  { value: 0, label: "Sunday", short: "Sun" }
 ];
 
 export default function TeacherTimetablePage() {
@@ -66,6 +68,7 @@ export default function TeacherTimetablePage() {
   const [proxies, setProxies] = useState<ProxyAssignment[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<"daily" | "weekly">("weekly");
 
   // Date and Day Selectors
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -147,11 +150,14 @@ export default function TeacherTimetablePage() {
   const absentCoverages = selectedDateProxies.filter(p => p.absentTeacherId === teacherId || p.absentTeacherId === user?.id);
 
   // Construct the dynamic daily period schedule by combining regular schedule and overlaying proxies
-  const dailySchedule = [1, 2, 3, 4, 5].map(periodNumber => {
+  const dailySchedule = [1, 2, 3, 4, 5, 6, 7, 8].map(periodNumber => {
     const times = periodNumber === 1 ? { start: "09:30", end: "10:15" } : 
                   periodNumber === 2 ? { start: "10:15", end: "11:00" } : 
                   periodNumber === 3 ? { start: "11:15", end: "12:00" } : 
-                  periodNumber === 4 ? { start: "12:00", end: "12:45" } : { start: "13:30", end: "14:15" };
+                  periodNumber === 4 ? { start: "12:00", end: "12:45" } : 
+                  periodNumber === 5 ? { start: "13:30", end: "14:15" } : 
+                  periodNumber === 6 ? { start: "14:15", end: "15:00" } :
+                  periodNumber === 7 ? { start: "15:15", end: "16:00" } : { start: "16:00", end: "16:45" };
 
     // 1. Check if there is an active proxy where this teacher is covering this period today
     const proxyDuty = substitutingDuties.find(p => p.period === periodNumber);
@@ -266,11 +272,37 @@ export default function TeacherTimetablePage() {
           <div>
             <h2 className="text-sm font-bold text-slate-800 dark:text-white">🗓️ Weekly Schedule & Active Period Mappings</h2>
             <p className="text-[10px] text-slate-500 mt-1">
-              Select a weekday to load your schedule timeline.
+              {viewMode === "weekly" ? "View your full weekly schedule." : "Select a weekday to load your schedule timeline."}
             </p>
           </div>
 
-          {/* Days Tabs selector */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* View Mode Toggle */}
+            <div className="flex bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900 p-1 rounded-xl">
+              <button
+                onClick={() => setViewMode("weekly")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  viewMode === "weekly"
+                    ? "bg-amber-500 text-white shadow-sm"
+                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+                }`}
+              >
+                Weekly
+              </button>
+              <button
+                onClick={() => setViewMode("daily")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  viewMode === "daily"
+                    ? "bg-amber-500 text-white shadow-sm"
+                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+                }`}
+              >
+                Daily
+              </button>
+            </div>
+
+            {/* Days Tabs selector - Only show in daily view */}
+            {viewMode === "daily" && (
           <div className="flex bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900 p-1 rounded-xl w-full sm:w-auto">
             {DAYS_OF_WEEK.map((day) => (
               <button
@@ -292,12 +324,111 @@ export default function TeacherTimetablePage() {
               </button>
             ))}
           </div>
+          )}
+          </div>
         </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-6 h-6 border-2 border-amber-500/20 border-t-amber-500 animate-spin rounded-full mb-2" />
             <span className="text-xs text-slate-400 font-medium">Fetching schedule...</span>
+          </div>
+        ) : viewMode === "daily" && activeDayOfWeek === 0 ? (
+          <div className="text-center py-16 border-2 border-dashed border-red-200 dark:border-red-900/50 rounded-2xl bg-red-50/50 dark:bg-red-950/20">
+            <span className="text-4xl block mb-3">🏖️</span>
+            <h3 className="text-sm font-bold text-red-600 dark:text-red-400">Sunday - Weekly Holiday</h3>
+            <p className="text-[10px] text-red-500/70 dark:text-red-400/70 mt-1 max-w-[280px] mx-auto leading-relaxed">
+              School is closed on Sundays. Enjoy your weekend!
+            </p>
+          </div>
+        ) : viewMode === "weekly" ? (
+          /* WEEKLY CALENDAR MATRIX */
+          <div className="overflow-x-auto pb-4">
+            <table className="w-full border-collapse min-w-[700px]">
+              <thead>
+                <tr>
+                  <th className="p-3 border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-xs font-bold text-slate-500 text-left w-32">Period / Time</th>
+                  {DAYS_OF_WEEK.map(day => (
+                    <th key={day.value} className="p-3 border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-xs font-bold text-slate-800 dark:text-white text-center">
+                      {day.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { type: 'period', num: 1 },
+                  { type: 'period', num: 2 },
+                  { type: 'break', label: 'Morning Break', time: '11:00 - 11:15' },
+                  { type: 'period', num: 3 },
+                  { type: 'period', num: 4 },
+                  { type: 'break', label: 'Lunch Break', time: '12:45 - 13:30' },
+                  { type: 'period', num: 5 },
+                  { type: 'period', num: 6 },
+                  { type: 'period', num: 7 },
+                  { type: 'period', num: 8, label: 'PET/Extra' },
+                ].map((row, idx) => {
+                  if (row.type === 'break') {
+                    return (
+                      <tr key={`break-${idx}`}>
+                        <td colSpan={DAYS_OF_WEEK.length + 1} className="p-2 border border-slate-200 dark:border-slate-800 bg-amber-50 dark:bg-amber-900/10 text-center text-amber-700 dark:text-amber-500 text-xs font-bold tracking-widest uppercase">
+                          ☕ {row.label} <span className="opacity-70 text-[10px] ml-2 normal-case tracking-normal font-medium">({row.time})</span>
+                        </td>
+                      </tr>
+                    );
+                  }
+
+                  const periodNumber = row.num as number;
+                  const times = periodNumber === 1 ? { start: "09:30", end: "10:15" } : 
+                                periodNumber === 2 ? { start: "10:15", end: "11:00" } : 
+                                periodNumber === 3 ? { start: "11:15", end: "12:00" } : 
+                                periodNumber === 4 ? { start: "12:00", end: "12:45" } : 
+                                periodNumber === 5 ? { start: "13:30", end: "14:15" } : 
+                                periodNumber === 6 ? { start: "14:15", end: "15:00" } :
+                                periodNumber === 7 ? { start: "15:15", end: "16:00" } : { start: "16:00", end: "16:45" };
+                  
+                  return (
+                    <tr key={`p-${periodNumber}`}>
+                      <td className="p-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                        <div className="text-xs font-bold text-slate-800 dark:text-white whitespace-nowrap">Period {periodNumber}</div>
+                        {row.label && <div className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 mt-0.5">{row.label}</div>}
+                        <div className="text-[10px] text-slate-500 mt-1">{times.start} - {times.end}</div>
+                      </td>
+                      {DAYS_OF_WEEK.map(day => {
+                        const slot = timetable.find(s => s.dayOfWeek === day.value && s.period === periodNumber);
+                        
+                        // Render empty for Sunday if needed, but we included Sunday in DAYS_OF_WEEK
+                        if (day.value === 0) {
+                          return (
+                            <td key={`${day.value}-${periodNumber}`} className="p-2 border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 align-top h-24">
+                            </td>
+                          );
+                        }
+
+                        return (
+                          <td key={`${day.value}-${periodNumber}`} className="p-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 align-top h-24">
+                            {slot ? (
+                              <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-2 rounded-lg h-full flex flex-col justify-between hover:border-amber-400 dark:hover:border-amber-500/50 transition-colors">
+                                <div>
+                                  <div className={`text-xs font-bold ${periodNumber === 8 ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-800 dark:text-white'}`}>{slot.subject}</div>
+                                  <div className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5 flex items-center gap-1 font-semibold">
+                                    <Users className="w-3 h-3" /> Class {slot.class}{slot.section}
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center h-full text-[10px] text-slate-400 font-medium opacity-50 bg-slate-50/50 dark:bg-slate-950/20 rounded-lg border border-dashed border-slate-200 dark:border-slate-800">
+                                Free
+                              </div>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         ) : (
           /* COLUMN-WISE SCHEDULE DIVISION */
