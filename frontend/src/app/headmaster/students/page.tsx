@@ -771,12 +771,73 @@ export default function StudentsMonitoringPage() {
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) return;
+
+    // Run dynamic submission validations
+    let localRollError = "";
+    let localPhoneError = "";
+    let localPincodeError = "";
+    let localEmisError = "";
+    const invalidFields: string[] = [];
+
+    // 1. Roll Number Validation
     if (!newRollNumber.trim()) {
-      setRollError("Roll Number is required");
-      return;
+      localRollError = "Roll Number is required";
+      invalidFields.push("Roll Number");
+    } else if (newRollNumber.replace(/[^a-zA-Z0-9]/g, "").length < 3) {
+      localRollError = "Roll number must be at least 3 alphanumeric characters";
+      invalidFields.push("Roll Number");
     }
-    if (rollError || phoneError || pincodeError || emisError) {
-      showToast("❌ Please fix validation errors in the form first.", "error");
+
+    // 2. Phone Number Validation (Required by form schema)
+    const cleanPhone = newPhone.replace(/\D/g, "");
+    if (!cleanPhone) {
+      localPhoneError = "Phone number is required";
+      invalidFields.push("Phone Number");
+    } else if (cleanPhone.length !== 10) {
+      localPhoneError = "Phone number must be exactly 10 digits";
+      invalidFields.push("Phone Number");
+    }
+
+    // 3. Pincode Validation (Optional, but if set, must be 6 digits)
+    const cleanPincode = newPincode.replace(/\D/g, "");
+    if (newPincode && cleanPincode.length !== 6) {
+      localPincodeError = "Pincode must be exactly 6 digits";
+      invalidFields.push("Pincode");
+    }
+
+    // 4. EMIS Number Validation (Optional, but if set, must be 16 digits)
+    const cleanEmis = newEmisNumber.replace(/\D/g, "");
+    if (newEmisNumber && cleanEmis.length !== 16) {
+      localEmisError = "EMIS Number must be exactly 16 digits";
+      invalidFields.push("EMIS Number");
+    }
+
+    // Update states
+    setRollError(localRollError);
+    setPhoneError(localPhoneError);
+    setPincodeError(localPincodeError);
+    setEmisError(localEmisError);
+
+    if (invalidFields.length > 0) {
+      showToast(`❌ Please fix errors in: ${invalidFields.join(", ")}`, "error");
+
+      // Auto-scroll first error element into view and focus it
+      let elementId = "";
+      const firstInvalid = invalidFields[0];
+      if (firstInvalid === "Roll Number") elementId = "manual-roll-number";
+      else if (firstInvalid === "Phone Number") elementId = "manual-phone-number";
+      else if (firstInvalid === "Pincode") elementId = "manual-pincode";
+      else if (firstInvalid === "EMIS Number") elementId = "manual-emis-number";
+
+      if (elementId) {
+        setTimeout(() => {
+          const el = document.getElementById(elementId);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            el.focus();
+          }
+        }, 100);
+      }
       return;
     }
 
@@ -1022,8 +1083,17 @@ export default function StudentsMonitoringPage() {
       </div>
 
       {toast && (
-        <div className={`mb-6 p-4 border text-xs rounded-xl shadow-lg ${toast.type === "error" ? "bg-red-500/10 border-red-500/20 text-red-300" : "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"}`}>
-          {toast.msg}
+        <div className={`fixed top-5 right-5 z-[9999] max-w-sm p-4 border text-xs rounded-2xl shadow-2xl backdrop-blur-md flex items-center justify-between gap-3 animate-fade-in ${toast.type === "error"
+            ? "bg-red-950/95 border-red-500/40 text-red-200"
+            : "bg-emerald-950/95 border-emerald-500/40 text-emerald-200"
+          }`}>
+          <span>{toast.msg}</span>
+          <button
+            onClick={() => setToast(null)}
+            className="text-[10px] font-bold text-slate-450 hover:text-white shrink-0 ml-2"
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -1197,10 +1267,10 @@ export default function StudentsMonitoringPage() {
                         onClick={() => typeof page === 'number' && setCurrentPage(page)}
                         disabled={page === '...'}
                         className={`w-8 h-8 rounded-lg text-xs font-medium flex items-center justify-center transition-colors ${currentPage === page
-                            ? "bg-blue-600 text-white"
-                            : page === '...'
-                              ? "bg-transparent text-slate-500 cursor-default"
-                              : "bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700"
+                          ? "bg-blue-600 text-white"
+                          : page === '...'
+                            ? "bg-transparent text-slate-500 cursor-default"
+                            : "bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700"
                           }`}
                       >
                         {page}
@@ -1295,7 +1365,7 @@ export default function StudentsMonitoringPage() {
                 ) : (
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0" />
                 )}
-                <span className={`text-[10px] font-medium truncate ${ req ? "text-slate-200" : "text-slate-400" }`}>{col}</span>
+                <span className={`text-[10px] font-medium truncate ${req ? "text-slate-200" : "text-slate-400"}`}>{col}</span>
                 {req && <span className="text-[8px] text-red-400 font-bold shrink-0">*</span>}
               </div>
             ))}
@@ -1322,11 +1392,10 @@ export default function StudentsMonitoringPage() {
                   type="button"
                   onClick={() => setModalTab("manual")}
                   disabled={previewStudents.length > 0}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    modalTab === "manual"
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${modalTab === "manual"
                       ? "bg-white text-slate-800 shadow-sm"
                       : "text-slate-500 hover:text-slate-700"
-                  }`}
+                    }`}
                 >
                   ✏️ Manual Entry
                 </button>
@@ -1334,11 +1403,10 @@ export default function StudentsMonitoringPage() {
                   type="button"
                   onClick={() => setModalTab("excel")}
                   disabled={previewStudents.length > 0}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    modalTab === "excel"
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${modalTab === "excel"
                       ? "bg-white text-blue-600 shadow-sm"
                       : "text-slate-500 hover:text-slate-700"
-                  }`}
+                    }`}
                 >
                   📊 Excel Import
                 </button>
@@ -1480,357 +1548,353 @@ export default function StudentsMonitoringPage() {
               <div className="flex flex-col gap-4">
                 {/* ── MANUAL ENTRY TAB ── */}
                 {modalTab === "manual" && (
-                <form onSubmit={handleManualSubmit} className="space-y-4">
-                  <fieldset disabled={isViewMode}>
-                    <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Manual Entry</div>
+                  <form onSubmit={handleManualSubmit} className="space-y-4">
+                    <fieldset disabled={isViewMode}>
+                      <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Manual Entry</div>
 
-                    {/* Personal Details */}
-                    <div className="pt-1 pb-2 border-b border-slate-200">
-                      <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Personal Details</h4>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="col-span-2">
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Full Name</label>
-                        <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)}
-                          placeholder="e.g. Senthil Kumar"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                      {/* Personal Details */}
+                      <div className="pt-1 pb-2 border-b border-slate-200">
+                        <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Personal Details</h4>
                       </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Date of Birth</label>
-                        <input type="date" value={newDob} onChange={(e) => setNewDob(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Gender</label>
-                        <select value={newGender} onChange={(e) => setNewGender(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                          <option value="">Select Gender</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Blood Group</label>
-                        <select value={newBloodGroup} onChange={(e) => setNewBloodGroup(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                          <option value="">Select Blood Group</option>
-                          <option value="A+">A+</option>
-                          <option value="A-">A-</option>
-                          <option value="B+">B+</option>
-                          <option value="B-">B-</option>
-                          <option value="O+">O+</option>
-                          <option value="O-">O-</option>
-                          <option value="AB+">AB+</option>
-                          <option value="AB-">AB-</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Religion</label>
-                        <select value={newReligion} onChange={(e) => setNewReligion(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                          <option value="">Select Religion</option>
-                          <option value="Hindu">Hindu</option>
-                          <option value="Muslim">Muslim</option>
-                          <option value="Christian">Christian</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Community</label>
-                        <select value={newCommunity} onChange={(e) => setNewCommunity(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                          <option value="">Select Community</option>
-                          <option value="BC">BC</option>
-                          <option value="MBC">MBC</option>
-                          <option value="SC">SC</option>
-                          <option value="ST">ST</option>
-                          <option value="OC">OC</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Nationality</label>
-                        <select value={newNationality} onChange={(e) => setNewNationality(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                          <option value="Indian">Indian</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Academic Details */}
-                    <div className="pt-3 pb-2 border-b border-slate-200">
-                      <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Academic Details</h4>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Admission Number</label>
-                        <input type="text" value={newAdmissionNumber} onChange={(e) => setNewAdmissionNumber(e.target.value)}
-                          placeholder="e.g. ADM2026101"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                          EMIS Number
-                          <span className="ml-1 text-slate-400 font-normal">(16 digits)</span>
-                        </label>
-                        <input type="text" value={newEmisNumber} onChange={(e) => handleEmisChange(e.target.value)}
-                          placeholder="e.g. 3302100010101234"
-                          maxLength={16}
-                          className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-colors ${
-                            emisError
-                              ? "border-red-400 focus:border-red-500 focus:bg-white"
-                              : newEmisNumber.length === 16
-                              ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
-                              : "border-slate-200 focus:border-blue-500 focus:bg-white"
-                          }`} />
-                        {emisError && (
-                          <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{emisError}</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                          Roll Number
-                          <span className="ml-1 text-red-500">*</span>
-                        </label>
-                        <input type="text" required value={newRollNumber} onChange={(e) => handleRollChange(e.target.value)}
-                          placeholder="e.g. HM10101"
-                          className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none transition-colors ${
-                            rollError
-                              ? "border-red-400 focus:border-red-500 focus:bg-white"
-                              : newRollNumber.length >= 3
-                              ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
-                              : "border-slate-200 focus:border-blue-500 focus:bg-white"
-                          }`} />
-                        {rollError && (
-                          <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{rollError}</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Academic Year</label>
-                        <input type="text" value={newAcademicYear} onChange={(e) => setNewAcademicYear(e.target.value)}
-                          placeholder="e.g. 2024-25"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Class</label>
-                        <select required value={newClass} onChange={(e) => setNewClass(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                          <option value="">Select Class</option>
-                          <option value="Class 6">Class 6</option>
-                          <option value="Class 7">Class 7</option>
-                          <option value="Class 8">Class 8</option>
-                          <option value="Class 9">Class 9</option>
-                          <option value="Class 10">Class 10</option>
-                          <option value="Class 11">Class 11</option>
-                          <option value="Class 12">Class 12</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Section</label>
-                        <select value={newSection} onChange={(e) => setNewSection(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                          <option value="A">A</option>
-                          <option value="B">B</option>
-                          <option value="C">C</option>
-                          <option value="D">D</option>
-                          <option value="E">E</option>
-                          <option value="F">F</option>
-                          <option value="G">G</option>
-                          <option value="H">H</option>
-                        </select>
-                      </div>
-                      {(newClass.includes("11") || newClass.includes("12")) && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="col-span-2">
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">HSC Group (DGE code)</label>
-                          <select value={newGroup} onChange={(e) => setNewGroup(e.target.value)} className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-1.5 text-xs text-blue-900 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                            <option value="">Select Group</option>
-                            {Object.keys(streamLabels).map((stream) => (
-                              <optgroup key={stream} label={streamLabels[stream] || stream}>
-                                {hscGroups
-                                  .filter((g) => g.streamCategory === stream)
-                                  .map((g) => (
-                                    <option key={g.code} value={g.code}>{g.name}</option>
-                                  ))}
-                              </optgroup>
-                            ))}
-                          </select>
-                          <p className="text-[9px] text-slate-400 mt-1">Official Annexure-I group codes — used for competitive exam recommendations on the student panel.</p>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Full Name</label>
+                          <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)}
+                            placeholder="e.g. Senthil Kumar"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                         </div>
-                      )}
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Medium of Instruction</label>
-                        <select value={newMediumOfInstruction} onChange={(e) => setNewMediumOfInstruction(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                          <option value="English">English</option>
-                          <option value="Tamil">Tamil</option>
-                          <option value="Hindi">Hindi</option>
-                        </select>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Date of Birth</label>
+                          <input type="date" value={newDob} onChange={(e) => setNewDob(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Gender</label>
+                          <select value={newGender} onChange={(e) => setNewGender(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Blood Group</label>
+                          <select value={newBloodGroup} onChange={(e) => setNewBloodGroup(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Religion</label>
+                          <select value={newReligion} onChange={(e) => setNewReligion(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                            <option value="">Select Religion</option>
+                            <option value="Hindu">Hindu</option>
+                            <option value="Muslim">Muslim</option>
+                            <option value="Christian">Christian</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Community</label>
+                          <select value={newCommunity} onChange={(e) => setNewCommunity(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                            <option value="">Select Community</option>
+                            <option value="BC">BC</option>
+                            <option value="MBC">MBC</option>
+                            <option value="SC">SC</option>
+                            <option value="ST">ST</option>
+                            <option value="OC">OC</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Nationality</label>
+                          <select value={newNationality} onChange={(e) => setNewNationality(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                            <option value="Indian">Indian</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Student Status</label>
-                        <select value={newStudentStatus} onChange={(e) => setNewStudentStatus(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                          <option value="Active">Active</option>
-                          <option value="Inactive">Inactive</option>
-                          <option value="Transferred">Transferred</option>
-                          <option value="Graduated">Graduated</option>
-                        </select>
-                      </div>
-                    </div>
 
-                    {/* Parent Details */}
-                    <div className="pt-3 pb-2 border-b border-slate-200">
-                      <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Parent / Guardian Details</h4>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Name</label>
-                        <input type="text" value={newFatherName} onChange={(e) => setNewFatherName(e.target.value)}
-                          placeholder="e.g. Ramasamy"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                      {/* Academic Details */}
+                      <div className="pt-3 pb-2 border-b border-slate-200">
+                        <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Academic Details</h4>
                       </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Occupation</label>
-                        <input type="text" value={newFatherOccupation} onChange={(e) => setNewFatherOccupation(e.target.value)}
-                          placeholder="e.g. Farmer"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Name</label>
-                        <input type="text" value={newMotherName} onChange={(e) => setNewMotherName(e.target.value)}
-                          placeholder="e.g. Lakshmi"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Occupation</label>
-                        <input type="text" value={newMotherOccupation} onChange={(e) => setNewMotherOccupation(e.target.value)}
-                          placeholder="e.g. Homemaker"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Primary Contact Name</label>
-                        <input type="text" required value={newParentName} onChange={(e) => setNewParentName(e.target.value)}
-                          placeholder="e.g. Ramasamy A."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Parent Email</label>
-                        <input type="email" value={newParentEmail} onChange={(e) => setNewParentEmail(e.target.value)}
-                          placeholder="e.g. parent@example.com"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                          Phone Number
-                          <span className="ml-1 text-red-500">*</span>
-                        </label>
-                        <input type="text" required value={newPhone} onChange={(e) => handlePhoneChange(e.target.value)}
-                          placeholder="e.g. 9876543210"
-                          maxLength={10}
-                          className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none transition-colors ${
-                            phoneError
-                              ? "border-red-400 focus:border-red-500 focus:bg-white"
-                              : newPhone.length === 10
-                              ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
-                              : "border-slate-200 focus:border-blue-500 focus:bg-white"
-                          }`} />
-                        {phoneError && (
-                          <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{phoneError}</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Admission Number</label>
+                          <input type="text" value={newAdmissionNumber} onChange={(e) => setNewAdmissionNumber(e.target.value)}
+                            placeholder="e.g. ADM2026101"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                            EMIS Number
+                            <span className="ml-1 text-slate-400 font-normal">(16 digits)</span>
+                          </label>
+                          <input type="text" id="manual-emis-number" value={newEmisNumber} onChange={(e) => handleEmisChange(e.target.value)}
+                            placeholder="e.g. 3302100010101234"
+                            maxLength={16}
+                            className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-colors ${emisError
+                                ? "border-red-400 focus:border-red-500 focus:bg-white"
+                                : newEmisNumber.length === 16
+                                  ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                                  : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                              }`} />
+                          {emisError && (
+                            <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{emisError}</p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                            Roll Number
+                            <span className="ml-1 text-red-500">*</span>
+                          </label>
+                          <input type="text" id="manual-roll-number" required value={newRollNumber} onChange={(e) => handleRollChange(e.target.value)}
+                            placeholder="e.g. HM10101"
+                            className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none transition-colors ${rollError
+                                ? "border-red-400 focus:border-red-500 focus:bg-white"
+                                : newRollNumber.length >= 3
+                                  ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                                  : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                              }`} />
+                          {rollError && (
+                            <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{rollError}</p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Academic Year</label>
+                          <input type="text" value={newAcademicYear} onChange={(e) => setNewAcademicYear(e.target.value)}
+                            placeholder="e.g. 2024-25"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Class</label>
+                          <select required value={newClass} onChange={(e) => setNewClass(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                            <option value="">Select Class</option>
+                            <option value="Class 6">Class 6</option>
+                            <option value="Class 7">Class 7</option>
+                            <option value="Class 8">Class 8</option>
+                            <option value="Class 9">Class 9</option>
+                            <option value="Class 10">Class 10</option>
+                            <option value="Class 11">Class 11</option>
+                            <option value="Class 12">Class 12</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Section</label>
+                          <select value={newSection} onChange={(e) => setNewSection(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                            <option value="G">G</option>
+                            <option value="H">H</option>
+                          </select>
+                        </div>
+                        {(newClass.includes("11") || newClass.includes("12")) && (
+                          <div className="col-span-2">
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">HSC Group (DGE code)</label>
+                            <select value={newGroup} onChange={(e) => setNewGroup(e.target.value)} className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-1.5 text-xs text-blue-900 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                              <option value="">Select Group</option>
+                              {Object.keys(streamLabels).map((stream) => (
+                                <optgroup key={stream} label={streamLabels[stream] || stream}>
+                                  {hscGroups
+                                    .filter((g) => g.streamCategory === stream)
+                                    .map((g) => (
+                                      <option key={g.code} value={g.code}>{g.name}</option>
+                                    ))}
+                                </optgroup>
+                              ))}
+                            </select>
+                            <p className="text-[9px] text-slate-400 mt-1">Official Annexure-I group codes — used for competitive exam recommendations on the student panel.</p>
+                          </div>
                         )}
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Medium of Instruction</label>
+                          <select value={newMediumOfInstruction} onChange={(e) => setNewMediumOfInstruction(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                            <option value="English">English</option>
+                            <option value="Tamil">Tamil</option>
+                            <option value="Hindi">Hindi</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Student Status</label>
+                          <select value={newStudentStatus} onChange={(e) => setNewStudentStatus(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Transferred">Transferred</option>
+                            <option value="Graduated">Graduated</option>
+                          </select>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Address Details */}
-                    <div className="pt-3 pb-2 border-b border-slate-200">
-                      <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Address Details</h4>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="col-span-2">
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Address</label>
-                        <input type="text" value={newAddress} onChange={(e) => setNewAddress(e.target.value)}
-                          placeholder="e.g. 123 Main Street"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                      {/* Parent Details */}
+                      <div className="pt-3 pb-2 border-b border-slate-200">
+                        <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Parent / Guardian Details</h4>
                       </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">City</label>
-                        <input type="text" required value={newCity} onChange={(e) => setNewCity(e.target.value)}
-                          placeholder="e.g. Coimbatore"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Name</label>
+                          <input type="text" value={newFatherName} onChange={(e) => setNewFatherName(e.target.value)}
+                            placeholder="e.g. Ramasamy"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Occupation</label>
+                          <input type="text" value={newFatherOccupation} onChange={(e) => setNewFatherOccupation(e.target.value)}
+                            placeholder="e.g. Farmer"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Name</label>
+                          <input type="text" value={newMotherName} onChange={(e) => setNewMotherName(e.target.value)}
+                            placeholder="e.g. Lakshmi"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Occupation</label>
+                          <input type="text" value={newMotherOccupation} onChange={(e) => setNewMotherOccupation(e.target.value)}
+                            placeholder="e.g. Homemaker"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Primary Contact Name</label>
+                          <input type="text" required value={newParentName} onChange={(e) => setNewParentName(e.target.value)}
+                            placeholder="e.g. Ramasamy A."
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Parent Email</label>
+                          <input type="email" value={newParentEmail} onChange={(e) => setNewParentEmail(e.target.value)}
+                            placeholder="e.g. parent@example.com"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                            Phone Number
+                            <span className="ml-1 text-red-500">*</span>
+                          </label>
+                          <input type="text" id="manual-phone-number" required value={newPhone} onChange={(e) => handlePhoneChange(e.target.value)}
+                            placeholder="e.g. 9876543210"
+                            maxLength={10}
+                            className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none transition-colors ${phoneError
+                                ? "border-red-400 focus:border-red-500 focus:bg-white"
+                                : newPhone.length === 10
+                                  ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                                  : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                              }`} />
+                          {phoneError && (
+                            <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{phoneError}</p>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">District</label>
-                        <input type="text" required value={newDistrict} onChange={(e) => setNewDistrict(e.target.value)}
-                          placeholder="e.g. Coimbatore"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">State</label>
-                        <input type="text" required value={newState} onChange={(e) => setNewState(e.target.value)}
-                          placeholder="e.g. Tamil Nadu"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                          Pincode
-                          <span className="ml-1 text-slate-400 font-normal">(6 digits)</span>
-                        </label>
-                        <input type="text" value={newPincode} onChange={(e) => handlePincodeChange(e.target.value)}
-                          placeholder="e.g. 641001"
-                          maxLength={6}
-                          className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-colors ${
-                            pincodeError
-                              ? "border-red-400 focus:border-red-500 focus:bg-white"
-                              : newPincode.length === 6
-                              ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
-                              : "border-slate-200 focus:border-blue-500 focus:bg-white"
-                          }`} />
-                        {pincodeError && (
-                          <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{pincodeError}</p>
-                        )}
-                      </div>
-                    </div>
 
-                    {!isViewMode && <button type="submit" disabled={isSaving}
-                      className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-4 flex items-center justify-center gap-2">
-                      {isSaving ? (
-                        <><div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving...</>
-                      ) : isEditMode ? "💾 Update Student Record" : "💾 Save Student Record"}
-                    </button>}
-                  </fieldset>
-                </form>
+                      {/* Address Details */}
+                      <div className="pt-3 pb-2 border-b border-slate-200">
+                        <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Address Details</h4>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="col-span-2">
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Address</label>
+                          <input type="text" value={newAddress} onChange={(e) => setNewAddress(e.target.value)}
+                            placeholder="e.g. 123 Main Street"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">City</label>
+                          <input type="text" required value={newCity} onChange={(e) => setNewCity(e.target.value)}
+                            placeholder="e.g. Coimbatore"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">District</label>
+                          <input type="text" required value={newDistrict} onChange={(e) => setNewDistrict(e.target.value)}
+                            placeholder="e.g. Coimbatore"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">State</label>
+                          <input type="text" required value={newState} onChange={(e) => setNewState(e.target.value)}
+                            placeholder="e.g. Tamil Nadu"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                            Pincode
+                            <span className="ml-1 text-slate-400 font-normal">(6 digits)</span>
+                          </label>
+                          <input type="text" id="manual-pincode" value={newPincode} onChange={(e) => handlePincodeChange(e.target.value)}
+                            placeholder="e.g. 641001"
+                            maxLength={6}
+                            className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-colors ${pincodeError
+                                ? "border-red-400 focus:border-red-500 focus:bg-white"
+                                : newPincode.length === 6
+                                  ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                                  : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                              }`} />
+                          {pincodeError && (
+                            <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{pincodeError}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {!isViewMode && <button type="submit" disabled={isSaving}
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-4 flex items-center justify-center gap-2">
+                        {isSaving ? (
+                          <><div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving...</>
+                        ) : isEditMode ? "💾 Update Student Record" : "💾 Save Student Record"}
+                      </button>}
+                    </fieldset>
+                  </form>
                 )} {/* end manual tab */}
 
                 {/* ── EXCEL IMPORT TAB ── */}
                 {modalTab === "excel" && (
                   <div className="space-y-4 py-2">
-                        <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex justify-between items-center">
-                          <span>📊 Excel / CSV Bulk Import</span>
-                          <button onClick={downloadExcelTemplate} type="button"
-                            className="flex items-center gap-1.5 text-[10px] bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg cursor-pointer transition-colors">
-                            <Download className="w-3 h-3" /> Download Template
-                          </button>
-                        </div>
-                        <div
-                          onClick={() => fileInputRef.current?.click()}
-                          onDragOver={handleDragOver}
-                          onDragLeave={handleDragLeave}
-                          onDrop={handleDrop}
-                          className={`rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-3 min-h-[160px] border-2 border-dashed ${isDragging ? "border-emerald-500 bg-emerald-50" : "border-slate-300 bg-white hover:border-emerald-500"
-                            }`}
-                        >
-                          {isUploading ? (
-                            <>
-                              <div className="w-8 h-8 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin" />
-                              <span className="text-[10px] text-slate-500">Parsing spreadsheet...</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-4xl">📊</span>
-                              <span className="text-xs font-bold text-slate-800">Import Student Roster</span>
-                              <span className="text-[9px] text-slate-500 leading-normal">Drag & drop Excel or click to upload</span>
-                            </>
-                          )}
-                        </div>
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          onChange={(e) => { const file = e.target.files?.[0]; if (file) parseFile(file); }}
-                          accept=".xlsx,.xls,.csv"
-                          className="hidden"
-                        />
+                    <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex justify-between items-center">
+                      <span>📊 Excel / CSV Bulk Import</span>
+                      <button onClick={downloadExcelTemplate} type="button"
+                        className="flex items-center gap-1.5 text-[10px] bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg cursor-pointer transition-colors">
+                        <Download className="w-3 h-3" /> Download Template
+                      </button>
+                    </div>
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      className={`rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-3 min-h-[160px] border-2 border-dashed ${isDragging ? "border-emerald-500 bg-emerald-50" : "border-slate-300 bg-white hover:border-emerald-500"
+                        }`}
+                    >
+                      {isUploading ? (
+                        <>
+                          <div className="w-8 h-8 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin" />
+                          <span className="text-[10px] text-slate-500">Parsing spreadsheet...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-4xl">📊</span>
+                          <span className="text-xs font-bold text-slate-800">Import Student Roster</span>
+                          <span className="text-[9px] text-slate-500 leading-normal">Drag & drop Excel or click to upload</span>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={(e) => { const file = e.target.files?.[0]; if (file) parseFile(file); }}
+                      accept=".xlsx,.xls,.csv"
+                      className="hidden"
+                    />
                   </div>
                 )} {/* end excel tab */}
               </div>
@@ -2196,10 +2260,10 @@ export default function StudentsMonitoringPage() {
                         </div>
                         {row.result && (
                           <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${row.result === "PROMOTED" || row.result === "GRADUATED"
-                              ? "bg-emerald-50 text-emerald-600"
-                              : row.result === "DETAINED"
-                                ? "bg-amber-50 text-amber-600"
-                                : "bg-slate-100 text-slate-500"
+                            ? "bg-emerald-50 text-emerald-600"
+                            : row.result === "DETAINED"
+                              ? "bg-amber-50 text-amber-600"
+                              : "bg-slate-100 text-slate-500"
                             }`}>
                             {row.result}
                           </span>

@@ -10,6 +10,7 @@ interface GalleryItem {
   date: string;
   description: string;
   gradient: string; // Dynamic visual simulation
+  imageUrl?: string;
 }
 
 export default function GalleryPage() {
@@ -29,36 +30,73 @@ export default function GalleryPage() {
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadCategory, setUploadCategory] = useState<"Sports" | "Infrastructure" | "Culturals" | "Academic">("Academic");
   const [uploadDesc, setUploadDesc] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadToast, setUploadToast] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<GalleryItem | null>(null);
+
+  const startEditing = (item: GalleryItem) => {
+    setEditingItem(item);
+    setUploadTitle(item.title);
+    setUploadCategory(item.category);
+    setUploadDesc(item.description);
+    setImagePreview(item.imageUrl || null);
+    setImageFile(null);
+  };
 
   const handleUploadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!uploadTitle) return;
 
-    // Pick a random gradient for the uploaded card
-    const gradients = [
-      "from-teal-400 to-emerald-650",
-      "from-pink-500 to-rose-700",
-      "from-yellow-400 to-orange-600",
-      "from-indigo-500 to-blue-700"
-    ];
-    const pickedGradient = gradients[Math.floor(Math.random() * gradients.length)];
+    let finalImageUrl = imagePreview || undefined;
+    if (imageFile) {
+      finalImageUrl = URL.createObjectURL(imageFile);
+    }
 
-    const newItem: GalleryItem = {
-      id: Date.now(),
-      title: uploadTitle,
-      category: uploadCategory,
-      date: "Today",
-      description: uploadDesc || "No details provided.",
-      gradient: pickedGradient
-    };
+    if (editingItem) {
+      setItems(prev => prev.map(item => {
+        if (item.id === editingItem.id) {
+          return {
+            ...item,
+            title: uploadTitle,
+            category: uploadCategory,
+            description: uploadDesc || "No details provided.",
+            imageUrl: finalImageUrl
+          };
+        }
+        return item;
+      }));
+      setUploadToast(`✓ Photo '${uploadTitle}' updated successfully!`);
+      setEditingItem(null);
+    } else {
+      // Pick a random gradient for the uploaded card
+      const gradients = [
+        "from-teal-400 to-emerald-650",
+        "from-pink-500 to-rose-700",
+        "from-yellow-400 to-orange-600",
+        "from-indigo-500 to-blue-700"
+      ];
+      const pickedGradient = gradients[Math.floor(Math.random() * gradients.length)];
 
-    setItems(prev => [newItem, ...prev]);
-    setUploadToast(`✓ Photo '${uploadTitle}' uploaded! Added to school gallery.`);
+      const newItem: GalleryItem = {
+        id: Date.now(),
+        title: uploadTitle,
+        category: uploadCategory,
+        date: "Today",
+        description: uploadDesc || "No details provided.",
+        gradient: pickedGradient,
+        imageUrl: finalImageUrl
+      };
+
+      setItems(prev => [newItem, ...prev]);
+      setUploadToast(`✓ Photo '${uploadTitle}' uploaded! Added to school gallery.`);
+    }
     
     // Reset Form
     setUploadTitle("");
     setUploadDesc("");
+    setImageFile(null);
+    setImagePreview(null);
 
     setTimeout(() => setUploadToast(null), 4000);
   };
@@ -87,12 +125,12 @@ export default function GalleryPage() {
               </div>
 
               {/* Category tabs */}
-              <div className="flex flex-wrap gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl">
+              <div className="flex overflow-x-auto scrollbar-none whitespace-nowrap gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl max-w-full">
                 {(["All", "Academic", "Sports", "Infrastructure", "Culturals"] as const).map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setFilterCategory(cat)}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
                       filterCategory === cat
                         ? "bg-blue-600 text-white font-extrabold"
                         : "text-slate-400 hover:text-white hover:bg-slate-800"
@@ -113,17 +151,40 @@ export default function GalleryPage() {
                 onClick={() => setSelectedItem(item)}
                 className="glass rounded-2xl border border-slate-800 overflow-hidden cursor-pointer hover:border-slate-700 group transition-all"
               >
-                {/* Visual block simulating photo with cool premium gradient */}
-                <div className={`w-full h-40 bg-gradient-to-br ${item.gradient} relative flex items-center justify-center`}>
-                  <div className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-colors" />
-                  <span className="text-3xl opacity-80 group-hover:scale-110 transition-transform">
-                    {item.category === "Infrastructure" ? "🏗️" : item.category === "Sports" ? "🏆" : item.category === "Culturals" ? "🎭" : "📖"}
-                  </span>
+                {/* Visual block simulating photo or showing uploaded image */}
+                <div className="w-full h-40 relative flex items-center justify-center overflow-hidden bg-slate-900">
+                  {item.imageUrl ? (
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <>
+                      <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient}`} />
+                      <div className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-colors" />
+                      <span className="text-3xl opacity-80 group-hover:scale-110 transition-transform z-10">
+                        {item.category === "Infrastructure" ? "🏗️" : item.category === "Sports" ? "🏆" : item.category === "Culturals" ? "🎭" : "📖"}
+                      </span>
+                    </>
+                  )}
                   
                   {/* Category Pill */}
-                  <span className="absolute top-3 left-3 text-[9px] font-extrabold uppercase px-2 py-0.5 bg-black/45 text-white backdrop-blur-md rounded-md border border-white/10">
+                  <span className="absolute top-3 left-3 text-[9px] font-extrabold uppercase px-2 py-0.5 bg-black/45 text-white backdrop-blur-md rounded-md border border-white/10 z-10">
                     {item.category}
                   </span>
+
+                  {/* Edit overlay button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startEditing(item);
+                    }}
+                    className="absolute top-3 right-3 p-1.5 bg-slate-900/80 hover:bg-blue-600 text-white rounded-lg border border-slate-700 transition-colors z-20"
+                    title="Edit Details"
+                  >
+                    ✏️
+                  </button>
                 </div>
 
                 <div className="p-4 space-y-1 bg-slate-950/80">
@@ -144,9 +205,13 @@ export default function GalleryPage() {
 
         {/* Upload Panel */}
         <div className="glass rounded-2xl p-6 border border-slate-800 h-fit">
-          <h2 className="text-base font-semibold text-white mb-2">📤 Upload Media Assets</h2>
+          <h2 className="text-base font-semibold text-white mb-2">
+            {editingItem ? "✏️ Edit Media Asset" : "📤 Upload Media Assets"}
+          </h2>
           <p className="text-xs text-slate-500 leading-relaxed mb-4 font-medium">
-            Publish pictures of recent campus highlights or physical lab updates directly to the school public gallery portal.
+            {editingItem
+              ? "Modify the title, category, description, or image for this gallery entry."
+              : "Publish pictures of recent campus highlights or physical lab updates directly to the school public gallery portal."}
           </p>
 
           <form onSubmit={handleUploadSubmit} className="space-y-4">
@@ -187,12 +252,73 @@ export default function GalleryPage() {
               />
             </div>
 
-            <button
-              type="submit"
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-colors"
-            >
-              Post Media Asset
-            </button>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1.5 font-semibold">Photo File</label>
+              {imagePreview ? (
+                <div className="relative w-full h-36 rounded-xl overflow-hidden border border-slate-800 bg-slate-900 group">
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageFile(null);
+                        setImagePreview(null);
+                      }}
+                      className="px-3 py-1.5 bg-rose-650 hover:bg-rose-750 text-white text-[10px] font-bold rounded-lg transition-colors"
+                    >
+                      Remove Photo
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-slate-800 hover:border-blue-500/50 bg-slate-900 hover:bg-slate-900/50 rounded-xl cursor-pointer transition-colors group">
+                  <div className="flex flex-col items-center justify-center py-5 text-center px-4">
+                    <span className="text-2xl mb-1.5 group-hover:scale-110 transition-transform">🖼️</span>
+                    <p className="text-[11px] text-slate-450 font-medium leading-normal">
+                      <span className="text-blue-400 font-bold hover:underline">Click to upload</span> or drag & drop
+                    </p>
+                    <p className="text-[9px] text-slate-500 mt-1">Supports PNG, JPG, JPEG (Max. 5MB)</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setImageFile(file);
+                        setImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-colors"
+              >
+                {editingItem ? "Update Media Asset" : "Post Media Asset"}
+              </button>
+              {editingItem && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingItem(null);
+                    setUploadTitle("");
+                    setUploadCategory("Academic");
+                    setUploadDesc("");
+                    setImageFile(null);
+                    setImagePreview(null);
+                  }}
+                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-350 font-bold rounded-xl text-xs transition-colors border border-slate-700"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
 
           {uploadToast && (
@@ -212,17 +338,39 @@ export default function GalleryPage() {
               <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-slate-800 text-slate-350 border border-slate-700 rounded-md">
                 {selectedItem.category}
               </span>
-              <button
-                onClick={() => setSelectedItem(null)}
-                className="text-white hover:text-slate-300 font-bold text-sm w-7 h-7 flex items-center justify-center bg-slate-900 border border-slate-800 rounded-full transition-colors"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    startEditing(selectedItem);
+                    setSelectedItem(null);
+                  }}
+                  className="text-xs text-blue-400 hover:text-white font-bold px-3 py-1 bg-slate-900 border border-slate-800 rounded-lg transition-colors flex items-center gap-1"
+                >
+                  ✏️ Edit
+                </button>
+                <button
+                  onClick={() => setSelectedItem(null)}
+                  className="text-white hover:text-slate-300 font-bold text-sm w-7 h-7 flex items-center justify-center bg-slate-900 border border-slate-800 rounded-full transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
-            {/* Simulated Photo Panel */}
-            <div className={`w-full h-72 bg-gradient-to-br ${selectedItem.gradient} flex items-center justify-center`}>
-              <span className="text-5xl">🖼️</span>
+            {/* Simulated or Uploaded Photo Panel */}
+            <div className="w-full h-80 md:h-[420px] relative flex items-center justify-center bg-slate-950 overflow-hidden border-b border-slate-850">
+              {selectedItem.imageUrl ? (
+                <img
+                  src={selectedItem.imageUrl}
+                  alt={selectedItem.title}
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : (
+                <>
+                  <div className={`absolute inset-0 bg-gradient-to-br ${selectedItem.gradient}`} />
+                  <span className="text-5xl z-10">🖼️</span>
+                </>
+              )}
             </div>
 
             {/* Description */}

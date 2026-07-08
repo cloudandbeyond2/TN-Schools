@@ -32,6 +32,13 @@ function parseClassSection(classStr: string) {
   return { classVal: clean || '10', sectionVal: 'A' };
 }
 
+// Helper to parse date safely
+function parseDob(dobStr: any) {
+  if (!dobStr || dobStr === 'null' || dobStr === 'undefined' || String(dobStr).trim() === '') return null;
+  const d = new Date(dobStr);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 // GET /api/headmaster/students — List all students for a school
 router.get('/students', async (req: Request, res: Response) => {
   try {
@@ -106,7 +113,7 @@ router.post('/students', async (req: Request, res: Response) => {
           rollNumber: cleanRoll,
           admissionNumber,
           emisNumber,
-          dob: dob ? new Date(dob) : null,
+          dob: parseDob(dob),
           gender,
           bloodGroup,
           religion,
@@ -131,7 +138,7 @@ router.post('/students', async (req: Request, res: Response) => {
         }
       });
 
-      if (parentEmail) {
+      if (parentEmail && parentEmail.trim() !== '') {
         // Check if parent user already exists in PostgreSQL
         const parentWhereConditions: any[] = [
           { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
@@ -271,7 +278,7 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
             group,
             admissionNumber,
             emisNumber,
-            dob: dob ? new Date(dob) : null,
+            dob: parseDob(dob),
             gender,
             bloodGroup,
             religion,
@@ -296,7 +303,7 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
           }
         });
 
-        if (parentEmail) {
+        if (parentEmail && parentEmail.trim() !== '') {
           // Check if parent user already exists in PostgreSQL
           let parentUser = await tx.user.findFirst({
             where: { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
@@ -401,7 +408,7 @@ router.put('/students/:id', async (req: Request, res: Response) => {
         emisNumber,
         class: classVal,
         section: section || student.section,
-        dob: dob ? new Date(dob) : null,
+        dob: parseDob(dob),
         gender,
         bloodGroup,
         religion,
@@ -1162,6 +1169,72 @@ router.delete('/profile/:id', async (req: Request, res: Response) => {
     res.json({ success: true, message: 'Headmaster profile deleted successfully' });
   } catch (err) {
     console.error('Error deleting headmaster profile:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PUT /api/headmaster/leave/:id — Approve or Reject a leave request
+router.put('/leave/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status, approvedById } = req.body;
+
+    if (!['Approved', 'Rejected'].includes(status)) {
+      return res.status(400).json({ success: false, error: 'Invalid status. Must be Approved or Rejected.' });
+    }
+
+    const leave = await prisma.leaveRequest.update({
+      where: { id },
+      data: { status, approvedById: approvedById || null },
+    });
+
+    // Handle Teacher Notification
+    if (leave.staffId) {
+      try {
+        const { resolveUserId } = await import('../config/userResolver');
+        const resolvedId = await resolveUserId(leave.staffId);
+        if (resolvedId) {
+          await prisma.notification.create({
+            data: {
+              userId: resolvedId,
+              message: `Your leave request for ${leave.duration} has been ${status}.`,
+            } as any
+          });
+        }
+      } catch (notifErr) {
+        console.error('[Leave Approval Notification Error]', notifErr);
+      }
+    }
+
+    // Handle Student Notification
+    if (leave.studentId) {
+      try {
+        const student = await prisma.student.findFirst({
+          where: {
+            OR: [
+              { id: leave.studentId },
+              { rollNumber: { equals: leave.studentId, mode: 'insensitive' } },
+              { admissionNumber: { equals: leave.studentId, mode: 'insensitive' } },
+              { emisNumber: { equals: leave.studentId, mode: 'insensitive' } }
+            ]
+          }
+        });
+        if (student && student.userId) {
+          await prisma.notification.create({
+            data: {
+              userId: student.userId,
+              message: `Your leave request for ${leave.duration} has been ${status}.`,
+            } as any
+          });
+        }
+      } catch (notifErr) {
+        console.error('[Leave Approval Notification Error - Student]', notifErr);
+      }
+    }
+
+    res.json({ success: true, data: leave });
+  } catch (err) {
+    console.error('Error updating leave status:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });

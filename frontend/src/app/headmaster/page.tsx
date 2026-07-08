@@ -39,6 +39,7 @@ export default function HeadmasterDashboard() {
 
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [students, setStudents] = useState<StudentRecord[]>([]);
+  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const { years, selected: academicYear, setSelected: setAcademicYear } = useAcademicYears();
@@ -51,16 +52,23 @@ export default function HeadmasterDashboard() {
     if (!mySchoolId) return;
     setIsLoading(true);
     try {
-      const [staffRes, stuRes] = await Promise.all([
+      const [staffRes, stuRes, leaveRes] = await Promise.all([
         fetch(`${API_BASE}/api/headmaster/staff?schoolId=${mySchoolId}`),
         fetch(`${API_BASE}/api/headmaster/students?schoolId=${mySchoolId}`),
+        fetch(`${API_BASE}/api/teacher/leave?schoolId=${mySchoolId}`),
       ]);
-      const [staffJson, stuJson] = await Promise.all([
+      const [staffJson, stuJson, leaveJson] = await Promise.all([
         staffRes.json(),
         stuRes.json(),
+        leaveRes.json(),
       ]);
       if (staffJson.success) setStaff(staffJson.data);
-      if (stuJson.success) setStudents(stuJson.data);
+      if (stuJson.success) {
+        setStudents(stuJson.data || []);
+      }
+      if (leaveJson.success) {
+        setLeaveRequests(leaveJson.data || []);
+      }
     } catch {
       // silent fail — dashboard is summary only
     } finally {
@@ -283,6 +291,62 @@ export default function HeadmasterDashboard() {
             </div>
           )}
         </div>
+    </div>
+
+      {/* Leave Requests Summary */}
+      <div className="glass rounded-2xl p-6 fade-in-3 border border-slate-800 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-white flex items-center gap-2">
+            <CalendarCheck className="w-5 h-5 text-pink-500" /> Recent Leave Requests
+          </h2>
+          <Link href="/headmaster/leave" className="text-xs text-blue-400 hover:text-blue-300 font-bold">
+            View All Leaves →
+          </Link>
+        </div>
+        
+        {isLoading ? (
+          <div className="text-center py-8 text-slate-500 text-xs">
+            <div className="w-5 h-5 rounded-full border-2 border-pink-500/30 border-t-pink-500 animate-spin mx-auto mb-2" />
+            Loading...
+          </div>
+        ) : leaveRequests.length === 0 ? (
+          <div className="text-center py-8 text-slate-500 text-xs">
+            <div className="flex justify-center mb-2"><CalendarCheck className="w-8 h-8 text-slate-600" /></div>
+            <div>No leave requests found.</div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto w-full">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leaveRequests.slice(0, 5).map((req: any) => (
+                  <tr key={req.id}>
+                    <td className="font-bold text-white text-xs">
+                      {req.studentName}
+                      <div className="text-[10px] text-slate-500 font-normal mt-0.5">
+                        {req.studentId ? "Student" : req.staffId ? "Staff" : ""}
+                      </div>
+                    </td>
+                    <td>{req.type}</td>
+                    <td>{req.duration}</td>
+                    <td>
+                      <span className={`badge ${req.status === 'Approved' ? 'badge-green' : req.status === 'Rejected' ? 'badge-red' : 'badge-yellow'}`}>
+                        {req.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Quick Links */}
@@ -291,6 +355,7 @@ export default function HeadmasterDashboard() {
           { label: "Staff Management", icon: <i className="fi fi-rr-users"></i>, href: "/headmaster/staff", color: "border-blue-500/20 hover:border-blue-500/50" },
           { label: "Student Monitoring", icon: <i className="fi fi-rr-graduation-cap"></i>, href: "/headmaster/students", color: "border-emerald-500/20 hover:border-emerald-500/50" },
           { label: "Parents & PTA", icon: <i className="fi fi-rr-family"></i>, href: "/headmaster/parents", color: "border-amber-500/20 hover:border-amber-500/50" },
+          { label: "Leave Management", icon: <i className="fi fi-rr-calendar"></i>, href: "/headmaster/leave", color: "border-pink-500/20 hover:border-pink-500/50" },
           { label: "Alumni Network", icon: <i className="fi fi-rr-diploma"></i>, href: "/headmaster/alumni", color: "border-purple-500/20 hover:border-purple-500/50" },
         ].map((link) => (
           <Link
