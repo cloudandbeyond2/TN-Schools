@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { 
   Zap, 
@@ -12,13 +13,81 @@ import {
   Pause, 
   RotateCcw,
   Sparkles,
-  ChevronRight
+  Award,
+  ChevronRight,
+  BookOpenCheck
 } from "lucide-react";
 
+// Syllabus presets for 9th and 10th Standard students (Tamil Nadu State Board context)
+const CLASS_SPECIFIC_CONTENT: Record<string, {
+  flashcards: { question: string; answer: string }[];
+  examTips: { title: string; desc: string }[];
+  subjects: string[];
+}> = {
+  "9": {
+    subjects: ["Mathematics", "Science", "Social Science", "Tamil", "English"],
+    examTips: [
+      { title: "Algebra Foundations", desc: "Spend 15 mins daily practicing algebraic identities and coordinate geometry." },
+      { title: "Science Experiments", desc: "Revise lab diagrams and practical units as they carry direct questions." },
+    ],
+    flashcards: [
+      { question: "What is Newton's First Law?", answer: "An object remains at rest or in uniform motion unless acted upon by an external force." },
+      { question: "What is the SI unit of force?", answer: "Newton (N)" },
+      { question: "What is the cell membrane?", answer: "The semipermeable membrane surrounding the cytoplasm of a cell." },
+      { question: "Define rational numbers.", answer: "Any number that can be expressed as the quotient or fraction p/q of two integers." },
+      { question: "What is acceleration?", answer: "The rate of change of velocity per unit of time." }
+    ]
+  },
+  "10": {
+    subjects: ["Mathematics", "Science", "Social Science", "Tamil", "English"],
+    examTips: [
+      { title: "SSLC Board Blueprint", desc: "Prioritize high-weightage topics like Trigonometry, Geometry, and Electromagnetism." },
+      { title: "Time Management", desc: "Solve previous years' question papers under a strict 3-hour limit." },
+    ],
+    flashcards: [
+      { question: "What is Ohm's Law?", answer: "V = IR (Voltage = Current × Resistance)." },
+      { question: "Write the quadratic formula.", answer: "x = (-b ± √(b² - 4ac)) / 2a" },
+      { question: "What is the function of the Xylem?", answer: "It transports water and dissolved minerals from roots to the rest of the plant." },
+      { question: "What is a covalent bond?", answer: "A chemical bond formed by the sharing of one or more electron pairs between atoms." },
+      { question: "What was the date of the Revolt of 1857?", answer: "May 10, 1857 (initiated at Meerut)." }
+    ]
+  }
+};
+
 export default function StudyBoostPage() {
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  const studentClass = user?.class === "9" ? "9" : "10"; // Default to 10th standard
+
+  const currentData = CLASS_SPECIFIC_CONTENT[studentClass];
+
   const [timerRunning, setTimerRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes
   const [activeTab, setActiveTab] = useState<"focus" | "flashcards" | "ai">("focus");
+
+  // Flashcards state
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  // AI input state
+  const [aiText, setAiText] = useState("");
+  const [aiSummary, setAiSummary] = useState("");
+  const [generating, setGenerating] = useState(false);
+
+  // Focus timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (timerRunning && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      setTimerRunning(false);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timerRunning, timeLeft]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -28,7 +97,6 @@ export default function StudyBoostPage() {
 
   const toggleTimer = () => {
     setTimerRunning(!timerRunning);
-    // Note: Actual interval logic would go here in a real app (e.g., using useEffect)
   };
 
   const resetTimer = () => {
@@ -36,10 +104,57 @@ export default function StudyBoostPage() {
     setTimeLeft(25 * 60);
   };
 
+  const handleNextCard = () => {
+    setIsFlipped(false);
+    setTimeout(() => {
+      setCurrentCardIndex((prev) => (prev + 1) % currentData.flashcards.length);
+    }, 150);
+  };
+
+  const handlePrevCard = () => {
+    setIsFlipped(false);
+    setTimeout(() => {
+      setCurrentCardIndex((prev) => (prev - 1 + currentData.flashcards.length) % currentData.flashcards.length);
+    }, 150);
+  };
+
+  const generateSummary = async () => {
+    if (!aiText.trim()) return;
+    setGenerating(true);
+    setAiSummary("");
+    
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_URL}/api/ai/chat-tutor`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          subject: "General Study",
+          grade: `Class ${studentClass}th`,
+          messages: [],
+          currentMessage: `Please explain this concept, term, or textbook text in a clear, pedagogical way (in both Tamil and English, with definitions and context): "${aiText}"`,
+          language: "bilingual"
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAiSummary(data.text);
+      } else {
+        setAiSummary("Failed to generate summary: " + (data.error || "unknown error"));
+      }
+    } catch (err: any) {
+      setAiSummary("Network error: " + err.message);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <PortalLayout 
       title="Study Boost" 
-      subtitle="Supercharge your focus and memory with AI-powered tools."
+      subtitle={`Supercharge focus and memory with AI tools customized for Class ${studentClass}th Standard.`}
       avatarLetter="A"
       avatarColor="#ef4444"
       themeClass="theme-student"
@@ -55,13 +170,13 @@ export default function StudyBoostPage() {
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-sm font-bold backdrop-blur-md mb-4 border border-white/30">
-                <Zap className="w-4 h-4 text-yellow-300 fill-yellow-300" /> High-Performance Mode
+                <Zap className="w-4 h-4 text-yellow-300 fill-yellow-300" /> Class {studentClass} Board Mode
               </div>
               <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight">
                 Unlock Your Brain's <br /> Full Potential
               </h1>
               <p className="text-red-100 text-lg font-medium">
-                Use scientifically proven methods like Pomodoro timers, spaced repetition, and AI summaries to maximize your study sessions.
+                Using scientifically proven methods like Pomodoro timers, active recall flashcards, and AI-powered quick summaries tailored to Class {studentClass}th standard.
               </p>
             </div>
             <div className="shrink-0">
@@ -81,10 +196,10 @@ export default function StudyBoostPage() {
             <Timer className="w-5 h-5" /> Focus Timer
           </button>
           <button 
-            onClick={() => setActiveTab("flashcards")}
+            onClick={() => { setActiveTab("flashcards"); setIsFlipped(false); }}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold whitespace-nowrap transition-all ${activeTab === "flashcards" ? "bg-rose-500 text-white shadow-md shadow-rose-500/20" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
           >
-            <BookOpen className="w-5 h-5" /> Flashcards
+            <BookOpen className="w-5 h-5" /> Syllabus Flashcards
           </button>
           <button 
             onClick={() => setActiveTab("ai")}
@@ -107,7 +222,7 @@ export default function StudyBoostPage() {
                 <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">Pomodoro Session</h2>
                 <p className="text-slate-500 mb-8 font-medium">Focus for 25 minutes, then take a 5-minute break.</p>
                 
-                <div className="w-64 h-64 mx-auto bg-gradient-to-tr from-red-100 to-rose-50 dark:from-red-900/20 dark:to-rose-900/10 rounded-full flex items-center justify-center mb-8 border-4 border-white dark:border-slate-800 shadow-xl shadow-red-500/10 relative">
+                <div className="w-64 h-64 mx-auto bg-gradient-to-tr from-red-100 to-rose-55 dark:from-red-900/20 dark:to-rose-900/10 rounded-full flex items-center justify-center mb-8 border-4 border-white dark:border-slate-800 shadow-xl shadow-red-500/10 relative">
                   <svg className="absolute inset-0 w-full h-full -rotate-90">
                     <circle cx="128" cy="128" r="120" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100 dark:text-slate-700" />
                     <circle 
@@ -143,45 +258,94 @@ export default function StudyBoostPage() {
 
             {activeTab === "flashcards" && (
               <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
-                 <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-6">Quick Flashcards</h2>
+                <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">Class {studentClass} Syllabus Flashcards</h2>
+                <p className="text-slate-500 mb-6 font-medium">Use active recall to test your knowledge on board syllabus concepts.</p>
                  
-                 <div className="group perspective">
-                   <div className="w-full h-64 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl flex items-center justify-center text-center p-8 cursor-pointer shadow-lg shadow-rose-500/20 transition-all duration-500 relative transform-style-3d hover:scale-[1.02]">
-                     <div className="absolute top-4 right-4 text-white/50 text-sm font-bold">Tap to flip</div>
-                     <h3 className="text-3xl font-black text-white drop-shadow-md">What is Mitochondria?</h3>
-                   </div>
-                 </div>
+                <div 
+                  onClick={() => setIsFlipped(!isFlipped)} 
+                  className={`w-full h-64 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl flex flex-col items-center justify-center text-center p-8 cursor-pointer shadow-lg shadow-rose-500/20 transition-all duration-300 transform relative ${isFlipped ? "rotate-y-180" : ""}`}
+                >
+                  <div className="absolute top-4 right-4 text-white/60 text-xs font-bold uppercase tracking-wider">
+                    {isFlipped ? "Answer (Tap to flip)" : "Question (Tap to reveal)"}
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-black text-white drop-shadow-md max-w-lg">
+                    {isFlipped 
+                      ? currentData.flashcards[currentCardIndex].answer 
+                      : currentData.flashcards[currentCardIndex].question
+                    }
+                  </h3>
+                </div>
                  
-                 <div className="flex justify-between mt-8">
-                   <button className="px-6 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Previous</button>
-                   <span className="font-bold text-slate-400 self-center">Card 1 / 15</span>
-                   <button className="px-6 py-2.5 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-500 shadow-md shadow-rose-600/20 transition-colors">Next Card</button>
-                 </div>
+                <div className="flex justify-between items-center mt-8">
+                  <button 
+                    onClick={handlePrevCard}
+                    className="px-6 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <span className="font-bold text-slate-400">
+                    Card {currentCardIndex + 1} / {currentData.flashcards.length}
+                  </span>
+                  <button 
+                    onClick={handleNextCard}
+                    className="px-6 py-2.5 bg-rose-600 hover:bg-rose-550 text-white font-bold rounded-xl hover:bg-rose-500 shadow-md shadow-rose-600/20 transition-colors"
+                  >
+                    Next Card
+                  </button>
+                </div>
               </div>
             )}
 
             {activeTab === "ai" && (
               <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                 <div className="flex items-center gap-3 mb-6">
-                   <div className="w-12 h-12 rounded-xl bg-violet-100 dark:bg-violet-900/50 flex items-center justify-center text-violet-600 dark:text-violet-400">
-                     <Sparkles className="w-6 h-6" />
-                   </div>
-                   <div>
-                     <h2 className="text-2xl font-black text-slate-800 dark:text-white">AI Quick Summaries</h2>
-                     <p className="text-sm text-slate-500 font-medium">Too long to read? Let AI break it down.</p>
-                   </div>
-                 </div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-xl bg-violet-100 dark:bg-violet-900/50 flex items-center justify-center text-violet-600 dark:text-violet-400">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-800 dark:text-white">AI Quick Summaries</h2>
+                    <p className="text-sm text-slate-500 font-medium">Get simplified concepts matching Class {studentClass} Board level guidelines.</p>
+                  </div>
+                </div>
+
+                <div className="mb-5 p-4 bg-violet-50/50 dark:bg-violet-950/20 rounded-2xl border border-violet-100/50 dark:border-violet-900/30 text-xs text-violet-750 dark:text-violet-300 font-medium leading-relaxed">
+                  💡 <strong>Quick Hint:</strong> Paste any textbook paragraph, question, or topic in the box below. Click <strong>Generate Summary</strong> to extract the key definitions, exam formulas, and core takeaways instantly.
+                </div>
                  
-                 <textarea 
-                   className="w-full h-40 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-slate-700 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none font-medium"
-                   placeholder="Paste an article, paragraph, or concept here..."
-                 ></textarea>
+                <textarea 
+                  value={aiText}
+                  onChange={(e) => setAiText(e.target.value)}
+                  className="w-full h-40 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-slate-700 dark:text-slate-300 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none font-medium"
+                  placeholder="Paste complex textbook paragraphs or questions here..."
+                ></textarea>
                  
-                 <div className="mt-4 flex justify-end">
-                   <button className="px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-violet-600/20 transition-all hover:-translate-y-0.5">
-                     <Zap className="w-4 h-4 fill-current" /> Generate Summary
-                   </button>
-                 </div>
+                <div className="mt-4 flex justify-between items-center">
+                  <div className="flex gap-2">
+                    {currentData.subjects.slice(0, 3).map((sub) => (
+                      <button
+                        key={sub}
+                        onClick={() => setAiText(`Explain the core topic of ${sub} from the Class ${studentClass} textbook.`)}
+                        className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-200"
+                      >
+                        {sub}
+                      </button>
+                    ))}
+                  </div>
+                  <button 
+                    onClick={generateSummary}
+                    disabled={generating || !aiText.trim()}
+                    className="px-6 py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-violet-600/20 transition-all hover:-translate-y-0.5"
+                  >
+                    <Zap className="w-4 h-4 fill-current" /> 
+                    {generating ? "Summarizing..." : "Generate Summary"}
+                  </button>
+                </div>
+
+                {aiSummary && (
+                  <div className="mt-6 p-5 bg-violet-50 dark:bg-violet-950/20 rounded-2xl border border-violet-100 dark:border-violet-900/30 text-slate-750 dark:text-slate-300 whitespace-pre-line font-medium leading-relaxed">
+                    {aiSummary}
+                  </div>
+                )}
               </div>
             )}
             
@@ -190,6 +354,27 @@ export default function StudyBoostPage() {
           {/* Right Sidebar */}
           <div className="space-y-6">
             
+            {/* Class Specific Exam Tips */}
+            <div className="bg-red-50 dark:bg-red-950/15 p-6 rounded-3xl border-2 border-red-100 dark:border-red-900/20">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-xl flex items-center justify-center text-red-600 dark:text-red-400">
+                  <BookOpenCheck className="w-5 h-5" />
+                </div>
+                <h3 className="font-black text-red-800 dark:text-red-400">Class {studentClass} Board Tips</h3>
+              </div>
+              
+              <div className="space-y-3">
+                {currentData.examTips.map((tip, idx) => (
+                  <div key={idx} className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-red-100 dark:border-slate-700/50">
+                    <h4 className="font-bold text-slate-850 dark:text-white text-sm flex items-center gap-1.5">
+                      <Award className="w-4 h-4 text-amber-500" /> {tip.title}
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium leading-relaxed">{tip.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Brain Breaks */}
             <div className="bg-emerald-50 dark:bg-emerald-900/10 p-6 rounded-3xl border-2 border-emerald-100 dark:border-emerald-800/30">
               <div className="flex items-center gap-3 mb-4">
@@ -202,11 +387,11 @@ export default function StudyBoostPage() {
               <div className="space-y-3">
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-emerald-100 dark:border-slate-700 cursor-pointer hover:border-emerald-300 transition-colors">
                   <h4 className="font-bold text-slate-800 dark:text-white text-sm">4-7-8 Breathing</h4>
-                  <p className="text-xs text-slate-500 mt-1">Calm your nerves before an exam (3 mins)</p>
+                  <p className="text-xs text-slate-500 mt-1 font-medium">Calm your nerves before an exam (3 mins)</p>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-emerald-100 dark:border-slate-700 cursor-pointer hover:border-emerald-300 transition-colors">
                   <h4 className="font-bold text-slate-800 dark:text-white text-sm">Eye Strain Relief</h4>
-                  <p className="text-xs text-slate-500 mt-1">The 20-20-20 rule for digital screens (1 min)</p>
+                  <p className="text-xs text-slate-500 mt-1 font-medium">The 20-20-20 rule for digital screens (1 min)</p>
                 </div>
               </div>
             </div>
