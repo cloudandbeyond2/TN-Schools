@@ -246,10 +246,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Botany Centre", href: "/student/botany-centre", icon: "Leaf" },
       { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
-      { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
-      { label: "Chemistry Lab", href: "/student/chemistry-lab", icon: "FlaskConical" },
-      { label: "Zoology Centre", href: "/student/zoology-centre", icon: "Target" },
-      { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
+      // { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
 
       // ── Extracurricular & Wellbeing ───────────────────
       { label: "---", href: "#", icon: "" },
