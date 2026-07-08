@@ -372,7 +372,7 @@ export default function ScienceCenterPage() {
                       isActive ? "border-purple-400 bg-purple-50/20 dark:bg-slate-900" : "border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800"
                     }`}
                   >
-                    {slug === "stem" ? (
+                    {slug === "stem" || slug === "question-bank" ? (
                       <div className="mb-2 group-hover:scale-105 transition-transform flex items-center justify-center w-fit">
                         <FlatIcon name={it.label} className="w-12 h-12" />
                       </div>
