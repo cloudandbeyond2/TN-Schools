@@ -145,7 +145,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-900/80 to-emerald-900/60 lg:hidden" style={{ zIndex: 0 }} />
 
         {/* Top Header Row */}
-        <div className="w-full flex items-center justify-between gap-4 mb-8 lg:absolute lg:top-8 lg:left-8 lg:right-8 lg:mb-0 px-2 sm:px-0 relative z-10">
+        <div className="w-full lg:w-auto flex items-center justify-between gap-4 mb-8 lg:absolute lg:top-8 lg:left-8 lg:right-8 lg:mb-0 px-2 sm:px-0 relative z-10">
           {/* Mobile Branding (Only visible on small screens) */}
           <div className="lg:hidden flex items-center gap-2">
             <span className="text-2xl text-amber-400 lg:text-slate-800 dark:lg:text-white"><i className="fi fi-rr-bank"></i></span>
