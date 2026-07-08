@@ -8,6 +8,7 @@ const stateKpis = [
   { label: "Scholarship Delivery", value: "94.2%", target: "98%", trend: "+3.2%", status: "on-track", icon: "🎓" },
   { label: "Dropout Rate", value: "1.8%", target: "<1.5%", trend: "-0.2%", status: "at-risk", icon: "⚠️" },
   { label: "Infrastructure Score", value: "78/100", target: "85/100", trend: "+3pts", status: "on-track", icon: "🏗️" },
+  { label: "National Sports Ranks", value: "Top 5", target: "Top 3", trend: "+2", status: "on-track", icon: "🏆" },
 ];
 
 export default function MinisterDashboard() {
@@ -38,6 +39,37 @@ export default function MinisterDashboard() {
               <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{s.label}</div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Sports & Youth Affairs Executive Snapshot */}
+      <div className="theme-card bg-white rounded-2xl p-6 mb-6 fade-in border-t-4 border-t-amber-500">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">🏆 Sports & Youth Affairs Snapshot</h2>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="rounded-xl p-5 text-center border border-amber-100 bg-amber-50">
+             <div className="text-3xl mb-2 flex justify-center">🥇</div>
+             <div className="text-2xl font-extrabold text-amber-600 mb-1">214</div>
+             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">National Medals</div>
+          </div>
+          <div className="rounded-xl p-5 text-center border border-emerald-100 bg-emerald-50">
+             <div className="text-3xl mb-2 flex justify-center">🏃</div>
+             <div className="text-2xl font-extrabold text-emerald-600 mb-1">45k+</div>
+             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Active Athletes</div>
+          </div>
+          <div className="rounded-xl p-5 text-center border border-blue-100 bg-blue-50">
+             <div className="text-3xl mb-2 flex justify-center">🏟️</div>
+             <div className="text-2xl font-extrabold text-blue-600 mb-1">82%</div>
+             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ground Usability</div>
+          </div>
+          <div className="rounded-xl p-5 text-center border border-purple-100 bg-purple-50">
+             <div className="text-3xl mb-2 flex justify-center">💰</div>
+             <div className="text-2xl font-extrabold text-purple-600 mb-1">₹45Cr</div>
+             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sports Fund Used</div>
+          </div>
         </div>
       </div>
 

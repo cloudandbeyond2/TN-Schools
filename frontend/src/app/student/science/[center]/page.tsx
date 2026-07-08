@@ -8,6 +8,7 @@ import PortalLayout from "@/components/PortalLayout";
 import { LucideIcon } from "@/components/LucideIcon";
 import { Sparkles, ChevronLeft, TrendingUp, Award, ArrowLeft, Check, X, HelpCircle, Eye, EyeOff } from "lucide-react";
 import { getCenterTopics } from "@/data/centerTopics";
+import { getTopicContent } from "@/data/centerContent";
 
 // Define structured mock question bank data for Classes 9 and 10
 interface QuestionData {
@@ -118,6 +119,78 @@ const QUESTION_BANK_DATA: Record<string, QuestionData> = {
   }
 };
 
+const HEADINGS_TR: Record<string, string> = {
+  "Our neighbourhood": "நமது அண்டைப்பகுதி",
+  "Deep space": "ஆழ் விண்வெளி",
+  "Exploration": "விண்வெளி ஆய்வு",
+  "Branches": "பிரிவுகள்",
+  "Experiments": "பரிசோதனைகள்",
+  "Tools": "கருவிகள்",
+  "Cell Explorer": "செல் ஆய்வாளர்",
+  "Processes": "செயல்முறைகள்",
+  "Human Anatomy": "மனித உடலமைப்பு",
+  "Lab": "ஆய்வகம்",
+  "Inside Earth": "புவியின் உட்புறம்",
+  "Materials": "பொருட்கள்",
+  "Climate & Water": "காலநிலை & நீர்",
+  "Explore": "ஆராய்க",
+  "Organs": "உறுப்புகள்",
+  "Systems": "அமைப்புகள்",
+  "Study": "படிப்பு",
+  "The code of life": "உயிரின் குறியீடு",
+  "Cells": "செல்கள்",
+  "Division": "பிரிவு",
+  "History": "வரலாறு",
+  "People": "விஞ்ஞானிகள்",
+  "Today": "இன்று",
+  "Halls": "அரங்குகள்",
+  "Galleries": "காட்சியகங்கள்",
+  "Experience": "அனுபவம்",
+  "Hardware": "வன்பொருள்",
+  "Software": "மென்பொருள்",
+  "Build": "உருவாக்குக",
+  "Challenges": "சவால்கள்",
+  "Solutions": "தீர்வுகள்",
+  "Basics": "அடிப்படைகள்",
+  "Care": "பராமரிப்பு",
+  "Modern": "நவீன முறைகள்",
+  "Think": "சிந்தனை",
+  "Make": "உருவாக்கம்",
+  "Compete": "போட்டி",
+  "Browse": "உலாவு",
+  "Each project": "திட்டப்பணி",
+  "Assessment": "மதிப்பீடு",
+  "Track": "கண்காணிப்பு",
+  "India": "இந்தியா",
+  "World": "உலகம்",
+  "Space & Defence": "விண்வெளி & பாதுகாப்பு",
+  "Research bodies": "ஆராய்ச்சி நிறுவனங்கள்",
+  "Shelves": "அலமாரிகள்",
+  "Stations": "நிலையங்கள்",
+  "By subject": "பாடம் வாரியாக",
+  "By class": "வகுப்பு வாரியாக",
+  "Types": "வகைகள்",
+  "Business": "வணிகம்",
+  "Trade & Money": "வர்த்தகம் & பணம்",
+  "Practice": "பயிற்சி",
+  "Books of Accounts": "கணக்குப் புத்தகங்கள்",
+  "Final Accounts": "இறுதி கணக்குகள்",
+  "Micro": "நுண்ணினப் பொருளாதாரம்",
+  "Macro": "பேரினப் பொருளாதாரம்",
+  "India Data": "இந்திய தரவுகள்",
+  "Measures": "அளவீடுகள்",
+  "Languages": "மொழிகள்",
+  "Concepts": "கோட்பாடுகள்",
+  "Fundamentals": "அடிப்படைக் கோட்பாடுகள்",
+  "Data Structures": "தரவு அமைப்புகள்",
+  "HTML": "எச்.டி.எம்.எல்",
+  "CSS": "சி.எஸ்.எஸ்",
+  "JavaScript": "ஜாவாஸ்கிரிப்ட்",
+  "SQL": "எஸ்.க்யூ.எல்",
+  "Foundations": "அடிப்படைகள்",
+  "Learn": "கற்றல்",
+};
+
 export default function ScienceCenterPage() {
   const params = useParams();
   const slug = String(params?.center || "");
@@ -129,7 +202,23 @@ export default function ScienceCenterPage() {
 
   const classData = QUESTION_BANK_DATA[studentClass];
 
+  const [lang, setLang] = useState<"EN" | "TA">("EN");
   const [progress, setProgress] = useState(0);
+
+  // Helper function to extract correct translation
+  const t = (bilingualText: string) => {
+    if (!bilingualText) return "";
+    const pipeParts = bilingualText.split(/\s*\|\s*/);
+    if (pipeParts.length > 1) {
+      return lang === "EN" ? pipeParts[0].trim() : pipeParts[1].trim();
+    }
+    const slashParts = bilingualText.split(/\s*\/\s*/);
+    if (slashParts.length > 1) {
+      return lang === "EN" ? slashParts[0].trim() : slashParts[1].trim();
+    }
+    return bilingualText;
+  };
+
   const [badge, setBadge] = useState(false);
   const [active, setActive] = useState<string | null>(null);
 
@@ -139,6 +228,9 @@ export default function ScienceCenterPage() {
 
   // Collapsible answers for PYQ / Short Answers
   const [visibleAnswers, setVisibleAnswers] = useState<Record<string, boolean>>({});
+
+  // Generic topic quiz state
+  const [topicQuizAnswer, setTopicQuizAnswer] = useState<Record<string, string>>({});
 
   // Physics simulation state
   const [voltage, setVoltage] = useState(6);
@@ -199,10 +291,31 @@ export default function ScienceCenterPage() {
   };
 
   return (
-    <PortalLayout title={center.title} subtitle={center.titleTa ? `${center.titleTa} · ${center.tagline}` : center.tagline}>
+    <PortalLayout 
+      title={lang === "EN" ? center.title : (center.titleTa || center.title)} 
+      subtitle={lang === "EN" ? center.tagline : (slug === "space" ? "சூரிய குடும்பம் முதல் விண்மீன் திரள்கள் மற்றும் இஸ்ரோ திட்டங்கள் வரை." : center.tagline)}
+    >
       <div className="flex flex-col gap-6 text-left">
+        {/* Language Toggle */}
+        <div className="flex justify-end">
+          <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700/50 w-fit">
+            <button
+              onClick={() => setLang("EN")}
+              className={`px-3.5 py-1 rounded-lg text-xs font-black transition-all ${lang === "EN" ? "bg-white dark:bg-slate-800 text-indigo-600 shadow" : "text-slate-500 hover:text-slate-800"}`}
+            >
+              English
+            </button>
+            <button
+              onClick={() => setLang("TA")}
+              className={`px-3.5 py-1 rounded-lg text-xs font-black transition-all ${lang === "TA" ? "bg-white dark:bg-slate-800 text-indigo-600 shadow" : "text-slate-500 hover:text-slate-800"}`}
+            >
+              தமிழ்
+            </button>
+          </div>
+        </div>
+
         <Link href="/student/science-campus" className="inline-flex items-center gap-1 text-xs font-black text-slate-400 hover:text-slate-600">
-          <ChevronLeft className="w-4 h-4" /> Science Campus
+          <ChevronLeft className="w-4 h-4" /> {lang === "EN" ? "Science Campus" : "அறிவியல் வளாகம்"}
         </Link>
 
         {/* hero */}
@@ -214,10 +327,12 @@ export default function ScienceCenterPage() {
             </div>
             <div>
               <span className="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider mb-2">
-                <Sparkles className="w-3.5 h-3.5" /> Class {studentClass} · {totalItems} tabs
+                <Sparkles className="w-3.5 h-3.5" /> {lang === "EN" ? `Class ${studentClass} · ${totalItems} tabs` : `${studentClass}ஆம் வகுப்பு · ${totalItems} தலைப்புகள்`}
               </span>
-              <h2 className="text-2xl md:text-3xl font-black mb-1">{center.title}</h2>
-              <p className="text-white/85 text-sm font-medium max-w-2xl">{center.tagline}</p>
+              <h2 className="text-2xl md:text-3xl font-black mb-1">{lang === "EN" ? center.title : (center.titleTa || center.title)}</h2>
+              <p className="text-white/85 text-sm font-medium max-w-2xl">
+                {lang === "EN" ? center.tagline : (slug === "space" ? "சூரிய குடும்பம் முதல் விண்மீன் திரள்கள் மற்றும் இஸ்ரோ திட்டங்கள் வரை." : center.tagline)}
+              </p>
             </div>
           </div>
         </div>
@@ -225,19 +340,25 @@ export default function ScienceCenterPage() {
         {/* progress */}
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border-2 border-slate-100 dark:border-slate-700">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="flex items-center gap-2 text-sm font-black text-slate-700 dark:text-slate-200"><TrendingUp className="w-4 h-4 text-emerald-500" /> Explore progress</h3>
+            <h3 className="flex items-center gap-2 text-sm font-black text-slate-700 dark:text-slate-200">
+              <TrendingUp className="w-4 h-4 text-emerald-500" /> {lang === "EN" ? "Explore progress" : "கற்றல் முன்னேற்றம்"}
+            </h3>
             <span className="text-sm font-black text-emerald-600">{progress}%</span>
           </div>
           <div className="h-3 rounded-full bg-slate-100 dark:bg-slate-900 overflow-hidden">
             <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all" style={{ width: `${progress}%` }} />
           </div>
-          {badge && <span className="inline-flex items-center gap-1 mt-3 text-xs font-black px-3 py-1.5 rounded-lg bg-amber-500 text-white"><Award className="w-3.5 h-3.5" /> {center.title} Explorer!</span>}
+          {badge && (
+            <span className="inline-flex items-center gap-1 mt-3 text-xs font-black px-3 py-1.5 rounded-lg bg-amber-500 text-white">
+              <Award className="w-3.5 h-3.5" /> {lang === "EN" ? `${center.title} Explorer!` : `${lang === "EN" ? center.title : (center.titleTa || center.title)} ஆய்வாளர்!`}
+            </span>
+          )}
         </div>
 
         {/* topic groups */}
         {filteredGroups.map((g) => (
           <section key={g.heading}>
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-400 mb-3">{g.heading}</h3>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-400 mb-3">{lang === "EN" ? g.heading : (HEADINGS_TR[g.heading] || g.heading)}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {g.items.map((it) => {
                 const key = `${g.heading}:${it.label}`;
@@ -251,8 +372,10 @@ export default function ScienceCenterPage() {
                     }`}
                   >
                     <span className="text-2xl">{it.emoji}</span>
-                    <p className="text-xs font-black text-slate-700 dark:text-slate-200 mt-2 leading-tight">{it.label}</p>
-                    <span className="text-[9px] font-black text-slate-350 group-hover:text-purple-500">{isActive ? "✓ active" : "open"}</span>
+                    <p className="text-xs font-black text-slate-700 dark:text-slate-200 mt-2 leading-tight">{t(it.label)}</p>
+                    <span className="text-[9px] font-black text-slate-350 group-hover:text-purple-500">
+                      {isActive ? (lang === "EN" ? "✓ active" : "✓ தேர்வு") : (lang === "EN" ? "open" : "திறக்க")}
+                    </span>
                   </button>
                 );
               })}
@@ -568,50 +691,201 @@ export default function ScienceCenterPage() {
                     </div>
                   </div>
                 ) : (active.endsWith("Optics") || active.endsWith("Lens")) ? (
-                  /* 2. Lens Formula Calculator */
-                  <div className="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700">
-                    <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">Convex Lens Calculator (1/f = 1/v - 1/u)</p>
-                    <p className="text-xs text-slate-400 mb-4">Adjust focal length f and object distance u (virtual image properties).</p>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">Focal Length (f): {lensF} cm</label>
-                          <input 
-                            type="range" min="5" max="30" value={lensF} onChange={(e) => setLensF(Number(e.target.value))}
-                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
-                          />
+                  /* 2. Full Optics Learning Module */
+                  <div className="space-y-5">
+
+                    {/* Section intro */}
+                    <div className="p-4 bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-sky-950/30 dark:to-indigo-950/30 border border-sky-100 dark:border-sky-900/40 rounded-2xl">
+                      <p className="text-xs font-black uppercase tracking-wider text-sky-500 mb-1">📖 Class 10 Physics — Optics</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">Light, Reflection &amp; Refraction</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Optics is the branch of physics that studies the behaviour and properties of light. In Class 10 you study reflection (mirrors), refraction (lenses &amp; prism), the human eye and optical instruments like the microscope &amp; telescope.
+                      </p>
+                    </div>
+
+                    {/* Concept 1 — Refraction with diagram */}
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+                      <div className="px-5 pt-5 pb-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-indigo-500">Concept 1</span>
+                        <h4 className="text-sm font-black text-slate-800 dark:text-white mt-0.5">Refraction of Light &amp; Snell's Law</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                          Refraction is the bending of light as it passes from one medium to another with a different optical density. Light bends <strong>towards the normal</strong> when entering a denser medium.
+                        </p>
+                      </div>
+                      <img
+                        src="/refraction_snells_law.png"
+                        alt="Refraction of light and Snell's Law diagram"
+                        className="w-full object-contain max-h-56 bg-white px-4 pb-2"
+                      />
+                      <div className="px-5 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl">
+                          <p className="text-[10px] font-black text-indigo-500 uppercase mb-1">⚗️ Snell's Law</p>
+                          <code className="text-xs font-black text-indigo-700 dark:text-indigo-300">n₁ sin(i) = n₂ sin(r)</code>
+                          <p className="text-[10px] text-slate-400 mt-1">n = refractive index, i = angle of incidence, r = angle of refraction</p>
                         </div>
-                        <div>
-                          <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">Object Distance (u): {lensU} cm</label>
-                          <input 
-                            type="range" min="-100" max="-10" value={lensU} onChange={(e) => setLensU(Number(e.target.value))}
-                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
-                          />
+                        <div className="p-3 bg-sky-50 dark:bg-sky-950/30 rounded-xl">
+                          <p className="text-[10px] font-black text-sky-500 uppercase mb-1">📌 Refractive Index</p>
+                          <code className="text-xs font-black text-sky-700 dark:text-sky-300">n = Speed of light in vacuum / Speed in medium</code>
+                          <p className="text-[10px] text-slate-400 mt-1">Water: n≈1.33 &nbsp;|&nbsp; Glass: n≈1.5 &nbsp;|&nbsp; Diamond: n≈2.42</p>
                         </div>
                       </div>
-                      
-                      {/* Formula calculation: v = uf/(u+f) */}
-                      {(() => {
-                        const denom = lensU + lensF;
-                        const v = denom !== 0 ? (lensU * lensF) / denom : 0;
-                        const mag = denom !== 0 ? -v / lensU : 0;
-                        return (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border">
-                              <span className="text-[10px] text-slate-400 font-bold block uppercase">Image Distance (v)</span>
-                              <span className="text-base font-black text-sky-600 font-mono">
-                                {denom === 0 ? "Infinity" : `${v.toFixed(1)} cm`}
-                              </span>
+                    </div>
+
+                    {/* Concept 2 — Mirrors with diagram */}
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+                      <div className="px-5 pt-5 pb-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-rose-500">Concept 2</span>
+                        <h4 className="text-sm font-black text-slate-800 dark:text-white mt-0.5">Types of Mirrors</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                          A mirror reflects light. The three types — plane, concave and convex — form images differently depending on their shape and the object's position.
+                        </p>
+                      </div>
+                      <img
+                        src="/mirror_types_diagram.png"
+                        alt="Plane, concave and convex mirror ray diagram comparison"
+                        className="w-full object-contain max-h-56 bg-white px-4 pb-2"
+                      />
+                      <div className="px-5 pb-4">
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { type: "Plane Mirror", use: "Dressing mirrors, periscopes", image: "Virtual, erect, same size", color: "slate" },
+                            { type: "Concave Mirror", use: "Torch reflectors, solar heaters, shaving mirrors", image: "Real &amp; inverted (beyond F)", color: "sky" },
+                            { type: "Convex Mirror", use: "Vehicle rear-view mirrors, security mirrors", image: "Virtual, erect, diminished", color: "rose" },
+                          ].map(m => (
+                            <div key={m.type} className={`p-2.5 rounded-xl bg-${m.color}-50 dark:bg-${m.color}-950/30 border border-${m.color}-100 dark:border-${m.color}-900/40`}>
+                              <p className="text-[10px] font-black text-slate-700 dark:text-slate-200">{m.type}</p>
+                              <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight" dangerouslySetInnerHTML={{ __html: m.image }} />
+                              <p className="text-[9px] text-emerald-600 dark:text-emerald-400 mt-1 leading-tight font-medium" dangerouslySetInnerHTML={{ __html: `✦ ${m.use}` }} />
                             </div>
-                            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border">
-                              <span className="text-[10px] text-slate-400 font-bold block uppercase">Magnification (m)</span>
-                              <span className="text-base font-black text-sky-600 font-mono">
-                                {denom === 0 ? "Infinite" : `${mag.toFixed(2)}x`}
-                              </span>
+                          ))}
+                        </div>
+                        <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-100 dark:border-amber-900/40">
+                          <code className="text-xs font-black text-amber-700 dark:text-amber-300">Mirror Formula: 1/f = 1/v + 1/u &nbsp;|&nbsp; Magnification m = -v/u</code>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Concept 3 — Lenses with diagram */}
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+                      <div className="px-5 pt-5 pb-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-emerald-500">Concept 3</span>
+                        <h4 className="text-sm font-black text-slate-800 dark:text-white mt-0.5">Convex &amp; Concave Lenses — Ray Diagrams</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                          A lens refracts light using two curved surfaces. Convex lenses converge light (used in magnifying glasses &amp; cameras); concave lenses diverge light (used to correct short-sightedness).
+                        </p>
+                      </div>
+                      <img
+                        src="/optics_ray_diagram.png"
+                        alt="Convex lens ray diagram showing focal point and image formation"
+                        className="w-full object-contain max-h-56 bg-white px-4 pb-2"
+                      />
+                      <div className="px-5 pb-4 space-y-3">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-[10px] text-slate-600 dark:text-slate-300">
+                            <thead>
+                              <tr className="bg-emerald-50 dark:bg-emerald-950/30">
+                                <th className="text-left p-2 font-black text-emerald-700 dark:text-emerald-400 rounded-l-lg">Object Position</th>
+                                <th className="text-left p-2 font-black text-emerald-700 dark:text-emerald-400">Image Position</th>
+                                <th className="text-left p-2 font-black text-emerald-700 dark:text-emerald-400 rounded-r-lg">Nature &amp; Size</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                              {[
+                                ["At infinity", "At F₂", "Real, inverted, highly diminished"],
+                                ["Beyond 2F₁", "Between F₂ and 2F₂", "Real, inverted, diminished"],
+                                ["At 2F₁", "At 2F₂", "Real, inverted, same size"],
+                                ["Between F₁ and 2F₁", "Beyond 2F₂", "Real, inverted, enlarged"],
+                                ["At F₁", "At infinity", "Real, inverted, highly enlarged"],
+                                ["Between F₁ and O", "Same side as object", "Virtual, erect, enlarged"],
+                              ].map(([pos, img, nat], i) => (
+                                <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                                  <td className="p-2 font-medium">{pos}</td>
+                                  <td className="p-2">{img}</td>
+                                  <td className="p-2 font-medium text-sky-600 dark:text-sky-400">{nat}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900/40">
+                          <code className="text-xs font-black text-indigo-700 dark:text-indigo-300">Lens Formula: 1/f = 1/v − 1/u &nbsp;|&nbsp; Power P = 1/f (in metres), unit: Dioptre (D)</code>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Interactive Lens Calculator */}
+                    <div className="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-sky-500 mb-1">🔬 Lab Exercise</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">Convex Lens Calculator (1/f = 1/v − 1/u)</p>
+                      <p className="text-xs text-slate-400 mb-4">Adjust focal length f and object distance u to find the image position and magnification.</p>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">Focal Length (f): {lensF} cm</label>
+                            <input
+                              type="range" min="5" max="30" value={lensF} onChange={(e) => setLensF(Number(e.target.value))}
+                              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">Object Distance (u): {lensU} cm</label>
+                            <input
+                              type="range" min="-100" max="-10" value={lensU} onChange={(e) => setLensU(Number(e.target.value))}
+                              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                            />
+                          </div>
+                        </div>
+                        {(() => {
+                          const denom = lensU + lensF;
+                          const v = denom !== 0 ? (lensU * lensF) / denom : 0;
+                          const mag = denom !== 0 ? -v / lensU : 0;
+                          const power = (1 / (lensF / 100)).toFixed(2);
+                          const imageType = v > 0 ? "Real & Inverted" : "Virtual & Erect";
+                          return (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                              <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border text-center">
+                                <span className="text-[10px] text-slate-400 font-bold block uppercase">Image Distance (v)</span>
+                                <span className="text-base font-black text-sky-600 font-mono">{denom === 0 ? "∞" : `${v.toFixed(1)} cm`}</span>
+                              </div>
+                              <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border text-center">
+                                <span className="text-[10px] text-slate-400 font-bold block uppercase">Magnification (m)</span>
+                                <span className="text-base font-black text-sky-600 font-mono">{denom === 0 ? "∞" : `${mag.toFixed(2)}×`}</span>
+                              </div>
+                              <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border text-center">
+                                <span className="text-[10px] text-slate-400 font-bold block uppercase">Power (D)</span>
+                                <span className="text-base font-black text-emerald-600 font-mono">{power} D</span>
+                              </div>
+                              <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border text-center">
+                                <span className="text-[10px] text-slate-400 font-bold block uppercase">Image Type</span>
+                                <span className="text-xs font-black text-purple-600">{denom === 0 ? "At ∞" : imageType}</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Applications card */}
+                    <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-100 dark:border-amber-900/40">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-amber-500 mb-2">🌟 Real-World Applications</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {[
+                          { icon: "👁️", name: "Human Eye", desc: "Converging lens (cornea + eye lens)" },
+                          { icon: "🔭", name: "Telescope", desc: "Objective + eyepiece convex lenses" },
+                          { icon: "🔬", name: "Microscope", desc: "Two convex lenses for magnification" },
+                          { icon: "📷", name: "Camera", desc: "Convex lens focuses light on sensor" },
+                          { icon: "🕶️", name: "Spectacles", desc: "Concave (myopia), convex (hyperopia)" },
+                          { icon: "💡", name: "Projector", desc: "Convex lens for enlarged real image" },
+                        ].map(a => (
+                          <div key={a.name} className="flex items-start gap-2 p-2 bg-white/60 dark:bg-slate-800/40 rounded-xl">
+                            <span className="text-base mt-0.5">{a.icon}</span>
+                            <div>
+                              <p className="text-[10px] font-black text-slate-700 dark:text-slate-200">{a.name}</p>
+                              <p className="text-[9px] text-slate-400 leading-tight">{a.desc}</p>
                             </div>
                           </div>
-                        );
-                      })()}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -640,19 +914,135 @@ export default function ScienceCenterPage() {
           </div>
         )}
 
-        {/* Fallback detail note for other general centers */}
-        {active && slug !== "question-bank" && slug !== "physics-lab" && (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border-2 border-emerald-100 dark:border-slate-700">
-            <p className="text-sm font-black text-slate-800 dark:text-white">{active.split(":").pop()}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Interactive 3D content, animations and a guided lesson for this topic are on the way. Meanwhile, ask the AI Tutor or open the Book Library for the related chapter.
-            </p>
-            <div className="flex gap-2 mt-3">
-              <Link href="/student/ai-tutor" className="text-xs font-black px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200">🤖 Ask AI Tutor</Link>
-              <Link href="/student/science-library" className="text-xs font-black px-3 py-1.5 rounded-lg bg-sky-100 text-sky-700 hover:bg-sky-200">📚 Book Library</Link>
+        {/* Rich content panel for all other centers */}
+        {active && slug !== "question-bank" && slug !== "physics-lab" && (() => {
+          const [groupHeading, itemLabel] = active.split(":");
+          const content = getTopicContent(slug, groupHeading, itemLabel);
+          if (!content) {
+            return (
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border-2 border-emerald-100 dark:border-slate-700">
+                <p className="text-sm font-black text-slate-800 dark:text-white">{itemLabel}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Detailed interactive content for this topic is being prepared. Ask the AI Tutor or open the Book Library for the related chapter.
+                </p>
+                <div className="flex gap-2 mt-3">
+                  <Link href="/student/ai-tutor" className="text-xs font-black px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200">🤖 Ask AI Tutor</Link>
+                  <Link href="/student/science-library" className="text-xs font-black px-3 py-1.5 rounded-lg bg-sky-100 text-sky-700 hover:bg-sky-200">📚 Book Library</Link>
+                </div>
+              </div>
+            );
+          }
+          const quizKey = active;
+          const chosenAnswer = topicQuizAnswer[quizKey];
+          const isCorrect = chosenAnswer ? t(chosenAnswer) === t(content.quiz.answer) : false;
+          return (
+            <div className="space-y-4">
+              {/* Hero card */}
+              <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border-2 border-slate-100 dark:border-slate-700 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-3xl">{content.emoji}</span>
+                  <div>
+                    <h3 className="text-base font-black text-slate-800 dark:text-white">{t(content.title)}</h3>
+                    <p className="text-xs text-slate-400 font-medium">{lang === "EN" ? groupHeading : (HEADINGS_TR[groupHeading] || groupHeading)}</p>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium mb-4">{t(content.summary)}</p>
+                {content.image && (
+                  <img
+                    src={content.image}
+                    alt={t(content.title)}
+                    className="w-full object-contain max-h-56 bg-white border rounded-2xl p-3 mb-2"
+                  />
+                )}
+              </div>
+
+              {/* Key Points */}
+              <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border-2 border-slate-100 dark:border-slate-700 shadow-sm">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3">
+                  {lang === "EN" ? "📌 Key Points" : "📌 முக்கிய குறிப்புகள்"}
+                </h4>
+                <ul className="space-y-2">
+                  {content.keyPoints.map((pt, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
+                      <span className="mt-0.5 w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-black flex items-center justify-center shrink-0">{i + 1}</span>
+                      {t(pt)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Formula */}
+              {content.formula && (
+                <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-2xl p-4 border border-indigo-100 dark:border-indigo-900/40">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-indigo-400 mb-1">
+                    {lang === "EN" ? "⚗️ Formula / Key Expression" : "⚗️ சூத்திரம் / முக்கிய கோவை"}
+                  </p>
+                  <code className="text-sm font-black text-indigo-700 dark:text-indigo-300 break-all">{t(content.formula)}</code>
+                </div>
+              )}
+
+              {/* Fun Fact */}
+              <div className="bg-amber-50 dark:bg-amber-950/30 rounded-2xl p-4 border border-amber-100 dark:border-amber-900/40">
+                <p className="text-[10px] font-black uppercase tracking-wider text-amber-500 mb-1">
+                  {lang === "EN" ? "🌟 Fun Fact" : "🌟 சுவாரஸ்யமான தகவல்"}
+                </p>
+                <p className="text-xs font-medium text-amber-800 dark:text-amber-300 leading-relaxed">{t(content.funFact)}</p>
+              </div>
+
+              {/* Mini Quiz */}
+              <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border-2 border-purple-100 dark:border-purple-900/40 shadow-sm">
+                <h4 className="text-xs font-black uppercase tracking-wider text-purple-500 mb-3">
+                  {lang === "EN" ? "🧠 Quick Quiz" : "🧠 விரைவு வினாடி வினா"}
+                </h4>
+                <p className="text-sm font-bold text-slate-800 dark:text-white mb-4">{t(content.quiz.question)}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {content.quiz.options.map((opt) => {
+                    const isSelected = chosenAnswer === opt;
+                    const isAnswerCorrect = t(opt) === t(content.quiz.answer);
+                    let cls = "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300";
+                    if (chosenAnswer) {
+                      if (isAnswerCorrect) cls = "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300";
+                      else if (isSelected) cls = "border-rose-400 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300";
+                    } else if (isSelected) {
+                      cls = "border-purple-400 bg-purple-50 dark:bg-purple-950/40 text-purple-700";
+                    }
+                    return (
+                      <button
+                        key={opt}
+                        onClick={() => !chosenAnswer && setTopicQuizAnswer(prev => ({ ...prev, [quizKey]: opt }))}
+                        className={`w-full text-left px-4 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${cls} ${!chosenAnswer ? "hover:border-purple-300 cursor-pointer" : "cursor-default"}`}
+                      >
+                        {chosenAnswer && isAnswerCorrect && <span className="mr-1">✅</span>}
+                        {chosenAnswer && isSelected && !isAnswerCorrect && <span className="mr-1">❌</span>}
+                        {t(opt)}
+                      </button>
+                    );
+                  })}
+                </div>
+                {chosenAnswer && (
+                  <div className={`mt-3 p-3 rounded-xl text-xs font-medium ${isCorrect ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300" : "bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300"}`}>
+                    {isCorrect 
+                      ? (lang === "EN" ? "🎉 Correct! Well done." : "🎉 சரி! நன்று.") 
+                      : (lang === "EN" ? `❌ Incorrect. The correct answer is: ${t(content.quiz.answer)}` : `❌ தவறு. சரியான விடை: ${t(content.quiz.answer)}`)}
+                  </div>
+                )}
+              </div>
+
+              {/* Quick links */}
+              <div className="flex flex-wrap gap-2">
+                <Link href="/student/ai-tutor" className="text-xs font-black px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
+                  🤖 {lang === "EN" ? "Ask AI Tutor" : "AI ஆசிரியர்"}
+                </Link>
+                <Link href="/student/science-library" className="text-xs font-black px-3 py-1.5 rounded-lg bg-sky-100 text-sky-700 hover:bg-sky-200">
+                  📚 {lang === "EN" ? "Book Library" : "நூலகம்"}
+                </Link>
+                {content.links?.map(l => (
+                  <Link key={l.href} href={l.href} className="text-xs font-black px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200">{t(l.label)}</Link>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </PortalLayout>
   );

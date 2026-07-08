@@ -168,6 +168,13 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Staff whose subject is Physical Education log into the dedicated PET portal
+// (the DB Role enum has no PET value — the role is derived from the subject).
+const isPetSubject = (subject?: string | null): boolean => {
+  const s = (subject || '').trim().toLowerCase();
+  return s === 'pet' || s === 'p.e.t' || s === 'p.e.t.' || s.includes('physical educ') || s.includes('physical train');
+};
+
 // POST /api/users/auth - Authenticate user (for NextAuth)
 router.post('/auth', async (req: Request, res: Response) => {
   try {
@@ -322,15 +329,16 @@ return res.json({
             },
         });
 
+        const teacherSubject = teacher?.subject ?? "General";
         return res.json({
             success: true,
             data: await withSchoolInfo({
                 id: teacher?.id ?? pgUser.id,
                 name: teacher?.name ?? pgUser.name,
                 email: pgUser.email,
-                role: "TEACHER",
+                role: isPetSubject(teacherSubject) ? "PET" : "TEACHER",
                 schoolId: teacher?.schoolId ?? pgUser.schoolId,
-                subject: teacher?.subject ?? "General",
+                subject: teacherSubject,
             }),
         });
     }
@@ -361,7 +369,7 @@ return res.json({
             id: String(staffMember.id),
             name: staffMember.name,
             email: staffMember.email || cleanEmail,
-            role: 'TEACHER',
+            role: isPetSubject(staffMember.subject) ? 'PET' : 'TEACHER',
             schoolId: staffMember.schoolId || null,
             subject: staffMember.subject || 'General'
           })

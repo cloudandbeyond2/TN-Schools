@@ -365,6 +365,23 @@ export const roleConfigs: Record<string, PortalConfig> = {
     ],
   },
 
+  PET: {
+    title: "Physical Education Teacher",
+    subtitle: "PET Staff · GHS Coimbatore",
+    avatarLetter: "P",
+    avatarColor: "#84cc16",
+    themeClass: "theme-teacher",
+    accentColor: "#84cc16",
+    navItems: [
+      { label: "Dashboard", href: "/pet", icon: "Home" },
+      { label: "Student Records & Health", href: "/pet/records", icon: "HeartPulse" },
+      { label: "Sports Events & Competitions", href: "/pet/sports-conducted", icon: "Activity" },
+      { label: "Inventory & Equipments", href: "/pet/inventory", icon: "Package" },
+      { label: "Awards & Certifications", href: "/pet/awards", icon: "Trophy" },
+      { label: "Ground Condition", href: "/pet/ground-condition", icon: "Map" },
+      { label: "Clubs & Activities", href: "/pet/clubs", icon: "Users" },
+    ],
+  },
   TEACHER: {
     title: "Teacher Dashboard",
     subtitle: "Mrs. Sumathi Devi · Mathematics · GHS Coimbatore",
