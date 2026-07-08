@@ -1551,6 +1551,7 @@ async function slicePdfPages(buffer: Buffer, maxPages: number): Promise<string> 
 
 // Remove NULL bytes and C0 control chars (keeping tab/newline/CR) — Postgres
 // text columns reject NUL, and stray control chars slip in from AI/PDF output.
+// Also cleans up duplicate Tamil combining diacritics and double characters caused by PDF stream overlaps.
 function cleanStr(s: any): string {
   const str = String(s == null ? '' : s);
   let out = '';
@@ -1558,6 +1559,14 @@ function cleanStr(s: any): string {
     const c = str.charCodeAt(i);
     if (c === 9 || c === 10 || c === 13 || (c >= 32 && c !== 127)) out += str[i];
   }
+  
+  // 1. Fix consecutive duplicate Tamil diacritics (e.g. க்் -> க், ரோோ -> ரோ, ம்் -> ம்)
+  out = out.replace(/([\u0BBE-\u0BCD])\1+/g, '$1');
+  
+  // 2. Fix consecutive duplicate Tamil letters caused by overlapping PDF rendering text layers
+  out = out.replace(/றற/g, 'ற');
+  out = out.replace(/னன/g, 'ன');
+
   return out.trim();
 }
 
@@ -1679,7 +1688,7 @@ Skip covers, preface, acknowledgements, anthem, index and glossary — only real
 
     // --- Primary path: let Gemini read the PDF pages (accurate for Tamil script) ---
     try {
-      const base64Pdf = await slicePdfPages(file.buffer, 25);
+      const base64Pdf = await slicePdfPages(file.buffer, 150);
       console.log(`[PDF Upload] Sending first pages to Gemini (vision) for Class ${className}...`);
       parsed = await callGeminiWithPdf(promptBase, base64Pdf, PDF_SYLLABUS_SCHEMA);
     } catch (visionErr: any) {
@@ -1698,7 +1707,7 @@ Skip covers, preface, acknowledgements, anthem, index and glossary — only real
         return res.status(400).json({ success: false, error: 'Could not read this PDF. It may be a scanned image with no selectable text.' });
       }
       console.log('[PDF Upload] Falling back to text extraction...');
-      parsed = await callGeminiJSON(`${promptBase}\n\nTextbook text (may be imperfectly encoded):\n${extractedText.substring(0, 30000)}`, PDF_SYLLABUS_SCHEMA);
+      parsed = await callGeminiJSON(`${promptBase}\n\nTextbook text (may be imperfectly encoded):\n${extractedText.substring(0, 250000)}`, PDF_SYLLABUS_SCHEMA);
     }
 
     if (!parsed || !Array.isArray(parsed.units) || parsed.units.length === 0) {
