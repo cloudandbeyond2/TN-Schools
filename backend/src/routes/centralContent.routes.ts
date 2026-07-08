@@ -7,7 +7,7 @@ import fs from 'fs';
 
 const pdfUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 },
+  limits: { fileSize: 150 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (file.mimetype === 'application/pdf') cb(null, true);
     else cb(new Error('Only PDF files are allowed'));
@@ -16,7 +16,7 @@ const pdfUpload = multer({
 
 const generalUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 }
+  limits: { fileSize: 150 * 1024 * 1024 }
 });
 
 const materialsStorage = multer.diskStorage({
@@ -1697,12 +1697,10 @@ Skip covers, preface, acknowledgements, anthem, index and glossary — only real
 
     // --- Fallback path: text extraction (garbles Tamil, but better than nothing) ---
     if (!parsed || !Array.isArray(parsed.units) || parsed.units.length === 0) {
-      const { PDFParse } = require('pdf-parse');
-      const parser = new PDFParse({ data: file.buffer });
-      const pdfData = await parser.getText();
-      pdfPages = pdfData.total;
+      const pdfParse = require('pdf-parse');
+      const pdfData = await pdfParse(file.buffer);
+      pdfPages = pdfData.numpages;
       const extractedText = (pdfData.text || '').trim();
-      await parser.destroy();
       if (extractedText.length < 50) {
         return res.status(400).json({ success: false, error: 'Could not read this PDF. It may be a scanned image with no selectable text.' });
       }

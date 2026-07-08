@@ -536,9 +536,25 @@ router.delete('/labs/:id', async (req: Request, res: Response) => {
 // GET /api/teacher/leave
 router.get('/leave', async (req: Request, res: Response) => {
   try {
-    const { schoolId } = req.query;
+    const { schoolId, userId } = req.query;
+    
+    let staffIdFilter: any = undefined;
+    if (userId) {
+      const staff = await prisma.headmasterStaff.findFirst({
+        where: { userId: String(userId) }
+      });
+      if (staff) {
+        staffIdFilter = staff.id;
+      } else {
+        staffIdFilter = String(userId);
+      }
+    }
+
     const leaves = await prisma.leaveRequest.findMany({
-      where: schoolId ? { schoolId: String(schoolId) } : undefined,
+      where: {
+        ...(schoolId ? { schoolId: String(schoolId) } : {}),
+        ...(staffIdFilter ? { staffId: staffIdFilter } : {}),
+      },
       orderBy: { createdAt: 'desc' },
     });
     res.json({ success: true, data: leaves });
@@ -569,7 +585,7 @@ router.post('/leave', async (req: Request, res: Response) => {
         studentName: finalStudentName,
         studentId: studentId || null,
         staffId: staffId || null,  // Audit: who submitted the leave
-        status: 'Approved',
+        status: 'Pending',
         schoolId: schoolId || null,
       } as any,
     });
