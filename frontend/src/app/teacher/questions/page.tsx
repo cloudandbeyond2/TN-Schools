@@ -162,19 +162,27 @@ export default function QuestionGeneratorPage() {
       try {
         const res = await fetch(`${API_URL}/api/centralized-content/subjects?class=${classStr}`);
         const data = await res.json();
-        if (data.success && data.data) {
+        if (data.success && data.data && data.data.length > 0) {
           setSubjectOptions(data.data);
-          if (data.data.length > 0) {
-            setSubject((prev) => {
-              if (data.data.find((s: any) => s.name === prev)) return prev;
-              return data.data[0].name;
-            });
-          } else {
-            setSubject("");
-          }
+          setSubject((prev) => {
+            if (data.data.find((s: any) => s.name === prev)) return prev;
+            return data.data[0].name;
+          });
+        } else {
+          throw new Error("No subjects returned");
         }
       } catch (err) {
-        console.error("Failed to fetch subjects:", err);
+        console.warn("Failed to fetch subjects, using fallback data:", err);
+        const fallbacks = [
+          { id: "sub-1", name: "Mathematics" },
+          { id: "sub-2", name: "Physics" },
+          { id: "sub-3", name: "Chemistry" },
+          { id: "sub-4", name: "Biology" },
+          { id: "sub-5", name: "English" },
+          { id: "sub-6", name: "Computer Science" }
+        ];
+        setSubjectOptions(fallbacks);
+        setSubject((prev) => fallbacks.find((s) => s.name === prev) ? prev : fallbacks[0].name);
       } finally {
         setLoadingSubjects(false);
       }
