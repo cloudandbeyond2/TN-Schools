@@ -43,6 +43,10 @@ export default function AnalyticsPage() {
   const [mastery, setMastery] = useState<MasteryItem[]>([]);
   const [distribution, setDistribution] = useState<DistributionItem[]>([]);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   useEffect(() => {
     const fetchClassAnalytics = async () => {
       try {
@@ -197,6 +201,16 @@ export default function AnalyticsPage() {
     const matchesStatus = statusFilter === "All" || student.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, selectedClassId]);
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentStudents = filteredStudents.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
 
   return (
     <PortalLayout
@@ -409,7 +423,7 @@ export default function AnalyticsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredStudents.map((st) => (
+                    {currentStudents.map((st) => (
                       <tr key={st.rollNo}>
                         <td className="font-mono text-xs">{st.rollNo}</td>
                         <td className="font-semibold text-[var(--text-heading)]">{st.name}</td>
@@ -454,6 +468,33 @@ export default function AnalyticsPage() {
                   </tbody>
                 </table>
               </div>
+
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center mt-4 text-xs">
+                  <span className="text-[var(--text-muted)]">
+                    Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredStudents.length)} of {filteredStudents.length} entries
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg disabled:opacity-50 hover:bg-[var(--bg-card-hover)] transition-colors"
+                    >
+                      Previous
+                    </button>
+                    <span className="px-3 py-1.5 flex items-center justify-center text-[var(--text-heading)] font-medium">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg disabled:opacity-50 hover:bg-[var(--bg-card-hover)] transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}

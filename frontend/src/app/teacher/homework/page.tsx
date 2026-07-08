@@ -44,6 +44,10 @@ export default function HomeworkPage() {
   const [loadingSubs, setLoadingSubs] = useState(false);
   const [teacherClasses, setTeacherClasses] = useState<any[]>([]);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   // New Homework Form State
   const [newTitle, setNewTitle] = useState("");
   const [newClass, setNewClass] = useState("");
@@ -126,6 +130,7 @@ export default function HomeworkPage() {
 
   useEffect(() => {
     if (selectedHwId) {
+      setCurrentPage(1);
       fetchSubmissions(selectedHwId);
     }
   }, [selectedHwId]);
@@ -444,53 +449,81 @@ export default function HomeworkPage() {
                     {loadingSubs ? (
                       <div className="text-center py-8 text-xs text-[var(--text-muted)]">Loading submission roster...</div>
                     ) : submissions.length > 0 ? (
-                      <div className="overflow-x-auto">
-                        <table className="data-table">
-                          <thead>
-                            <tr>
-                              <th>Roll No</th>
-                              <th>Student Name</th>
-                              <th>Status</th>
-                              <th>Turned In</th>
-                              <th>Score</th>
-                              <th>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {submissions.map((sub) => (
-                              <tr key={sub.id}>
-                                <td className="font-mono text-xs">{sub.rollNo}</td>
-                                <td className="font-medium text-[var(--text-heading)]">{sub.name}</td>
-                                <td>
-                                  <span className={`badge ${sub.status === "submitted" ? "badge-green" : "badge-yellow"}`}>
-                                    {sub.status}
-                                  </span>
-                                </td>
-                                <td>{sub.date}</td>
-                                <td className="font-bold font-mono text-[var(--text-heading)]">{sub.score}</td>
-                                <td>
-                                  <div className="flex gap-2">
-                                    {sub.status === "submitted" && (
-                                      <button
-                                        onClick={() => handleViewAnswer(sub)}
-                                        className="text-xs text-teal-500 hover:underline font-semibold"
-                                      >
-                                        View Answer
-                                      </button>
-                                    )}
-                                    <button
-                                      onClick={() => handleGradeSubmission(sub.id, sub.name)}
-                                      className="text-xs text-amber-400 hover:underline font-semibold"
-                                    >
-                                      Grade Sheet
-                                    </button>
-                                  </div>
-                                </td>
+                      <>
+                        <div className="overflow-x-auto">
+                          <table className="data-table">
+                            <thead>
+                              <tr>
+                                <th>Roll No</th>
+                                <th>Student Name</th>
+                                <th>Status</th>
+                                <th>Turned In</th>
+                                <th>Score</th>
+                                <th>Actions</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                            </thead>
+                            <tbody>
+                              {submissions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((sub) => (
+                                <tr key={sub.id}>
+                                  <td className="font-mono text-xs">{sub.rollNo}</td>
+                                  <td className="font-medium text-[var(--text-heading)]">{sub.name}</td>
+                                  <td>
+                                    <span className={`badge ${sub.status === "submitted" ? "badge-green" : "badge-yellow"}`}>
+                                      {sub.status}
+                                    </span>
+                                  </td>
+                                  <td>{sub.date}</td>
+                                  <td className="font-bold font-mono text-[var(--text-heading)]">{sub.score}</td>
+                                  <td>
+                                    <div className="flex gap-2">
+                                      {sub.status === "submitted" && (
+                                        <button
+                                          onClick={() => handleViewAnswer(sub)}
+                                          className="text-xs text-teal-500 hover:underline font-semibold"
+                                        >
+                                          View Answer
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={() => handleGradeSubmission(sub.id, sub.name)}
+                                        className="text-xs text-amber-400 hover:underline font-semibold"
+                                      >
+                                        Grade Sheet
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        {Math.ceil(submissions.length / itemsPerPage) > 1 && (
+                          <div className="flex justify-between items-center mt-4 text-xs">
+                            <span className="text-[var(--text-muted)]">
+                              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, submissions.length)} of {submissions.length} entries
+                            </span>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="px-3 py-1.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg disabled:opacity-50 hover:bg-[var(--bg-card-hover)] transition-colors"
+                              >
+                                Previous
+                              </button>
+                              <span className="px-3 py-1.5 flex items-center justify-center text-[var(--text-heading)] font-medium">
+                                Page {currentPage} of {Math.ceil(submissions.length / itemsPerPage)}
+                              </span>
+                              <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(submissions.length / itemsPerPage)))}
+                                disabled={currentPage === Math.ceil(submissions.length / itemsPerPage)}
+                                className="px-3 py-1.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg disabled:opacity-50 hover:bg-[var(--bg-card-hover)] transition-colors"
+                              >
+                                Next
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <div className="text-center py-8 text-xs text-[var(--text-muted)] italic">
                         No submissions logged. Ensure students are assigned to this class section.

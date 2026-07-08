@@ -1127,6 +1127,10 @@ export default function PETeacherSportsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isPE, setIsPE] = useState<boolean | null>(null);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
+
   // Score Modal States
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<RosterStudent | null>(null);
@@ -1380,6 +1384,16 @@ export default function PETeacherSportsPage() {
     s.rollNumber.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Reset pagination on filter or tab change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, section, activeTab]);
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentRoster = filteredRoster.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredRoster.length / itemsPerPage);
+
   return (
     <PortalLayout
       title="Sports & Athletics Desk"
@@ -1498,7 +1512,7 @@ export default function PETeacherSportsPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
-                      {filteredRoster.map((student) => {
+                      {currentRoster.map((student) => {
                         let col1Val = "—", col1Score = "";
                         let col2Val = "—", col2Score = "";
                         let col3Val = "—", col3Score = "";
@@ -1628,7 +1642,7 @@ export default function PETeacherSportsPage() {
 
                 {/* Mobile/Tablet Card View */}
                 <div className="xl:hidden grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredRoster.map((student) => {
+                  {currentRoster.map((student) => {
                     let col1Val = "—", col1Label = "Sprint";
                     let col2Val = "—", col2Label = "Shot Put";
                     let col3Val = "—", col3Label = "Cardio";
@@ -1755,6 +1769,33 @@ export default function PETeacherSportsPage() {
                     );
                   })}
                 </div>
+
+                {totalPages > 1 && (
+                  <div className="flex justify-between items-center mt-4 text-xs">
+                    <span className="text-slate-400">
+                      Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredRoster.length)} of {filteredRoster.length} entries
+                    </span>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 text-black dark:text-white rounded-lg disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        Previous
+                      </button>
+                      <span className="px-3 py-1.5 flex items-center justify-center text-black dark:text-white font-medium">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 text-black dark:text-white rounded-lg disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>

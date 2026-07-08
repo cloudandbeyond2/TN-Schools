@@ -38,6 +38,10 @@ export default function RiskAlertsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
+
   // Form Modals State
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAlert, setEditingAlert] = useState<AtRiskStudent | null>(null);
@@ -368,6 +372,16 @@ export default function RiskAlertsPage() {
     return matchesSearch && matchesRisk;
   });
 
+  // Reset pagination on filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, riskFilter]);
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentStudents = filteredStudents.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+
   return (
     <PortalLayout
       title="Risk Alerts"
@@ -488,7 +502,7 @@ export default function RiskAlertsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border)]/40">
-                  {filteredStudents.map((st) => (
+                  {currentStudents.map((st) => (
                     <tr key={st.id} className="hover:bg-[var(--bg-card-hover)]/30 transition-colors">
                       {/* Student Info */}
                       <td className="py-4 px-4 whitespace-nowrap">
@@ -589,7 +603,7 @@ export default function RiskAlertsPage() {
 
             {/* Mobile/Tablet Card Grid Layout */}
             <div className="block xl:hidden space-y-4">
-              {filteredStudents.map((st) => (
+              {currentStudents.map((st) => (
                 <div key={st.id} className="bg-[var(--bg-main)]/20 border border-[var(--border)] p-4 rounded-2xl space-y-3.5 shadow-sm text-xs">
                   <div className="flex justify-between items-start">
                     <div>
@@ -669,6 +683,33 @@ export default function RiskAlertsPage() {
                 </div>
               ))}
             </div>
+
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center mt-4 text-xs">
+                <span className="text-[var(--text-muted)]">
+                  Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredStudents.length)} of {filteredStudents.length} entries
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg disabled:opacity-50 hover:bg-[var(--bg-card-hover)] transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <span className="px-3 py-1.5 flex items-center justify-center text-[var(--text-heading)] font-medium">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg disabled:opacity-50 hover:bg-[var(--bg-card-hover)] transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
