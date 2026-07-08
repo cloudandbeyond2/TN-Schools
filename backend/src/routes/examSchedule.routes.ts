@@ -1,0 +1,290 @@
+import { Router, Request, Response } from 'express';
+import { prisma } from '../config/prisma';
+
+const router = Router();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/exam-schedule
+// Query params: schoolId (required), class?, section?, examType?, academicYear?,
+//               status?, fromDate?, toDate?
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, class: cls, section, examType, academicYear, status, fromDate, toDate } = req.query;
+
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required' });
+    }
+
+    const where: any = { schoolId: String(schoolId) };
+
+    if (cls)          where.class        = String(cls);
+    if (section)      where.section      = String(section);
+    if (examType)     where.examType     = String(examType);
+    if (academicYear) where.academicYear = String(academicYear);
+    if (status)       where.status       = String(status);
+
+    if (fromDate || toDate) {
+      where.examDate = {};
+      if (fromDate) where.examDate.gte = new Date(String(fromDate));
+      if (toDate)   where.examDate.lte = new Date(String(toDate));
+    }
+
+    const schedules = await prisma.examSchedule.findMany({
+      where,
+      orderBy: [{ examDate: 'asc' }, { startTime: 'asc' }],
+    });
+
+    return res.json({ success: true, count: schedules.length, data: schedules });
+  } catch (err) {
+    console.error('[ExamSchedule GET /]', err);
+    return res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/exam-schedule/:id
+// ─────────────────────────────────────────────────────────────────────────────
+router.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const schedule = await prisma.examSchedule.findUnique({ where: { id } });
+
+    if (!schedule) {
+      return res.status(404).json({ success: false, error: 'Exam schedule not found' });
+    }
+
+    return res.json({ success: true, data: schedule });
+  } catch (err) {
+    console.error('[ExamSchedule GET /:id]', err);
+    return res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/exam-schedule
+// Create a single exam schedule entry
+// ─────────────────────────────────────────────────────────────────────────────
+router.post('/', async (req: Request, res: Response) => {
+  try {
+    const {
+      schoolId, title, examType, class: cls, section, subject,
+      examDate, startTime, endTime, maxMarks, passMark,
+      venue, invigilator, academicYear, status, notes,
+      examMode, theoryMaxMarks, practicalMaxMarks, published,
+    } = req.body;
+
+    // Validate required fields
+    if (!schoolId || !title || !examType || !cls || !subject || !examDate || !startTime || !endTime) {
+      return res.status(400).json({
+        success: false,
+        error: 'Required fields: schoolId, title, examType, class, subject, examDate, startTime, endTime',
+      });
+    }
+
+    const schedule = await prisma.examSchedule.create({
+      data: {
+        schoolId,
+        title:        String(title),
+        examType:     String(examType),
+        class:        String(cls),
+        section:      section ? String(section) : 'All',
+        subject:      String(subject),
+        examDate:     new Date(examDate),
+        startTime:    String(startTime),
+        endTime:      String(endTime),
+        maxMarks:     maxMarks  !== undefined ? Number(maxMarks)  : 100,
+        passMark:     passMark  !== undefined ? Number(passMark)  : 35,
+        venue:        venue       ? String(venue)       : 'Classroom',
+        invigilator:  invigilator ? String(invigilator) : null,
+        academicYear: academicYear ? String(academicYear) : '2024-25',
+        status:       status ? String(status) : 'Scheduled',
+        notes:        notes ? String(notes) : null,
+        examMode:     examMode ? String(examMode) : 'Theory',
+        theoryMaxMarks: theoryMaxMarks !== undefined ? Number(theoryMaxMarks) : 100,
+        practicalMaxMarks: practicalMaxMarks !== undefined ? Number(practicalMaxMarks) : 0,
+        published:    published !== undefined ? Boolean(published) : false,
+      },
+    });
+
+    return res.status(201).json({ success: true, data: schedule });
+  } catch (err) {
+    console.error('[ExamSchedule POST /]', err);
+    return res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/exam-schedule/bulk
+// Bulk-create multiple exam schedule entries at once
+// Body: { schedules: ExamSchedule[] }
+// ─────────────────────────────────────────────────────────────────────────────
+router.post('/bulk', async (req: Request, res: Response) => {
+  try {
+    const { schedules } = req.body;
+
+    if (!Array.isArray(schedules) || schedules.length === 0) {
+      return res.status(400).json({ success: false, error: 'Provide a non-empty schedules array' });
+    }
+
+    const data = schedules.map((s: any) => ({
+      schoolId:     String(s.schoolId),
+      title:        String(s.title),
+      examType:     String(s.examType),
+      class:        String(s.class),
+      section:      s.section ? String(s.section) : 'All',
+      subject:      String(s.subject),
+      examDate:     new Date(s.examDate),
+      startTime:    String(s.startTime),
+      endTime:      String(s.endTime),
+      maxMarks:     s.maxMarks  !== undefined ? Number(s.maxMarks)  : 100,
+      passMark:     s.passMark  !== undefined ? Number(s.passMark)  : 35,
+      venue:        s.venue       ? String(s.venue)       : 'Classroom',
+      invigilator:  s.invigilator ? String(s.invigilator) : null,
+      academicYear: s.academicYear ? String(s.academicYear) : '2024-25',
+      status:       s.status ? String(s.status) : 'Scheduled',
+      notes:        s.notes ? String(s.notes) : null,
+      examMode:     s.examMode ? String(s.examMode) : 'Theory',
+      theoryMaxMarks: s.theoryMaxMarks !== undefined ? Number(s.theoryMaxMarks) : 100,
+      practicalMaxMarks: s.practicalMaxMarks !== undefined ? Number(s.practicalMaxMarks) : 0,
+      published:    s.published !== undefined ? Boolean(s.published) : false,
+    }));
+
+    const result = await prisma.examSchedule.createMany({ data, skipDuplicates: true });
+
+    return res.status(201).json({ success: true, created: result.count });
+  } catch (err) {
+    console.error('[ExamSchedule POST /bulk]', err);
+    return res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PUT /api/exam-schedule/:id
+// Update any fields of an existing exam schedule
+// ─────────────────────────────────────────────────────────────────────────────
+router.put('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const {
+      title, examType, class: cls, section, subject,
+      examDate, startTime, endTime, maxMarks, passMark,
+      venue, invigilator, academicYear, status, notes,
+      examMode, theoryMaxMarks, practicalMaxMarks, published,
+    } = req.body;
+
+    const existing = await prisma.examSchedule.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Exam schedule not found' });
+    }
+
+    const updated = await prisma.examSchedule.update({
+      where: { id },
+      data: {
+        ...(title        !== undefined && { title:        String(title) }),
+        ...(examType     !== undefined && { examType:     String(examType) }),
+        ...(cls          !== undefined && { class:        String(cls) }),
+        ...(section      !== undefined && { section:      String(section) }),
+        ...(subject      !== undefined && { subject:      String(subject) }),
+        ...(examDate     !== undefined && { examDate:     new Date(examDate) }),
+        ...(startTime    !== undefined && { startTime:    String(startTime) }),
+        ...(endTime      !== undefined && { endTime:      String(endTime) }),
+        ...(maxMarks     !== undefined && { maxMarks:     Number(maxMarks) }),
+        ...(passMark     !== undefined && { passMark:     Number(passMark) }),
+        ...(venue        !== undefined && { venue:        String(venue) }),
+        ...(invigilator  !== undefined && { invigilator:  invigilator ? String(invigilator) : null }),
+        ...(academicYear !== undefined && { academicYear: String(academicYear) }),
+        ...(status       !== undefined && { status:       String(status) }),
+        ...(notes        !== undefined && { notes:        notes ? String(notes) : null }),
+        ...(examMode     !== undefined && { examMode:     String(examMode) }),
+        ...(theoryMaxMarks !== undefined && { theoryMaxMarks: Number(theoryMaxMarks) }),
+        ...(practicalMaxMarks !== undefined && { practicalMaxMarks: Number(practicalMaxMarks) }),
+        ...(published    !== undefined && { published:    Boolean(published) }),
+      },
+    });
+
+    return res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error('[ExamSchedule PUT /:id]', err);
+    return res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PATCH /api/exam-schedule/:id/status
+// Quick status update: Scheduled | Completed | Postponed | Cancelled
+// ─────────────────────────────────────────────────────────────────────────────
+router.patch('/:id/status', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const allowed = ['Scheduled', 'In Progress', 'Completed', 'Postponed', 'Cancelled'];
+    if (!status || !allowed.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: `status must be one of: ${allowed.join(', ')}`,
+      });
+    }
+
+    const updated = await prisma.examSchedule.update({
+      where: { id },
+      data: { status: String(status) },
+    });
+
+    return res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error('[ExamSchedule PATCH /:id/status]', err);
+    return res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE /api/exam-schedule/:id
+// Delete a single exam schedule entry
+// ─────────────────────────────────────────────────────────────────────────────
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const existing = await prisma.examSchedule.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Exam schedule not found' });
+    }
+
+    await prisma.examSchedule.delete({ where: { id } });
+
+    return res.json({ success: true, message: 'Exam schedule deleted successfully' });
+  } catch (err) {
+    console.error('[ExamSchedule DELETE /:id]', err);
+    return res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE /api/exam-schedule
+// Bulk-delete by schoolId + examType + academicYear
+// Body: { schoolId, examType?, academicYear? }
+// ─────────────────────────────────────────────────────────────────────────────
+router.delete('/', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, examType, academicYear } = req.body;
+
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required' });
+    }
+
+    const where: any = { schoolId: String(schoolId) };
+    if (examType)     where.examType     = String(examType);
+    if (academicYear) where.academicYear = String(academicYear);
+
+    const result = await prisma.examSchedule.deleteMany({ where });
+
+    return res.json({ success: true, deleted: result.count });
+  } catch (err) {
+    console.error('[ExamSchedule DELETE /]', err);
+    return res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+export default router;
