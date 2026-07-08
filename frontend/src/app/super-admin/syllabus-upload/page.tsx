@@ -86,8 +86,8 @@ export default function SyllabusUploadPage() {
         setError("Please select a PDF file");
         return;
       }
-      if (f.size > 50 * 1024 * 1024) {
-        setError("File size must be under 50 MB");
+      if (f.size > 150 * 1024 * 1024) {
+        setError("File size must be under 150 MB");
         return;
       }
       setFile(f);
@@ -365,7 +365,7 @@ export default function SyllabusUploadPage() {
                 <div className="flex flex-col items-center gap-2">
                   <span className="text-4xl opacity-40">📤</span>
                   <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Click to select a PDF file</p>
-                  <p className="text-xs text-slate-400">TN State Board textbook or syllabus document (max 50 MB)</p>
+                  <p className="text-xs text-slate-400">TN State Board textbook or syllabus document (max 150 MB)</p>
                 </div>
               )}
             </div>
@@ -746,7 +746,8 @@ function ManageSyllabus({ API_URL }: { API_URL: string }) {
                   ) : (
                     <div className="space-y-2">
                       {(units[s.id] || []).map((u) => {
-                        const lessons = u.topics.filter((t) => t.topicNumber !== 1);
+                        const hasOverview = u.topics.some((t) => t.topicNumber === 1 && (t.name === "Unit Overview" || t.name === "Overview"));
+                        const lessons = hasOverview ? u.topics.filter((t) => t.topicNumber !== 1) : u.topics;
                         return (
                           <div key={u.id} className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30">
                             <div className="flex items-center gap-2 px-3 py-2.5">
@@ -770,9 +771,9 @@ function ManageSyllabus({ API_URL }: { API_URL: string }) {
                               <div className="px-3 pb-3 pl-11 space-y-1.5">
                                 {lessons.length === 0 ? (
                                   <p className="text-[11px] text-slate-400">No lessons recorded for this unit.</p>
-                                ) : lessons.map((t) => (
+                                ) : lessons.map((t, idx) => (
                                   <div key={t.id} className="flex items-center gap-2">
-                                    <span className="text-[10px] text-slate-400 font-bold w-6">{u.unitNumber}.{t.topicNumber - 1}</span>
+                                    <span className="text-[10px] text-slate-400 font-bold w-6">{u.unitNumber}.{hasOverview ? t.topicNumber - 1 : t.topicNumber}</span>
                                     {editing?.kind === "topic" && editing.id === t.id ? (
                                       <EditRow onCancel={() => setEditing(null)} />
                                     ) : (

@@ -10,6 +10,8 @@ interface AttendanceStudent {
   id: string;
   name: string;
   rollNo: string;
+  className: string;
+  section: string;
   status: "Present" | "Absent" | "Late";
 }
 
@@ -23,6 +25,8 @@ interface WeeklyStudent {
   id: string;
   name: string;
   rollNo: string;
+  className: string;
+  section: string;
   records: WeeklyRecord[];
 }
 
@@ -33,7 +37,7 @@ export default function AttendancePage() {
 
   // Tabs: 'daily' | 'weekly'
   const [activeTab, setActiveTab] = useState<"daily" | "weekly">("daily");
-  
+
   // Selection States
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
@@ -43,12 +47,16 @@ export default function AttendancePage() {
   const [students, setStudents] = useState<AttendanceStudent[]>([]);
   const [weeklyStudents, setWeeklyStudents] = useState<WeeklyStudent[]>([]);
   const [weeklyRange, setWeeklyRange] = useState<{ start: string; end: string } | null>(null);
-  
+
   // Loading & UI States
   const [loading, setLoading] = useState(true);
   const [weeklyLoading, setWeeklyLoading] = useState(false);
   const [teacherClasses, setTeacherClasses] = useState<any[]>([]);
   const [sendSMS, setSendSMS] = useState(false);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Fetch teacher classes on mount
   useEffect(() => {
@@ -106,6 +114,8 @@ export default function AttendancePage() {
             id: s.id,
             name: s.user?.name || `Student ${idx + 1}`,
             rollNo: s.rollNumber || `${clsNum}${secLetter}${String(idx + 1).padStart(2, '0')}`,
+            className: clsNum,
+            section: secLetter,
             status,
           };
         });
@@ -158,6 +168,7 @@ export default function AttendancePage() {
   // Trigger Daily Fetch on class, school, or date change
   useEffect(() => {
     if (activeTab === "daily") {
+      setCurrentPage(1);
       fetchStudents();
     }
   }, [schoolId, selectedClass, selectedDate, activeTab]);
@@ -165,6 +176,7 @@ export default function AttendancePage() {
   // Trigger Weekly Fetch on class, school, or week filter change
   useEffect(() => {
     if (activeTab === "weekly") {
+      setCurrentPage(1);
       fetchWeeklyAttendance();
     }
   }, [schoolId, selectedClass, selectedWeek, activeTab]);
@@ -208,9 +220,8 @@ export default function AttendancePage() {
         Swal.fire({
           icon: "success",
           title: "Attendance Saved Successfully!",
-          text: `Present: ${presentCount} | Absent: ${absentCount} | Late: ${lateCount} (${attendancePercentage}% Rate). ${
-            sendSMS && absentCount > 0 ? "Parent SMS alerts dispatched successfully." : "Parent SMS alerts skipped/none absent."
-          }`,
+          text: `Present: ${presentCount} | Absent: ${absentCount} | Late: ${lateCount} (${attendancePercentage}% Rate). ${sendSMS && absentCount > 0 ? "Parent SMS alerts dispatched successfully." : "Parent SMS alerts skipped/none absent."
+            }`,
           confirmButtonColor: "#3b82f6",
         });
         // If we are on the weekly tab, refresh it too
@@ -247,7 +258,7 @@ export default function AttendancePage() {
     const rec = records.find(r => r.dayOfWeek === dayIndex);
     if (!rec) {
       return (
-        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-slate-800 text-[10px] text-slate-500 font-bold border border-slate-700/50" title="No Record">
+        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-100 text-[10px] text-gray-400 font-bold border border-gray-200" title="No Record">
           -
         </span>
       );
@@ -255,15 +266,15 @@ export default function AttendancePage() {
 
     if (rec.status === "PRESENT") {
       return (
-        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-emerald-500/10 text-emerald-400 text-[10px] font-black border border-emerald-500/30" title={`Present (${rec.date})`}>
+        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-green-50 text-green-600 text-[10px] font-black border border-green-200" title={`Present (${rec.date})`}>
           P
         </span>
       );
     }
-    
+
     if (rec.status === "ABSENT") {
       return (
-        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-rose-500/10 text-rose-400 text-[10px] font-black border border-rose-500/30" title={`Absent (${rec.date})`}>
+        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-red-50 text-red-600 text-[10px] font-black border border-red-200" title={`Absent (${rec.date})`}>
           A
         </span>
       );
@@ -271,51 +282,101 @@ export default function AttendancePage() {
 
     if (rec.status === "LATE") {
       return (
-        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-amber-500/10 text-amber-400 text-[10px] font-black border border-amber-500/30" title={`Late (${rec.date})`}>
+        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-amber-50 text-amber-600 text-[10px] font-black border border-amber-200" title={`Late (${rec.date})`}>
           L
         </span>
       );
     }
 
     return (
-      <span className="w-6 h-6 rounded-full flex items-center justify-center bg-slate-800 text-[10px] text-slate-500 font-bold border border-slate-700/50">
+      <span className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-100 text-[10px] text-gray-400 font-bold border border-gray-200">
         -
       </span>
     );
   };
 
+  // Pagination Logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+  const currentStudents = students.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(students.length / itemsPerPage);
+
+  const currentWeeklyStudents = weeklyStudents.slice(indexOfFirstItem, indexOfLastItem);
+  const totalWeeklyPages = Math.ceil(weeklyStudents.length / itemsPerPage);
+
+  // Pagination UI Component
+  const renderPagination = (total: number) => {
+    if (total <= 1) return null;
+    return (
+      <div className="flex items-center justify-between mt-6 px-2">
+        <span className="text-xs font-semibold text-gray-500">
+          Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, activeTab === 'daily' ? students.length : weeklyStudents.length)} of {activeTab === 'daily' ? students.length : weeklyStudents.length} entries
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Previous
+          </button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: total }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center transition-colors ${currentPage === i + 1
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-500 hover:bg-gray-100'
+                  }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setCurrentPage(p => Math.min(total, p + 1))}
+            disabled={currentPage === total}
+            className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <PortalLayout 
-      title="Daily Attendance Tracker" 
+    <PortalLayout
+      title="Daily Attendance Tracker"
       subtitle="Scope and record student attendance. Auto-notifies parents instantly on absence."
     >
-      
+
       {/* Tab Switcher & Filters */}
       <div className="glass rounded-2xl p-5 mb-6 border border-slate-800 flex flex-col xl:flex-row justify-between items-stretch gap-4 fade-in">
-        
+
         {/* Left Side: Segmented Tab control + Class Select */}
         <div className="flex flex-col xl:flex-row gap-4 items-stretch xl:items-center">
-          
+
           {/* Tab Selector */}
           <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 shrink-0">
             <button
               onClick={() => setActiveTab("daily")}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                activeTab === "daily" 
-                  ? "bg-blue-600 text-white shadow" 
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === "daily"
+                  ? "bg-blue-600 text-white shadow"
                   : "text-slate-400 hover:text-white"
-              }`}
+                }`}
             >
               <ClipboardList className="w-3.5 h-3.5" />
               <span>Daily Checklist</span>
             </button>
             <button
               onClick={() => setActiveTab("weekly")}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                activeTab === "weekly" 
-                  ? "bg-blue-600 text-white shadow" 
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === "weekly"
+                  ? "bg-blue-600 text-white shadow"
                   : "text-slate-400 hover:text-white"
-              }`}
+                }`}
             >
               <Grid className="w-3.5 h-3.5" />
               <span>Weekly History</span>
@@ -344,7 +405,7 @@ export default function AttendancePage() {
 
         {/* Right Side: Conditional Date Picker / Week Filter & Actions */}
         <div className="flex flex-col xl:flex-row gap-3 items-stretch xl:items-center justify-end">
-          
+
           {/* Date Picker (Only on Daily Checklist) */}
           {activeTab === "daily" && (
             <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 gap-2 shrink-0">
@@ -363,21 +424,19 @@ export default function AttendancePage() {
             <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 shrink-0">
               <button
                 onClick={() => setSelectedWeek("current")}
-                className={`px-3.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                  selectedWeek === "current"
+                className={`px-3.5 py-1 rounded-lg text-xs font-bold transition-all ${selectedWeek === "current"
                     ? "bg-slate-800 text-blue-400 border border-blue-500/25"
                     : "text-slate-400 hover:text-white"
-                }`}
+                  }`}
               >
                 Current Week
               </button>
               <button
                 onClick={() => setSelectedWeek("last")}
-                className={`px-3.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                  selectedWeek === "last"
+                className={`px-3.5 py-1 rounded-lg text-xs font-bold transition-all ${selectedWeek === "last"
                     ? "bg-slate-800 text-blue-400 border border-blue-500/25"
                     : "text-slate-400 hover:text-white"
-                }`}
+                  }`}
               >
                 Last Week
               </button>
@@ -467,55 +526,58 @@ export default function AttendancePage() {
               ) : students.length > 0 ? (
                 <>
                   {/* Table view for Large Desktops */}
-                  <div className="hidden xl:block overflow-x-auto">
+                  <div className="hidden xl:block overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
-                        <tr className="border-b border-slate-800 bg-slate-900/50">
-                          <th className="p-3.5 text-slate-400 font-bold uppercase tracking-wider">Roll No</th>
-                          <th className="p-3.5 text-slate-400 font-bold uppercase tracking-wider">Student Name</th>
-                          <th className="p-3.5 text-slate-400 font-bold uppercase tracking-wider text-center">Status Selection</th>
+                        <tr className="bg-white border-b border-gray-100">
+                          <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Roll No</th>
+                          <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Student Name</th>
+                          <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Class & Sec</th>
+                          <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px] text-center">Status Selection</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800/60">
-                        {students.map((student) => (
-                          <tr key={student.id} className="hover:bg-slate-900/20 text-slate-300">
-                            <td className="p-3.5 font-bold text-slate-400">{student.rollNo}</td>
-                            <td className="p-3.5 font-semibold text-slate-200 text-sm">{student.name}</td>
-                            <td className="p-3.5">
+                      <tbody className="divide-y divide-gray-100 bg-white">
+                        {currentStudents.map((student) => (
+                          <tr key={student.id} className="hover:bg-gray-50 transition-colors duration-150">
+                            <td className="p-4 font-bold text-gray-500 text-xs">{student.rollNo}</td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 font-bold text-xs">
+                                  {student.name.charAt(0)}
+                                </div>
+                                <span className="font-semibold text-gray-800 text-sm">{student.name}</span>
+                              </div>
+                            </td>
+                            <td className="p-4 font-semibold text-gray-500 text-xs">{student.className} - {student.section}</td>
+                            <td className="p-4">
                               <div className="flex justify-center">
-                                <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-0.5 max-w-[280px] w-full">
+                                <div className="flex bg-white border border-gray-200 rounded-full p-1 max-w-[280px] w-full items-center relative">
                                   <button
                                     onClick={() => handleStatusChange(student.id, "Present")}
-                                    className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
-                                      student.status === "Present"
-                                        ? "bg-emerald-500 text-slate-950 shadow-md scale-105"
-                                        : "text-slate-500 hover:text-slate-300"
-                                    }`}
+                                    className={`flex-1 h-7 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Present"
+                                        ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] border border-emerald-600 !text-white"
+                                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                      }`}
                                   >
-                                    {student.status === "Present" && <Check className="w-3 h-3 stroke-[3]" />}
-                                    <span>Present</span>
+                                    PRESENT
                                   </button>
                                   <button
                                     onClick={() => handleStatusChange(student.id, "Absent")}
-                                    className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
-                                      student.status === "Absent"
-                                        ? "bg-rose-500 text-slate-950 shadow-md scale-105"
-                                        : "text-slate-500 hover:text-slate-300"
-                                    }`}
+                                    className={`flex-1 h-7 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Absent"
+                                        ? "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-600 !text-white"
+                                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                      }`}
                                   >
-                                    {student.status === "Absent" && <Check className="w-3 h-3 stroke-[3]" />}
-                                    <span>Absent</span>
+                                    ABSENT
                                   </button>
                                   <button
                                     onClick={() => handleStatusChange(student.id, "Late")}
-                                    className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
-                                      student.status === "Late"
-                                        ? "bg-amber-500 text-slate-950 shadow-md scale-105"
-                                        : "text-slate-500 hover:text-slate-300"
-                                    }`}
+                                    className={`flex-1 h-7 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Late"
+                                        ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)] border border-amber-600 !text-white"
+                                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                      }`}
                                   >
-                                    {student.status === "Late" && <Check className="w-3 h-3 stroke-[3]" />}
-                                    <span>Late</span>
+                                    LATE
                                   </button>
                                 </div>
                               </div>
@@ -528,50 +590,50 @@ export default function AttendancePage() {
 
                   {/* Card view for Mobile, Tablet, and Small Laptop */}
                   <div className="xl:hidden grid grid-cols-1 gap-4">
-                    {students.map((student) => (
-                      <div key={student.id} className="p-4 bg-slate-900/40 border border-slate-800 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <div className="text-left">
-                          <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider mb-0.5">Roll No: {student.rollNo}</span>
-                          <span className="font-semibold text-slate-200 text-sm">{student.name}</span>
+                    {currentStudents.map((student) => (
+                      <div key={student.id} className="p-5 bg-white border border-gray-200 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 font-bold text-sm">
+                            {student.name.charAt(0)}
+                          </div>
+                          <div className="text-left">
+                            <span className="text-[10px] text-gray-500 font-bold block uppercase tracking-wider mb-0.5">{student.rollNo} • Class {student.className}-{student.section}</span>
+                            <span className="font-semibold text-gray-800 text-base">{student.name}</span>
+                          </div>
                         </div>
-                        <div className="flex bg-slate-950 border border-slate-800 rounded-xl p-0.5 w-full sm:w-auto max-w-[280px]">
+                        <div className="flex bg-white border border-gray-200 rounded-full p-1 w-full sm:w-auto max-w-[320px] items-center relative">
                           <button
                             onClick={() => handleStatusChange(student.id, "Present")}
-                            className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
-                              student.status === "Present"
-                                ? "bg-emerald-500 text-slate-950 shadow-md scale-105"
-                                : "text-slate-500 hover:text-slate-300"
-                            }`}
+                            className={`flex-1 py-1.5 h-8 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Present"
+                                ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] border border-emerald-600 !text-white"
+                                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                              }`}
                           >
-                            {student.status === "Present" && <Check className="w-3 h-3 stroke-[3]" />}
-                            <span>Present</span>
+                            PRESENT
                           </button>
                           <button
                             onClick={() => handleStatusChange(student.id, "Absent")}
-                            className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
-                              student.status === "Absent"
-                                ? "bg-rose-500 text-slate-950 shadow-md scale-105"
-                                : "text-slate-500 hover:text-slate-300"
-                            }`}
+                            className={`flex-1 py-1.5 h-8 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Absent"
+                                ? "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-600 !text-white"
+                                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                              }`}
                           >
-                            {student.status === "Absent" && <Check className="w-3 h-3 stroke-[3]" />}
-                            <span>Absent</span>
+                            ABSENT
                           </button>
                           <button
                             onClick={() => handleStatusChange(student.id, "Late")}
-                            className={`flex-1 py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase transition-all flex items-center justify-center gap-1 ${
-                              student.status === "Late"
-                                ? "bg-amber-500 text-slate-950 shadow-md scale-105"
-                                : "text-slate-500 hover:text-slate-300"
-                            }`}
+                            className={`flex-1 py-1.5 h-8 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Late"
+                                ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)] border border-amber-600 !text-white"
+                                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                              }`}
                           >
-                            {student.status === "Late" && <Check className="w-3 h-3 stroke-[3]" />}
-                            <span>Late</span>
+                            LATE
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
+                  {renderPagination(totalPages)}
                 </>
               ) : (
                 <div className="text-center py-16 text-slate-500 text-xs italic">
@@ -628,29 +690,38 @@ export default function AttendancePage() {
             ) : weeklyStudents.length > 0 ? (
               <>
                 {/* Table view for Large Desktops */}
-                <div className="hidden xl:block overflow-x-auto">
+                <div className="hidden xl:block overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-800 bg-slate-900/50 text-center">
-                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider text-left">Roll No</th>
-                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider text-left">Student Name</th>
-                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Mon</th>
-                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Tue</th>
-                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Wed</th>
-                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Thu</th>
-                        <th className="p-3 text-slate-400 font-bold uppercase tracking-wider">Fri</th>
+                      <tr className="bg-white border-b border-gray-100 text-center">
+                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px] text-left">Roll No</th>
+                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px] text-left">Class & Sec</th>
+                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px] text-left">Student Name</th>
+                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Mon</th>
+                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Tue</th>
+                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Wed</th>
+                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Thu</th>
+                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Fri</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60">
-                      {weeklyStudents.map((student) => (
-                        <tr key={student.id} className="hover:bg-slate-900/20 text-slate-300">
-                          <td className="p-3 font-bold text-slate-400 text-left">{student.rollNo}</td>
-                          <td className="p-3 font-semibold text-slate-200 text-sm text-left">{student.name}</td>
-                          <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 1)}</div></td>
-                          <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 2)}</div></td>
-                          <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 3)}</div></td>
-                          <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 4)}</div></td>
-                          <td className="p-3 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 5)}</div></td>
+                    <tbody className="divide-y divide-gray-100 bg-white">
+                      {currentWeeklyStudents.map((student) => (
+                        <tr key={student.id} className="hover:bg-gray-50 transition-colors duration-150">
+                          <td className="p-4 font-bold text-gray-500 text-left text-xs">{student.rollNo}</td>
+                          <td className="p-4 font-semibold text-gray-500 text-left text-xs">{student.className} - {student.section}</td>
+                          <td className="p-4 text-left">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 font-bold text-xs">
+                                {student.name.charAt(0)}
+                              </div>
+                              <span className="font-semibold text-gray-800 text-sm">{student.name}</span>
+                            </div>
+                          </td>
+                          <td className="p-4 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 1)}</div></td>
+                          <td className="p-4 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 2)}</div></td>
+                          <td className="p-4 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 3)}</div></td>
+                          <td className="p-4 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 4)}</div></td>
+                          <td className="p-4 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 5)}</div></td>
                         </tr>
                       ))}
                     </tbody>
@@ -659,37 +730,43 @@ export default function AttendancePage() {
 
                 {/* Cards view for Mobile, Tablet, Small Laptop */}
                 <div className="xl:hidden grid grid-cols-1 gap-4">
-                  {weeklyStudents.map((student) => (
-                    <div key={student.id} className="p-4 bg-slate-900/40 border border-slate-800 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                      <div className="text-left">
-                        <span className="text-[10px] text-slate-500 font-bold block uppercase tracking-wider mb-0.5">Roll No: {student.rollNo}</span>
-                        <span className="font-semibold text-slate-200 text-sm">{student.name}</span>
+                  {currentWeeklyStudents.map((student) => (
+                    <div key={student.id} className="p-5 bg-white border border-gray-200 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 font-bold text-sm">
+                          {student.name.charAt(0)}
+                        </div>
+                        <div className="text-left">
+                          <span className="text-[10px] text-gray-500 font-bold block uppercase tracking-wider mb-0.5">{student.rollNo} • Class {student.className}-{student.section}</span>
+                          <span className="font-semibold text-gray-800 text-base">{student.name}</span>
+                        </div>
                       </div>
-                      <div className="flex gap-4 items-center w-full sm:w-auto justify-between sm:justify-end">
+                      <div className="flex gap-3 sm:gap-4 items-center w-full sm:w-auto justify-between sm:justify-end bg-gray-50 p-2 rounded-xl border border-gray-200">
                         <div className="flex flex-col items-center">
-                          <span className="text-[9px] text-slate-500 font-bold uppercase mb-1">M</span>
+                          <span className="text-[9px] text-gray-400 font-bold uppercase mb-1">M</span>
                           {getWeeklyStatusNode(student.records, 1)}
                         </div>
                         <div className="flex flex-col items-center">
-                          <span className="text-[9px] text-slate-500 font-bold uppercase mb-1">T</span>
+                          <span className="text-[9px] text-gray-400 font-bold uppercase mb-1">T</span>
                           {getWeeklyStatusNode(student.records, 2)}
                         </div>
                         <div className="flex flex-col items-center">
-                          <span className="text-[9px] text-slate-500 font-bold uppercase mb-1">W</span>
+                          <span className="text-[9px] text-gray-400 font-bold uppercase mb-1">W</span>
                           {getWeeklyStatusNode(student.records, 3)}
                         </div>
                         <div className="flex flex-col items-center">
-                          <span className="text-[9px] text-slate-500 font-bold uppercase mb-1">T</span>
+                          <span className="text-[9px] text-gray-400 font-bold uppercase mb-1">T</span>
                           {getWeeklyStatusNode(student.records, 4)}
                         </div>
                         <div className="flex flex-col items-center">
-                          <span className="text-[9px] text-slate-500 font-bold uppercase mb-1">F</span>
+                          <span className="text-[9px] text-gray-400 font-bold uppercase mb-1">F</span>
                           {getWeeklyStatusNode(student.records, 5)}
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
+                {renderPagination(totalWeeklyPages)}
               </>
             ) : (
               <div className="text-center py-16 text-slate-500 text-xs italic">

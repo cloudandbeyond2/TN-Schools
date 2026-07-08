@@ -7,7 +7,7 @@ import fs from 'fs';
 
 const pdfUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 },
+  limits: { fileSize: 150 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (file.mimetype === 'application/pdf') cb(null, true);
     else cb(new Error('Only PDF files are allowed'));
@@ -16,7 +16,7 @@ const pdfUpload = multer({
 
 const generalUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 }
+  limits: { fileSize: 150 * 1024 * 1024 }
 });
 
 const materialsStorage = multer.diskStorage({
@@ -939,6 +939,31 @@ router.put('/contents/:id/replace', (req, res, next) => {
   }
 });
 
+async function extractTextFromPDF(buffer: Buffer): Promise<{ text: string; numpages: number }> {
+  try {
+    const pdfParse = require('pdf-parse');
+    if (typeof pdfParse === 'function') {
+      const data = await pdfParse(buffer);
+      return {
+        text: data.text || '',
+        numpages: data.numpages || 0
+      };
+    } else if (pdfParse && typeof pdfParse.PDFParse === 'function') {
+      const parser = new pdfParse.PDFParse({ data: buffer });
+      const textObj = await parser.getText();
+      return {
+        text: textObj.text || '',
+        numpages: textObj.total || 0
+      };
+    } else {
+      throw new Error("Unsupported pdf-parse module structure.");
+    }
+  } catch (err: any) {
+    console.error("extractTextFromPDF failed:", err);
+    throw err;
+  }
+}
+
 async function callGeminiMultimodal(prompt: string, base64Image: string, mimeType: string): Promise<any> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -1190,6 +1215,8 @@ router.post('/subjects/:subjectId/parse-full-syllabus-ai', async (req: Request, 
     res.status(500).json({ success: false, error: err.message || "Failed to process full syllabus image with AI" });
   }
 });
+
+
 
 // ===========================================================================
 // Unit Detail — live AI-generated lesson insights + teacher approval gate
@@ -1697,12 +1724,9 @@ Skip covers, preface, acknowledgements, anthem, index and glossary — only real
 
     // --- Fallback path: text extraction (garbles Tamil, but better than nothing) ---
     if (!parsed || !Array.isArray(parsed.units) || parsed.units.length === 0) {
-      const { PDFParse } = require('pdf-parse');
-      const parser = new PDFParse({ data: file.buffer });
-      const pdfData = await parser.getText();
-      pdfPages = pdfData.total;
+      const pdfData = await extractTextFromPDF(file.buffer);
+      pdfPages = pdfData.numpages;
       const extractedText = (pdfData.text || '').trim();
-      await parser.destroy();
       if (extractedText.length < 50) {
         return res.status(400).json({ success: false, error: 'Could not read this PDF. It may be a scanned image with no selectable text.' });
       }
@@ -1981,9 +2005,8 @@ router.post('/topics/:id/generate-infographic', async (req: Request, res: Respon
               materialsText += `\n[Text File: ${content.title}]\n${txt}\n`;
             } else if (ext === '.pdf') {
               try {
-                const pdfParse = require('pdf-parse');
                 const fileBuffer = await fs.promises.readFile(filePath);
-                const pdfData = await pdfParse(fileBuffer);
+                const pdfData = await extractTextFromPDF(fileBuffer);
                 materialsText += `\n[PDF File: ${content.title}]\n${pdfData.text || ""}\n`;
               } catch (pdfErr) {
                 console.warn("pdf-parse failed, skipping full text extract for PDF:", filename);
@@ -2147,9 +2170,8 @@ router.post('/topics/:id/generate-presentation', async (req: Request, res: Respo
               materialsText += `\n[Text File: ${content.title}]\n${txt}\n`;
             } else if (ext === '.pdf') {
               try {
-                const pdfParse = require('pdf-parse');
                 const fileBuffer = await fs.promises.readFile(filePath);
-                const pdfData = await pdfParse(fileBuffer);
+                const pdfData = await extractTextFromPDF(fileBuffer);
                 materialsText += `\n[PDF File: ${content.title}]\n${pdfData.text || ""}\n`;
               } catch (pdfErr) {
                 console.warn("pdf-parse failed, skipping full text extract for PDF:", filename);

@@ -108,6 +108,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#6366f1",
     navItems: [
       { label: "Portal Home", href: "/student", icon: "Home" },
+      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
@@ -126,9 +127,11 @@ export const roleConfigs: Record<string, PortalConfig> = {
     navItems: [
       { label: "Dashboard", href: "/student/middle-school", icon: "Home" },
 
+
       // ── Academics & Subjects ──────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
+      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
@@ -210,6 +213,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Academics & Subjects ──────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
+      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
@@ -246,10 +250,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Botany Centre", href: "/student/botany-centre", icon: "Leaf" },
       { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
-      { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
-      { label: "Chemistry Lab", href: "/student/chemistry-lab", icon: "FlaskConical" },
-      { label: "Zoology Centre", href: "/student/zoology-centre", icon: "Target" },
-      { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
+      // { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
 
       // ── Extracurricular & Wellbeing ───────────────────
       { label: "---", href: "#", icon: "" },
@@ -293,6 +294,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Academics & Subjects ──────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
+      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
@@ -363,6 +365,23 @@ export const roleConfigs: Record<string, PortalConfig> = {
     ],
   },
 
+  PET: {
+    title: "Physical Education Teacher",
+    subtitle: "PET Staff · GHS Coimbatore",
+    avatarLetter: "P",
+    avatarColor: "#84cc16",
+    themeClass: "theme-teacher",
+    accentColor: "#84cc16",
+    navItems: [
+      { label: "Dashboard", href: "/pet", icon: "Home" },
+      { label: "Student Records & Health", href: "/pet/records", icon: "HeartPulse" },
+      { label: "Sports Events & Competitions", href: "/pet/sports-conducted", icon: "Activity" },
+      { label: "Inventory & Equipments", href: "/pet/inventory", icon: "Package" },
+      { label: "Awards & Certifications", href: "/pet/awards", icon: "Trophy" },
+      { label: "Ground Condition", href: "/pet/ground-condition", icon: "Map" },
+      { label: "Clubs & Activities", href: "/pet/clubs", icon: "Users" },
+    ],
+  },
   TEACHER: {
     title: "Teacher Dashboard",
     subtitle: "Mrs. Sumathi Devi · Mathematics · GHS Coimbatore",
@@ -372,7 +391,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#f59e0b",
     navItems: [
       { label: "My Classes", href: "/teacher/classes", icon: "Building" },
-      { label: "Timetable & Proxies", href: "/teacher/timetable", icon: "Calendar" },
+      { label: "My Timetable", href: "/teacher/timetable", icon: "Calendar" },
       { label: "Science Labs", href: "/teacher/labs", icon: "FlaskConical" },
       { label: "Subject Analytics", href: "/teacher/subject-analytics", icon: "Activity" },
 
@@ -459,6 +478,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Student Monitoring", href: "/headmaster/students", icon: "GraduationCap" },
       { label: "Promotions", href: "/headmaster/promotions", icon: "TrendingUp" },
       { label: "Staff Management", href: "/headmaster/staff", icon: "User" },
+      { label: "Leave Requests", href: "/headmaster/leave", icon: "Calendar" },
       { label: "Temporary Staff", href: "/headmaster/temporary-staff", icon: "Users" },
       { label: "Parents Details", href: "/headmaster/parents", icon: "Users" },
       { label: "School Alumni", href: "/headmaster/alumni", icon: "GraduationCap" },

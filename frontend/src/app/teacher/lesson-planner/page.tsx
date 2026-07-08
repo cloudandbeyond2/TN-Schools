@@ -10,7 +10,6 @@ import { MoreVertical, X, Megaphone, Save, Sparkles, BookOpen, BarChart, Bot, Ch
 
 const syllabusOptions = ["TN State Board (Samacheer Kalvi)", "CBSE", "ICSE"];
 const grades = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
-const subjects = ["Mathematics", "Science", "Social Science", "English", "Tamil"];
 const sections = ["All", "A", "B", "C", "D", "E"];
 
 const steps = [
@@ -57,7 +56,9 @@ export default function LessonPlannerPage() {
 
   const [syllabus, setSyllabus] = useState(syllabusOptions[0]);
   const [grade, setGrade] = useState(grades[4]); // Grade 10
-  const [subject, setSubject] = useState(subjects[0]); // Maths
+  const [subject, setSubject] = useState("");
+  const [subjectOptions, setSubjectOptions] = useState<{id: string; name: string}[]>([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [section, setSection] = useState<string>("All"); // Section targeting
   const [topic, setTopic] = useState("Pythagoras Theorem & Trigonometry");
   const [duration, setDuration] = useState("45 Minutes");
@@ -131,6 +132,36 @@ export default function LessonPlannerPage() {
     };
     fetchPlans();
   }, [schoolId, API_URL]);
+
+  // Fetch subjects when grade changes
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      const classStr = grade.replace("Grade ", "");
+      setLoadingSubjects(true);
+      try {
+        const res = await fetch(`${API_URL}/api/centralized-content/subjects?class=${classStr}`);
+        const data = await res.json();
+        if (data.success && data.data) {
+          setSubjectOptions(data.data);
+          if (data.data.length > 0) {
+            setSubject((prev) => {
+              if (data.data.find((s: any) => s.name === prev)) return prev;
+              return data.data[0].name;
+            });
+          } else {
+            setSubject("");
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch subjects:", err);
+      } finally {
+        setLoadingSubjects(false);
+      }
+    };
+    if (grade) {
+      fetchSubjects();
+    }
+  }, [grade, API_URL]);
 
   // Set chat messages welcome when a plan changes
   useEffect(() => {
@@ -623,8 +654,15 @@ export default function LessonPlannerPage() {
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
                       className={`w-full ${theme.inputBg} border ${theme.borderSoft} rounded-xl px-3 py-2.5 text-xs ${theme.text} focus:outline-none focus:border-amber-500 transition-colors`}
+                      disabled={loadingSubjects}
                     >
-                      {subjects.map((s) => <option key={s}>{s}</option>)}
+                      {loadingSubjects ? (
+                        <option>Loading...</option>
+                      ) : subjectOptions.length > 0 ? (
+                        subjectOptions.map((s) => <option key={s.id} value={s.name}>{s.name}</option>)
+                      ) : (
+                        <option value="">No Subjects</option>
+                      )}
                     </select>
                   </div>
                 </div>
@@ -641,8 +679,8 @@ export default function LessonPlannerPage() {
                         type="button"
                         onClick={() => setSection(sec)}
                         className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all border ${section === sec
-                            ? "bg-amber-500 text-slate-900 border-amber-500 shadow-md shadow-amber-500/25"
-                            : `${theme.inputBg} ${theme.border} ${theme.textMuted} hover:border-amber-400`
+                          ? "bg-amber-500 text-slate-900 border-amber-500 shadow-md shadow-amber-500/25"
+                          : `${theme.inputBg} ${theme.border} ${theme.textMuted} hover:border-amber-400`
                           }`}
                       >
                         {sec === "All" ? <><Megaphone className="w-3 h-3 inline mr-1" /> All</> : sec}
@@ -829,8 +867,8 @@ export default function LessonPlannerPage() {
                     onClick={() => handlePublish(!currentPlan.isPublished)}
                     disabled={publishing}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-black text-black transition-transform hover:scale-105 shadow-md disabled:opacity-60 ${currentPlan.isPublished
-                        ? "bg-slate-600 hover:bg-slate-700"
-                        : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20"
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400"
+                      : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20"
                       }`}
                   >
                     {publishing ? "..." : currentPlan.isPublished ? "UNPUBLISH" : <><Megaphone className="w-3 h-3 inline mr-1" /> PUBLISH TO CLASS</>}

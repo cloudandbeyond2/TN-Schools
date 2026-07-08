@@ -21,6 +21,7 @@ const navTranslations = {
   "Academics & Subjects": "கல்வி & பாடங்கள்",
   "Learning Hub": "கற்றல் மையம்",
   "Class Syllabus Board": "வகுப்பு பாடத்திட்ட பலகை",
+  "Syllabus": "பாடத்திட்ட பலகை",
   "My Subjects": "எனது பாடங்கள்",
   "Homework": "வீட்டுப்பாடம்",
   "Self-Study Plan": "சுய-கற்றல் திட்டம்",
