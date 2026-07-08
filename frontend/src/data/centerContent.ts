@@ -144,120 +144,194 @@ export const CENTER_CONTENT: Record<string, TopicContent> = {
 
   // ── SPACE SCIENCE ───────────────────────────────────────────────────────────
   "Our neighbourhood:Solar System": {
-    title: "Solar System", emoji: "☀️",
-    summary: "Our Solar System consists of the Sun and all objects bound to it by gravity — 8 planets, moons, asteroids, comets and the dwarf planet Pluto.",
-    keyPoints: ["8 planets in order: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune", "Inner rocky planets: Mercury, Venus, Earth, Mars", "Outer gas giants: Jupiter, Saturn; Ice giants: Uranus, Neptune", "Asteroid belt lies between Mars and Jupiter", "The Sun contains 99.86% of the Solar System's mass"],
-    funFact: "If the Sun were the size of a basketball, Earth would be the size of a peppercorn 26 meters away!",
-    quiz: { question: "Which is the largest planet in the Solar System?", options: ["Saturn", "Jupiter", "Neptune", "Uranus"], answer: "Jupiter" },
+    title: "Solar System | சூரிய குடும்பம்", emoji: "☀️",
+    summary: "Our Solar System consists of the Sun and all objects bound to it by gravity — 8 planets, moons, asteroids, comets and the dwarf planet Pluto. / நமது சூரிய குடும்பம் சூரியன் மற்றும் ஈர்ப்பு விசையால் அதனுடன் பிணைக்கப்பட்டுள்ள 8 கோள்கள், நிலவுகள், விண்கற்கள், வால்மீன்கள் மற்றும் குறுங்கோளான புளூட்டோ ஆகியவற்றை உள்ளடக்கியது.",
+    keyPoints: [
+      "8 planets in order: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune / வரிசைப்படி 8 கோள்கள்: புதன், வெள்ளி, பூமி, செவ்வாய், வியாழன், சனி, யுரேனஸ், நெப்டியூன்",
+      "Inner rocky planets: Mercury, Venus, Earth, Mars / உட்புற பாறை கோள்கள்: புதன், வெள்ளி, பூமி, செவ்வாய்",
+      "Outer gas giants: Jupiter, Saturn; Ice giants: Uranus, Neptune / வெளிப்புற வாயு அரக்கர்கள்: வியாழன், சனி; பனி அரக்கர்கள்: யுரேனஸ், நெப்டியூன்",
+      "Asteroid belt lies between Mars and Jupiter / செவ்வாய் மற்றும் வியாழன் கோள்களுக்கு இடையே விண்கல் பட்டை அமைந்துள்ளது",
+      "The Sun contains 99.86% of the Solar System's mass / சூரிய குடும்பத்தின் மொத்த நிறையில் 99.86% சூரியனிலேயே உள்ளது"
+    ],
+    funFact: "If the Sun were the size of a basketball, Earth would be the size of a peppercorn 26 meters away! / சூரியன் ஒரு கூடைப்பந்து அளவில் இருந்தால், பூமி 26 மீட்டர் தொலைவில் உள்ள ஒரு மிளகு அளவில் இருக்கும்!",
+    quiz: { 
+      question: "Which is the largest planet in the Solar System? / சூரிய குடும்பத்தில் மிகப்பெரிய கோள் எது?", 
+      options: ["Saturn | சனி", "Jupiter | வியாழன்", "Neptune | நெப்டியூன்", "Uranus | யுரேனஸ்"], 
+      answer: "Jupiter | வியாழன்" 
+    },
   },
   "Our neighbourhood:Planets": {
-    title: "Planets", emoji: "🪐",
-    summary: "A planet is a celestial body that orbits the Sun, has sufficient mass for gravity to make it nearly spherical, and has cleared its orbital neighbourhood.",
-    keyPoints: ["Mercury: closest to Sun, extreme temperature swings", "Venus: hottest planet due to greenhouse effect (462°C)", "Mars: the 'Red Planet', has the tallest volcano (Olympus Mons)", "Jupiter: largest planet, has the Great Red Spot storm", "Saturn: least dense planet, famous for its ring system"],
-    funFact: "A day on Venus is longer than a year on Venus — it rotates so slowly!",
-    quiz: { question: "Which planet is known as the Red Planet?", options: ["Mercury", "Venus", "Mars", "Jupiter"], answer: "Mars" },
+    title: "Planets | கோள்கள்", emoji: "🪐",
+    summary: "A planet is a celestial body that orbits the Sun, has sufficient mass for gravity to make it nearly spherical, and has cleared its orbital neighbourhood. / கோள் என்பது சூரியனைச் சுற்றி வரும், தனது சொந்த ஈர்ப்பு விசையால் உருண்டை வடிவத்தைப் பெற்றுள்ள, தனது சுற்றுப்பாதையில் உள்ள பிற பொருட்களை விலக்கியுள்ள ஒரு விண்பொருளாகும்.",
+    keyPoints: [
+      "Mercury: closest to Sun, extreme temperature swings / புதன்: சூரியனுக்கு மிக அருகில் உள்ளது, கடுமையான வெப்பநிலை மாற்றங்கள் கொண்டது",
+      "Venus: hottest planet due to greenhouse effect (462°C) / வெள்ளி: பசுமை இல்ல விளைவு காரணமாக சூரிய குடும்பத்தின் வெப்பமான கோள் (462°C)",
+      "Mars: the 'Red Planet', has the tallest volcano (Olympus Mons) / செவ்வாய்: 'சிவப்பு கோள்', மிக உயரமான எரிமலையான ஒலிம்பஸ் மான்ஸ் இங்குள்ளது",
+      "Jupiter: largest planet, has the Great Red Spot storm / வியாழன்: மிகப்பெரிய கோள், பெரும் சிவப்பு புள்ளி எனப்படும் மாபெரும் புயலைக் கொண்டுள்ளது",
+      "Saturn: least dense planet, famous for its ring system / சனி: அடர்த்தி மிகக் குறைந்த கோள், அதன் அழகான வளையங்களுக்குப் புகழ்பெற்றது"
+    ],
+    funFact: "A day on Venus is longer than a year on Venus — it rotates so slowly! / வெள்ளியின் ஒரு நாள் அதன் ஒரு ஆண்டை விட நீளமானது - அது மிகவும் மெதுவாக சுழல்கிறது!",
+    quiz: { 
+      question: "Which planet is known as the Red Planet? / சிவப்பு கோள் என்று அழைக்கப்படும் கோள் எது?", 
+      options: ["Mercury | புதன்", "Venus | வெள்ளி", "Mars | செவ்வாய்", "Jupiter | வியாழன்"], 
+      answer: "Mars | செவ்வாய்" 
+    },
   },
   "Our neighbourhood:Moon": {
-    title: "The Moon", emoji: "🌙",
-    summary: "The Moon is Earth's only natural satellite. It orbits Earth every 27.3 days and is responsible for oceanic tides through its gravitational pull.",
+    title: "The Moon | சந்திரன்", emoji: "🌙",
+    summary: "The Moon is Earth's only natural satellite. It orbits Earth every 27.3 days and is responsible for oceanic tides through its gravitational pull. / சந்திரன் பூமியின் ஒரே இயற்கை செயற்கைக்கோள் ஆகும். இது 27.3 நாட்களுக்கு ஒருமுறை பூமியைச் சுற்றி வருகிறது, மேலும் இதன் ஈர்ப்பு விசை கடல் அலைகள் உருவாகக் காரணமாகிறது.",
     keyPoints: [
-      "Orbits Earth in a synchronous rotation, meaning we always see the same side",
-      "Gravitational pull causes high and low tides in Earth's oceans",
-      "Has no atmosphere, which means there is no wind, weather, or liquid water",
-      "Surface is covered in craters created by asteroid impacts",
-      "Lunar phases (New, Crescent, Quarter, Gibbous, Full) depend on its position relative to Earth and Sun",
+      "Orbits Earth in a synchronous rotation, meaning we always see the same side / பூமியை ஒத்திசைவு சுழற்சியில் சுற்றுவதால், நாம் எப்போதும் நிலவின் ஒரு பக்கத்தையே பார்க்கிறோம்",
+      "Gravitational pull causes high and low tides in Earth's oceans / சந்திரனின் ஈர்ப்பு விசை பூமியின் கடல்களில் உயர் மற்றும் தாழ் அலைகளை ஏற்படுத்துகிறது",
+      "Has no atmosphere, which means there is no wind, weather, or liquid water / காற்றுமண்டலம் இல்லாததால் இங்கு காற்று, வானிலை அல்லது திரவ நீர் கிடையாது",
+      "Surface is covered in craters created by asteroid impacts / விண்கற்கள் மோதியதால் ஏற்பட்ட பள்ளங்கள் நிலவின் மேற்பரப்பில் நிறைந்துள்ளன",
+      "Lunar phases depend on its position relative to Earth and Sun / பூமியையும் சூரியனையும் பொறுத்து சந்திரனின் நிலைகள் (வளர்பிறை, தேய்பிறை) மாறுகின்றன"
     ],
     image: "/moon_phases_diagram.png",
-    funFact: "Because the Moon has no atmosphere or wind, the footprints left by Apollo astronauts will stay there forever!",
-    quiz: { question: "How long does it take the Moon to complete one orbit around Earth?", options: ["24 hours", "27.3 days", "365 days", "30 days"], answer: "27.3 days" },
+    funFact: "Because the Moon has no atmosphere or wind, the footprints left by Apollo astronauts will stay there forever! / சந்திரனில் காற்றுமண்டலம் அல்லது காற்று இல்லாததால், அப்பல்லோ விண்வெளி வீரர்கள் விட்டுச் சென்ற கால்தடங்கள் என்றும் அழியாமல் இருக்கும்!",
+    quiz: { 
+      question: "How long does it take the Moon to complete one orbit around Earth? / சந்திரன் பூமியை ஒரு முறை சுற்றி வர எவ்வளவு காலம் ஆகும்?", 
+      options: ["24 hours | 24 மணிநேரம்", "27.3 days | 27.3 நாட்கள்", "365 days | 365 நாட்கள்", "30 days | 30 நாட்கள்"], 
+      answer: "27.3 days | 27.3 நாட்கள்" 
+    },
   },
   "Exploration:ISRO Missions": {
-    title: "ISRO Missions", emoji: "🇮🇳",
-    summary: "ISRO (Indian Space Research Organisation) has achieved major milestones: Chandrayaan Moon missions, Mangalyaan Mars mission, and commercial satellite launches.",
-    keyPoints: ["Founded in 1969 by Dr. Vikram Sarabhai", "Chandrayaan-1 (2008): discovered water molecules on the Moon", "Mangalyaan (2014): India's first interplanetary mission", "Chandrayaan-3 (2023): first soft landing on Moon's south pole", "PSLV is one of the world's most reliable rockets"],
-    funFact: "ISRO's Chandrayaan-3 mission cost less than the budget of the movie Interstellar!",
-    quiz: { question: "Which was India's first interplanetary mission?", options: ["Chandrayaan-1", "Mangalyaan", "PSLV-C11", "Chandrayaan-3"], answer: "Mangalyaan" },
+    title: "ISRO Missions | இஸ்ரோ திட்டங்கள்", emoji: "🇮🇳",
+    summary: "ISRO (Indian Space Research Organisation) has achieved major milestones: Chandrayaan Moon missions, Mangalyaan Mars mission, and commercial satellite launches. / இஸ்ரோ (இந்திய விண்வெளி ஆராய்ச்சி நிறுவனம்) நிலவுக்கான சந்திரயான், செவ்வாய்க்கான மங்கள்யான் மற்றும் வணிக ரீதியிலான செயற்கைக்கோள் ஏவுதல் போன்ற முக்கிய மைல்கற்களை எட்டியுள்ளது.",
+    keyPoints: [
+      "Founded in 1969 by Dr. Vikram Sarabhai / 1969 இல் டாக்டர் விக்ரம் சாராபாயால் நிறுவப்பட்டது",
+      "Chandrayaan-1 (2008): discovered water molecules on the Moon / சந்திரயான்-1 (2008): நிலவில் நீர் மூலக்கூறுகள் இருப்பதை முதன்முதலில் கண்டறிந்தது",
+      "Mangalyaan (2014): India's first interplanetary mission / மங்கள்யான் (2014): இந்தியாவின் முதல் கோள்களுக்கு இடையேயான விண்வெளித் திட்டம்",
+      "Chandrayaan-3 (2023): first soft landing on Moon's south pole / சந்திரயான்-3 (2023): நிலவின் தென்துருவத்தில் தரையிறங்கிய உலகின் முதல் விண்கலம்",
+      "PSLV is one of the world's most reliable rockets / பி.எஸ்.எல்.வி உலகின் மிகவும் நம்பகமான ராக்கெட்டுகளில் ஒன்றாகும்"
+    ],
+    funFact: "ISRO's Chandrayaan-3 mission cost less than the budget of the movie Interstellar! / இஸ்ரோவின் சந்திரயான்-3 திட்டத்தின் செலவு இன்டர்ஸ்டெல்லார் திரைப்படத்தின் பட்ஜெட்டை விடக் குறைவு!",
+    quiz: { 
+      question: "Which was India's first interplanetary mission? / இந்தியாவின் முதல் கோள்களுக்கு இடையேயான விண்வெளித் திட்டம் எது?", 
+      options: ["Chandrayaan-1 | சந்திரயான்-1", "Mangalyaan | மங்கள்யான்", "PSLV-C11", "Chandrayaan-3 | சந்திரயான்-3"], 
+      answer: "Mangalyaan | மங்கள்யான்" 
+    },
   },
   "Deep space:Stars": {
-    title: "Stars", emoji: "⭐",
-    summary: "Stars are massive balls of plasma held together by gravity, generating energy through nuclear fusion in their cores. The Sun is an average-sized star.",
-    keyPoints: ["Powered by nuclear fusion: hydrogen → helium", "Life cycle: nebula → protostar → main sequence → red giant → white dwarf/supernova", "Colour indicates temperature: blue (hottest) → red (coolest)", "Proxima Centauri is the nearest star to Earth (after the Sun)", "Stars are classified by spectral type: O, B, A, F, G, K, M"],
-    funFact: "There are more stars in the universe than grains of sand on all of Earth's beaches combined!",
-    quiz: { question: "What process produces energy in a star?", options: ["Nuclear fission", "Nuclear fusion", "Combustion", "Photosynthesis"], answer: "Nuclear fusion" },
+    title: "Stars | விண்மீன்கள்", emoji: "⭐",
+    summary: "Stars are massive balls of plasma held together by gravity, generating energy through nuclear fusion in their cores. The Sun is an average-sized star. / விண்மீன்கள் என்பவை ஈர்ப்பு விசையால் ஒன்றாகப் பிணைக்கப்பட்டுள்ள மாபெரும் பிளாஸ்மா பந்துகள் ஆகும், இவை தங்கள் மையத்தில் அணுக்கரு இணைவு மூலம் ஆற்றலை உருவாக்குகின்றன. சூரியன் ஒரு நடுத்தர அளவிலான விண்மீன் ஆகும்.",
+    keyPoints: [
+      "Powered by nuclear fusion: hydrogen → helium / அணுக்கரு இணைவு மூலம் ஆற்றல் பெறுகிறது: ஹைட்ரஜன் → ஹீலியமாக மாறுகிறது",
+      "Life cycle: nebula → protostar → main sequence → red giant → white dwarf/supernova / வாழ்க்கைச் சுழற்சி: விண்மீன் தூசுப்படலம் → இள விண்மீன் → முதன்மை நிலை → சிவப்பு அரக்கன் → வெள்ளை குறுமீன்/சூப்பர்நோவா",
+      "Colour indicates temperature: blue (hottest) → red (coolest) / விண்மீனின் நிறம் அதன் வெப்பநிலையைக் குறிக்கிறது: நீலம் (மிக அதிக வெப்பம்) → சிவப்பு (குறைந்த வெப்பம்)",
+      "Proxima Centauri is the nearest star to Earth (after the Sun) / பிராக்ஸிமா செண்டாரி என்பது பூமிக்கு மிக அருகில் உள்ள விண்மீன் ஆகும் (சூரியனுக்கு அடுத்து)",
+      "Stars are classified by spectral type: O, B, A, F, G, K, M / விண்மீன்கள் அவற்றின் நிறமாலை அடிப்படையில் வகைப்படுத்தப்படுகின்றன: O, B, A, F, G, K, M"
+    ],
+    funFact: "There are more stars in the universe than grains of sand on all of Earth's beaches combined! / பூமியின் அனைத்து கடற்கரைகளிலும் உள்ள மணல் துகள்களை விட அதிகமான விண்மீன்கள் பிரபஞ்சத்தில் உள்ளன!",
+    quiz: { 
+      question: "What process produces energy in a star? / விண்மீன்களில் ஆற்றலை உருவாக்கும் செயல்முறை எது?", 
+      options: ["Nuclear fission | அணுக்கரு பிளவு", "Nuclear fusion | அணுக்கரு இணைவு", "Combustion | எரிதல்", "Photosynthesis | ஒளிச்சேர்க்கை"], 
+      answer: "Nuclear fusion | அணுக்கரு இணைவு" 
+    },
   },
   "Deep space:Galaxy": {
-    title: "Galaxies", emoji: "🌌",
-    summary: "A galaxy is a massive gravitationally bound system consisting of stars, stellar remnants, interstellar gas, dust, and dark matter.",
+    title: "Galaxies | விண்மீன் திரள்கள்", emoji: "🌌",
+    summary: "A galaxy is a massive gravitationally bound system consisting of stars, stellar remnants, interstellar gas, dust, and dark matter. / விண்மீன் திரள் என்பது விண்மீன்கள், விண்மீன் எச்சங்கள், வாயுக்கள், விண்வெளி தூசிகள் மற்றும் கரும்பொருட்களை உள்ளடக்கிய ஒரு மாபெரும் ஈர்ப்பு விசை அமைப்பாகும்.",
     keyPoints: [
-      "Classified into three main types: Spiral, Elliptical, and Irregular",
-      "Our Solar System is located in the Orion Arm of the Milky Way, a barred spiral galaxy",
-      "Andromeda is the closest spiral galaxy to the Milky Way, located 2.5 million light-years away",
-      "Most galaxies are thought to have a supermassive black hole at their centers",
-      "Galaxies are grouped into clusters; the Milky Way is in the Local Group",
+      "Classified into three main types: Spiral, Elliptical, and Irregular / மூன்று முக்கிய வகைகளாக வகைப்படுத்தப்படுகின்றன: சுருள், நீள்வட்டம் மற்றும் ஒழுங்கற்ற விண்மீன் திரள்கள்",
+      "Our Solar System is located in the Orion Arm of the Milky Way, a barred spiral galaxy / நமது சூரிய குடும்பம் பால்வெளி என்ற சுருள் விண்மீன் திரளின் ஓரியன் கையில் அமைந்துள்ளது",
+      "Andromeda is the closest spiral galaxy to the Milky Way, located 2.5 million light-years away / ஆண்ட்ரோமெடா என்பது பால்வெளிக்கு மிக அருகில் 25 லட்சம் ஒளி ஆண்டுகள் தொலைவில் உள்ள சுருள் விண்மீன் திரள் ஆகும்",
+      "Most galaxies are thought to have a supermassive black hole at their centers / பெரும்பாலான விண்மீன் திரள்களின் மையத்தில் ஒரு மாபெரும் கருந்துளை இருப்பதாகக் கருதப்படுகிறது",
+      "Galaxies are grouped into clusters; the Milky Way is in the Local Group / விண்மீன் திரள்கள் குழுக்களாக வகைப்படுத்தப்படுகின்றன; பால்வெளி 'உள்ளூர் குழுவில்' உள்ளது"
     ],
     image: "/galaxy_types_diagram.png",
-    funFact: "The Milky Way is spinning at 270 km/s, but it still takes about 230 million years to make one full rotation!",
-    quiz: { question: "What type of galaxy is the Milky Way?", options: ["Elliptical", "Spiral", "Irregular", "Lenticular"], answer: "Spiral" },
+    funFact: "The Milky Way is spinning at 270 km/s, but it still takes about 230 million years to make one full rotation! / பால்வெளி விண்மீன் திரள் வினாடிக்கு 270 கி.மீ வேகத்தில் சுழல்கிறது, இருப்பினும் அது ஒரு முறை முழுமையாகச் சுழல 23 கோடி ஆண்டுகள் ஆகும்!",
+    quiz: { 
+      question: "What type of galaxy is the Milky Way? / பால்வெளி எந்த வகையான விண்மீன் திரள்?", 
+      options: ["Elliptical | நீள்வட்டம்", "Spiral | சுருள் வடிவம்", "Irregular | ஒழுங்கற்ற வடிவம்", "Lenticular | லெண்டிகுலர்"], 
+      answer: "Spiral | சுருள் வடிவம்" 
+    },
   },
   "Deep space:Black Hole": {
-    title: "Black Holes", emoji: "🕳️",
-    summary: "A black hole is a region of space where gravity is so strong that nothing — not even light — can escape. They form from the collapsed cores of massive stars.",
-    keyPoints: ["Formed when a massive star collapses at the end of its life", "Event horizon: the point of no return", "Singularity: the point of infinite density at the centre", "Supermassive black holes exist at the centre of most galaxies", "First black hole image captured in 2019 (M87*)"],
-    funFact: "The supermassive black hole at the centre of the Milky Way (Sagittarius A*) is 4 million times the mass of the Sun!",
-    quiz: { question: "What is the boundary around a black hole from which nothing can escape?", options: ["Singularity", "Event horizon", "Photon sphere", "Accretion disk"], answer: "Event horizon" },
+    title: "Black Holes | கருந்துளைகள்", emoji: "🕳️",
+    summary: "A black hole is a region of space where gravity is so strong that nothing — not even light — can escape. They form from the collapsed cores of massive stars. / கருந்துளை என்பது ஈர்ப்பு விசை மிகவும் அதிகமாக உள்ள விண்வெளிப் பகுதி ஆகும், இதிலிருந்து ஒளியால் கூட தப்ப முடியாது. இவை மிகப்பெரிய விண்மீன்களின் வீழ்ச்சியடைந்த மையப்பகுதியிலிருந்து உருவாகின்றன.",
+    keyPoints: [
+      "Formed when a massive star collapses at the end of its life / விண்மீன்கள் தங்கள் வாழ்நாளின் இறுதியில் அழியும் போது உருவாகின்றன",
+      "Event horizon: the point of no return / நிகழ்வு எல்லை: இதைக் கடந்தால் எவராலும் அல்லது எதனாலும் திரும்பி வர முடியாது",
+      "Singularity: the point of infinite density at the centre / ஒருமைப்புள்ளி: கருந்துளையின் மையத்தில் உள்ள எல்லையற்ற அடர்த்தி கொண்ட புள்ளி",
+      "Supermassive black holes exist at the centre of most galaxies / பெரும்பாலான விண்மீன் திரள்களின் மையத்தில் மாபெரும் கருந்துளைகள் உள்ளன",
+      "First black hole image captured in 2019 (M87*) / 2019 இல் முதன்முதலாக ஒரு கருந்துளையின் புகைப்படம் எடுக்கப்பட்டது (M87*)"
+    ],
+    funFact: "The supermassive black hole at the centre of the Milky Way (Sagittarius A*) is 4 million times the mass of the Sun! / பால்வெளியின் மையத்தில் உள்ள மாபெரும் கருந்துளை (சகிட்டாரியஸ் A*) சூரியனை விட 40 லட்சம் மடங்கு அதிக நிறை கொண்டது!",
+    quiz: { 
+      question: "What is the boundary around a black hole from which nothing can escape? / கருந்துளையைச் சுற்றி எதனாலும் தப்ப முடியாத எல்லை எது?", 
+      options: ["Singularity | ஒருமைப்புள்ளி", "Event horizon | நிகழ்வு எல்லை", "Photon sphere | ஃபோட்டான் கோளம்", "Accretion disk | திரள் வட்டு"], 
+      answer: "Event horizon | நிகழ்வு எல்லை" 
+    },
   },
   "Exploration:Satellite": {
-    title: "Satellites", emoji: "🛰️",
-    summary: "A satellite is any object that orbits a larger celestial body. Artificial satellites are launched into orbit to assist with communications, weather monitoring, and scientific research.",
+    title: "Satellites | செயற்கைக்கோள்கள்", emoji: "🛰️",
+    summary: "A satellite is any object that orbits a larger celestial body. Artificial satellites are launched into orbit to assist with communications, weather monitoring, and scientific research. / செயற்கைக்கோள் என்பது ஒரு பெரிய விண்பொருளைச் சுற்றி வரும் பொருளாகும். தகவல் தொடர்பு, வானிலை கண்காணிப்பு மற்றும் அறிவியல் ஆராய்ச்சிக்காக செயற்கைக்கோள்கள் ஏவப்படுகின்றன.",
     keyPoints: [
-      "First artificial satellite was Sputnik 1, launched by the USSR in 1957",
-      "Geostationary satellites orbit at 35,786 km and stay fixed above the same point on Earth",
-      "Low Earth Orbit (LEO) satellites are closer (160–2,000 km) and move fast — e.g. ISS, Starlink",
-      "Aryabhata was India's first satellite, launched in 1975",
-      "Key uses: global positioning (GPS/NavIC), weather forecasting, TV, and military intelligence",
+      "First artificial satellite was Sputnik 1, launched by the USSR in 1957 / உலகின் முதல் செயற்கைக்கோள் ஸ்புட்னிக் 1, 1957 இல் சோவியத் யூனியனால் ஏவப்பட்டது",
+      "Geostationary satellites orbit at 35,786 km and stay fixed above the same point on Earth / புவிநிலை செயற்கைக்கோள்கள் 35,786 கி.மீ உயரத்தில் பூமியின் சுழற்சிக்கு ஏற்ப நிலையாகச் சுற்றுகின்றன",
+      "Low Earth Orbit (LEO) satellites are closer (160–2,000 km) and move fast — e.g. ISS, Starlink / குறைந்த புவி வட்டப்பாதை செயற்கைக்கோள்கள் மிக அருகில் வேகமாகச் சுற்றுகின்றன — எ.கா: விண்வெளி நிலையம்",
+      "Aryabhata was India's first satellite, launched in 1975 / 1975 இல் ஏவப்பட்ட ஆர்யபட்டா இந்தியாவின் முதல் செயற்கைக்கோள் ஆகும்",
+      "Key uses: global positioning (GPS/NavIC), weather forecasting, TV, and military intelligence / முக்கிய பயன்கள்: ஜி.பி.எஸ்/நவிக் வழிசெலுத்தல், வானிலை கணிப்பு, தொலைக்காட்சி மற்றும் ராணுவ உளவுப் பணி"
     ],
-    funFact: "There are currently over 8,000 active artificial satellites orbiting the Earth, along with millions of pieces of space junk!",
-    quiz: { question: "What was the name of India's first artificial satellite, launched in 1975?", options: ["Rohini", "INSAT-1A", "Aryabhata", "GSAT-1"], answer: "Aryabhata" },
+    funFact: "There are currently over 8,000 active artificial satellites orbiting the Earth, along with millions of pieces of space junk! / தற்போது பூமியைச் சுற்றி 8,000-க்கும் மேற்பட்ட செயல்பாட்டில் உள்ள செயற்கைக்கோள்களும், பல கோடி விண்வெளி குப்பைகளும் உள்ளன!",
+    quiz: { 
+      question: "What was the name of India's first artificial satellite, launched in 1975? / 1975 இல் ஏவப்பட்ட இந்தியாவின் முதல் செயற்கைக்கோளின் பெயர் என்ன?", 
+      options: ["Rohini | ரோகிணி", "INSAT-1A | இன்சாட்-1A", "Aryabhata | ஆர்யபட்டா", "GSAT-1 | ஜிசாட்-1"], 
+      answer: "Aryabhata | ஆர்யபட்டா" 
+    },
   },
   "Exploration:Rocket": {
-    title: "Rockets", emoji: "🚀",
-    summary: "A rocket is a spacecraft propelled by the reaction of escaping exhaust gases. Multi-stage rockets shed spent fuel tanks as they ascend to reach orbital velocity.",
+    title: "Rockets | ராக்கெட்டுகள்", emoji: "🚀",
+    summary: "A rocket is a spacecraft propelled by the reaction of escaping exhaust gases. Multi-stage rockets shed spent fuel tanks as they ascend to reach orbital velocity. / ராக்கெட் என்பது வேகமாக வெளியேறும் வாயுக்களின் எதிர்வினை மூலம் செலுத்தப்படும் விண்கலமாகும். சுற்றுப்பாதை வேகத்தை எட்ட பல அடுக்கு ராக்கெட்டுகள் பயன்படுத்தப்படுகின்றன.",
     keyPoints: [
-      "Operate on Newton's Third Law of Motion: action and reaction",
-      "Carry both fuel and an oxidizer (oxygen) because there is no air in space",
-      "Multi-stage rockets drop empty stages during ascent to reduce weight",
-      "Solid fuel rockets provide massive thrust but cannot be turned off; liquid fuel can be controlled",
-      "India's LVM3 (GSLV Mk III) is ISRO's heaviest rocket, used to launch Chandrayaan-3",
+      "Operate on Newton's Third Law of Motion: action and reaction / நியூட்டனின் மூன்றாம் இயக்க விதியின் அடிப்படையில் செயல்படுகிறது: வினை மற்றும் எதிர்வினை",
+      "Carry both fuel and an oxidizer (oxygen) because there is no air in space / விண்வெளியில் காற்று இல்லாததால் இவை எரிபொருளையும் ஆக்சிஜனையும் சேர்த்து எடுத்துச் செல்கின்றன",
+      "Multi-stage rockets drop empty stages during ascent to reduce weight / எடையைக் குறைக்க விண்கலம் மேலே செல்லும்போது காலியான அடுக்குகளைக் கழற்றி விடுகின்றன",
+      "Solid fuel rockets provide massive thrust but cannot be turned off; liquid fuel can be controlled / திட எரிபொருள் ராக்கெட்டுகளை நிறுத்த முடியாது; திரவ எரிபொருளைக் கட்டுப்படுத்த முடியும்",
+      "India's LVM3 (GSLV Mk III) is ISRO's heaviest rocket, used to launch Chandrayaan-3 / இந்தியாவின் எல்.வி.எம்3 என்பது சந்திரயான்-3 ஐ ஏவிய இஸ்ரோவின் மிகக் கனமான ராக்கெட் ஆகும்"
     ],
     image: "/rocket_stages_diagram.png",
-    funFact: "To escape Earth's gravity and reach orbit, a rocket must travel at approximately 28,000 km/h (escape velocity is 40,270 km/h)!",
-    quiz: { question: "Which physical law explains how a rocket generates thrust?", options: ["Newton's First Law", "Newton's Third Law", "Kepler's Second Law", "Law of Gravitation"], answer: "Newton's Third Law" },
+    funFact: "To escape Earth's gravity and reach orbit, a rocket must travel at approximately 28,000 km/h (escape velocity is 40,270 km/h)! / பூமியின் ஈர்ப்பு விசையிலிருந்து தப்பித்து விண்வெளிக்குச் செல்ல, ஒரு ராக்கெட் மணிக்கு சுமார் 40,270 கி.மீ வேகத்தில் பயணிக்க வேண்டும்!",
+    quiz: { 
+      question: "Which physical law explains how a rocket generates thrust? / ராக்கெட் எவ்வாறு உந்துவிசையை உருவாக்குகிறது என்பதை விளக்கும் இயற்பியல் விதி எது?", 
+      options: ["Newton's First Law | நியூட்டனின் முதல் விதி", "Newton's Third Law | நியூட்டனின் மூன்றாம் விதி", "Kepler's Second Law | கெப்லரின் இரண்டாம் விதி", "Law of Gravitation | ஈர்ப்பு விதி"], 
+      answer: "Newton's Third Law | நியூட்டனின் மூன்றாம் விதி" 
+    },
   },
   "Exploration:Space Missions": {
-    title: "Space Missions", emoji: "👨‍🚀",
-    summary: "Space missions explore other bodies in our solar system and beyond. Key human missions include the Apollo Moon landings, the International Space Station, and future Mars projects.",
+    title: "Space Missions | விண்வெளித் திட்டங்கள்", emoji: "👨‍🚀",
+    summary: "Space missions explore other bodies in our solar system and beyond. Key human missions include the Apollo Moon landings, the International Space Station, and future Mars projects. / விண்வெளித் திட்டங்கள் நமது சூரிய குடும்பம் மற்றும் அதற்கு அப்பால் உள்ள விண்பொருட்களை ஆராய்கின்றன. அப்பல்லோ நிலவு பயணம், சர்வதேச விண்வெளி நிலையம் ஆகியவை இதில் முக்கியமானவை.",
     keyPoints: [
-      "Apollo 11 (1969): Neil Armstrong and Buzz Aldrin become first humans on the Moon",
-      "International Space Station (ISS): habitable lab orbiting Earth since 1998",
-      "Voyager 1 & 2 (1977): entered interstellar space, carrying the Golden Record",
-      "Gaganyaan: India's upcoming manned space mission to send 3 astronauts to LEO",
-      "Artemis program: NASA's plan to land the next humans (including first woman) on the Moon",
+      "Apollo 11 (1969): Neil Armstrong and Buzz Aldrin become first humans on the Moon / அப்பல்லோ 11 (1969): நீல் ஆம்ஸ்ட்ராங் மற்றும் பஸ் ஆல்ட்ரின் நிலவில் கால் பதித்த முதல் மனிதர்கள் ஆவர்",
+      "International Space Station (ISS): habitable lab orbiting Earth since 1998 / சர்வதேச விண்வெளி நிலையம்: 1998 முதல் பூமியைச் சுற்றி வரும் விண்வெளி ஆய்வுக்கூடம்",
+      "Voyager 1 & 2 (1977): entered interstellar space, carrying the Golden Record / வாயேஜர் 1 & 2 (1977): விண்மீன்களுக்கு இடையேயான பகுதிக்குச் சென்றவை, தங்கத் தட்டைக் கொண்டுள்ளன",
+      "Gaganyaan: India's upcoming manned space mission to send 3 astronauts to LEO / ககன்யான்: 3 விண்வெளி வீரர்களை விண்வெளிக்கு அனுப்பும் இந்தியாவின் வரவிருக்கும் மனித விண்வெளிப் பயணம்",
+      "Artemis program: NASA's plan to land the next humans (including first woman) on the Moon / ஆர்டெமிஸ் திட்டம்: நிலவுக்கு மீண்டும் மனிதர்களை (முதன்முறையாக ஒரு பெண்ணையும் சேர்த்து) அனுப்பும் நாசாவின் திட்டம்"
     ],
-    funFact: "Voyager 1 is the farthest human-made object from Earth — currently over 24 billion km away and still transmitting data!",
-    quiz: { question: "Which upcoming mission is India's first crewed spaceflight program?", options: ["Chandrayaan-4", "Gaganyaan", "Aditya-L1", "Shukrayaan"], answer: "Gaganyaan" },
+    funFact: "Voyager 1 is the farthest human-made object from Earth — currently over 24 billion km away and still transmitting data! / வாயேஜர் 1 என்பது பூமியிலிருந்து மனிதனால் உருவாக்கப்பட்ட மிகத் தொலைவில் உள்ள பொருள் - தற்போது 2400 கோடி கி.மீ தொலைவில் இருந்து தகவல் அனுப்புகிறது!",
+    quiz: { 
+      question: "Which upcoming mission is India's first crewed spaceflight program? / இந்தியாவின் முதல் மனித விண்வெளிப் பயணத் திட்டம் எது?", 
+      options: ["Chandrayaan-4 | சந்திரயான்-4", "Gaganyaan | ககன்யான்", "Aditya-L1 | ஆதித்யா-L1", "Shukrayaan | சுக்ராயன்"], 
+      answer: "Gaganyaan | ககன்யான்" 
+    },
   },
   "Exploration:Interactive Universe": {
-    title: "Interactive Universe", emoji: "🌠",
-    summary: "The observable universe is vast, containing trillions of galaxies. Exploring the cosmos interactively helps students visualize scale, light travel time, and cosmic coordinates.",
+    title: "Interactive Universe | ஊடாடும் பிரபஞ்சம்", emoji: "🌠",
+    summary: "The observable universe is vast, containing trillions of galaxies. Exploring the cosmos interactively helps students visualize scale, light travel time, and cosmic coordinates. / நாம் காணக்கூடிய பிரபஞ்சம் எல்லையற்றது, இதில் பல லட்சம் கோடி விண்மீன் திரள்கள் உள்ளன. பிரபஞ்சத்தை ஊடாடும் முறையில் ஆராய்வது அதன் அளவையும் ஒளியின் வேகத்தையும் புரிந்துகொள்ள உதவுகிறது.",
     keyPoints: [
-      "Observable universe has a diameter of about 93 billion light-years",
-      "Cosmic Microwave Background (CMB) is the remnant heat of the Big Bang",
-      "The universe is expanding at an accelerating rate due to Dark Energy",
-      "Light year: distance light travels in one year (~9.46 trillion km)",
-      "Looking far into space is looking back in time due to the speed of light limits",
+      "Observable universe has a diameter of about 93 billion light-years / நாம் காணக்கூடிய பிரபஞ்சத்தின் விட்டம் சுமார் 9300 கோடி ஒளி ஆண்டுகள் ஆகும்",
+      "Cosmic Microwave Background (CMB) is the remnant heat of the Big Bang / பெருவெடிப்பின் மீதமுள்ள வெப்ப அலைகளே பிரபஞ்சப் பின்னணி கதிர்வீச்சு (CMB) ஆகும்",
+      "The universe is expanding at an accelerating rate due to Dark Energy / கரும்பொருள் ஆற்றல் காரணமாக பிரபஞ்சம் தொடர்ந்து முடுக்கப்பட்ட வேகத்தில் விரிவடைந்து வருகிறது",
+      "Light year: distance light travels in one year (~9.46 trillion km) / ஒளி ஆண்டு என்பது ஒளி ஒரு ஆண்டில் பயணிக்கும் தூரம் ஆகும் (சுமார் 9.46 லட்சம் கோடி கி.மீ)",
+      "Looking far into space is looking back in time due to the speed of light limits / விண்வெளியின் ஆழத்தைப் பார்ப்பது என்பது காலத்தைக் கடந்து கடந்த காலத்தைப் பார்ப்பது போன்றதாகும்"
     ],
-    funFact: "If you rode a beam of light, it would take you 8 minutes to reach the Sun, but 100,000 years to cross the Milky Way!",
-    quiz: { question: "What is a light-year a measure of?", options: ["Time", "Speed", "Distance", "Brightness"], answer: "Distance" },
+    funFact: "If you rode a beam of light, it would take you 8 minutes to reach the Sun, but 100,000 years to cross the Milky Way! / நீங்கள் ஒளியின் வேகத்தில் பயணித்தால், சூரியனை அடைய 8 நிமிடங்கள் ஆகும், ஆனால் நமது பால்வெளி விண்மீன் திரளைக் கடக்க 1,000,000 ஆண்டுகள் ஆகும்!",
+    quiz: { 
+      question: "What is a light-year a measure of? / ஒளி ஆண்டு என்பது எதைக் குறிக்கிறது?", 
+      options: ["Time | காலம்", "Speed | வேகம்", "Distance | தூரம்", "Brightness | பிரகாசம்"], 
+      answer: "Distance | தூரம்" 
+    },
   },
 
   // ── DNA & CELL EXPLORER ──────────────────────────────────────────────────────
