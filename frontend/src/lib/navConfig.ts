@@ -114,6 +114,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
+        { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
     ],
   },
@@ -144,6 +145,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
+      { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       { label: "Fun Quizzes", href: "/student/middle-school/quizzes", icon: "Gamepad2" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
       { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
@@ -228,6 +230,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Board Prep", href: "/student/high-school/board-prep", icon: "Target" },
       { label: "Mock Tests", href: "/student/high-school/mock-tests", icon: "Edit3" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
+      { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
       { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
@@ -309,6 +312,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Board Prep", href: "/student/higher-secondary/board-prep", icon: "Target" },
       { label: "Mock Tests", href: "/student/higher-secondary/mock-tests", icon: "Edit3" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
+      { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
       { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
@@ -391,7 +395,8 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#f59e0b",
     navItems: [
       { label: "My Classes", href: "/teacher/classes", icon: "Building" },
-      { label: "My Timetable", href: "/teacher/timetable", icon: "Calendar" },
+      { label: "Timetable & Proxies", href: "/teacher/timetable", icon: "Calendar" },
+      { label: "Exam Schedule", href: "/teacher/exams", icon: "FileText" },
       { label: "Science Labs", href: "/teacher/labs", icon: "FlaskConical" },
       { label: "Subject Analytics", href: "/teacher/subject-analytics", icon: "Activity" },
 
