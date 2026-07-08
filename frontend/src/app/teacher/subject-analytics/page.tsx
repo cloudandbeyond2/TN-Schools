@@ -501,7 +501,7 @@ export default function SubjectAnalyticsPage() {
             <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-6 space-y-4">
               <div className="h-5 bg-slate-800 rounded w-1/2" />
               <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((n) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                   <div key={n} className="space-y-2">
                     <div className="flex justify-between">
                       <div className="h-3 bg-slate-800 rounded w-1/4" />

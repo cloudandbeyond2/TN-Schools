@@ -231,7 +231,7 @@ export default function ParentDashboard() {
               <h2 className="text-base font-semibold text-white mb-5">📊 Subject-wise Marks</h2>
               {perfLoading ? (
                 <div className="space-y-3">
-                  {[1, 2, 3, 4, 5].map(i => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                     <div key={i} className="h-10 bg-slate-800/60 rounded-xl animate-pulse" />
                   ))}
                 </div>

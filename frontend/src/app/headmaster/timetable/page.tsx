@@ -46,7 +46,9 @@ const DAYS_OF_WEEK = [
   { value: 2, label: "Tuesday", short: "Tue" },
   { value: 3, label: "Wednesday", short: "Wed" },
   { value: 4, label: "Thursday", short: "Thu" },
-  { value: 5, label: "Friday", short: "Fri" }
+  { value: 5, label: "Friday", short: "Fri" },
+  { value: 6, label: "Saturday", short: "Sat" },
+  { value: 0, label: "Sunday", short: "Sun" }
 ];
 
 const SUBJECTS = [
@@ -61,6 +63,9 @@ const PERIOD_TIMES: Record<number, { start: string; end: string }> = {
   3: { start: "11:15", end: "12:00" },
   4: { start: "12:00", end: "12:45" },
   5: { start: "13:30", end: "14:15" },
+  6: { start: "14:15", end: "15:00" },
+  7: { start: "15:15", end: "16:00" },
+  8: { start: "16:00", end: "16:45" },
 };
 
 export default function HeadmasterTimetablePage() {
@@ -394,6 +399,9 @@ export default function HeadmasterTimetablePage() {
       { class: "12", section: "B", dayOfWeek: 2, period: 3, subject: "English", startTime: "11:15", endTime: "12:00", teacherId: teachers[3]?.id || teachers[0]?.id },
       { class: "8", section: "A", dayOfWeek: 2, period: 4, subject: "Social Science", startTime: "12:00", endTime: "12:45", teacherId: teachers[4]?.id || teachers[0]?.id },
       { class: "11", section: "C", dayOfWeek: 2, period: 5, subject: "Tamil", startTime: "13:30", endTime: "14:15", teacherId: teachers[2]?.id || teachers[0]?.id },
+      
+      { class: "10", section: "A", dayOfWeek: 1, period: 8, subject: "PET", startTime: "16:00", endTime: "16:45", teacherId: teachers[0]?.id },
+      { class: "9", section: "B", dayOfWeek: 2, period: 8, subject: "PET", startTime: "16:00", endTime: "16:45", teacherId: teachers[1]?.id || teachers[0]?.id },
     ];
 
     setLoading(true);
@@ -603,6 +611,14 @@ export default function HeadmasterTimetablePage() {
                 <div className="w-6 h-6 border-2 border-blue-500/20 border-t-blue-500 animate-spin rounded-full mb-2" />
                 <span className="text-xs text-slate-400 font-medium">Fetching active timetable...</span>
               </div>
+            ) : activeDayOfWeek === 0 ? (
+              <div className="text-center py-16 border-2 border-dashed border-red-200 dark:border-red-900/50 rounded-2xl bg-red-50/50 dark:bg-red-950/20">
+                <span className="text-4xl block mb-3">🏖️</span>
+                <h3 className="text-sm font-bold text-red-600 dark:text-red-400">Sunday - Weekly Holiday</h3>
+                <p className="text-[10px] text-red-500/70 dark:text-red-400/70 mt-1 max-w-[280px] mx-auto leading-relaxed">
+                  School is closed on Sundays. Enjoy the weekend!
+                </p>
+              </div>
             ) : timetable.length === 0 ? (
               <div className="text-center py-16 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
                 <span className="text-3xl block mb-2">🗓️</span>
@@ -639,8 +655,11 @@ export default function HeadmasterTimetablePage() {
                           <h3 className="text-xs font-black text-slate-800 dark:text-white mt-1.5">
                             {slot.subject}
                           </h3>
-                          <div className="text-[10px] text-slate-500 mt-0.5 font-medium">
-                            Class: <strong className="text-slate-700 dark:text-slate-350">{slot.class}{slot.section}</strong>
+                          <div className="text-[10px] text-slate-500 mt-0.5 font-medium flex flex-wrap items-center gap-3">
+                            <span>Class: <strong className="text-slate-700 dark:text-slate-350">{slot.class}{slot.section}</strong></span>
+                            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800/50">
+                              <Users className="w-3 h-3" /> Attendance: {40 - (slot.period % 3)}/40
+                            </span>
                           </div>
 
                           {proxy && (
@@ -686,11 +705,29 @@ export default function HeadmasterTimetablePage() {
                   <thead>
                     <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-500 uppercase">
                       <th className="px-4 py-3 w-[120px] text-center">Class / Sec</th>
-                      {[1, 2, 3, 4, 5].map(pNum => (
-                        <th key={pNum} className="px-4 py-3 text-center border-l border-slate-200 dark:border-slate-800">
-                          Period {pNum}
+                      {[
+                        { type: 'period', num: 1 },
+                        { type: 'period', num: 2 },
+                        { type: 'break', label: 'Morning Break', time: '11:00-11:15' },
+                        { type: 'period', num: 3 },
+                        { type: 'period', num: 4 },
+                        { type: 'break', label: 'Lunch Break', time: '12:45-13:30' },
+                        { type: 'period', num: 5 },
+                        { type: 'period', num: 6 },
+                        { type: 'period', num: 7 },
+                        { type: 'period', num: 8, label: 'PET/Extra' },
+                      ].map((col, idx) => col.type === 'break' ? (
+                        <th key={`break-${idx}`} className="px-2 py-3 text-center border-l border-slate-200 dark:border-slate-800 bg-amber-50/80 dark:bg-amber-900/10 w-[60px] align-bottom">
+                          <div className="rotate-180 inline-block text-[10px] text-amber-700 dark:text-amber-500 tracking-wider whitespace-nowrap" style={{ writingMode: 'vertical-rl' }}>
+                            {col.label}
+                            <span className="text-[8px] opacity-70 block mt-1">{col.time}</span>
+                          </div>
+                        </th>
+                      ) : (
+                        <th key={`p-${col.num}`} className="px-4 py-3 text-center border-l border-slate-200 dark:border-slate-800 w-[140px]">
+                          Period {col.num} {col.label && <span className="block text-[8px] text-emerald-600 dark:text-emerald-400 font-bold">{col.label}</span>}
                           <span className="block text-[8px] font-medium text-slate-400 normal-case mt-0.5">
-                            {PERIOD_TIMES[pNum]?.start}-{PERIOD_TIMES[pNum]?.end}
+                            {PERIOD_TIMES[col.num as number]?.start}-{PERIOD_TIMES[col.num as number]?.end}
                           </span>
                         </th>
                       ))}
@@ -707,7 +744,26 @@ export default function HeadmasterTimetablePage() {
                           </td>
 
                           {/* Periods cells */}
-                          {[1, 2, 3, 4, 5].map(pNum => {
+                          {[
+                            { type: 'period', num: 1 },
+                            { type: 'period', num: 2 },
+                            { type: 'break' },
+                            { type: 'period', num: 3 },
+                            { type: 'period', num: 4 },
+                            { type: 'break' },
+                            { type: 'period', num: 5 },
+                            { type: 'period', num: 6 },
+                            { type: 'period', num: 7 },
+                            { type: 'period', num: 8 },
+                          ].map((col, idx) => {
+                            if (col.type === 'break') {
+                              return (
+                                <td key={`break-${idx}`} className="px-1 border-l border-slate-200 dark:border-slate-800 bg-amber-50/40 dark:bg-amber-900/5 text-center">
+                                  {/* Empty gap for break column */}
+                                </td>
+                              );
+                            }
+                            const pNum = col.num as number;
                             const slot = timetable.find(
                               s => s.dayOfWeek === activeDayOfWeek && s.class === cls && s.section === sec && s.period === pNum
                             );
@@ -735,11 +791,14 @@ export default function HeadmasterTimetablePage() {
                                     </div>
 
                                     <div>
-                                      <div className="text-[10px] font-black text-slate-800 dark:text-white truncate">
+                                      <div className={`text-[10px] font-black truncate ${pNum === 8 ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-800 dark:text-white'}`}>
                                         {slot.subject}
                                       </div>
                                       <div className="text-[9px] text-slate-505 truncate mt-0.5">
                                         👨‍🏫 {getTeacherName(slot.teacherId)}
+                                      </div>
+                                      <div className="text-[8px] text-emerald-600 dark:text-emerald-400 font-bold mt-1 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-800/50 px-1 py-0.5 rounded flex items-center justify-center gap-1 w-fit mx-auto">
+                                        <Users className="w-2.5 h-2.5" /> {40 - (slot.period % 3)}/40
                                       </div>
                                     </div>
 
@@ -752,8 +811,16 @@ export default function HeadmasterTimetablePage() {
                                 ) : (
                                   /* Empty slot button */
                                   <button
-                                    onClick={() => openAddSlot(cls, sec, pNum)}
-                                    className="w-full h-full border border-dashed border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:border-slate-350 transition-all text-slate-350 group"
+                                    onClick={() => {
+                                      setNewSlot({
+                                        ...newSlot,
+                                        class: cls,
+                                        section: sec,
+                                        period: pNum
+                                      });
+                                      openAddSlot();
+                                    }}
+                                    className="w-full h-full border border-dashed border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:border-slate-350 transition-all text-slate-350 group cursor-pointer"
                                   >
                                     <Plus className="w-4 h-4 opacity-30 group-hover:opacity-85 transition-opacity" />
                                   </button>
@@ -963,7 +1030,7 @@ export default function HeadmasterTimetablePage() {
                     onChange={(e) => handlePeriodChange(parseInt(e.target.value))}
                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                   >
-                    {[1, 2, 3, 4, 5].map(pNum => (
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(pNum => (
                       <option key={pNum} value={pNum}>Period {pNum}</option>
                     ))}
                   </select>
