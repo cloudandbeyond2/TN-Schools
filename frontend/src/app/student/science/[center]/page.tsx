@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { LucideIcon } from "@/components/LucideIcon";
+import { FlatIcon } from "@/components/FlatIcon";
 import { Sparkles, ChevronLeft, TrendingUp, Award, ArrowLeft, Check, X, HelpCircle, Eye, EyeOff } from "lucide-react";
 import { getCenterTopics } from "@/data/centerTopics";
 import { getTopicContent } from "@/data/centerContent";
@@ -371,8 +372,16 @@ export default function ScienceCenterPage() {
                       isActive ? "border-purple-400 bg-purple-50/20 dark:bg-slate-900" : "border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800"
                     }`}
                   >
-                    <span className="text-2xl">{it.emoji}</span>
-                    <p className="text-xs font-black text-slate-700 dark:text-slate-200 mt-2 leading-tight">{t(it.label)}</p>
+                    {slug === "stem" ? (
+                      <div className="mb-2 group-hover:scale-105 transition-transform flex items-center justify-center w-fit">
+                        <FlatIcon name={it.label} className="w-12 h-12" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700/50 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
+                        <span className="text-xl">{it.emoji}</span>
+                      </div>
+                    )}
+                    <p className="text-xs font-black text-slate-700 dark:text-slate-200 mt-1 leading-tight">{t(it.label)}</p>
                     <span className="text-[9px] font-black text-slate-350 group-hover:text-purple-500">
                       {isActive ? (lang === "EN" ? "✓ active" : "✓ தேர்வு") : (lang === "EN" ? "open" : "திறக்க")}
                     </span>
