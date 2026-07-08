@@ -415,18 +415,108 @@ export const CENTER_CONTENT: Record<string, TopicContent> = {
 
   // ── RESEARCH CENTERS ────────────────────────────────────────────────────────
   "Space & Defence:ISRO": {
-    title: "ISRO", emoji: "🚀",
-    summary: "ISRO (Indian Space Research Organisation) headquartered in Bengaluru is India's national space agency, responsible for developing and operating space technology.",
-    keyPoints: ["Founded: 1969, Headquarters: Bengaluru", "PSLV: workhorse rocket for Earth-observation and interplanetary missions", "Chandrayaan-3 (2023): first soft landing on Moon's south pole", "Key centres: VSSC (Thiruvananthapuram), URSC, SAC (Ahmedabad)", "NavIC: India's own GPS satellite navigation system"],
-    funFact: "ISRO launched 104 satellites in a single rocket launch in 2017 — a world record at the time!",
-    quiz: { question: "Where is ISRO's headquarters located?", options: ["New Delhi", "Mumbai", "Bengaluru", "Hyderabad"], answer: "Bengaluru" },
+    title: "ISRO | இஸ்ரோ", emoji: "🚀",
+    summary: "ISRO (Indian Space Research Organisation) headquartered in Bengaluru is India's national space agency, responsible for developing and operating space technology. / இஸ்ரோ (இந்திய விண்வெளி ஆராய்ச்சி நிறுவனம்) பெங்களூரைத் தலைமையிடமாகக் கொண்ட இந்தியாவின் தேசிய விண்வெளி முகமையாகும், இது விண்வெளி தொழில்நுட்பத்தை உருவாக்கி இயக்குவதற்கு பொறுப்பாகும்.",
+    keyPoints: [
+      "Founded: 1969, Headquarters: Bengaluru / தொடங்கப்பட்ட ஆண்டு: 1969, தலைமையகம்: பெங்களூரு",
+      "PSLV: workhorse rocket for Earth-observation and interplanetary missions / பி.எஸ்.எல்.வி: பூமிக் கண்காணிப்பு மற்றும் கோள்களுக்கு இடையேயான விண்வெளித் திட்டங்களுக்கான முதன்மை ராக்கெட்",
+      "Chandrayaan-3 (2023): first soft landing on Moon's south pole / சந்திரயான்-3 (2023): நிலவின் தென்துருவத்தில் மெதுவாகத் தரையிறங்கிய முதல் விண்கலம்",
+      "Key centres: VSSC (Thiruvananthapuram), URSC, SAC (Ahmedabad) / முக்கிய மையங்கள்: வி.எஸ்.எஸ்.சி (திருவனந்தபுரம்), யு.ஆர்.எஸ்.சி, எஸ்.ஏ.சி (அகமதாபாத்)",
+      "NavIC: India's own GPS satellite navigation system / நவிக்: இந்தியாவின் சொந்த ஜி.பி.எஸ் செயற்கைக்கோள் வழிசெலுத்தல் அமைப்பு"
+    ],
+    funFact: "ISRO launched 104 satellites in a single rocket launch in 2017 — a world record at the time! / இஸ்ரோ 2017 இல் ஒரே ராக்கெட்டில் 104 செயற்கைக்கோள்களை விண்ணில் செலுத்தியது - இது அன்றைய உலக சாதனையாகும்!",
+    quiz: { 
+      question: "Where is ISRO's headquarters located? / இஸ்ரோவின் தலைமையகம் எங்குள்ளது?", 
+      options: ["New Delhi | புது தில்லி", "Mumbai | மும்பை", "Bengaluru | பெங்களூரு", "Hyderabad | ஹைதராபாத்"], 
+      answer: "Bengaluru | பெங்களூரு" 
+    },
+  },
+  "Space & Defence:DRDO": {
+    title: "DRDO | டி.ஆர்.டி.ஓ", emoji: "🛡️",
+    summary: "DRDO (Defence Research and Development Organisation) is India's premier military research agency. It designs and develops advanced weapons systems, missiles, and military technology. / டி.ஆர்.டி.ஓ (பாதுகாப்பு ஆராய்ச்சி மற்றும் வளர்ச்சி நிறுவனம்) இந்தியாவின் முதன்மையான ராணுவ ஆராய்ச்சி அமைப்பாகும். இது அதிநவீன ஆயுத அமைப்புகள், ஏவுகணைகள் மற்றும் ராணுவ தொழில்நுட்பங்களை வடிவமைத்து உருவாக்குகிறது.",
+    keyPoints: [
+      "Founded in 1958 under the Ministry of Defence / 1958 ஆம் ஆண்டு பாதுகாப்பு அமைச்சகத்தின் கீழ் தொடங்கப்பட்டது",
+      "Develops Integrated Guided Missile Development Program (IGMDP) like Agni and Prithvi / அக்னி மற்றும் பிருத்வி போன்ற ஒருங்கிணைந்த வழிகாட்டப்பட்ட ஏவுகணை மேம்பாட்டுத் திட்டங்களை உருவாக்குகிறது",
+      "Tejas LCA (Light Combat Aircraft) and Arjun MBT (Main Battle Tank) are major projects / தேஜாஸ் எடைகுறைந்த போர் விமானம் மற்றும் அர்ஜுன் போர் டாங்கிகள் இதன் முக்கிய திட்டங்கள் ஆகும்",
+      "Akash missile defence system protects Indian airspace / ஆகாஷ் ஏவுகணை பாதுகாப்பு அமைப்பு இந்திய வான்வெளியைப் பாதுகாக்கிறது",
+      "Currently runs over 50 laboratories across India / தற்போது இந்தியா முழுவதும் 50-க்கும் மேற்பட்ட ஆய்வகங்களை இயக்குகிறது"
+    ],
+    image: "/drdo_missiles_diagram.png",
+    funFact: "DRDO's Agni-V missile is an Intercontinental Ballistic Missile (ICBM) with a range of over 5,000 km, placing India in an elite club! / டி.ஆர்.டி.ஓ-வின் அக்னி-V ஏவுகணை 5,000 கி.மீ-க்கும் அதிக தூரம் பாயும் கண்டம் விட்டு கண்டம் பாயும் ஏவுகணை ஆகும்!",
+    quiz: { 
+      question: "Which of the following is DRDO's Light Combat Aircraft? / கீழ்வருவனவற்றில் டி.ஆர்.டி.ஓ-வின் எடைகுறைந்த போர் விமானம் எது?", 
+      options: ["Arjun | அர்ஜுன்", "Tejas | தேஜாஸ்", "Akash | ஆகாஷ்", "Prithvi | பிருத்வி"], 
+      answer: "Tejas | தேஜாஸ்" 
+    },
+  },
+  "Research bodies:CSIR": {
+    title: "CSIR | சி.எஸ்.ஐ.ஆர்", emoji: "🔬",
+    summary: "CSIR (Council of Scientific & Industrial Research) is India's largest science research association, operating 37 state-of-the-art laboratories in physics, chemistry, biology, and environment. / சி.எஸ்.ஐ.ஆர் (அறிவியல் மற்றும் தொழில்துறை ஆராய்ச்சி மன்றம்) இந்தியாவின் மிகப்பெரிய அறிவியல் ஆராய்ச்சி அமைப்பாகும், இது இயற்பியல், வேதியியல், உயிரியல் மற்றும் சுற்றுச்சூழல் துறைகளில் 37 அதிநவீன ஆய்வகங்களை நடத்துகிறது.",
+    keyPoints: [
+      "Established in 1942, headquartered in New Delhi / 1942 இல் நிறுவப்பட்டது, தலைமையகம் புது தில்லியில் உள்ளது",
+      "Covers oceanography, geophysics, genomics, and chemical engineering / கடல்சார் அறிவியல், புவி இயற்பியல், மரபியல் மற்றும் வேதியியல் பொறியியல் ஆகியவற்றை உள்ளடக்கியது",
+      "CSIR labs developed India's first synthetic drug and first tractor (Swaraj) / சி.எஸ்.ஐ.ஆர் ஆய்வகங்கள் இந்தியாவின் முதல் செயற்கை மருந்து மற்றும் முதல் டிராக்டரை (ஸ்வராஜ்) உருவாக்கின",
+      "Helped map the first Indian Human Genome in 2009 / 2009 இல் முதல் இந்திய மனித மரபணுவை வரைபடமாக்க உதவியது",
+      "Directs intellectual property rights and patents for Indian scientists / இந்திய விஞ்ஞானிகளுக்கான அறிவுசார் சொத்துரிமை மற்றும் காப்புரிமைகளை வழிநடத்துகிறது"
+    ],
+    funFact: "The indelible ink marked on voters' fingers during elections in India was developed by CSIR-National Physical Laboratory! / இந்தியாவின் தேர்தல்களின் போது வாக்காளர்களின் விரல்களில் வைக்கப்படும் அழியாத மை சி.எஸ்.ஐ.ஆர் தேசிய இயற்பியல் ஆய்வகத்தால் உருவாக்கப்பட்டது!",
+    quiz: { 
+      question: "In which city is the CSIR headquarters located? / சி.எஸ்.ஐ.ஆர்-ன் தலைமையகம் எந்த நகரத்தில் உள்ளது?", 
+      options: ["New Delhi | புது தில்லி", "Mumbai | மும்பை", "Kolkata | கொல்கத்தா", "Chennai | சென்னை"], 
+      answer: "New Delhi | புது தில்லி" 
+    },
+  },
+  "Research bodies:BARC": {
+    title: "BARC | பாபா அணு ஆராய்ச்சி மையம்", emoji: "⚛️",
+    summary: "BARC (Bhabha Atomic Research Centre) based in Trombay, Mumbai is India's premier nuclear research facility, founded by Dr. Homi J. Bhabha to pioneer nuclear science and energy. / மும்பை டிராம்பேயில் அமைந்துள்ள பாபா அணு ஆராய்ச்சி மையம் (BARC) இந்தியாவின் முதன்மையான அணுசக்தி ஆராய்ச்சி நிலையமாகும், இது அணு அறிவியல் மற்றும் ஆற்றலுக்கு முன்னோடியாக டாக்டர் ஹோமி ஜே. பாபாவால் தொடங்கப்பட்டது.",
+    keyPoints: [
+      "Founded in 1954 as Atomic Energy Establishment Trombay (AEET) / 1954 இல் டிராம்பே அணுசக்தி நிறுவனமாகத் தொடங்கப்பட்டது",
+      "Designs and builds India's nuclear research reactors (Apsara, Dhruva, Cirus) / இந்தியாவின் அணு ஆராய்ச்சி உலைகளை (அப்சரா, துருவா, சைரஸ்) வடிவமைத்து உருவாக்குகிறது",
+      "Researches nuclear power generation, radioisotopes, agriculture, and waste management / அணுமின் உற்பத்தி, கதிரியக்க ஐசோடோப்புகள், விவசாயம் மற்றும் கழிவு மேலாண்மை ஆகியவற்றை ஆராய்கிறது",
+      "Helps manufacture key instruments for cancer radiation therapy (Bhabhatron) / புற்றுநோய் கதிர்வீச்சு சிகிச்சைக்கான முக்கியக் கருவிகளை (பாபாட்ரான்) தயாரிக்க உதவுகிறது",
+      "Trains engineers for India's nuclear weapons and power sectors / இந்தியாவின் அணுசக்தி மற்றும் அணு ஆயுதத் துறைகளுக்கான பொறியாளர்களுக்குப் பயிற்சி அளிக்கிறது"
+    ],
+    image: "/barc_reactor_diagram.png",
+    funFact: "BARC's Apsara (1956) was the first nuclear research reactor in all of Asia! / பாபா அணு ஆராய்ச்சி மையத்தின் அப்சரா (1956) ஒட்டுமொத்த ஆசியாவிலேயே முதல் அணு ஆராய்ச்சி உலை ஆகும்!",
+    quiz: { 
+      question: "Who founded India's premier nuclear research facility? / இந்தியாவின் முதன்மையான அணு ஆராய்ச்சி நிலையத்தை நிறுவியவர் யார்?", 
+      options: ["C.V. Raman | சி.வி.ராமன்", "Homi J. Bhabha | ஹோமி ஜே. பாபா", "APJ Abdul Kalam | ஏ.பி.ஜே. அப்துல் கலாம்", "Vikram Sarabhai | விக்ரம் சாராபாய்"], 
+      answer: "Homi J. Bhabha | ஹோமி ஜே. பாபா" 
+    },
   },
   "Research bodies:IITs": {
-    title: "IITs — Indian Institutes of Technology", emoji: "🎓",
-    summary: "IITs are premier autonomous public technical universities established by the Government of India to provide world-class engineering and science education.",
-    keyPoints: ["First IIT established at Kharagpur in 1951", "Currently 23 IITs across India", "Admission through JEE Advanced (one of world's toughest exams)", "IIT alumni lead top global tech companies (Google, Microsoft, etc.)", "IIT Madras: ranked #1 in India for engineering research consistently"],
-    funFact: "IIT Bombay's placement package record is over ₹3 crore per annum from international companies!",
-    quiz: { question: "Which was the first IIT established in India?", options: ["IIT Bombay", "IIT Delhi", "IIT Kharagpur", "IIT Madras"], answer: "IIT Kharagpur" },
+    title: "IITs | ஐஐடிகள் (தொழில்நுட்ப நிறுவனங்கள்)", emoji: "🎓",
+    summary: "IITs are premier autonomous public technical universities established by the Government of India to provide world-class engineering and science education. / ஐஐடிகள் என்பவை உலகத்தரம் வாய்ந்த பொறியியல் மற்றும் அறிவியல் கல்வியை வழங்குவதற்காக இந்திய அரசால் நிறுவப்பட்ட முதன்மையான தன்னாட்சி பொது தொழில்நுட்பப் பல்கலைக்கழகங்கள் ஆகும்.",
+    keyPoints: [
+      "First IIT established at Kharagpur in 1951 / முதல் ஐஐடி 1951 இல் காரக்பூரில் நிறுவப்பட்டது",
+      "Currently 23 IITs across India / தற்போது இந்தியா முழுவதும் 23 ஐஐடிகள் செயல்படுகின்றன",
+      "Admission through JEE Advanced (one of world's toughest exams) / ஜே.இ.இ அட்வான்ஸ்டு மூலம் சேர்க்கை (உலகின் கடினமான தேர்வுகளில் ஒன்று)",
+      "IIT alumni lead top global tech companies (Google, Microsoft, etc.) / ஐஐடி முன்னாள் மாணவர்கள் கூகுள், மைக்ரோசாப்ட் போன்ற உலகின் முன்னணி தொழில்நுட்ப நிறுவனங்களை வழிநடத்துகிறார்கள்",
+      "IIT Madras: ranked #1 in India for engineering research consistently / ஐஐடி மெட்ராஸ்: தொடர்ந்து இந்தியாவின் பொறியியல் ஆராய்ச்சியில் முதலிடத்தில் உள்ளது"
+    ],
+    funFact: "IIT Bombay's placement package record is over ₹3 crore per annum from international companies! / சர்வதேச நிறுவனங்களிடமிருந்து ஐஐடி பாம்பேயின் அதிகபட்ச வேலைவாய்ப்பு ஊதிய தொகுப்பு ஆண்டுக்கு 3 கோடி ரூபாய்க்கும் அதிகமாகும்!",
+    quiz: { 
+      question: "Which was the first IIT established in India? / இந்தியாவில் நிறுவப்பட்ட முதல் ஐஐடி எது?", 
+      options: ["IIT Bombay | ஐஐடி பாம்பே", "IIT Delhi | ஐஐடி டெல்லி", "IIT Kharagpur | ஐஐடி காரக்பூர்", "IIT Madras | ஐஐடி மெட்ராஸ்"], 
+      answer: "IIT Kharagpur | ஐஐடி காரக்பூர்" 
+    },
+  },
+  "Research bodies:ICMR": {
+    title: "ICMR | ஐ.சி.எம்.ஆர்", emoji: "🧪",
+    summary: "ICMR (Indian Council of Medical Research) is the apex body in India for the formulation, coordination, and promotion of biomedical research, helping improve public health. / ஐ.சி.எம்.ஆர் (இந்திய மருத்துவ ஆராய்ச்சி மன்றம்) என்பது இந்தியாவில் பயோமெடிக்கல் ஆராய்ச்சிகளை ஒருங்கிணைத்து மேம்படுத்தும் உச்சபட்ச அமைப்பாகும், இது பொது சுகாதாரத்தை மேம்படுத்த உதவுகிறது.",
+    keyPoints: [
+      "One of the oldest medical research bodies in the world (established 1911) / உலகின் பழமையான மருத்துவ ஆராய்ச்சி அமைப்புகளில் ஒன்றாகும் (1911 இல் தொடங்கப்பட்டது)",
+      "Coordinates research on infectious diseases (TB, Malaria, COVID-19) and nutrition / தொற்று நோய்கள் (காசநோய், மலேரியா, கோவிட்-19) மற்றும் ஊட்டச்சத்து ஆராய்ச்சிகளை ஒருங்கிணைக்கிறது",
+      "Runs National Institute of Virology (NIV) in Pune / புனேவில் உள்ள தேசிய வைராலஜி நிறுவனத்தை (NIV) இயக்குகிறது",
+      "Co-developed COVAXIN, India's first indigenous COVID-19 vaccine / இந்தியாவின் முதல் உள்நாட்டு கோவிட்-19 தடுப்பூசியான கோவாக்சினை இணைந்து உருவாக்கியது",
+      "Sets guidelines for clinical trials and medical ethics in India / இந்தியாவில் மருத்துவ பரிசோதனைகள் மற்றும் மருத்துவ ஒழுங்குமுறைகளுக்கான வழிகாட்டுதல்களை அமைக்கிறது"
+    ],
+    funFact: "ICMR was originally established as the Indian Research Fund Association (IRFA) in 1911 before being renamed in 1949! / ஐ.சி.எம்.ஆர் முதலில் 1911 இல் இந்திய ஆராய்ச்சி நிதிச் சங்கம் (IRFA) என்ற பெயரில் தொடங்கப்பட்டு பின்னர் 1949 இல் பெயர் மாற்றப்பட்டது!",
+    quiz: { 
+      question: "Which institute under ICMR isolated the COVID-19 virus strain to make COVAXIN? / கோவாக்சின் தயாரிக்க கோவிட்-19 வைரஸ் திரிபை தனிமைப்படுத்திய ஐ.சி.எம்.ஆர்-ன் கீழ் உள்ள நிறுவனம் எது?", 
+      options: ["National Institute of Virology | தேசிய வைராலஜி நிறுவனம்", "National Institute of Nutrition | தேசிய ஊட்டச்சத்து நிறுவனம்", "Tuberculosis Research Centre | காசநோய் ஆராய்ச்சி மையம்", "National AIDS Research Institute | தேசிய எய்ட்ஸ் ஆராய்ச்சி நிறுவனம்"], 
+      answer: "National Institute of Virology | தேசிய வைராலஜி நிறுவனம்" 
+    },
   },
 
   // ── SCIENTIST GALLERY ────────────────────────────────────────────────────────

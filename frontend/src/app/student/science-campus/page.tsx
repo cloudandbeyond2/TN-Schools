@@ -40,8 +40,8 @@ function CenterCard({ c }: { c: ScienceCenter }) {
   const inner = (
     <div className={`relative h-full bg-white/80 dark:bg-slate-800/70 backdrop-blur rounded-3xl p-5 border-2 border-slate-100 dark:border-slate-700 ${live ? a.ring + " hover:-translate-y-1 hover:shadow-xl" : "opacity-70"} transition-all flex flex-col`}>
       <div className="flex items-start justify-between mb-4">
-        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${a.grad} flex items-center justify-center text-white shadow-md`}>
-          <Icon className="w-6 h-6" />
+        <div className={`w-12 h-12 rounded-2xl ${a.soft} flex items-center justify-center ${a.text} border border-slate-100 dark:border-slate-700/50 shadow-sm`}>
+          <Icon className="w-6 h-6 stroke-[2.2]" />
         </div>
         {live
           ? <span className="text-[10px] font-black px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700">OPEN</span>
