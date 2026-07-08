@@ -86,8 +86,8 @@ export default function SyllabusUploadPage() {
         setError("Please select a PDF file");
         return;
       }
-      if (f.size > 50 * 1024 * 1024) {
-        setError("File size must be under 50 MB");
+      if (f.size > 150 * 1024 * 1024) {
+        setError("File size must be under 150 MB");
         return;
       }
       setFile(f);
@@ -365,7 +365,7 @@ export default function SyllabusUploadPage() {
                 <div className="flex flex-col items-center gap-2">
                   <span className="text-4xl opacity-40">📤</span>
                   <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Click to select a PDF file</p>
-                  <p className="text-xs text-slate-400">TN State Board textbook or syllabus document (max 50 MB)</p>
+                  <p className="text-xs text-slate-400">TN State Board textbook or syllabus document (max 150 MB)</p>
                 </div>
               )}
             </div>

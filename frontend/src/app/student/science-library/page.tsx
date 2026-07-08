@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { BookOpen, Search, FileText, Filter, Layers, ChevronRight } from "lucide-react";
 import { SCIENCE_BOOKS, ALL_CLASSES, ALL_SUBJECTS, type ScienceBook } from "@/data/scienceLibrary";
@@ -15,11 +16,22 @@ const SUBJECT_COLOR: Record<string, string> = {
 };
 
 export default function ScienceLibraryPage() {
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  const studentClass = user?.class ? parseInt(user.class) : null;
+
   const [cls, setCls] = useState<number | "all">("all");
   const [medium, setMedium] = useState<"all" | "Tamil" | "English">("all");
   const [subject, setSubject] = useState<string>("all");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<ScienceBook | null>(null);
+
+  // Default filter to student's own class when loaded
+  useEffect(() => {
+    if (studentClass && ALL_CLASSES.includes(studentClass)) {
+      setCls(studentClass);
+    }
+  }, [studentClass]);
 
   const books = useMemo(
     () =>
