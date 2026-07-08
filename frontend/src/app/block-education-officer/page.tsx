@@ -4,7 +4,7 @@ import React from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import PortalLayout from "@/components/PortalLayout";
-import { Building2, GraduationCap, CalendarCheck, TrendingDown, ArrowUpCircle, BookOpenCheck } from "lucide-react";
+import { Building2, GraduationCap, CalendarCheck, TrendingDown, ArrowUpCircle, BookOpenCheck, Trophy } from "lucide-react";
 import KpiCard from "@/components/kpi/KpiCard";
 import AcademicYearSelect from "@/components/kpi/AcademicYearSelect";
 import DistributionBar from "@/components/kpi/DistributionBar";
@@ -107,6 +107,28 @@ export default function BEODashboard() {
           ) : (
             <div className="text-xs text-slate-500">Loading…</div>
           )}
+        </div>
+      </div>
+
+      {/* Block Sports Participation Widget */}
+      <div className="glass rounded-2xl p-6 mb-6 fade-in-2 border border-slate-800">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-white flex items-center gap-2"><Trophy className="w-5 h-5 text-amber-500" /> Block Sports Participation</h2>
+          <span className="text-xs font-bold text-blue-400">Zone 4 Winner</span>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
+             <div className="text-2xl font-black text-white">1,250</div>
+             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Total Athletes</div>
+          </div>
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
+             <div className="text-2xl font-black text-emerald-400">45</div>
+             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">State Level Reps</div>
+          </div>
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
+             <div className="text-2xl font-black text-amber-400">120</div>
+             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">District Medals</div>
+          </div>
         </div>
       </div>
 
