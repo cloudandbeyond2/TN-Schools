@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import {
   FlaskConical, Atom, Dna, Wrench, Bug, Leaf, Globe, Rocket, HeartPulse,
@@ -60,15 +61,24 @@ function CenterCard({ c }: { c: ScienceCenter }) {
 }
 
 export default function ScienceCampusPage() {
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  const studentClass = parseInt(user?.class || "10");
+  const isHigherSecondary = studentClass >= 11;
+
   const [stream, setStream] = useState<Stream>("Science");
 
   // Load the saved group (shared with the sidebar).
   useEffect(() => {
-    const saved = localStorage.getItem("studentGroup") as Stream | null;
-    if (saved === "Science" || saved === "Commerce" || saved === "ComputerScience") {
-      setStream(saved);
+    if (isHigherSecondary) {
+      const saved = localStorage.getItem("studentGroup") as Stream | null;
+      if (saved === "Science" || saved === "Commerce" || saved === "ComputerScience") {
+        setStream(saved);
+      }
+    } else {
+      setStream("Science"); // Default to Science for general middle/high school
     }
-  }, []);
+  }, [isHigherSecondary]);
 
   const pickStream = (s: Stream) => {
     setStream(s);
@@ -77,7 +87,18 @@ export default function ScienceCampusPage() {
     window.dispatchEvent(new Event("studentGroupChange"));
   };
 
-  const visible = SCIENCE_CENTERS.filter((c) => c.streams.includes(stream));
+  const visible = SCIENCE_CENTERS.filter((c) => {
+    // Under Class 11, students don't have streams, so filter out specialized Commerce/CS modules
+    if (!isHigherSecondary) {
+      if (c.group === "Commerce" || c.group === "Computer Science" || c.group === "For Teachers") {
+        return false;
+      }
+      return c.streams.includes("Science");
+    }
+    // High Secondary students see stream-specific centers
+    return c.streams.includes(stream);
+  });
+
   const liveCount = visible.filter((c) => c.status === "live").length;
   const activeStream = STREAMS.find((s) => s.id === stream);
 
@@ -91,37 +112,43 @@ export default function ScienceCampusPage() {
           <div className="absolute right-24 bottom-0 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
           <div className="relative z-10 max-w-2xl">
             <span className="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider mb-3">
-              <Sparkles className="w-3.5 h-3.5" /> Classes 6-12 · Tamil & English
+              <Sparkles className="w-3.5 h-3.5" /> Class {studentClass} · Tamil & English
             </span>
-            <h2 className="text-3xl font-black mb-2">Welcome to your Science Campus</h2>
-            <p className="text-blue-50/90 text-sm font-medium leading-relaxed">
-              Every centre connects your Tamil Nadu textbooks to experiments, 3D models, research and quizzes.
-              {" "}{liveCount} centres are open for the {activeStream?.label} group.
-            </p>
+            <h2 className="text-3xl font-black text-white mb-2">
+  Welcome to your Science Campus
+</h2>
+
+<p className="text-white/90 text-sm font-medium leading-relaxed">
+  Every centre connects your Class {studentClass} textbooks to experiments, 3D models, research and quizzes.
+  {" "}
+  {liveCount} centers are open {isHigherSecondary ? `for the ${activeStream?.label} stream` : "for your class"}.
+</p>
           </div>
         </div>
 
-        {/* stream / group switcher */}
-        <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 border-2 border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center gap-3">
-          <span className="text-xs font-black uppercase tracking-wider text-slate-400 shrink-0">Your group</span>
-          <div className="flex flex-wrap gap-2">
-            {STREAMS.map((s) => {
-              const on = s.id === stream;
-              return (
-                <button key={s.id} onClick={() => pickStream(s.id)}
-                  className={`px-4 py-2 rounded-xl text-sm font-black transition-all border-2 ${on
-                    ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                    : "bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300"}`}>
-                  <span className="mr-1.5">{s.emoji}</span>{s.label}
-                  <span className="ml-1 hidden sm:inline text-[11px] font-bold opacity-70">· {s.labelTa}</span>
-                </button>
-              );
-            })}
+        {/* stream / group switcher - ONLY shown for Class 11-12 Higher Secondary students */}
+        {isHigherSecondary && (
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 border-2 border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center gap-3">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-400 shrink-0">Your group</span>
+            <div className="flex flex-wrap gap-2">
+              {STREAMS.map((s) => {
+                const on = s.id === stream;
+                return (
+                  <button key={s.id} onClick={() => pickStream(s.id)}
+                    className={`px-4 py-2 rounded-xl text-sm font-black transition-all border-2 ${on
+                      ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
+                      : "bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300"}`}>
+                    <span className="mr-1.5">{s.emoji}</span>{s.label}
+                    <span className="ml-1 hidden sm:inline text-[11px] font-bold opacity-70">· {s.labelTa}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <span className="sm:ml-auto text-[11px] font-bold text-slate-400">
+              Commerce & Computer Science students see a tailored set of centres.
+            </span>
           </div>
-          <span className="sm:ml-auto text-[11px] font-bold text-slate-400">
-            Commerce & Computer Science students see a tailored set of centres.
-          </span>
-        </div>
+        )}
 
         {/* grouped centers */}
         {CENTER_GROUPS.map((group) => {

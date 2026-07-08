@@ -1,6 +1,7 @@
 "use client";
 import PortalLayout from "@/components/PortalLayout";
 import KpiStrip from "@/components/kpi/KpiStrip";
+import { Trophy } from "lucide-react";
 
 
 const districts = [
@@ -40,6 +41,31 @@ export default function CommissionerDashboard() {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* State Sports & Wellness Widget */}
+      <div className="glass rounded-2xl p-6 mb-6 fade-in-2 border border-slate-800">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-white flex items-center gap-2"><Trophy className="w-5 h-5 text-amber-500" /> State Sports & Wellness Overview</h2>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
+             <div className="text-2xl font-black text-white">45,000+</div>
+             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Student Athletes</div>
+          </div>
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
+             <div className="text-2xl font-black text-amber-400">214</div>
+             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">National Medals</div>
+          </div>
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
+             <div className="text-2xl font-black text-emerald-400">86%</div>
+             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Avg Student BMI</div>
+          </div>
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
+             <div className="text-2xl font-black text-red-400">₹45Cr</div>
+             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Sports Budget Used</div>
+          </div>
         </div>
       </div>
 

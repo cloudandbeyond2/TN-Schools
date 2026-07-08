@@ -7,6 +7,18 @@ import Swal from "sweetalert2";
 import KpiStrip from "@/components/kpi/KpiStrip";
 
 // ─── Types ─────────────────────────────────────────────────────
+interface DailyClass {
+  id: string;
+  classRoomId: string;
+  className: string;
+  section: string;
+  subject: string;
+  period: number;
+  timeSlot: string;
+  status: 'Scheduled' | 'Completed' | 'Postponed';
+  notes: string;
+}
+
 interface ClassRoom {
   id: string;
   schoolId: string;
@@ -85,6 +97,17 @@ export default function ClassesPage() {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
+  // Daily Classes State
+  const [todayClasses, setTodayClasses] = useState<DailyClass[]>([]);
+  
+  // Modals State
+  const [notesModalOpen, setNotesModalOpen] = useState(false);
+  const [postponeModalOpen, setPostponeModalOpen] = useState(false);
+  const [selectedDailyClass, setSelectedDailyClass] = useState<DailyClass | null>(null);
+  const [tempNote, setTempNote] = useState("");
+  const [postponeReason, setPostponeReason] = useState("");
+  const [intimateHM, setIntimateHM] = useState(true);
+
   // ── Fetch ────────────────────────────────────────────────────
   const fetchClasses = useCallback(async () => {
     if (!schoolId) return;
@@ -101,6 +124,13 @@ export default function ClassesPage() {
       } catch (err) {
         console.error(err);
       }
+
+      // Mock fetching today's classes
+      setTodayClasses([
+        { id: '1', classRoomId: 'c1', className: '10', section: 'A', subject: 'Mathematics', period: 1, timeSlot: '09:00 AM - 09:45 AM', status: 'Scheduled', notes: '' },
+        { id: '2', classRoomId: 'c2', className: '9', section: 'B', subject: 'Science', period: 3, timeSlot: '11:00 AM - 11:45 AM', status: 'Scheduled', notes: '' }
+      ]);
+
     } catch (e) {
       console.error(e);
     } finally {
@@ -162,6 +192,34 @@ export default function ClassesPage() {
   const showToast = (msg: string, type: "success" | "error") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 4500);
+  };
+
+  // ── Daily Actions ────────────────────────────────────────────
+  const handleOpenNotes = (c: DailyClass) => {
+    setSelectedDailyClass(c);
+    setTempNote(c.notes);
+    setNotesModalOpen(true);
+  };
+
+  const handleSaveNotes = () => {
+    if (!selectedDailyClass) return;
+    setTodayClasses(prev => prev.map(tc => tc.id === selectedDailyClass.id ? { ...tc, notes: tempNote } : tc));
+    setNotesModalOpen(false);
+    showToast("Notes saved successfully!", "success");
+  };
+
+  const handleOpenPostpone = (c: DailyClass) => {
+    setSelectedDailyClass(c);
+    setPostponeReason("");
+    setIntimateHM(true);
+    setPostponeModalOpen(true);
+  };
+
+  const handleSavePostpone = () => {
+    if (!selectedDailyClass) return;
+    setTodayClasses(prev => prev.map(tc => tc.id === selectedDailyClass.id ? { ...tc, status: 'Postponed' } : tc));
+    setPostponeModalOpen(false);
+    showToast(`Class postponed.${intimateHM ? ' HM has been intimated.' : ''}`, "success");
   };
 
   // ── Open modal (add / edit) ──────────────────────────────────
@@ -329,6 +387,66 @@ export default function ClassesPage() {
           {toast.msg}
         </div>
       )}
+
+      {/* Today's Schedule & Actions */}
+      <div className="mb-6">
+        <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center mb-4">
+          <i className="fi fi-rr-calendar-day mr-2 text-amber-500"></i> Today's Schedule
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {todayClasses.map(tc => (
+            <div key={tc.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <div className={`text-[10px] px-2.5 py-1 rounded-full font-semibold inline-block mb-2 ${badgeClass(tc.subject)}`}>
+                    {tc.subject}
+                  </div>
+                  <h3 className="font-bold text-slate-800 dark:text-white text-sm">Class {tc.className} - {tc.section}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    <i className="fi fi-rr-clock-three mr-1"></i> Period {tc.period} ({tc.timeSlot})
+                  </p>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                  tc.status === 'Completed' ? "bg-emerald-100 text-emerald-700" :
+                  tc.status === 'Postponed' ? "bg-red-100 text-red-700" :
+                  "bg-amber-100 text-amber-700"
+                }`}>
+                  {tc.status}
+                </span>
+              </div>
+              
+              <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button 
+                  onClick={() => showToast("Redirecting to Attendance Module...", "success")}
+                  className="flex-1 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-600 border border-sky-200 rounded-lg text-xs font-bold transition-colors"
+                >
+                  <i className="fi fi-rr-users-alt mr-1"></i> Attendance
+                </button>
+                <button 
+                  onClick={() => handleOpenNotes(tc)}
+                  className="flex-1 py-1.5 bg-violet-50 hover:bg-violet-100 text-violet-600 border border-violet-200 rounded-lg text-xs font-bold transition-colors"
+                >
+                  <i className="fi fi-rr-document mr-1"></i> Notes
+                </button>
+                {tc.status !== 'Postponed' && tc.status !== 'Completed' && (
+                  <button 
+                    onClick={() => handleOpenPostpone(tc)}
+                    className="flex-none px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs font-bold transition-colors"
+                    title="Postpone Class"
+                  >
+                    <i className="fi fi-rr-calendar-xmark"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+          {todayClasses.length === 0 && (
+            <div className="col-span-full py-8 text-center bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+              <p className="text-slate-400 text-sm">No classes scheduled for today.</p>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -722,6 +840,89 @@ export default function ClassesPage() {
           </div>
         </div>
       )}
+      {/* ── Notes Modal ─────────────────────────────────── */}
+      {notesModalOpen && selectedDailyClass && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 px-6 py-4">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center">
+                <i className="fi fi-rr-document mr-2 text-violet-500"></i> Lesson Notes
+              </h3>
+              <button onClick={() => setNotesModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs px-2 py-1 rounded-lg">✕ Close</button>
+            </div>
+            <div className="p-6">
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Class {selectedDailyClass.className}-{selectedDailyClass.section} • {selectedDailyClass.subject}
+                </p>
+                <p className="text-[10px] text-slate-500">{selectedDailyClass.timeSlot}</p>
+              </div>
+              <textarea
+                rows={5}
+                value={tempNote}
+                onChange={(e) => setTempNote(e.target.value)}
+                placeholder="Write your lesson plan, topics covered, or notes here..."
+                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors resize-none"
+              />
+              <button
+                onClick={handleSaveNotes}
+                className="w-full mt-4 py-2.5 bg-violet-500 hover:bg-violet-600 text-white font-bold rounded-xl text-xs transition-colors shadow-md"
+              >
+                Save Notes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Postpone Modal ─────────────────────────────────── */}
+      {postponeModalOpen && selectedDailyClass && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 px-6 py-4">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center">
+                <i className="fi fi-rr-calendar-xmark mr-2 text-red-500"></i> Postpone Class
+              </h3>
+              <button onClick={() => setPostponeModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs px-2 py-1 rounded-lg">✕ Close</button>
+            </div>
+            <div className="p-6">
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Class {selectedDailyClass.className}-{selectedDailyClass.section} • {selectedDailyClass.subject}
+                </p>
+                <p className="text-[10px] text-slate-500">{selectedDailyClass.timeSlot}</p>
+              </div>
+              <div className="mb-4">
+                <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Reason for Postponement</label>
+                <input
+                  type="text"
+                  value={postponeReason}
+                  onChange={(e) => setPostponeReason(e.target.value)}
+                  placeholder="e.g., Unwell, Meeting scheduled..."
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-red-500 transition-colors"
+                />
+              </div>
+              <div className="mb-4 flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="intimateHM"
+                  checked={intimateHM}
+                  onChange={(e) => setIntimateHM(e.target.checked)}
+                  className="rounded text-red-500 focus:ring-red-500"
+                />
+                <label htmlFor="intimateHM" className="text-xs text-slate-700 dark:text-slate-300">Intimate HM about this postponement</label>
+              </div>
+              <button
+                onClick={handleSavePostpone}
+                className="w-full mt-2 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-xs transition-colors shadow-md"
+              >
+                Confirm Postponement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </PortalLayout>
   );
 }
