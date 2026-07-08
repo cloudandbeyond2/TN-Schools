@@ -572,50 +572,201 @@ export default function ScienceCenterPage() {
                     </div>
                   </div>
                 ) : (active.endsWith("Optics") || active.endsWith("Lens")) ? (
-                  /* 2. Lens Formula Calculator */
-                  <div className="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700">
-                    <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">Convex Lens Calculator (1/f = 1/v - 1/u)</p>
-                    <p className="text-xs text-slate-400 mb-4">Adjust focal length f and object distance u (virtual image properties).</p>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">Focal Length (f): {lensF} cm</label>
-                          <input 
-                            type="range" min="5" max="30" value={lensF} onChange={(e) => setLensF(Number(e.target.value))}
-                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
-                          />
+                  /* 2. Full Optics Learning Module */
+                  <div className="space-y-5">
+
+                    {/* Section intro */}
+                    <div className="p-4 bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-sky-950/30 dark:to-indigo-950/30 border border-sky-100 dark:border-sky-900/40 rounded-2xl">
+                      <p className="text-xs font-black uppercase tracking-wider text-sky-500 mb-1">📖 Class 10 Physics — Optics</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">Light, Reflection &amp; Refraction</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Optics is the branch of physics that studies the behaviour and properties of light. In Class 10 you study reflection (mirrors), refraction (lenses &amp; prism), the human eye and optical instruments like the microscope &amp; telescope.
+                      </p>
+                    </div>
+
+                    {/* Concept 1 — Refraction with diagram */}
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+                      <div className="px-5 pt-5 pb-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-indigo-500">Concept 1</span>
+                        <h4 className="text-sm font-black text-slate-800 dark:text-white mt-0.5">Refraction of Light &amp; Snell's Law</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                          Refraction is the bending of light as it passes from one medium to another with a different optical density. Light bends <strong>towards the normal</strong> when entering a denser medium.
+                        </p>
+                      </div>
+                      <img
+                        src="/refraction_snells_law.png"
+                        alt="Refraction of light and Snell's Law diagram"
+                        className="w-full object-contain max-h-56 bg-white px-4 pb-2"
+                      />
+                      <div className="px-5 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl">
+                          <p className="text-[10px] font-black text-indigo-500 uppercase mb-1">⚗️ Snell's Law</p>
+                          <code className="text-xs font-black text-indigo-700 dark:text-indigo-300">n₁ sin(i) = n₂ sin(r)</code>
+                          <p className="text-[10px] text-slate-400 mt-1">n = refractive index, i = angle of incidence, r = angle of refraction</p>
                         </div>
-                        <div>
-                          <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">Object Distance (u): {lensU} cm</label>
-                          <input 
-                            type="range" min="-100" max="-10" value={lensU} onChange={(e) => setLensU(Number(e.target.value))}
-                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
-                          />
+                        <div className="p-3 bg-sky-50 dark:bg-sky-950/30 rounded-xl">
+                          <p className="text-[10px] font-black text-sky-500 uppercase mb-1">📌 Refractive Index</p>
+                          <code className="text-xs font-black text-sky-700 dark:text-sky-300">n = Speed of light in vacuum / Speed in medium</code>
+                          <p className="text-[10px] text-slate-400 mt-1">Water: n≈1.33 &nbsp;|&nbsp; Glass: n≈1.5 &nbsp;|&nbsp; Diamond: n≈2.42</p>
                         </div>
                       </div>
-                      
-                      {/* Formula calculation: v = uf/(u+f) */}
-                      {(() => {
-                        const denom = lensU + lensF;
-                        const v = denom !== 0 ? (lensU * lensF) / denom : 0;
-                        const mag = denom !== 0 ? -v / lensU : 0;
-                        return (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border">
-                              <span className="text-[10px] text-slate-400 font-bold block uppercase">Image Distance (v)</span>
-                              <span className="text-base font-black text-sky-600 font-mono">
-                                {denom === 0 ? "Infinity" : `${v.toFixed(1)} cm`}
-                              </span>
+                    </div>
+
+                    {/* Concept 2 — Mirrors with diagram */}
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+                      <div className="px-5 pt-5 pb-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-rose-500">Concept 2</span>
+                        <h4 className="text-sm font-black text-slate-800 dark:text-white mt-0.5">Types of Mirrors</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                          A mirror reflects light. The three types — plane, concave and convex — form images differently depending on their shape and the object's position.
+                        </p>
+                      </div>
+                      <img
+                        src="/mirror_types_diagram.png"
+                        alt="Plane, concave and convex mirror ray diagram comparison"
+                        className="w-full object-contain max-h-56 bg-white px-4 pb-2"
+                      />
+                      <div className="px-5 pb-4">
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { type: "Plane Mirror", use: "Dressing mirrors, periscopes", image: "Virtual, erect, same size", color: "slate" },
+                            { type: "Concave Mirror", use: "Torch reflectors, solar heaters, shaving mirrors", image: "Real &amp; inverted (beyond F)", color: "sky" },
+                            { type: "Convex Mirror", use: "Vehicle rear-view mirrors, security mirrors", image: "Virtual, erect, diminished", color: "rose" },
+                          ].map(m => (
+                            <div key={m.type} className={`p-2.5 rounded-xl bg-${m.color}-50 dark:bg-${m.color}-950/30 border border-${m.color}-100 dark:border-${m.color}-900/40`}>
+                              <p className="text-[10px] font-black text-slate-700 dark:text-slate-200">{m.type}</p>
+                              <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight" dangerouslySetInnerHTML={{ __html: m.image }} />
+                              <p className="text-[9px] text-emerald-600 dark:text-emerald-400 mt-1 leading-tight font-medium" dangerouslySetInnerHTML={{ __html: `✦ ${m.use}` }} />
                             </div>
-                            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border">
-                              <span className="text-[10px] text-slate-400 font-bold block uppercase">Magnification (m)</span>
-                              <span className="text-base font-black text-sky-600 font-mono">
-                                {denom === 0 ? "Infinite" : `${mag.toFixed(2)}x`}
-                              </span>
+                          ))}
+                        </div>
+                        <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-100 dark:border-amber-900/40">
+                          <code className="text-xs font-black text-amber-700 dark:text-amber-300">Mirror Formula: 1/f = 1/v + 1/u &nbsp;|&nbsp; Magnification m = -v/u</code>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Concept 3 — Lenses with diagram */}
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+                      <div className="px-5 pt-5 pb-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-emerald-500">Concept 3</span>
+                        <h4 className="text-sm font-black text-slate-800 dark:text-white mt-0.5">Convex &amp; Concave Lenses — Ray Diagrams</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                          A lens refracts light using two curved surfaces. Convex lenses converge light (used in magnifying glasses &amp; cameras); concave lenses diverge light (used to correct short-sightedness).
+                        </p>
+                      </div>
+                      <img
+                        src="/optics_ray_diagram.png"
+                        alt="Convex lens ray diagram showing focal point and image formation"
+                        className="w-full object-contain max-h-56 bg-white px-4 pb-2"
+                      />
+                      <div className="px-5 pb-4 space-y-3">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-[10px] text-slate-600 dark:text-slate-300">
+                            <thead>
+                              <tr className="bg-emerald-50 dark:bg-emerald-950/30">
+                                <th className="text-left p-2 font-black text-emerald-700 dark:text-emerald-400 rounded-l-lg">Object Position</th>
+                                <th className="text-left p-2 font-black text-emerald-700 dark:text-emerald-400">Image Position</th>
+                                <th className="text-left p-2 font-black text-emerald-700 dark:text-emerald-400 rounded-r-lg">Nature &amp; Size</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                              {[
+                                ["At infinity", "At F₂", "Real, inverted, highly diminished"],
+                                ["Beyond 2F₁", "Between F₂ and 2F₂", "Real, inverted, diminished"],
+                                ["At 2F₁", "At 2F₂", "Real, inverted, same size"],
+                                ["Between F₁ and 2F₁", "Beyond 2F₂", "Real, inverted, enlarged"],
+                                ["At F₁", "At infinity", "Real, inverted, highly enlarged"],
+                                ["Between F₁ and O", "Same side as object", "Virtual, erect, enlarged"],
+                              ].map(([pos, img, nat], i) => (
+                                <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                                  <td className="p-2 font-medium">{pos}</td>
+                                  <td className="p-2">{img}</td>
+                                  <td className="p-2 font-medium text-sky-600 dark:text-sky-400">{nat}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900/40">
+                          <code className="text-xs font-black text-indigo-700 dark:text-indigo-300">Lens Formula: 1/f = 1/v − 1/u &nbsp;|&nbsp; Power P = 1/f (in metres), unit: Dioptre (D)</code>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Interactive Lens Calculator */}
+                    <div className="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-sky-500 mb-1">🔬 Lab Exercise</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">Convex Lens Calculator (1/f = 1/v − 1/u)</p>
+                      <p className="text-xs text-slate-400 mb-4">Adjust focal length f and object distance u to find the image position and magnification.</p>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">Focal Length (f): {lensF} cm</label>
+                            <input
+                              type="range" min="5" max="30" value={lensF} onChange={(e) => setLensF(Number(e.target.value))}
+                              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">Object Distance (u): {lensU} cm</label>
+                            <input
+                              type="range" min="-100" max="-10" value={lensU} onChange={(e) => setLensU(Number(e.target.value))}
+                              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                            />
+                          </div>
+                        </div>
+                        {(() => {
+                          const denom = lensU + lensF;
+                          const v = denom !== 0 ? (lensU * lensF) / denom : 0;
+                          const mag = denom !== 0 ? -v / lensU : 0;
+                          const power = (1 / (lensF / 100)).toFixed(2);
+                          const imageType = v > 0 ? "Real & Inverted" : "Virtual & Erect";
+                          return (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                              <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border text-center">
+                                <span className="text-[10px] text-slate-400 font-bold block uppercase">Image Distance (v)</span>
+                                <span className="text-base font-black text-sky-600 font-mono">{denom === 0 ? "∞" : `${v.toFixed(1)} cm`}</span>
+                              </div>
+                              <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border text-center">
+                                <span className="text-[10px] text-slate-400 font-bold block uppercase">Magnification (m)</span>
+                                <span className="text-base font-black text-sky-600 font-mono">{denom === 0 ? "∞" : `${mag.toFixed(2)}×`}</span>
+                              </div>
+                              <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border text-center">
+                                <span className="text-[10px] text-slate-400 font-bold block uppercase">Power (D)</span>
+                                <span className="text-base font-black text-emerald-600 font-mono">{power} D</span>
+                              </div>
+                              <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border text-center">
+                                <span className="text-[10px] text-slate-400 font-bold block uppercase">Image Type</span>
+                                <span className="text-xs font-black text-purple-600">{denom === 0 ? "At ∞" : imageType}</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Applications card */}
+                    <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-100 dark:border-amber-900/40">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-amber-500 mb-2">🌟 Real-World Applications</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {[
+                          { icon: "👁️", name: "Human Eye", desc: "Converging lens (cornea + eye lens)" },
+                          { icon: "🔭", name: "Telescope", desc: "Objective + eyepiece convex lenses" },
+                          { icon: "🔬", name: "Microscope", desc: "Two convex lenses for magnification" },
+                          { icon: "📷", name: "Camera", desc: "Convex lens focuses light on sensor" },
+                          { icon: "🕶️", name: "Spectacles", desc: "Concave (myopia), convex (hyperopia)" },
+                          { icon: "💡", name: "Projector", desc: "Convex lens for enlarged real image" },
+                        ].map(a => (
+                          <div key={a.name} className="flex items-start gap-2 p-2 bg-white/60 dark:bg-slate-800/40 rounded-xl">
+                            <span className="text-base mt-0.5">{a.icon}</span>
+                            <div>
+                              <p className="text-[10px] font-black text-slate-700 dark:text-slate-200">{a.name}</p>
+                              <p className="text-[9px] text-slate-400 leading-tight">{a.desc}</p>
                             </div>
                           </div>
-                        );
-                      })()}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ) : (
