@@ -882,7 +882,6 @@ export default function CentralLearningHubAdmin() {
                   </button>
                 </div>
                 
-                {/* AI Syllabus Scanner */}
                 <div className="relative border border-dashed border-indigo-500/25 hover:border-indigo-400/50 bg-indigo-950/10 hover:bg-indigo-950/20 rounded-xl p-2.5 transition-all flex items-center justify-center gap-2 cursor-pointer group">
                   <input
                     type="file"
@@ -893,7 +892,7 @@ export default function CentralLearningHubAdmin() {
                   />
                   <span className="text-sm select-none">🤖</span>
                   <span className="text-[10px] font-bold text-indigo-400 group-hover:text-indigo-300 uppercase tracking-wide select-none">
-                    {parsingSyllabus ? "Mapping Units & Subunits..." : "AI Syllabus Scanner (Units & Subunits)"}
+                    {parsingSyllabus ? "Processing Syllabus..." : "Upload image or screenshot to load syllabus units & subunits"}
                   </span>
                 </div>
 
@@ -1138,22 +1137,41 @@ export default function CentralLearningHubAdmin() {
                             </div>
                           </div>
 
-                          <div className="text-[11px] text-slate-400 bg-slate-950/60 rounded-xl p-3 border border-slate-900/60 flex flex-col gap-1.5">
+                           <div className="text-[11px] bg-slate-950/60 rounded-xl p-3 border border-slate-900/60 flex flex-col gap-1.5" style={{ color: 'rgba(255, 255, 255, 0.75)' }}>
                             {item.fileUrl && (
-                              <p className="truncate">
-                                🔗 Link: <a href={`${API_URL}${item.fileUrl}`} target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline">{API_URL}{item.fileUrl}</a>
+                              <p className="truncate flex items-center gap-1 flex-wrap">
+                                <span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>🔗 Link:</span>
+                                {item.fileUrl.startsWith("data:") ? (
+                                  <a
+                                    href={item.fileUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-indigo-400 hover:text-indigo-350 transition-all font-bold px-2.5 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-lg text-[10px] inline-flex items-center gap-1 shadow-sm active:scale-95 cursor-pointer ml-1"
+                                  >
+                                    <span>🎨</span> View Infographic Card
+                                  </a>
+                                ) : (
+                                  <a
+                                    href={item.fileUrl.startsWith("http") ? item.fileUrl : `${API_URL}${item.fileUrl}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-indigo-400 hover:text-indigo-350 hover:underline transition-colors ml-1 font-semibold"
+                                  >
+                                    {item.fileUrl.startsWith("http") ? item.fileUrl : `${API_URL}${item.fileUrl}`}
+                                  </a>
+                                )}
                               </p>
                             )}
                             {item.fileContent && (
-                              <div className="whitespace-pre-line max-h-[100px] overflow-y-auto text-slate-300">
+                              <div className="whitespace-pre-line max-h-[100px] overflow-y-auto font-medium" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                                 {item.fileContent.length > 200 
                                   ? `${item.fileContent.slice(0, 200)}...` 
                                   : item.fileContent
                                 }
                               </div>
                             )}
-                            <div className="flex justify-between items-center text-[10px] text-slate-500 border-t border-slate-900/80 pt-1.5 mt-0.5">
-                              <span>Uploaded by: <strong className="text-slate-300">{item.uploader || "Admin"}</strong> ({item.uploaderRole || "SUPERADMIN"})</span>
+                            <div className="flex justify-between items-center text-[10px] border-t border-slate-900/80 pt-1.5 mt-0.5" style={{ color: 'rgba(255, 255, 255, 0.45)' }}>
+                              <span>Uploaded by: <strong style={{ color: 'rgba(255, 255, 255, 0.85)' }}>{item.uploader || "Admin"}</strong> ({item.uploaderRole || "SUPERADMIN"})</span>
                               <span>{new Date(item.createdAt).toLocaleDateString()}</span>
                             </div>
                           </div>

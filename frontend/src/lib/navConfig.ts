@@ -108,6 +108,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#6366f1",
     navItems: [
       { label: "Portal Home", href: "/student", icon: "Home" },
+      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
@@ -126,9 +127,11 @@ export const roleConfigs: Record<string, PortalConfig> = {
     navItems: [
       { label: "Dashboard", href: "/student/middle-school", icon: "Home" },
 
+
       // ── Academics & Subjects ──────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
+      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
@@ -210,6 +213,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Academics & Subjects ──────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
+      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
@@ -290,6 +294,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Academics & Subjects ──────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
+      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
