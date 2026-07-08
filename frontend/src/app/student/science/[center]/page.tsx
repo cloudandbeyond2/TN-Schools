@@ -351,7 +351,7 @@ export default function ScienceCenterPage() {
           </div>
           {badge && (
             <span className="inline-flex items-center gap-1 mt-3 text-xs font-black px-3 py-1.5 rounded-lg bg-amber-500 text-white">
-              <Award className="w-3.5 h-3.5" /> {lang === "EN" ? `${center.title} Explorer!` : `${lang === "EN" ? center.title : (center.titleTa || center.title)} ஆய்வாளர்!`}
+              <Award className="w-3.5 h-3.5" /> {lang === "EN" ? `${center.title} Explorer!` : `${center.titleTa || center.title} ஆய்வாளர்!`}
             </span>
           )}
         </div>

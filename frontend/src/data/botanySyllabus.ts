@@ -12,7 +12,7 @@ export type BotanyGrade = ZoologyGrade;
 const grade8: BotanyGrade = {
   grade: 8,
   label: "Class 8 · Science | 8-ஆம் வகுப்பு · அறிவியல்",
-  medium: "Tamil | தமிழ்",
+  medium: "Tamil",
   book: "Class 8 Science (Tamil) | 8-ஆம் வகுப்பு அறிவியல் (தமிழ்)",
   intro: "In Class 8 botany we explore the plant world — how plants are grouped, how they make their own food, and how we grow crops to feed everyone. / 8-ஆம் வகுப்பு தாவரவியலில் நாம் தாவர உலகத்தை ஆராய்வோம் - தாவரங்கள் எவ்வாறு வகைப்படுத்தப்படுகின்றன, அவை எவ்வாறு தங்கள் உணவை தயாரிக்கின்றன, மற்றும் அனைவருக்கும் உணவளிக்க பயிர்களை எவ்வாறு வளர்க்கிறோம்.",
   units: [
@@ -112,7 +112,7 @@ const grade8: BotanyGrade = {
 const grade10: BotanyGrade = {
   grade: 10,
   label: "Class 10 · Science | 10-ஆம் வகுப்பு · அறிவியல்",
-  medium: "English | ஆங்கிலம்",
+  medium: "English",
   book: "Class 10 Science (English) | 10-ஆம் வகுப்பு அறிவியல் (ஆங்கிலம்)",
   intro: "Class 10 botany covers how plants feed, transport materials, respond with hormones and reproduce. Work each unit's objectives, diagram and quiz to prepare for the board exam. / 10-ஆம் வகுப்பு தாவரவியல் தாவரங்களின் உணவு தயாரிப்பு, சுழற்சி முறை, ஹார்மோன்கள் மற்றும் இனப்பெருக்கம் ஆகியவற்றை உள்ளடக்கியது.",
   units: [
@@ -211,7 +211,7 @@ const grade10: BotanyGrade = {
 const grade11: BotanyGrade = {
   grade: 11,
   label: "Class 11 · Bio-Botany | 11-ஆம் வகுப்பு · உயிரி-தாவரவியல்",
-  medium: "Tamil | தமிழ்",
+  medium: "Tamil",
   book: "Class 11 Bio-Botany (Tamil) | 11-ஆம் வகுப்பு உயிரி-தாவரவியல் (தமிழ்)",
   intro: "Class 11 Botany builds strong plant-science fundamentals — classification, structure, and how plants function — for board and NEET success. / 11-ஆம் வகுப்பு தாவரவியல் பாடப்பிரிவு வகைப்பாடு, தாவர உடலமைப்பு மற்றும் அதன் பணிகளை விளக்குகிறது.",
   units: [

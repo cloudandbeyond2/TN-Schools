@@ -676,7 +676,9 @@ export default function CareerGuidancePage() {
                 {recommendedCareers.map(career => (
                   <div key={career.id} className="bg-white dark:bg-slate-800 rounded-3xl border-2 border-slate-100 dark:border-slate-700 p-5 shadow-sm text-left">
                     <div className="flex items-center gap-4 mb-4">
-                      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${career.grad} flex items-center justify-center text-2xl shadow-md`}>{career.icon}</div>
+                      <div className="w-14 h-14 flex items-center justify-center shrink-0">
+                        <FlatIcon name={career.id} className="w-14 h-14" />
+                      </div>
                       <div>
                         <h3 className="text-sm font-black text-slate-800 dark:text-white">{t(career.title)}</h3>
                         <p className="text-xs text-slate-500 font-medium">{t(career.path)}</p>

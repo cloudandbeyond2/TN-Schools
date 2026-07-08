@@ -105,7 +105,7 @@ export default function BotanyCentrePage() {
           <Leaf className="absolute right-6 top-1/2 -translate-y-1/2 w-40 h-40 opacity-10" />
           <div className="relative z-10 max-w-3xl">
             <span className="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider mb-3">
-              <Sparkles className="w-3.5 h-3.5" /> {t(data.label)} · {t(data.medium)} {lang === "EN" ? "medium" : "வழி"}
+              <Sparkles className="w-3.5 h-3.5" /> {t(data.label)} · {data.medium === "Tamil" ? (lang === "EN" ? "Tamil" : "தமிழ்") : (lang === "EN" ? "English" : "ஆங்கிலம்")} {lang === "EN" ? "medium" : "வழி"}
             </span>
             <h2 className="text-2xl font-black mb-2">{t(data.book)}</h2>
             <p className="text-lime-50/90 text-sm font-medium leading-relaxed">{t(data.intro)}</p>
