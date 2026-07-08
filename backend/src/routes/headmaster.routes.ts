@@ -32,6 +32,13 @@ function parseClassSection(classStr: string) {
   return { classVal: clean || '10', sectionVal: 'A' };
 }
 
+// Helper to parse date safely
+function parseDob(dobStr: any) {
+  if (!dobStr || dobStr === 'null' || dobStr === 'undefined' || String(dobStr).trim() === '') return null;
+  const d = new Date(dobStr);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 // GET /api/headmaster/students — List all students for a school
 router.get('/students', async (req: Request, res: Response) => {
   try {
@@ -106,7 +113,7 @@ router.post('/students', async (req: Request, res: Response) => {
           rollNumber: cleanRoll,
           admissionNumber,
           emisNumber,
-          dob: dob ? new Date(dob) : null,
+          dob: parseDob(dob),
           gender,
           bloodGroup,
           religion,
@@ -131,7 +138,7 @@ router.post('/students', async (req: Request, res: Response) => {
         }
       });
 
-      if (parentEmail) {
+      if (parentEmail && parentEmail.trim() !== '') {
         // Check if parent user already exists in PostgreSQL
         const parentWhereConditions: any[] = [
           { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
@@ -271,7 +278,7 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
             group,
             admissionNumber,
             emisNumber,
-            dob: dob ? new Date(dob) : null,
+            dob: parseDob(dob),
             gender,
             bloodGroup,
             religion,
@@ -296,7 +303,7 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
           }
         });
 
-        if (parentEmail) {
+        if (parentEmail && parentEmail.trim() !== '') {
           // Check if parent user already exists in PostgreSQL
           let parentUser = await tx.user.findFirst({
             where: { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
@@ -401,7 +408,7 @@ router.put('/students/:id', async (req: Request, res: Response) => {
         emisNumber,
         class: classVal,
         section: section || student.section,
-        dob: dob ? new Date(dob) : null,
+        dob: parseDob(dob),
         gender,
         bloodGroup,
         religion,
