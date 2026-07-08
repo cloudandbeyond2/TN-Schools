@@ -11,6 +11,7 @@ export type TopicContent = {
   keyPoints: string[];       // 4-6 bullet facts
   formula?: string;          // optional formula string
   funFact: string;
+  image?: string;            // optional path to image
   quiz: {
     question: string;
     options: string[];
@@ -156,6 +157,20 @@ export const CENTER_CONTENT: Record<string, TopicContent> = {
     funFact: "A day on Venus is longer than a year on Venus — it rotates so slowly!",
     quiz: { question: "Which planet is known as the Red Planet?", options: ["Mercury", "Venus", "Mars", "Jupiter"], answer: "Mars" },
   },
+  "Our neighbourhood:Moon": {
+    title: "The Moon", emoji: "🌙",
+    summary: "The Moon is Earth's only natural satellite. It orbits Earth every 27.3 days and is responsible for oceanic tides through its gravitational pull.",
+    keyPoints: [
+      "Orbits Earth in a synchronous rotation, meaning we always see the same side",
+      "Gravitational pull causes high and low tides in Earth's oceans",
+      "Has no atmosphere, which means there is no wind, weather, or liquid water",
+      "Surface is covered in craters created by asteroid impacts",
+      "Lunar phases (New, Crescent, Quarter, Gibbous, Full) depend on its position relative to Earth and Sun",
+    ],
+    image: "/moon_phases_diagram.png",
+    funFact: "Because the Moon has no atmosphere or wind, the footprints left by Apollo astronauts will stay there forever!",
+    quiz: { question: "How long does it take the Moon to complete one orbit around Earth?", options: ["24 hours", "27.3 days", "365 days", "30 days"], answer: "27.3 days" },
+  },
   "Exploration:ISRO Missions": {
     title: "ISRO Missions", emoji: "🇮🇳",
     summary: "ISRO (Indian Space Research Organisation) has achieved major milestones: Chandrayaan Moon missions, Mangalyaan Mars mission, and commercial satellite launches.",
@@ -170,12 +185,79 @@ export const CENTER_CONTENT: Record<string, TopicContent> = {
     funFact: "There are more stars in the universe than grains of sand on all of Earth's beaches combined!",
     quiz: { question: "What process produces energy in a star?", options: ["Nuclear fission", "Nuclear fusion", "Combustion", "Photosynthesis"], answer: "Nuclear fusion" },
   },
+  "Deep space:Galaxy": {
+    title: "Galaxies", emoji: "🌌",
+    summary: "A galaxy is a massive gravitationally bound system consisting of stars, stellar remnants, interstellar gas, dust, and dark matter.",
+    keyPoints: [
+      "Classified into three main types: Spiral, Elliptical, and Irregular",
+      "Our Solar System is located in the Orion Arm of the Milky Way, a barred spiral galaxy",
+      "Andromeda is the closest spiral galaxy to the Milky Way, located 2.5 million light-years away",
+      "Most galaxies are thought to have a supermassive black hole at their centers",
+      "Galaxies are grouped into clusters; the Milky Way is in the Local Group",
+    ],
+    image: "/galaxy_types_diagram.png",
+    funFact: "The Milky Way is spinning at 270 km/s, but it still takes about 230 million years to make one full rotation!",
+    quiz: { question: "What type of galaxy is the Milky Way?", options: ["Elliptical", "Spiral", "Irregular", "Lenticular"], answer: "Spiral" },
+  },
   "Deep space:Black Hole": {
     title: "Black Holes", emoji: "🕳️",
     summary: "A black hole is a region of space where gravity is so strong that nothing — not even light — can escape. They form from the collapsed cores of massive stars.",
     keyPoints: ["Formed when a massive star collapses at the end of its life", "Event horizon: the point of no return", "Singularity: the point of infinite density at the centre", "Supermassive black holes exist at the centre of most galaxies", "First black hole image captured in 2019 (M87*)"],
     funFact: "The supermassive black hole at the centre of the Milky Way (Sagittarius A*) is 4 million times the mass of the Sun!",
     quiz: { question: "What is the boundary around a black hole from which nothing can escape?", options: ["Singularity", "Event horizon", "Photon sphere", "Accretion disk"], answer: "Event horizon" },
+  },
+  "Exploration:Satellite": {
+    title: "Satellites", emoji: "🛰️",
+    summary: "A satellite is any object that orbits a larger celestial body. Artificial satellites are launched into orbit to assist with communications, weather monitoring, and scientific research.",
+    keyPoints: [
+      "First artificial satellite was Sputnik 1, launched by the USSR in 1957",
+      "Geostationary satellites orbit at 35,786 km and stay fixed above the same point on Earth",
+      "Low Earth Orbit (LEO) satellites are closer (160–2,000 km) and move fast — e.g. ISS, Starlink",
+      "Aryabhata was India's first satellite, launched in 1975",
+      "Key uses: global positioning (GPS/NavIC), weather forecasting, TV, and military intelligence",
+    ],
+    funFact: "There are currently over 8,000 active artificial satellites orbiting the Earth, along with millions of pieces of space junk!",
+    quiz: { question: "What was the name of India's first artificial satellite, launched in 1975?", options: ["Rohini", "INSAT-1A", "Aryabhata", "GSAT-1"], answer: "Aryabhata" },
+  },
+  "Exploration:Rocket": {
+    title: "Rockets", emoji: "🚀",
+    summary: "A rocket is a spacecraft propelled by the reaction of escaping exhaust gases. Multi-stage rockets shed spent fuel tanks as they ascend to reach orbital velocity.",
+    keyPoints: [
+      "Operate on Newton's Third Law of Motion: action and reaction",
+      "Carry both fuel and an oxidizer (oxygen) because there is no air in space",
+      "Multi-stage rockets drop empty stages during ascent to reduce weight",
+      "Solid fuel rockets provide massive thrust but cannot be turned off; liquid fuel can be controlled",
+      "India's LVM3 (GSLV Mk III) is ISRO's heaviest rocket, used to launch Chandrayaan-3",
+    ],
+    image: "/rocket_stages_diagram.png",
+    funFact: "To escape Earth's gravity and reach orbit, a rocket must travel at approximately 28,000 km/h (escape velocity is 40,270 km/h)!",
+    quiz: { question: "Which physical law explains how a rocket generates thrust?", options: ["Newton's First Law", "Newton's Third Law", "Kepler's Second Law", "Law of Gravitation"], answer: "Newton's Third Law" },
+  },
+  "Exploration:Space Missions": {
+    title: "Space Missions", emoji: "👨‍🚀",
+    summary: "Space missions explore other bodies in our solar system and beyond. Key human missions include the Apollo Moon landings, the International Space Station, and future Mars projects.",
+    keyPoints: [
+      "Apollo 11 (1969): Neil Armstrong and Buzz Aldrin become first humans on the Moon",
+      "International Space Station (ISS): habitable lab orbiting Earth since 1998",
+      "Voyager 1 & 2 (1977): entered interstellar space, carrying the Golden Record",
+      "Gaganyaan: India's upcoming manned space mission to send 3 astronauts to LEO",
+      "Artemis program: NASA's plan to land the next humans (including first woman) on the Moon",
+    ],
+    funFact: "Voyager 1 is the farthest human-made object from Earth — currently over 24 billion km away and still transmitting data!",
+    quiz: { question: "Which upcoming mission is India's first crewed spaceflight program?", options: ["Chandrayaan-4", "Gaganyaan", "Aditya-L1", "Shukrayaan"], answer: "Gaganyaan" },
+  },
+  "Exploration:Interactive Universe": {
+    title: "Interactive Universe", emoji: "🌠",
+    summary: "The observable universe is vast, containing trillions of galaxies. Exploring the cosmos interactively helps students visualize scale, light travel time, and cosmic coordinates.",
+    keyPoints: [
+      "Observable universe has a diameter of about 93 billion light-years",
+      "Cosmic Microwave Background (CMB) is the remnant heat of the Big Bang",
+      "The universe is expanding at an accelerating rate due to Dark Energy",
+      "Light year: distance light travels in one year (~9.46 trillion km)",
+      "Looking far into space is looking back in time due to the speed of light limits",
+    ],
+    funFact: "If you rode a beam of light, it would take you 8 minutes to reach the Sun, but 100,000 years to cross the Milky Way!",
+    quiz: { question: "What is a light-year a measure of?", options: ["Time", "Speed", "Distance", "Brightness"], answer: "Distance" },
   },
 
   // ── DNA & CELL EXPLORER ──────────────────────────────────────────────────────

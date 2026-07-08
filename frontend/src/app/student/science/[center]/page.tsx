@@ -827,7 +827,14 @@ export default function ScienceCenterPage() {
                     <p className="text-xs text-slate-400 font-medium">{groupHeading}</p>
                   </div>
                 </div>
-                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">{content.summary}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium mb-4">{content.summary}</p>
+                {content.image && (
+                  <img
+                    src={content.image}
+                    alt={content.title}
+                    className="w-full object-contain max-h-56 bg-white border rounded-2xl p-3 mb-2"
+                  />
+                )}
               </div>
 
               {/* Key Points */}
