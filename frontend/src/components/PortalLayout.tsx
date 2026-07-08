@@ -659,15 +659,15 @@ export default function PortalLayout({
           <div className="flex gap-3 w-full pt-3">
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
-              className="flex-1 py-2.5 rounded-xl border border-[var(--border-light)] text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)] transition-all"
+              className="flex-1 py-2.5 rounded-xl border border-[var(--border-light)] text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)] transition-all flex items-center justify-center gap-2"
             >
-              🚪 Sign Out
+              <LogOut size={16} /> Sign Out
             </button>
             <Link
               href={defaultDest}
-              className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-xs font-semibold text-slate-950 transition-all block text-center"
+              className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-xs font-semibold text-slate-950 transition-all flex items-center justify-center gap-2 text-center"
             >
-              🏠 My Dashboard
+              <i className="fi fi-rr-home"></i> My Dashboard
             </Link>
           </div>
         </div>
@@ -778,7 +778,7 @@ export default function PortalLayout({
             onClick={() => signOut({ callbackUrl: "/" })}
             className="sidebar-item text-[var(--text-muted)] hover:text-red-500 text-left w-full flex items-center gap-2"
           >
-            <span className="text-lg opacity-80">🚪</span>
+            <LogOut size={18} className="opacity-80" />
             <span>{t.signOut}</span>
           </button>
         </div>

@@ -333,10 +333,10 @@ export default function ClassesPage() {
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Classes", value: classes.length, icon: "🏫", color: "text-amber-500" },
-          { label: "Active Classes", value: activeCount, icon: "✅", color: "text-emerald-500" },
-          { label: "Total Students", value: totalStudents, icon: "🎓", color: "text-violet-500" },
-          { label: "Subjects Taught", value: uniqueSubjects.length, icon: "📚", color: "text-sky-500" },
+          { label: "Total Classes", value: classes.length, icon: <i className="fi fi-rr-building"></i>, color: "text-amber-500" },
+          { label: "Active Classes", value: activeCount, icon: <i className="fi fi-rr-check-circle"></i>, color: "text-emerald-500" },
+          { label: "Total Students", value: totalStudents, icon: <i className="fi fi-rr-graduation-cap"></i>, color: "text-violet-500" },
+          { label: "Subjects Taught", value: uniqueSubjects.length, icon: <i className="fi fi-rr-book-alt"></i>, color: "text-sky-500" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
             <div className="flex items-center justify-between mb-1">
@@ -352,7 +352,7 @@ export default function ClassesPage() {
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 mb-5 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm font-bold text-slate-800 dark:text-white">📋 Class Directory</h2>
+            <h2 className="text-sm font-bold text-slate-800 dark:text-white"><i className="fi fi-rr-clipboard mr-2 text-amber-500"></i>Class Directory</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Create and manage all your assigned class sections stored in PostgreSQL.
             </p>
@@ -391,7 +391,7 @@ export default function ClassesPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-          <span className="text-5xl block mb-4">🏫</span>
+          <span className="text-5xl block mb-4 text-slate-300 dark:text-slate-700"><i className="fi fi-rr-building"></i></span>
           <h3 className="text-sm font-bold text-slate-700 dark:text-white mb-2">
             {classes.length === 0 ? "No Classes Created Yet" : "No Matching Classes Found"}
           </h3>
@@ -507,7 +507,7 @@ export default function ClassesPage() {
                       <td className="px-5 py-3.5 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
                         {c.roomNumber ? (
                           <span className="inline-flex items-center gap-1.5">
-                            <span className="text-sm">🚪</span>
+                            <i className="fi fi-rr-door-open text-sm"></i>
                             <span>{c.roomNumber}</span>
                           </span>
                         ) : (
@@ -519,7 +519,7 @@ export default function ClassesPage() {
                       <td className="px-5 py-3.5 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
                         {getClassSchedule(c) ? (
                           <span className="inline-flex items-center gap-1.5 bg-amber-500/5 text-amber-600 dark:text-amber-400 border border-amber-500/10 px-2 py-1 rounded-lg text-[10px] font-bold">
-                            <span className="text-xs">⏰</span>
+                            <i className="fi fi-rr-clock text-xs"></i>
                             <span>{getClassSchedule(c)}</span>
                           </span>
                         ) : (
@@ -531,7 +531,7 @@ export default function ClassesPage() {
                       <td className="px-5 py-3.5 text-xs font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
                         {c.totalStudents > 0 ? (
                           <span className="inline-flex items-center gap-1.5">
-                            <span className="text-sm">👥</span>
+                            <i className="fi fi-rr-users text-sm"></i>
                             <span>{c.totalStudents}</span>
                           </span>
                         ) : (
@@ -588,8 +588,8 @@ export default function ClassesPage() {
             {/* Modal Header */}
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 px-6 py-4">
               <div>
-                <h3 className="text-sm font-bold text-slate-800 dark:text-white">
-                  {editingId ? "✏️ Edit Class" : "🏫 Create New Class"}
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center">
+                  {editingId ? <><i className="fi fi-rr-edit mr-2 text-amber-500"></i> Edit Class</> : <><i className="fi fi-rr-building mr-2 text-amber-500"></i> Create New Class</>}
                 </h3>
                 <p className="text-[10px] text-slate-400 mt-0.5">
                   {editingId ? "Update class details in PostgreSQL." : "Add a new class section to your registry."}
@@ -710,13 +710,13 @@ export default function ClassesPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-1"
+                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-1 flex items-center justify-center gap-2"
               >
                 {submitting
                   ? "Saving to PostgreSQL..."
                   : editingId
-                    ? "💾 Save Changes"
-                    : "🏫 Create Class"}
+                    ? <><i className="fi fi-rr-disk"></i> Save Changes</>
+                    : <><i className="fi fi-rr-building"></i> Create Class</>}
               </button>
             </form>
           </div>
