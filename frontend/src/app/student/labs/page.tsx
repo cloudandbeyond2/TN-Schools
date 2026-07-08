@@ -140,20 +140,12 @@
 //               <button className="w-full py-2 border border-slate-600 hover:bg-slate-700 rounded-xl text-xs font-bold text-white transition-colors">
 //                  Check Kit Availability
 //               </button>
-//            </div>
-
-//         </div>
-
-//       </div>
-//     </PortalLayout>
-//   );
-// }
-
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 const featuredLabs = [
   // Class 6
@@ -199,13 +191,24 @@ const completedLabs = [
 ];
 
 export default function VirtualLabsPage() {
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  const studentClass = user?.class ? parseInt(user.class) : null;
+
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeClass, setActiveClass] = useState<number | "All">("All");
+
+  // Default active class selection to active student's grade class
+  useEffect(() => {
+    if (studentClass && LAB_CLASSES.includes(studentClass)) {
+      setActiveClass(studentClass);
+    }
+  }, [studentClass]);
 
   const visibleLabs = featuredLabs.filter(
     (lab) =>
       (activeCategory === "All" || lab.subject === activeCategory) &&
-      (activeClass === "All" || lab.cls === activeClass)
+      (lab.cls === (studentClass || 10))
   );
 
   return (
@@ -217,21 +220,6 @@ export default function VirtualLabsPage() {
       themeClass="theme-student"
       accentColor="#06b6d4"
     >
-      {/* class-wise split */}
-      <div className="mb-4 flex flex-col gap-2">
-        <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Choose your class</span>
-        <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700/50 w-fit overflow-x-auto">
-          {(["All", ...LAB_CLASSES] as (number | "All")[]).map(cl => (
-            <button
-              key={cl}
-              onClick={() => setActiveClass(cl)}
-              className={`px-3.5 sm:px-4 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeClass === cl ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" : "text-black dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400"}`}
-            >
-              {cl === "All" ? "All Classes" : `Class ${cl}`}
-            </button>
-          ))}
-        </div>
-      </div>
 
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700/50 w-fit overflow-x-auto">
