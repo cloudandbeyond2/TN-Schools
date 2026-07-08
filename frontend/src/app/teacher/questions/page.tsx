@@ -329,6 +329,23 @@ export default function QuestionGeneratorPage() {
       title="Question Generator"
       subtitle="Create high-quality exam and quiz questions using AI"
     >
+      {/* Instructions Banner */}
+      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4 mb-6 flex gap-3">
+        <div className="text-amber-500 mt-0.5">
+          <HelpCircle className="w-5 h-5" />
+        </div>
+        <div>
+          <h3 className="text-sm font-bold text-amber-800 dark:text-amber-500 mb-1">How to use the Question Generator:</h3>
+          <ol className="text-xs text-amber-700 dark:text-amber-400/90 list-decimal list-inside space-y-1">
+            <li>Select the <strong>Grade</strong>, <strong>Subject</strong>, and type the <strong>Topic</strong> you want to cover.</li>
+            <li>Adjust the <strong>Difficulty</strong> and the number of MCQ, Short, and Long answer questions.</li>
+            <li>Click <strong>Generate Questions</strong>. The AI will synthesize a blueprint-aligned question set.</li>
+            <li>Review the generated questions, toggle <strong>Show Answers</strong> to verify, and click <strong>Save to Question Bank</strong>.</li>
+            <li>View all your saved questions in the <strong>Question Bank DB</strong> tab for future tests.</li>
+          </ol>
+        </div>
+      </div>
+
       {/* Navigation tabs */}
       <div className="flex flex-wrap border-b border-[var(--border)] mb-6">
         <button

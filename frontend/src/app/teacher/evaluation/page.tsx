@@ -151,6 +151,23 @@ export default function EvaluationPage() {
       title="AI Evaluation"
       subtitle="Verify OCR-digitized student papers and leverage AI-assisted grading"
     >
+      {/* Instructions Banner */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl p-4 mb-6 flex gap-3">
+        <div className="text-blue-500 mt-0.5">
+          <Bot className="w-5 h-5" />
+        </div>
+        <div>
+          <h3 className="text-sm font-bold text-blue-800 dark:text-blue-500 mb-1">How to use the AI Evaluation tool:</h3>
+          <ol className="text-xs text-blue-700 dark:text-blue-400/90 list-decimal list-inside space-y-1">
+            <li>Select a pending student submission from the <strong>Submissions</strong> queue on the left.</li>
+            <li>Compare the <strong>Digitized Answer Paper</strong> (OCR extracted text) against the AI's grading rationale on the right.</li>
+            <li>Review the <strong>AI-suggested points</strong>. If you disagree, simply change the score in the input box.</li>
+            <li>Add optional <strong>teacher override comments</strong> for the student to see.</li>
+            <li>Once verified, click <strong>Submit Evaluation</strong> to finalize the grades and sync them to the gradebook.</li>
+          </ol>
+        </div>
+      </div>
+
       {toastMessage && (
         <div className="fixed top-5 right-5 bg-emerald-500 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2">
           <span><CheckCircle className="w-4 h-4 inline mr-1 text-emerald-500" /></span> {toastMessage}
