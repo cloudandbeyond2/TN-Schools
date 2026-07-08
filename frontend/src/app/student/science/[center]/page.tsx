@@ -140,6 +140,14 @@ export default function ScienceCenterPage() {
   // Collapsible answers for PYQ / Short Answers
   const [visibleAnswers, setVisibleAnswers] = useState<Record<string, boolean>>({});
 
+  // Physics simulation state
+  const [voltage, setVoltage] = useState(6);
+  const [resistance, setResistance] = useState(10);
+  const [celsius, setCelsius] = useState(25);
+  const [pendulumLength, setPendulumLength] = useState(1.0);
+  const [lensU, setLensU] = useState(-30);
+  const [lensF, setLensF] = useState(15);
+
   if (!center) {
     return (
       <PortalLayout title="Science Center" subtitle="Not found">
@@ -154,7 +162,24 @@ export default function ScienceCenterPage() {
     );
   }
 
-  const totalItems = center.groups.reduce((n, g) => n + g.items.length, 0);
+  const filteredGroups = center.groups.map(g => ({
+    ...g,
+    items: g.items.filter(it => {
+      if (slug === "physics-lab") {
+        if (studentClass === "9") {
+          const class10Topics = ["Electricity", "Magnetism", "Optics", "Modern Physics", "Lens", "Electric Circuits", "Generator", "Transformer", "Motor", "Circuit Builder"];
+          return !class10Topics.includes(it.label);
+        }
+        if (studentClass === "10") {
+          const class9Topics = ["Heat", "Sound", "Simple Pendulum", "Projectile Motion"];
+          return !class9Topics.includes(it.label);
+        }
+      }
+      return true;
+    })
+  })).filter(g => g.items.length > 0);
+
+  const totalItems = filteredGroups.reduce((n, g) => n + g.items.length, 0);
 
   const handleSelectItem = (key: string) => {
     setActive(key);
@@ -210,7 +235,7 @@ export default function ScienceCenterPage() {
         </div>
 
         {/* topic groups */}
-        {center.groups.map((g) => (
+        {filteredGroups.map((g) => (
           <section key={g.heading}>
             <h3 className="text-sm font-black uppercase tracking-wider text-slate-400 mb-3">{g.heading}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -421,8 +446,202 @@ export default function ScienceCenterPage() {
           </div>
         )}
 
+        {/* Interactive content area for Physics Center */}
+        {active && slug === "physics-lab" && (
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border-2 border-sky-100 dark:border-slate-700 shadow-sm space-y-6">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">⚙️</span>
+              <h3 className="text-base font-black text-slate-850 dark:text-white">
+                Class {studentClass} Physics Lab: {active.split(":").pop()}
+              </h3>
+            </div>
+
+            {/* CLASS 9 PHYSICS SIMULATIONS */}
+            {studentClass === "9" && (
+              <div className="space-y-4">
+                {/* 1. Heat conversion (Celsius/Fahrenheit/Kelvin) */}
+                {active.endsWith("Heat") ? (
+                  <div className="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                    <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">Temperature Conversion Sandbox</p>
+                    <p className="text-xs text-slate-400 mb-4">Slide the temperature to see Celsius convert to Fahrenheit and Kelvin.</p>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">Celsius Temperature: {celsius}°C</label>
+                        <input 
+                          type="range" min="-100" max="200" value={celsius} onChange={(e) => setCelsius(Number(e.target.value))}
+                          className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 mt-3">
+                        <div className="p-3 bg-white dark:bg-slate-800 rounded-xl text-center border">
+                          <span className="text-[10px] text-slate-400 font-bold block uppercase">Fahrenheit</span>
+                          <span className="text-lg font-black text-sky-600 font-mono">{((celsius * 9/5) + 32).toFixed(1)}°F</span>
+                        </div>
+                        <div className="p-3 bg-white dark:bg-slate-800 rounded-xl text-center border">
+                          <span className="text-[10px] text-slate-400 font-bold block uppercase">Kelvin</span>
+                          <span className="text-lg font-black text-sky-600 font-mono">{(celsius + 273.15).toFixed(2)} K</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : active.endsWith("Simple Pendulum") ? (
+                  /* 2. Simple Pendulum length and period simulator */
+                  <div className="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                    <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">Pendulum Period Calculator</p>
+                    <p className="text-xs text-slate-400 mb-4">Formula: T = 2π√(L/g). Adjust length L to change the time period.</p>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">String Length: {pendulumLength} meters</label>
+                        <input 
+                          type="range" min="0.2" max="3.0" step="0.1" value={pendulumLength} onChange={(e) => setPendulumLength(Number(e.target.value))}
+                          className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                        />
+                      </div>
+                      <div className="p-4 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-between border">
+                        <div>
+                          <span className="text-xs text-slate-400 font-bold block">Calculated Time Period (T)</span>
+                          <span className="text-xl font-black text-sky-600 font-mono">{(2 * Math.PI * Math.sqrt(pendulumLength / 9.8)).toFixed(3)} seconds</span>
+                        </div>
+                        <div className="w-8 h-8 rounded-full border-2 border-dashed border-sky-400 animate-spin flex items-center justify-center text-xs">⏰</div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Class 9 Fallback Syllabus content */
+                  <div className="p-4 bg-sky-50/20 border border-sky-100 rounded-2xl">
+                    <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed font-medium">
+                      This topic matches the <strong>Class 9 syllabus</strong> guidelines (Forces, Motion, Heat transfer, Sound). Ask the AI Tutor or check the Book Library to study this in detail.
+                    </p>
+                  </div>
+                )}
+
+                {/* Grade restrictions for Class 9 */}
+                {(active.endsWith("Electricity") || active.endsWith("Electric Circuits") || active.endsWith("Optics") || active.endsWith("Lens")) && (
+                  <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-2xl text-xs text-amber-700 dark:text-amber-400 font-medium">
+                    ⚠️ <strong>Note:</strong> Advanced simulations for lenses and complex circuit networks are part of the Class 10 curriculum.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* CLASS 10 PHYSICS SIMULATIONS */}
+            {studentClass === "10" && (
+              <div className="space-y-4">
+                {/* 1. Ohm's Law simulator */}
+                {(active.endsWith("Electricity") || active.endsWith("Electric Circuits")) ? (
+                  <div className="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                    <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">Ohm's Law Sandbox (V = I × R)</p>
+                    <p className="text-xs text-slate-400 mb-4">Change Voltage and Resistance to see Current flow and bulb brightness change.</p>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">Voltage (V): {voltage} V</label>
+                          <input 
+                            type="range" min="1" max="15" value={voltage} onChange={(e) => setVoltage(Number(e.target.value))}
+                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">Resistance (R): {resistance} Ω</label>
+                          <input 
+                            type="range" min="2" max="100" value={resistance} onChange={(e) => setResistance(Number(e.target.value))}
+                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="p-4 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-between border">
+                        <div>
+                          <span className="text-xs text-slate-400 font-bold block">Current (I = V/R)</span>
+                          <span className="text-xl font-black text-sky-600 font-mono">{(voltage / resistance).toFixed(3)} Amperes</span>
+                        </div>
+                        <div 
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-md transition-all duration-300"
+                          style={{ 
+                            backgroundColor: `rgba(234, 179, 8, ${Math.min(1, (voltage / resistance) * 5)})`, 
+                            boxShadow: `0 0 ${Math.min(20, (voltage / resistance) * 50)}px rgba(234, 179, 8, 0.7)` 
+                          }}
+                        >
+                          💡
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (active.endsWith("Optics") || active.endsWith("Lens")) ? (
+                  /* 2. Lens Formula Calculator */
+                  <div className="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                    <p className="text-sm font-bold text-slate-800 dark:text-white mb-1">Convex Lens Calculator (1/f = 1/v - 1/u)</p>
+                    <p className="text-xs text-slate-400 mb-4">Adjust focal length f and object distance u (virtual image properties).</p>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">Focal Length (f): {lensF} cm</label>
+                          <input 
+                            type="range" min="5" max="30" value={lensF} onChange={(e) => setLensF(Number(e.target.value))}
+                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1">Object Distance (u): {lensU} cm</label>
+                          <input 
+                            type="range" min="-100" max="-10" value={lensU} onChange={(e) => setLensU(Number(e.target.value))}
+                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Formula calculation: v = uf/(u+f) */}
+                      {(() => {
+                        const denom = lensU + lensF;
+                        const v = denom !== 0 ? (lensU * lensF) / denom : 0;
+                        const mag = denom !== 0 ? -v / lensU : 0;
+                        return (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border">
+                              <span className="text-[10px] text-slate-400 font-bold block uppercase">Image Distance (v)</span>
+                              <span className="text-base font-black text-sky-600 font-mono">
+                                {denom === 0 ? "Infinity" : `${v.toFixed(1)} cm`}
+                              </span>
+                            </div>
+                            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border">
+                              <span className="text-[10px] text-slate-400 font-bold block uppercase">Magnification (m)</span>
+                              <span className="text-base font-black text-sky-600 font-mono">
+                                {denom === 0 ? "Infinite" : `${mag.toFixed(2)}x`}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                ) : (
+                  /* Class 10 Syllabus general content */
+                  <div className="p-4 bg-sky-50/20 border border-sky-100 rounded-2xl">
+                    <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed font-medium">
+                      This topic aligns with <strong>Class 10 Board requirements</strong> (Refraction, Magnetism, Electric current effects). Ask the AI Tutor or search the Book Library to access related sample test questions.
+                    </p>
+                  </div>
+                )}
+
+                {/* Grade restrictions for Class 10 */}
+                {active.endsWith("Heat") && (
+                  <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-2xl text-xs text-amber-700 dark:text-amber-400 font-medium">
+                    ⚠️ <strong>Note:</strong> Fundamental heat conversions are taught in Class 9.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Quick Actions */}
+            <div className="flex gap-2 mt-3 pt-2 border-t border-slate-100 dark:border-slate-700">
+              <Link href="/student/ai-tutor" className="text-xs font-black px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200">🤖 Ask AI Tutor</Link>
+              <Link href="/student/science-library" className="text-xs font-black px-3 py-1.5 rounded-lg bg-sky-100 text-sky-700 hover:bg-sky-200">📚 Book Library</Link>
+            </div>
+          </div>
+        )}
+
         {/* Fallback detail note for other general centers */}
-        {active && slug !== "question-bank" && (
+        {active && slug !== "question-bank" && slug !== "physics-lab" && (
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border-2 border-emerald-100 dark:border-slate-700">
             <p className="text-sm font-black text-slate-800 dark:text-white">{active.split(":").pop()}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
