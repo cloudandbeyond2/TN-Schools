@@ -555,7 +555,7 @@ export default function AttendancePage() {
                                   <button
                                     onClick={() => handleStatusChange(student.id, "Present")}
                                     className={`flex-1 h-7 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Present"
-                                        ? "bg-white shadow-[0_0_10px_rgba(16,185,129,0.25)] border border-emerald-100 text-gray-700"
+                                        ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] border border-emerald-600 !text-white"
                                         : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                                       }`}
                                   >
@@ -564,7 +564,7 @@ export default function AttendancePage() {
                                   <button
                                     onClick={() => handleStatusChange(student.id, "Absent")}
                                     className={`flex-1 h-7 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Absent"
-                                        ? "bg-white shadow-[0_0_10px_rgba(244,63,94,0.25)] border border-rose-100 text-gray-700"
+                                        ? "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-600 !text-white"
                                         : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                                       }`}
                                   >
@@ -573,7 +573,7 @@ export default function AttendancePage() {
                                   <button
                                     onClick={() => handleStatusChange(student.id, "Late")}
                                     className={`flex-1 h-7 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Late"
-                                        ? "bg-white shadow-[0_0_10px_rgba(245,158,11,0.25)] border border-amber-100 text-gray-700"
+                                        ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)] border border-amber-600 !text-white"
                                         : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                                       }`}
                                   >
@@ -605,7 +605,7 @@ export default function AttendancePage() {
                           <button
                             onClick={() => handleStatusChange(student.id, "Present")}
                             className={`flex-1 py-1.5 h-8 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Present"
-                                ? "bg-white shadow-[0_0_10px_rgba(16,185,129,0.25)] border border-emerald-100 text-gray-700"
+                                ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] border border-emerald-600 !text-white"
                                 : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                               }`}
                           >
@@ -614,7 +614,7 @@ export default function AttendancePage() {
                           <button
                             onClick={() => handleStatusChange(student.id, "Absent")}
                             className={`flex-1 py-1.5 h-8 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Absent"
-                                ? "bg-white shadow-[0_0_10px_rgba(244,63,94,0.25)] border border-rose-100 text-gray-700"
+                                ? "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-600 !text-white"
                                 : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                               }`}
                           >
@@ -623,7 +623,7 @@ export default function AttendancePage() {
                           <button
                             onClick={() => handleStatusChange(student.id, "Late")}
                             className={`flex-1 py-1.5 h-8 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Late"
-                                ? "bg-white shadow-[0_0_10px_rgba(245,158,11,0.25)] border border-amber-100 text-gray-700"
+                                ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)] border border-amber-600 !text-white"
                                 : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                               }`}
                           >
