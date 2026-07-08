@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Building2, GraduationCap, CalendarCheck, BookOpenCheck, Users } from "lucide-react";
+import { Building2, GraduationCap, CalendarCheck, BookOpenCheck, Users, BarChart3 } from "lucide-react";
 import KpiCard from "./KpiCard";
 import AcademicYearSelect from "./AcademicYearSelect";
 import { useKpis, useAcademicYears } from "./useKpis";
@@ -31,7 +31,9 @@ export default function KpiStrip({ path, extraParams, title = "Academic KPIs", v
     <div className="mb-6">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div>
-          <h2 className={`text-base font-semibold ${dark ? "text-white" : "text-slate-800 dark:text-white"}`}>📊 {title}</h2>
+          <h2 className={`text-base font-semibold flex items-center gap-2 ${dark ? "text-white" : "text-slate-800 dark:text-white"}`}>
+            <BarChart3 className="w-5 h-5 text-amber-500" /> {title}
+          </h2>
           <p className="text-[11px] text-slate-500">
             {kpis?.source === "snapshot" ? "Archived year — from academic history records" : "Live data for the selected academic year"}
           </p>

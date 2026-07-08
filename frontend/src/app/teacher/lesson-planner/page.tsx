@@ -641,8 +641,8 @@ export default function LessonPlannerPage() {
                         type="button"
                         onClick={() => setSection(sec)}
                         className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all border ${section === sec
-                            ? "bg-amber-500 text-slate-900 border-amber-500 shadow-md shadow-amber-500/25"
-                            : `${theme.inputBg} ${theme.border} ${theme.textMuted} hover:border-amber-400`
+                          ? "bg-amber-500 text-slate-900 border-amber-500 shadow-md shadow-amber-500/25"
+                          : `${theme.inputBg} ${theme.border} ${theme.textMuted} hover:border-amber-400`
                           }`}
                       >
                         {sec === "All" ? <><Megaphone className="w-3 h-3 inline mr-1" /> All</> : sec}
@@ -829,8 +829,8 @@ export default function LessonPlannerPage() {
                     onClick={() => handlePublish(!currentPlan.isPublished)}
                     disabled={publishing}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-black text-black transition-transform hover:scale-105 shadow-md disabled:opacity-60 ${currentPlan.isPublished
-                        ? "bg-slate-600 hover:bg-slate-700"
-                        : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20"
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400"
+                      : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20"
                       }`}
                   >
                     {publishing ? "..." : currentPlan.isPublished ? "UNPUBLISH" : <><Megaphone className="w-3 h-3 inline mr-1" /> PUBLISH TO CLASS</>}

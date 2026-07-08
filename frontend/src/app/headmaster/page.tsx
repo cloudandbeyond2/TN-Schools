@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
-import { Users, GraduationCap, CalendarCheck, BookOpenCheck, TrendingUp, ArrowUpCircle } from "lucide-react";
+import { Users, GraduationCap, CalendarCheck, BookOpenCheck, TrendingUp, ArrowUpCircle, BarChart3, Presentation, Users2 } from "lucide-react";
 import KpiCard from "@/components/kpi/KpiCard";
 import AcademicYearSelect from "@/components/kpi/AcademicYearSelect";
 import DistributionBar from "@/components/kpi/DistributionBar";
@@ -82,7 +82,7 @@ export default function HeadmasterDashboard() {
       {/* Academic-year KPI header */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 fade-in">
         <div>
-          <h2 className="text-base font-semibold text-white">📊 School KPIs</h2>
+          <h2 className="text-base font-semibold text-white flex items-center gap-2"><BarChart3 className="w-5 h-5 text-amber-500" /> School KPIs</h2>
           <p className="text-[11px] text-slate-500">
             {kpis?.source === "snapshot" ? "Archived year — data from academic history records" : "Live data for the selected academic year"}
           </p>
@@ -178,7 +178,7 @@ export default function HeadmasterDashboard() {
         {/* Staff Table */}
         <div className="lg:col-span-2 glass rounded-2xl p-6 fade-in-2 border border-slate-800">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-base font-semibold text-white">👩‍🏫 Staff Performance</h2>
+            <h2 className="text-base font-semibold text-white flex items-center gap-2"><Presentation className="w-5 h-5 text-blue-400" /> Staff Performance</h2>
             <Link
               href="/headmaster/staff"
               id="headmaster-add-staff"
@@ -195,7 +195,7 @@ export default function HeadmasterDashboard() {
             </div>
           ) : staff.length === 0 ? (
             <div className="text-center py-10 text-slate-500 text-xs">
-              <div className="text-3xl mb-2">👩‍🏫</div>
+              <div className="flex justify-center mb-2"><Presentation className="w-8 h-8 text-slate-600" /></div>
               <div className="font-semibold text-slate-400 mb-1">No staff records yet</div>
               <Link href="/headmaster/staff" className="text-blue-400 hover:underline">Go to Staff Management →</Link>
             </div>
@@ -240,7 +240,7 @@ export default function HeadmasterDashboard() {
         {/* Student Risk Summary */}
         <div className="glass rounded-2xl p-6 fade-in-3 border border-slate-800">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-white">⚠️ Student Risk Summary</h2>
+            <h2 className="text-base font-semibold text-white flex items-center gap-2"><Users2 className="w-5 h-5 text-amber-500" /> Student Risk Summary</h2>
             <Link href="/headmaster/students" className="text-xs text-blue-400 hover:text-blue-300 font-bold">
               View All →
             </Link>
@@ -252,7 +252,7 @@ export default function HeadmasterDashboard() {
             </div>
           ) : totalStudents === 0 ? (
             <div className="text-center py-8 text-slate-500 text-xs">
-              <div className="text-3xl mb-2">📋</div>
+              <div className="flex justify-center mb-2"><Users2 className="w-8 h-8 text-slate-600" /></div>
               <div>No student records yet</div>
               <Link href="/headmaster/students" className="text-blue-400 hover:underline mt-1 block">Add Students →</Link>
             </div>
@@ -288,17 +288,17 @@ export default function HeadmasterDashboard() {
       {/* Quick Links */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 fade-in-4">
         {[
-          { label: "Staff Management", icon: "👩‍🏫", href: "/headmaster/staff", color: "border-blue-500/20 hover:border-blue-500/50" },
-          { label: "Student Monitoring", icon: "👨‍🎓", href: "/headmaster/students", color: "border-emerald-500/20 hover:border-emerald-500/50" },
-          { label: "Parents & PTA", icon: "👨‍👩‍👧", href: "/headmaster/parents", color: "border-amber-500/20 hover:border-amber-500/50" },
-          { label: "Alumni Network", icon: "🎓", href: "/headmaster/alumni", color: "border-purple-500/20 hover:border-purple-500/50" },
+          { label: "Staff Management", icon: <i className="fi fi-rr-users"></i>, href: "/headmaster/staff", color: "border-blue-500/20 hover:border-blue-500/50" },
+          { label: "Student Monitoring", icon: <i className="fi fi-rr-graduation-cap"></i>, href: "/headmaster/students", color: "border-emerald-500/20 hover:border-emerald-500/50" },
+          { label: "Parents & PTA", icon: <i className="fi fi-rr-family"></i>, href: "/headmaster/parents", color: "border-amber-500/20 hover:border-amber-500/50" },
+          { label: "Alumni Network", icon: <i className="fi fi-rr-diploma"></i>, href: "/headmaster/alumni", color: "border-purple-500/20 hover:border-purple-500/50" },
         ].map((link) => (
           <Link
             key={link.label}
             href={link.href}
             className={`glass rounded-2xl p-5 border ${link.color} flex flex-col items-center gap-3 text-center transition-all hover:scale-105 group`}
           >
-            <span className="text-3xl group-hover:scale-110 transition-transform">{link.icon}</span>
+            <span className="text-2xl group-hover:scale-110 transition-transform">{link.icon}</span>
             <span className="text-xs font-bold text-slate-300 group-hover:text-white">{link.label}</span>
           </Link>
         ))}
