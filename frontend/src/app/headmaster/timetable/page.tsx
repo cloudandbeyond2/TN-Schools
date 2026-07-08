@@ -811,15 +811,7 @@ export default function HeadmasterTimetablePage() {
                                 ) : (
                                   /* Empty slot button */
                                   <button
-                                    onClick={() => {
-                                      setNewSlot({
-                                        ...newSlot,
-                                        class: cls,
-                                        section: sec,
-                                        period: pNum
-                                      });
-                                      openAddSlot();
-                                    }}
+                                    onClick={() => openAddSlot(cls, sec, pNum)}
                                     className="w-full h-full border border-dashed border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:border-slate-350 transition-all text-slate-350 group cursor-pointer"
                                   >
                                     <Plus className="w-4 h-4 opacity-30 group-hover:opacity-85 transition-opacity" />
