@@ -8,6 +8,7 @@ import PortalLayout from "@/components/PortalLayout";
 import { LucideIcon } from "@/components/LucideIcon";
 import { Sparkles, ChevronLeft, TrendingUp, Award, ArrowLeft, Check, X, HelpCircle, Eye, EyeOff } from "lucide-react";
 import { getCenterTopics } from "@/data/centerTopics";
+import { getTopicContent } from "@/data/centerContent";
 
 // Define structured mock question bank data for Classes 9 and 10
 interface QuestionData {
@@ -139,6 +140,9 @@ export default function ScienceCenterPage() {
 
   // Collapsible answers for PYQ / Short Answers
   const [visibleAnswers, setVisibleAnswers] = useState<Record<string, boolean>>({});
+
+  // Generic topic quiz state
+  const [topicQuizAnswer, setTopicQuizAnswer] = useState<Record<string, string>>({});
 
   // Physics simulation state
   const [voltage, setVoltage] = useState(6);
@@ -640,19 +644,114 @@ export default function ScienceCenterPage() {
           </div>
         )}
 
-        {/* Fallback detail note for other general centers */}
-        {active && slug !== "question-bank" && slug !== "physics-lab" && (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border-2 border-emerald-100 dark:border-slate-700">
-            <p className="text-sm font-black text-slate-800 dark:text-white">{active.split(":").pop()}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Interactive 3D content, animations and a guided lesson for this topic are on the way. Meanwhile, ask the AI Tutor or open the Book Library for the related chapter.
-            </p>
-            <div className="flex gap-2 mt-3">
-              <Link href="/student/ai-tutor" className="text-xs font-black px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200">🤖 Ask AI Tutor</Link>
-              <Link href="/student/science-library" className="text-xs font-black px-3 py-1.5 rounded-lg bg-sky-100 text-sky-700 hover:bg-sky-200">📚 Book Library</Link>
+        {/* Rich content panel for all other centers */}
+        {active && slug !== "question-bank" && slug !== "physics-lab" && (() => {
+          const [groupHeading, itemLabel] = active.split(":");
+          const content = getTopicContent(slug, groupHeading, itemLabel);
+          if (!content) {
+            return (
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border-2 border-emerald-100 dark:border-slate-700">
+                <p className="text-sm font-black text-slate-800 dark:text-white">{itemLabel}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Detailed interactive content for this topic is being prepared. Ask the AI Tutor or open the Book Library for the related chapter.
+                </p>
+                <div className="flex gap-2 mt-3">
+                  <Link href="/student/ai-tutor" className="text-xs font-black px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200">🤖 Ask AI Tutor</Link>
+                  <Link href="/student/science-library" className="text-xs font-black px-3 py-1.5 rounded-lg bg-sky-100 text-sky-700 hover:bg-sky-200">📚 Book Library</Link>
+                </div>
+              </div>
+            );
+          }
+          const quizKey = active;
+          const chosenAnswer = topicQuizAnswer[quizKey];
+          const isCorrect = chosenAnswer === content.quiz.answer;
+          return (
+            <div className="space-y-4">
+              {/* Hero card */}
+              <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border-2 border-slate-100 dark:border-slate-700 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-3xl">{content.emoji}</span>
+                  <div>
+                    <h3 className="text-base font-black text-slate-800 dark:text-white">{content.title}</h3>
+                    <p className="text-xs text-slate-400 font-medium">{groupHeading}</p>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">{content.summary}</p>
+              </div>
+
+              {/* Key Points */}
+              <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border-2 border-slate-100 dark:border-slate-700 shadow-sm">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3">📌 Key Points</h4>
+                <ul className="space-y-2">
+                  {content.keyPoints.map((pt, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
+                      <span className="mt-0.5 w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-black flex items-center justify-center shrink-0">{i + 1}</span>
+                      {pt}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Formula */}
+              {content.formula && (
+                <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-2xl p-4 border border-indigo-100 dark:border-indigo-900/40">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-indigo-400 mb-1">⚗️ Formula / Key Expression</p>
+                  <code className="text-sm font-black text-indigo-700 dark:text-indigo-300 break-all">{content.formula}</code>
+                </div>
+              )}
+
+              {/* Fun Fact */}
+              <div className="bg-amber-50 dark:bg-amber-950/30 rounded-2xl p-4 border border-amber-100 dark:border-amber-900/40">
+                <p className="text-[10px] font-black uppercase tracking-wider text-amber-500 mb-1">🌟 Fun Fact</p>
+                <p className="text-xs font-medium text-amber-800 dark:text-amber-300 leading-relaxed">{content.funFact}</p>
+              </div>
+
+              {/* Mini Quiz */}
+              <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border-2 border-purple-100 dark:border-purple-900/40 shadow-sm">
+                <h4 className="text-xs font-black uppercase tracking-wider text-purple-500 mb-3">🧠 Quick Quiz</h4>
+                <p className="text-sm font-bold text-slate-800 dark:text-white mb-4">{content.quiz.question}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {content.quiz.options.map((opt) => {
+                    const isSelected = chosenAnswer === opt;
+                    const isAnswerCorrect = opt === content.quiz.answer;
+                    let cls = "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300";
+                    if (chosenAnswer) {
+                      if (isAnswerCorrect) cls = "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300";
+                      else if (isSelected) cls = "border-rose-400 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300";
+                    } else if (isSelected) {
+                      cls = "border-purple-400 bg-purple-50 dark:bg-purple-950/40 text-purple-700";
+                    }
+                    return (
+                      <button
+                        key={opt}
+                        onClick={() => !chosenAnswer && setTopicQuizAnswer(prev => ({ ...prev, [quizKey]: opt }))}
+                        className={`w-full text-left px-4 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${cls} ${!chosenAnswer ? "hover:border-purple-300 cursor-pointer" : "cursor-default"}`}
+                      >
+                        {chosenAnswer && isAnswerCorrect && <span className="mr-1">✅</span>}
+                        {chosenAnswer && isSelected && !isAnswerCorrect && <span className="mr-1">❌</span>}
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </div>
+                {chosenAnswer && (
+                  <div className={`mt-3 p-3 rounded-xl text-xs font-medium ${isCorrect ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300" : "bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300"}`}>
+                    {isCorrect ? "🎉 Correct! Well done." : `❌ Incorrect. The correct answer is: ${content.quiz.answer}`}
+                  </div>
+                )}
+              </div>
+
+              {/* Quick links */}
+              <div className="flex flex-wrap gap-2">
+                <Link href="/student/ai-tutor" className="text-xs font-black px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200">🤖 Ask AI Tutor</Link>
+                <Link href="/student/science-library" className="text-xs font-black px-3 py-1.5 rounded-lg bg-sky-100 text-sky-700 hover:bg-sky-200">📚 Book Library</Link>
+                {content.links?.map(l => (
+                  <Link key={l.href} href={l.href} className="text-xs font-black px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200">{l.label}</Link>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </PortalLayout>
   );
