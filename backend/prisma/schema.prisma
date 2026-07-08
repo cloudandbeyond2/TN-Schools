@@ -1612,3 +1612,35 @@ model ProxyAssignment {
 
   @@unique([schoolId, date, period, timetableId])
 }
+
+// ─── School Exam Schedule (HM side — school-level only) ──────────────
+model ExamSchedule {
+  id                String   @id @default(uuid())
+  schoolId          String
+  title             String                        // e.g. "Term 1 Exam 2024-25"
+  examType          String                        // Monthly | Quarterly | Half-Yearly | Annual | Unit Test
+  class             String                        // e.g. "6", "10", "12"
+  section           String   @default("All")      // "A", "B", or "All" for whole class
+  subject           String                        // e.g. "Mathematics"
+  examDate          DateTime
+  startTime         String                        // "09:00"
+  endTime           String                        // "12:00"
+  maxMarks          Int      @default(100)
+  passMark          Int      @default(35)
+  venue             String?  @default("Classroom")
+  invigilator       String?                       // Teacher name
+  academicYear      String   @default("2024-25")
+  status            String   @default("Scheduled") // Scheduled | Completed | Postponed | Cancelled
+  notes             String?
+  examMode          String   @default("Theory")    // Theory | Practical | Both
+  theoryMaxMarks    Int      @default(100)
+  practicalMaxMarks Int      @default(0)
+  published         Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([schoolId, class, examType])
+  @@index([schoolId, examDate])
+  @@index([schoolId, academicYear])
+}
