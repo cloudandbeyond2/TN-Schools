@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
-import { Users, GraduationCap, CalendarCheck, BookOpenCheck, TrendingUp, ArrowUpCircle, BarChart3, Presentation, Users2 } from "lucide-react";
+import { Users, GraduationCap, CalendarCheck, BookOpenCheck, TrendingUp, ArrowUpCircle, BarChart3, Presentation, Users2, Trophy } from "lucide-react";
 import KpiCard from "@/components/kpi/KpiCard";
 import AcademicYearSelect from "@/components/kpi/AcademicYearSelect";
 import DistributionBar from "@/components/kpi/DistributionBar";
@@ -282,6 +282,32 @@ export default function HeadmasterDashboard() {
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* School Sports & Health Widget */}
+      <div className="glass rounded-2xl p-6 fade-in-3 border border-slate-800 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-white flex items-center gap-2"><Trophy className="w-5 h-5 text-amber-500" /> School Sports & Health</h2>
+          <span className="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-lg">Ground: Good</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
+             <div className="text-2xl font-black text-white">450</div>
+             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Participants</div>
+          </div>
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
+             <div className="text-2xl font-black text-amber-400">12</div>
+             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Gold Medals</div>
+          </div>
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
+             <div className="text-2xl font-black text-blue-400">85%</div>
+             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Avg Fitness</div>
+          </div>
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
+             <div className="text-2xl font-black text-red-400">2</div>
+             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Equip Alerts</div>
+          </div>
         </div>
       </div>
 

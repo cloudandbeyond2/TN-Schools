@@ -114,6 +114,16 @@ router.post('/events', async (req: Request, res: Response) => {
   }
 });
 
+// DELETE /api/activities/clubs/:id — Delete a club (PET/Headmaster)
+router.delete('/clubs/:id', async (req: Request, res: Response) => {
+  try {
+    await prisma.club.delete({ where: { id: req.params.id } });
+    res.json({ success: true, message: 'Club deleted' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // GET /api/activities/club/:id — Fetch a single club details
 router.get('/club/:id', async (req: Request, res: Response) => {
   try {
@@ -136,6 +146,32 @@ router.get('/club/:id', async (req: Request, res: Response) => {
     }
 
     res.json({ success: true, data: club });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/activities/club/:id/members — List club members with student details (PET/Headmaster)
+router.get('/club/:id/members', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const members = await prisma.clubMember.findMany({
+      where: { clubId: id },
+      include: { student: { include: { user: { select: { name: true } } } } },
+      orderBy: { joinedAt: 'asc' }
+    });
+
+    const formatted = members.map(m => ({
+      id: m.id,
+      studentId: m.studentId,
+      name: m.student.user?.name || 'Student',
+      class: m.student.class,
+      section: m.student.section,
+      role: m.role,
+      joinedAt: m.joinedAt
+    }));
+
+    res.json({ success: true, count: formatted.length, data: formatted });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

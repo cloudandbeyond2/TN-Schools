@@ -604,6 +604,10 @@ export default function PortalLayout({
     isAuthorized = userRole === "STUDENT" || userRole === "STUDENT_MIDDLE" || userRole === "STUDENT_HIGH" || userRole === "STUDENT_HIGHER";
     expectedRole = "STUDENT";
     fallbackPath = "/student";
+  } else if (pathname.startsWith("/pet")) {
+    isAuthorized = userRole === "PET";
+    expectedRole = "PET";
+    fallbackPath = "/pet";
   } else if (pathname.startsWith("/parent")) {
     isAuthorized = userRole === "PARENT";
     expectedRole = "PARENT";
@@ -639,6 +643,7 @@ export default function PortalLayout({
     let defaultDest = "/";
     if (userRole === "STUDENT" || userRole === "STUDENT_MIDDLE" || userRole === "STUDENT_HIGH" || userRole === "STUDENT_HIGHER") defaultDest = "/student";
     else if (userRole === "TEACHER") defaultDest = "/teacher";
+    else if (userRole === "PET") defaultDest = "/pet";
     else if (userRole === "PARENT") defaultDest = "/parent";
     else if (userRole === "HEADMASTER") defaultDest = "/headmaster";
     else if (userRole === "BEO") defaultDest = "/block-education-officer";

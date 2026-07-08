@@ -8,6 +8,7 @@ import { Eye, EyeOff } from "lucide-react";
 // Role → portal path
 const roleToPath: Record<string, string> = {
   TEACHER: "/teacher/classes",
+  PET: "/pet",
   PARENT: "/parent",
   HEADMASTER: "/headmaster",
   BEO: "/block-education-officer",
