@@ -290,11 +290,11 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#8b5cf6",
     navItems: [
       { label: "Dashboard", href: "/student/higher-secondary", icon: "Home" },
-      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
 
       // ── Academics & Subjects ──────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
+      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
