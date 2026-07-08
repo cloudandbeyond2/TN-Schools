@@ -389,7 +389,7 @@ export default function HeadmasterExamsPage() {
   };
 
   // Conflict Checking Engine
-  const checkInvigilatorConflict = (teacher: string, date: string, timeSlot: string, currentId?: number) => {
+  const checkInvigilatorConflict = (teacher: string, date: string, timeSlot: string, currentId?: number | string) => {
     return exams.some(ex => 
       ex.invigilator === teacher && 
       ex.date === date && 
