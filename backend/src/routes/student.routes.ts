@@ -1067,4 +1067,119 @@ router.post('/:studentId/scholarships', async (req: Request, res: Response) => {
   }
 });
 
+/* ------------------- GET DASHBOARD SUMMARY FOR STUDENT ------------------- */
+router.get('/:studentId/dashboard-summary', async (req: Request, res: Response) => {
+  try {
+    const { studentId } = req.params;
+
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      include: {
+        portfolio: true,
+        marks: {
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
+
+    if (!student) {
+      return res.status(404).json({ success: false, error: 'Student not found' });
+    }
+
+    // Determine stream (Pure Science, Computer Science, Commerce, Arts)
+    const stream = student.portfolio?.stream || "Pure Science & Bio";
+
+    // Dynamic subject lists and progress based on marks or defaults
+    const subjectsMap: Record<string, { icon: string, color: string }> = {
+      "Physics": { icon: "⚛️", color: "#3b82f6" },
+      "Chemistry": { icon: "🧪", color: "#10b981" },
+      "Biology": { icon: "🧬", color: "#ec4899" },
+      "Mathematics": { icon: "📐", color: "#6366f1" },
+      "Computer Science": { icon: "💻", color: "#8b5cf6" },
+      "Accountancy": { icon: "📈", color: "#f59e0b" },
+      "Economics": { icon: "🏛️", color: "#f43f5e" }
+    };
+
+    const calculatedSubjects: any[] = [];
+    const subjectsScored: Record<string, { total: number, count: number }> = {};
+
+    student.marks.forEach(m => {
+      if (!subjectsScored[m.subject]) {
+        subjectsScored[m.subject] = { total: 0, count: 0 };
+      }
+      const pct = (m.scored / m.maxMarks) * 100;
+      subjectsScored[m.subject].total += pct;
+      subjectsScored[m.subject].count += 1;
+    });
+
+    // Gather unique subjects
+    const uniqueSubjects = Object.keys(subjectsScored);
+    if (uniqueSubjects.length > 0) {
+      uniqueSubjects.forEach(sub => {
+        const avg = Math.round(subjectsScored[sub].total / subjectsScored[sub].count);
+        const meta = subjectsMap[sub] || { icon: "📚", color: "#6b7280" };
+        calculatedSubjects.push({
+          name: sub,
+          progress: avg,
+          color: meta.color,
+          icon: meta.icon
+        });
+      });
+    } else {
+      // Fallback/default subjects based on stream
+      const defaultSubjects: Record<string, string[]> = {
+        "Pure Science & Bio": ["Physics", "Chemistry", "Biology", "Mathematics"],
+        "Computer Science & Math": ["Physics", "Chemistry", "Computer Science", "Mathematics"],
+        "Commerce & Accountancy": ["Accountancy", "Commerce", "Economics", "Mathematics"],
+        "Arts & Humanities": ["History", "Geography", "Political Science", "Economics"]
+      };
+      const subs = defaultSubjects[stream] || defaultSubjects["Pure Science & Bio"];
+      subs.forEach(name => {
+        const meta = subjectsMap[name] || { icon: "📚", color: "#6b7280" };
+        calculatedSubjects.push({
+          name,
+          progress: 80, // Default baseline progress
+          color: meta.color,
+          icon: meta.icon
+        });
+      });
+    }
+
+    // Overall Average
+    let overallAvg = 80; // default baseline
+    if (student.marks.length > 0) {
+      const totalPct = student.marks.reduce((acc, m) => acc + (m.scored / m.maxMarks) * 100, 0);
+      overallAvg = Math.round(totalPct / student.marks.length);
+    }
+
+    // Mock test scores from actual exam records
+    const recentTests = student.marks.slice(0, 5).map(m => {
+      const pct = (m.scored / m.maxMarks) * 100;
+      let status = "good";
+      if (pct >= 85) status = "excellent";
+      else if (pct < 60) status = "needs-work";
+
+      return {
+        test: `${m.examType}: ${m.subject}`,
+        score: `${m.scored}/${m.maxMarks}`,
+        status
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        stream,
+        overallAvg,
+        testsCount: student.marks.length,
+        subjects: calculatedSubjects,
+        recentTests
+      }
+    });
+  } catch (err) {
+    console.error('Error getting student dashboard summary:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;

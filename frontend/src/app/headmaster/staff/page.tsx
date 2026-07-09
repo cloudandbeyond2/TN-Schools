@@ -70,6 +70,7 @@ export default function StaffManagementPage() {
 
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newEmisId, setNewEmisId] = useState("");
   const [newSubject, setNewSubject] = useState("Science");
@@ -88,7 +89,7 @@ export default function StaffManagementPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [staffToDelete, setStaffToDelete] = useState<StaffMember | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(5);
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [staffToEdit, setStaffToEdit] = useState<StaffMember | null>(null);
@@ -119,6 +120,36 @@ export default function StaffManagementPage() {
   }, [mySchoolId]);
 
   useEffect(() => { fetchStaff(); }, [fetchStaff]);
+
+  // ── Excel export staff list ─────────────────────────────────────
+  const exportStaffToExcel = () => {
+    if (staff.length === 0) {
+      showToast("⚠️ No staff records to export.", "error");
+      return;
+    }
+    const headers = [
+      "Teacher Name", "ID", "Subject Speciality", "Phone Number",
+      "Email Address", "Attendance Rate (%)", "Performance Index",
+      "Leave Balance Used", "Password",
+    ];
+    const data = staff.map((s) => ({
+      "Teacher Name": s.name,
+      "ID": s.emisId,
+      "Subject Speciality": s.subject,
+      "Phone Number": s.phone,
+      "Email Address": s.email || "",
+      "Attendance Rate (%)": s.attendance,
+      "Performance Index": s.performance,
+      "Leave Balance Used": s.leaveUsed,
+      "Password": s.password,
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Staff List");
+    const schoolName = schools.find((s) => s.id === mySchoolId)?.name || "school";
+    XLSX.writeFile(workbook, `${schoolName.toLowerCase().replace(/\s+/g, "_")}_staff_list.xlsx`);
+    showToast("📤 Staff roster exported successfully!");
+  };
 
   // ── Excel download template ─────────────────────────────────────
   const downloadExcelTemplate = () => {
@@ -226,7 +257,7 @@ export default function StaffManagementPage() {
       if (json.success) {
         showToast(`🎉 Successfully saved ${json.created} teachers to database!`);
         setPreviewTeachers([]);
-        setIsAddModalOpen(false);
+        setIsImportModalOpen(false);
         // Refetch to show all newly imported staff immediately
         fetchStaff();
       } else {
@@ -398,12 +429,26 @@ export default function StaffManagementPage() {
             <h2 className="text-base font-semibold text-white">👩‍🏫 Teaching Staff Directory</h2>
             {isLoading && <div className="w-4 h-4 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />}
           </div>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md whitespace-nowrap"
-          >
-            + Add Teacher
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md whitespace-nowrap flex items-center gap-1"
+            >
+              <span>+ Add Teacher</span>
+            </button>
+            <button
+              onClick={() => setIsImportModalOpen(true)}
+              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 text-xs font-bold rounded-xl transition-all shadow-md whitespace-nowrap flex items-center gap-1"
+            >
+              <span>📥 Import</span>
+            </button>
+            <button
+              onClick={exportStaffToExcel}
+              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 text-xs font-bold rounded-xl transition-all shadow-md whitespace-nowrap flex items-center gap-1"
+            >
+              <span>📤 Export</span>
+            </button>
+          </div>
         </div>
 
         {staff.length === 0 && !isLoading ? (
@@ -479,32 +524,51 @@ export default function StaffManagementPage() {
           </div>
 
           {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-4">
-              <span className="text-xs text-slate-400">
-                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, staff.length)} of {staff.length} entries
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4 pt-4 border-t border-slate-800/40">
+            <div className="flex items-center gap-4 text-xs text-slate-400">
+              <span>
+                Showing {staff.length === 0 ? 0 : ((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, staff.length)} of {staff.length} entries
               </span>
+              <div className="flex items-center gap-1.5">
+                <span>Show</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="bg-slate-900 border border-slate-850 rounded-lg px-2 py-1 text-[11px] font-semibold text-slate-300 focus:outline-none focus:border-slate-700"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span>entries</span>
+              </div>
+            </div>
+            {totalPages > 0 && (
               <div className="flex space-x-2">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 bg-slate-800/50 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs rounded-lg transition-colors border border-slate-700"
+                  className="px-3 py-1 bg-slate-800/50 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs rounded-lg transition-colors border border-slate-700 disabled:cursor-not-allowed font-semibold"
                 >
                   Previous
                 </button>
-                <div className="px-3 py-1 bg-slate-900/50 text-slate-400 text-xs rounded-lg border border-slate-800">
+                <div className="px-3 py-1 bg-slate-900/50 text-slate-400 text-xs rounded-lg border border-slate-850 flex items-center font-semibold">
                   Page {currentPage} of {totalPages}
                 </div>
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 bg-slate-800/50 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs rounded-lg transition-colors border border-slate-700"
+                  className="px-3 py-1 bg-slate-800/50 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs rounded-lg transition-colors border border-slate-700 disabled:cursor-not-allowed font-semibold"
                 >
                   Next
                 </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
           </>
         )}
       </div>
@@ -604,15 +668,118 @@ export default function StaffManagementPage() {
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
-            className="w-full max-w-4xl rounded-3xl p-6 space-y-6 relative transition-all duration-300"
+            className="w-full max-w-md rounded-3xl p-6 space-y-4 relative transition-all duration-300"
             style={{ background: "#ffffff", border: "1px solid rgba(0, 0, 0, 0.08)", boxShadow: "0 20px 50px rgba(0, 0, 0, 0.15)" }}
           >
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold text-slate-800">
-                {previewTeachers.length > 0 ? "📋 Preview Staff Import" : "👩‍🏫 Register New Teaching Faculty"}
+                👩‍🏫 Register New Teaching Faculty
               </h3>
               <button
-                onClick={() => { setIsAddModalOpen(false); setPreviewTeachers([]); }}
+                onClick={() => setIsAddModalOpen(false)}
+                className="text-slate-500 hover:text-slate-800 text-xs font-semibold"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            <form onSubmit={handleAddStaff} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Full Name</label>
+                  <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)}
+                    placeholder="e.g. Mr. Vignesh K."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">ID</label>
+                  <input type="text" required value={newEmisId} onChange={(e) => setNewEmisId(e.target.value)}
+                    placeholder="e.g. TCH206"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Subject Specialty</label>
+                  <select value={newSubject} onChange={(e) => setNewSubject(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Science">Science</option>
+                    <option value="English">English</option>
+                    <option value="Tamil">Tamil</option>
+                    <option value="Social Science">Social Science</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Physical Education">Physical Education</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Performance Index</label>
+                  <select value={newPerformance} onChange={(e) => setNewPerformance(e.target.value as any)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                    <option value="Excellent">Excellent</option>
+                    <option value="Good">Good</option>
+                    <option value="Average">Average</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Phone Number</label>
+                  <input type="text" required value={newPhone} onChange={(e) => setNewPhone(e.target.value)}
+                    placeholder="e.g. 9876543225"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Email Address</label>
+                  <input type="email" required value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="e.g. vignesh@emis.tn.gov.in"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Attendance Rate (%)</label>
+                  <input type="number" min="0" max="100" required value={newAttendance}
+                    onChange={(e) => setNewAttendance(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Leave Balance Used</label>
+                  <input type="number" min="0" required value={newLeave}
+                    onChange={(e) => setNewLeave(parseInt(e.target.value, 10) || 0)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Default Portal Password</label>
+                <input type="text" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="e.g. password123"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+              </div>
+              <button type="submit" disabled={isSaving}
+                className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-2 flex items-center justify-center gap-2">
+                {isSaving ? (
+                  <><div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving...</>
+                ) : "💾 Register Teacher"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Import staff modal */}
+      {isImportModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div
+            className={`w-full ${previewTeachers.length > 0 ? "max-w-4xl" : "max-w-md"} rounded-3xl p-6 space-y-6 relative transition-all duration-300`}
+            style={{ background: "#ffffff", border: "1px solid rgba(0, 0, 0, 0.08)", boxShadow: "0 20px 50px rgba(0, 0, 0, 0.15)" }}
+          >
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-bold text-slate-800">
+                {previewTeachers.length > 0 ? "📋 Preview Staff Import" : "📥 Bulk Import Staff Roster"}
+              </h3>
+              <button
+                onClick={() => { setIsImportModalOpen(false); setPreviewTeachers([]); }}
                 className="text-slate-500 hover:text-slate-800 text-xs font-semibold"
               >
                 ✕ Close
@@ -680,135 +847,47 @@ export default function StaffManagementPage() {
                     ) : `💾 Save to Database (${previewTeachers.filter((s) => s.isValid).length} Teachers)`}
                   </button>
                   <button
-                    onClick={() => setPreviewTeachers([])}
+                    onClick={() => { setPreviewTeachers([]); setIsImportModalOpen(false); }}
                     className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors border border-slate-200"
                   >Discard</button>
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Form */}
-                <form onSubmit={handleAddStaff} className="space-y-3">
-                  <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Manual Entry</div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Full Name</label>
-                      <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)}
-                        placeholder="e.g. Mr. Vignesh K."
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">ID</label>
-                      <input type="text" required value={newEmisId} onChange={(e) => setNewEmisId(e.target.value)}
-                        placeholder="e.g. TCH206"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Subject Specialty</label>
-                      <select value={newSubject} onChange={(e) => setNewSubject(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                        <option value="Mathematics">Mathematics</option>
-                        <option value="Science">Science</option>
-                        <option value="English">English</option>
-                        <option value="Tamil">Tamil</option>
-                        <option value="Social Science">Social Science</option>
-                        <option value="Computer Science">Computer Science</option>
-                        <option value="Physical Education">Physical Education</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Performance Index</label>
-                      <select value={newPerformance} onChange={(e) => setNewPerformance(e.target.value as any)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                        <option value="Excellent">Excellent</option>
-                        <option value="Good">Good</option>
-                        <option value="Average">Average</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Phone Number</label>
-                      <input type="text" required value={newPhone} onChange={(e) => setNewPhone(e.target.value)}
-                        placeholder="e.g. 9876543225"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Email Address</label>
-                      <input type="email" required value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
-                        placeholder="e.g. vignesh@emis.tn.gov.in"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Attendance Rate (%)</label>
-                      <input type="number" min="0" max="100" required value={newAttendance}
-                        onChange={(e) => setNewAttendance(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Leave Balance Used</label>
-                      <input type="number" min="0" required value={newLeave}
-                        onChange={(e) => setNewLeave(parseInt(e.target.value, 10) || 0)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Default Portal Password</label>
-                    <input type="text" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="e.g. password123"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                  </div>
-                  <button type="submit" disabled={isSaving}
-                    className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-2 flex items-center justify-center gap-2">
-                    {isSaving ? (
-                      <><div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving...</>
-                    ) : "💾 Register Teacher"}
+              <div className="space-y-4">
+                <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex justify-between items-center">
+                  <span>Excel / CSV Import</span>
+                  <button onClick={downloadExcelTemplate} type="button"
+                    className="text-[10px] text-blue-600 hover:text-blue-700 font-bold underline cursor-pointer">
+                    📥 Get Template
                   </button>
-                </form>
-
-                {/* Excel Import */}
-                <div className="border-l border-slate-200 pl-6 flex flex-col justify-between">
-                  <div className="space-y-4">
-                    <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex justify-between items-center">
-                      <span>Excel Import</span>
-                      <button onClick={downloadExcelTemplate} type="button"
-                        className="text-[10px] text-blue-600 hover:text-blue-700 font-bold underline cursor-pointer">
-                        📥 Get Template
-                      </button>
-                    </div>
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      className={`rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-3 min-h-[160px] border-2 border-dashed ${
-                        isDragging ? "border-emerald-500 bg-emerald-50" : "border-slate-300 bg-white hover:border-emerald-500"
-                      }`}
-                    >
-                      {isUploading ? (
-                        <>
-                          <div className="w-8 h-8 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin" />
-                          <span className="text-[10px] text-slate-500">Parsing spreadsheet...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-4xl">📊</span>
-                          <span className="text-xs font-bold text-slate-800">Import Teacher Roster</span>
-                          <span className="text-[9px] text-slate-500 leading-normal">Drag & drop Excel or click to upload</span>
-                        </>
-                      )}
-                    </div>
-                    <input type="file" ref={fileInputRef}
-                      onChange={(e) => { const file = e.target.files?.[0]; if (file) parseFile(file); }}
-                      accept=".xlsx,.xls,.csv" className="hidden" />
-                  </div>
-                  <div className="text-[10px] text-slate-400 italic leading-relaxed pt-4">
-                    * Data is stored in PostgreSQL — persists across sessions and refreshes.
-                  </div>
+                </div>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-3 min-h-[180px] border-2 border-dashed ${
+                    isDragging ? "border-emerald-500 bg-emerald-50" : "border-slate-300 bg-white hover:border-emerald-500"
+                  }`}
+                >
+                  {isUploading ? (
+                    <>
+                      <div className="w-8 h-8 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin" />
+                      <span className="text-[10px] text-slate-500">Parsing spreadsheet...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-4xl">📊</span>
+                      <span className="text-xs font-bold text-slate-800">Import Teacher Roster</span>
+                      <span className="text-[10px] text-slate-500 leading-normal">Drag & drop Excel/CSV or click to upload</span>
+                    </>
+                  )}
+                </div>
+                <input type="file" ref={fileInputRef}
+                  onChange={(e) => { const file = e.target.files?.[0]; if (file) parseFile(file); }}
+                  accept=".xlsx,.xls,.csv" className="hidden" />
+                <div className="text-[10px] text-slate-400 italic leading-relaxed pt-2">
+                  * Data is stored in PostgreSQL — persists across sessions and refreshes.
                 </div>
               </div>
             )}
