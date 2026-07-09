@@ -635,17 +635,32 @@ export default function StudentsMonitoringPage() {
     reader.onload = (event) => {
       try {
         const data = event.target?.result;
-        const workbook = XLSX.read(data, { type: "binary" });
+        const workbook = XLSX.read(data, { type: "binary", cellDates: false });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        const parsedData = XLSX.utils.sheet_to_json<ExcelStudentRow>(sheet);
+        // raw:false + dateNF ensures Excel date cells come back as "YYYY-MM-DD" strings
+        // instead of raw serial numbers (e.g. 41411) which JavaScript misparses as a year.
+        const parsedData = XLSX.utils.sheet_to_json<ExcelStudentRow>(sheet, { raw: false, dateNF: 'yyyy-mm-dd' });
 
         const validated: ParsedPreviewStudent[] = parsedData.map((row, idx) => {
           const name = row["Full Name"]?.toString().trim() || "";
           const rollNumber = row["Roll Number"]?.toString().trim() || "";
           const admissionNumber = row["Admission Number"]?.toString().trim() || "";
           const emisNumber = row["EMIS Number"]?.toString().trim() || "";
-          const dob = row["Date of Birth (YYYY-MM-DD)"]?.toString().trim() || "";
+          // Helper: if XLSX returned an Excel serial number despite dateNF, convert it
+          const rawDob = row["Date of Birth (YYYY-MM-DD)"];
+          const excelSerialToDateStr = (serial: number): string => {
+            // Excel epoch is Dec 30 1899; convert serial days to JS Date
+            const msPerDay = 86400000;
+            const excelEpoch = new Date(1899, 11, 30).getTime();
+            const d = new Date(excelEpoch + serial * msPerDay);
+            return d.toISOString().split('T')[0]; // "YYYY-MM-DD"
+          };
+          const dob = (rawDob !== undefined && rawDob !== null && rawDob !== '')
+            ? (typeof rawDob === 'number'
+                ? excelSerialToDateStr(rawDob)
+                : rawDob.toString().trim())
+            : "";
           const gender = row["Gender"]?.toString().trim() || "";
           const bloodGroup = row["Blood Group"]?.toString().trim() || "";
           const religion = row["Religion"]?.toString().trim() || "";
@@ -735,6 +750,8 @@ export default function StudentsMonitoringPage() {
     setImportProgress(0);
     const chunkSize = 25;
     let totalCreated = 0;
+    let totalSkipped = 0;
+    const allErrors: string[] = [];
 
     try {
       for (let i = 0; i < validStudents.length; i += chunkSize) {
@@ -751,10 +768,24 @@ export default function StudentsMonitoringPage() {
         }
 
         totalCreated += (json.created || 0);
+        totalSkipped += (json.skipped || 0);
+        if (json.errors && json.errors.length > 0) {
+          allErrors.push(...json.errors);
+        }
         setImportProgress(Math.min(100, Math.round(((i + chunk.length) / validStudents.length) * 100)));
       }
 
-      showToast(`🎉 Successfully saved ${totalCreated} students to database!`);
+      if (totalCreated > 0) {
+        const skipMsg = totalSkipped > 0 ? ` (${totalSkipped} skipped — duplicate roll numbers or missing data)` : ``;
+        showToast(`🎉 Successfully saved ${totalCreated} students to database!${skipMsg}`);
+      } else {
+        showToast(`⚠️ No students were saved. ${totalSkipped} rows skipped. Check roll numbers are unique and all required fields are filled.`, "error");
+      }
+
+      if (allErrors.length > 0) {
+        console.warn("Bulk import errors:", allErrors);
+      }
+
       setPreviewStudents([]);
       setIsModalOpen(false);
       fetchWatchlist();
