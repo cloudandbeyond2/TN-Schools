@@ -53,6 +53,11 @@ async function run() {
     console.log(`\nTest 3 (group=Computer Science):`);
     console.log(csGroup);
 
+    // Test 7: Passing group=2503
+    const group2503 = await fetchFromApi(`class=${testClass}&group=2503`);
+    console.log(`\nTest 7 (group=2503):`);
+    console.log(group2503);
+
     // Test 4: Passing studentId (Currently blank group)
     const studentIdBlank = await fetchFromApi(`class=${testClass}&studentId=${student.id}`);
     console.log(`\nTest 4 (studentId=${student.id} with group='${student.group}'):`);

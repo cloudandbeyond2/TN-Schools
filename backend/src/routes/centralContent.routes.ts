@@ -4,6 +4,7 @@ import * as https from 'https';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { getGroup } from '../constants/hscGroups';
 
 const pdfUpload = multer({
   storage: multer.memoryStorage(),
@@ -469,6 +470,39 @@ const fallbackContents: Record<string, any[]> = {
 // Routes with Database Fail-safe checks
 // ===========================================================================
 
+function getSubjectNamesForGroup(groupNameOrCode: string): string[] {
+  const normalized = groupNameOrCode.trim().toLowerCase();
+
+  // 1. Direct group names
+  if (normalized === 'biology') {
+    return ['tamil', 'english', 'mathematics', 'physics', 'chemistry', 'biology', 'bio-botany', 'bio-zoology', 'botany', 'zoology'];
+  }
+  if (normalized === 'computer science') {
+    return ['tamil', 'english', 'mathematics', 'physics', 'chemistry', 'computer science'];
+  }
+  if (normalized === 'commerce') {
+    return ['tamil', 'english', 'mathematics', 'commerce', 'accountancy', 'economics'];
+  }
+
+  // 2. DGE Group Codes (e.g. 2503)
+  const hscGroup = getGroup(groupNameOrCode);
+  if (hscGroup) {
+    const list = ['tamil', 'english'];
+    hscGroup.partIIISubjects.forEach(sub => {
+      const s = sub.toLowerCase();
+      if (s === 'biology') {
+        list.push('biology', 'bio-botany', 'bio-zoology', 'botany', 'zoology');
+      } else {
+        list.push(s);
+      }
+    });
+    return list;
+  }
+
+  // 3. Blank / Unknown group -> Return common subjects
+  return ['tamil', 'english', 'mathematics'];
+}
+
 // GET /api/centralized-content/subjects — Get all centralized subjects for a class
 router.get('/subjects', async (req: Request, res: Response) => {
   try {
@@ -481,38 +515,39 @@ router.get('/subjects', async (req: Request, res: Response) => {
       });
     }
 
-    let studentGroup = group ? String(group).trim() : "";
-
-    if (studentId) {
-      const student = await prisma.student.findUnique({
-        where: { id: String(studentId) },
-        select: { group: true }
-      });
-      if (student && student.group) {
-        studentGroup = student.group.trim();
-      }
-    }
+    const classStr = String(cls);
+    const isHigherSecondary = classStr === '11' || classStr === '12';
 
     // Try to query PostgreSQL
     const subjects = await prisma.centralSubject.findMany({
       where: {
-        class: String(cls)
+        class: classStr
       },
       orderBy: {
         createdAt: 'asc'
       }
     });
 
-    const filteredSubjects = subjects.filter(sub => {
-      const appGroups = (sub as any).applicableGroups || [];
-      if (appGroups.length === 0) {
-        return true; // Common subject
+    let filteredSubjects = subjects;
+
+    if (isHigherSecondary) {
+      let studentGroup = group ? String(group).trim() : "";
+
+      if (studentId) {
+        const student = await prisma.student.findUnique({
+          where: { id: String(studentId) },
+          select: { group: true }
+        });
+        if (student && student.group) {
+          studentGroup = student.group.trim();
+        }
       }
-      if (!studentGroup) {
-        return false; // If student group is blank, only show common subjects
-      }
-      return appGroups.some((g: string) => g.toLowerCase() === studentGroup.toLowerCase());
-    });
+
+      const allowedSubjects = getSubjectNamesForGroup(studentGroup);
+      filteredSubjects = subjects.filter(sub => 
+        allowedSubjects.includes(sub.name.trim().toLowerCase())
+      );
+    }
 
     res.json({
       success: true,
@@ -522,39 +557,38 @@ router.get('/subjects', async (req: Request, res: Response) => {
     console.warn("⚠️ Database query failed, falling back to local seed data. Error:", err.message || err);
 
     const { class: cls, studentId, group } = req.query;
-    let studentGroup = group ? String(group).trim() : "";
+    const classStr = String(cls);
+    const isHigherSecondary = classStr === '11' || classStr === '12';
 
-    if (studentId) {
-      try {
-        const student = await prisma.student.findUnique({
-          where: { id: String(studentId) },
-          select: { group: true }
-        });
-        if (student && student.group) {
-          studentGroup = student.group.trim();
+    let filtered = fallbackSubjects.filter(sub => sub.class === classStr);
+
+    if (isHigherSecondary) {
+      let studentGroup = group ? String(group).trim() : "";
+
+      if (studentId) {
+        try {
+          const student = await prisma.student.findUnique({
+            where: { id: String(studentId) },
+            select: { group: true }
+          });
+          if (student && student.group) {
+            studentGroup = student.group.trim();
+          }
+        } catch (dbErr) {
+          console.warn("⚠️ Failed to fetch student group from DB in fallback path:", dbErr);
         }
-      } catch (dbErr) {
-        console.warn("⚠️ Failed to fetch student group from DB in fallback path:", dbErr);
       }
-    }
 
-    // Fail-safe: filter local mock data by class standard
-    const filtered = fallbackSubjects.filter(sub => sub.class === String(cls));
-    const filteredByGroup = filtered.filter(sub => {
-      const appGroups = (sub as any).applicableGroups || [];
-      if (appGroups.length === 0) {
-        return true; // Common subject
-      }
-      if (!studentGroup) {
-        return false; // If student group is blank, only show common subjects
-      }
-      return appGroups.some((g: string) => g.toLowerCase() === studentGroup.toLowerCase());
-    });
+      const allowedSubjects = getSubjectNamesForGroup(studentGroup);
+      filtered = filtered.filter(sub => 
+        allowedSubjects.includes(sub.name.trim().toLowerCase())
+      );
+    }
 
     res.json({
       success: true,
       isFallback: true,
-      data: filteredByGroup
+      data: filtered
     });
   }
 });

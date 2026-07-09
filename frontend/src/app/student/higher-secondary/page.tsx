@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import PersonalKpiStrip from "@/components/kpi/PersonalKpiStrip";
-
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -14,19 +14,6 @@ const getApiBase = () => {
 };
 
 const API_BASE = getApiBase();
-
-const subjects = [
-  { name: "Physics", progress: 75, color: "#3b82f6", icon: "⚛️" },
-  { name: "Chemistry", progress: 82, color: "#10b981", icon: "🧪" },
-  { name: "Biology", progress: 90, color: "#ec4899", icon: "🧬" },
-  { name: "Mathematics", progress: 85, color: "#6366f1", icon: "📐" },
-];
-
-const mockTestScores = [
-  { test: "NEET Mock 1: Biology", score: "320/360", status: "excellent" },
-  { test: "HSC Midterm: Physics", score: "70/100", status: "needs-work" },
-  { test: "HSC Midterm: Chemistry", score: "88/100", status: "good" },
-];
 
 const streamKnowledge = [
   {
@@ -70,13 +57,16 @@ const streamKnowledge = [
 export default function HigherSecondaryDashboard() {
   const { data: session } = useSession();
   const [student, setStudent] = useState<any>(null);
+  const [todayProgress, setTodayProgress] = useState<any>(null);
+  const [summary, setSummary] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
+  // 1. Load Student Profile
   useEffect(() => {
     fetch(`${API_BASE}/api/students`)
       .then((res) => res.json())
       .then((json) => {
         if (json.success && json.data.length > 0) {
-          // Match the logged in user if they are a student, otherwise default to first for preview
           const myStudent = (session?.user as any)?.id 
             ? json.data.find((s: any) => s.userId === (session?.user as any)?.id)
             : null;
@@ -86,8 +76,22 @@ export default function HigherSecondaryDashboard() {
       .catch((err) => console.error(err));
   }, [session]);
 
-  const [todayProgress, setTodayProgress] = useState<any>(null);
+  // 2. Load Dashboard Summaries & Live Stats
+  useEffect(() => {
+    if (!student?.id) return;
+    setLoading(true);
+    fetch(`${API_BASE}/api/students/${student.id}/dashboard-summary`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) {
+          setSummary(json.data);
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, [student]);
 
+  // 3. Load Library Progress
   useEffect(() => {
     if (!(session?.user as any)?.id) return;
     fetch(`${API_BASE}/api/digital-library/progress/today?studentId=${(session?.user as any)?.id}`)
@@ -99,23 +103,27 @@ export default function HigherSecondaryDashboard() {
   }, [session]);
 
   const userName = session?.user?.name || student?.user?.name || "Student";
+  const currentStream = summary?.stream || "Pure Science & Bio";
   const subtitle = student 
-    ? `Welcome, ${userName} · Class ${student.class} ${student.section} Stream · Target: Medical Colleges`
+    ? `Welcome, ${userName} · Class ${student.class}${student.section} · ${currentStream} Stream`
     : "Loading student data...";
+
+  // Dynamic KPI lists
+  const kpis = [
+    { label: "HSC Board Exam", value: "62 Days", icon: "⏳", color: "text-purple-400", sub: "Exam starts Mar 5" },
+    { label: "Stream Track", value: currentStream.split(" ")[0], icon: "🩺", color: "text-pink-400", sub: "Target: Top Colleges" },
+    { label: "Overall Average", value: summary ? `${summary.overallAvg}%` : "80%", icon: "📊", color: "text-blue-400", sub: "Based on classroom tests" },
+    { label: "Tests Logged", value: summary ? `${summary.testsCount}` : "0", icon: "📝", color: "text-amber-400", sub: "Updated real-time" },
+  ];
 
   return (
     <PortalLayout subtitle={subtitle}>
       {/* Real academic-year KPIs */}
-      <PersonalKpiStrip studentId={(session?.user as any)?.studentId || null} />
+      <PersonalKpiStrip studentId={(session?.user as any)?.studentId || student?.id || null} />
 
       {/* KPI Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
-        {[
-          { label: "HSC Board Exam", value: "62 Days", icon: "⏳", color: "text-purple-400", sub: "Exam starts Mar 5" },
-          { label: "NEET Exam", value: "120 Days", icon: "🩺", color: "text-pink-400", sub: "Target Score: 650+" },
-          { label: "Overall HSC Avg", value: "83%", icon: "📊", color: "text-blue-400", sub: "Target: 95%" },
-          { label: "Mock Tests Taken", value: "12/20", icon: "📝", color: "text-amber-400", sub: "Next test: Sunday" },
-        ].map((kpi) => (
+        {kpis.map((kpi) => (
           <div key={kpi.label} className="kpi-card border border-slate-700 hover:border-purple-500/50 transition-colors">
             <div className="flex items-center justify-between mb-3">
               <span className="text-2xl">{kpi.icon}</span>
@@ -128,14 +136,15 @@ export default function HigherSecondaryDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        
         {/* Subject Progress */}
         <div className="lg:col-span-2 glass rounded-2xl p-6 fade-in-2 border border-slate-700/50">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-base font-semibold text-white">Stream Specialization: Science</h2>
-            <button className="text-xs text-purple-400 hover:text-purple-300">View Analytics →</button>
+            <h2 className="text-base font-semibold text-white">Stream Specialization: {currentStream}</h2>
+            <Link href="/student/academic-history" className="text-xs text-purple-400 hover:text-purple-300">View Academic Journey →</Link>
           </div>
           <div className="space-y-4">
-            {subjects.map((s) => (
+            {summary?.subjects?.map((s: any) => (
               <div key={s.name} className="flex items-center gap-4">
                 <div className="text-xl w-8">{s.icon}</div>
                 <div className="flex-1">
@@ -149,10 +158,15 @@ export default function HigherSecondaryDashboard() {
                 </div>
               </div>
             ))}
+            {(!summary?.subjects || summary.subjects.length === 0) && (
+              <p className="text-xs text-slate-500 py-4 text-center">Loading subjects...</p>
+            )}
           </div>
         </div>
 
+        {/* Right sidebars */}
         <div className="space-y-6">
+          
           {/* Today's Learning Progress Card */}
           <div className="glass rounded-2xl p-6 border border-slate-700/50">
             <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
@@ -195,31 +209,30 @@ export default function HigherSecondaryDashboard() {
             )}
           </div>
 
-          {/* Competitive Exam Hub */}
-          <div className="glass rounded-2xl p-6 fade-in-3 border border-pink-500/30 bg-gradient-to-br from-pink-900/20 to-purple-900/20">
+          {/* Test Performance Hub */}
+          <div className="glass rounded-2xl p-6 border border-purple-500/30 bg-gradient-to-br from-indigo-900/20 to-purple-900/20">
             <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
-              <span className="text-pink-500">🚀</span> NEET Prep Hub
+              <span className="text-indigo-400">📝</span> Test Performance Hub
             </h2>
-            <p className="text-sm text-slate-300 mb-4">
-              Your Biology scores are strong! Focus on improving Physics (Optics & Thermodynamics) to cross the 600 mark.
-            </p>
-            <button className="w-full py-2 rounded-lg bg-pink-500/20 text-pink-300 hover:bg-pink-500/30 font-medium text-sm transition-colors border border-pink-500/50">
-              Start Physics Boost
-            </button>
+            
+            <div className="space-y-3">
+              {summary?.recentTests?.map((t: any, idx: number) => (
+                <div key={idx} className="bg-slate-950/40 p-3 rounded-xl border border-slate-800/60 flex justify-between items-center">
+                  <div>
+                    <h4 className="text-xs font-bold text-white max-w-[150px] truncate">{t.test}</h4>
+                    <span className="text-[10px] text-slate-500 font-bold uppercase">{t.status}</span>
+                  </div>
+                  <span className={`text-xs font-black ${t.status === "excellent" ? "text-emerald-400" : t.status === "good" ? "text-indigo-400" : "text-amber-400"}`}>
+                    {t.score}
+                  </span>
+                </div>
+              ))}
+              {(!summary?.recentTests || summary.recentTests.length === 0) && (
+                <p className="text-xs text-slate-500 py-4 text-center">No tests recorded in classroom yet.</p>
+              )}
+            </div>
           </div>
 
-          {/* College Admissions Predictor */}
-          <div className="glass rounded-2xl p-6 fade-in-4 border border-blue-500/30 bg-blue-900/10">
-            <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
-              <span className="text-blue-500">🎓</span> College Predictor
-            </h2>
-            <p className="text-sm text-slate-300 mb-4">
-              Based on your current performance trajectory, you have a <strong>75% chance</strong> of securing a seat in top-tier state medical colleges.
-            </p>
-            <button className="w-full py-2 rounded-lg bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 font-medium text-sm transition-colors border border-blue-500/50">
-              Explore Colleges
-            </button>
-          </div>
         </div>
       </div>
 
@@ -233,30 +246,38 @@ export default function HigherSecondaryDashboard() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {streamKnowledge.map((stream, idx) => (
-            <div key={idx} className={`p-5 rounded-xl border transition-all hover:-translate-y-1 hover:shadow-lg ${stream.bgBorder}`}>
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">{stream.icon}</span>
-                <h3 className={`font-bold ${stream.color} leading-tight`}>{stream.stream}</h3>
-              </div>
-              <div className="text-xs text-slate-400 mb-4">
-                <strong>Core Subjects:</strong> {stream.subjects}
-              </div>
-              <div className="space-y-3">
-                <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
-                  <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">AI Assistant Focus</div>
-                  <div className="text-sm text-white font-medium">{stream.aiFeature}</div>
+          {streamKnowledge.map((stream, idx) => {
+            const isActive = currentStream.toLowerCase().includes(stream.stream.split(" ")[0].toLowerCase());
+            return (
+              <div key={idx} className={`p-5 rounded-xl border transition-all hover:-translate-y-1 hover:shadow-lg relative ${stream.bgBorder} ${isActive ? 'ring-2 ring-indigo-500 border-indigo-500/50 scale-[1.02]' : ''}`}>
+                {isActive && (
+                  <span className="absolute top-2 right-2 bg-indigo-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-lg shadow-indigo-500/30">
+                    My Stream
+                  </span>
+                )}
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-3xl">{stream.icon}</span>
+                  <h3 className={`font-bold ${stream.color} leading-tight`}>{stream.stream}</h3>
                 </div>
-                <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
-                  <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Capstone Project Idea</div>
-                  <div className="text-sm text-white font-medium">{stream.projectIdea}</div>
+                <div className="text-xs text-slate-400 mb-4">
+                  <strong>Core Subjects:</strong> {stream.subjects}
                 </div>
+                <div className="space-y-3">
+                  <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
+                    <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">AI Assistant Focus</div>
+                    <div className="text-sm text-white font-medium">{stream.aiFeature}</div>
+                  </div>
+                  <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
+                    <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Capstone Project Idea</div>
+                    <div className="text-sm text-white font-medium">{stream.projectIdea}</div>
+                  </div>
+                </div>
+                <button className={`w-full mt-4 py-2 rounded-lg border text-xs font-bold transition-colors ${stream.color.replace('text-', 'border-').replace('400', '500/30')} hover:bg-white/5`}>
+                  Enter Knowledge Base →
+                </button>
               </div>
-              <button className={`w-full mt-4 py-2 rounded-lg border text-xs font-bold transition-colors ${stream.color.replace('text-', 'border-').replace('400', '500/30')} hover:bg-white/5`}>
-                Enter Knowledge Base →
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </PortalLayout>
