@@ -55,7 +55,7 @@ export const portals = [
     href: "/block-education-officer",
     label: "Block Education Officer",
     icon: "Building2",
-    desc: "School Comparisons, Attendance & Exam Analytics",
+    desc: "Manage School, Attendance & Exam Analytics",
     color: "from-violet-600 to-purple-600",
     border: "border-violet-500/30",
     bg: "hover:bg-violet-500/10",
@@ -111,10 +111,10 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
-      { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
+      // { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
-        { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
+      { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
     ],
   },
@@ -136,13 +136,14 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
-      { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
-      { label: "Homework", href: "/student/homework", icon: "Edit3" },
+      // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
+
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
-      { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
+      // { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
 
       // ── Exams & Assessments ───────────────────────────
       { label: "---", href: "#", icon: "" },
+      { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
@@ -219,13 +220,14 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
-      { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
-      { label: "Homework", href: "/student/homework", icon: "Edit3" },
+      //{ label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
+
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
-      { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
+      // { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
 
       // ── Exams & Assessments ───────────────────────────
       { label: "---", href: "#", icon: "" },
+      { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Board Prep", href: "/student/high-school/board-prep", icon: "Target" },
       { label: "Mock Tests", href: "/student/high-school/mock-tests", icon: "Edit3" },
@@ -301,14 +303,16 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
-      { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
-      { label: "Homework", href: "/student/homework", icon: "Edit3" },
+      // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
+
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
-      { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
+      // { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
 
       // ── Exams & Assessments ───────────────────────────
       { label: "---", href: "#", icon: "" },
+
       { label: "Exams & Assessments", href: "#", icon: "" },
+      { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Board Prep", href: "/student/higher-secondary/board-prep", icon: "Target" },
       { label: "Mock Tests", href: "/student/higher-secondary/mock-tests", icon: "Edit3" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
@@ -521,8 +525,8 @@ export const roleConfigs: Record<string, PortalConfig> = {
     navItems: [
       { label: "Dashboard", href: "/block-education-officer", icon: "Home" },
       { label: "Promotion Approvals", href: "/block-education-officer/promotions", icon: "TrendingUp" },
+      { label: "Manage School", href: "/block-education-officer/schools", icon: "Building" },
       { label: "Manage Headmasters", href: "/block-education-officer/headmasters", icon: "Building" },
-      { label: "School Comparisons", href: "/block-education-officer/schools", icon: "Building" },
       { label: "Attendance Analytics", href: "/block-education-officer/attendance", icon: "Calendar" },
       { label: "Exam Analytics", href: "/block-education-officer/exams", icon: "Activity" },
       { label: "Infrastructure", href: "/block-education-officer/infrastructure", icon: "Building" },

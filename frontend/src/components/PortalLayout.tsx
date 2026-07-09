@@ -180,7 +180,7 @@ const translations = {
       "Clubs & Activities": "கிளப்புகள் & செயல்பாடுகள்",
       "Promotion Approvals": "பதவி உயர்வு ஒப்புதல்கள்",
       "Manage Headmasters": "தலைமையாசிரியர்களை நிர்வகி",
-      "School Comparisons": "பள்ளி ஒப்பீடுகள்",
+      "Manage School": "பள்ளி ஒப்பீடுகள்",
       "Attendance Analytics": "வருகை பகுப்பாய்வு",
       "Exam Analytics": "தேர்வு பகுப்பாய்வு",
       "Infrastructure": "உள்கட்டமைப்பு",

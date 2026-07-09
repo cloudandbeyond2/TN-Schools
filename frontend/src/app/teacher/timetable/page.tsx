@@ -16,8 +16,12 @@ import {
   CheckSquare, 
   ArrowRight,
   Coffee,
-  Bookmark
+  Bookmark,
+  Plus,
+  X,
+  Save
 } from "lucide-react";
+import Swal from "sweetalert2";
 
 interface TimetableSlot {
   id: string;
@@ -70,6 +74,14 @@ export default function TeacherTimetablePage() {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"daily" | "weekly">("weekly");
 
+  // Add Class Modal States
+  const [teacherClasses, setTeacherClasses] = useState<any[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<{ dayOfWeek: number; period: number } | null>(null);
+  const [selectedClassId, setSelectedClassId] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [pendingSlots, setPendingSlots] = useState<any[]>([]);
+
   // Date and Day Selectors
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
@@ -116,6 +128,13 @@ export default function TeacherTimetablePage() {
         if (teachersData.success) {
           setTeachers(teachersData.data);
         }
+        
+        // 4. Fetch teacher's assigned classes
+        const classesRes = await fetch(`${API_URL}/api/classes?schoolId=${user.schoolId}&teacherId=${teacherId}`);
+        const classesData = await classesRes.json();
+        if (classesData.success) {
+          setTeacherClasses(classesData.data);
+        }
       }
     } catch (e) {
       console.error("Error loading teacher timetable", e);
@@ -134,6 +153,89 @@ export default function TeacherTimetablePage() {
     if (tId === teacherId) return "You";
     const found = teachers.find(t => t.id === tId);
     return found ? found.name : "Teacher";
+  };
+
+  const handleAddClass = () => {
+    if (!selectedSlot || !selectedClassId || !user?.schoolId) return;
+
+    const selectedCls = teacherClasses.find(c => c.id === selectedClassId);
+    if (!selectedCls) return;
+
+    const times = selectedSlot.period === 1 ? { start: "09:30", end: "10:15" } : 
+                  selectedSlot.period === 2 ? { start: "10:15", end: "11:00" } : 
+                  selectedSlot.period === 3 ? { start: "11:15", end: "12:00" } : 
+                  selectedSlot.period === 4 ? { start: "12:00", end: "12:45" } : 
+                  selectedSlot.period === 5 ? { start: "13:30", end: "14:15" } : 
+                  selectedSlot.period === 6 ? { start: "14:15", end: "15:00" } :
+                  selectedSlot.period === 7 ? { start: "15:15", end: "16:00" } : { start: "16:00", end: "16:45" };
+
+    const newSlot = {
+      schoolId: user.schoolId,
+      class: selectedCls.className,
+      section: selectedCls.section,
+      dayOfWeek: selectedSlot.dayOfWeek,
+      period: selectedSlot.period,
+      subject: selectedCls.subject,
+      teacherId: teacherId,
+      startTime: times.start,
+      endTime: times.end,
+    };
+
+    // Replace any existing pending slot for the same day & period
+    setPendingSlots(prev => {
+      const filtered = prev.filter(s => !(s.dayOfWeek === selectedSlot.dayOfWeek && s.period === selectedSlot.period));
+      return [...filtered, newSlot];
+    });
+    
+    setShowAddModal(false);
+  };
+
+  const handleSaveTotalSchedule = async () => {
+    if (pendingSlots.length === 0) return;
+    setIsSaving(true);
+    let successCount = 0;
+    
+    try {
+      for (const slot of pendingSlots) {
+        const res = await fetch(`${API_URL}/api/timetable`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(slot),
+        });
+        const data = await res.json();
+        if (data.success) {
+          successCount++;
+        }
+      }
+
+      if (successCount === pendingSlots.length) {
+        Swal.fire({
+          icon: "success",
+          title: "Schedule Saved",
+          text: `Successfully saved ${successCount} classes to your timetable.`,
+          confirmButtonColor: "#10b981",
+        });
+        setPendingSlots([]);
+        fetchData();
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Partial Save",
+          text: `Saved ${successCount} out of ${pendingSlots.length} classes. Some may have had conflicts.`,
+        });
+        setPendingSlots([]);
+        fetchData();
+      }
+    } catch (e) {
+      console.error(e);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Network error saving schedule.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Filter regular timetable slots for the active day of week
@@ -301,6 +403,17 @@ export default function TeacherTimetablePage() {
               </button>
             </div>
 
+            {pendingSlots.length > 0 && viewMode === "weekly" && (
+              <button
+                onClick={handleSaveTotalSchedule}
+                disabled={isSaving}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
+              >
+                <Save className="w-3.5 h-3.5" />
+                {isSaving ? "Saving..." : `Save Total Schedule (${pendingSlots.length})`}
+              </button>
+            )}
+
             {/* Days Tabs selector - Only show in daily view */}
             {viewMode === "daily" && (
           <div className="flex bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900 p-1 rounded-xl w-full sm:w-auto">
@@ -395,7 +508,9 @@ export default function TeacherTimetablePage() {
                         <div className="text-[10px] text-slate-500 mt-1">{times.start} - {times.end}</div>
                       </td>
                       {DAYS_OF_WEEK.map(day => {
-                        const slot = timetable.find(s => s.dayOfWeek === day.value && s.period === periodNumber);
+                        const savedSlot = timetable.find(s => s.dayOfWeek === day.value && s.period === periodNumber);
+                        const pendingSlot = pendingSlots.find(s => s.dayOfWeek === day.value && s.period === periodNumber);
+                        const slot = pendingSlot || savedSlot;
                         
                         // Render empty for Sunday if needed, but we included Sunday in DAYS_OF_WEEK
                         if (day.value === 0) {
@@ -408,18 +523,31 @@ export default function TeacherTimetablePage() {
                         return (
                           <td key={`${day.value}-${periodNumber}`} className="p-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 align-top h-24">
                             {slot ? (
-                              <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-2 rounded-lg h-full flex flex-col justify-between hover:border-amber-400 dark:hover:border-amber-500/50 transition-colors">
+                              <div className={`border p-2 rounded-lg h-full flex flex-col justify-between transition-colors relative ${pendingSlot ? 'bg-sky-50 dark:bg-sky-900/20 border-sky-300 border-dashed dark:border-sky-700' : 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20 hover:border-amber-400 dark:hover:border-amber-500/50'}`}>
+                                {pendingSlot && (
+                                  <span className="absolute -top-2 -right-2 bg-sky-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider">Unsaved</span>
+                                )}
                                 <div>
-                                  <div className={`text-xs font-bold ${periodNumber === 8 ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-800 dark:text-white'}`}>{slot.subject}</div>
-                                  <div className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5 flex items-center gap-1 font-semibold">
+                                  <div className={`text-xs font-bold ${periodNumber === 8 ? 'text-emerald-700 dark:text-emerald-400' : pendingSlot ? 'text-sky-800 dark:text-sky-300' : 'text-slate-800 dark:text-white'}`}>{slot.subject}</div>
+                                  <div className={`text-[10px] mt-0.5 flex items-center gap-1 font-semibold ${pendingSlot ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'}`}>
                                     <Users className="w-3 h-3" /> Class {slot.class}{slot.section}
                                   </div>
                                 </div>
                               </div>
                             ) : (
-                              <div className="flex items-center justify-center h-full text-[10px] text-slate-400 font-medium opacity-50 bg-slate-50/50 dark:bg-slate-950/20 rounded-lg border border-dashed border-slate-200 dark:border-slate-800">
-                                Free
-                              </div>
+                              <button
+                                onClick={() => {
+                                  setSelectedSlot({ dayOfWeek: day.value, period: periodNumber });
+                                  setSelectedClassId("");
+                                  setShowAddModal(true);
+                                }}
+                                className="w-full h-full flex items-center justify-center text-[10px] text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium opacity-60 hover:opacity-100 bg-slate-50/50 hover:bg-emerald-50 dark:bg-slate-950/20 dark:hover:bg-emerald-900/10 rounded-lg border border-dashed border-slate-200 hover:border-emerald-300 dark:border-slate-800 dark:hover:border-emerald-700/50 transition-all group"
+                              >
+                                <span className="group-hover:hidden">Free</span>
+                                <span className="hidden group-hover:flex items-center gap-1 font-bold">
+                                  <Plus className="w-3 h-3" /> Add Class
+                                </span>
+                              </button>
                             )}
                           </td>
                         );
@@ -607,6 +735,73 @@ export default function TeacherTimetablePage() {
           </div>
         )}
       </div>
+
+      {showAddModal && selectedSlot && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-emerald-500" />
+                Assign Class to Period {selectedSlot.period}
+              </h3>
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 block mb-1.5">
+                  Day: {DAYS_OF_WEEK.find(d => d.value === selectedSlot.dayOfWeek)?.label}
+                </label>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 block mb-1.5">
+                  Select Class
+                </label>
+                <select
+                  value={selectedClassId}
+                  onChange={(e) => setSelectedClassId(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                >
+                  <option value="">-- Choose a Class --</option>
+                  {teacherClasses.map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      Class {cls.className}{cls.section} - {cls.subject}
+                    </option>
+                  ))}
+                </select>
+                {teacherClasses.length === 0 && (
+                  <p className="text-[10px] text-amber-500 mt-1">
+                    You have no assigned classes.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 flex justify-end gap-2">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                disabled={isSaving}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddClass}
+                disabled={!selectedClassId}
+                className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-xl transition-colors flex items-center gap-2 shadow-sm"
+              >
+                Set Class
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PortalLayout>
   );
 }
