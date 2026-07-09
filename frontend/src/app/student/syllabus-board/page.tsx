@@ -73,7 +73,11 @@ export default function StudentSyllabusBoardPage() {
       setUnitCards([]);
 
       try {
-        const res = await fetch(`${API_URL}/api/centralized-content/subjects?class=${selectedClass}`);
+        const studentId = (session?.user as any)?.studentId || "";
+        const url = studentId 
+          ? `${API_URL}/api/centralized-content/subjects?class=${selectedClass}&studentId=${studentId}`
+          : `${API_URL}/api/centralized-content/subjects?class=${selectedClass}`;
+        const res = await fetch(url);
         const json = await res.json();
         if (json.success) {
           setSubjects(json.data);
@@ -90,7 +94,7 @@ export default function StudentSyllabusBoardPage() {
 
     fetchSubjects();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedClass]);
+  }, [selectedClass, session]);
 
   const handleSelectSubject = async (sub: Subject) => {
     setSelectedSubject(sub);

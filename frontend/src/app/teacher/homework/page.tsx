@@ -26,6 +26,7 @@ interface Submission {
   score: string;
   date: string;
   answerText?: string;
+  feedback?: string;
 }
 
 export default function HomeworkPage() {
@@ -51,7 +52,7 @@ export default function HomeworkPage() {
   // New Homework Form State
   const [newTitle, setNewTitle] = useState("");
   const [newClass, setNewClass] = useState("");
-  const [newDueDate, setNewDueDate] = useState("June 25, 2026");
+  const [newDueDate, setNewDueDate] = useState("2026-07-16");
   const [newDesc, setNewDesc] = useState("");
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
@@ -89,7 +90,11 @@ export default function HomeworkPage() {
       if (result.success && result.data) {
         const filtered = result.data.filter((hw: any) =>
           teacherClasses.some(tc => `${tc.className}${tc.section} - ${tc.subject}` === hw.className)
-        );
+        ).map((hw: any) => ({
+          ...hw,
+          totalStudents: hw.submissions ? hw.submissions.length : 0,
+          submittedCount: hw.submissions ? hw.submissions.filter((s: any) => s.status === "submitted").length : 0,
+        }));
         setAssignments(filtered);
         if (filtered.length > 0) {
           // Select first homework matching active status or fall back
@@ -188,16 +193,42 @@ export default function HomeworkPage() {
     }
   };
 
-  const handleGradeSubmission = async (subId: string, name: string) => {
-    const scoreVal = prompt(`Enter score for ${name} (e.g. 9/10):`, "8/10");
-    if (scoreVal === null) return;
+  const handleGradeSubmission = async (subId: string, name: string, currentScore: string = "", currentFeedback: string = "") => {
+    const { value: formValues } = await Swal.fire({
+      title: `Grade Submission for ${name}`,
+      html: `
+        <div style="text-align: left; font-family: sans-serif;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #475569;">Score (e.g. 9/10)</label>
+          <input id="swal-score" class="swal2-input" style="width: 90%; margin: 0 0 15px 0; font-size: 14px; padding: 8px;" placeholder="e.g. 9/10" value="${currentScore || '8/10'}">
+          
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #475569;">Teacher Feedback / Remarks</label>
+          <textarea id="swal-feedback" class="swal2-textarea" style="width: 90%; margin: 0; font-size: 14px; height: 80px;" placeholder="Great analysis! Keep it up.">${currentFeedback || ''}</textarea>
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Submit Grade & Remarks',
+      confirmButtonColor: '#0d9488',
+      preConfirm: () => {
+        const scoreVal = (document.getElementById('swal-score') as HTMLInputElement).value;
+        const feedbackVal = (document.getElementById('swal-feedback') as HTMLTextAreaElement).value;
+        if (!scoreVal.trim()) {
+          Swal.showValidationMessage('Score is required');
+          return false;
+        }
+        return { score: scoreVal, feedback: feedbackVal };
+      }
+    });
+
+    if (!formValues) return;
 
     try {
       const res = await fetch(`${API_URL}/api/teacher/homework/submissions/${subId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          score: scoreVal,
+          score: formValues.score,
+          feedback: formValues.feedback,
           status: "submitted",
         }),
       });
@@ -211,7 +242,7 @@ export default function HomeworkPage() {
         Swal.fire({
           icon: "success",
           title: "Graded!",
-          text: `Graded ${name} successfully with score ${scoreVal}!`,
+          text: `Graded ${name} successfully with score ${formValues.score}!`,
           timer: 2000,
           showConfirmButton: false,
         });
@@ -433,7 +464,7 @@ export default function HomeworkPage() {
                     )}
                   </div>
 
-                  <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] border border-[var(--border)] rounded-xl text-xs text-slate-350 leading-relaxed">
+                  <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] border border-[var(--border)] rounded-xl text-xs text-slate-350 leading-relaxed whitespace-pre-wrap">
                     <span className="font-semibold text-[var(--text-heading)] block mb-1">Homework Guidelines:</span>
                     {selectedHw.description}
                   </div>
@@ -485,7 +516,7 @@ export default function HomeworkPage() {
                                         </button>
                                       )}
                                       <button
-                                        onClick={() => handleGradeSubmission(sub.id, sub.name)}
+                                        onClick={() => handleGradeSubmission(sub.id, sub.name, sub.score, sub.feedback)}
                                         className="text-xs text-amber-400 hover:underline font-semibold"
                                       >
                                         Grade Sheet
@@ -582,7 +613,7 @@ export default function HomeworkPage() {
                 <div>
                   <label className="text-xs font-semibold text-[var(--text-muted)] block mb-1.5">Due Date</label>
                   <input
-                    type="text"
+                    type="date"
                     required
                     value={newDueDate}
                     onChange={(e) => setNewDueDate(e.target.value)}

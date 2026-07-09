@@ -369,6 +369,32 @@ router.post('/homework', async (req: Request, res: Response) => {
         await prisma.homeworkSubmission.createMany({
           data: subRecords,
         });
+
+        // Send notifications to each student and their parents
+        for (const s of students) {
+          if (s.userId) {
+            await createSafeNotification(s.userId, `New Homework: "${title}" has been assigned for your class. Due Date: ${dueDate}`);
+          }
+
+          try {
+            const parents = await getStudentParents(s.id);
+            for (const parent of parents) {
+              if (parent.id) {
+                await prisma.parentNotification.create({
+                  data: {
+                    parentId: parent.id,
+                    studentId: s.id,
+                    type: 'HOMEWORK_ALERT',
+                    title: 'New Homework Assigned',
+                    message: `New homework "${title}" has been assigned to your child ${s.user.name}. Due Date: ${dueDate}`,
+                  },
+                });
+              }
+            }
+          } catch (parentErr) {
+            console.error(`Error notifying parents for student ${s.id}:`, parentErr);
+          }
+        }
       }
     }
 
@@ -399,12 +425,13 @@ router.get('/homework/:id/submissions', async (req: Request, res: Response) => {
 // PUT /api/teacher/homework/submissions/:subId
 router.put('/homework/submissions/:subId', async (req: Request, res: Response) => {
   try {
-    const { score, status } = req.body;
+    const { score, status, feedback } = req.body;
     const submission = await prisma.homeworkSubmission.update({
       where: { id: req.params.subId },
       data: {
         score,
         status,
+        feedback,
         date: status === 'submitted' ? 'Today, ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—',
       },
     });

@@ -13,6 +13,7 @@ interface HomeworkItem {
   submissionStatus: "submitted" | "pending";
   score: string;
   submittedDate: string;
+  feedback?: string | null;
 }
 
 interface HomeworkStats {
@@ -94,21 +95,63 @@ export default function HomeworkPage() {
 
       {/* Submission Rate Bar */}
       {stats && (
-        <div className="glass rounded-2xl p-5 mb-6 fade-in-2">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-white">Overall Submission Rate</span>
-            <span className={`text-sm font-bold ${stats.rate >= 80 ? "text-emerald-400" : stats.rate >= 60 ? "text-amber-400" : "text-red-400"}`}>
-              {stats.rate}%
-            </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 fade-in-2">
+          <div className="glass rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-white">Overall Submission Rate</span>
+              <span className={`text-sm font-bold ${stats.rate >= 80 ? "text-emerald-400" : stats.rate >= 60 ? "text-amber-400" : "text-red-400"}`}>
+                {stats.rate}%
+              </span>
+            </div>
+            <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${stats.rate}%`,
+                  background: stats.rate >= 80 ? "linear-gradient(90deg,#10b981,#059669)" : stats.rate >= 60 ? "linear-gradient(90deg,#f59e0b,#d97706)" : "linear-gradient(90deg,#ef4444,#dc2626)",
+                }}
+              />
+            </div>
           </div>
-          <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{
-                width: `${stats.rate}%`,
-                background: stats.rate >= 80 ? "linear-gradient(90deg,#10b981,#059669)" : stats.rate >= 60 ? "linear-gradient(90deg,#f59e0b,#d97706)" : "linear-gradient(90deg,#ef4444,#dc2626)",
-              }}
-            />
+
+          <div className="glass rounded-2xl p-5">
+            {(() => {
+              const gradedList = homework.filter(h => h.submissionStatus === "submitted" && h.score !== "—");
+              let sum = 0;
+              let count = 0;
+              gradedList.forEach(h => {
+                const match = h.score.match(/(\d+)\s*\/\s*(\d+)/);
+                if (match) {
+                  const obtained = parseFloat(match[1]);
+                  const total = parseFloat(match[2]);
+                  if (total > 0) {
+                    sum += (obtained / total) * 100;
+                    count++;
+                  }
+                }
+              });
+              const averageGradePercent = count > 0 ? Math.round(sum / count) : null;
+              const val = averageGradePercent !== null ? `${averageGradePercent}%` : "—";
+              return (
+                <>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-white">Average Performance Grade</span>
+                    <span className={`text-sm font-bold ${averageGradePercent && averageGradePercent >= 80 ? "text-teal-400" : averageGradePercent && averageGradePercent >= 60 ? "text-amber-400" : "text-red-400"}`}>
+                      {val}
+                    </span>
+                  </div>
+                  <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{
+                        width: averageGradePercent ? `${averageGradePercent}%` : "0%",
+                        background: averageGradePercent && averageGradePercent >= 80 ? "linear-gradient(90deg,#2dd4bf,#0d9488)" : averageGradePercent && averageGradePercent >= 60 ? "linear-gradient(90deg,#f59e0b,#d97706)" : "linear-gradient(90deg,#ef4444,#dc2626)",
+                      }}
+                    />
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -157,7 +200,7 @@ export default function HomeworkPage() {
                         {h.submissionStatus === "submitted" ? "✓ Submitted" : "⏳ Pending"}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 mb-2 line-clamp-2">{h.description}</p>
+                    <p className="text-xs text-slate-400 mb-2 whitespace-pre-wrap">{h.description}</p>
                     <div className="flex flex-wrap gap-3 text-xs text-slate-500">
                       <span>📅 Due: {h.dueDate}</span>
                       <span>🏫 {h.className}</span>
@@ -168,6 +211,11 @@ export default function HomeworkPage() {
                         <span>📤 Submitted: {h.submittedDate}</span>
                       )}
                     </div>
+                    {h.feedback && (
+                      <div className="mt-3 p-3 rounded-lg bg-teal-500/5 border border-teal-500/10 text-xs italic text-teal-300 whitespace-pre-wrap">
+                        🍎 Teacher Remarks: "{h.feedback}"
+                      </div>
+                    )}
                   </div>
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${
                     h.submissionStatus === "submitted" ? "bg-emerald-500/20" : "bg-amber-500/20"

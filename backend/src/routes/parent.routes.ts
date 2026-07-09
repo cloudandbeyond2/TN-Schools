@@ -82,7 +82,7 @@ router.get('/:parentId/child/:studentId/summary', async (req: Request, res: Resp
 
     // Homework submission rate
     const allHomework = await prisma.homework.findMany({
-      where: { schoolId: student.schoolId, className: `Class ${student.class}${student.section}` },
+      where: { schoolId: student.schoolId, className: { startsWith: `${student.class}${student.section}` } },
       include: { submissions: { where: { rollNo: student.rollNumber || '' } } },
     });
     const submittedCount = allHomework.filter(h => h.submissions.some(s => s.status === 'submitted')).length;
@@ -228,10 +228,13 @@ router.get('/:parentId/child/:studentId/homework', async (req: Request, res: Res
     const student = await prisma.student.findUnique({ where: { id: studentId } });
     if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
 
-    const className = `Class ${student.class}${student.section}`;
+    const classSection = `${student.class}${student.section}`;
 
     const homeworkList = await prisma.homework.findMany({
-      where: { schoolId: student.schoolId, className },
+      where: {
+        schoolId: student.schoolId,
+        className: { startsWith: classSection }
+      },
       include: {
         submissions: {
           where: { rollNo: student.rollNumber || '' },
@@ -251,6 +254,7 @@ router.get('/:parentId/child/:studentId/homework', async (req: Request, res: Res
         description: h.description,
         submissionStatus: submission ? submission.status : 'pending',
         score: submission?.score ?? '—',
+        feedback: submission?.feedback ?? null,
         submittedDate: submission?.date ?? '—',
       };
     });

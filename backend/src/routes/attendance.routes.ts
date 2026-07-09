@@ -7,7 +7,7 @@ const router = Router();
 // POST /api/attendance — Bulk mark attendance (supports updates via delete-and-recreate transaction)
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { records, notifySMS } = req.body; // Array of { studentId, schoolId, date, status, method }, notifySMS toggle
+    const { records, notifySMS } = req.body; // Array of { studentId, schoolId, date, status, method, period, subject }, notifySMS toggle
     if (!Array.isArray(records) || records.length === 0) {
       return res.status(400).json({ success: false, error: 'records array is required' });
     }
@@ -18,6 +18,8 @@ router.post('/', async (req: Request, res: Response) => {
     const nextDate = new Date(dateVal);
     nextDate.setDate(nextDate.getDate() + 1);
 
+    const periodVal = firstRecord.period !== undefined ? Number(firstRecord.period) : 0;
+
     const studentIds = records.map(r => r.studentId);
 
     // Run delete existing & create new as a single transaction to update attendance
@@ -26,6 +28,7 @@ router.post('/', async (req: Request, res: Response) => {
         where: {
           studentId: { in: studentIds },
           date: { gte: dateVal, lt: nextDate },
+          period: periodVal,
         },
       }),
       prisma.attendance.createMany({
@@ -35,6 +38,8 @@ router.post('/', async (req: Request, res: Response) => {
           date: new Date(r.date),
           status: r.status,
           method: r.method || 'Manual',
+          period: r.period !== undefined ? Number(r.period) : 0,
+          subject: r.subject || 'General',
         })),
       }),
     ]);
@@ -85,6 +90,64 @@ router.post('/', async (req: Request, res: Response) => {
       }
     }
 
+    // Check for monthly attendance drops below threshold (75%)
+    try {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+      for (const studentId of studentIds) {
+        const monthlyRecords = await prisma.attendance.findMany({
+          where: {
+            studentId,
+            date: { gte: startOfMonth, lte: endOfMonth }
+          }
+        });
+
+        if (monthlyRecords.length >= 3) {
+          const presentCount = monthlyRecords.filter(r => r.status === 'PRESENT' || r.status === 'LATE').length;
+          const rate = (presentCount / monthlyRecords.length) * 100;
+
+          if (rate < 75) {
+            const student = await prisma.student.findUnique({
+              where: { id: studentId },
+              include: { user: true }
+            });
+            
+            const parents = await getStudentParents(studentId);
+            for (const parent of parents) {
+              if (parent.id) {
+                const existingAlert = await prisma.parentNotification.findFirst({
+                  where: {
+                    parentId: parent.id,
+                    studentId,
+                    type: 'LOW_ATTENDANCE_ALERT',
+                    createdAt: { gte: startOfMonth, lte: endOfMonth }
+                  }
+                });
+
+                if (!existingAlert) {
+                  const alertMsg = `Attendance Warning: Your child ${student?.user?.name || 'child'} has low attendance (${Math.round(rate)}%) for this month. Please ensure they attend school regularly.`;
+                  await sendMockSMS(parent.phone, alertMsg);
+                  await prisma.parentNotification.create({
+                    data: {
+                      parentId: parent.id,
+                      studentId,
+                      type: 'LOW_ATTENDANCE_ALERT',
+                      title: 'Low Monthly Attendance Warning',
+                      message: alertMsg
+                    }
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (checkErr) {
+      console.error('Error checking monthly low attendance threshold:', checkErr);
+    }
+
     res.status(201).json({ success: true, created: result[1].count });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
@@ -94,7 +157,7 @@ router.post('/', async (req: Request, res: Response) => {
 // GET /api/attendance/class-date — Load saved attendance for a class on a specific date
 router.get('/class-date', async (req: Request, res: Response) => {
   try {
-    const { schoolId, class: cls, section, date } = req.query;
+    const { schoolId, class: cls, section, date, period } = req.query;
     if (!schoolId || !cls || !section || !date) {
       return res.status(400).json({ success: false, error: 'schoolId, class, section, and date are required' });
     }
@@ -104,10 +167,13 @@ router.get('/class-date', async (req: Request, res: Response) => {
     const nextDate = new Date(targetDate);
     nextDate.setDate(nextDate.getDate() + 1);
 
+    const periodVal = period !== undefined ? Number(period) : 0;
+
     const records = await prisma.attendance.findMany({
       where: {
         schoolId: String(schoolId),
         date: { gte: targetDate, lt: nextDate },
+        period: periodVal,
         student: {
           class: String(cls),
           section: String(section),

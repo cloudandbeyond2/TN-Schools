@@ -1607,6 +1607,7 @@ interface Assignment {
   postedLabel: string;
   teacher: string;
   score?: string;
+  feedback?: string | null;
   submittedAnswer?: string | null;
   submittedDate?: string | null;
   submittedFiles?: any[];
@@ -1731,21 +1732,14 @@ function AssignmentCard({
           onClick={() => onOpen(a.id, "view")}
           className="rounded-lg border border-slate-200 dark:border-white/[0.1] bg-slate-50 dark:bg-white/[0.03] px-3 py-1.5 text-[12.5px] font-medium text-black dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-white/[0.07]"
         >
-          View
-        </button>
-        <button
-          onClick={() => onOpen(a.id, "ai")}
-          className="flex items-center gap-1.5 rounded-lg border border-violet-500/25 bg-violet-500/10 px-3 py-1.5 text-[12.5px] font-medium text-violet-600 dark:text-violet-300 transition-colors hover:bg-violet-500/20"
-        >
-          <MessageCircleQuestion className="h-3.5 w-3.5" />
-          Ask AI
+          View Details
         </button>
         {a.status === "not_submitted" && (
           <button
             onClick={() => onOpen(a.id, "submit")}
             className="ml-auto rounded-lg bg-teal-500 px-3.5 py-1.5 text-[12.5px] font-semibold text-[#06291f] transition-colors hover:bg-teal-400"
           >
-            Submit
+            Submit Homework
           </button>
         )}
       </div>
@@ -2287,7 +2281,7 @@ function AssignmentDetail({
               <StatusPill status={submitted ? "submitted" : "not_submitted"} />
             </div>
 
-            <p className="mt-4 text-[13.5px] leading-relaxed text-black dark:text-slate-300">
+            <p className="mt-4 text-[13.5px] leading-relaxed text-black dark:text-slate-300 whitespace-pre-wrap">
               {assignment.fullBrief}
             </p>
 
@@ -2298,18 +2292,53 @@ function AssignmentDetail({
             </div>
           </div>
 
-          <div ref={aiRef} className="scroll-mt-6">
-            <AiGuidancePanel
-              assignment={assignment}
-              tips={tips}
-              loading={loadingTips}
-              onAsk={handleAsk}
-              doubt={doubt}
-              setDoubt={setDoubt}
-              doubtAnswer={doubtAnswer}
-              doubtLoading={doubtLoading}
-              onAskDoubt={handleAskDoubt}
-            />
+          {/* Teacher Feedback Section */}
+          <div className="rounded-2xl border border-teal-500/10 bg-white dark:bg-[#111a2c] p-6 shadow-sm">
+            <h3 className="text-[15px] font-bold text-black dark:text-slate-100 flex items-center gap-2">
+              <span className="text-lg">🍎</span> Teacher Evaluation & Feedback
+            </h3>
+            
+            {assignment.status !== "not_submitted" ? (
+              <div className="mt-4 space-y-4">
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.05]">
+                  <div>
+                    <p className="text-[12px] text-slate-500 dark:text-slate-400">Score Assigned</p>
+                    <p className="text-2xl font-bold text-teal-600 dark:text-teal-400 mt-0.5">
+                      {assignment.score || "—"}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[12px] text-slate-500 dark:text-slate-400">Grading Status</p>
+                    <span className={`inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                      assignment.score && assignment.score !== "—" 
+                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" 
+                        : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                    }`}>
+                      {assignment.score && assignment.score !== "—" ? "Graded" : "Pending Review"}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[12.5px] font-semibold text-slate-600 dark:text-slate-300">Teacher's Remarks</p>
+                  {assignment.feedback ? (
+                    <div className="mt-2 p-3.5 rounded-xl bg-teal-500/5 dark:bg-teal-500/[0.02] border border-teal-500/10 text-[13.5px] leading-relaxed text-black dark:text-slate-300 italic whitespace-pre-wrap">
+                      "{assignment.feedback}"
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-[13px] text-slate-400 italic">
+                      No remarks provided yet by the teacher.
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4 p-4 text-center rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.05]">
+                <p className="text-[13px] text-slate-500 dark:text-slate-400">
+                  Submit your response first to receive remarks and evaluation from your teacher.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -2336,7 +2365,7 @@ function AssignmentDetail({
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
-type Filter = "all" | "pending" | "submitted";
+type Filter = "all" | "pending" | "submitted" | "history";
 
 export default function HomeworkPage() {
   const { data: session } = useSession();
@@ -2426,6 +2455,7 @@ export default function HomeworkPage() {
                 ["all", `All (${total})`],
                 ["pending", `Pending (${assignments.filter((a) => a.status === "not_submitted").length})`],
                 ["submitted", `Submitted (${completed})`],
+                ["history", `Performance History`],
               ] as [Filter, string][]
             ).map(([key, label]) => (
               <button
@@ -2442,19 +2472,111 @@ export default function HomeworkPage() {
             ))}
           </div>
 
-          {/* list */}
-          <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {filtered.map((a) => (
-              <AssignmentCard key={a.id} a={a} onOpen={handleOpen} />
-            ))}
-            {filtered.length === 0 && (
-              <div className="rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c] p-8 text-center lg:col-span-2">
-                <p className="text-[13.5px] text-black dark:text-slate-400">
-                  Nothing here right now.
-                </p>
+          {filter === "history" ? (
+            <div className="mt-6 space-y-6">
+              {/* Stats overview */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="glass rounded-2xl p-5 border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c]">
+                  <span className="text-2xl">📈</span>
+                  <h4 className="mt-2 text-[12px] uppercase font-bold tracking-wide text-slate-400">Average Performance</h4>
+                  <p className="text-3xl font-extrabold text-teal-500 mt-1">
+                    {(() => {
+                      const scores = assignments
+                        .map(a => {
+                          if (!a.score || a.score === "—") return null;
+                          const match = a.score.match(/(\d+)\s*\/\s*(\d+)/);
+                          if (match) {
+                            const obtained = parseFloat(match[1]);
+                            const total = parseFloat(match[2]);
+                            if (total > 0) return (obtained / total) * 100;
+                          }
+                          return null;
+                        })
+                        .filter((s): s is number => s !== null);
+                      return scores.length > 0 
+                        ? `${Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)}%` 
+                        : "—";
+                    })()}
+                  </p>
+                  <p className="text-[11px] text-slate-505 mt-1">Based on graded assignments</p>
+                </div>
+
+                <div className="glass rounded-2xl p-5 border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c]">
+                  <span className="text-2xl">✅</span>
+                  <h4 className="mt-2 text-[12px] uppercase font-bold tracking-wide text-slate-400">Submission Rate</h4>
+                  <p className="text-3xl font-extrabold text-emerald-500 mt-1">{pct}%</p>
+                  <p className="text-[11px] text-slate-550 mt-1">{completed} of {total} completed</p>
+                </div>
+
+                <div className="glass rounded-2xl p-5 border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c]">
+                  <span className="text-2xl">⏳</span>
+                  <h4 className="mt-2 text-[12px] uppercase font-bold tracking-wide text-slate-400">Pending Assignments</h4>
+                  <p className="text-3xl font-extrabold text-amber-500 mt-1">
+                    {assignments.filter(a => a.status === "not_submitted").length}
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-1">Require your attention</p>
+                </div>
               </div>
-            )}
-          </div>
+
+              {/* Submission Timeline / Log */}
+              <div className="glass rounded-2xl p-6 border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c]">
+                <h3 className="text-base font-bold text-black dark:text-slate-100 mb-4">📜 Homework Submission Log</h3>
+                
+                <div className="space-y-4">
+                  {assignments.filter(a => a.status !== "not_submitted").length === 0 ? (
+                    <div className="text-center py-8 text-slate-500 text-sm">
+                      You haven't submitted any homework yet.
+                    </div>
+                  ) : (
+                    assignments
+                      .filter(a => a.status !== "not_submitted")
+                      .map(a => (
+                        <div key={a.id} className="p-4 rounded-xl border border-slate-100 dark:border-white/[0.04] bg-slate-50 dark:bg-white/[0.01] hover:bg-slate-100/50 dark:hover:bg-white/[0.02] transition-colors flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
+                          <div className="space-y-1">
+                            <span className="text-[10px] uppercase font-extrabold tracking-wider text-teal-500">{a.subject}</span>
+                            <h4 className="text-sm font-semibold text-black dark:text-slate-200">{a.title}</h4>
+                            <p className="text-xs text-slate-500">Submitted: {a.submittedDate || a.postedLabel}</p>
+                            {a.feedback && (
+                              <p className="text-xs text-teal-600 dark:text-teal-400 mt-1 italic">
+                                "Feedback: {a.feedback}"
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 self-end md:self-center">
+                            <div className="text-right">
+                              <span className="text-xs text-slate-400 block">Grade</span>
+                              <span className="text-sm font-bold text-black dark:text-white bg-slate-200/50 dark:bg-white/[0.06] px-2.5 py-1 rounded-lg">
+                                {a.score || "Pending"}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => handleOpen(a.id, "view")}
+                              className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline px-3 py-1.5 rounded-lg hover:bg-teal-500/10 transition-colors"
+                            >
+                              View Work
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* list */
+            <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {filtered.map((a) => (
+                <AssignmentCard key={a.id} a={a} onOpen={handleOpen} />
+              ))}
+              {filtered.length === 0 && (
+                <div className="rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c] p-8 text-center lg:col-span-2">
+                  <p className="text-[13.5px] text-black dark:text-slate-400">
+                    Nothing here right now.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </PortalLayout>

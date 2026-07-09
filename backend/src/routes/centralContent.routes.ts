@@ -4,6 +4,7 @@ import * as https from 'https';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { getGroup } from '../constants/hscGroups';
 
 const pdfUpload = multer({
   storage: multer.memoryStorage(),
@@ -61,6 +62,7 @@ const fallbackSubjects = [
     name: "Mathematics",
     icon: "📐",
     color: "#6366f1",
+    applicableGroups: [],
   },
   {
     id: "sub-sci-10",
@@ -68,6 +70,7 @@ const fallbackSubjects = [
     name: "Science",
     icon: "🔬",
     color: "#10b981",
+    applicableGroups: [],
   },
   {
     id: "sub-soc-10",
@@ -75,6 +78,7 @@ const fallbackSubjects = [
     name: "Social Science",
     icon: "🌍",
     color: "#ec4899",
+    applicableGroups: [],
   },
   {
     id: "sub-eng-10",
@@ -82,6 +86,7 @@ const fallbackSubjects = [
     name: "English",
     icon: "📖",
     color: "#f59e0b",
+    applicableGroups: [],
   },
   {
     id: "sub-tam-10",
@@ -89,6 +94,7 @@ const fallbackSubjects = [
     name: "Tamil",
     icon: "🗣️",
     color: "#d97706",
+    applicableGroups: [],
   },
   {
     id: "sub-chem-10",
@@ -96,6 +102,7 @@ const fallbackSubjects = [
     name: "Chemistry",
     icon: "🧪",
     color: "#db2777",
+    applicableGroups: ["Biology", "Computer Science"],
   },
   {
     id: "sub-bio-10",
@@ -103,6 +110,7 @@ const fallbackSubjects = [
     name: "Biology",
     icon: "🧬",
     color: "#22c55e",
+    applicableGroups: ["Biology"],
   },
   {
     id: "sub-hist-10",
@@ -110,6 +118,7 @@ const fallbackSubjects = [
     name: "History",
     icon: "📜",
     color: "#b45309",
+    applicableGroups: [],
   },
   {
     id: "sub-phy-11",
@@ -117,6 +126,7 @@ const fallbackSubjects = [
     name: "Physics",
     icon: "🔬",
     color: "#8b5cf6",
+    applicableGroups: ["Biology", "Computer Science"],
   },
   {
     id: "sub-comp-11",
@@ -124,6 +134,7 @@ const fallbackSubjects = [
     name: "Computer Science",
     icon: "💻",
     color: "#3b82f6",
+    applicableGroups: ["Computer Science"],
   }
 ];
 
@@ -459,10 +470,43 @@ const fallbackContents: Record<string, any[]> = {
 // Routes with Database Fail-safe checks
 // ===========================================================================
 
+function getSubjectNamesForGroup(groupNameOrCode: string): string[] {
+  const normalized = groupNameOrCode.trim().toLowerCase();
+
+  // 1. Direct group names
+  if (normalized === 'biology') {
+    return ['tamil', 'english', 'mathematics', 'physics', 'chemistry', 'biology', 'bio-botany', 'bio-zoology', 'botany', 'zoology'];
+  }
+  if (normalized === 'computer science') {
+    return ['tamil', 'english', 'mathematics', 'physics', 'chemistry', 'computer science'];
+  }
+  if (normalized === 'commerce') {
+    return ['tamil', 'english', 'mathematics', 'commerce', 'accountancy', 'economics'];
+  }
+
+  // 2. DGE Group Codes (e.g. 2503)
+  const hscGroup = getGroup(groupNameOrCode);
+  if (hscGroup) {
+    const list = ['tamil', 'english'];
+    hscGroup.partIIISubjects.forEach(sub => {
+      const s = sub.toLowerCase();
+      if (s === 'biology') {
+        list.push('biology', 'bio-botany', 'bio-zoology', 'botany', 'zoology');
+      } else {
+        list.push(s);
+      }
+    });
+    return list;
+  }
+
+  // 3. Blank / Unknown group -> Return common subjects
+  return ['tamil', 'english', 'mathematics'];
+}
+
 // GET /api/centralized-content/subjects — Get all centralized subjects for a class
 router.get('/subjects', async (req: Request, res: Response) => {
   try {
-    const { class: cls } = req.query;
+    const { class: cls, studentId, group } = req.query;
 
     if (!cls) {
       return res.status(400).json({
@@ -471,25 +515,76 @@ router.get('/subjects', async (req: Request, res: Response) => {
       });
     }
 
+    const classStr = String(cls);
+    const isHigherSecondary = classStr === '11' || classStr === '12';
+
     // Try to query PostgreSQL
     const subjects = await prisma.centralSubject.findMany({
       where: {
-        class: String(cls)
+        class: classStr
       },
       orderBy: {
         createdAt: 'asc'
       }
     });
 
+    let filteredSubjects = subjects;
+
+    if (isHigherSecondary) {
+      let studentGroup = group ? String(group).trim() : "";
+
+      if (studentId) {
+        const student = await prisma.student.findUnique({
+          where: { id: String(studentId) },
+          select: { group: true }
+        });
+        if (student && student.group) {
+          studentGroup = student.group.trim();
+        }
+      }
+
+      const allowedSubjects = getSubjectNamesForGroup(studentGroup);
+      filteredSubjects = subjects.filter(sub => 
+        allowedSubjects.includes(sub.name.trim().toLowerCase())
+      );
+    }
+
     res.json({
       success: true,
-      data: subjects
+      data: filteredSubjects
     });
   } catch (err: any) {
     console.warn("⚠️ Database query failed, falling back to local seed data. Error:", err.message || err);
 
-    // Fail-safe: filter local mock data by class standard
-    const filtered = fallbackSubjects.filter(sub => sub.class === String(req.query.class));
+    const { class: cls, studentId, group } = req.query;
+    const classStr = String(cls);
+    const isHigherSecondary = classStr === '11' || classStr === '12';
+
+    let filtered = fallbackSubjects.filter(sub => sub.class === classStr);
+
+    if (isHigherSecondary) {
+      let studentGroup = group ? String(group).trim() : "";
+
+      if (studentId) {
+        try {
+          const student = await prisma.student.findUnique({
+            where: { id: String(studentId) },
+            select: { group: true }
+          });
+          if (student && student.group) {
+            studentGroup = student.group.trim();
+          }
+        } catch (dbErr) {
+          console.warn("⚠️ Failed to fetch student group from DB in fallback path:", dbErr);
+        }
+      }
+
+      const allowedSubjects = getSubjectNamesForGroup(studentGroup);
+      filtered = filtered.filter(sub => 
+        allowedSubjects.includes(sub.name.trim().toLowerCase())
+      );
+    }
+
     res.json({
       success: true,
       isFallback: true,

@@ -33,6 +33,8 @@ export default function HeadmasterAttendancePage() {
   const [students, setStudents] = useState<StudentRecord[]>([]);
   const [staff, setStaff] = useState<StaffRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
   const fetchData = useCallback(async () => {
     if (!mySchoolId) return;
@@ -85,6 +87,9 @@ export default function HeadmasterAttendancePage() {
       ? Math.round((data.present / (data.present + data.absent)) * 100 * 10) / 10
       : 0,
   }));
+
+  const totalPages = Math.ceil(classRows.length / pageSize);
+  const paginatedRows = classRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   // High risk students as absence warnings
   const highRiskList = students
@@ -168,34 +173,82 @@ export default function HeadmasterAttendancePage() {
               <div>No student records found for your school.</div>
             </div>
           ) : (
-            <div className="overflow-x-auto w-full">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Class</th>
-                    <th>Total</th>
-                    <th>Normal</th>
-                    <th>High Risk</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {classRows.map((g) => (
-                    <tr key={g.grade}>
-                      <td className="font-bold text-white text-xs">{g.grade}</td>
-                      <td>{g.total}</td>
-                      <td className="text-emerald-400 font-bold">{g.present}</td>
-                      <td className="text-red-400 font-bold">{g.absent}</td>
-                      <td>
-                        <span className={`badge ${g.percent >= 80 ? "badge-green" : "badge-yellow"}`}>
-                          {g.percent}%
-                        </span>
-                      </td>
+            <>
+              <div className="overflow-x-auto w-full">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Class</th>
+                      <th>Total</th>
+                      <th>Normal</th>
+                      <th>High Risk</th>
+                      <th>Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {paginatedRows.map((g) => (
+                      <tr key={g.grade}>
+                        <td className="font-bold text-white text-xs">{g.grade}</td>
+                        <td>{g.total}</td>
+                        <td className="text-emerald-400 font-bold">{g.present}</td>
+                        <td className="text-red-400 font-bold">{g.absent}</td>
+                        <td>
+                          <span className={`badge ${g.percent >= 80 ? "badge-green" : "badge-yellow"}`}>
+                            {g.percent}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4 pt-4 border-t border-slate-800/40">
+                <div className="flex items-center gap-4 text-xs text-slate-400">
+                  <span>
+                    Showing {classRows.length === 0 ? 0 : ((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, classRows.length)} of {classRows.length} entries
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span>Show</span>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-[11px] font-semibold text-slate-300 focus:outline-none focus:border-slate-700"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                    </select>
+                    <span>entries</span>
+                  </div>
+                </div>
+                {totalPages > 0 && (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 bg-slate-800/50 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs rounded-lg transition-colors border border-slate-700 disabled:cursor-not-allowed font-semibold"
+                    >
+                      Previous
+                    </button>
+                    <div className="px-3 py-1 bg-slate-900/50 text-slate-400 text-xs rounded-lg border border-slate-800 flex items-center font-semibold">
+                      Page {currentPage} of {totalPages}
+                    </div>
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1 bg-slate-800/50 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs rounded-lg transition-colors border border-slate-700 disabled:cursor-not-allowed font-semibold"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
 

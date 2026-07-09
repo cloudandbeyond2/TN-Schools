@@ -191,6 +191,8 @@ export default function MiddleSchoolPortfolio() {
   const [skillsList, setSkillsList] = useState<any[]>([]);
   const [bio, setBio] = useState<string>("I love science, stargazing and drawing!");
   const [portfolioLoading, setPortfolioLoading] = useState(true);
+  const [teacherRemark, setTeacherRemark] = useState<string>("Is a fantastic learner! Keep up the great work.");
+  const [teacherName, setTeacherName] = useState<string>("Mrs. Anjali (Class Teacher)");
 
   const fetchPortfolioDetails = (studentId: string) => {
     setPortfolioLoading(true);
@@ -240,6 +242,19 @@ export default function MiddleSchoolPortfolio() {
           // Fetch dynamic portfolio data
           fetchPortfolioDetails(resolved.id);
 
+          // Fetch homework to find dynamic teacher remarks
+          fetch(`${API_BASE}/api/students/${resolved.id}/homework`)
+            .then(r => r.json())
+            .then(hwJson => {
+              if (hwJson.success && hwJson.data) {
+                const graded = hwJson.data.find((h: any) => h.feedback);
+                if (graded) {
+                  setTeacherRemark(graded.feedback);
+                  setTeacherName(`Mrs. Lakshmi (${graded.subject || 'Teacher'})`);
+                }
+              }
+            }).catch(() => {});
+
           // Fetch badges for this student
           const schoolId = (session?.user as any)?.schoolId;
           const url = schoolId
@@ -264,6 +279,12 @@ export default function MiddleSchoolPortfolio() {
                   };
                 });
                 setEarnedBadges(shaped);
+                
+                // Fallback to latest badge remark if no homework feedback
+                const badgeWithRemark = filtered.find((b: any) => b.remark);
+                if (badgeWithRemark) {
+                  setTeacherRemark(badgeWithRemark.remark);
+                }
               }
             });
         }
@@ -350,6 +371,9 @@ export default function MiddleSchoolPortfolio() {
   const firstName = userName.split(" ")[0] || "Student";
   const userInitial = userName.charAt(0).toUpperCase();
 
+  const totalXP = skillsList.reduce((sum, s) => sum + s.level, 0);
+  const calculatedLevel = totalXP > 0 ? Math.floor(totalXP / 30) + 1 : 1;
+
   return (
     <PortalLayout
       title="My Fun Portfolio 🎨"
@@ -369,11 +393,17 @@ export default function MiddleSchoolPortfolio() {
           </div>
           <h2 className="text-2xl font-black text-black dark:text-white mb-1 tracking-wide">{userName}</h2>
           <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mb-5">
-            Class {student?.class || "7B"} • Roll No. {student?.rollNumber || "12"}
+            Class {student?.class || "7"}{student?.section || "B"} • Roll No. {student?.rollNumber || "12"}
           </p>
           <div className="flex flex-wrap justify-center gap-2 mb-6">
-            <span className="px-4 py-1.5 bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-full text-xs font-bold border-2 border-amber-500/30 shadow-sm">🚀 Space Lover</span>
-            <span className="px-4 py-1.5 bg-purple-500/20 text-purple-700 dark:text-purple-300 rounded-full text-xs font-bold border-2 border-purple-500/30 shadow-sm">🎨 Artist</span>
+            {student?.group && (
+              <span className="px-4 py-1.5 bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-full text-xs font-bold border-2 border-amber-500/30 shadow-sm">
+                🚀 {student.group}
+              </span>
+            )}
+            <span className="px-4 py-1.5 bg-purple-500/20 text-purple-700 dark:text-purple-300 rounded-full text-xs font-bold border-2 border-purple-500/30 shadow-sm">
+              🎒 Middle Schooler
+            </span>
           </div>
           <div className="w-full bg-white dark:bg-slate-900/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700/50">
              <div className="flex justify-between items-center mb-3">
@@ -388,7 +418,7 @@ export default function MiddleSchoolPortfolio() {
              </div>
              <div className="flex justify-between items-center">
                 <span className="text-sm font-semibold text-black dark:text-slate-300 flex items-center gap-2"><span>🏆</span> Current Level</span>
-                <span className="text-base font-black text-purple-600 dark:text-purple-400">Lvl 12</span>
+                <span className="text-base font-black text-purple-600 dark:text-purple-400">Lvl {calculatedLevel}</span>
              </div>
           </div>
         </div>
@@ -502,9 +532,9 @@ export default function MiddleSchoolPortfolio() {
           <div className="mt-8 bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-500/20 rounded-2xl p-5 text-center shadow-lg relative overflow-hidden">
              <div className="absolute -right-4 -bottom-4 text-6xl opacity-10">👩‍🏫</div>
              <p className="text-sm text-emerald-800 dark:text-emerald-200 font-medium relative z-10 leading-relaxed">
-                "{firstName} is a fantastic learner! {projectsList[0] ? `The ${projectsList[0].title} was out of this world!` : ''} Keep up the great reading!"
+                "{teacherRemark}"
              </p>
-             <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-3 font-black tracking-wide relative z-10 uppercase">— Mrs. Anjali (Class Teacher)</p>
+             <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-3 font-black tracking-wide relative z-10 uppercase">— {teacherName}</p>
           </div>
         </div>
       </div>
