@@ -464,7 +464,7 @@ export default function HomeworkPage() {
                     )}
                   </div>
 
-                  <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] border border-[var(--border)] rounded-xl text-xs text-slate-350 leading-relaxed">
+                  <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] border border-[var(--border)] rounded-xl text-xs text-slate-350 leading-relaxed whitespace-pre-wrap">
                     <span className="font-semibold text-[var(--text-heading)] block mb-1">Homework Guidelines:</span>
                     {selectedHw.description}
                   </div>

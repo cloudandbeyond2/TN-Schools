@@ -2281,7 +2281,7 @@ function AssignmentDetail({
               <StatusPill status={submitted ? "submitted" : "not_submitted"} />
             </div>
 
-            <p className="mt-4 text-[13.5px] leading-relaxed text-black dark:text-slate-300">
+            <p className="mt-4 text-[13.5px] leading-relaxed text-black dark:text-slate-300 whitespace-pre-wrap">
               {assignment.fullBrief}
             </p>
 

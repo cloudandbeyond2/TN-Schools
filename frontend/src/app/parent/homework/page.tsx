@@ -200,7 +200,7 @@ export default function HomeworkPage() {
                         {h.submissionStatus === "submitted" ? "✓ Submitted" : "⏳ Pending"}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 mb-2 line-clamp-2">{h.description}</p>
+                    <p className="text-xs text-slate-400 mb-2 whitespace-pre-wrap">{h.description}</p>
                     <div className="flex flex-wrap gap-3 text-xs text-slate-500">
                       <span>📅 Due: {h.dueDate}</span>
                       <span>🏫 {h.className}</span>
