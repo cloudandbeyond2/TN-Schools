@@ -111,10 +111,10 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
-      { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
+      // { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
-        { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
+      { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
     ],
   },
@@ -136,13 +136,14 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
-      { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
-      { label: "Homework", href: "/student/homework", icon: "Edit3" },
+      // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
+
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
-      { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
+      // { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
 
       // ── Exams & Assessments ───────────────────────────
       { label: "---", href: "#", icon: "" },
+      { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
@@ -219,13 +220,14 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
-      { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
-      { label: "Homework", href: "/student/homework", icon: "Edit3" },
+      //{ label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
+
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
-      { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
+      // { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
 
       // ── Exams & Assessments ───────────────────────────
       { label: "---", href: "#", icon: "" },
+      { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Board Prep", href: "/student/high-school/board-prep", icon: "Target" },
       { label: "Mock Tests", href: "/student/high-school/mock-tests", icon: "Edit3" },
@@ -301,14 +303,16 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
-      { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
-      { label: "Homework", href: "/student/homework", icon: "Edit3" },
+      // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
+
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
-      { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
+      // { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
 
       // ── Exams & Assessments ───────────────────────────
       { label: "---", href: "#", icon: "" },
+
       { label: "Exams & Assessments", href: "#", icon: "" },
+      { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Board Prep", href: "/student/higher-secondary/board-prep", icon: "Target" },
       { label: "Mock Tests", href: "/student/higher-secondary/mock-tests", icon: "Edit3" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
