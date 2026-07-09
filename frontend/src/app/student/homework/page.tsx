@@ -1607,6 +1607,7 @@ interface Assignment {
   postedLabel: string;
   teacher: string;
   score?: string;
+  feedback?: string | null;
   submittedAnswer?: string | null;
   submittedDate?: string | null;
   submittedFiles?: any[];
