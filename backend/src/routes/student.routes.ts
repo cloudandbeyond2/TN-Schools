@@ -1030,4 +1030,41 @@ router.post('/:id/portfolio/projects', async (req: Request, res: Response) => {
   }
 });
 
+/* ------------------- GET SCHOLARSHIPS FOR STUDENT ------------------- */
+router.get('/:studentId/scholarships', async (req: Request, res: Response) => {
+  try {
+    const { studentId } = req.params;
+    const scholarships = await prisma.scholarship.findMany({
+      where: { studentId },
+      orderBy: { appliedDate: 'desc' }
+    });
+    res.json({ success: true, data: scholarships });
+  } catch (err) {
+    console.error('Error fetching student scholarships:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+/* ------------------- POST APPLY FOR SCHOLARSHIP ------------------- */
+router.post('/:studentId/scholarships', async (req: Request, res: Response) => {
+  try {
+    const { studentId } = req.params;
+    const { scheme, amount } = req.body;
+
+    const newScholarship = await prisma.scholarship.create({
+      data: {
+        studentId,
+        scheme,
+        amount: typeof amount === 'number' ? amount : parseFloat(amount),
+        status: 'PENDING'
+      }
+    });
+
+    res.json({ success: true, data: newScholarship });
+  } catch (err) {
+    console.error('Error applying for scholarship:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;

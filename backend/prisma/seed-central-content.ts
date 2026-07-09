@@ -24,6 +24,7 @@ async function main() {
       name: "Mathematics",
       icon: "📐",
       color: "#6366f1", // Indigo
+      applicableGroups: [],
       units: [
         {
           unitNumber: 1,
@@ -181,6 +182,7 @@ async function main() {
       name: "Science",
       icon: "🔬",
       color: "#10b981", // Emerald
+      applicableGroups: [],
       units: [
         {
           unitNumber: 1,
@@ -239,6 +241,7 @@ async function main() {
       name: "Social Science",
       icon: "🌍",
       color: "#ec4899", // Pink
+      applicableGroups: [],
       units: [
         {
           unitNumber: 1,
@@ -281,6 +284,7 @@ async function main() {
       name: "Physics",
       icon: "🔬",
       color: "#8b5cf6",
+      applicableGroups: ["Biology", "Computer Science"],
       units: [
         {
           unitNumber: 1,
@@ -344,6 +348,7 @@ async function main() {
       name: "Computer Science",
       icon: "💻",
       color: "#3b82f6",
+      applicableGroups: ["Computer Science"],
       units: [
         {
           unitNumber: 1,
@@ -391,6 +396,7 @@ async function main() {
       name: "English",
       icon: "📖",
       color: "#f59e0b",
+      applicableGroups: [],
       units: [
         {
           unitNumber: 1,
@@ -416,6 +422,7 @@ async function main() {
       name: "Tamil",
       icon: "🗣️",
       color: "#d97706",
+      applicableGroups: [],
       units: [
         {
           unitNumber: 1,
@@ -441,6 +448,7 @@ async function main() {
       name: "Chemistry",
       icon: "🧪",
       color: "#db2777",
+      applicableGroups: ["Biology", "Computer Science"],
       units: [
         {
           unitNumber: 1,
@@ -466,6 +474,7 @@ async function main() {
       name: "Biology",
       icon: "🧬",
       color: "#22c55e",
+      applicableGroups: ["Biology"],
       units: [
         {
           unitNumber: 1,
@@ -491,6 +500,7 @@ async function main() {
       name: "History",
       icon: "📜",
       color: "#b45309",
+      applicableGroups: [],
       units: [
         {
           unitNumber: 1,
@@ -520,7 +530,8 @@ async function main() {
         class: sub.class,
         name: sub.name,
         icon: sub.icon,
-        color: sub.color
+        color: sub.color,
+        applicableGroups: (sub as any).applicableGroups || []
       }
     });
 

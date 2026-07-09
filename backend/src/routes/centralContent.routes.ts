@@ -61,6 +61,7 @@ const fallbackSubjects = [
     name: "Mathematics",
     icon: "📐",
     color: "#6366f1",
+    applicableGroups: [],
   },
   {
     id: "sub-sci-10",
@@ -68,6 +69,7 @@ const fallbackSubjects = [
     name: "Science",
     icon: "🔬",
     color: "#10b981",
+    applicableGroups: [],
   },
   {
     id: "sub-soc-10",
@@ -75,6 +77,7 @@ const fallbackSubjects = [
     name: "Social Science",
     icon: "🌍",
     color: "#ec4899",
+    applicableGroups: [],
   },
   {
     id: "sub-eng-10",
@@ -82,6 +85,7 @@ const fallbackSubjects = [
     name: "English",
     icon: "📖",
     color: "#f59e0b",
+    applicableGroups: [],
   },
   {
     id: "sub-tam-10",
@@ -89,6 +93,7 @@ const fallbackSubjects = [
     name: "Tamil",
     icon: "🗣️",
     color: "#d97706",
+    applicableGroups: [],
   },
   {
     id: "sub-chem-10",
@@ -96,6 +101,7 @@ const fallbackSubjects = [
     name: "Chemistry",
     icon: "🧪",
     color: "#db2777",
+    applicableGroups: ["Biology", "Computer Science"],
   },
   {
     id: "sub-bio-10",
@@ -103,6 +109,7 @@ const fallbackSubjects = [
     name: "Biology",
     icon: "🧬",
     color: "#22c55e",
+    applicableGroups: ["Biology"],
   },
   {
     id: "sub-hist-10",
@@ -110,6 +117,7 @@ const fallbackSubjects = [
     name: "History",
     icon: "📜",
     color: "#b45309",
+    applicableGroups: [],
   },
   {
     id: "sub-phy-11",
@@ -117,6 +125,7 @@ const fallbackSubjects = [
     name: "Physics",
     icon: "🔬",
     color: "#8b5cf6",
+    applicableGroups: ["Biology", "Computer Science"],
   },
   {
     id: "sub-comp-11",
@@ -124,6 +133,7 @@ const fallbackSubjects = [
     name: "Computer Science",
     icon: "💻",
     color: "#3b82f6",
+    applicableGroups: ["Computer Science"],
   }
 ];
 
@@ -462,13 +472,25 @@ const fallbackContents: Record<string, any[]> = {
 // GET /api/centralized-content/subjects — Get all centralized subjects for a class
 router.get('/subjects', async (req: Request, res: Response) => {
   try {
-    const { class: cls } = req.query;
+    const { class: cls, studentId, group } = req.query;
 
     if (!cls) {
       return res.status(400).json({
         success: false,
         error: "class parameter is required (e.g., ?class=10)"
       });
+    }
+
+    let studentGroup = group ? String(group).trim() : "";
+
+    if (studentId) {
+      const student = await prisma.student.findUnique({
+        where: { id: String(studentId) },
+        select: { group: true }
+      });
+      if (student && student.group) {
+        studentGroup = student.group.trim();
+      }
     }
 
     // Try to query PostgreSQL
@@ -481,19 +503,58 @@ router.get('/subjects', async (req: Request, res: Response) => {
       }
     });
 
+    const filteredSubjects = subjects.filter(sub => {
+      const appGroups = (sub as any).applicableGroups || [];
+      if (appGroups.length === 0) {
+        return true; // Common subject
+      }
+      if (!studentGroup) {
+        return false; // If student group is blank, only show common subjects
+      }
+      return appGroups.some((g: string) => g.toLowerCase() === studentGroup.toLowerCase());
+    });
+
     res.json({
       success: true,
-      data: subjects
+      data: filteredSubjects
     });
   } catch (err: any) {
     console.warn("⚠️ Database query failed, falling back to local seed data. Error:", err.message || err);
 
+    const { class: cls, studentId, group } = req.query;
+    let studentGroup = group ? String(group).trim() : "";
+
+    if (studentId) {
+      try {
+        const student = await prisma.student.findUnique({
+          where: { id: String(studentId) },
+          select: { group: true }
+        });
+        if (student && student.group) {
+          studentGroup = student.group.trim();
+        }
+      } catch (dbErr) {
+        console.warn("⚠️ Failed to fetch student group from DB in fallback path:", dbErr);
+      }
+    }
+
     // Fail-safe: filter local mock data by class standard
-    const filtered = fallbackSubjects.filter(sub => sub.class === String(req.query.class));
+    const filtered = fallbackSubjects.filter(sub => sub.class === String(cls));
+    const filteredByGroup = filtered.filter(sub => {
+      const appGroups = (sub as any).applicableGroups || [];
+      if (appGroups.length === 0) {
+        return true; // Common subject
+      }
+      if (!studentGroup) {
+        return false; // If student group is blank, only show common subjects
+      }
+      return appGroups.some((g: string) => g.toLowerCase() === studentGroup.toLowerCase());
+    });
+
     res.json({
       success: true,
       isFallback: true,
-      data: filtered
+      data: filteredByGroup
     });
   }
 });

@@ -844,14 +844,15 @@ model Notification {
 }
 
 model CentralSubject {
-  id        String        @id @default(uuid())
-  class     String
-  name      String
-  icon      String?
-  color     String?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @default(now()) @updatedAt
-  units     CentralUnit[]
+  id               String        @id @default(uuid())
+  class            String
+  name             String
+  icon             String?
+  color            String?
+  applicableGroups String[]      @default([])
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @default(now()) @updatedAt
+  units            CentralUnit[]
 
   @@unique([class, name])
 }
