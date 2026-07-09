@@ -399,12 +399,13 @@ router.get('/homework/:id/submissions', async (req: Request, res: Response) => {
 // PUT /api/teacher/homework/submissions/:subId
 router.put('/homework/submissions/:subId', async (req: Request, res: Response) => {
   try {
-    const { score, status } = req.body;
+    const { score, status, feedback } = req.body;
     const submission = await prisma.homeworkSubmission.update({
       where: { id: req.params.subId },
       data: {
         score,
         status,
+        feedback,
         date: status === 'submitted' ? 'Today, ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—',
       },
     });

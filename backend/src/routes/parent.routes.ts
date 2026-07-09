@@ -251,6 +251,7 @@ router.get('/:parentId/child/:studentId/homework', async (req: Request, res: Res
         description: h.description,
         submissionStatus: submission ? submission.status : 'pending',
         score: submission?.score ?? '—',
+        feedback: submission?.feedback ?? null,
         submittedDate: submission?.date ?? '—',
       };
     });

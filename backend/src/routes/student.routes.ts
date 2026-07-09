@@ -339,6 +339,7 @@ router.get('/:id/homework', async (req: Request, res: Response) => {
         postedLabel: new Date(h.createdAt).toLocaleDateString(),
         teacher: 'Teacher', // could populate if linked
         score: submission?.score || '—',
+        feedback: submission?.feedback || null,
         submittedAnswer: parsedAnswerText,
         submittedDate: submission?.date || null,
         submittedFiles: parsedFiles,
