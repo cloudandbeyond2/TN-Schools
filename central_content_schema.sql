@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS "CentralSubject" (
     "name" TEXT NOT NULL,
     "icon" TEXT,
     "color" TEXT,
+    "applicableGroups" TEXT[] NOT NULL DEFAULT '{}',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

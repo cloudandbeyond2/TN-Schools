@@ -268,7 +268,11 @@ export default function CentralizedContentPage() {
       setContents([]);
       
       try {
-        const res = await fetch(`${API_URL}/api/centralized-content/subjects?class=${selectedClass}`);
+        const studentId = (session?.user as any)?.studentId || "";
+        const url = studentId 
+          ? `${API_URL}/api/centralized-content/subjects?class=${selectedClass}&studentId=${studentId}`
+          : `${API_URL}/api/centralized-content/subjects?class=${selectedClass}`;
+        const res = await fetch(url);
         const json = await res.json();
         if (json.success) {
           setSubjects(json.data);
@@ -281,7 +285,7 @@ export default function CentralizedContentPage() {
     };
     
     fetchSubjects();
-  }, [selectedClass]);
+  }, [selectedClass, session]);
 
   // Fetch units and nested topics when a subject is clicked
   const handleSelectSubject = async (sub: Subject) => {

@@ -67,7 +67,11 @@ export default function StudentSyllabusPage() {
       setExpandedUnitId(null);
 
       try {
-        const res = await fetch(`${API_URL}/api/centralized-content/subjects?class=${studentClass}`);
+        const studentId = (session?.user as any)?.studentId || "";
+        const url = studentId 
+          ? `${API_URL}/api/centralized-content/subjects?class=${studentClass}&studentId=${studentId}`
+          : `${API_URL}/api/centralized-content/subjects?class=${studentClass}`;
+        const res = await fetch(url);
         const json = await res.json();
         if (json.success) {
           setSubjects(json.data);
@@ -84,7 +88,7 @@ export default function StudentSyllabusPage() {
 
     fetchSubjects();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [studentClass]);
+  }, [studentClass, session]);
 
   const handleSelectSubject = async (sub: Subject) => {
     setSelectedSubject(sub);
