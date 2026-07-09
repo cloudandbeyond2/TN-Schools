@@ -354,7 +354,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "School & Career", href: "#", icon: "" },
       { label: "Announcements", href: "/student/announcements", icon: "Megaphone" },
-      { label: "College Admissions", href: "/student/higher-secondary/admissions", icon: "GraduationCap" },
+      // { label: "College Admissions", href: "/student/higher-secondary/admissions", icon: "GraduationCap" },
       { label: "Scholarships", href: "/student/higher-secondary/scholarships", icon: "ScrollText" },
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       { label: "Learning Platform", href: "/student/higher-secondary/learning-platform", icon: "Monitor" },
