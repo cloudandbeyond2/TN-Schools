@@ -369,6 +369,32 @@ router.post('/homework', async (req: Request, res: Response) => {
         await prisma.homeworkSubmission.createMany({
           data: subRecords,
         });
+
+        // Send notifications to each student and their parents
+        for (const s of students) {
+          if (s.userId) {
+            await createSafeNotification(s.userId, `New Homework: "${title}" has been assigned for your class. Due Date: ${dueDate}`);
+          }
+
+          try {
+            const parents = await getStudentParents(s.id);
+            for (const parent of parents) {
+              if (parent.id) {
+                await prisma.parentNotification.create({
+                  data: {
+                    parentId: parent.id,
+                    studentId: s.id,
+                    type: 'HOMEWORK_ALERT',
+                    title: 'New Homework Assigned',
+                    message: `New homework "${title}" has been assigned to your child ${s.user.name}. Due Date: ${dueDate}`,
+                  },
+                });
+              }
+            }
+          } catch (parentErr) {
+            console.error(`Error notifying parents for student ${s.id}:`, parentErr);
+          }
+        }
       }
     }
 
