@@ -55,7 +55,7 @@ export const portals = [
     href: "/block-education-officer",
     label: "Block Education Officer",
     icon: "Building2",
-    desc: "School Comparisons, Attendance & Exam Analytics",
+    desc: "Manage School, Attendance & Exam Analytics",
     color: "from-violet-600 to-purple-600",
     border: "border-violet-500/30",
     bg: "hover:bg-violet-500/10",
@@ -525,8 +525,8 @@ export const roleConfigs: Record<string, PortalConfig> = {
     navItems: [
       { label: "Dashboard", href: "/block-education-officer", icon: "Home" },
       { label: "Promotion Approvals", href: "/block-education-officer/promotions", icon: "TrendingUp" },
+      { label: "Manage School", href: "/block-education-officer/schools", icon: "Building" },
       { label: "Manage Headmasters", href: "/block-education-officer/headmasters", icon: "Building" },
-      { label: "School Comparisons", href: "/block-education-officer/schools", icon: "Building" },
       { label: "Attendance Analytics", href: "/block-education-officer/attendance", icon: "Calendar" },
       { label: "Exam Analytics", href: "/block-education-officer/exams", icon: "Activity" },
       { label: "Infrastructure", href: "/block-education-officer/infrastructure", icon: "Building" },
