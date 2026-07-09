@@ -133,6 +133,7 @@ model Student {
   portfolio             Portfolio?
   scholarships          Scholarship[]
   sportsProfile         SportsProfile?
+  studySchedule         StudySchedule?
   socialActivities      SocialActivity[]
   schoolPressActivities SchoolPressActivity[]
   watchlistEntry        WatchlistStudent?
@@ -1647,4 +1648,15 @@ model ExamSchedule {
   @@index([schoolId, class, examType])
   @@index([schoolId, examDate])
   @@index([schoolId, academicYear])
+}
+
+model StudySchedule {
+  id           String   @id @default(uuid())
+  studentId    String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  scheduleData Json
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
 }

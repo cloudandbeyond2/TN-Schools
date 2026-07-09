@@ -141,7 +141,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
-      // { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
+      { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
       // ── Exams & Assessments ───────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -226,7 +226,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       //{ label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
-      // { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
+      { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
       // ── Exams & Assessments ───────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -310,7 +310,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
 
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
-      // { label: "Digital Library", href: "/student/digital-library", icon: "BookOpen" },
+      { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
       // ── Exams & Assessments ───────────────────────────
       { label: "---", href: "#", icon: "" },
