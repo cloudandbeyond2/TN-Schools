@@ -90,6 +90,64 @@ router.post('/', async (req: Request, res: Response) => {
       }
     }
 
+    // Check for monthly attendance drops below threshold (75%)
+    try {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+      for (const studentId of studentIds) {
+        const monthlyRecords = await prisma.attendance.findMany({
+          where: {
+            studentId,
+            date: { gte: startOfMonth, lte: endOfMonth }
+          }
+        });
+
+        if (monthlyRecords.length >= 3) {
+          const presentCount = monthlyRecords.filter(r => r.status === 'PRESENT' || r.status === 'LATE').length;
+          const rate = (presentCount / monthlyRecords.length) * 100;
+
+          if (rate < 75) {
+            const student = await prisma.student.findUnique({
+              where: { id: studentId },
+              include: { user: true }
+            });
+            
+            const parents = await getStudentParents(studentId);
+            for (const parent of parents) {
+              if (parent.id) {
+                const existingAlert = await prisma.parentNotification.findFirst({
+                  where: {
+                    parentId: parent.id,
+                    studentId,
+                    type: 'LOW_ATTENDANCE_ALERT',
+                    createdAt: { gte: startOfMonth, lte: endOfMonth }
+                  }
+                });
+
+                if (!existingAlert) {
+                  const alertMsg = `Attendance Warning: Your child ${student?.user?.name || 'child'} has low attendance (${Math.round(rate)}%) for this month. Please ensure they attend school regularly.`;
+                  await sendMockSMS(parent.phone, alertMsg);
+                  await prisma.parentNotification.create({
+                    data: {
+                      parentId: parent.id,
+                      studentId,
+                      type: 'LOW_ATTENDANCE_ALERT',
+                      title: 'Low Monthly Attendance Warning',
+                      message: alertMsg
+                    }
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (checkErr) {
+      console.error('Error checking monthly low attendance threshold:', checkErr);
+    }
+
     res.status(201).json({ success: true, created: result[1].count });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
