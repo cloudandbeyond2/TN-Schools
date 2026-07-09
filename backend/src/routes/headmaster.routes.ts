@@ -32,12 +32,27 @@ function parseClassSection(classStr: string) {
   return { classVal: clean || '10', sectionVal: 'A' };
 }
 
-// Helper to parse date safely
+// Helper to parse date safely — also handles Excel serial numbers (e.g. "41411")
+// which JavaScript would wrongly interpret as a year if passed to new Date().
 function parseDob(dobStr: any) {
   if (!dobStr || dobStr === 'null' || dobStr === 'undefined' || String(dobStr).trim() === '') return null;
-  const d = new Date(dobStr);
+
+  const str = String(dobStr).trim();
+
+  // Detect an Excel date serial number: a plain integer between 1 and 99999
+  // (Excel serial 1 = 1900-01-01, serial 45000 ≈ 2023-03-18)
+  const numVal = Number(str);
+  if (!isNaN(numVal) && Number.isInteger(numVal) && numVal > 1 && numVal < 99999) {
+    // Excel epoch base: Dec 30, 1899 (accounts for Excel's leap-year bug)
+    const excelEpoch = new Date(1899, 11, 30).getTime();
+    const d = new Date(excelEpoch + numVal * 86400000);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  const d = new Date(str);
   return isNaN(d.getTime()) ? null : d;
 }
+
 
 // GET /api/headmaster/students — List all students for a school
 router.get('/students', async (req: Request, res: Response) => {
@@ -218,7 +233,7 @@ router.post('/students', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/headmaster/students/bulk — Bulk import (Placeholder for now)
+// POST /api/headmaster/students/bulk — Bulk import students from Excel
 router.post('/students/bulk', async (req: Request, res: Response) => {
   try {
     const { students } = req.body;
@@ -227,7 +242,13 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
     }
 
     let createdCount = 0;
-    // Process each student
+    let skippedCount = 0;
+    const errors: string[] = [];
+
+    // Track phone numbers already used in THIS batch to avoid
+    // intra-batch unique constraint violations on the User.mobile column.
+    const batchUsedPhones = new Set<string>();
+
     for (const student of students) {
       const {
         schoolId, name, rollNumber, admissionNumber, emisNumber, dob, gender,
@@ -237,29 +258,54 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
         city, district, state, pincode, studentStatus, group
       } = student;
 
-      if (!name || !rollNumber) continue;
+      // Skip rows missing required fields
+      if (!name || !rollNumber) {
+        skippedCount++;
+        errors.push(`Row skipped: missing name or roll number (${name || 'unknown'})`);
+        continue;
+      }
 
-      const { classVal } = parseClassSection(cls || "Class 1");
+      // SchoolId is required to scope the student to a school
+      if (!schoolId) {
+        skippedCount++;
+        errors.push(`Row skipped: schoolId missing for student "${name}"`);
+        continue;
+      }
 
+      const { classVal } = parseClassSection(cls || 'Class 1');
+
+      // Skip duplicate roll numbers within the same school
       const existingStudent = await prisma.student.findFirst({
         where: { rollNumber, schoolId }
       });
-      if (existingStudent) continue;
+      if (existingStudent) {
+        skippedCount++;
+        errors.push(`Skipped duplicate roll number "${rollNumber}" for "${name}"`);
+        continue;
+      }
 
       const cleanPhone = String(phone || phoneNumber || '').trim();
-      let finalMobile = cleanPhone || null;
+
+      // Resolve finalMobile: null if phone already taken in DB or in THIS batch
+      let finalMobile: string | null = cleanPhone || null;
       if (finalMobile) {
-        const existingUser = await prisma.user.findFirst({ where: { mobile: finalMobile } });
-        if (existingUser) {
-          finalMobile = null; // Prevent unique constraint violation
+        if (batchUsedPhones.has(finalMobile)) {
+          finalMobile = null; // Already used by a previous student in this batch
+        } else {
+          const existingUser = await prisma.user.findFirst({ where: { mobile: finalMobile } });
+          if (existingUser) {
+            finalMobile = null; // Already taken in DB
+          } else {
+            batchUsedPhones.add(finalMobile); // Reserve it for this student
+          }
         }
       }
-      
+
       const hashedPassword = await hashPassword(cleanPhone || '123456');
-      
+
       try {
         await prisma.$transaction(async (tx) => {
-          const user = await tx.user.create({
+          const newUser = await tx.user.create({
             data: {
               schoolId,
               name,
@@ -268,115 +314,88 @@ router.post('/students/bulk', async (req: Request, res: Response) => {
               role: 'STUDENT',
             }
           });
-        const student = await tx.student.create({
-          data: {
-            userId: user.id,
-            rollNumber,
-            schoolId,
-            class: classVal,
-            section: section || 'A',
-            group,
-            admissionNumber,
-            emisNumber,
-            dob: parseDob(dob),
-            gender,
-            bloodGroup,
-            religion,
-            community,
-            nationality,
-            mediumOfInstruction,
-            academicYear,
-            fatherName,
-            fatherOccupation,
-            motherName,
-            motherOccupation,
-            parentEmail,
-            parentName: parentName || fatherName || motherName || 'Parent',
-            parentMobile: cleanPhone || null,
-            phoneNumber: cleanPhone || null,
-            address,
-            city,
-            district,
-            state,
-            pincode,
-            studentStatus,
+
+          await tx.student.create({
+            data: {
+              userId: newUser.id,
+              rollNumber,
+              schoolId,
+              class: classVal,
+              section: section || 'A',
+              group: group || null,
+              admissionNumber: admissionNumber || null,
+              emisNumber: emisNumber || null,
+              dob: parseDob(dob),
+              gender: gender || null,
+              bloodGroup: bloodGroup || null,
+              religion: religion || null,
+              community: community || null,
+              nationality: nationality || null,
+              mediumOfInstruction: mediumOfInstruction || null,
+              academicYear: academicYear || null,
+              fatherName: fatherName || null,
+              fatherOccupation: fatherOccupation || null,
+              motherName: motherName || null,
+              motherOccupation: motherOccupation || null,
+              parentEmail: parentEmail || null,
+              parentName: parentName || fatherName || motherName || 'Parent',
+              parentMobile: cleanPhone || null,
+              phoneNumber: cleanPhone || null,
+              address: address || null,
+              city: city || null,
+              district: district || null,
+              state: state || null,
+              pincode: pincode || null,
+              studentStatus: studentStatus || 'Active',
+            }
+          });
+
+          // Create parent user if parentEmail is provided and not already existing
+          if (parentEmail && parentEmail.trim() !== '') {
+            let parentUser = await tx.user.findFirst({
+              where: { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
+            });
+
+            if (!parentUser) {
+              let parentMobile: string | null = cleanPhone || null;
+              if (parentMobile) {
+                // Check both DB and batch for the parent phone
+                const existingParentPhone = await tx.user.findFirst({ where: { mobile: parentMobile } });
+                if (existingParentPhone || batchUsedPhones.has(parentMobile)) {
+                  parentMobile = null;
+                }
+              }
+              await tx.user.create({
+                data: {
+                  name: parentName || fatherName || motherName || 'Parent',
+                  email: parentEmail.trim().toLowerCase(),
+                  mobile: parentMobile,
+                  passwordHash: await hashPassword(cleanPhone || '123456'),
+                  role: 'PARENT',
+                  schoolId,
+                }
+              });
+            }
           }
         });
 
-        if (parentEmail && parentEmail.trim() !== '') {
-          // Check if parent user already exists in PostgreSQL
-          let parentUser = await tx.user.findFirst({
-            where: { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
-          });
-
-          if (!parentUser) {
-            let parentMobile = cleanPhone || null;
-            if (parentMobile) {
-               const existingParentPhone = await tx.user.findFirst({ where: { mobile: parentMobile } });
-               if (existingParentPhone) parentMobile = null;
-            }
-            parentUser = await tx.user.create({
-              data: {
-                name: parentName || fatherName || motherName || 'Parent',
-                email: parentEmail.trim().toLowerCase(),
-                mobile: parentMobile,
-                passwordHash: await hashPassword(cleanPhone || '123456'),
-                role: 'PARENT',
-                schoolId,
-              }
-            });
-          }
-
-          // The HeadmasterParent and ParentStudentLink models are currently not present in the Prisma schema,
-          // so we will skip their creation for now to prevent the 500 error on bulk import.
-          /*
-          // Check if HeadmasterParent model exists
-          let hmParent = await tx.headmasterParent.findFirst({
-            where: { email: { equals: parentEmail.trim().toLowerCase(), mode: 'insensitive' } }
-          });
-
-          if (!hmParent) {
-            hmParent = await tx.headmasterParent.create({
-              data: {
-                name: parentName || fatherName || motherName || 'Parent',
-                role: 'Parent',
-                phone: cleanPhone || 'N/A',
-                email: parentEmail.trim().toLowerCase(),
-                studentName: name,
-                studentClass: classVal,
-                term: fatherName ? 'Father' : motherName ? 'Mother' : 'Parent',
-                password: await hashPassword(cleanPhone || '123456'),
-                schoolId,
-                userId: parentUser.id,
-              }
-            });
-          }
-
-          // Link parent and student
-          const linkExists = await tx.parentStudentLink.findFirst({
-            where: { parentId: hmParent.id, studentId: student.id }
-          });
-          if (!linkExists) {
-            await tx.parentStudentLink.create({
-              data: {
-                parentId: hmParent.id,
-                studentId: student.id,
-                isPrimary: true
-              }
-            });
-          }
-          */
-        }
-      });
-      createdCount++;
-      } catch (err) {
-        console.error("Error inserting student", student.name, err);
+        createdCount++;
+      } catch (err: any) {
+        skippedCount++;
+        const errMsg = err?.message || String(err);
+        errors.push(`Failed to save "${name}" (roll: ${rollNumber}): ${errMsg}`);
+        console.error('Bulk import — error inserting student:', name, errMsg);
       }
     }
 
-    res.json({ success: true, created: createdCount });
+    res.json({
+      success: true,
+      created: createdCount,
+      skipped: skippedCount,
+      errors: errors.length > 0 ? errors : undefined,
+    });
   } catch (err) {
-    console.error("Bulk upload error:", err);
+    console.error('Bulk upload error:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });
