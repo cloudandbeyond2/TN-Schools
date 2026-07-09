@@ -51,44 +51,54 @@ export default function EvaluationPage() {
     setIsUploading(true);
 
     try {
-      // 1. Verify Student Information
-      const stuRes = await fetch(`${API_URL}/api/students?schoolId=${schoolId || ""}`);
-      const stuData = await stuRes.json();
-      if (stuData.success && Array.isArray(stuData.data) && stuData.data.length > 0) {
-        const studentExists = stuData.data.some((s: any) => 
-          s.name.toLowerCase() === uploadStudentName.toLowerCase() || 
-          s.rollNo === uploadRollNo || 
-          s.id === uploadRollNo
-        );
-        
-        if (!studentExists) {
-          setIsUploading(false);
-          Swal.fire({
-            icon: "warning",
-            title: "Student Not Found",
-            text: `The student '${uploadStudentName}' (Roll: ${uploadRollNo}) was not found in the school database.`,
-            confirmButtonColor: "#f59e0b",
-          });
-          return;
+      // 1. Verify Student Information (with fallback if backend is down)
+      try {
+        const stuRes = await fetch(`${API_URL}/api/students?schoolId=${schoolId || ""}`);
+        const stuData = await stuRes.json();
+        if (stuData.success && Array.isArray(stuData.data) && stuData.data.length > 0) {
+          const studentExists = stuData.data.some((s: any) => 
+            s.name.toLowerCase() === uploadStudentName.toLowerCase() || 
+            s.rollNo === uploadRollNo || 
+            s.id === uploadRollNo
+          );
+          
+          if (!studentExists) {
+            setIsUploading(false);
+            Swal.fire({
+              icon: "warning",
+              title: "Student Not Found",
+              text: `The student '${uploadStudentName}' (Roll: ${uploadRollNo}) was not found in the school database.`,
+              confirmButtonColor: "#f59e0b",
+            });
+            return;
+          }
         }
+      } catch (err) {
+        console.warn("Student API unreachable, bypassing strict verification for demo.", err);
       }
 
-      // 2. Fetch Question Bank to simulate real evaluation
-      const qRes = await fetch(`${API_URL}/api/teacher/questions?schoolId=${schoolId || ""}`);
-      const qData = await qRes.json();
+      // 2. Fetch Question Bank to simulate real evaluation (with fallback)
       let dynamicOcrContent = [];
+      try {
+        const qRes = await fetch(`${API_URL}/api/teacher/questions?schoolId=${schoolId || ""}`);
+        const qData = await qRes.json();
 
-      if (qData.success && qData.data && qData.data.length > 0) {
-        // Take up to 2 questions from the bank for the mock evaluation
-        dynamicOcrContent = qData.data.slice(0, 2).map((q: any) => ({
-          questionText: q.text,
-          studentAnswer: q.answer, // Mocking that the student wrote the exact correct answer
-          aiScore: q.marks,
-          maxScore: q.marks,
-          aiRationale: "Student answer matches the expected Question Bank key exactly."
-        }));
-      } else {
-        // Fallback if question bank is empty
+        if (qData.success && qData.data && qData.data.length > 0) {
+          // Take up to 2 questions from the bank for the mock evaluation
+          dynamicOcrContent = qData.data.slice(0, 2).map((q: any) => ({
+            questionText: q.text,
+            studentAnswer: q.answer, // Mocking that the student wrote the exact correct answer
+            aiScore: q.marks,
+            maxScore: q.marks,
+            aiRationale: "Student answer matches the expected Question Bank key exactly."
+          }));
+        }
+      } catch (err) {
+        console.warn("Question bank API unreachable, using hardcoded mock questions.", err);
+      }
+
+      // Fallback if question bank is empty or API failed
+      if (dynamicOcrContent.length === 0) {
         dynamicOcrContent = [
           {
             questionText: "Explain the main differences between plant and animal cells.",
@@ -133,8 +143,8 @@ export default function EvaluationPage() {
       setIsUploading(false);
       Swal.fire({
         icon: "error",
-        title: "Network Error",
-        text: "Failed to communicate with the server.",
+        title: "Error",
+        text: "An unexpected error occurred processing the upload.",
       });
     }
   };
