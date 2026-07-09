@@ -537,7 +537,7 @@ export default function StaffManagementPage() {
                     setPageSize(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="bg-slate-900 border border-slate-850 rounded-lg px-2 py-1 text-[11px] font-semibold text-slate-300 focus:outline-none focus:border-slate-700"
+                  className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-[11px] font-semibold text-slate-300 focus:outline-none focus:border-slate-700"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -556,7 +556,7 @@ export default function StaffManagementPage() {
                 >
                   Previous
                 </button>
-                <div className="px-3 py-1 bg-slate-900/50 text-slate-400 text-xs rounded-lg border border-slate-850 flex items-center font-semibold">
+                <div className="px-3 py-1 bg-slate-900/50 text-slate-400 text-xs rounded-lg border border-slate-800 flex items-center font-semibold">
                   Page {currentPage} of {totalPages}
                 </div>
                 <button

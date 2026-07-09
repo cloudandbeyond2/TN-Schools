@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
-import { Users, CheckCircle2, AlertCircle, TrendingUp, Calendar, Filter, Save, Check, ArrowRight, ClipboardList, Grid, Clipboard } from "lucide-react";
+import { Users, CheckCircle2, AlertCircle, TrendingUp, Calendar, Filter, Save, Check, ArrowRight, ClipboardList, Grid, Clipboard, Clock } from "lucide-react";
 
 interface AttendanceStudent {
   id: string;
@@ -42,6 +42,7 @@ export default function AttendancePage() {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedWeek, setSelectedWeek] = useState<"current" | "last">("current");
+  const [selectedPeriod, setSelectedPeriod] = useState<number>(1);
 
   // Roster / Data States
   const [students, setStudents] = useState<AttendanceStudent[]>([]);
@@ -95,8 +96,8 @@ export default function AttendancePage() {
       const resRoster = await fetch(`${API_URL}/api/students?schoolId=${schoolId}&class=${clsNum}&section=${secLetter}`);
       const resultRoster = await resRoster.json();
 
-      // 2. Fetch Saved Attendance for this Class and Date
-      const resSaved = await fetch(`${API_URL}/api/attendance/class-date?schoolId=${schoolId}&class=${clsNum}&section=${secLetter}&date=${selectedDate}`);
+      // 2. Fetch Saved Attendance for this Class, Date, and Period
+      const resSaved = await fetch(`${API_URL}/api/attendance/class-date?schoolId=${schoolId}&class=${clsNum}&section=${secLetter}&date=${selectedDate}&period=${selectedPeriod}`);
       const resultSaved = await resSaved.json();
       const savedRecords = resultSaved.success && Array.isArray(resultSaved.data) ? resultSaved.data : [];
 
@@ -165,13 +166,13 @@ export default function AttendancePage() {
     }
   };
 
-  // Trigger Daily Fetch on class, school, or date change
+  // Trigger Daily Fetch on class, school, date, or period change
   useEffect(() => {
     if (activeTab === "daily") {
       setCurrentPage(1);
       fetchStudents();
     }
-  }, [schoolId, selectedClass, selectedDate, activeTab]);
+  }, [schoolId, selectedClass, selectedDate, selectedPeriod, activeTab]);
 
   // Trigger Weekly Fetch on class, school, or week filter change
   useEffect(() => {
@@ -199,7 +200,10 @@ export default function AttendancePage() {
     const presentCount = students.filter((s) => s.status === "Present").length;
     const absentCount = students.filter((s) => s.status === "Absent").length;
     const lateCount = students.filter((s) => s.status === "Late").length;
-    const attendancePercentage = Math.round((presentCount / students.length) * 100);
+    const attendancePercentage = Math.round(((presentCount + lateCount) / students.length) * 100);
+
+    const currentClassRoom = teacherClasses.find(c => `${c.className}${c.section}` === selectedClass);
+    const subjectName = currentClassRoom?.subject || "General";
 
     const records = students.map((s) => ({
       studentId: s.id,
@@ -207,6 +211,8 @@ export default function AttendancePage() {
       date: new Date(selectedDate),
       status: s.status.toUpperCase(), // PRESENT, ABSENT, LATE
       method: "Manual",
+      period: selectedPeriod,
+      subject: subjectName,
     }));
 
     try {
@@ -250,7 +256,7 @@ export default function AttendancePage() {
   const presentCount = students.filter((s) => s.status === "Present").length;
   const absentCount = students.filter((s) => s.status === "Absent").length;
   const lateCount = students.filter((s) => s.status === "Late").length;
-  const attendanceRate = students.length > 0 ? Math.round((presentCount / students.length) * 100) : 0;
+  const attendanceRate = students.length > 0 ? Math.round(((presentCount + lateCount) / students.length) * 100) : 0;
 
   // Helper to get status indicators for weekly grid
   const getWeeklyStatusNode = (records: WeeklyRecord[], dayIndex: number) => {
@@ -406,6 +412,28 @@ export default function AttendancePage() {
         {/* Right Side: Conditional Date Picker / Week Filter & Actions */}
         <div className="flex flex-col xl:flex-row gap-3 items-stretch xl:items-center justify-end">
 
+          {/* Period Selector (Only on Daily Checklist) */}
+          {activeTab === "daily" && (
+            <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 gap-2 shrink-0">
+              <Clock className="w-4 h-4 text-slate-400" />
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(Number(e.target.value))}
+                className="bg-transparent text-xs font-bold text-slate-100 focus:outline-none border-none cursor-pointer"
+              >
+                <option value={0} className="bg-slate-900 text-slate-300">General (Daily)</option>
+                <option value={1} className="bg-slate-900 text-slate-300">Period 1 (09:30 - 10:15)</option>
+                <option value={2} className="bg-slate-900 text-slate-300">Period 2 (10:15 - 11:00)</option>
+                <option value={3} className="bg-slate-900 text-slate-300">Period 3 (11:15 - 12:00)</option>
+                <option value={4} className="bg-slate-900 text-slate-300">Period 4 (12:00 - 12:45)</option>
+                <option value={5} className="bg-slate-900 text-slate-300">Period 5 (13:30 - 14:15)</option>
+                <option value={6} className="bg-slate-900 text-slate-300">Period 6 (14:15 - 15:00)</option>
+                <option value={7} className="bg-slate-900 text-slate-300">Period 7 (15:15 - 16:00)</option>
+                <option value={8} className="bg-slate-900 text-slate-300">Period 8 (16:00 - 16:45)</option>
+              </select>
+            </div>
+          )}
+
           {/* Date Picker (Only on Daily Checklist) */}
           {activeTab === "daily" && (
             <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 gap-2 shrink-0">
@@ -485,12 +513,13 @@ export default function AttendancePage() {
       {activeTab === "daily" ? (
         <>
           {/* Realtime Attendance Stats (Daily Tab) */}
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
             {[
               { label: "Total Students", value: students.length, color: "text-slate-100", icon: Users, bg: "bg-blue-500/10 border-blue-500/20" },
               { label: "Present Today", value: presentCount, color: "text-emerald-400", icon: CheckCircle2, bg: "bg-emerald-500/10 border-emerald-500/20" },
+              { label: "Late Today", value: lateCount, color: "text-amber-400", icon: Clock, bg: "bg-amber-500/10 border-amber-500/20" },
               { label: "Absent Today", value: absentCount, color: "text-rose-400", icon: AlertCircle, bg: "bg-rose-500/10 border-rose-500/20" },
-              { label: "Attendance Rate", value: `${attendanceRate}%`, color: "text-amber-400", icon: TrendingUp, bg: "bg-amber-500/10 border-amber-500/20" },
+              { label: "Attendance Rate", value: `${attendanceRate}%`, color: "text-cyan-400", icon: TrendingUp, bg: "bg-cyan-500/10 border-cyan-500/20" },
             ].map((stat, i) => {
               const IconComponent = stat.icon;
               return (
@@ -512,7 +541,10 @@ export default function AttendancePage() {
             <div className="flex items-center justify-between mb-5 border-b border-slate-800 pb-3">
               <h2 className="text-base font-semibold text-white flex items-center gap-2">
                 <span className="text-blue-500"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
-                <span>Roster Checklist — Class {selectedClass}</span>
+                <span>
+                  Roster Checklist — Class {selectedClass} 
+                  {selectedPeriod > 0 && ` (Period ${selectedPeriod} - ${(teacherClasses.find(c => `${c.className}${c.section}` === selectedClass))?.subject || "General"})`}
+                </span>
               </h2>
               <span className="text-[10px] text-slate-500 font-semibold uppercase">Date: {selectedDate}</span>
             </div>

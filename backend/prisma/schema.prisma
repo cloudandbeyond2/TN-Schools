@@ -225,11 +225,13 @@ model Attendance {
   date      DateTime
   status    AttendanceStatus @default(PRESENT)
   method    String?
+  period    Int              @default(0)
+  subject   String           @default("General")
   createdAt DateTime         @default(now())
   school    School           @relation(fields: [schoolId], references: [id])
   student   Student          @relation(fields: [studentId], references: [id])
 
-  @@unique([studentId, date])
+  @@unique([studentId, date, period])
   @@index([studentId, date])
   @@index([schoolId, date])
 }

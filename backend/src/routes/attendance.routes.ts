@@ -7,7 +7,7 @@ const router = Router();
 // POST /api/attendance — Bulk mark attendance (supports updates via delete-and-recreate transaction)
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { records, notifySMS } = req.body; // Array of { studentId, schoolId, date, status, method }, notifySMS toggle
+    const { records, notifySMS } = req.body; // Array of { studentId, schoolId, date, status, method, period, subject }, notifySMS toggle
     if (!Array.isArray(records) || records.length === 0) {
       return res.status(400).json({ success: false, error: 'records array is required' });
     }
@@ -18,6 +18,8 @@ router.post('/', async (req: Request, res: Response) => {
     const nextDate = new Date(dateVal);
     nextDate.setDate(nextDate.getDate() + 1);
 
+    const periodVal = firstRecord.period !== undefined ? Number(firstRecord.period) : 0;
+
     const studentIds = records.map(r => r.studentId);
 
     // Run delete existing & create new as a single transaction to update attendance
@@ -26,6 +28,7 @@ router.post('/', async (req: Request, res: Response) => {
         where: {
           studentId: { in: studentIds },
           date: { gte: dateVal, lt: nextDate },
+          period: periodVal,
         },
       }),
       prisma.attendance.createMany({
@@ -35,6 +38,8 @@ router.post('/', async (req: Request, res: Response) => {
           date: new Date(r.date),
           status: r.status,
           method: r.method || 'Manual',
+          period: r.period !== undefined ? Number(r.period) : 0,
+          subject: r.subject || 'General',
         })),
       }),
     ]);
@@ -94,7 +99,7 @@ router.post('/', async (req: Request, res: Response) => {
 // GET /api/attendance/class-date — Load saved attendance for a class on a specific date
 router.get('/class-date', async (req: Request, res: Response) => {
   try {
-    const { schoolId, class: cls, section, date } = req.query;
+    const { schoolId, class: cls, section, date, period } = req.query;
     if (!schoolId || !cls || !section || !date) {
       return res.status(400).json({ success: false, error: 'schoolId, class, section, and date are required' });
     }
@@ -104,10 +109,13 @@ router.get('/class-date', async (req: Request, res: Response) => {
     const nextDate = new Date(targetDate);
     nextDate.setDate(nextDate.getDate() + 1);
 
+    const periodVal = period !== undefined ? Number(period) : 0;
+
     const records = await prisma.attendance.findMany({
       where: {
         schoolId: String(schoolId),
         date: { gte: targetDate, lt: nextDate },
+        period: periodVal,
         student: {
           class: String(cls),
           section: String(section),
