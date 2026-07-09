@@ -68,6 +68,7 @@ import analyticsRoutes from './routes/analytics.routes';
 import scienceLabsRoutes from './routes/scienceLabs.routes';
 import timetableRoutes from './routes/timetable.routes';
 import examScheduleRoutes from './routes/examSchedule.routes';
+import studyPlannerRoutes from './routes/studyPlanner.routes';
 
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
@@ -204,6 +205,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/science', scienceLabsRoutes);
 app.use('/api/timetable', timetableRoutes);
 app.use('/api/exam-schedule', examScheduleRoutes);
+app.use('/api/student', studyPlannerRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
