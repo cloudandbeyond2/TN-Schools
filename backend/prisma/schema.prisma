@@ -133,6 +133,7 @@ model Student {
   portfolio             Portfolio?
   scholarships          Scholarship[]
   sportsProfile         SportsProfile?
+  studySchedule         StudySchedule?
   socialActivities      SocialActivity[]
   schoolPressActivities SchoolPressActivity[]
   watchlistEntry        WatchlistStudent?
@@ -1648,7 +1649,6 @@ model ExamSchedule {
   @@index([schoolId, examDate])
   @@index([schoolId, academicYear])
 }
-
 // ── Model Exam Results System (Classes 6-10, Samacheer Kalvi) ─────────────
 
 model ModelExam {
@@ -1701,3 +1701,13 @@ model ModelExamResult {
   @@index([studentId])
 }
 
+model StudySchedule {
+  id           String   @id @default(uuid())
+  studentId    String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  scheduleData Json
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+}
