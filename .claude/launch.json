@@ -14,7 +14,7 @@
       "runtimeArgs": ["dev"],
       "cwd": "frontend",
       "port": 3000,
-      "autoPort": false
+      "autoPort": true
     }
   ]
 }
