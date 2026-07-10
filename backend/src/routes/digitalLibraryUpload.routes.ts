@@ -92,7 +92,7 @@ router.get('/school/:schoolId', async (req: Request, res: Response) => {
 // Upload a new resource (Super Admin, Headmaster, Teacher)
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { title, type, subject, class: cls, description, fileUrl, schoolId, role, userId } = req.body;
+    const { title, type, subject, class: cls, description, fileUrl, schoolId, role, userId, tags } = req.body;
 
     if (!title || !type || !subject || !cls || !role || !userId) {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
@@ -106,6 +106,9 @@ router.post('/', async (req: Request, res: Response) => {
       approvalStatus = 'APPROVED';
     }
 
+    const normalizedSchoolId = schoolId && schoolId !== 'global' ? String(schoolId) : null;
+    const normalizedTags = Array.isArray(tags) ? tags : (tags ? [String(tags)] : []);
+
     const newUpload = await prisma.digitalLibraryUpload.create({
       data: {
         title,
@@ -114,7 +117,8 @@ router.post('/', async (req: Request, res: Response) => {
         class: cls,
         description,
         fileUrl,
-        schoolId: schoolId || null,
+        tags: normalizedTags,
+        schoolId: normalizedSchoolId,
         uploadedByRole: role,
         uploadedById: userId,
         approvalStatus
@@ -124,7 +128,7 @@ router.post('/', async (req: Request, res: Response) => {
     return res.status(201).json({ success: true, data: newUpload, message: 'Resource uploaded successfully' });
   } catch (err: any) {
     console.error('[POST /api/digital-library-upload]', err.message);
-    return res.status(500).json({ success: false, error: 'Failed to upload resource' });
+    return res.status(500).json({ success: false, error: err.message });
   }
 });
 
