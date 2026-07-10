@@ -1,6 +1,41 @@
-﻿"use client";
+"use client";
 import PortalLayout from "@/components/PortalLayout";
 import { useEffect, useState } from "react";
+
+interface KpiItem {
+  label: string;
+  value: number;
+  target: number;
+  unit: string;
+  icon: string;
+  trend: string;
+  color: string;
+  bg: string;
+  lowerBetter: boolean;
+}
+
+interface PredictionItem {
+  id: string;
+  category: string;
+  title: string;
+  prediction: string;
+  confidence: number;
+  trend: string;
+  detail: string;
+  recommendations: string[];
+  color: string;
+}
+
+interface PolicyItem {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  impact: string;
+  districts: number;
+  since: string;
+  aiScore: number;
+}
 
 interface StateKpi {
   enrollment: { total: number };
@@ -10,16 +45,19 @@ interface StateKpi {
   governanceUsers?: {
     ministers: number; commissioners: number; deos: number; beos: number; headmasters: number;
   };
+  kpis?: KpiItem[];
+  predictions?: PredictionItem[];
+  policies?: PolicyItem[];
 }
 
 const staticKpis = [
-  { label: "10th Pass %", value: "87.4%", target: "90%", trend: "+2.1%", status: "on-track", icon: "📘" },
-  { label: "12th Pass %", value: "81.2%", target: "85%", trend: "+1.8%", status: "on-track", icon: "📗" },
-  { label: "Teacher Efficiency", value: "82%", target: "88%", trend: "+0.5%", status: "at-risk", icon: "🧑‍🏫" },
-  { label: "Scholarship Delivery", value: "94.2%", target: "98%", trend: "+3.2%", status: "on-track", icon: "🎓" },
-  { label: "Dropout Rate", value: "1.8%", target: "<1.5%", trend: "-0.2%", status: "at-risk", icon: "⚠️" },
-  { label: "Infrastructure Score", value: "78/100", target: "85/100", trend: "+3pts", status: "on-track", icon: "🏗️" },
-  { label: "National Sports Ranks", value: "Top 5", target: "Top 3", trend: "+2", status: "on-track", icon: "🏆" },
+  { label: "10th Pass %", value: 87.4, target: 90.0, unit: "%", icon: "📘", trend: "+2.1%", color: "text-green-600", bg: "bg-green-50/50", lowerBetter: false },
+  { label: "12th Pass %", value: 81.2, target: 85.0, unit: "%", icon: "📗", trend: "+1.8%", color: "text-green-600", bg: "bg-green-50/50", lowerBetter: false },
+  { label: "Teacher Efficiency", value: 82.0, target: 88.0, unit: "%", icon: "👩‍🏫", trend: "+0.5%", color: "text-orange-600", bg: "bg-orange-50/50", lowerBetter: false },
+  { label: "Scholarship Delivery", value: 94.2, target: 98.0, unit: "%", icon: "🎓", trend: "+3.2%", color: "text-green-600", bg: "bg-green-50/50", lowerBetter: false },
+  { label: "Dropout Rate", value: 1.8, target: 1.5, unit: "%", icon: "⚠️", trend: "-0.2%", color: "text-orange-600", bg: "bg-orange-50/50", lowerBetter: true },
+  { label: "Infrastructure Score", value: 78.0, target: 85.0, unit: "/100", icon: "🏗️", trend: "+3pts", color: "text-green-600", bg: "bg-green-50/50", lowerBetter: false },
+  { label: "National Sports Ranks", value: 5.0, target: 3.0, unit: "Rank", icon: "🏆", trend: "+2", color: "text-green-600", bg: "bg-green-50/50", lowerBetter: true },
 ];
 
 export default function MinisterDashboard() {
@@ -40,6 +78,28 @@ export default function MinisterDashboard() {
   const totalSchools = stateData?.totalSchools ?? null;
   const byDistrict = stateData?.byDistrict ?? [];
   const govUsers = stateData?.governanceUsers;
+
+  const displayKpis = stateData?.kpis && stateData.kpis.length > 0
+    ? stateData.kpis
+    : staticKpis;
+
+  const displayPredictions = stateData?.predictions && stateData.predictions.length > 0
+    ? stateData.predictions
+    : [
+        { id: "p1", title: "Dropout Prediction (Next Year)", prediction: "~14,200 students", color: "red", detail: "AI models suggest high risk of dropouts in Krishnagiri & Tirunelveli blocks due to agrarian shifts." },
+        { id: "p2", title: "10th Board Pass % Prediction", prediction: "88.9%", color: "green", detail: "Based on mid-term model exams, class performance is expected to exceed last year's rate." },
+        { id: "p3", title: "12th Board Pass % Prediction", prediction: "83.1%", color: "green", detail: "Steady growth across Government Higher Secondary Schools in Science stream." },
+        { id: "p4", title: "Teacher Shortage by 2026", prediction: "4,200 positions", color: "orange", detail: "Retirement and new school upgradations will create vacancies primarily in Mathematics & Science subjects." },
+        { id: "p5", title: "Infrastructure Investment Needed", prediction: "₹820 Crore", color: "orange", detail: "Required budget for digital lab rollouts and restroom renovation across 1,200 rural schools." }
+      ];
+
+  const displayPolicies = stateData?.policies && stateData.policies.length > 0
+    ? stateData.policies
+    : [
+        { id: "pol1", title: "Dropout Hotspots", priority: "HIGH", impact: "5 blocks in Tirunelveli & Krishnagiri districts show dropout risk >3%. Recommend targeted scholarship drives." },
+        { id: "pol2", title: "Teacher Deployment Gap", priority: "HIGH", impact: "Mathematics and Science teacher shortage is critical in 12 districts. Consider redeployment plan." },
+        { id: "pol3", title: "Digital Lab Expansion", priority: "MEDIUM", impact: "38% of rural schools lack internet access. PM-SHRI and EMIS integration recommended." }
+      ];
 
   return (
     <PortalLayout>
@@ -96,25 +156,21 @@ export default function MinisterDashboard() {
       <div className="theme-card bg-white rounded-2xl p-6 mb-6 fade-in-2 border-t-4 border-t-blue-500">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-base font-bold text-gray-800">📊 State KPI Monitoring</h2>
-          <div className="flex gap-2">
-            <span className="text-[10px] font-bold text-green-700 bg-green-100 border border-green-200 px-2 py-0.5 rounded-full">ON TRACK: {staticKpis.filter(k => k.status === "on-track").length}</span>
-            <span className="text-[10px] font-bold text-orange-700 bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-full">AT RISK: {staticKpis.filter(k => k.status === "at-risk").length}</span>
-          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {staticKpis.map((kpi) => (
-            <div key={kpi.label} className={`p-5 rounded-xl border transition-shadow hover:shadow-md ${kpi.status === "on-track" ? "border-green-200 bg-green-50/50" : "border-orange-200 bg-orange-50/50"}`}>
+          {displayKpis.map((kpi) => (
+            <div key={kpi.label} className="p-5 rounded-xl border transition-shadow hover:shadow-md border-green-200 bg-green-50/50">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-2xl">{kpi.icon}</span>
-                <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${kpi.status === "on-track" ? "text-green-700 bg-green-100 border-green-200" : "text-orange-700 bg-orange-100 border-orange-200"}`}>
-                  {kpi.status === "on-track" ? "ON TRACK" : "AT RISK"}
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded border text-green-700 bg-green-100 border-green-200">
+                  MONITORING
                 </span>
               </div>
-              <div className="text-2xl font-extrabold text-gray-800 mb-1">{kpi.value}</div>
+              <div className="text-2xl font-extrabold text-gray-800 mb-1">{kpi.value}{kpi.unit}</div>
               <div className="text-xs font-semibold text-gray-500 mb-3">{kpi.label}</div>
               <div className="flex justify-between text-[10px] font-medium border-t border-gray-200 pt-2">
-                <span className="text-gray-500">Target: {kpi.target}</span>
-                <span className={kpi.trend.startsWith("+") ? "text-green-600 font-bold" : "text-red-600 font-bold"}>{kpi.trend} YoY</span>
+                <span className="text-gray-500">Target: {kpi.target}{kpi.unit}</span>
+                <span className="text-green-600 font-bold">{kpi.trend} YoY</span>
               </div>
             </div>
           ))}
@@ -147,19 +203,13 @@ export default function MinisterDashboard() {
         <div className="theme-card bg-white rounded-2xl p-6 border-t-4 border-t-purple-500">
           <h2 className="text-base font-bold text-gray-800 mb-4">🤖 AI Governance Predictions</h2>
           <div className="space-y-3">
-            {[
-              { label: "Dropout Prediction (Next Year)", value: "~14,200 students", severity: "red", icon: "📉" },
-              { label: "10th Board Pass % Prediction", value: "88.9%", severity: "green", icon: "📊" },
-              { label: "12th Board Pass % Prediction", value: "83.1%", severity: "green", icon: "📊" },
-              { label: "Teacher Shortage by 2026", value: "4,200 positions", severity: "orange", icon: "🧑‍🏫" },
-              { label: "Infrastructure Investment Needed", value: "820 Crore", severity: "orange", icon: "🏗️" },
-            ].map((p) => (
-              <div key={p.label} className={`flex items-center justify-between p-3 rounded-xl border bg-white shadow-sm ${p.severity === "red" ? "border-red-200" : p.severity === "green" ? "border-green-200" : "border-orange-200"}`}>
-                <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${p.severity === "red" ? "bg-red-50 text-red-600" : p.severity === "green" ? "bg-green-50 text-green-600" : "bg-orange-50 text-orange-600"}`}>{p.icon}</div>
-                  <span>{p.label}</span>
+            {displayPredictions.map((p) => (
+              <div key={p.id || p.title} className={`flex items-center justify-between p-3 rounded-xl border bg-white shadow-sm ${p.color === "red" ? "border-red-200" : p.color === "green" ? "border-green-200" : "border-orange-200"}`}>
+                <div className="flex flex-col gap-1 text-xs font-medium text-gray-600 max-w-[70%]">
+                  <span className="font-bold text-gray-800">{p.title}</span>
+                  <span className="text-[10px] text-gray-500">{p.detail}</span>
                 </div>
-                <span className={`text-sm font-bold ${p.severity === "red" ? "text-red-600" : p.severity === "green" ? "text-green-600" : "text-orange-600"}`}>{p.value}</span>
+                <span className={`text-sm font-bold ${p.color === "red" ? "text-red-650" : p.color === "green" ? "text-green-600" : "text-orange-600"}`}>{p.prediction}</span>
               </div>
             ))}
           </div>
@@ -167,17 +217,13 @@ export default function MinisterDashboard() {
         <div className="theme-card bg-white rounded-2xl p-6 border-t-4 border-t-amber-500">
           <h2 className="text-base font-bold text-gray-800 mb-4">💡 Policy Intelligence</h2>
           <div className="space-y-3">
-            {[
-              { title: "Dropout Hotspots", desc: "5 blocks in Tirunelveli & Krishnagiri districts show dropout risk >3%. Recommend targeted scholarship drives.", priority: "HIGH", color: "red" },
-              { title: "Teacher Deployment Gap", desc: "Mathematics and Science teacher shortage is critical in 12 districts. Consider redeployment plan.", priority: "HIGH", color: "red" },
-              { title: "Digital Lab Expansion", desc: "38% of rural schools lack internet access. PM-SHRI and EMIS integration recommended.", priority: "MEDIUM", color: "orange" },
-            ].map((p) => (
-              <div key={p.title} className={`p-4 rounded-xl border shadow-sm bg-white ${p.color === "red" ? "border-red-200" : "border-orange-200"}`}>
+            {displayPolicies.map((p) => (
+              <div key={p.id || p.title} className="p-4 rounded-xl border shadow-sm bg-white border-orange-200">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <span className="text-sm font-bold text-gray-800">{p.title}</span>
-                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${p.color === "red" ? "text-red-700 bg-red-100 border-red-200" : "text-orange-700 bg-orange-100 border-orange-200"}`}>{p.priority}</span>
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded border text-orange-700 bg-orange-100 border-orange-200">ACTIVE</span>
                 </div>
-                <p className="text-xs text-gray-500 leading-relaxed">{p.desc}</p>
+                <p className="text-xs text-gray-500 leading-relaxed">{p.impact}</p>
               </div>
             ))}
           </div>

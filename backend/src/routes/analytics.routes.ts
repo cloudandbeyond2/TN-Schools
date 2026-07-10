@@ -240,6 +240,13 @@ router.get('/minister', async (req: Request, res: Response) => {
         prisma.user.count({ where: { role: 'HEADMASTER' as any } }),
       ]);
 
+    // Fetch dynamic database parameters for predictions, policy briefs, and KPIs
+    const [dbKpis, dbPredictions, dbPolicies] = await Promise.all([
+      prisma.ministerKPI.findMany({ orderBy: { id: 'asc' } }),
+      prisma.ministerPrediction.findMany({ orderBy: { id: 'asc' } }),
+      prisma.ministerPolicyBrief.findMany({ orderBy: { id: 'asc' } })
+    ]);
+
     res.json({
       success: true,
       data: {
@@ -257,6 +264,9 @@ router.get('/minister', async (req: Request, res: Response) => {
           beos: beoCount,
           headmasters: headmasterCount,
         },
+        kpis: dbKpis,
+        predictions: dbPredictions,
+        policies: dbPolicies
       },
     });
   } catch (err) {
