@@ -35,8 +35,8 @@ export default function TeacherDigitalLibraryPage() {
         body: JSON.stringify({
           ...formData,
           role: "TEACHER",
-          userId: session?.user?.id,
-          schoolId: session?.user?.schoolId
+          userId: (session?.user as any)?.id,
+          schoolId: (session?.user as any)?.schoolId
         })
       });
       

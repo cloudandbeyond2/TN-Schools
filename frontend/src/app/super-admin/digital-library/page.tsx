@@ -60,7 +60,7 @@ export default function SuperAdminDigitalLibraryPage() {
         body: JSON.stringify({
           ...formData,
           role: "SUPER_ADMIN",
-          userId: session?.user?.id || "admin"
+          userId: (session?.user as any)?.id || "admin"
         })
       });
       

@@ -31,10 +31,10 @@ export default function HeadmasterDigitalLibraryPage() {
   const [approvalsLoading, setApprovalsLoading] = useState(true);
 
   const fetchPending = async () => {
-    if (!session?.user?.schoolId) return;
+    if (!(session?.user as any)?.schoolId) return;
     try {
       setApprovalsLoading(true);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/digital-library-upload/pending?schoolId=${session.user.schoolId}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/digital-library-upload/pending?schoolId=${(session.user as any).schoolId}`);
       const data = await res.json();
       if (data.success) {
         setPendingItems(data.data);
@@ -50,7 +50,7 @@ export default function HeadmasterDigitalLibraryPage() {
     if (activeTab === 'approvals') {
       fetchPending();
     }
-  }, [activeTab, session?.user?.schoolId]);
+  }, [activeTab, (session?.user as any)?.schoolId]);
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,8 +64,8 @@ export default function HeadmasterDigitalLibraryPage() {
         body: JSON.stringify({
           ...formData,
           role: "HEADMASTER",
-          userId: session?.user?.id,
-          schoolId: session?.user?.schoolId
+          userId: (session?.user as any)?.id,
+          schoolId: (session?.user as any)?.schoolId
         })
       });
       
