@@ -110,8 +110,35 @@ const BOOKMARK_KEY = "academics-bookmarks";
 /* ────────────────────────────────────────────────────────────
    Page component
 ──────────────────────────────────────────────────────────── */
+const buildSyllabus = (subject: string): SyllabusUnit[] => {
+  return [
+    {
+      unit: "Unit 1",
+      title: "Introduction to " + subject,
+      topics: ["Basics", "Fundamentals", "Core Concepts"],
+      status: "completed",
+      term: "Term 1",
+    },
+    {
+      unit: "Unit 2",
+      title: "Advanced " + subject,
+      topics: ["Deep Dive", "Practical Applications", "Case Studies"],
+      status: "in-progress",
+      term: "Term 1",
+    },
+    {
+      unit: "Unit 3",
+      title: subject + " Mastery",
+      topics: ["Complex Topics", "Final Review", "Exam Prep"],
+      status: "upcoming",
+      term: "Term 2",
+    },
+  ];
+};
+
 export default function AcademicsHubPage() {
   const { data: session } = useSession();
+  const studentClass = "10"; // Placeholder for teacher class
   const [activeTab, setActiveTab] = useState<CategoryKey>("overview");
   const [selectedSubject, setSelectedSubject] = useState<string>("All");
   const [search, setSearch] = useState("");
