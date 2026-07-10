@@ -1734,6 +1734,119 @@ router.patch('/school-resources/:id', async (req: Request, res: Response) => {
   }
 });
 
+// ─── Resource Reports → Higher Officials (BEO / DEO / Commissioner / Minister) ─
+
+const REPORT_RECIPIENTS = ['BEO', 'DEO', 'Commissioner', 'Minister'];
+const REPORT_PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
+const REPORT_STATUSES = ['Submitted', 'Acknowledged', 'In Progress', 'Resolved'];
+const REPORT_TYPES = ['Critical Alert', 'Category Summary', 'Full Infrastructure Report'];
+
+// GET /api/headmaster/resource-reports?schoolId=&recipientRole=&status=
+router.get('/resource-reports', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, recipientRole, status } = req.query;
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required.' });
+    }
+    const where: any = { schoolId: String(schoolId) };
+    if (recipientRole && String(recipientRole) !== 'All') where.recipientRole = String(recipientRole);
+    if (status && String(status) !== 'All') where.status = String(status);
+    const reports = await prisma.resourceReport.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json({ success: true, count: reports.length, data: reports });
+  } catch (err) {
+    console.error('[resource-reports GET]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/resource-reports
+router.post('/resource-reports', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, resourceId, category, recipientRole, reportType, priority, subject, description, snapshot } = req.body;
+
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required.' });
+    }
+    if (!recipientRole || !REPORT_RECIPIENTS.includes(String(recipientRole))) {
+      return res.status(400).json({ success: false, error: 'recipientRole must be one of: ' + REPORT_RECIPIENTS.join(', ') });
+    }
+    if (!subject || !String(subject).trim()) {
+      return res.status(400).json({ success: false, error: 'subject is required.' });
+    }
+    if (category != null && category !== '' && !RESOURCE_CATEGORIES.includes(String(category))) {
+      return res.status(400).json({ success: false, error: 'Invalid category.' });
+    }
+
+    const report = await prisma.resourceReport.create({
+      data: {
+        schoolId: String(schoolId),
+        resourceId: resourceId ? String(resourceId) : null,
+        category: category ? String(category) : null,
+        recipientRole: String(recipientRole),
+        reportType: reportType && REPORT_TYPES.includes(String(reportType)) ? String(reportType) : 'Category Summary',
+        priority: priority && REPORT_PRIORITIES.includes(String(priority)) ? String(priority) : 'Medium',
+        subject: String(subject).trim(),
+        description: description ? String(description) : null,
+        snapshot: snapshot ?? undefined,
+      },
+    });
+    res.status(201).json({ success: true, data: report });
+  } catch (err) {
+    console.error('[resource-reports POST]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PATCH /api/headmaster/resource-reports/:id  (status workflow updates)
+router.patch('/resource-reports/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.resourceReport.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Report not found.' });
+    }
+    const { status, priority, subject, description } = req.body;
+    if (status !== undefined && !REPORT_STATUSES.includes(String(status))) {
+      return res.status(400).json({ success: false, error: 'status must be one of: ' + REPORT_STATUSES.join(', ') });
+    }
+    if (priority !== undefined && !REPORT_PRIORITIES.includes(String(priority))) {
+      return res.status(400).json({ success: false, error: 'priority must be one of: ' + REPORT_PRIORITIES.join(', ') });
+    }
+    const updated = await prisma.resourceReport.update({
+      where: { id },
+      data: {
+        ...(status !== undefined && { status: String(status) }),
+        ...(priority !== undefined && { priority: String(priority) }),
+        ...(subject !== undefined && { subject: String(subject).trim() }),
+        ...(description !== undefined && { description: description ? String(description) : null }),
+      },
+    });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error('[resource-reports PATCH]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/headmaster/resource-reports/:id
+router.delete('/resource-reports/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.resourceReport.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Report not found.' });
+    }
+    await prisma.resourceReport.delete({ where: { id } });
+    res.json({ success: true, message: 'Report deleted.' });
+  } catch (err) {
+    console.error('[resource-reports DELETE]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // DELETE /api/headmaster/school-resources/:id
 router.delete('/school-resources/:id', async (req: Request, res: Response) => {
   try {

@@ -1,23 +1,63 @@
-"use client";
+﻿"use client";
 import PortalLayout from "@/components/PortalLayout";
 import KpiStrip from "@/components/kpi/KpiStrip";
 import { Trophy } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
+interface DistrictStat {
+  district: string;
+  schools: number;
+  students: number;
+}
 
-const districts = [
-  { name: "Chennai", schools: 820, students: "6.2L", attendance: 93, passRate: 91, score: 94 },
-  { name: "Coimbatore", schools: 710, students: "5.8L", attendance: 91, passRate: 88, score: 91 },
-  { name: "Madurai", schools: 650, students: "5.1L", attendance: 89, passRate: 86, score: 88 },
-  { name: "Tiruchirappalli", schools: 590, students: "4.7L", attendance: 87, passRate: 84, score: 86 },
-  { name: "Salem", schools: 540, students: "4.2L", attendance: 85, passRate: 81, score: 83 },
-  { name: "Tirunelveli", schools: 480, students: "3.9L", attendance: 83, passRate: 79, score: 80 },
-];
+interface HierarchyData {
+  districtStats: DistrictStat[];
+  deos: { id: string; name: string; email: string; district: string | null }[];
+}
 
 export default function CommissionerDashboard() {
+  const { data: session } = useSession();
+  const [hierarchyData, setHierarchyData] = useState<HierarchyData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  const userId = (session?.user as any)?.id;
+
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`${API_URL}/api/hierarchy/commissioner/${userId}`)
+      .then((r) => r.json())
+      .then((json) => { if (json.success) setHierarchyData(json.data); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [userId, API_URL]);
+
+  const districts = hierarchyData?.districtStats ?? [];
+  const deos = hierarchyData?.deos ?? [];
+
   return (
     <PortalLayout>
       {/* State-level KPIs — real academic-year analytics */}
       <KpiStrip path="/api/analytics/state" title="State KPIs" />
+
+      {/* DEO Assignments */}
+      {deos.length > 0 && (
+        <div className="glass rounded-2xl p-6 mb-6 fade-in">
+          <h2 className="text-base font-semibold text-white mb-4">🗂️ Assigned District Education Officers</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {deos.map((deo) => (
+              <div key={deo.id} className="bg-slate-900/60 rounded-xl p-4 border border-slate-700">
+                <div className="font-bold text-white text-sm">{deo.name}</div>
+                <div className="text-xs text-slate-400 mt-1">{deo.email}</div>
+                {deo.district && (
+                  <div className="text-xs text-cyan-400 font-semibold mt-2">📍 {deo.district}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Budget Utilization */}
       <div className="glass rounded-2xl p-6 mb-6 fade-in-2">
@@ -44,32 +84,20 @@ export default function CommissionerDashboard() {
         </div>
       </div>
 
-      {/* State Sports & Wellness Widget */}
+      {/* Sports & Wellness */}
       <div className="glass rounded-2xl p-6 mb-6 fade-in-2 border border-slate-800">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold text-white flex items-center gap-2"><Trophy className="w-5 h-5 text-amber-500" /> State Sports & Wellness Overview</h2>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-2xl font-black text-white">45,000+</div>
-             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Student Athletes</div>
-          </div>
-          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-2xl font-black text-amber-400">214</div>
-             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">National Medals</div>
-          </div>
-          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-2xl font-black text-emerald-400">86%</div>
-             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Avg Student BMI</div>
-          </div>
-          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-2xl font-black text-red-400">₹45Cr</div>
-             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Sports Budget Used</div>
-          </div>
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700"><div className="text-2xl font-black text-white">45,000+</div><div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Student Athletes</div></div>
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700"><div className="text-2xl font-black text-amber-400">214</div><div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">National Medals</div></div>
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700"><div className="text-2xl font-black text-emerald-400">86%</div><div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Avg Student BMI Normal</div></div>
+          <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700"><div className="text-2xl font-black text-red-400">₹45Cr</div><div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Sports Budget Used</div></div>
         </div>
       </div>
 
-      {/* District Comparison Table */}
+      {/* District Comparison Table — real data */}
       <div className="glass rounded-2xl p-6 fade-in-3">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-base font-semibold text-white">🗺️ District Performance Index</h2>
@@ -81,31 +109,40 @@ export default function CommissionerDashboard() {
               <th>District</th>
               <th>Schools</th>
               <th>Students</th>
-              <th>Attendance</th>
-              <th>Pass Rate</th>
-              <th>Performance Score</th>
+              {deos.length > 0 && <th>DEO</th>}
             </tr>
           </thead>
           <tbody>
-            {districts.map((d, i) => (
-              <tr key={d.name}>
-                <td className="font-medium text-white">{d.name}</td>
-                <td>{d.schools.toLocaleString()}</td>
-                <td>{d.students}</td>
-                <td>
-                  <span className={`badge ${d.attendance >= 91 ? "badge-green" : d.attendance >= 87 ? "badge-yellow" : "badge-red"}`}>{d.attendance}%</span>
-                </td>
-                <td>{d.passRate}%</td>
-                <td>
-                  <div className="flex items-center gap-2">
-                    <div className="progress-bar flex-1" style={{ minWidth: 60 }}>
-                      <div className="progress-fill" style={{ width: `${d.score}%`, background: "linear-gradient(90deg, #06b6d4, #0ea5e9)" }} />
-                    </div>
-                    <span className="text-xs text-cyan-400 font-bold w-8">{d.score}</span>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {loading ? (
+              <tr><td colSpan={4} className="text-center text-slate-400 py-4">Loading district data...</td></tr>
+            ) : districts.length > 0 ? (
+              districts.map((d) => {
+                const deo = deos.find((o) => o.district?.toLowerCase() === d.district.toLowerCase());
+                return (
+                  <tr key={d.district}>
+                    <td className="font-medium text-white">{d.district}</td>
+                    <td>{d.schools.toLocaleString()}</td>
+                    <td>{d.students.toLocaleString()}</td>
+                    {deos.length > 0 && <td className="text-cyan-400 text-xs">{deo ? deo.name : "—"}</td>}
+                  </tr>
+                );
+              })
+            ) : (
+              // Fallback static data if DB is empty
+              [
+                { name: "Chennai", schools: 820, students: "6.2L" },
+                { name: "Coimbatore", schools: 710, students: "5.8L" },
+                { name: "Madurai", schools: 650, students: "5.1L" },
+                { name: "Tiruchirappalli", schools: 590, students: "4.7L" },
+                { name: "Salem", schools: 540, students: "4.2L" },
+              ].map((d) => (
+                <tr key={d.name}>
+                  <td className="font-medium text-white">{d.name}</td>
+                  <td>{d.schools}</td>
+                  <td>{d.students}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

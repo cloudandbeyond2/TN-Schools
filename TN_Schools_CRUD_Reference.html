@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TN Schools — Role-Wise Module CRUD Reference</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1e293b; padding: 32px 24px; }
+    .cover { background: linear-gradient(135deg, #1e40af 0%, #7c3aed 50%, #0891b2 100%); color: white; border-radius: 16px; padding: 40px 48px; margin-bottom: 40px; position: relative; overflow: hidden; }
+    .cover::after { content: "TN SCHOOLS"; position: absolute; right: -20px; top: 50%; transform: translateY(-50%) rotate(-15deg); font-size: 100px; font-weight: 900; opacity: 0.06; letter-spacing: 4px; }
+    .cover h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    .cover p { font-size: 14px; opacity: 0.8; }
+    .cover .meta { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    .cover .meta span { background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .print-bar { display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 28px; }
+    .btn { padding: 10px 22px; border-radius: 10px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; transition: 0.2s; }
+    .btn-primary { background: #2563eb; color: white; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .section-header { display: flex; align-items: center; gap: 12px; margin: 36px 0 16px; }
+    .role-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 999px; font-size: 14px; font-weight: 800; white-space: nowrap; }
+    .role-hm { background: #dbeafe; color: #1d4ed8; border: 2px solid #93c5fd; }
+    .role-teach { background: #fef3c7; color: #b45309; border: 2px solid #fcd34d; }
+    .role-beo { background: #dcfce7; color: #166534; border: 2px solid #86efac; }
+    .section-line { flex: 1; height: 2px; background: #e2e8f0; border-radius: 999px; }
+    .table-wrap { border-radius: 14px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: #f1f5f9; }
+    thead th { padding: 12px 14px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; border-bottom: 2px solid #e2e8f0; }
+    thead th.center { text-align: center; }
+    tbody tr { border-bottom: 1px solid #f1f5f9; background: white; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody td { padding: 10px 14px; vertical-align: middle; }
+    .num { color: #94a3b8; font-size: 11px; font-weight: 600; }
+    .module-name { font-weight: 700; color: #1e293b; font-size: 13px; }
+    .tag-center { text-align: center; }
+    .chip { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 24px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.4px; }
+    .chip-yes { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .chip-no { background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; }
+    .chip-part { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+    .legend { display: flex; gap: 20px; flex-wrap: wrap; margin: 12px 0 32px; padding: 14px 18px; background: white; border-radius: 10px; border: 1px solid #e2e8f0; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: #475569; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 12px 0 24px; }
+    .summary-card { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px 20px; }
+    .summary-card h4 { font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .summary-card .count { font-size: 32px; font-weight: 900; margin: 6px 0 4px; }
+    .summary-card p { font-size: 11px; color: #94a3b8; line-height: 1.5; }
+    .c-blue { color: #2563eb; } .c-amber { color: #d97706; } .c-green { color: #16a34a; }
+    footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; }
+    @media print { body { padding: 12px; background: white; } .print-bar { display: none !important; } .section-header { break-before: page; } }
+  </style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>📚 TN Schools Platform — Role-Wise Module CRUD Reference</h1>
+  <p>Comprehensive breakdown of what each role can Create, Read, Update, and Delete across all modules.</p>
+  <div class="meta">
+    <span>📅 July 2026</span>
+    <span>🏫 Project: TN-Schools</span>
+    <span>👥 Roles: Headmaster · Teacher · BEO</span>
+    <span>🔢 Total: 73 Modules</span>
+  </div>
+</div>
+
+<div class="print-bar">
+  <button class="btn btn-primary" onclick="window.print()">🖨️ Print / Save as PDF</button>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="chip chip-yes">YES</span> Action Available</div>
+  <div class="legend-item"><span class="chip chip-no">NO</span> Not Available</div>
+  <div class="legend-item"><span class="chip chip-part">PART</span> Partial (status-only update)</div>
+</div>
+
+<!-- HEADMASTER -->
+<div class="section-header">
+  <span class="role-badge role-hm">🏫 HEADMASTER</span>
+  <div class="section-line"></div>
+</div>
+<div class="summary-grid">
+  <div class="summary-card"><h4>Total Modules</h4><div class="count c-blue">23</div><p>Across all HM dashboard sections</p></div>
+  <div class="summary-card"><h4>Full CRUD</h4><div class="count c-blue">5</div><p>Staff, Timetable, Temp Staff, Portal, Promotions</p></div>
+  <div class="summary-card"><h4>Read-Only</h4><div class="count c-blue">10</div><p>Attendance, Events, Meal, Scholarship, Rewards, Resources, Exams, Gallery, Gov Schemes, Model Exams, History</p></div>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Module</th><th>Key Actions</th><th class="center">Create</th><th class="center">Read</th><th class="center">Update</th><th class="center">Delete</th></tr></thead>
+    <tbody>
+      <tr><td class="num">01</td><td class="module-name">👩‍🏫 Staff (Teachers)</td><td>Add single / bulk Excel import, edit, remove</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">02</td><td class="module-name">🎓 Students</td><td>Add new student (creates User + Student), remove</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">03</td><td class="module-name">🗓️ Timetable</td><td>Add/edit/delete period slots, assign proxy substitutes</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">04</td><td class="module-name">📊 Attendance</td><td>View school-wide attendance reports only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">05</td><td class="module-name">🎓 Alumni</td><td>Add / bulk import alumni, send messages, remove</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">06</td><td class="module-name">🏅 Clubs</td><td>Create club records for the school</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">07</td><td class="module-name">📅 Events</td><td>View calendar events only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">08</td><td class="module-name">📋 Leave (Approve/Reject)</td><td>Approve or reject teacher / student leave requests</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-part">PART</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">09</td><td class="module-name">🍱 Mid-Day Meal</td><td>View meal distribution records only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">10</td><td class="module-name">👨‍👩‍👧 Parents &amp; PTA</td><td>Add parent, create PTA meeting, send notification, delete parent</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">11</td><td class="module-name">🌐 School Portal (Website)</td><td>Edit tagline/about, upload banner, add/delete gallery</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">12</td><td class="module-name">🔼 Promotions</td><td>Create batch, update results, submit to BEO, delete draft</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">13</td><td class="module-name">💰 Scholarship</td><td>View scholarship applications only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">14</td><td class="module-name">🕐 Temporary Staff</td><td>Add / bulk import, edit details, remove</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">15</td><td class="module-name">🏆 Rewards</td><td>View student rewards and badges only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">16</td><td class="module-name">📦 Resources (Assets)</td><td>View school asset inventory only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">17</td><td class="module-name">📝 Exams</td><td>View exam schedule only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">18</td><td class="module-name">🧪 Mock Tests</td><td>Create NEET / Board mock test entries</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">19</td><td class="module-name">🎉 Celebrations</td><td>View list, delete entries</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">20</td><td class="module-name">🖼️ Gallery</td><td>View school gallery photos only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">21</td><td class="module-name">🏛️ Govt Schemes</td><td>View govt scheme information only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">22</td><td class="module-name">📄 Model Exams</td><td>View model exam schedules only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">23</td><td class="module-name">📜 History (Dashboard)</td><td>View school activity history / audit log only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TEACHER -->
+<div class="section-header">
+  <span class="role-badge role-teach">🧑‍🏫 TEACHER</span>
+  <div class="section-line"></div>
+</div>
+<div class="summary-grid">
+  <div class="summary-card"><h4>Total Modules</h4><div class="count c-amber">37</div><p>Across all Teacher dashboard sections</p></div>
+  <div class="summary-card"><h4>Full CRUD</h4><div class="count c-amber">7</div><p>Lesson Planner, Questions, NEET Prep, Personal Guide, Risk Alerts, Chemistry Lab, Subject Analytics</p></div>
+  <div class="summary-card"><h4>Read-Only</h4><div class="count c-amber">8</div><p>Timetable, Student Profiles, Student Health, Analytics, Celebrations, 3D Preview, Maths Formulas, Language Coaching</p></div>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Module</th><th>Key Actions</th><th class="center">Create</th><th class="center">Read</th><th class="center">Update</th><th class="center">Delete</th></tr></thead>
+    <tbody>
+      <tr><td class="num">01</td><td class="module-name">🗓️ Timetable</td><td>View own schedule + proxy duties. No create/edit.</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">02</td><td class="module-name">📚 Homework</td><td>Create homework tasks, grade student submissions</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-part">PART</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">03</td><td class="module-name">📝 Lesson Planner</td><td>Generate AI lesson plans, publish/unpublish, edit, delete</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">04</td><td class="module-name">✅ Attendance</td><td>Mark daily student attendance, submit records</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">05</td><td class="module-name">❓ Questions (Q-Generator)</td><td>Generate AI questions, save to bank, edit, delete</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">06</td><td class="module-name">📂 Study Materials</td><td>Upload materials, delete materials</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">07</td><td class="module-name">📢 Announcements</td><td>Post school announcements, delete own announcements</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">08</td><td class="module-name">🏖️ Leave Request</td><td>Submit personal leave requests</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">09</td><td class="module-name">📖 Digital Library</td><td>Upload resources, generate AI content, delete</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">10</td><td class="module-name">🔬 NEET Prep</td><td>Add chapters, create mock tests, update progress, delete</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">11</td><td class="module-name">🧭 Personal Guide</td><td>Add student guides, update notes, generate AI guidance, delete</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">12</td><td class="module-name">🏆 Competitive Exams</td><td>View exam listings, delete records</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">13</td><td class="module-name">📊 Evaluation (Grading)</td><td>Update student evaluation scores via OCR / manual</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-part">PART</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">14</td><td class="module-name">🏛️ Classes</td><td>View assigned classrooms, delete classes</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">15</td><td class="module-name">⚠️ Risk Alerts (Watchlist)</td><td>Flag at-risk students, notify, update status, delete</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">16</td><td class="module-name">📰 School Press</td><td>Submit activity posts, approve/reject, delete entries</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-part">PART</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">17</td><td class="module-name">⚽ Sports</td><td>Add injury reports, update student sports data</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">18</td><td class="module-name">🧪 Labs (Lab Equipment)</td><td>Assign lab experiments, update equipment safety status</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">19</td><td class="module-name">👤 Profile</td><td>Edit own teacher profile details</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">20</td><td class="module-name">💬 Communication</td><td>Send messages to parents</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">21</td><td class="module-name">💰 Scholarships</td><td>Update scholarship application status</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-part">PART</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">22</td><td class="module-name">🔭 Science Lab Support</td><td>Add / update / delete science lab equipment records</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">23</td><td class="module-name">📈 Subject Analytics</td><td>Enter student marks, edit, delete mark records</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">24</td><td class="module-name">🎖️ Student Status (Badges)</td><td>Award badges to students</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">25</td><td class="module-name">📅 Events</td><td>Create cultural / school events</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">26</td><td class="module-name">👨‍👩‍👧 Parents</td><td>Send notifications to parents, delete parent records</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">27</td><td class="module-name">⚗️ Chemistry Lab</td><td>Add / update / delete lab equipment records</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">28</td><td class="module-name">🎬 Studio View</td><td>Record / update student speaking sessions</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">29</td><td class="module-name">📋 Syllabus Board</td><td>Mark topics as complete, add progress updates</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">30</td><td class="module-name">🦎 Zoology Centre</td><td>View content, delete records</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">31</td><td class="module-name">🎭 Cultural Events</td><td>View cultural events, delete entries</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">32</td><td class="module-name">💻 Computer Education</td><td>View computer modules, delete entries</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">33</td><td class="module-name">🧑‍🎓 Student Profiles</td><td>View full student profiles only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">34</td><td class="module-name">❤️ Student Health</td><td>View student health records only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">35</td><td class="module-name">📊 Analytics Dashboard</td><td>View teaching analytics only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">36</td><td class="module-name">🎉 Celebrations</td><td>View upcoming celebrations only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">37</td><td class="module-name">🔷 3D Preview / Maths / Language / Science Draw</td><td>Interactive viewing tools only</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- BEO -->
+<div class="section-header">
+  <span class="role-badge role-beo">🏢 BLOCK EDUCATION OFFICER (BEO)</span>
+  <div class="section-line"></div>
+</div>
+<div class="summary-grid">
+  <div class="summary-card"><h4>Total Modules</h4><div class="count c-green">13</div><p>Across all BEO dashboard sections</p></div>
+  <div class="summary-card"><h4>Write-Access Modules</h4><div class="count c-green">3</div><p>Headmasters (delete), Schools (create+delete), Promotions (approve)</p></div>
+  <div class="summary-card"><h4>Read-Only Modules</h4><div class="count c-green">10</div><p>BEO is primarily a supervisor &amp; oversight role — not an operator</p></div>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Module</th><th>Key Actions</th><th class="center">Create</th><th class="center">Read</th><th class="center">Update</th><th class="center">Delete</th></tr></thead>
+    <tbody>
+      <tr><td class="num">01</td><td class="module-name">📊 Attendance Overview</td><td>View block-level attendance analytics across all schools</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">02</td><td class="module-name">📜 Circulars</td><td>View government circulars issued to block schools</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">03</td><td class="module-name">🔗 Connect (Schools)</td><td>View connection status of all schools in block</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">04</td><td class="module-name">🚨 Dropouts</td><td>Monitor dropout-risk students across block schools</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">05</td><td class="module-name">📝 Exams</td><td>View block-level exam performance data</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">06</td><td class="module-name">💰 Financials</td><td>View fund allocation and expenditure for block schools</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">07</td><td class="module-name">📨 Grievances</td><td>View grievances filed against block schools</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">08</td><td class="module-name">🏫 Headmasters</td><td>View headmaster directory, delete headmaster user account</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">09</td><td class="module-name">🏗️ Infrastructure</td><td>View school infrastructure and facilities data</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">10</td><td class="module-name">🔼 Promotions (Approval)</td><td>Approve or reject student promotion batches from HM</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-part">PART</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">11</td><td class="module-name">🏛️ Govt Schemes</td><td>View scheme implementation status across block</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+      <tr><td class="num">12</td><td class="module-name">🏫 Schools Management</td><td>Register new schools in block, delete school records</td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td></tr>
+      <tr><td class="num">13</td><td class="module-name">👩‍🏫 Teachers Overview</td><td>View teacher deployment across block schools</td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-yes">YES</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td><td class="tag-center"><span class="chip chip-no">NO</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>
+  <span>📁 TN Schools Platform — Internal Reference Document</span>
+  <span>Generated: July 2026 | Roles: HM (23) · Teacher (37) · BEO (13) = 73 Total Modules</span>
+</footer>
+</body>
+</html>

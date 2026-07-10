@@ -18,6 +18,13 @@ model User {
   role              Role               @default(STUDENT)
   isActive          Boolean            @default(true)
   schoolId          String?
+  // ── Governance scope fields ─────────────────────────────────────────
+  // DEO: which district they manage (matches School.district)
+  district          String?
+  // BEO: which block they manage (matches School.block)
+  block             String?
+  // Commissioner: optional named region label
+  assignedRegion    String?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   headmasterProfile HeadmasterProfile?
@@ -27,6 +34,9 @@ model User {
   school            School?            @relation(fields: [schoolId], references: [id])
 
   @@index([schoolId])
+  @@index([role])
+  @@index([district])
+  @@index([block])
 }
 
 model School {
@@ -1770,4 +1780,20 @@ model SchoolResource {
   lastAudited     DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+model ResourceReport {
+  id            String   @id @default(uuid())
+  schoolId      String
+  resourceId    String?
+  category      String? // resource category the report concerns (null = whole school)
+  recipientRole String // BEO | DEO | Commissioner | Minister
+  reportType    String   @default("Category Summary") // Critical Alert | Category Summary | Full Infrastructure Report
+  priority      String   @default("Medium") // Low | Medium | High | Urgent
+  subject       String
+  description   String?
+  snapshot      Json? // resource stats captured at send time
+  status        String   @default("Submitted") // Submitted | Acknowledged | In Progress | Resolved
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
