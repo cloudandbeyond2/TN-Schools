@@ -1325,7 +1325,7 @@ export default function StudentsMonitoringPage() {
                           />
                         )}
                       </td>
-                      <td className="font-medium text-white">
+                      <td className="font-medium text-slate-800 dark:text-white">
                         <div className="flex items-center gap-3">
                           {(() => {
                             const meta = parseStudentAddress(s.address || "");
@@ -1333,7 +1333,7 @@ export default function StudentsMonitoringPage() {
                               return <img src={meta.photo} alt={s.name} className="w-8 h-8 rounded-full object-cover border border-slate-700 shrink-0" />;
                             } else {
                               return (
-                                <div className="w-8 h-8 rounded-full bg-slate-800 text-slate-455 flex items-center justify-center text-xs font-bold shrink-0">
+                                <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 flex items-center justify-center text-xs font-bold shrink-0 border border-slate-200 dark:border-slate-700">
                                   {s.name.charAt(0).toUpperCase()}
                                 </div>
                               );
@@ -1343,10 +1343,10 @@ export default function StudentsMonitoringPage() {
                         </div>
                       </td>
                       <td>
-                        <div className="text-xs text-slate-300">{s.rollNumber}</div>
-                        <div className="text-[10px] text-slate-500">{s.class}</div>
+                        <div className="text-xs text-slate-800 dark:text-slate-300">{s.rollNumber}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-500">{s.class}</div>
                       </td>
-                      <td className="text-xs font-bold text-slate-300">
+                      <td className="text-xs font-bold text-slate-800 dark:text-slate-300">
                         {s.section || "—"}
                       </td>
                       <td>
