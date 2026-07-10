@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import PersonalKpiStrip from "@/components/kpi/PersonalKpiStrip";
+import StudentDailyOverview from "@/components/student/StudentDailyOverview";
 import { useSession } from "next-auth/react";
-import { 
-  Hourglass, 
+import {
+  Hourglass,
   BarChart2, 
   FileText, 
   Zap, 
@@ -79,6 +80,9 @@ export default function HighSchoolDashboard() {
     <PortalLayout subtitle={subtitle}>
       {/* Real academic-year KPIs */}
       <PersonalKpiStrip studentId={(session?.user as any)?.studentId || null} />
+
+      {/* Daily timetable, homework, exams, attendance, announcements & AI suggestions */}
+      <StudentDailyOverview />
 
       {/* KPI Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">

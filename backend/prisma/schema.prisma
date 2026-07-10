@@ -1649,6 +1649,57 @@ model ExamSchedule {
   @@index([schoolId, examDate])
   @@index([schoolId, academicYear])
 }
+// ── Model Exam Results System (Classes 6-10, Samacheer Kalvi) ─────────────
+
+model ModelExam {
+  id           String            @id @default(uuid())
+  schoolId     String
+  examName     String                                        // e.g. "Unit Test 1", "Half Yearly"
+  examType     String            @default("Unit Test")      // Unit Test | Half Yearly | Model | Annual
+  class        String                                        // "6","7","8","9","10","11","12"
+  section      String            @default("A")
+  group        String?                                       // optional for 11th & 12th (e.g. "Biology", "Computer Science", "Commerce")
+  academicYear String            @default("2024-25")
+  examDate     DateTime?
+  isLocked     Boolean           @default(false)
+  lockedAt     DateTime?
+  createdBy    String?                                       // userId of headmaster
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  results      ModelExamResult[]
+
+  @@index([schoolId])
+  @@index([schoolId, class])
+  @@index([schoolId, academicYear])
+}
+
+model ModelExamResult {
+  id            String     @id @default(uuid())
+  examId        String
+  exam          ModelExam  @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentId     String
+  studentName   String
+  rollNumber    String
+  // Samacheer Kalvi core subjects (max 100 each)
+  tamil         Int?
+  english       Int?
+  mathematics   Int?
+  science       Int?
+  socialScience Int?
+  extraSubject  Int?                                         // Optional 6th subject (Language / Computer)
+  extraSubjectName String?                                   // Name of extra subject
+  total         Int?                                         // Sum of all entered subjects
+  maxTotal      Int        @default(500)                     // 5×100 or 6×100
+  percentage    Float?
+  grade         String?                                      // A+, A, B+, B, C, D, U
+  isPassed      Boolean?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@unique([examId, studentId])
+  @@index([examId])
+  @@index([studentId])
+}
 
 model StudySchedule {
   id           String   @id @default(uuid())

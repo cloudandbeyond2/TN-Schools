@@ -108,6 +108,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#6366f1",
     navItems: [
       { label: "Portal Home", href: "/student", icon: "Home" },
+      { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
@@ -132,6 +133,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Academics & Subjects ──────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
+      { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
@@ -216,6 +218,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Academics & Subjects ──────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
+      { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
@@ -299,6 +302,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Academics & Subjects ──────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
+      { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },

@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
 import { 
   Calendar, MapPin, FileText, CheckCircle2, 
   Clock, AlertCircle, Printer, GraduationCap, 
   Sparkles, Tag, ShieldCheck, UserCheck, Timer,
-  BookOpen, FlaskConical, Layers2, Award
+  BookOpen, FlaskConical, Layers2, Award, ChevronRight, Lock
 } from "lucide-react";
 
 type ExamType = "Unit Test" | "Quarterly" | "Half-Yearly" | "Annual" | "Model" | "Public";
@@ -20,29 +20,126 @@ interface ExamCalendar {
   subject: string;
   date: string; // ISO date format YYYY-MM-DD
   timeSlot: string;
-  duration?: string;         // NEW
+  duration?: string;
   hall: string;
   invigilator: string;
   status: "Scheduled" | "In Progress" | "Completed";
   type: string;
-  examMode?: ExamMode;       // NEW
-  theoryMaxMarks?: number;   // NEW
-  practicalMaxMarks?: number;// NEW
+  examMode?: ExamMode;
+  theoryMaxMarks?: number;
+  practicalMaxMarks?: number;
   published: boolean;
 }
+
+const PASS_MARK = 35;
+
+const SUBJECTS = [
+  { key: "tamil",        label: "Tamil",        color: "text-purple-400" },
+  { key: "english",      label: "English",      color: "text-blue-400"   },
+  { key: "mathematics",  label: "Maths",        color: "text-emerald-400"},
+  { key: "science",      label: "Science",      color: "text-amber-400"  },
+  { key: "socialScience",label: "Social Science", color: "text-rose-400"  },
+];
+
+function getGroupSubjects(groupName: string | null | undefined) {
+  const normalized = String(groupName || "").trim().toLowerCase();
+
+  // Biology Group
+  if (normalized === "2503" || normalized.includes("biology") || normalized === "2601" || normalized === "science") {
+    return [
+      { key: "tamil",        label: "Tamil",        color: "text-purple-400" },
+      { key: "english",      label: "English",      color: "text-blue-400"   },
+      { key: "mathematics",  label: "Maths",        color: "text-emerald-400"},
+      { key: "science",      label: "Physics",      color: "text-orange-400" },
+      { key: "socialScience",label: "Chemistry",    color: "text-pink-400"   },
+      { key: "extraSubject", label: "Biology",      color: "text-emerald-500"},
+    ];
+  }
+
+  // Computer Science Group
+  if (normalized === "2502" || normalized.includes("computer science") || normalized === "2501") {
+    return [
+      { key: "tamil",        label: "Tamil",        color: "text-purple-400" },
+      { key: "english",      label: "English",      color: "text-blue-400"   },
+      { key: "mathematics",  label: "Maths",        color: "text-emerald-400"},
+      { key: "science",      label: "Physics",      color: "text-orange-400" },
+      { key: "socialScience",label: "Chemistry",    color: "text-pink-400"   },
+      { key: "extraSubject", label: "Comp Sci",     color: "text-cyan-400"   },
+    ];
+  }
+
+  // Pure Science Group
+  if (normalized === "2608" || normalized.includes("pure science") || normalized === "2504") {
+    return [
+      { key: "tamil",        label: "Tamil",        color: "text-purple-400" },
+      { key: "english",      label: "English",      color: "text-blue-400"   },
+      { key: "mathematics",  label: "Physics",      color: "text-orange-400" },
+      { key: "science",      label: "Chemistry",    color: "text-pink-400"   },
+      { key: "socialScience",label: "Botany",       color: "text-teal-400"   },
+      { key: "extraSubject", label: "Zoology",      color: "text-lime-400"   },
+    ];
+  }
+
+  // Commerce Group
+  if (normalized === "2704" || normalized === "2702" || normalized === "2701" || normalized.includes("commerce")) {
+    const isCompApp = normalized === "2702" || normalized.includes("computer applications");
+    return [
+      { key: "tamil",        label: "Tamil",        color: "text-purple-400" },
+      { key: "english",      label: "English",      color: "text-blue-400"   },
+      { key: "mathematics",  label: "Commerce",     color: "text-amber-400"  },
+      { key: "science",      label: "Accountancy",  color: "text-indigo-400" },
+      { key: "socialScience",label: "Economics",    color: "text-rose-400"   },
+      { key: "extraSubject", label: isCompApp ? "Comp App" : "Business Math", color: "text-teal-500" },
+    ];
+  }
+
+  return SUBJECTS;
+}
+
+function calcLocal(row: any, isHsc: boolean) {
+  const vals = [row.tamil, row.english, row.mathematics, row.science, row.socialScience]
+    .filter(v => v != null) as number[];
+  if (row.extraSubject != null) vals.push(row.extraSubject);
+  const total = vals.length ? vals.reduce((a, b) => a + b, 0) : null;
+  const maxTotal = isHsc ? 600 : 500;
+  const pct = total != null ? parseFloat(((total / maxTotal) * 100).toFixed(1)) : null;
+  const isPassed = vals.length > 0 ? vals.every(v => v >= PASS_MARK) : null;
+  return { total, pct, isPassed, maxTotal };
+}
+
+const SUBJECT_MARKS_CONFIG: Record<string, { theory: number; practical: number; allowPractical: boolean }> = {
+  "Mathematics": { theory: 100, practical: 0, allowPractical: false },
+  "Science": { theory: 100, practical: 0, allowPractical: false },
+  "Social Science": { theory: 100, practical: 0, allowPractical: false },
+  "English": { theory: 100, practical: 0, allowPractical: false },
+  "Tamil": { theory: 100, practical: 0, allowPractical: false },
+  "Physics": { theory: 70, practical: 30, allowPractical: true },
+  "Chemistry": { theory: 70, practical: 30, allowPractical: true },
+  "Biology": { theory: 70, practical: 30, allowPractical: true },
+  "Environmental Studies (EVS)": { theory: 100, practical: 0, allowPractical: false },
+  "Physical Education (PT)": { theory: 100, practical: 0, allowPractical: false },
+  "Computer Science": { theory: 70, practical: 30, allowPractical: true },
+  "Accountancy": { theory: 100, practical: 0, allowPractical: false },
+  "Economics": { theory: 100, practical: 0, allowPractical: false }
+};
 
 export default function StudentExamsPage() {
   const { data: session } = useSession();
   const [exams, setExams] = useState<ExamCalendar[]>([]);
   const [isMounted, setIsMounted] = useState(false);
-  const [studentClass, setStudentClass] = useState("Class 10"); // Default mock class
+  const [studentClass, setStudentClass] = useState("Class 10");
   const [studentName, setStudentName] = useState("Arjun Kumar");
   const [emisNumber, setEmisNumber] = useState("3301234567");
 
-  // State to trigger countdown recalculations every second
+  // Tab View state
+  const [activeTab, setActiveTab] = useState<"calendar" | "marks">("calendar");
+
+  // Student results states
+  const [studentResults, setStudentResults] = useState<any[]>([]);
+  const [loadingResults, setLoadingResults] = useState(false);
+
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Compute duration label from a "HH:MM AM/PM - HH:MM AM/PM" slot string
   const calcDurationFromSlot = (slot: string): string => {
     try {
       const [startRaw, endRaw] = slot.split(" - ").map((s) => s.trim());
@@ -95,30 +192,38 @@ export default function StudentExamsPage() {
           };
         });
         setExams(mapped);
-        localStorage.setItem("hm_exams_v2", JSON.stringify(mapped));
       }
     } catch (err) {
       console.error("Failed to fetch exams from database:", err);
-      const savedExams = localStorage.getItem("hm_exams_v2");
-      if (savedExams) {
-        try { setExams(JSON.parse(savedExams)); } catch (e) {}
-      }
     }
   };
+
+  // Fetch student model exam results
+  const fetchStudentResults = useCallback(async () => {
+    const studentId = (session?.user as any)?.studentId;
+    if (!studentId) return;
+    setLoadingResults(true);
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_URL}/api/headmaster/model-exams/student/${studentId}`);
+      const json = await res.json();
+      if (json.success) {
+        setStudentResults(json.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch student results:", err);
+    } finally {
+      setLoadingResults(false);
+    }
+  }, [session]);
 
   // Load profile and exams
   useEffect(() => {
     const schoolId = (session?.user as any)?.schoolId || "";
     if (schoolId) {
       fetchExamsFromDB(schoolId);
-    } else {
-      const savedExams = localStorage.getItem("hm_exams_v2");
-      if (savedExams) {
-        try { setExams(JSON.parse(savedExams)); } catch (err) {}
-      }
     }
 
-    // Fetch student profile from API
     const fetchStudentProfile = async () => {
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -133,17 +238,14 @@ export default function StudentExamsPage() {
             const match = profile.class.match(/Class\s+\d+/i);
             if (match) {
               setStudentClass(match[0]);
-              sessionStorage.setItem("student_class_filter", match[0]);
             } else if (profile.class) {
               setStudentClass(profile.class);
-              sessionStorage.setItem("student_class_filter", profile.class);
             }
           }
         }
       } catch (e) {
         if (session?.user?.name) {
           setStudentName(session.user.name);
-          sessionStorage.setItem("student_class_filter", "Class 10");
         }
       }
     };
@@ -160,41 +262,23 @@ export default function StudentExamsPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Sync state if headmaster makes updates in another tab
   useEffect(() => {
-    const handleSync = () => {
-      const savedExams = localStorage.getItem("hm_exams_v2");
-      if (savedExams) {
-        try {
-          setExams(JSON.parse(savedExams));
-        } catch (e) {
-          // ignore
-        }
-      }
-    };
-    window.addEventListener("storage", handleSync);
-    window.addEventListener("focus", handleSync);
-    document.addEventListener("visibilitychange", handleSync);
-    return () => {
-      window.removeEventListener("storage", handleSync);
-      window.removeEventListener("focus", handleSync);
-      document.removeEventListener("visibilitychange", handleSync);
-    };
-  }, []);
+    if (activeTab === "marks") {
+      fetchStudentResults();
+    }
+  }, [activeTab, fetchStudentResults]);
 
-  // Filter exams relevant to this student's grade and must be PUBLISHED (exclude completed)
   const studentExams = exams.filter((ex) => {
     if (!ex.published) return false;
     if (ex.status === "Completed") return false;
     const exClassLower = ex.classSection.toLowerCase();
-    const studClassLower = studentClass.toLowerCase(); // e.g. "class 10"
+    const studClassLower = studentClass.toLowerCase();
     return exClassLower.includes(studClassLower);
   });
 
-  // Parse exam Date & Time to Date object
   const getExamDateTime = (dateStr: string, slotStr: string) => {
     try {
-      const timePart = slotStr.split(" - ")[0]; // e.g. "09:30 AM"
+      const timePart = slotStr.split(" - ")[0];
       const [time, modifier] = timePart.split(" ");
       let [hours, minutes] = time.split(":").map(Number);
       if (modifier === "PM" && hours < 12) hours += 12;
@@ -206,7 +290,6 @@ export default function StudentExamsPage() {
     }
   };
 
-  // Find next upcoming exam that is scheduled
   const upcomingExams = studentExams
     .filter(e => e.status === "Scheduled")
     .map(e => ({
@@ -218,7 +301,6 @@ export default function StudentExamsPage() {
 
   const nextExam = upcomingExams[0];
 
-  // Helper to format date in a student friendly format: "18 Jul 2026 (Saturday)"
   const formatStudentFriendlyDate = (dateStr: string) => {
     try {
       const d = new Date(dateStr);
@@ -233,7 +315,6 @@ export default function StudentExamsPage() {
     }
   };
 
-  // Helper to construct countdown output
   const getCountdownData = (targetDate: Date) => {
     const diff = targetDate.getTime() - currentTime.getTime();
     if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, finished: true };
@@ -250,21 +331,14 @@ export default function StudentExamsPage() {
     window.print();
   };
 
-  // Badge colors
   const getTypeBadgeStyle = (type: string) => {
     switch (type) {
-      case "Quarterly":
-        return "bg-fuchsia-500/10 border-fuchsia-500/20 text-fuchsia-400";
-      case "Half-Yearly":
-        return "bg-cyan-500/10 border-cyan-500/20 text-cyan-400";
-      case "Model":
-        return "bg-orange-500/10 border-orange-500/20 text-orange-400";
-      case "Public":
-        return "bg-rose-500/10 border-rose-500/20 text-rose-400";
-      case "Annual":
-        return "bg-emerald-550/10 border-emerald-550/20 text-emerald-450";
-      default: // Unit Test
-        return "bg-indigo-500/10 border-indigo-500/20 text-indigo-400";
+      case "Quarterly":   return "bg-fuchsia-500/10 border-fuchsia-500/20 text-fuchsia-400";
+      case "Half-Yearly": return "bg-cyan-500/10 border-cyan-500/20 text-cyan-400";
+      case "Model":       return "bg-orange-500/10 border-orange-500/20 text-orange-400";
+      case "Public":      return "bg-rose-500/10 border-rose-500/20 text-rose-400";
+      case "Annual":      return "bg-emerald-550/10 border-emerald-550/20 text-emerald-450";
+      default:            return "bg-indigo-500/10 border-indigo-500/20 text-indigo-400";
     }
   };
 
@@ -283,22 +357,6 @@ export default function StudentExamsPage() {
       case "Both":      return <Layers2 className="w-3 h-3" />;
     }
   };
-
-const SUBJECT_MARKS_CONFIG: Record<string, { theory: number; practical: number; allowPractical: boolean }> = {
-  "Mathematics": { theory: 100, practical: 0, allowPractical: false },
-  "Science": { theory: 100, practical: 0, allowPractical: false },
-  "Social Science": { theory: 100, practical: 0, allowPractical: false },
-  "English": { theory: 100, practical: 0, allowPractical: false },
-  "Tamil": { theory: 100, practical: 0, allowPractical: false },
-  "Physics": { theory: 70, practical: 30, allowPractical: true },
-  "Chemistry": { theory: 70, practical: 30, allowPractical: true },
-  "Biology": { theory: 70, practical: 30, allowPractical: true },
-  "Environmental Studies (EVS)": { theory: 100, practical: 0, allowPractical: false },
-  "Physical Education (PT)": { theory: 100, practical: 0, allowPractical: false },
-  "Computer Science": { theory: 70, practical: 30, allowPractical: true },
-  "Accountancy": { theory: 100, practical: 0, allowPractical: false },
-  "Economics": { theory: 100, practical: 0, allowPractical: false }
-};
 
   const getTotalMarksStr = (ex: ExamCalendar): string => {
     const classStr = ex.classSection || "";
@@ -321,281 +379,423 @@ const SUBJECT_MARKS_CONFIG: Record<string, { theory: number; practical: number; 
 
   return (
     <PortalLayout
-      title="My Examination Schedule"
+      title="My Examinations & Marks"
       subtitle={`${studentName} · ${studentClass} · EMIS: ${emisNumber}`}
       avatarLetter={(studentName || "Student").charAt(0)}
       avatarColor="#6366f1"
       themeClass="theme-student"
       accentColor="#6366f1"
     >
-      {/* Countdown Panel for Next Upcoming Exam */}
-      {nextExam && (
-        <div className="rounded-2xl p-6 bg-slate-900 border border-slate-800 mb-6 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="p-1 bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-indigo-400">
-                <Timer className="w-4 h-4" />
-              </span>
-              <span className="text-[10px] text-indigo-450 font-extrabold uppercase tracking-wider">Next Upcoming Examination</span>
-            </div>
-            <h2 className="text-lg font-black text-white">{nextExam.name} ({nextExam.subject})</h2>
-            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400 font-semibold">
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-slate-500" /> {formatStudentFriendlyDate(nextExam.date)}
-              </span>
-              <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-slate-500" /> {nextExam.timeSlot}
-              </span>
-              <span className="flex items-center gap-1 text-purple-300">
-                <MapPin className="w-3.5 h-3.5 text-purple-400" /> Room: {nextExam.hall.split(" (")[0]}
-              </span>
-              <span className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] ${getModeBadgeStyle(nextExam.examMode)}`}>
-                {getModeIcon(nextExam.examMode)}
-                {nextExam.examMode || "Theory"} Mode
-              </span>
-              <span className="flex items-center gap-1 text-amber-400">
-                <Award className="w-3.5 h-3.5 text-amber-500" /> {getTotalMarksStr(nextExam)}
-              </span>
-            </div>
-          </div>
+      {/* Navigation tabs */}
+      <div className="flex bg-slate-950 border border-slate-800 p-1.5 rounded-2xl mb-6 w-fit print:hidden">
+        <button
+          onClick={() => setActiveTab("calendar")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+            activeTab === "calendar"
+              ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <Calendar className="w-4 h-4" /> Exam Timetables
+        </button>
+        <button
+          onClick={() => setActiveTab("marks")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+            activeTab === "marks"
+              ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <Award className="w-4 h-4" /> My Model Exam Marks
+        </button>
+      </div>
 
-          {/* Countdown Clock Widget */}
-          <div className="flex items-center gap-2 bg-slate-950 border border-slate-850 p-3 rounded-2xl">
-            {(() => {
-              const { days, hours, minutes, seconds } = getCountdownData(nextExam.targetDateTime);
-              return (
-                <>
-                  <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-800 rounded-xl">
-                    <div className="text-xl font-black text-white">{days.toString().padStart(2, "0")}</div>
-                    <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">Days</div>
-                  </div>
-                  <div className="text-xl font-bold text-slate-800">:</div>
-                  <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-800 rounded-xl">
-                    <div className="text-xl font-black text-white">{hours.toString().padStart(2, "0")}</div>
-                    <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">Hours</div>
-                  </div>
-                  <div className="text-xl font-bold text-slate-800">:</div>
-                  <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-800 rounded-xl">
-                    <div className="text-xl font-black text-white">{minutes.toString().padStart(2, "0")}</div>
-                    <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">Mins</div>
-                  </div>
-                  <div className="text-xl font-bold text-slate-800">:</div>
-                  <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-850 rounded-xl">
-                    <div className="text-xl font-black text-indigo-400">{seconds.toString().padStart(2, "0")}</div>
-                    <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">Secs</div>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
-
-      <div className="mb-6">
-        {/* Exam Schedule List */}
-        <div className="glass rounded-2xl p-6 flex flex-col min-h-[400px] w-full">
-          <div className="flex items-center gap-2 mb-5">
-            <Calendar className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-sm font-bold text-white">Class assessment date sheet</h2>
-            <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black px-2 py-0.5 rounded-md">
-              {studentExams.length}
-            </span>
-          </div>
-
-          {!isMounted ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 py-10">
-              <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-              <div className="text-xs font-semibold text-slate-400">Loading your assessments...</div>
-            </div>
-          ) : studentExams.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-slate-800 rounded-xl bg-slate-900/10">
-              <div className="p-4 bg-slate-900/40 rounded-full text-slate-500 border border-slate-800 mb-3">
-                <AlertCircle className="w-8 h-8" />
+      {activeTab === "calendar" ? (
+        /* ── Tab 1: Timetables and Countdown ── */
+        <div>
+          {/* Countdown Panel for Next Upcoming Exam */}
+          {nextExam && (
+            <div className="rounded-2xl p-6 bg-slate-900 border border-slate-800 mb-6 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="p-1 bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-indigo-400">
+                    <Timer className="w-4 h-4" />
+                  </span>
+                  <span className="text-[10px] text-indigo-450 font-extrabold uppercase tracking-wider">Next Upcoming Examination</span>
+                </div>
+                <h2 className="text-lg font-black text-white">{nextExam.name} ({nextExam.subject})</h2>
+                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400 font-semibold">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-slate-500" /> {formatStudentFriendlyDate(nextExam.date)}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-slate-500" /> {nextExam.timeSlot}
+                  </span>
+                  <span className="flex items-center gap-1 text-purple-300">
+                    <MapPin className="w-3.5 h-3.5 text-purple-400" /> Room: {nextExam.hall.split(" (")[0]}
+                  </span>
+                  <span className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] ${getModeBadgeStyle(nextExam.examMode)}`}>
+                    {getModeIcon(nextExam.examMode)}
+                    {nextExam.examMode || "Theory"} Mode
+                  </span>
+                  <span className="flex items-center gap-1 text-amber-400">
+                    <Award className="w-3.5 h-3.5 text-amber-500" /> {getTotalMarksStr(nextExam)}
+                  </span>
+                </div>
               </div>
-              <h3 className="text-sm font-bold text-white mb-1">No exam timetables published</h3>
-              <p className="text-xs text-slate-500 max-w-sm">
-                The school has not published any exam schedules for your grade yet. Check back soon.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto w-full rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-black uppercase tracking-wider">
-                    <th className="p-4 align-middle">Standard & Mode</th>
-                    <th className="p-4 align-middle">Exam Details</th>
-                    <th className="p-4 align-middle">Date & Time</th>
-                    <th className="p-4 align-middle">Room & Invigilator</th>
-                    <th className="p-4 align-middle text-right">Seating & Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {studentExams.map((ex) => (
-                    <tr 
-                      key={ex.id}
-                      className={`hover:bg-slate-50/30 transition-colors text-xs text-slate-800 font-medium border-b border-slate-100 last:border-b-0 ${
-                        ex.status === "Completed" ? "border-l-4 border-l-rose-400" :
-                        ex.status === "In Progress" ? "border-l-4 border-l-amber-400" :
-                        "border-l-4 border-l-emerald-400"
-                      }`}
-                    >
-                      {/* Standard & Mode */}
-                      <td className="p-4 align-middle">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md w-max">
-                            {ex.classSection}
-                          </span>
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-md w-max flex items-center gap-0.5 ${getModeBadgeStyle(ex.examMode || "Theory")}`}>
-                            {getModeIcon(ex.examMode || "Theory")}
-                            {ex.examMode || "Theory"}
-                          </span>
-                        </div>
-                      </td>
 
-                      {/* Exam Details (Subject + Name + Type Tag) */}
-                      <td className="p-4 align-middle">
-                        <div className="flex items-start gap-2.5">
-                          {/* Animated status dot */}
-                          <span className="mt-1.5 flex-shrink-0">
-                            <span className={`relative flex h-2.5 w-2.5`}>
-                              {ex.status === "Scheduled" && (
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                              )}
-                              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                                ex.status === "Completed" ? "bg-rose-500" :
-                                ex.status === "In Progress" ? "bg-amber-400" :
-                                "bg-emerald-500"
-                              }`}></span>
-                            </span>
-                          </span>
-                          <div className="space-y-1">
-                            <div className="text-slate-900 font-extrabold text-sm leading-tight">{ex.subject}</div>
-                            <div className="flex items-center gap-2 flex-wrap text-slate-500 text-xs font-semibold">
-                              <span>{ex.name}</span>
-                              <span className={`text-[8px] font-extrabold px-1.5 py-0.5 border rounded uppercase ${getTypeBadgeStyle(ex.type)}`}>
-                                {ex.type}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Date & Time */}
-                      <td className="p-4 align-middle whitespace-nowrap">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-1.5 text-slate-750 font-bold text-[13px]">
-                            <Calendar className="w-3.5 h-3.5 text-indigo-500" />
-                            <span>{formatStudentFriendlyDate(ex.date)}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-slate-550 text-[11px] font-semibold">
-                            <Clock className="w-3.5 h-3.5 text-amber-500" />
-                            <span>{ex.timeSlot} <span className="text-slate-450">({ex.duration || "3 Hours"})</span></span>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Room & Staff */}
-                      <td className="p-4 align-middle">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-1.5 text-purple-700 font-bold">
-                            <MapPin className="w-3.5 h-3.5 text-purple-500" />
-                            <span>{ex.hall.split(" (")[0]}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
-                            <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>{ex.invigilator}</span>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Seating & Status */}
-                      <td className="p-4 align-middle text-right">
-                        <div className="flex flex-col items-end gap-1.5">
-                          {/* Status pill with dot */}
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[9px] font-black rounded-full border uppercase tracking-wider w-max ${
-                            ex.status === "Completed"
-                              ? "bg-rose-50 border-rose-200 text-rose-700"
-                              : ex.status === "In Progress"
-                              ? "bg-amber-50 border-amber-200 text-amber-700"
-                              : "bg-emerald-50 border-emerald-200 text-emerald-700"
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                              ex.status === "Completed" ? "bg-rose-500" :
-                              ex.status === "In Progress" ? "bg-amber-400" :
-                              "bg-emerald-500"
-                            }`} />
-                            {ex.status === "Completed" ? "Exam Done" :
-                             ex.status === "In Progress" ? "Ongoing" :
-                             "Upcoming"}
-                          </span>
-                          <div className="text-[9px] text-slate-500 font-semibold bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md w-max">
-                            Desk: Assigned
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {/* Countdown Clock Widget */}
+              <div className="flex items-center gap-2 bg-slate-950 border border-slate-850 p-3 rounded-2xl">
+                {(() => {
+                  const { days, hours, minutes, seconds } = getCountdownData(nextExam.targetDateTime);
+                  return (
+                    <>
+                      <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-800 rounded-xl">
+                        <div className="text-xl font-black text-white">{days.toString().padStart(2, "0")}</div>
+                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">Days</div>
+                      </div>
+                      <div className="text-xl font-bold text-slate-800">:</div>
+                      <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-800 rounded-xl">
+                        <div className="text-xl font-black text-white">{hours.toString().padStart(2, "0")}</div>
+                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">Hours</div>
+                      </div>
+                      <div className="text-xl font-bold text-slate-800">:</div>
+                      <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-800 rounded-xl">
+                        <div className="text-xl font-black text-white">{minutes.toString().padStart(2, "0")}</div>
+                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">Mins</div>
+                      </div>
+                      <div className="text-xl font-bold text-slate-800">:</div>
+                      <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-850 rounded-xl">
+                        <div className="text-xl font-black text-indigo-400">{seconds.toString().padStart(2, "0")}</div>
+                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">Secs</div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           )}
 
-          {/* Exam Instructions & Tips Section */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Instructions Panel */}
-            <div className="glass rounded-2xl p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
-              <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-500" />
-                Important Exam Instructions
-              </h3>
-              <ul className="space-y-2.5 text-xs text-slate-650 dark:text-slate-400 font-medium">
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
-                  <span>Be present at the allocated exam hall at least **15 minutes** prior to the time slot.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
-                  <span>Bring all necessary stationery items. Borrowing items during the exam is strictly prohibited.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
-                  <span>Cell phones, smartwatches, and unauthorized reference sheets are strictly banned inside the hall.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
-                  <span>Locate your assigned desk seating upon entering the hall. Verify the seating registry at the entrance.</span>
-                </li>
-              </ul>
-            </div>
+          <div className="mb-6">
+            {/* Exam Schedule List */}
+            <div className="glass rounded-2xl p-6 flex flex-col min-h-[400px] w-full">
+              <div className="flex items-center gap-2 mb-5">
+                <Calendar className="w-5 h-5 text-indigo-400" />
+                <h2 className="text-sm font-bold text-white">Class assessment date sheet</h2>
+                <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black px-2 py-0.5 rounded-md">
+                  {studentExams.length}
+                </span>
+              </div>
 
-            {/* Tips Panel */}
-            <div className="glass rounded-2xl p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
-              <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
-                <Award className="w-4 h-4 text-amber-500" />
-                Preparation & Exam Tips
-              </h3>
-              <ul className="space-y-2.5 text-xs text-slate-650 dark:text-slate-400 font-medium">
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
-                  <span>**Read the paper carefully**: Spend the first 10 minutes reading all questions before writing.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
-                  <span>**Manage your time**: Allocate time blocks to sections based on marks. Don't spend too much time on a single question.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
-                  <span>**Practical Sessions**: For lab-based exams, double check your apparatus connection before starting experiments.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
-                  <span>**Review your sheet**: Save the last 10 minutes to verify your answers, formulas, and diagrams.</span>
-                </li>
-              </ul>
+              {!isMounted ? (
+                <div className="flex-1 flex flex-col items-center justify-center gap-3 py-10">
+                  <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="text-xs font-semibold text-slate-400">Loading your assessments...</div>
+                </div>
+              ) : studentExams.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-slate-800 rounded-xl bg-slate-900/10">
+                  <div className="p-4 bg-slate-900/40 rounded-full text-slate-500 border border-slate-800 mb-3">
+                    <AlertCircle className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-sm font-bold text-white mb-1">No exam timetables published</h3>
+                  <p className="text-xs text-slate-500 max-w-sm">
+                    The school has not published any exam schedules for your grade yet. Check back soon.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto w-full rounded-2xl border border-slate-200 bg-white shadow-sm">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-black uppercase tracking-wider">
+                        <th className="p-4 align-middle">Standard &amp; Mode</th>
+                        <th className="p-4 align-middle">Exam Details</th>
+                        <th className="p-4 align-middle">Date &amp; Time</th>
+                        <th className="p-4 align-middle">Room &amp; Invigilator</th>
+                        <th className="p-4 align-middle text-right">Seating &amp; Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {studentExams.map((ex) => (
+                        <tr 
+                          key={ex.id}
+                          className={`hover:bg-slate-50/30 transition-colors text-xs text-slate-800 font-medium border-b border-slate-100 last:border-b-0 ${
+                            ex.status === "Completed" ? "border-l-4 border-l-rose-400" :
+                            ex.status === "In Progress" ? "border-l-4 border-l-amber-400" :
+                            "border-l-4 border-l-emerald-400"
+                          }`}
+                        >
+                          <td className="p-4 align-middle">
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md w-max">
+                                {ex.classSection}
+                              </span>
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-md w-max flex items-center gap-0.5 ${getModeBadgeStyle(ex.examMode || "Theory")}`}>
+                                {getModeIcon(ex.examMode || "Theory")}
+                                {ex.examMode || "Theory"}
+                              </span>
+                            </div>
+                          </td>
+
+                          <td className="p-4 align-middle">
+                            <div className="flex items-start gap-2.5">
+                              <span className="mt-1.5 flex-shrink-0">
+                                <span className={`relative flex h-2.5 w-2.5`}>
+                                  {ex.status === "Scheduled" && (
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                  )}
+                                  <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                                    ex.status === "Completed" ? "bg-rose-500" :
+                                    ex.status === "In Progress" ? "bg-amber-400" :
+                                    "bg-emerald-500"
+                                  }`}></span>
+                                </span>
+                              </span>
+                              <div className="space-y-1">
+                                <div className="text-slate-900 font-extrabold text-sm leading-tight">{ex.subject}</div>
+                                <div className="flex items-center gap-2 flex-wrap text-slate-500 text-xs font-semibold">
+                                  <span>{ex.name}</span>
+                                  <span className={`text-[8px] font-extrabold px-1.5 py-0.5 border rounded uppercase ${getTypeBadgeStyle(ex.type)}`}>
+                                    {ex.type}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="p-4 align-middle whitespace-nowrap">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1.5 text-slate-750 font-bold text-[13px]">
+                                <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                                <span>{formatStudentFriendlyDate(ex.date)}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-slate-550 text-[11px] font-semibold">
+                                <Clock className="w-3.5 h-3.5 text-amber-500" />
+                                <span>{ex.timeSlot} <span className="text-slate-450">({ex.duration || "3 Hours"})</span></span>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="p-4 align-middle">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1.5 text-purple-700 font-bold">
+                                <MapPin className="w-3.5 h-3.5 text-purple-500" />
+                                <span>{ex.hall.split(" (")[0]}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
+                                <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>{ex.invigilator}</span>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="p-4 align-middle text-right">
+                            <div className="flex flex-col items-end gap-1.5">
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[9px] font-black rounded-full border uppercase tracking-wider w-max ${
+                                ex.status === "Completed"
+                                  ? "bg-rose-50 border-rose-200 text-rose-700"
+                                  : ex.status === "In Progress"
+                                  ? "bg-amber-50 border-amber-200 text-amber-700"
+                                  : "bg-emerald-50 border-emerald-200 text-emerald-700"
+                              }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                                  ex.status === "Completed" ? "bg-rose-500" :
+                                  ex.status === "In Progress" ? "bg-amber-400" :
+                                  "bg-emerald-500"
+                                }`} />
+                                {ex.status === "Completed" ? "Exam Done" :
+                                 ex.status === "In Progress" ? "Ongoing" :
+                                 "Upcoming"}
+                              </span>
+                              <div className="text-[9px] text-slate-500 font-semibold bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md w-max">
+                                Desk: Assigned
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Exam Instructions & Tips Section */}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="glass rounded-2xl p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-indigo-500" />
+                    Important Exam Instructions
+                  </h3>
+                  <ul className="space-y-2.5 text-xs text-slate-650 dark:text-slate-400 font-medium">
+                    <li className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                      <span>Be present at the allocated exam hall at least **15 minutes** prior to the time slot.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                      <span>Bring all necessary stationery items. Borrowing items during the exam is strictly prohibited.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="glass rounded-2xl p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
+                    <Award className="w-4 h-4 text-amber-500" />
+                    Preparation &amp; Exam Tips
+                  </h3>
+                  <ul className="space-y-2.5 text-xs text-slate-650 dark:text-slate-400 font-medium">
+                    <li className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
+                      <span>**Read the paper carefully**: Spend the first 10 minutes reading all questions.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
+                      <span>**Review your sheet**: Save the last 10 minutes to verify your answers and formulas.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        /* ── Tab 2: Model Exam Results View ── */
+        <div className="fade-in">
+          <div className="glass rounded-3xl border border-slate-250 bg-white p-6 shadow-xl dark:border-slate-850 dark:bg-slate-950">
+            <h2 className="text-base font-extrabold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <Award className="w-5 h-5 text-indigo-500" />
+              My Model &amp; Revision Exam Marks
+            </h2>
+            <p className="text-xs text-slate-500 leading-relaxed mb-6">
+              Only locked/finalized exam results verified by the Headmaster office are displayed here.
+            </p>
+
+            {loadingResults ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                <div className="text-xs font-semibold text-slate-400 animate-pulse">Loading report cards…</div>
+              </div>
+            ) : studentResults.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-3 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/40 dark:bg-slate-950/20">
+                <FileText className="w-10 h-10 text-slate-300 dark:text-slate-800" />
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">No exam results published yet</h3>
+                <p className="text-xs text-slate-400 max-w-xs text-center leading-relaxed">
+                  Your marks cards will appear here automatically once the Headmaster inputs and locks your results in the system.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {studentResults.map((result) => {
+                  const exam = result.exam;
+                  const isHsc = exam.class === "11" || exam.class === "12";
+                  const subjectsList = isHsc ? getGroupSubjects(exam.group) : SUBJECTS;
+                  const { total, pct, isPassed, maxTotal } = calcLocal(result, isHsc);
+
+                  return (
+                    <div 
+                      key={result.id} 
+                      className={`p-6 rounded-2xl border-2 transition-all duration-300 ${
+                        isPassed 
+                          ? "bg-slate-50/50 border-emerald-500/20 hover:border-emerald-500/35 dark:bg-slate-900/10" 
+                          : "bg-slate-50/50 border-rose-500/20 hover:border-rose-500/35 dark:bg-slate-900/10"
+                      }`}
+                    >
+                      {/* Card Header */}
+                      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/60 dark:border-slate-800 pb-4 mb-5">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="text-sm font-black text-slate-900 dark:text-white">{exam.examName}</h3>
+                            <span className="text-[9px] bg-slate-100 border border-slate-250 px-2 py-0.5 rounded-full text-slate-500 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400">
+                              {exam.examType}
+                            </span>
+                            {exam.group && (
+                              <span className="text-[9px] bg-indigo-50 border border-indigo-150 px-2 py-0.5 rounded-full text-indigo-650 dark:bg-indigo-950/20 dark:border-indigo-900 dark:text-indigo-400">
+                                EMIS Group: {exam.group}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-1">
+                            Academic Year {exam.academicYear} · Class {exam.class} ({exam.section})
+                            {exam.examDate ? ` · Conducted on ${new Date(exam.examDate).toLocaleDateString("en-IN")}` : ""}
+                          </p>
+                        </div>
+
+                        {/* Overall badge metrics */}
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <div className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">Final Score</div>
+                            <div className="text-lg font-black text-slate-800 dark:text-white leading-none mt-1">
+                              {total}/{maxTotal}
+                            </div>
+                          </div>
+                          <div className="w-[1px] h-8 bg-slate-200 dark:bg-slate-850" />
+                          <div className="text-right">
+                            <div className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">Percentage</div>
+                            <div className="text-lg font-black text-indigo-600 dark:text-indigo-400 leading-none mt-1">
+                              {pct}%
+                            </div>
+                          </div>
+                          <div className="w-[1px] h-8 bg-slate-200 dark:bg-slate-850" />
+                          <span className={`px-3 py-1 rounded-lg text-xs font-black tracking-wider ${
+                            isPassed 
+                              ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400" 
+                              : "bg-rose-500/10 border border-rose-500/25 text-rose-500 dark:text-rose-450"
+                          }`}>
+                            {isPassed ? "PASS" : "FAIL"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Marks breakdown grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                        {subjectsList.map((subj) => {
+                          const markVal = (result as any)[subj.key];
+                          const hasMark = markVal != null;
+                          const isFailedSubj = hasMark && markVal < PASS_MARK;
+
+                          return (
+                            <div 
+                              key={subj.key} 
+                              className={`p-3.5 rounded-xl border flex flex-col items-center justify-center text-center relative ${
+                                !hasMark ? "bg-slate-50/30 border-slate-200 dark:bg-slate-900/10 dark:border-slate-850" :
+                                isFailedSubj
+                                  ? "bg-rose-500/5 border-rose-500/15 dark:bg-rose-950/10 dark:border-rose-900/30"
+                                  : "bg-slate-50/80 border-slate-200 dark:bg-slate-900/40 dark:border-slate-850"
+                              }`}
+                            >
+                              <div className={`text-[10px] font-black uppercase tracking-wider ${subj.color}`}>
+                                {subj.label}
+                              </div>
+                              <div className="mt-2 flex items-baseline gap-0.5">
+                                <span className={`text-xl font-black ${
+                                  !hasMark ? "text-slate-350 dark:text-slate-700" :
+                                  isFailedSubj ? "text-rose-500" : "text-slate-800 dark:text-slate-200"
+                                }`}>
+                                  {hasMark ? markVal : "—"}
+                                </span>
+                                {hasMark && <span className="text-[10px] text-slate-400">/100</span>}
+                              </div>
+                              
+                              {hasMark && (
+                                <span className={`text-[9px] font-extrabold mt-1.5 px-1.5 py-0.5 rounded-md ${
+                                  isFailedSubj 
+                                    ? "bg-rose-500/10 text-rose-500" 
+                                    : "bg-slate-100 text-slate-600 dark:bg-slate-850 dark:text-slate-400"
+                                }`}>
+                                  {isFailedSubj ? "FAIL" : "PASS"}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </PortalLayout>
   );
 }

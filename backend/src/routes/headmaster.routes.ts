@@ -1258,6 +1258,389 @@ router.put('/leave/:id', async (req: Request, res: Response) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// MODEL EXAM RESULTS — Classes 6–10 (Samacheer Kalvi)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Helper: compute grade from percentage (TN Samacheer Kalvi scale)
+function computeGrade(pct: number): string {
+  if (pct >= 91) return 'A+';
+  if (pct >= 81) return 'A';
+  if (pct >= 71) return 'B+';
+  if (pct >= 61) return 'B';
+  if (pct >= 51) return 'C';
+  if (pct >= 35) return 'D';
+  return 'U'; // Under 35 = Fail
+}
+
+// Helper: calc total and derived stats for a result row
+function calcResultStats(data: any, maxTotal: number) {
+  const subjects = ['tamil', 'english', 'mathematics', 'science', 'socialScience'];
+  const vals = subjects.map((s) => (data[s] != null ? Number(data[s]) : null));
+  const extraVal = data.extraSubject != null ? Number(data.extraSubject) : null;
+
+  const enteredVals = [...vals, ...(extraVal != null ? [extraVal] : [])].filter((v) => v != null) as number[];
+  const total = enteredVals.length > 0 ? enteredVals.reduce((a, b) => a + b, 0) : null;
+  const percentage = total != null ? parseFloat(((total / maxTotal) * 100).toFixed(2)) : null;
+  const grade = percentage != null ? computeGrade(percentage) : null;
+  // Pass = every entered subject >= 35
+  const isPassed = enteredVals.length > 0 ? enteredVals.every((v) => v >= 35) : null;
+  return { total, percentage, grade, isPassed };
+}
+
+// POST /api/headmaster/model-exams — Create a new exam session
+router.post('/model-exams', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, examName, examType, class: cls, section, group, academicYear, examDate, createdBy } = req.body;
+    if (!schoolId || !examName || !cls) {
+      return res.status(400).json({ success: false, error: 'schoolId, examName, and class are required.' });
+    }
+    const exam = await prisma.modelExam.create({
+      data: {
+        schoolId,
+        examName: examName.trim(),
+        examType: examType || 'Unit Test',
+        class: String(cls).replace(/class\s*/i, '').trim(),
+        section: section || 'A',
+        group: group || null,
+        academicYear: academicYear || '2024-25',
+        examDate: examDate ? new Date(examDate) : null,
+        createdBy: createdBy || null,
+      },
+    });
+    res.status(201).json({ success: true, data: exam });
+  } catch (err) {
+    console.error('Create model exam error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/headmaster/model-exams — List exams for school (optionally filter by class/group)
+router.get('/model-exams', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, class: cls, academicYear, group } = req.query;
+    if (!schoolId) return res.status(400).json({ success: false, error: 'schoolId required.' });
+
+    const where: any = { schoolId: String(schoolId) };
+    if (cls) where.class = String(cls);
+    if (academicYear) where.academicYear = String(academicYear);
+    if (group) where.group = String(group);
+
+    const exams = await prisma.modelExam.findMany({
+      where,
+      orderBy: [{ class: 'asc' }, { createdAt: 'desc' }],
+      include: {
+        _count: { select: { results: true } },
+      },
+    });
+    res.json({ success: true, data: exams });
+  } catch (err) {
+    console.error('List model exams error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/headmaster/model-exams/:id — Get single exam with all results
+router.get('/model-exams/:id', async (req: Request, res: Response) => {
+  try {
+    const exam = await prisma.modelExam.findUnique({
+      where: { id: req.params.id },
+      include: {
+        results: { orderBy: { rollNumber: 'asc' } },
+      },
+    });
+    if (!exam) return res.status(404).json({ success: false, error: 'Exam not found.' });
+    res.json({ success: true, data: exam });
+  } catch (err) {
+    console.error('Get model exam error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/model-exams/:id/results — Save/upsert marks (manual entry, one student at a time or batch)
+router.post('/model-exams/:id/results', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const exam = await prisma.modelExam.findUnique({ where: { id } });
+    if (!exam) return res.status(404).json({ success: false, error: 'Exam not found.' });
+    if (exam.isLocked) return res.status(403).json({ success: false, error: 'Exam is locked. Marks cannot be changed.' });
+
+    const { results } = req.body; // array of mark rows
+    if (!Array.isArray(results) || results.length === 0) {
+      return res.status(400).json({ success: false, error: 'results array is required.' });
+    }
+
+    const maxTotal = 500; // 5 subjects × 100
+    let savedCount = 0;
+
+    for (const row of results) {
+      const { studentId, studentName, rollNumber, tamil, english, mathematics, science, socialScience, extraSubject, extraSubjectName } = row;
+      if (!studentId) continue;
+
+      const stats = calcResultStats({ tamil, english, mathematics, science, socialScience, extraSubject }, maxTotal);
+
+      await prisma.modelExamResult.upsert({
+        where: { examId_studentId: { examId: id, studentId } },
+        update: {
+          tamil: tamil != null ? Number(tamil) : null,
+          english: english != null ? Number(english) : null,
+          mathematics: mathematics != null ? Number(mathematics) : null,
+          science: science != null ? Number(science) : null,
+          socialScience: socialScience != null ? Number(socialScience) : null,
+          extraSubject: extraSubject != null ? Number(extraSubject) : null,
+          extraSubjectName: extraSubjectName || null,
+          ...stats,
+        },
+        create: {
+          examId: id,
+          studentId,
+          studentName: studentName || 'Unknown',
+          rollNumber: rollNumber || '',
+          tamil: tamil != null ? Number(tamil) : null,
+          english: english != null ? Number(english) : null,
+          mathematics: mathematics != null ? Number(mathematics) : null,
+          science: science != null ? Number(science) : null,
+          socialScience: socialScience != null ? Number(socialScience) : null,
+          extraSubject: extraSubject != null ? Number(extraSubject) : null,
+          extraSubjectName: extraSubjectName || null,
+          maxTotal,
+          ...stats,
+        },
+      });
+      savedCount++;
+    }
+
+    res.json({ success: true, saved: savedCount });
+  } catch (err) {
+    console.error('Save model exam results error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/model-exams/:id/bulk-results — Bulk upload marks from Excel
+router.post('/model-exams/:id/bulk-results', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const exam = await prisma.modelExam.findUnique({ where: { id } });
+    if (!exam) return res.status(404).json({ success: false, error: 'Exam not found.' });
+    if (exam.isLocked) return res.status(403).json({ success: false, error: 'Exam is locked. Marks cannot be changed.' });
+
+    const { results } = req.body;
+    if (!Array.isArray(results)) return res.status(400).json({ success: false, error: 'results array required.' });
+
+    const maxTotal = 500;
+    let savedCount = 0;
+    const errors: string[] = [];
+
+    for (const row of results) {
+      const { studentId, studentName, rollNumber, tamil, english, mathematics, science, socialScience, extraSubject, extraSubjectName } = row;
+
+      // Try to find student by rollNumber if studentId is missing
+      let resolvedStudentId = studentId;
+      if (!resolvedStudentId && rollNumber) {
+        const found = await prisma.student.findFirst({ where: { rollNumber: String(rollNumber), schoolId: exam.schoolId } });
+        if (found) resolvedStudentId = found.id;
+      }
+      if (!resolvedStudentId) {
+        errors.push(`Row skipped: could not resolve student for roll "${rollNumber}"`);
+        continue;
+      }
+
+      const stats = calcResultStats({ tamil, english, mathematics, science, socialScience, extraSubject }, maxTotal);
+
+      try {
+        await prisma.modelExamResult.upsert({
+          where: { examId_studentId: { examId: id, studentId: resolvedStudentId } },
+          update: {
+            tamil: tamil != null ? Number(tamil) : null,
+            english: english != null ? Number(english) : null,
+            mathematics: mathematics != null ? Number(mathematics) : null,
+            science: science != null ? Number(science) : null,
+            socialScience: socialScience != null ? Number(socialScience) : null,
+            extraSubject: extraSubject != null ? Number(extraSubject) : null,
+            extraSubjectName: extraSubjectName || null,
+            ...stats,
+          },
+          create: {
+            examId: id,
+            studentId: resolvedStudentId,
+            studentName: studentName || 'Unknown',
+            rollNumber: String(rollNumber || ''),
+            tamil: tamil != null ? Number(tamil) : null,
+            english: english != null ? Number(english) : null,
+            mathematics: mathematics != null ? Number(mathematics) : null,
+            science: science != null ? Number(science) : null,
+            socialScience: socialScience != null ? Number(socialScience) : null,
+            extraSubject: extraSubject != null ? Number(extraSubject) : null,
+            extraSubjectName: extraSubjectName || null,
+            maxTotal,
+            ...stats,
+          },
+        });
+        savedCount++;
+      } catch (err: any) {
+        errors.push(`Failed for roll "${rollNumber}": ${err?.message}`);
+      }
+    }
+
+    res.json({ success: true, saved: savedCount, errors: errors.length ? errors : undefined });
+  } catch (err) {
+    console.error('Bulk model exam results error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PATCH /api/headmaster/model-exams/:id/lock — Lock exam (irreversible)
+router.patch('/model-exams/:id/lock', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const exam = await prisma.modelExam.findUnique({ where: { id } });
+    if (!exam) return res.status(404).json({ success: false, error: 'Exam not found.' });
+    if (exam.isLocked) return res.status(400).json({ success: false, error: 'Exam is already locked.' });
+
+    const updated = await prisma.modelExam.update({
+      where: { id },
+      data: { isLocked: true, lockedAt: new Date() },
+    });
+
+    // ── Notify all students in this exam with their individual result ──
+    try {
+      const results = await prisma.modelExamResult.findMany({
+        where: { examId: id },
+        include: { exam: true },
+      });
+
+      for (const result of results) {
+        try {
+          // Find student's userId
+          const student = await prisma.student.findUnique({ where: { id: result.studentId } });
+          if (student?.userId) {
+            const subjectLine = [
+              result.tamil != null ? `Tamil:${result.tamil}` : null,
+              result.english != null ? `English:${result.english}` : null,
+              result.mathematics != null ? `Maths:${result.mathematics}` : null,
+              result.science != null ? `Science:${result.science}` : null,
+              result.socialScience != null ? `Social:${result.socialScience}` : null,
+            ].filter(Boolean).join(', ');
+
+            await prisma.notification.create({
+              data: {
+                userId: student.userId,
+                message: `📊 ${exam.examName} Results (Class ${exam.class}-${exam.section}): ${subjectLine} | Total: ${result.total ?? '–'}/500 | ${result.isPassed ? '✅ PASS' : '❌ FAIL'} | Grade: ${result.grade ?? '–'}`,
+              } as any,
+            });
+          }
+        } catch (notifErr) {
+          console.error('[Exam Result Notification - Student]', notifErr);
+        }
+      }
+
+      // ── Notify teachers of this class/school ──
+      try {
+        const teachers = await prisma.teacher.findMany({ where: { schoolId: exam.schoolId } });
+        const passed = results.filter(r => r.isPassed === true).length;
+        const classMsg = `📋 ${exam.examName} (Class ${exam.class}-${exam.section}) marks have been finalised. ${results.length} students | ${passed} passed | ${results.length - passed} failed.`;
+        for (const teacher of teachers) {
+          await prisma.notification.create({
+            data: { userId: teacher.userId, message: classMsg } as any,
+          });
+        }
+      } catch (teacherNotifErr) {
+        console.error('[Exam Result Notification - Teacher]', teacherNotifErr);
+      }
+    } catch (notifBlockErr) {
+      console.error('[Exam Lock Notification Block]', notifBlockErr);
+    }
+
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error('Lock exam error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/headmaster/model-exams/:id/template — Download Excel template pre-filled with students
+router.get('/model-exams/:id/template', async (req: Request, res: Response) => {
+  try {
+    const exam = await prisma.modelExam.findUnique({ where: { id: req.params.id } });
+    if (!exam) return res.status(404).json({ success: false, error: 'Exam not found.' });
+
+    // Fetch students in this class and group from the school
+    const whereClause: any = { schoolId: exam.schoolId, class: exam.class, section: exam.section };
+    if (exam.group) {
+      whereClause.group = exam.group;
+    }
+
+    const students = await prisma.student.findMany({
+      where: whereClause,
+      include: { user: true },
+      orderBy: { rollNumber: 'asc' },
+    });
+
+    // Return as JSON (frontend generates the Excel with XLSX)
+    const rows = students.map((s) => ({
+      studentId: s.id,
+      studentName: s.user?.name || 'Unknown',
+      rollNumber: s.rollNumber || '',
+      class: s.class,
+      section: s.section,
+      tamil: '',
+      english: '',
+      mathematics: '',
+      science: '',
+      socialScience: '',
+      extraSubject: '',
+    }));
+
+    res.json({ success: true, data: rows, examName: exam.examName, class: exam.class, section: exam.section });
+  } catch (err) {
+    console.error('Template fetch error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/headmaster/model-exams/:id — Delete exam (only if not locked)
+router.delete('/model-exams/:id', async (req: Request, res: Response) => {
+  try {
+    const exam = await prisma.modelExam.findUnique({ where: { id: req.params.id } });
+    if (!exam) return res.status(404).json({ success: false, error: 'Exam not found.' });
+    if (exam.isLocked) return res.status(403).json({ success: false, error: 'Cannot delete a locked exam.' });
+
+    await prisma.modelExam.delete({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete exam error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/headmaster/model-exams/student/:studentId — Get locked model exam results for a student
+router.get('/model-exams/student/:studentId', async (req: Request, res: Response) => {
+  try {
+    const { studentId } = req.params;
+    const results = await prisma.modelExamResult.findMany({
+      where: {
+        studentId,
+        exam: {
+          isLocked: true
+        }
+      },
+      include: {
+        exam: true
+      },
+      orderBy: {
+        exam: {
+          examDate: 'desc'
+        }
+      }
+    });
+    res.json({ success: true, data: results });
+  } catch (err) {
+    console.error('Fetch student model exam results error:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
 
 
