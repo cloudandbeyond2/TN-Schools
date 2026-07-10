@@ -60,6 +60,10 @@ export const authOptions: NextAuthOptions = {
         token.subject = (user as any).subject;   // ✅ ADD THIS
         token.studentId = (user as any).studentId || null;   // Student record ID
         token.rollNumber = (user as any).rollNumber || null; // Student roll number
+        // Governance scope fields
+        token.district = (user as any).district || null;     // DEO assigned district
+        token.block = (user as any).block || null;            // BEO assigned block
+        token.assignedRegion = (user as any).assignedRegion || null; // Commissioner region
       }
       return token;
     },
@@ -75,6 +79,10 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).subject = token.subject;   // ✅ ADD THIS
         (session.user as any).studentId = token.studentId || null;
         (session.user as any).rollNumber = token.rollNumber || null;
+        // Governance scope fields
+        (session.user as any).district = token.district || null;
+        (session.user as any).block = token.block || null;
+        (session.user as any).assignedRegion = token.assignedRegion || null;
       }
       return session;
     },

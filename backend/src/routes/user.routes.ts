@@ -351,6 +351,10 @@ return res.json({
             email: pgUser.email,
             role: pgUser.role,
             schoolId: pgUser.schoolId,
+            // Governance scope fields (for BEO/DEO/Commissioner/Minister/SuperAdmin)
+            district: (pgUser as any).district || null,
+            block: (pgUser as any).block || null,
+            assignedRegion: (pgUser as any).assignedRegion || null,
         }),
     });
 }

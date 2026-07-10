@@ -209,4 +209,60 @@ router.get('/student/:studentId', async (req: Request, res: Response) => {
   }
 });
 
+// ─── GET /api/analytics/minister?academicYear= (Minister dashboard) ──────────
+router.get('/minister', async (req: Request, res: Response) => {
+  try {
+    const year = resolveYear(req);
+    const schools = await prisma.school.findMany({ select: { id: true, district: true } });
+    const ids = schools.map((s) => s.id);
+    const kpis = await computeKpis(ids, year);
+
+    const byDistrict = await prisma.$queryRaw<
+      { district: string; schools: bigint; students: bigint }[]
+    >`
+      SELECT sc.district,
+             COUNT(DISTINCT sc.id)::bigint AS schools,
+             COUNT(st.id)::bigint AS students
+      FROM "School" sc
+      LEFT JOIN "Student" st ON st."schoolId" = sc.id
+        AND (st."studentStatus" = 'Active' OR st."studentStatus" IS NULL)
+      GROUP BY sc.district
+      ORDER BY sc.district
+    `;
+
+    // Count governance users
+    const [ministerCount, commissionerCount, deoCount, beoCount, headmasterCount] =
+      await Promise.all([
+        prisma.user.count({ where: { role: 'MINISTER' as any } }),
+        prisma.user.count({ where: { role: 'COMMISSIONER' as any } }),
+        prisma.user.count({ where: { role: 'DEO' as any } }),
+        prisma.user.count({ where: { role: 'BEO' as any } }),
+        prisma.user.count({ where: { role: 'HEADMASTER' as any } }),
+      ]);
+
+    res.json({
+      success: true,
+      data: {
+        ...kpis,
+        totalSchools: ids.length,
+        byDistrict: byDistrict.map((d) => ({
+          district: d.district,
+          schools: Number(d.schools),
+          students: Number(d.students),
+        })),
+        governanceUsers: {
+          ministers: ministerCount,
+          commissioners: commissionerCount,
+          deos: deoCount,
+          beos: beoCount,
+          headmasters: headmasterCount,
+        },
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
+

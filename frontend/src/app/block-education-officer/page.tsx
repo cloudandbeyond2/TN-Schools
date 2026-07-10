@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import PortalLayout from "@/components/PortalLayout";
@@ -8,11 +8,29 @@ import { Building2, GraduationCap, CalendarCheck, TrendingDown, ArrowUpCircle, B
 import KpiCard from "@/components/kpi/KpiCard";
 import AcademicYearSelect from "@/components/kpi/AcademicYearSelect";
 import DistributionBar from "@/components/kpi/DistributionBar";
-import { useKpis, useAcademicYears } from "@/components/kpi/useKpis";
+import { useKpis, useAcademicYears, API_BASE } from "@/components/kpi/useKpis";
+
+interface SchoolRow {
+  id: string; name: string; block: string; district: string;
+  _count: { students: number; teachers: number };
+}
 
 export default function BEODashboard() {
   const { data: session } = useSession();
   const myUserId: string = (session?.user as any)?.id || "";
+  const myBlock: string = (session?.user as any)?.block || "";
+  const [schools, setSchools] = useState<SchoolRow[]>([]);
+  const [schoolsLoading, setSchoolsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!myUserId) return;
+    setSchoolsLoading(true);
+    fetch(`${API_BASE}/api/hierarchy/beo/${myUserId}`)
+      .then((r) => r.json())
+      .then((json) => { if (json.success) setSchools(json.data.schools || []); })
+      .catch(() => {})
+      .finally(() => setSchoolsLoading(false));
+  }, [myUserId]);
 
   const { years, selected: academicYear, setSelected: setAcademicYear } = useAcademicYears();
   const { data: kpis, loading } = useKpis(myUserId ? "/api/analytics/block" : null, academicYear, {
