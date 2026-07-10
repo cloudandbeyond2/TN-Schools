@@ -80,16 +80,50 @@ export default function TeacherPersonalGuidePage() {
   const [generatingAI, setGeneratingAI] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!schoolId) return;
+    if (!schoolId || !teacherId) return;
     setLoadingStudents(true);
-    fetch(`${API}/api/students?schoolId=${schoolId}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success) setStudents(d.data || []);
-      })
-      .catch(console.error)
-      .finally(() => setLoadingStudents(false));
-  }, [schoolId]);
+
+    const loadClassStudents = async () => {
+      try {
+        // Step 1: Get the classes assigned to this teacher
+        const classRes = await fetch(
+          `${API}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`
+        );
+        const classData = await classRes.json();
+        const teacherClasses: { className: string; section: string }[] =
+          classData.success ? classData.data || [] : [];
+
+        if (teacherClasses.length === 0) {
+          setStudents([]);
+          return;
+        }
+
+        // Step 2: Fetch all students of this school, then filter by teacher's classes
+        const stuRes = await fetch(`${API}/api/students?schoolId=${schoolId}`);
+        const stuData = await stuRes.json();
+        if (!stuData.success) return;
+
+        const allStudents: any[] = stuData.data || [];
+
+        // Build a set of "className|section" for quick lookup
+        const classSet = new Set(
+          teacherClasses.map((c) => `${c.className}|${c.section}`)
+        );
+
+        const filtered = allStudents.filter((s) =>
+          classSet.has(`${s.class}|${s.section}`)
+        );
+
+        setStudents(filtered);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingStudents(false);
+      }
+    };
+
+    loadClassStudents();
+  }, [schoolId, teacherId]);
 
   const loadTasks = useCallback(
     async (studentId: string) => {
