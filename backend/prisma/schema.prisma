@@ -1771,3 +1771,19 @@ model SchoolResource {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
+
+model ResourceReport {
+  id            String   @id @default(uuid())
+  schoolId      String
+  resourceId    String?
+  category      String? // resource category the report concerns (null = whole school)
+  recipientRole String // BEO | DEO | Commissioner | Minister
+  reportType    String   @default("Category Summary") // Critical Alert | Category Summary | Full Infrastructure Report
+  priority      String   @default("Medium") // Low | Medium | High | Urgent
+  subject       String
+  description   String?
+  snapshot      Json? // resource stats captured at send time
+  status        String   @default("Submitted") // Submitted | Acknowledged | In Progress | Resolved
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
