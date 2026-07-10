@@ -124,6 +124,7 @@ export default function AlumniPage() {
   // Upload/Import states
   const [previewAlumni, setPreviewAlumni] = useState<ParsedPreviewAlumni[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Helper: Parses JSON contribution or falls back to plain string
