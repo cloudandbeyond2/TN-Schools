@@ -1,5 +1,23 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage });
 
 const router = Router();
 
@@ -90,9 +108,14 @@ router.get('/school/:schoolId', async (req: Request, res: Response) => {
 
 // POST /api/digital-library-upload
 // Upload a new resource (Super Admin, Headmaster, Teacher)
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', upload.single('file'), async (req: Request, res: Response) => {
   try {
-    const { title, type, subject, class: cls, description, fileUrl, schoolId, role, userId, tags } = req.body;
+    const { title, type, subject, class: cls, description, schoolId, role, userId, tags } = req.body;
+    let { fileUrl } = req.body;
+
+    if (req.file) {
+      fileUrl = `/uploads/${req.file.filename}`;
+    }
 
     if (!title || !type || !subject || !cls || !role || !userId) {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
@@ -107,20 +130,27 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     const normalizedSchoolId = schoolId && schoolId !== 'global' ? String(schoolId) : null;
-    const normalizedTags = Array.isArray(tags) ? tags : (tags ? [String(tags)] : []);
+    let normalizedTags: string[] = [];
+    if (tags) {
+      try {
+        normalizedTags = Array.isArray(tags) ? tags : JSON.parse(tags);
+      } catch {
+        normalizedTags = [String(tags)];
+      }
+    }
 
     const newUpload = await prisma.digitalLibraryUpload.create({
       data: {
-        title,
-        type,
-        subject,
-        class: cls,
-        description,
-        fileUrl,
+        title: String(title),
+        type: String(type),
+        subject: String(subject),
+        class: String(cls),
+        description: description ? String(description) : null,
+        fileUrl: fileUrl ? String(fileUrl) : null,
         tags: normalizedTags,
         schoolId: normalizedSchoolId,
-        uploadedByRole: role,
-        uploadedById: userId,
+        uploadedByRole: String(role),
+        uploadedById: String(userId),
         approvalStatus
       }
     });
