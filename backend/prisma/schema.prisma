@@ -1687,6 +1687,7 @@ model AcademicSubject {
   name             String             @unique
   color            String?
   icon             String?
+  status           String?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime
   AcademicResource AcademicResource[]
@@ -1755,4 +1756,18 @@ enum PromotionResult {
   DETAINED
   TRANSFERRED
   GRADUATED
+}
+
+model SchoolResource {
+  id              String    @id @default(uuid())
+  schoolId        String
+  category        String
+  name            String
+  totalCount      Int?
+  functionalCount Int?
+  status          String    @default("Good")
+  remarks         String?
+  lastAudited     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }

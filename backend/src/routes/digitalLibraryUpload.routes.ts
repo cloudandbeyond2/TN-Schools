@@ -155,4 +155,19 @@ router.put('/:id/approve', async (req: Request, res: Response) => {
   }
 });
 
+// DELETE /api/digital-library-upload/:id
+// Delete a resource
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.digitalLibraryUpload.delete({
+      where: { id }
+    });
+    return res.json({ success: true, message: 'Resource deleted successfully' });
+  } catch (err: any) {
+    console.error('[DELETE /api/digital-library-upload/:id]', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to delete resource' });
+  }
+});
+
 export default router;
