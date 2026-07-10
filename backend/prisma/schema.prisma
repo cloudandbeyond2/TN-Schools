@@ -1711,3 +1711,29 @@ model StudySchedule {
 
   @@index([studentId])
 }
+
+// ─── Digital Library Upload Workflow ─────────────────────────────────────────────
+model DigitalLibraryUpload {
+  id             String   @id @default(uuid())
+  title          String
+  type           String
+  subject        String
+  class          String
+  size           String   @default("N/A")
+  description    String?
+  tags           String[]
+  fileUrl        String?
+  
+  approvalStatus String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  uploadedByRole String?                      // SUPER_ADMIN, HEADMASTER, TEACHER
+  uploadedById   String?
+  schoolId       String?
+  
+  uploadDate     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([approvalStatus])
+  @@index([uploadedById])
+}
