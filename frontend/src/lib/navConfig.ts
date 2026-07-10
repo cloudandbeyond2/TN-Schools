@@ -410,6 +410,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       // Academics & Guidance
       { label: "Academics & Guidance", href: "#", icon: "" },
+      { label: "Academics Hub", href: "/teacher/academics", icon: "BookOpen" },
       { label: "NEET Preparation", href: "/teacher/neet-prep", icon: "Microscope" },
       { label: "Digital Library", href: "/teacher/digital-library", icon: "Book" },
       { label: "Personal Guide", href: "/teacher/personal-guide", icon: "Compass" },
@@ -497,6 +498,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "School Alumni", href: "/headmaster/alumni", icon: "GraduationCap" },
 
       { label: "Academics & Records", href: "#", icon: "" },
+      { label: "Academics Approvals", href: "/headmaster/academics", icon: "CheckSquare" },
       { label: "Attendance", href: "/headmaster/attendance", icon: "Calendar" },
       { label: "Timetable", href: "/headmaster/timetable", icon: "Calendar" },
       { label: "Exam Schedule", href: "/headmaster/exams", icon: "FileText" },
@@ -630,6 +632,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Headmaster Management", href: "/super-admin/headmasters", icon: "User" },
 
       { label: "Academics & Content", href: "#", icon: "" },
+      { label: "Academics Hub", href: "/super-admin/academics", icon: "GraduationCap" },
       { label: "Learning Hub", href: "/super-admin/learning-hub", icon: "Book" },
       { label: "PDF Syllabus Upload", href: "/super-admin/syllabus-upload", icon: "Upload" },
       { label: "Syllabus Management", href: "/super-admin/syllabus", icon: "BookOpen" },

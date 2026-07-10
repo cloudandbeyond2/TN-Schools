@@ -1711,3 +1711,68 @@ model StudySchedule {
 
   @@index([studentId])
 }
+
+model AcademicSubject {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  color       String?
+  icon        String?
+  class       String?
+  section     String?
+  subjectCode String?
+  medium      String?
+  description String?
+  status      String   @default("Active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  resources   AcademicResource[]
+}
+
+model AcademicResource {
+  id               String   @id @default(uuid())
+  title            String
+  subjectId        String
+  category         String   // syllabus, textbooks, materials, notes, videos, digital, reference
+  type             String   // PDF, DOC, Video, Audio, Interactive, eBook, Link
+  url              String?
+  meta             String?  // size / pages / duration
+  description      String?
+  addedBy          String?
+  isNew            Boolean  @default(false)
+  popular          Boolean  @default(false)
+  class            String?
+  section          String?
+  group            String?
+  term             String?
+  chapterNumber    String?
+  topicName        String?
+  learningOutcomes String?
+  medium           String?
+  bookVersion      String?
+  publisher        String?
+  language         String?
+  coverImage       String?
+  materialType     String?
+  downloadAllowed  Boolean? @default(true)
+  chapter          String?
+  lessonTitle      String?
+  youtubeUrl       String?
+  videoDuration    String?
+  thumbnail        String?
+  contentType      String?
+  author           String?
+  isbn             String?
+  status           String   @default("Active")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  subject          AcademicSubject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@index([subjectId])
+  @@index([category])
+}
+
+model TestSync2 {
+  id String @id @default(uuid())
+}
+
