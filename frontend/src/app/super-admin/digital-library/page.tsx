@@ -29,6 +29,7 @@ export default function SuperAdminDigitalLibraryPage() {
     schoolId: ""
   });
   
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -54,20 +55,31 @@ export default function SuperAdminDigitalLibraryPage() {
     setMessage(null);
     
     try {
+      const submitData = new FormData();
+      submitData.append("title", formData.title);
+      submitData.append("type", formData.type);
+      submitData.append("subject", formData.subject);
+      submitData.append("class", formData.class);
+      submitData.append("description", formData.description);
+      submitData.append("fileUrl", formData.fileUrl);
+      submitData.append("schoolId", formData.schoolId);
+      submitData.append("role", "SUPER_ADMIN");
+      submitData.append("userId", (session?.user as any)?.id || "admin");
+      
+      if (selectedFile) {
+        submitData.append("file", selectedFile);
+      }
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/digital-library-upload`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          role: "SUPER_ADMIN",
-          userId: (session?.user as any)?.id || "admin"
-        })
+        body: submitData
       });
       
       const data = await res.json();
       if (data.success) {
         setMessage({ type: "success", text: "Resource uploaded successfully! It is now pending Headmaster approval." });
         setFormData({ ...formData, title: "", description: "", fileUrl: "", subject: "" });
+        setSelectedFile(null);
       } else {
         setMessage({ type: "error", text: data.error || "Failed to upload resource." });
       }
@@ -173,7 +185,16 @@ export default function SuperAdminDigitalLibraryPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">File URL (PDF/Video Link)</label>
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">File Upload (PDF/Image)</label>
+                <input 
+                  type="file"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-violet-500" 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">OR File URL</label>
                 <input 
                   type="url" 
                   value={formData.fileUrl}
