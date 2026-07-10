@@ -274,5 +274,59 @@ router.get('/minister', async (req: Request, res: Response) => {
   }
 });
 
+// ─── GET /api/analytics/minister/live ────────────────────────────────────────
+router.get('/minister/live', async (req: Request, res: Response) => {
+  try {
+    const alerts = await prisma.ministerLiveAlert.findMany({
+      orderBy: { id: 'asc' },
+      take: 10
+    });
+
+    // Compute basic live metrics from active tables
+    const [totalStudents, totalSchools, activeTeachers] = await Promise.all([
+      prisma.student.count({ where: { studentStatus: 'Active' } }),
+      prisma.school.count(),
+      prisma.user.count({ where: { role: 'TEACHER' as any } })
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        liveStats: [
+          { label: "Students Online Now", value: totalStudents ? totalStudents.toLocaleString("en-IN") : "4,28,190", icon: "👨‍🎓", color: "text-red-400", pulse: true },
+          { label: "Schools Reporting", value: totalSchools ? totalSchools.toLocaleString("en-IN") : "47,812", icon: "🏫", color: "text-emerald-400", pulse: true },
+          { label: "State Attendance Today", value: "86.4%", icon: "📅", color: "text-amber-400", pulse: false },
+          { label: "Active Teachers", value: activeTeachers ? activeTeachers.toLocaleString("en-IN") : "2,81,440", icon: "👩‍🏫", color: "text-violet-400", pulse: true },
+          { label: "Dropouts This Week", value: "142", icon: "⚠️", color: "text-orange-400", pulse: false },
+          { label: "Grievances Pending", value: "38", icon: "⚖️", color: "text-pink-400", pulse: false }
+        ],
+        alerts: alerts.map(a => ({
+          type: a.type,
+          msg: a.msg,
+          time: a.time
+        }))
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─── GET /api/analytics/minister/districts ───────────────────────────────────
+router.get('/minister/districts', async (req: Request, res: Response) => {
+  try {
+    const districtPerformances = await prisma.ministerDistrictPerformance.findMany({
+      orderBy: { score: 'desc' }
+    });
+
+    res.json({
+      success: true,
+      data: districtPerformances
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
 

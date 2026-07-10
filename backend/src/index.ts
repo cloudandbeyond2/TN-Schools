@@ -258,3 +258,4 @@ if (!process.env.VERCEL) {
 }
 
 export default app;
+// Force nodemon auto-reload: schema sync completed.

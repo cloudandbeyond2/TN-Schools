@@ -1,6 +1,7 @@
 /**
  * seed-minister-data.ts
- * Seeds dynamic tables for Minister KPIs, predictions, policy briefs, and budgets.
+ * Seeds dynamic tables for Minister KPIs, predictions, policy briefs, budgets,
+ * district performances, and live alerts.
  *
  * Run: npx ts-node -P prisma/tsconfig.json prisma/seed-minister-data.ts
  */
@@ -17,6 +18,8 @@ async function main() {
   await prisma.ministerPrediction.deleteMany({});
   await prisma.ministerPolicyBrief.deleteMany({});
   await prisma.ministerBudget.deleteMany({});
+  await prisma.ministerDistrictPerformance.deleteMany({});
+  await prisma.ministerLiveAlert.deleteMany({});
 
   // 2. Seed Minister KPIs
   const kpis = [
@@ -153,6 +156,35 @@ async function main() {
     await prisma.ministerBudget.create({ data: bud });
   }
   console.log(`  ✅ Seeded ${budgets.length} Minister Budget items`);
+
+  // 6. Seed Minister District Performance reports
+  const districtPerformances = [
+    { id: "dist-1", name: "Chennai", schools: 210, students: 198000, attendance: 89.0, pass10: 91.0, pass12: 88.0, dropout: 0.8, infra: 90, score: 92, zone: "North", updatedAt: new Date() },
+    { id: "dist-2", name: "Coimbatore", schools: 93, students: 84350, attendance: 87.0, pass10: 87.0, pass12: 83.0, dropout: 1.2, infra: 86, score: 88, zone: "West", updatedAt: new Date() },
+    { id: "dist-3", name: "Trichy", schools: 115, students: 103000, attendance: 84.0, pass10: 83.0, pass12: 78.0, dropout: 1.5, infra: 83, score: 84, zone: "Central", updatedAt: new Date() },
+    { id: "dist-4", name: "Madurai", schools: 125, students: 112000, attendance: 85.0, pass10: 84.0, pass12: 79.0, dropout: 1.3, infra: 80, score: 83, zone: "South", updatedAt: new Date() },
+    { id: "dist-5", name: "Salem", schools: 98, students: 87000, attendance: 83.0, pass10: 81.0, pass12: 76.0, dropout: 1.8, infra: 76, score: 80, zone: "Central", updatedAt: new Date() },
+    { id: "dist-6", name: "Tirunelveli", schools: 88, students: 78000, attendance: 82.0, pass10: 79.0, pass12: 73.0, dropout: 2.1, infra: 72, score: 77, zone: "South", updatedAt: new Date() },
+    { id: "dist-7", name: "Vellore", schools: 76, students: 67000, attendance: 85.0, pass10: 82.0, pass12: 77.0, dropout: 1.4, infra: 78, score: 81, zone: "North", updatedAt: new Date() },
+    { id: "dist-8", name: "Thanjavur", schools: 84, students: 74000, attendance: 86.0, pass10: 83.0, pass12: 78.0, dropout: 1.3, infra: 80, score: 82, zone: "Delta", updatedAt: new Date() }
+  ];
+  for (const dp of districtPerformances) {
+    await prisma.ministerDistrictPerformance.create({ data: dp });
+  }
+  console.log(`  ✅ Seeded ${districtPerformances.length} Minister District Performance reports`);
+
+  // 7. Seed Minister Live Alerts
+  const liveAlerts = [
+    { id: "alert-1", type: "CRITICAL", msg: "Tirunelveli District: Attendance below 75% threshold — 3 consecutive days", time: "2 min ago" },
+    { id: "alert-2", type: "WARNING", msg: "Salem District: 12 teacher vacancies unfilled for Mathematics — affecting 8,400 students", time: "18 min ago" },
+    { id: "alert-3", type: "INFO", msg: "Chennai District: 10th Pass Rate reached 91.2% — State record achieved!", time: "1 hr ago" },
+    { id: "alert-4", type: "INFO", msg: "Digital Classroom Phase 3 deployment: 4,212 of 8,000 schools completed", time: "3 hr ago" },
+    { id: "alert-5", type: "WARNING", msg: "Scholarship disbursement delayed in Dharmapuri — 2,400 students pending", time: "5 hr ago" }
+  ];
+  for (const alert of liveAlerts) {
+    await prisma.ministerLiveAlert.create({ data: alert });
+  }
+  console.log(`  ✅ Seeded ${liveAlerts.length} Minister Live Alerts`);
 
   console.log("\n✨ Minister Portal seeding complete!\n");
 }
