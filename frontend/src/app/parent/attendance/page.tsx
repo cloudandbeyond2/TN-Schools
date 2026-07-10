@@ -132,35 +132,35 @@ export default function AttendancePage() {
           { 
             label: "Monthly Presence",    
             value: currentMonth && currentMonth.total > 0 ? `${currentMonth.percentage}%` : "—", 
-            icon: "📅", 
+            icon: <i className="fi fi-rr-calendar"></i>, 
             color: "text-emerald-400", 
             sub: currentMonth?.month ?? "" 
           },
           { 
             label: "Present Days",  
             value: currentMonth ? String(currentMonth.present + currentMonth.late) : "—",  
-            icon: "✅", 
+            icon: <i className="fi fi-rr-checkbox"></i>, 
             color: "text-green-400",   
             sub: currentMonth?.month ?? "Active month" 
           },
           { 
             label: "Absent Days",   
             value: currentMonth ? String(currentMonth.absent)  : "—",  
-            icon: "❌", 
+            icon: <i className="fi fi-rr-ban"></i>, 
             color: "text-red-400",     
             sub: currentMonth?.month ?? "Active month" 
           },
           { 
             label: "Overall Index",  
             value: totalDays > 0 ? `${overallPct}%` : "—",                                    
-            icon: "📊", 
+            icon: <i className="fi fi-rr-chart-simple"></i>, 
             color: "text-blue-400",   
             sub: "Last 6 Months" 
           },
         ].map(k => (
           <div key={k.label} className="kpi-card hover:scale-[1.02] hover:-translate-y-0.5 border border-slate-800/80 transition-all duration-300">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{k.icon}</span>
+              <span className="text-xl flex items-center justify-center">{k.icon}</span>
               <span className={`text-[10px] uppercase font-bold tracking-wider ${k.color}`}>{k.sub}</span>
             </div>
             {loading || childrenLoading
@@ -178,7 +178,7 @@ export default function AttendancePage() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-emerald-500" />
+                <i className="fi fi-rr-chart-histogram text-lg text-emerald-500 shrink-0"></i>
                 Monthly Attendance (Last 6 Months)
               </h2>
               <p className="text-[10px] text-slate-500 mt-0.5">Click any month below to view detailed breakdown and logs.</p>
@@ -257,7 +257,7 @@ export default function AttendancePage() {
         <div className="glass rounded-2xl p-5 sm:p-6 border border-slate-800/80 fade-in-3 text-left flex flex-col justify-between">
           <div>
             <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-emerald-500" />
+              <i className="fi fi-rr-document text-lg text-emerald-500 shrink-0"></i>
               {currentMonth?.month || "Active Month"} Breakdown
             </h2>
             <p className="text-[10px] text-slate-500 mt-0.5">Summary breakdowns for selected period.</p>
@@ -309,7 +309,7 @@ export default function AttendancePage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
             <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              <Info className="w-5 h-5 text-emerald-500" />
+              <i className="fi fi-rr-list text-lg text-emerald-500 shrink-0"></i>
               {currentMonth?.month || "Active Month"} Attendance Logs
             </h2>
             <p className="text-[10px] text-slate-500 mt-0.5">Detailed lists of student attendance status entries for this month.</p>
