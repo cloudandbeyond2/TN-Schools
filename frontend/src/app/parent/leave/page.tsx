@@ -210,7 +210,7 @@ export default function ParentLeavePage() {
     >
       {/* Child Switcher / Filter */}
       {children.length > 1 && (
-        <div className="flex items-center gap-3 mb-5 p-3 glass rounded-2xl flex-wrap border border-slate-200 dark:border-slate-800">
+        <div className="flex items-center gap-3 mb-5 p-3 bg-white dark:bg-slate-900/40 rounded-2xl flex-wrap border border-slate-100 dark:border-slate-800">
           <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1.5">
             <i className="fi fi-rr-user text-[10px]"></i> View Child:
           </span>
@@ -218,8 +218,8 @@ export default function ParentLeavePage() {
             onClick={() => setSelectedChildId("all")}
             className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border ${
               selectedChildId === "all"
-                ? "bg-emerald-600 border-emerald-500 text-white shadow-md"
-                : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+                ? "bg-emerald-600 border-emerald-500 text-white shadow-sm"
+                : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
             All Wards
@@ -230,8 +230,8 @@ export default function ParentLeavePage() {
               onClick={() => setSelectedChildId(c.studentId)}
               className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border ${
                 selectedChildId === c.studentId
-                  ? "bg-emerald-600 border-emerald-500 text-white shadow-md"
-                  : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+                  ? "bg-emerald-600 border-emerald-500 text-white shadow-sm"
+                  : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 hover:text-slate-800 dark:hover:text-white"
               }`}
             >
               {c.name.split(" ")[0]} · Class {c.class}{c.section}
@@ -269,11 +269,11 @@ export default function ParentLeavePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         
         {/* Left Side: History Card (Takes 2/3 width on desktop) */}
-        <div className="lg:col-span-2 glass rounded-3xl p-6 border border-slate-200 dark:border-slate-800/80 text-left flex flex-col justify-between h-full">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900/40 rounded-3xl p-6 border border-slate-100 dark:border-slate-800/80 text-left flex flex-col justify-between h-full">
           <div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-4 border-b border-slate-200 dark:border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-4 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-emerald-500 rounded-xl flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-emerald-500/10 dark:bg-emerald-500/5 border border-emerald-500/20 text-emerald-500 rounded-xl flex items-center justify-center shrink-0">
                   <i className="fi fi-rr-document-signed text-lg"></i>
                 </div>
                 <div>
@@ -305,7 +305,7 @@ export default function ParentLeavePage() {
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 border ${
                       statusFilter === s
                         ? "bg-emerald-600 border-emerald-500 text-white shadow-sm"
-                        : "bg-slate-950/20 border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-800/10"
+                        : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50"
                     }`}
                   >
                     {s}
@@ -339,7 +339,7 @@ export default function ParentLeavePage() {
                   return (
                     <div
                       key={l.id}
-                      className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-950/10 hover:border-slate-350 dark:hover:border-slate-700 transition-colors duration-300"
+                      className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all duration-300"
                     >
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div className="space-y-2">
@@ -430,9 +430,9 @@ export default function ParentLeavePage() {
         </div>
 
         {/* Right Side: Request Submission Form (1/3 width on desktop) */}
-        <div className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-800/80 text-left h-fit">
-          <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-200 dark:border-slate-800">
-            <div className="w-10 h-10 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-emerald-500 rounded-xl flex items-center justify-center shrink-0">
+        <div className="bg-white dark:bg-slate-900/40 rounded-3xl p-6 border border-slate-100 dark:border-slate-800/80 text-left h-fit">
+          <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="w-10 h-10 bg-emerald-500/10 dark:bg-emerald-500/5 border border-emerald-500/20 text-emerald-500 rounded-xl flex items-center justify-center shrink-0">
               <i className="fi fi-rr-pencil text-lg"></i>
             </div>
             <div>
