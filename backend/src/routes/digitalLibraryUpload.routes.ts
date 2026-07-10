@@ -144,7 +144,7 @@ router.put('/:id/approve', async (req: Request, res: Response) => {
       data: { approvalStatus: status }
     });
 
-    return res.json({ success: true, data: updated, message: \`Resource \${status.toLowerCase()} successfully\` });
+    return res.json({ success: true, data: updated, message: `Resource ${status.toLowerCase()} successfully` });
   } catch (err: any) {
     console.error('[PUT /api/digital-library-upload/:id/approve]', err.message);
     return res.status(500).json({ success: false, error: 'Failed to update resource status' });
