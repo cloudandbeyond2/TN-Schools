@@ -115,7 +115,7 @@ export default function BlockComparisonsPage() {
         district: district || "Trichy",
         block: newBlockName.trim(),
         schoolType: "Government",
-        mediumOfInstruction: "Tamil",
+        mediumOfInstruction: "Tamil, English",
       };
 
       const res = await fetch(`${API_URL}/api/schools`, {

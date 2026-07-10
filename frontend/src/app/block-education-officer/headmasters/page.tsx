@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 
 interface HeadmasterUser {
@@ -25,6 +26,7 @@ interface School {
 }
 
 export default function ManageHeadmastersPage() {
+  const { data: session } = useSession();
   const [headmasters, setHeadmasters] = useState<HeadmasterUser[]>([]);
   const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,27 +47,54 @@ export default function ManageHeadmastersPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const fetchHeadmasters = async () => {
+    const beoUserId = (session?.user as any)?.id;
+    const beoBlock = (session?.user as any)?.block;
+
     try {
+      setLoading(true);
+      let blockSchools: School[] = [];
+
+      if (beoUserId) {
+        // Fetch only schools belonging to this BEO's block
+        const schoolRes = await fetch(`${API_URL}/api/hierarchy/beo/${beoUserId}`);
+        const schoolJson = await schoolRes.json();
+        if (schoolJson.success && schoolJson.data) {
+          blockSchools = schoolJson.data.schools || [];
+          setSchools(blockSchools);
+        }
+      } else {
+        // Fallback for guest view
+        const schoolRes = await fetch(`${API_URL}/api/schools`);
+        const schoolData = await schoolRes.json();
+        if (schoolData.success) {
+          blockSchools = schoolData.data || [];
+          setSchools(blockSchools);
+        }
+      }
+
+      // Fetch all headmaster users
       const res = await fetch(`${API_URL}/api/users?role=HEADMASTER`);
       const data = await res.json();
       if (data.success) {
-        // Fetch schools to map details
-        const schoolRes = await fetch(`${API_URL}/api/schools`);
-        const schoolData = await schoolRes.json();
         const schoolMap = new Map<string, School>();
-        if (schoolData.success) {
-          schoolData.data.forEach((s: School) => schoolMap.set(s.id, s));
-          setSchools(schoolData.data);
-        }
+        blockSchools.forEach((s) => schoolMap.set(s.id, s));
+        const blockSchoolIdsSet = new Set(blockSchools.map(s => s.id));
 
-        const mapped = data.data.map((u: any) => ({
-          ...u,
-          school: u.schoolId ? schoolMap.get(u.schoolId) : null,
-        }));
+        // Filter and map headmasters to only show those inside the BEO's jurisdiction
+        const mapped = data.data
+          .map((u: any) => ({
+            ...u,
+            school: u.schoolId ? schoolMap.get(u.schoolId) : null,
+          }))
+          .filter((h: any) => {
+            if (!beoBlock) return true; // guest sees all
+            return (h.schoolId && blockSchoolIdsSet.has(h.schoolId)) || h.block === beoBlock;
+          });
+
         setHeadmasters(mapped);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error loading block headmasters:", err);
     } finally {
       setLoading(false);
     }
@@ -73,14 +102,14 @@ export default function ManageHeadmastersPage() {
 
   useEffect(() => {
     fetchHeadmasters();
-  }, []);
+  }, [session]);
 
   const handleEditClick = (h: HeadmasterUser) => {
     setEditingId(h.id);
     setName(h.name);
     setEmail(h.email);
     setMobile(h.mobile || "");
-    setPassword(h.passwordHash || "");
+    setPassword("");
     setSchoolId(h.schoolId || "");
     setIsModalOpen(true);
   };
@@ -101,6 +130,9 @@ export default function ManageHeadmastersPage() {
     setSubmitting(true);
     setModalError(null);
 
+    const beoBlock = (session?.user as any)?.block;
+    const beoDistrict = (session?.user as any)?.district;
+
     const endpoint = editingId ? `${API_URL}/api/users/${editingId}` : `${API_URL}/api/users`;
     const method = editingId ? "PUT" : "POST";
     const successMsg = editingId
@@ -108,28 +140,35 @@ export default function ManageHeadmastersPage() {
       : `🎉 Headmaster ${name} added successfully!`;
 
     try {
+      const payload: any = {
+        name,
+        email,
+        mobile: mobile || undefined,
+        role: "HEADMASTER",
+        schoolId: schoolId || null,
+        block: beoBlock || undefined,
+        district: beoDistrict || undefined,
+      };
+
+      if (password) {
+        payload.password = password;
+      } else if (!editingId) {
+        payload.password = "123456";
+      }
+
       const res = await fetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          mobile: mobile || undefined,
-          role: "HEADMASTER",
-          password: password || undefined,
-          schoolId: schoolId || null,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
       if (data.success) {
-        // Success: show page-level toast and close modal
         setToast({ message: successMsg, type: "success" });
         handleModalClose();
         fetchHeadmasters();
         setTimeout(() => setToast(null), 5000);
       } else {
-        // Error: show inside the modal so it's not hidden behind the overlay
         const errMsg = data.error || "Request failed.";
         const friendlyMsg = errMsg.toLowerCase().includes("mobile") || errMsg.toLowerCase().includes("phone")
           ? "⚠️ This mobile number is already registered. Please use a different number."
@@ -174,7 +213,7 @@ export default function ManageHeadmastersPage() {
   return (
     <PortalLayout
       title="Manage Headmasters"
-      subtitle="Mr. Murugesan P. · Coimbatore South Block"
+      subtitle={session?.user?.name ? `${session.user.name} · ${(session.user as any).block || "Coimbatore South"} Block` : "BEO Officer · Block Headmasters"}
       avatarLetter="M"
       avatarColor="#8b5cf6"
       themeClass="theme-beo"
@@ -198,21 +237,21 @@ export default function ManageHeadmastersPage() {
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
           <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Total Headmasters</span>
           <div className="text-2xl font-bold text-slate-800 dark:text-white">{headmasters.length}</div>
-          <span className="badge badge-purple mt-2">Active Hierarchy</span>
+          <span className="badge bg-violet-500/10 text-violet-650 dark:text-violet-400 px-2 py-0.5 rounded text-[10px] font-bold mt-2 inline-block">Active Hierarchy</span>
         </div>
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
           <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Schools Assigned</span>
           <div className="text-2xl font-bold text-slate-800 dark:text-white">
             {headmasters.filter((h) => h.schoolId).length} / {schools.length}
           </div>
-          <span className="badge badge-blue mt-2">Coverage</span>
+          <span className="badge bg-blue-500/10 text-blue-650 dark:text-blue-400 px-2 py-0.5 rounded text-[10px] font-bold mt-2 inline-block">Coverage</span>
         </div>
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
           <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Unassigned Schools</span>
           <div className="text-2xl font-bold text-slate-800 dark:text-white">
             {Math.max(0, schools.length - headmasters.filter((h) => h.schoolId).length)}
           </div>
-          <span className="badge badge-yellow mt-2">Needs Assignment</span>
+          <span className="badge bg-amber-500/10 text-amber-650 dark:text-amber-400 px-2 py-0.5 rounded text-[10px] font-bold mt-2 inline-block">Needs Assignment</span>
         </div>
       </div>
 
@@ -252,7 +291,7 @@ export default function ManageHeadmastersPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="data-table w-full text-left">
+            <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                   <th className="px-4 py-3">Headmaster Name</th>
@@ -269,10 +308,10 @@ export default function ManageHeadmastersPage() {
                     <td className="px-4 py-3 font-bold text-slate-800 dark:text-white text-xs">{h.name}</td>
                     <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 font-mono">{h.email}</td>
                     <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 font-mono">{h.mobile || "N/A"}</td>
-                    <td className="px-4 py-3 text-xs text-blue-500 dark:text-blue-400 font-semibold">
+                    <td className="px-4 py-3 text-xs">
                       {h.school ? (
                         <div>
-                          <div>{h.school.name}</div>
+                          <div className="text-violet-650 dark:text-violet-400 font-semibold">{h.school.name}</div>
                           <div className="text-[9px] text-slate-400 dark:text-slate-500 font-mono">DISE: {h.school.dise}</div>
                         </div>
                       ) : (
@@ -280,13 +319,13 @@ export default function ManageHeadmastersPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-xs text-slate-400 dark:text-slate-500 font-medium">
-                      {new Date(h.createdAt).toLocaleDateString()}
+                      {h.createdAt ? new Date(h.createdAt).toLocaleDateString() : "—"}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleEditClick(h)}
-                          className="px-2.5 py-1 bg-violet-500/10 hover:bg-violet-500/20 text-violet-650 dark:text-violet-400 border border-violet-500/20 rounded-md font-bold text-[10px] transition-all"
+                          className="px-2.5 py-1 bg-slate-100 dark:bg-slate-850 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-650 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md font-bold text-[10px] transition-all"
                         >
                           Edit
                         </button>
@@ -319,9 +358,8 @@ export default function ManageHeadmastersPage() {
               </button>
             </div>
 
-            {/* Inline error banner — visible INSIDE the modal, not behind it */}
             {modalError && (
-              <div className="flex items-start gap-2.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-xs font-semibold animate-pulse-once">
+              <div className="flex items-start gap-2.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-xs font-semibold">
                 <span className="text-base leading-none mt-0.5">🚫</span>
                 <div className="flex-1">
                   <p className="font-bold text-red-800 dark:text-red-200 mb-0.5">Registration Failed</p>

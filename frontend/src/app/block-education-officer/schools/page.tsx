@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
 
@@ -14,7 +15,6 @@ interface School {
   block: string;
   pincode: string | null;
   schoolType: string;
-  mediumOfInstruction: string;
   createdAt: string;
   _count?: {
     students: number;
@@ -23,6 +23,7 @@ interface School {
 }
 
 export default function BlockSchoolsPage() {
+  const { data: session } = useSession();
   const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,21 +53,42 @@ export default function BlockSchoolsPage() {
   const [block, setBlock] = useState("");
   const [pincode, setPincode] = useState("");
   const [schoolType, setSchoolType] = useState("Government");
-  const [mediumOfInstruction, setMediumOfInstruction] = useState("Tamil");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const fetchSchools = async () => {
+    const beoUserId = (session?.user as any)?.id;
+    const beoBlock = (session?.user as any)?.block;
+    const beoDistrict = (session?.user as any)?.district;
+
+    if (beoBlock) {
+      setBlock(beoBlock);
+    }
+    if (beoDistrict) {
+      setDistrict(beoDistrict);
+    }
+
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/schools`);
-      const data = await res.json();
-      if (data.success) {
-        // Show ALL schools registered by this BEO — no hardcoded block filter
-        setSchools(data.data);
+      if (beoUserId) {
+        // Fetch only schools belonging to this logged-in BEO's block
+        const res = await fetch(`${API_URL}/api/hierarchy/beo/${beoUserId}`);
+        const data = await res.json();
+        if (data.success && data.data) {
+          setSchools(data.data.schools || []);
+        } else {
+          setToast({ message: `Error loading schools: ${data.error || "Failed"}`, type: "error" });
+        }
       } else {
-        setToast({ message: `Error loading schools: ${data.error}`, type: "error" });
+        // Fallback for guest view
+        const res = await fetch(`${API_URL}/api/schools`);
+        const data = await res.json();
+        if (data.success) {
+          setSchools(data.data);
+        } else {
+          setToast({ message: `Error loading schools: ${data.error}`, type: "error" });
+        }
       }
     } catch (err) {
       console.error("Fetch schools error:", err);
@@ -78,7 +100,7 @@ export default function BlockSchoolsPage() {
 
   useEffect(() => {
     fetchSchools();
-  }, []);
+  }, [session]);
 
   const handleEditClick = (s: School) => {
     setEditingId(s.id);
@@ -90,7 +112,6 @@ export default function BlockSchoolsPage() {
     setBlock(s.block || "");
     setPincode(s.pincode || "");
     setSchoolType(s.schoolType || "Government");
-    setMediumOfInstruction(s.mediumOfInstruction || "Tamil");
     setIsModalOpen(true);
   };
 
@@ -101,19 +122,19 @@ export default function BlockSchoolsPage() {
     setName("");
     setHeadmasterName("");
     setAddress("");
-    setDistrict("");
-    setBlock("");
+    const beoBlock = (session?.user as any)?.block || "";
+    const beoDistrict = (session?.user as any)?.district || "";
+    setDistrict(beoDistrict);
+    setBlock(beoBlock);
     setPincode("");
     setPincodeError("");
     setModalError(null);
     setModalSuccess(null);
     setSchoolType("Government");
-    setMediumOfInstruction("Tamil");
     setIsModalOpen(false);
   };
 
   const handleDiseChange = (val: string) => {
-    // Only allow digits, max 11 characters (standard TN DISE format)
     const cleaned = val.replace(/\D/g, "").slice(0, 11);
     setDise(cleaned);
     if (cleaned.length > 0 && cleaned.length < 11) {
@@ -124,7 +145,6 @@ export default function BlockSchoolsPage() {
   };
 
   const handlePincodeChange = (val: string) => {
-    // Allow only digits, max 6
     const cleaned = val.replace(/\D/g, "").slice(0, 6);
     setPincode(cleaned);
     if (cleaned.length > 0 && cleaned.length < 6) {
@@ -136,7 +156,6 @@ export default function BlockSchoolsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // DISE validation
     if (!dise.trim()) {
       setDiseError("DISE Code is required");
       return;
@@ -149,7 +168,6 @@ export default function BlockSchoolsPage() {
       setModalError("⚠️ School Name is required");
       return;
     }
-    // Pincode restriction: must be empty or exactly 6 digits
     if (pincode.trim() && !/^\d{6}$/.test(pincode.trim())) {
       setPincodeError("Pincode must be exactly 6 digits");
       return;
@@ -160,16 +178,19 @@ export default function BlockSchoolsPage() {
     setPincodeError("");
     setDiseError("");
 
+    const finalBlock = block.trim() || (session?.user as any)?.block || "";
+    const finalDistrict = district.trim() || (session?.user as any)?.district || "";
+
     const payload = {
       dise: dise.trim(),
       name: name.trim(),
       headmasterName: headmasterName.trim() || "N/A",
       address: address.trim() || null,
-      district,
-      block,
+      district: finalDistrict,
+      block: finalBlock,
       pincode: pincode.trim() || null,
       schoolType,
-      mediumOfInstruction,
+      mediumOfInstruction: "Tamil, English", // default instruction medium
     };
 
     const endpoint = editingId ? `${API_URL}/api/schools/${editingId}` : `${API_URL}/api/schools`;
@@ -186,17 +207,14 @@ export default function BlockSchoolsPage() {
         const savedName = name.trim();
         const isNew = !editingId;
         const savedId = data.data?.id || null;
-        // Show success inside modal briefly, then close
         setModalSuccess(isNew
-          ? `✅ School '${savedName}' registered successfully! It will now appear in the list.`
+          ? `✅ School '${savedName}' registered successfully!`
           : `✅ School '${savedName}' updated successfully!`);
-        // Store new ID before async fetch so it's available to highlight the row
         if (isNew && savedId) setLastAddedId(savedId);
         setTimeout(async () => {
           handleModalClose();
           await fetchSchools();
           if (isNew) {
-            // Jump to last page after data loads
             setCurrentPage(9999);
           }
           setToast({ message: isNew
@@ -216,7 +234,6 @@ export default function BlockSchoolsPage() {
   };
 
   const handleDelete = (id: string, sName: string) => {
-    // Open professional custom confirm dialog instead of browser native confirm()
     setDeleteTarget({ id, name: sName });
   };
 
@@ -265,16 +282,19 @@ export default function BlockSchoolsPage() {
           return;
         }
 
+        const beoBlock = (session?.user as any)?.block || "";
+        const beoDistrict = (session?.user as any)?.district || "";
+
         const records = rawData.map((row: any) => ({
           dise: String(row["DISE Code"] || row["School ID"] || row["dise"] || row["schoolId"] || "").trim(),
           name: String(row["School Name"] || row["name"] || row["schoolName"] || "").trim(),
           headmasterName: String(row["Headmaster Name"] || row["headmaster"] || row["headmasterName"] || "N/A").trim(),
           address: String(row["Address"] || row["address"] || "").trim() || null,
-          district: String(row["District"] || row["district"] || "").trim(),
-          block: String(row["Block"] || row["block"] || "").trim(),
+          district: String(row["District"] || row["district"] || beoDistrict || "").trim(),
+          block: String(row["Block"] || row["block"] || beoBlock || "").trim(),
           pincode: String(row["Pincode"] || row["pincode"] || "").trim() || null,
           schoolType: String(row["School Type"] || row["schoolType"] || "Government").trim(),
-          mediumOfInstruction: String(row["Medium"] || row["mediumOfInstruction"] || "Tamil").trim(),
+          mediumOfInstruction: "Tamil, English",
         })).filter(r => r.dise && r.name);
 
         if (records.length === 0) {
@@ -308,26 +328,26 @@ export default function BlockSchoolsPage() {
   };
 
   const downloadSampleExcel = () => {
+    const beoBlock = (session?.user as any)?.block || "Trichy West";
+    const beoDistrict = (session?.user as any)?.district || "Trichy";
     const sampleData = [
       {
-        "School Name": "GHS Coimbatore South",
-        "DISE Code": "33120100101",
-        "Address": "123 Trichy Road, Ramanathapuram",
-        "District": "Coimbatore",
-        "Block": "Coimbatore South",
-        "Pincode": "641045",
-        "School Type": "Government",
-        "Medium": "English"
+        "School Name": `GHS ${beoBlock} Model`,
+        "DISE Code": "33150100201",
+        "Address": "Near Bus Stand Road",
+        "District": beoDistrict,
+        "Block": beoBlock,
+        "Pincode": "620001",
+        "School Type": "Government"
       },
       {
-        "School Name": "GHS Peelamedu Boys",
-        "DISE Code": "33120100102",
-        "Address": "45 Kamarajar Street, Peelamedu",
-        "District": "Coimbatore",
-        "Block": "Coimbatore South",
-        "Pincode": "641004",
-        "School Type": "Government",
-        "Medium": "Tamil"
+        "School Name": `GGHSS ${beoBlock} Town`,
+        "DISE Code": "33150100202",
+        "Address": "Main Bazaar Street",
+        "District": beoDistrict,
+        "Block": beoBlock,
+        "Pincode": "620002",
+        "School Type": "Government"
       }
     ];
 
@@ -354,7 +374,7 @@ export default function BlockSchoolsPage() {
   return (
     <PortalLayout
       title="Block Schools Registry"
-      subtitle="Mr. Murugesan P. · Coimbatore South Block"
+      subtitle={session?.user?.name ? `${session.user.name} · ${(session.user as any).block || "Coimbatore South"} Block` : "BEO Officer · Block Schools"}
       avatarLetter="M"
       avatarColor="#8b5cf6"
       themeClass="theme-beo"
@@ -373,12 +393,12 @@ export default function BlockSchoolsPage() {
         </div>
       )}
 
-      {/* BEO Block Summaries in White/Premium Cards */}
+      {/* BEO Block Summaries */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6 fade-in">
         {[
           { label: "Total Block Schools", value: schools.length.toString(), icon: "🏫", color: "text-violet-600 dark:text-violet-400", sub: "Registered in block" },
           { label: "Government Schools", value: schools.filter(s => s.schoolType === "Government").length.toString(), icon: "🏛️", color: "text-emerald-600 dark:text-emerald-400", sub: "Direct state run" },
-          { label: "Medium of Instruction (Tamil)", value: schools.filter(s => s.mediumOfInstruction === "Tamil").length.toString(), icon: "📚", color: "text-amber-600 dark:text-amber-400", sub: "Regional language" },
+          { label: "Aided Schools", value: schools.filter(s => s.schoolType === "Aided").length.toString(), icon: "🏛️", color: "text-amber-600 dark:text-amber-400", sub: "State funded" },
           { label: "Assigned Headmasters", value: schools.filter(s => s.headmasterName && s.headmasterName !== "N/A").length.toString(), icon: "👤", color: "text-cyan-600 dark:text-cyan-400", sub: "Leader deployed" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-transform hover:-translate-y-0.5">
@@ -392,7 +412,7 @@ export default function BlockSchoolsPage() {
         ))}
       </div>
 
-      {/* Directory Main Card - Light White Themed */}
+      {/* Directory Main Card */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm mb-6 fade-in">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
           <div>
@@ -462,7 +482,7 @@ export default function BlockSchoolsPage() {
                   <th className="px-4 py-3">School Name</th>
                   <th className="px-4 py-3">Headmaster Name</th>
                   <th className="px-4 py-3">Address</th>
-                  <th className="px-4 py-3">Category / Medium</th>
+                  <th className="px-4 py-3">Category</th>
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -492,14 +512,9 @@ export default function BlockSchoolsPage() {
                       📍 {s.address || "Not provided"}
                     </td>
                     <td className="px-4 py-3 text-xs">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[10px] px-2 py-0.5 bg-violet-100 text-violet-750 dark:bg-violet-950 dark:text-violet-400 font-semibold rounded w-fit">
-                          {s.schoolType}
-                        </span>
-                        <span className="text-[10px] text-slate-400">
-                          🗣️ {s.mediumOfInstruction} Medium
-                        </span>
-                      </div>
+                      <span className="text-[10px] px-2 py-0.5 bg-violet-100 text-violet-750 dark:bg-violet-950 dark:text-violet-400 font-semibold rounded w-fit">
+                        {s.schoolType}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
@@ -529,64 +544,6 @@ export default function BlockSchoolsPage() {
                 ))}
               </tbody>
             </table>
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
-                <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
-                  Showing <span className="font-bold text-slate-600 dark:text-slate-300">{(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filteredSchools.length)}</span> of{" "}
-                  <span className="font-bold text-slate-600 dark:text-slate-300">{filteredSchools.length}</span> schools
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => setCurrentPage(1)}
-                    disabled={safePage === 1}
-                    className="px-2 py-1 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                  >«</button>
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={safePage === 1}
-                    className="px-2.5 py-1 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                  >‹ Prev</button>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
-                    .reduce<(number | string)[]>((acc, p, idx, arr) => {
-                      if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push("...");
-                      acc.push(p);
-                      return acc;
-                    }, [])
-                    .map((p, i) =>
-                      p === "..." ? (
-                        <span key={`ellipsis-${i}`} className="px-1.5 text-[10px] text-slate-400">…</span>
-                      ) : (
-                        <button
-                          key={p}
-                          onClick={() => setCurrentPage(p as number)}
-                          className={`w-7 h-7 text-[10px] font-bold rounded-lg border transition-all ${
-                            safePage === p
-                              ? "bg-violet-600 border-violet-600 text-white shadow-sm"
-                              : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                          }`}
-                        >
-                          {p}
-                        </button>
-                      )
-                    )}
-
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={safePage === totalPages}
-                    className="px-2.5 py-1 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                  >Next ›</button>
-                  <button
-                    onClick={() => setCurrentPage(totalPages)}
-                    disabled={safePage === totalPages}
-                    className="px-2 py-1 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                  >»</button>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -607,7 +564,6 @@ export default function BlockSchoolsPage() {
               </button>
             </div>
 
-            {/* Inline Success Banner — visible INSIDE modal */}
             {modalSuccess && (
               <div className="flex items-start gap-2.5 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 rounded-xl px-4 py-3 text-xs font-semibold">
                 <span className="text-base leading-none mt-0.5">✅</span>
@@ -618,7 +574,6 @@ export default function BlockSchoolsPage() {
               </div>
             )}
 
-            {/* Inline Error Banner — visible INSIDE modal, not behind overlay */}
             {modalError && (
               <div className="flex items-start gap-2.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-xs font-semibold">
                 <span className="text-base leading-none mt-0.5">🚫</span>
@@ -629,7 +584,7 @@ export default function BlockSchoolsPage() {
                 <button
                   type="button"
                   onClick={() => setModalError(null)}
-                  className="text-red-400 hover:text-red-600 dark:hover:text-red-200 text-sm font-bold leading-none mt-0.5 shrink-0"
+                  className="text-red-400 hover:text-red-650 dark:hover:text-red-205 text-sm font-bold leading-none mt-0.5 shrink-0"
                 >
                   ✕
                 </button>
@@ -649,7 +604,7 @@ export default function BlockSchoolsPage() {
                     required
                     value={dise}
                     onChange={(e) => handleDiseChange(e.target.value)}
-                    placeholder="e.g. 33120100101"
+                    placeholder="e.g. 33150100201"
                     maxLength={11}
                     className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none transition-colors ${
                       diseError
@@ -662,9 +617,6 @@ export default function BlockSchoolsPage() {
                   {diseError && (
                     <p className="mt-1 text-[10px] text-red-500 font-semibold">⚠️ {diseError}</p>
                   )}
-                  {!diseError && dise.length === 11 && (
-                    <p className="mt-1 text-[10px] text-emerald-500 font-semibold">✓ Valid DISE Code</p>
-                  )}
                 </div>
                 <div>
                   <label className="block text-[10px] text-slate-550 dark:text-slate-400 mb-1 font-semibold">School Name</label>
@@ -673,13 +625,11 @@ export default function BlockSchoolsPage() {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. GHS Coimbatore"
+                    placeholder="e.g. GHS Town Model"
                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors"
                   />
                 </div>
               </div>
-
-
 
               <div>
                 <label className="block text-[10px] text-slate-550 dark:text-slate-400 mb-1 font-semibold">School Address</label>
@@ -700,7 +650,7 @@ export default function BlockSchoolsPage() {
                     required
                     value={district}
                     onChange={(e) => setDistrict(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-violet-500 transition-colors"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-805 dark:text-white focus:outline-none focus:border-violet-500 transition-colors"
                   />
                 </div>
                 <div>
@@ -710,8 +660,7 @@ export default function BlockSchoolsPage() {
                     required
                     value={block}
                     onChange={(e) => setBlock(e.target.value)}
-                    placeholder="e.g. Coimbatore South"
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-805 dark:text-white focus:outline-none focus:border-violet-500 transition-colors"
                   />
                 </div>
               </div>
@@ -727,7 +676,7 @@ export default function BlockSchoolsPage() {
                     inputMode="numeric"
                     value={pincode}
                     onChange={(e) => handlePincodeChange(e.target.value)}
-                    placeholder="641045"
+                    placeholder="620001"
                     maxLength={6}
                     className={`w-full bg-slate-50 dark:bg-slate-900 border rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none transition-colors ${
                       pincodeError
@@ -738,14 +687,7 @@ export default function BlockSchoolsPage() {
                     }`}
                   />
                   {pincodeError && (
-                    <p className="mt-1 text-[10px] text-red-500 font-semibold flex items-center gap-1">
-                      ⚠️ {pincodeError}
-                    </p>
-                  )}
-                  {!pincodeError && pincode.length === 6 && (
-                    <p className="mt-1 text-[10px] text-emerald-500 font-semibold flex items-center gap-1">
-                      ✓ Valid pincode
-                    </p>
+                    <p className="mt-1 text-[10px] text-red-500 font-semibold">⚠️ {pincodeError}</p>
                   )}
                 </div>
                 <div>
@@ -773,15 +715,13 @@ export default function BlockSchoolsPage() {
           </div>
         </div>
       )}
-      {/* ── Professional Delete Confirmation Modal ── */}
+
+      {/* Delete Confirmation Modal */}
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
           <div className="w-full max-w-sm bg-white dark:bg-slate-950 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            {/* Red top accent bar */}
             <div className="h-1.5 w-full bg-gradient-to-r from-red-500 to-rose-600" />
-
             <div className="p-6">
-              {/* Icon + Title */}
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-500/15 flex items-center justify-center shrink-0">
                   <span className="text-xl">🗑️</span>
@@ -792,7 +732,6 @@ export default function BlockSchoolsPage() {
                 </div>
               </div>
 
-              {/* Message */}
               <div className="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-xl px-4 py-3 mb-5">
                 <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                   Are you sure you want to permanently delete{" "}
@@ -803,12 +742,11 @@ export default function BlockSchoolsPage() {
                 </p>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteTarget(null)}
                   disabled={deleting}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-650 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -834,4 +772,3 @@ export default function BlockSchoolsPage() {
     </PortalLayout>
   );
 }
-
