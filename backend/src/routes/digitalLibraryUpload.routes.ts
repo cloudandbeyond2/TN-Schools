@@ -3,10 +3,13 @@ import { prisma } from '../config/prisma';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '../../uploads');
+    // For demo purposes on cloud servers (Vercel/Render), use the OS temp directory
+    // since the local filesystem is usually read-only.
+    const dir = path.join(os.tmpdir(), 'uploads');
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }

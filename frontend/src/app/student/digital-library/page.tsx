@@ -52,6 +52,11 @@ export default function DigitalLibraryPage() {
         if ((session?.user as any)?.schoolId) {
           url += `?schoolId=${(session?.user as any)?.schoolId}`;
         }
+        
+        const userClass = (session?.user as any)?.class;
+        if (userClass) {
+          url += url.includes('?') ? `&class=${userClass}` : `?class=${userClass}`;
+        }
         const res = await fetch(url);
         const data = await res.json();
         if (data.success) {
