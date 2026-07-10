@@ -930,11 +930,11 @@ export default function StaffManagementPage() {
         {/* Card 1: Teaching */}
         <div className="glass rounded-2xl p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all bg-gradient-to-br from-blue-500/10 to-transparent">
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Teaching Faculty</span>
-            <span className="text-2xl font-black text-white mt-1">{stats.teaching}</span>
-            <span className="text-[9px] text-blue-400 font-semibold mt-1">Permanent Roster</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Teaching Faculty</span>
+            <span className="text-2xl font-black text-slate-900 dark:text-white mt-1">{stats.teaching}</span>
+            <span className="text-[9px] text-blue-600 dark:text-blue-400 font-semibold mt-1">Permanent Roster</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+          <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-500 dark:text-blue-400">
             <Users className="w-6 h-6" />
           </div>
         </div>
@@ -942,11 +942,11 @@ export default function StaffManagementPage() {
         {/* Card 2: Non-Teaching */}
         <div className="glass rounded-2xl p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all bg-gradient-to-br from-violet-500/10 to-transparent">
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Non-Teaching Staff</span>
-            <span className="text-2xl font-black text-white mt-1">{stats.nonTeaching}</span>
-            <span className="text-[9px] text-violet-400 font-semibold mt-1">Admin & Support</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Non-Teaching Staff</span>
+            <span className="text-2xl font-black text-slate-900 dark:text-white mt-1">{stats.nonTeaching}</span>
+            <span className="text-[9px] text-violet-600 dark:text-violet-400 font-semibold mt-1">Admin & Support</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-violet-400">
+          <div className="w-12 h-12 rounded-2xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-violet-500 dark:text-violet-400">
             <Briefcase className="w-6 h-6" />
           </div>
         </div>
@@ -954,11 +954,11 @@ export default function StaffManagementPage() {
         {/* Card 3: Temporary */}
         <div className="glass rounded-2xl p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all bg-gradient-to-br from-amber-500/10 to-transparent">
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contract Staff</span>
-            <span className="text-2xl font-black text-white mt-1">{stats.temp}</span>
-            <span className="text-[9px] text-amber-400 font-semibold mt-1">Temporary / Support</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contract Staff</span>
+            <span className="text-2xl font-black text-slate-900 dark:text-white mt-1">{stats.temp}</span>
+            <span className="text-[9px] text-amber-600 dark:text-amber-400 font-semibold mt-1">Temporary / Support</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-500 dark:text-amber-400">
             <UserCheck className="w-6 h-6" />
           </div>
         </div>
@@ -966,11 +966,11 @@ export default function StaffManagementPage() {
         {/* Card 4: Leave Requests */}
         <div className="glass rounded-2xl p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all bg-gradient-to-br from-red-500/10 to-transparent">
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pending Leaves</span>
-            <span className="text-2xl font-black text-white mt-1">{stats.leaves}</span>
-            <span className="text-[9px] text-red-400 font-semibold mt-1">Action Required</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Leaves</span>
+            <span className="text-2xl font-black text-slate-900 dark:text-white mt-1">{stats.leaves}</span>
+            <span className="text-[9px] text-red-600 dark:text-red-400 font-semibold mt-1">Action Required</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-400">
+          <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-500 dark:text-red-400">
             <FileText className="w-6 h-6" />
           </div>
         </div>
@@ -978,7 +978,7 @@ export default function StaffManagementPage() {
       </div>
 
       {/* Main Tab Controls */}
-      <div className="flex flex-wrap border-b border-slate-800/80 mb-6 gap-2">
+      <div className="flex flex-wrap border-b border-slate-200 dark:border-slate-800/80 mb-6 gap-2">
         {[
           { id: "directory", label: "Roster & Directory", icon: Users },
           { id: "attendance", label: "Daily Attendance", icon: UserCheck },
@@ -994,8 +994,8 @@ export default function StaffManagementPage() {
               onClick={() => { setActiveTab(tab.id as any); setCurrentPage(1); }}
               className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 outline-none -mb-[2px] ${
                 active 
-                  ? "border-blue-500 text-blue-400" 
-                  : "border-transparent text-slate-400 hover:text-slate-200"
+                  ? "border-blue-500 text-blue-600 dark:text-blue-400" 
+                  : "border-transparent text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -1013,7 +1013,7 @@ export default function StaffManagementPage() {
           <div className="glass rounded-2xl p-4 border border-slate-800/60 flex flex-col md:flex-row items-center justify-between gap-4">
             
             {/* Sub-Tabs: Teaching, Non-Teaching, Temporary */}
-            <div className="flex bg-slate-950/60 p-1 rounded-xl border border-slate-800 w-full md:w-auto">
+            <div className="flex bg-slate-100 dark:bg-slate-950/60 p-1 rounded-xl border border-slate-200 dark:border-slate-800 w-full md:w-auto">
               {[
                 { id: "teaching", label: "Teaching Staff" },
                 { id: "non-teaching", label: "Non-Teaching" },
@@ -1025,7 +1025,9 @@ export default function StaffManagementPage() {
                     key={subTab.id}
                     onClick={() => { setDirectoryType(subTab.id as any); setCurrentPage(1); }}
                     className={`flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      active ? "bg-blue-600 text-white shadow-md" : "text-slate-400 hover:text-slate-200"
+                      active 
+                        ? "bg-blue-600 text-white shadow-md font-bold" 
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
                   >
                     {subTab.label}
