@@ -13,6 +13,7 @@ const Fi = ({ name, className = "" }: { name: string; className?: string }) => (
   <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} />
 );
 
+
 /* ────────────────────────────────────────────────────────────
    Types
 ──────────────────────────────────────────────────────────── */
