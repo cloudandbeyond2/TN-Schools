@@ -134,14 +134,17 @@ app.use('/api', globalLimiter);
 app.use(express.json({ limit: '150mb' }));
 app.use(express.urlencoded({ limit: '150mb', extended: true }));
 
-// Serve uploaded files statically
-const uploadsDir = path.join(__dirname, '../uploads');
+import os from 'os';
+
+// Setup file uploads directory serving from OS temporary directory for cloud/serverless compatibility
+const uploadsDir = path.join(os.tmpdir(), 'uploads');
+
 try {
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
   }
-} catch (error) {
-  console.warn('[Warning] Could not create uploads directory (likely running in a read-only environment like Vercel).');
+} catch (err) {
+  console.warn('[Warning] Could not create uploads directory in temp.');
 }
 app.use('/uploads', express.static(uploadsDir));
 
