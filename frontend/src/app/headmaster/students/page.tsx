@@ -162,6 +162,7 @@ interface WatchlistStudent {
   state: string;
   city: string;
   pincode: string;
+  address?: string;
   admissionNumber?: string;
   studentStatus?: string;
   group?: string;
