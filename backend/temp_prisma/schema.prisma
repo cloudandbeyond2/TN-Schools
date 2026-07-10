@@ -18,15 +18,11 @@ model User {
   role              Role               @default(STUDENT)
   isActive          Boolean            @default(true)
   schoolId          String?
-  // ── Governance scope fields ─────────────────────────────────────────
-  // DEO: which district they manage (matches School.district)
-  district          String?
-  // BEO: which block they manage (matches School.block)
-  block             String?
-  // Commissioner: optional named region label
-  assignedRegion    String?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
+  district          String?
+  block             String?
+  assignedRegion    String?
   headmasterProfile HeadmasterProfile?
   notifications     Notification[]
   student           Student?
@@ -34,9 +30,6 @@ model User {
   school            School?            @relation(fields: [schoolId], references: [id])
 
   @@index([schoolId])
-  @@index([role])
-  @@index([district])
-  @@index([block])
 }
 
 model School {
@@ -1670,21 +1663,21 @@ model StudySchedule {
 }
 
 model AcademicResource {
-  id              String          @id
-  title           String
-  subjectId       String
-  category        String
-  type            String
-  url             String?
-  meta            String?
-  description     String?
-  addedBy         String?
-  isNew           Boolean         @default(false)
-  popular         Boolean         @default(false)
-  class           String?
-  section         String?
-  group           String?
-  createdAt       DateTime        @default(now())
+  id               String          @id
+  title            String
+  subjectId        String
+  category         String
+  type             String
+  url              String?
+  meta             String?
+  description      String?
+  addedBy          String?
+  isNew            Boolean         @default(false)
+  popular          Boolean         @default(false)
+  class            String?
+  section          String?
+  group            String?
+  createdAt        DateTime        @default(now())
   updatedAt        DateTime
   author           String?
   bookVersion      String?
@@ -1706,7 +1699,7 @@ model AcademicResource {
   topicName        String?
   videoDuration    String?
   youtubeUrl       String?
-  AcademicSubject AcademicSubject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  AcademicSubject  AcademicSubject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 
   @@index([category])
   @@index([subjectId])
@@ -1717,35 +1710,19 @@ model AcademicSubject {
   name             String             @unique
   color            String?
   icon             String?
-  status           String?
+  status           String             @default("Active")
   createdAt        DateTime           @default(now())
   updatedAt        DateTime
+  class            String?
+  description      String?
+  medium           String?
+  section          String?
+  subjectCode      String?
   AcademicResource AcademicResource[]
 }
 
-model DigitalLibraryUpload {
-  id             String   @id @default(uuid())
-  title          String
-  type           String
-  subject        String
-  class          String
-  size           String   @default("N/A")
-  description    String?
-  tags           String[]
-  fileUrl        String?
-  
-  approvalStatus String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  uploadedByRole String?                      // SUPER_ADMIN, HEADMASTER, TEACHER
-  uploadedById   String?
-  schoolId       String?
-  
-  uploadDate     DateTime @default(now())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@index([schoolId])
-  @@index([approvalStatus])
-  @@index([uploadedById])
+model TestSync2 {
+  id String @id
 }
 
 enum Role {
@@ -1786,34 +1763,4 @@ enum PromotionResult {
   DETAINED
   TRANSFERRED
   GRADUATED
-}
-
-model SchoolResource {
-  id              String    @id @default(uuid())
-  schoolId        String
-  category        String
-  name            String
-  totalCount      Int?
-  functionalCount Int?
-  status          String    @default("Good")
-  remarks         String?
-  lastAudited     DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-}
-
-model ResourceReport {
-  id            String   @id @default(uuid())
-  schoolId      String
-  resourceId    String?
-  category      String? // resource category the report concerns (null = whole school)
-  recipientRole String // BEO | DEO | Commissioner | Minister
-  reportType    String   @default("Category Summary") // Critical Alert | Category Summary | Full Infrastructure Report
-  priority      String   @default("Medium") // Low | Medium | High | Urgent
-  subject       String
-  description   String?
-  snapshot      Json? // resource stats captured at send time
-  status        String   @default("Submitted") // Submitted | Acknowledged | In Progress | Resolved
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
 }
