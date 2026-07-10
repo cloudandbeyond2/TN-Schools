@@ -1864,13 +1864,13 @@ router.post('/resource-reports', async (req: Request, res: Response) => {
     const report = await prisma.resourceReport.create({
       data: {
         schoolId: String(schoolId),
-        resourceId: resourceId ? String(resourceId) : null,
-        category: category ? String(category) : null,
+        resourceId: resourceId ? String(resourceId) : undefined,
+        category: category ? String(category) : undefined,
         recipientRole: String(recipientRole),
         reportType: reportType && REPORT_TYPES.includes(String(reportType)) ? String(reportType) : 'Category Summary',
         priority: priority && REPORT_PRIORITIES.includes(String(priority)) ? String(priority) : 'Medium',
         subject: String(subject).trim(),
-        description: description ? String(description) : null,
+        description: description ? String(description) : undefined,
         snapshot: snapshot ?? undefined,
       },
     });
@@ -1902,7 +1902,7 @@ router.patch('/resource-reports/:id', async (req: Request, res: Response) => {
         ...(status !== undefined && { status: String(status) }),
         ...(priority !== undefined && { priority: String(priority) }),
         ...(subject !== undefined && { subject: String(subject).trim() }),
-        ...(description !== undefined && { description: description ? String(description) : null }),
+        ...(description !== undefined && { description: description ? String(description) : undefined }),
       },
     });
     res.json({ success: true, data: updated });
