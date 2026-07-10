@@ -55,6 +55,7 @@ model School {
   users               User[]
   promotionBatches    PromotionBatch[]
   proxyAssignments    ProxyAssignment[]
+  schoolResources     SchoolResource[]
 
   @@index([beoId])
   @@index([deoId])
@@ -1710,4 +1711,42 @@ model StudySchedule {
   student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
+}
+
+// ─── School Resource Management Monitor ──────────────────────────────────────
+// Tracks the 9 monitored resource categories in the HM Portal:
+// Classrooms, Laboratories, Computers, Smart Classrooms, Libraries,
+// Toilets, Drinking Water, Electricity, Internet Facilities
+model SchoolResource {
+  id             String    @id @default(uuid())
+  schoolId       String
+  school         School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  /// One of: "Classrooms" | "Laboratories" | "Computers" | "Smart Classrooms"
+  ///          "Libraries" | "Toilets" | "Drinking Water" | "Electricity" | "Internet Facilities"
+  category       String
+
+  /// Human-readable label, e.g. "Smart Classroom 10A" or "Boys Toilet Block"
+  name           String
+
+  /// Total units / seats / terminals available
+  totalCount     Int?
+
+  /// Number of units currently functional / operational
+  functionalCount Int?
+
+  /// One of: "Excellent" | "Good" | "Needs Repair" | "Critical"
+  status         String    @default("Good")
+
+  /// Free-text remarks or notes from the headmaster
+  remarks        String?
+
+  /// Date of last physical audit
+  lastAudited    DateTime?
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([schoolId])
+  @@index([schoolId, category])
 }

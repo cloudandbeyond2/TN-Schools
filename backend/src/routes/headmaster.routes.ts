@@ -1641,6 +1641,113 @@ router.get('/model-exams/student/:studentId', async (req: Request, res: Response
   }
 });
 
+// ─── School Resource Management Monitor ──────────────────────────────────────
+// 9 monitored categories: Classrooms | Laboratories | Computers |
+// Smart Classrooms | Libraries | Toilets | Drinking Water |
+// Electricity | Internet Facilities
+
+const RESOURCE_CATEGORIES: string[] = [
+  'Classrooms', 'Laboratories', 'Computers', 'Smart Classrooms',
+  'Libraries', 'Toilets', 'Drinking Water', 'Electricity', 'Internet Facilities',
+];
+
+// GET /api/headmaster/school-resources?schoolId=&category=
+router.get('/school-resources', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, category } = req.query;
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required.' });
+    }
+    const where: any = { schoolId: String(schoolId) };
+    if (category && String(category) !== 'All') {
+      where.category = String(category);
+    }
+    const resources = await prisma.schoolResource.findMany({
+      where,
+      orderBy: [{ category: 'asc' }, { createdAt: 'desc' }],
+    });
+    res.json({ success: true, count: resources.length, data: resources });
+  } catch (err) {
+    console.error('[school-resources GET]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/school-resources
+router.post('/school-resources', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, category, name, totalCount, functionalCount, status, remarks, lastAudited } = req.body;
+
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required.' });
+    }
+    if (!category || !RESOURCE_CATEGORIES.includes(String(category))) {
+      return res.status(400).json({ success: false, error: 'Invalid or missing category.' });
+    }
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ success: false, error: 'name is required.' });
+    }
+
+    const resource = await prisma.schoolResource.create({
+      data: {
+        schoolId: String(schoolId),
+        category: String(category),
+        name: String(name).trim(),
+        totalCount: totalCount != null ? Number(totalCount) : null,
+        functionalCount: functionalCount != null ? Number(functionalCount) : null,
+        status: status ? String(status) : 'Good',
+        remarks: remarks ? String(remarks) : null,
+        lastAudited: lastAudited ? new Date(String(lastAudited)) : null,
+      },
+    });
+    res.status(201).json({ success: true, data: resource });
+  } catch (err) {
+    console.error('[school-resources POST]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PATCH /api/headmaster/school-resources/:id
+router.patch('/school-resources/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.schoolResource.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Resource not found.' });
+    }
+    const { name, totalCount, functionalCount, status, remarks, lastAudited } = req.body;
+    const updated = await prisma.schoolResource.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name: String(name).trim() }),
+        ...(totalCount !== undefined && { totalCount: totalCount != null ? Number(totalCount) : null }),
+        ...(functionalCount !== undefined && { functionalCount: functionalCount != null ? Number(functionalCount) : null }),
+        ...(status !== undefined && { status: String(status) }),
+        ...(remarks !== undefined && { remarks: remarks ? String(remarks) : null }),
+        ...(lastAudited !== undefined && { lastAudited: lastAudited ? new Date(String(lastAudited)) : null }),
+      },
+    });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error('[school-resources PATCH]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/headmaster/school-resources/:id
+router.delete('/school-resources/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.schoolResource.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Resource not found.' });
+    }
+    await prisma.schoolResource.delete({ where: { id } });
+    res.json({ success: true, message: 'Resource deleted.' });
+  } catch (err) {
+    console.error('[school-resources DELETE]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
-
-
