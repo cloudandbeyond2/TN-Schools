@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 
 interface BEOUser {
@@ -15,13 +16,8 @@ interface BEOUser {
   passwordHash?: string;
 }
 
-interface School {
-  id: string;
-  name: string;
-  block: string;
-}
-
 export default function ManageBEOsPage() {
+  const { data: session } = useSession();
   const [beos, setBeos] = useState<BEOUser[]>([]);
   const [blocks, setBlocks] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +26,11 @@ export default function ManageBEOsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [district, setDistrict] = useState("");
+
+  // Custom block add states
+  const [isCustomBlock, setIsCustomBlock] = useState(false);
+  const [customBlockName, setCustomBlockName] = useState("");
 
   // Form fields
   const [name, setName] = useState("");
@@ -41,24 +42,52 @@ export default function ManageBEOsPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const fetchBeos = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/users?role=BEO`);
-      const data = await res.json();
-      if (data.success) {
-        setBeos(data.data);
-      }
+    const deoId = (session?.user as any)?.id;
+    const sessionDistrict = (session?.user as any)?.district;
+    if (sessionDistrict) {
+      setDistrict(sessionDistrict);
+    }
 
-      // Fetch unique blocks from schools to populate dropdown
-      const schoolRes = await fetch(`${API_URL}/api/schools`);
-      const schoolData = await schoolRes.json();
-      if (schoolData.success) {
-        const uniqueBlocks = Array.from(
-          new Set(schoolData.data.map((s: School) => s.block).filter(Boolean))
-        ) as string[];
-        setBlocks(uniqueBlocks);
+    try {
+      setLoading(true);
+      if (deoId) {
+        // Fetch BEOs & Schools under this logged-in DEO's district
+        const res = await fetch(`${API_URL}/api/hierarchy/deo/${deoId}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          const fetchedBeos = json.data.beos || [];
+          setBeos(fetchedBeos);
+          if (json.data.district) {
+            setDistrict(json.data.district);
+          }
+          // Dynamic blocks list from schools AND existing BEOs of this district
+          const schoolBlocks = (json.data.schools || []).map((s: any) => s.block);
+          const beoBlocks = fetchedBeos.map((b: any) => b.block);
+          const uniqueBlocks = Array.from(
+            new Set([...schoolBlocks, ...beoBlocks].filter(Boolean))
+          ) as string[];
+          setBlocks(uniqueBlocks.sort());
+        }
+      } else {
+        // Fallback to fetch all BEOs if no session
+        const res = await fetch(`${API_URL}/api/users?role=BEO`);
+        const json = await res.json();
+        if (json.success) {
+          setBeos(json.data);
+        }
+        const schoolRes = await fetch(`${API_URL}/api/schools`);
+        const schoolData = await schoolRes.json();
+        if (schoolData.success) {
+          const schoolBlocks = (schoolData.data || []).map((s: any) => s.block);
+          const beoBlocks = (json.data || []).map((b: any) => b.block);
+          const uniqueBlocks = Array.from(
+            new Set([...schoolBlocks, ...beoBlocks].filter(Boolean))
+          ) as string[];
+          setBlocks(uniqueBlocks.sort());
+        }
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error loading BEOs:", err);
     } finally {
       setLoading(false);
     }
@@ -66,15 +95,47 @@ export default function ManageBEOsPage() {
 
   useEffect(() => {
     fetchBeos();
-  }, []);
+  }, [session]);
 
-  const handleEditClick = (b: BEOUser, index: number) => {
+  const refreshBeos = async () => {
+    const deoId = (session?.user as any)?.id;
+    try {
+      if (deoId) {
+        const res = await fetch(`${API_URL}/api/hierarchy/deo/${deoId}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          const fetchedBeos = json.data.beos || [];
+          setBeos(fetchedBeos);
+          
+          // Re-calculate dynamic block lists with any newly created custom blocks
+          const schoolBlocks = (json.data.schools || []).map((s: any) => s.block);
+          const beoBlocks = fetchedBeos.map((b: any) => b.block);
+          const uniqueBlocks = Array.from(
+            new Set([...schoolBlocks, ...beoBlocks].filter(Boolean))
+          ) as string[];
+          setBlocks(uniqueBlocks.sort());
+        }
+      } else {
+        const res = await fetch(`${API_URL}/api/users?role=BEO`);
+        const json = await res.json();
+        if (json.success) {
+          setBeos(json.data);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleEditClick = (b: BEOUser) => {
     setEditingId(b.id);
     setName(b.name);
     setEmail(b.email);
     setMobile(b.mobile || "");
-    setPassword(b.passwordHash || "");
-    setBlockName(blocks[index % blocks.length] || "Coimbatore South");
+    setPassword("");
+    setBlockName(b.block || "");
+    setIsCustomBlock(false);
+    setCustomBlockName("");
     setIsModalOpen(true);
   };
 
@@ -85,6 +146,8 @@ export default function ManageBEOsPage() {
     setMobile("");
     setPassword("");
     setBlockName("");
+    setIsCustomBlock(false);
+    setCustomBlockName("");
     setIsModalOpen(false);
   };
 
@@ -93,30 +156,47 @@ export default function ManageBEOsPage() {
     setSubmitting(true);
     setToast(null);
 
-    const endpoint = editingId ? `${API_URL}/api/users/${editingId}` : `${API_URL}/api/users`;
-    const method = editingId ? "PUT" : "POST";
-    const successMsg = editingId
+    const finalBlock = isCustomBlock ? customBlockName.trim() : blockName;
+    if (!finalBlock) {
+      setToast({ message: "⚠️ Block jurisdiction is required.", type: "error" });
+      setSubmitting(false);
+      return;
+    }
+
+    const isEdit = !!editingId;
+    const endpoint = isEdit ? `${API_URL}/api/users/${editingId}` : `${API_URL}/api/hierarchy/create-officer`;
+    const method = isEdit ? "PUT" : "POST";
+    const successMsg = isEdit
       ? `🎉 BEO ${name} updated successfully!`
       : `🎉 BEO ${name} added successfully!`;
 
     try {
+      const payload: any = {
+        name,
+        email,
+        mobile: mobile || undefined,
+        role: "BEO",
+        district: district || undefined, // dynamic district assignment
+        block: finalBlock,                 // custom or selected block assignment
+      };
+
+      if (password) {
+        payload.password = password;
+      } else if (!isEdit) {
+        payload.password = "123456";
+      }
+
       const res = await fetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          mobile: mobile || undefined,
-          role: "BEO",
-          password: password || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
       if (data.success) {
         setToast({ message: successMsg, type: "success" });
         handleModalClose();
-        fetchBeos();
+        refreshBeos();
       } else {
         setToast({ message: `⚠️ ${data.error || "Request failed."}`, type: "error" });
       }
@@ -136,7 +216,7 @@ export default function ManageBEOsPage() {
       const data = await res.json();
       if (data.success) {
         setToast({ message: `🗑️ BEO ${beoName} removed successfully!`, type: "success" });
-        fetchBeos();
+        refreshBeos();
       } else {
         setToast({ message: `⚠️ ${data.error || "Failed to delete user."}`, type: "error" });
       }
@@ -150,13 +230,14 @@ export default function ManageBEOsPage() {
   const filteredBeos = beos.filter(
     (b) =>
       b.name.toLowerCase().includes(search.toLowerCase()) ||
-      b.email.toLowerCase().includes(search.toLowerCase())
+      b.email.toLowerCase().includes(search.toLowerCase()) ||
+      (b.block && b.block.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
     <PortalLayout
       title="Manage BEOs"
-      subtitle="DEO Officer · Coimbatore District"
+      subtitle={district ? `DEO Officer · ${district} District` : "DEO Officer · Coimbatore District"}
       avatarLetter="D"
       avatarColor="#ec4899"
       themeClass="theme-deo"
@@ -180,19 +261,21 @@ export default function ManageBEOsPage() {
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
           <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Total BEOs</span>
           <div className="text-2xl font-bold text-slate-800 dark:text-white">{beos.length}</div>
-          <span className="badge badge-pink mt-2">Active Hierarchy</span>
+          <span className="badge bg-pink-500/10 text-pink-600 dark:text-pink-300 px-2 py-0.5 rounded text-[10px] font-bold mt-2 inline-block">Active Hierarchy</span>
         </div>
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Coimbatore Blocks</span>
-          <div className="text-2xl font-bold text-slate-800 dark:text-white">{blocks.length || 15}</div>
-          <span className="badge badge-blue mt-2">Administrative Blocks</span>
+          <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider block mb-1">
+            {district ? `${district} Blocks` : "District Blocks"}
+          </span>
+          <div className="text-2xl font-bold text-slate-800 dark:text-white">{blocks.length}</div>
+          <span className="badge bg-blue-500/10 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded text-[10px] font-bold mt-2 inline-block">Administrative Blocks</span>
         </div>
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
           <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider block mb-1">Block Coverage</span>
           <div className="text-2xl font-bold text-slate-800 dark:text-white">
-            {Math.min(100, Math.round((beos.length / (blocks.length || 15)) * 100))}%
+            {blocks.length ? Math.min(100, Math.round((beos.length / blocks.length) * 100)) : 0}%
           </div>
-          <span className="badge badge-green mt-2">Coverage Ratio</span>
+          <span className="badge bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 px-2 py-0.5 rounded text-[10px] font-bold mt-2 inline-block">Coverage Ratio</span>
         </div>
       </div>
 
@@ -206,7 +289,7 @@ export default function ManageBEOsPage() {
           <div className="flex gap-3 w-full sm:w-auto">
             <input
               type="text"
-              placeholder="Search by name, email..."
+              placeholder="Search by name, email, block..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-pink-500 transition-colors w-full sm:w-64"
@@ -232,7 +315,7 @@ export default function ManageBEOsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="data-table w-full text-left">
+            <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                   <th className="px-4 py-3">BEO Name</th>
@@ -244,22 +327,24 @@ export default function ManageBEOsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredBeos.map((b, index) => (
+                {filteredBeos.map((b) => (
                   <tr key={b.id} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-900/40 transition-colors">
                     <td className="px-4 py-3 font-bold text-slate-800 dark:text-white text-xs">{b.name}</td>
                     <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 font-mono">{b.email}</td>
                     <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 font-mono">{b.mobile || "N/A"}</td>
-                    <td className="px-4 py-3 text-xs text-pink-650 dark:text-pink-400 font-semibold">
-                      {blocks[index % blocks.length] || "Coimbatore South"} Block
+                    <td className="px-4 py-3 text-xs">
+                      <span className="bg-pink-500/10 text-pink-650 dark:text-pink-400 border border-pink-500/20 px-2 py-0.5 rounded text-[10px] font-semibold">
+                        {b.block ? `${b.block} Block` : "Unassigned"}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-xs text-slate-400 dark:text-slate-500 font-medium">
-                      {new Date(b.createdAt).toLocaleDateString()}
+                      {b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "—"}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
                         <button
-                          onClick={() => handleEditClick(b, index)}
-                          className="px-2.5 py-1 bg-pink-500/10 hover:bg-pink-500/20 text-pink-650 dark:text-pink-400 border border-pink-500/20 rounded-md font-bold text-[10px] transition-all"
+                          onClick={() => handleEditClick(b)}
+                          className="px-2.5 py-1 bg-slate-100 dark:bg-slate-850 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md font-bold text-[10px] transition-all"
                         >
                           Edit
                         </button>
@@ -342,20 +427,43 @@ export default function ManageBEOsPage() {
               <div>
                 <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold">Assign Block Jurisdiction</label>
                 <select
-                  value={blockName}
-                  onChange={(e) => setBlockName(e.target.value)}
+                  required
+                  value={isCustomBlock ? "__ADD_NEW__" : blockName}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "__ADD_NEW__") {
+                      setIsCustomBlock(true);
+                      setBlockName("");
+                    } else {
+                      setIsCustomBlock(false);
+                      setBlockName(val);
+                    }
+                  }}
                   className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-pink-500 transition-colors"
                 >
                   <option value="">-- Select a Block --</option>
                   {blocks.map((b) => (
                     <option key={b} value={b}>
-                      {b}
+                      {b} Block
                     </option>
                   ))}
-                  <option value="Coimbatore South">Coimbatore South</option>
-                  <option value="Coimbatore North">Coimbatore North</option>
+                  <option value="__ADD_NEW__">+ Add New Block...</option>
                 </select>
               </div>
+
+              {isCustomBlock && (
+                <div>
+                  <label className="block text-[10px] text-pink-650 dark:text-pink-400 mb-1 font-semibold">New Block Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={customBlockName}
+                    onChange={(e) => setCustomBlockName(e.target.value)}
+                    placeholder="e.g. Srirangam West"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-pink-500 transition-colors animate-fade-in"
+                  />
+                </div>
+              )}
 
               <button
                 type="submit"
