@@ -160,7 +160,7 @@ function robustParseJSON(text: string): any {
 // ---------------------------------------------------------------------------
 // Gemini API helper
 // ---------------------------------------------------------------------------
-async function callGemini(prompt: string, jsonMode: boolean = false, schema?: any, maxTokens: number = 8192, timeoutMs: number = 90000): Promise<any> {
+export async function callGemini(prompt: string, jsonMode: boolean = false, schema?: any, maxTokens: number = 8192, timeoutMs: number = 90000): Promise<any> {
   if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === '') {
     throw new Error('GEMINI_API_KEY is missing. Please add it to backend/.env');
   }
