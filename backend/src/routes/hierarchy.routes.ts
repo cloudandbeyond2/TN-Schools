@@ -1,4 +1,4 @@
-﻿import { Router, Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { hashPassword } from '../utils/password';
 import { requireMinRole } from '../middleware/auth.middleware';
@@ -204,9 +204,9 @@ router.post('/assign', requireMinRole('SUPERADMIN'), async (req: Request, res: R
 });
 
 // ─── POST /api/hierarchy/create-officer ─────────────────────────────────────
-// Super Admin: create a new governance-level user
+// Super Admin / DEO: create a new governance-level user
 // Body: { name, email, mobile?, password, role, district?, block?, assignedRegion? }
-router.post('/create-officer', requireMinRole('SUPERADMIN'), async (req: Request, res: Response) => {
+router.post('/create-officer', requireMinRole('DEO'), async (req: Request, res: Response) => {
   try {
     const { name, email, mobile, password, role, district, block, assignedRegion } = req.body;
     if (!name || !email || !role || !password) {

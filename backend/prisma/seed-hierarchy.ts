@@ -89,11 +89,21 @@ async function main() {
 
   // ── 4. District Education Officers ────────────────────────────────────────
   const deoCbePwd = "deo@123";
-  const deoUsers = [
-    { email: "deo.coimbatore@tn.gov.in", name: "DEO - Coimbatore", district: "Coimbatore" },
-    { email: "deo.chennai@tn.gov.in",    name: "DEO - Chennai",    district: "Chennai" },
-    { email: "deo.madurai@tn.gov.in",    name: "DEO - Madurai",    district: "Madurai" },
+  const districts = [
+    "Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore",
+    "Dharmapuri", "Dindigul", "Erode", "Kallakurichi", "Kancheepuram",
+    "Karur", "Krishnagiri", "Madurai", "Mayiladuthurai", "Nagapattinam",
+    "Kanyakumari", "Namakkal", "Perambalur", "Pudukkottai", "Ramanathapuram",
+    "Ranipet", "Salem", "Sivaganga", "Tenkasi", "Thanjavur",
+    "Theni", "Thiruvallur", "Thiruvarur", "Thoothukudi", "Tiruchirappalli",
+    "Tirunelveli", "Tirupathur", "Tiruppur", "Tiruvannamalai", "The Nilgiris",
+    "Vellore", "Viluppuram", "Virudhunagar"
   ];
+  const deoUsers = districts.map((dist) => ({
+    email: `deo.${dist.toLowerCase().replace(/\s+/g, "")}@tn.gov.in`,
+    name: `DEO - ${dist}`,
+    district: dist
+  }));
   for (const d of deoUsers) {
     await upsertUser({ ...d, password: deoCbePwd, role: "DEO" });
   }

@@ -530,7 +530,6 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#8b5cf6",
     navItems: [
       { label: "Dashboard", href: "/block-education-officer", icon: "Home" },
-      { label: "Promotion Approvals", href: "/block-education-officer/promotions", icon: "TrendingUp" },
       { label: "Manage School", href: "/block-education-officer/schools", icon: "Building" },
       { label: "Manage Headmasters", href: "/block-education-officer/headmasters", icon: "Building" },
       { label: "Attendance Analytics", href: "/block-education-officer/attendance", icon: "Calendar" },
@@ -542,6 +541,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Grievances", href: "/block-education-officer/grievances", icon: "Scale" },
       { label: "Financial Reports", href: "/block-education-officer/financials", icon: "Banknote" },
       { label: "Circulars", href: "/block-education-officer/circulars", icon: "Megaphone" },
+      { label: "Promotion Approvals", href: "/block-education-officer/promotions", icon: "TrendingUp" },
       { label: "Connect with School", href: "/block-education-officer/connect", icon: "Radio" },
     ],
   },
@@ -554,6 +554,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#ec4899",
     navItems: [
       { label: "Dashboard", href: "/district-education-officer", icon: "Home" },
+      { label: "Manage Blocks", href: "/district-education-officer/blocks", icon: "Map" },
       { label: "Manage BEOs", href: "/district-education-officer/beos", icon: "Building2" },
       { label: "District Overview", href: "/district-education-officer/overview", icon: "Map" },
       { label: "School Rankings", href: "/district-education-officer/rankings", icon: "Trophy" },
@@ -561,7 +562,6 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Teacher Analytics", href: "/district-education-officer/teachers", icon: "User" },
       { label: "Scholarship Tracking", href: "/district-education-officer/scholarship", icon: "GraduationCap" },
       { label: "Learning Outcomes", href: "/district-education-officer/outcomes", icon: "TrendingUp" },
-      { label: "Block Comparisons", href: "/district-education-officer/blocks", icon: "Activity" },
       { label: "Schemes Tracking", href: "/district-education-officer/schemes", icon: "ScrollText" },
       { label: "Infrastructure", href: "/district-education-officer/infrastructure", icon: "Building" },
       { label: "Grievances", href: "/district-education-officer/grievances", icon: "Scale" },
@@ -630,6 +630,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Role & Permissions", href: "/super-admin/roles", icon: "Lock" },
       { label: "School Management", href: "/super-admin/schools", icon: "Building" },
       { label: "Headmaster Management", href: "/super-admin/headmasters", icon: "User" },
+      { label: "DEO Management", href: "/super-admin/deos", icon: "Map" },
 
       { label: "Academics & Content", href: "#", icon: "" },
       { label: "Learning Hub", href: "/super-admin/learning-hub", icon: "Book" },
