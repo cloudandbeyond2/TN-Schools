@@ -149,30 +149,30 @@ export default function HeadmasterDigitalLibraryPage() {
 
   return (
     <PortalLayout title="Library Management" subtitle="Manage and approve digital resources for your school" accentColor="#0284c7">
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="w-full space-y-6">
         
         {/* Tabs */}
-        <div className="flex border-b border-slate-200 dark:border-slate-800">
+        <div className="flex border-b border-slate-200 dark:border-slate-800 overflow-x-auto whitespace-nowrap hide-scrollbar pb-1">
           <button 
             onClick={() => setActiveTab('approvals')}
-            className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'approvals' ? 'border-sky-600 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+            className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold border-b-2 transition-colors flex items-center gap-1 sm:gap-2 ${activeTab === 'approvals' ? 'border-sky-600 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
           >
-            <Clock className="w-4 h-4" /> Pending Approvals
+            <img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" alt="pending" /> Pending
             {pendingItems.length > 0 && (
-              <span className="ml-2 px-2 py-0.5 bg-rose-500 text-white text-[10px] rounded-full">{pendingItems.length}</span>
+              <span className="ml-1 px-2 py-0.5 bg-rose-500 text-white text-[10px] rounded-full">{pendingItems.length}</span>
             )}
           </button>
           <button 
             onClick={() => setActiveTab('upload')}
-            className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'upload' ? 'border-sky-600 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+            className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold border-b-2 transition-colors flex items-center gap-1 sm:gap-2 ${activeTab === 'upload' ? 'border-sky-600 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
           >
-            <Upload className="w-4 h-4" /> Direct Upload
+            <img src="https://cdn-icons-png.flaticon.com/128/109/109612.png" className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" alt="upload" /> Direct Upload
           </button>
           <button 
             onClick={() => setActiveTab('allResources')}
-            className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'allResources' ? 'border-sky-600 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+            className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold border-b-2 transition-colors flex items-center gap-1 sm:gap-2 ${activeTab === 'allResources' ? 'border-sky-600 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
           >
-            <Library className="w-4 h-4" /> All Resources
+            <img src="https://cdn-icons-png.flaticon.com/128/2232/2232688.png" className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" alt="library" /> Resources
           </button>
         </div>
 
@@ -223,8 +223,9 @@ export default function HeadmasterDigitalLibraryPage() {
                 <textarea rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 dark:bg-slate-800 dark:border-slate-700" />
               </div>
               <div className="flex justify-end">
-                <button type="submit" disabled={uploadLoading} className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-8 rounded-xl transition-all disabled:opacity-50 flex items-center gap-2">
-                  {uploadLoading ? "Publishing..." : "Publish Resource"} <Upload className="w-4 h-4" />
+                <button type="submit" disabled={uploadLoading} className="w-full md:w-auto bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-8 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  {uploadLoading ? "Publishing..." : "Publish Resource"} 
+                  <img src="https://cdn-icons-png.flaticon.com/128/109/109612.png" className="w-4 h-4 invert" alt="upload" />
                 </button>
               </div>
             </form>
@@ -238,37 +239,37 @@ export default function HeadmasterDigitalLibraryPage() {
               <div className="text-center py-12 text-slate-500">Loading pending items...</div>
             ) : pendingItems.length === 0 ? (
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center shadow-sm">
-                <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4 opacity-50" />
+                <img src="https://cdn-icons-png.flaticon.com/128/190/190411.png" className="w-16 h-16 mx-auto mb-4 opacity-80" alt="all caught up" />
                 <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300">All caught up!</h3>
                 <p className="text-slate-500 mt-2">There are no pending resources requiring your approval.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4">
                 {pendingItems.map((item) => (
-                  <div key={item.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-3">
-                        <span className="px-2.5 py-1 text-xs font-bold bg-sky-100 text-sky-700 rounded-lg">{item.type}</span>
-                        <span className="px-2.5 py-1 text-xs font-bold bg-slate-100 text-slate-600 rounded-lg">Class {item.class}</span>
-                        <span className="text-xs text-slate-500 font-medium">Uploaded by: {item.uploadedByRole}</span>
+                  <div key={item.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6 overflow-hidden">
+                    <div className="flex-1 space-y-2 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold bg-sky-100 text-sky-700 rounded-lg">{item.type}</span>
+                        <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold bg-slate-100 text-slate-600 rounded-lg">Class {item.class}</span>
+                        <span className="text-[10px] sm:text-xs text-slate-500 font-medium break-all">Uploaded by: {item.uploadedByRole}</span>
                       </div>
-                      <h4 className="text-lg font-bold text-slate-800 dark:text-white">{item.title}</h4>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">{item.description}</p>
-                      <div className="text-sm font-semibold text-slate-600 dark:text-slate-300">Subject: {item.subject}</div>
+                      <h4 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white leading-tight">{item.title}</h4>
+                      <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{item.description}</p>
+                      <div className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">Subject: {item.subject}</div>
                     </div>
                     
-                    <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto flex-shrink-0">
                       <button 
                         onClick={() => handleAction(item.id, 'APPROVED')}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all"
+                        className="w-full sm:w-auto flex items-center justify-center gap-1 sm:gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-bold rounded-xl transition-all border border-emerald-200"
                       >
-                        <Check className="w-5 h-5" /> Approve
+                        <img src="https://cdn-icons-png.flaticon.com/128/190/190411.png" className="w-4 h-4 sm:w-5 sm:h-5" alt="approve" /> Approve
                       </button>
                       <button 
                         onClick={() => handleAction(item.id, 'REJECTED')}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-rose-100 hover:border-rose-500 hover:bg-rose-50 text-rose-600 font-bold rounded-xl transition-all"
+                        className="w-full sm:w-auto flex items-center justify-center gap-1 sm:gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-white border-2 border-rose-100 hover:border-rose-500 hover:bg-rose-50 text-rose-600 text-sm font-bold rounded-xl transition-all"
                       >
-                        <X className="w-5 h-5" /> Reject
+                        <img src="https://cdn-icons-png.flaticon.com/128/463/463612.png" className="w-4 h-4 sm:w-5 sm:h-5" alt="reject" /> Reject
                       </button>
                     </div>
                   </div>
@@ -285,29 +286,29 @@ export default function HeadmasterDigitalLibraryPage() {
               <div className="text-center py-12 text-slate-500">Loading resources...</div>
             ) : allResources.length === 0 ? (
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center shadow-sm">
-                <Library className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                <img src="https://cdn-icons-png.flaticon.com/128/2232/2232688.png" className="w-16 h-16 mx-auto mb-4 opacity-50 grayscale" alt="library empty" />
                 <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300">No resources found</h3>
                 <p className="text-slate-500 mt-2">Your school's library is empty.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4">
                 {allResources.map((item) => (
-                  <div key={item.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-3">
-                        <span className="px-2.5 py-1 text-xs font-bold bg-sky-100 text-sky-700 rounded-lg">{item.type}</span>
-                        <span className="px-2.5 py-1 text-xs font-bold bg-slate-100 text-slate-600 rounded-lg">Class {item.class}</span>
-                        <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${item.approvalStatus === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : item.approvalStatus === 'REJECTED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                  <div key={item.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6 overflow-hidden">
+                    <div className="flex-1 space-y-2 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold bg-sky-100 text-sky-700 rounded-lg">{item.type}</span>
+                        <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold bg-slate-100 text-slate-600 rounded-lg">Class {item.class}</span>
+                        <span className={`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded-lg ${item.approvalStatus === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : item.approvalStatus === 'REJECTED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
                           {item.approvalStatus}
                         </span>
-                        <span className="text-xs text-slate-500 font-medium">Uploaded by: {item.uploadedByRole}</span>
+                        <span className="text-[10px] sm:text-xs text-slate-500 font-medium break-all">Uploaded by: {item.uploadedByRole}</span>
                       </div>
-                      <h4 className="text-lg font-bold text-slate-800 dark:text-white">{item.title}</h4>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">{item.description}</p>
-                      <div className="text-sm font-semibold text-slate-600 dark:text-slate-300">Subject: {item.subject}</div>
+                      <h4 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white leading-tight">{item.title}</h4>
+                      <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{item.description}</p>
+                      <div className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">Subject: {item.subject}</div>
                     </div>
                     
-                    <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto flex-shrink-0">
                       <button 
                         onClick={() => {
                           const url = item.fileUrl?.startsWith('/') 
@@ -315,15 +316,15 @@ export default function HeadmasterDigitalLibraryPage() {
                             : item.fileUrl;
                           window.open(url, '_blank');
                         }}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-sky-50 text-sky-600 hover:bg-sky-100 font-bold rounded-xl transition-all"
+                        className="w-full sm:w-auto flex items-center justify-center gap-1 sm:gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-sky-50 text-sky-600 hover:bg-sky-100 text-sm font-bold rounded-xl transition-all"
                       >
-                        <FileText className="w-5 h-5" /> View
+                        <img src="https://cdn-icons-png.flaticon.com/128/2983/2983155.png" className="w-4 h-4 sm:w-5 sm:h-5" alt="view" /> View
                       </button>
                       <button 
                         onClick={() => handleDelete(item.id)}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-rose-100 hover:border-rose-500 hover:bg-rose-50 text-rose-600 font-bold rounded-xl transition-all"
+                        className="w-full sm:w-auto flex items-center justify-center gap-1 sm:gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-white border-2 border-rose-100 hover:border-rose-500 hover:bg-rose-50 text-rose-600 text-sm font-bold rounded-xl transition-all"
                       >
-                        <Trash2 className="w-5 h-5" /> Delete
+                        <img src="https://cdn-icons-png.flaticon.com/128/3096/3096673.png" className="w-4 h-4 sm:w-5 sm:h-5" alt="delete" /> Delete
                       </button>
                     </div>
                   </div>
