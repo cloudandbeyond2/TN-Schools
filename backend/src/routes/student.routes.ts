@@ -324,11 +324,21 @@ router.get('/:id/homework', async (req: Request, res: Response) => {
         }
       }
 
+      // Dynamically select color based on subject
+      const sub = h.subject || h.className.split(' - ')[1] || 'General';
+      let subColor = '#2dd4bf'; // default teal
+      const subLower = sub.toLowerCase();
+      if (subLower.includes('math')) subColor = '#6366f1'; // indigo
+      else if (subLower.includes('sci') || subLower.includes('phys') || subLower.includes('chem') || subLower.includes('biol')) subColor = '#10b981'; // emerald
+      else if (subLower.includes('eng')) subColor = '#f59e0b'; // amber
+      else if (subLower.includes('tamil')) subColor = '#ec4899'; // pink
+      else if (subLower.includes('social') || subLower.includes('hist') || subLower.includes('civ')) subColor = '#3b82f6'; // blue
+
       return {
         id: h.id,
         title: h.title,
-        subject: h.className.split(' - ')[1] || 'General',
-        subjectColor: '#2dd4bf', // Mock color or could map by subject
+        subject: sub,
+        subjectColor: subColor,
         className: h.className,
         dueDate: h.dueDate,
         status: submissionStatus,

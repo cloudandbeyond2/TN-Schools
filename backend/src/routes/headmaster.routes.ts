@@ -614,15 +614,42 @@ router.get('/staff', async (req: Request, res: Response) => {
 // POST /api/headmaster/staff — Add single staff member
 router.post('/staff', async (req: Request, res: Response) => {
   try {
-    const { name, emisId, subject, phone, email, attendance, performance, leaveUsed, password, schoolId } = req.body;
+    const { name, emisId, subject, phone, email, attendance, performance, leaveUsed, password, schoolId, address, dob, gender } = req.body;
     if (!name || !emisId) {
       return res.status(400).json({ success: false, error: 'name and emisId are required' });
     }
     const hashedPassword = await hashPassword(password || '123456');
     const staff = await prisma.headmasterStaff.upsert({
       where: { emisId },
-      update: { name, subject: subject || 'General', phone: phone || 'N/A', email: email || null, attendance: attendance ?? 100, performance: performance || 'Good', leaveUsed: leaveUsed ?? 0, password: hashedPassword, schoolId: schoolId || null },
-      create: { name, emisId, subject: subject || 'General', phone: phone || 'N/A', email: email || null, attendance: attendance ?? 100, performance: performance || 'Good', leaveUsed: leaveUsed ?? 0, password: hashedPassword, schoolId: schoolId || null },
+      update: { 
+        name, 
+        subject: subject || 'General', 
+        phone: phone || 'N/A', 
+        email: email || null, 
+        attendance: attendance ?? 100, 
+        performance: performance || 'Good', 
+        leaveUsed: leaveUsed ?? 0, 
+        password: hashedPassword, 
+        schoolId: schoolId || null,
+        address: address !== undefined ? address : undefined,
+        dob: dob ? new Date(dob) : undefined,
+        gender: gender !== undefined ? gender : undefined
+      },
+      create: { 
+        name, 
+        emisId, 
+        subject: subject || 'General', 
+        phone: phone || 'N/A', 
+        email: email || null, 
+        attendance: attendance ?? 100, 
+        performance: performance || 'Good', 
+        leaveUsed: leaveUsed ?? 0, 
+        password: hashedPassword, 
+        schoolId: schoolId || null,
+        address: address || null,
+        dob: dob ? new Date(dob) : null,
+        gender: gender || null
+      },
       select: SAFE_STAFF_SELECT,
     });
     res.status(201).json({ success: true, data: staff });
@@ -644,8 +671,35 @@ router.post('/staff/bulk', async (req: Request, res: Response) => {
       const hashedPassword = await hashPassword(s.password || '123456');
       await prisma.headmasterStaff.upsert({
         where: { emisId: s.emisId },
-        update: { name: s.name, subject: s.subject || 'General', phone: s.phone || 'N/A', email: s.email || null, attendance: s.attendance ?? 100, performance: s.performance || 'Good', leaveUsed: s.leaveUsed ?? s.leave ?? 0, password: hashedPassword, schoolId: s.schoolId || null },
-        create: { name: s.name, emisId: s.emisId, subject: s.subject || 'General', phone: s.phone || 'N/A', email: s.email || null, attendance: s.attendance ?? 100, performance: s.performance || 'Good', leaveUsed: s.leaveUsed ?? s.leave ?? 0, password: hashedPassword, schoolId: s.schoolId || null },
+        update: { 
+          name: s.name, 
+          subject: s.subject || 'General', 
+          phone: s.phone || 'N/A', 
+          email: s.email || null, 
+          attendance: s.attendance ?? 100, 
+          performance: s.performance || 'Good', 
+          leaveUsed: s.leaveUsed ?? s.leave ?? 0, 
+          password: hashedPassword, 
+          schoolId: s.schoolId || null,
+          address: s.address || null,
+          dob: s.dob ? new Date(s.dob) : null,
+          gender: s.gender || null
+        },
+        create: { 
+          name: s.name, 
+          emisId: s.emisId, 
+          subject: s.subject || 'General', 
+          phone: s.phone || 'N/A', 
+          email: s.email || null, 
+          attendance: s.attendance ?? 100, 
+          performance: s.performance || 'Good', 
+          leaveUsed: s.leaveUsed ?? s.leave ?? 0, 
+          password: hashedPassword, 
+          schoolId: s.schoolId || null,
+          address: s.address || null,
+          dob: s.dob ? new Date(s.dob) : null,
+          gender: s.gender || null
+        },
       });
       created++;
     }
@@ -658,7 +712,7 @@ router.post('/staff/bulk', async (req: Request, res: Response) => {
 // PUT /api/headmaster/staff/:id — Update staff member
 router.put('/staff/:id', async (req: Request, res: Response) => {
   try {
-    const { name, subject, phone, email, attendance, performance, leaveUsed, password, schoolId } = req.body;
+    const { name, subject, phone, email, attendance, performance, leaveUsed, password, schoolId, address, dob, gender } = req.body;
     const staff = await prisma.headmasterStaff.update({
       where: { id: req.params.id },
       data: {
@@ -671,6 +725,9 @@ router.put('/staff/:id', async (req: Request, res: Response) => {
         leaveUsed: leaveUsed !== undefined ? leaveUsed : undefined,
         password: password !== undefined ? await hashPassword(password) : undefined,
         schoolId: schoolId !== undefined ? schoolId : undefined,
+        address: address !== undefined ? address : undefined,
+        dob: dob !== undefined ? (dob ? new Date(dob) : null) : undefined,
+        gender: gender !== undefined ? gender : undefined
       },
       select: SAFE_STAFF_SELECT,
     });
@@ -948,6 +1005,30 @@ router.post('/alumni/bulk', async (req: Request, res: Response) => {
       }));
     const result = await prisma.headmasterAlumni.createMany({ data: records, skipDuplicates: false });
     res.status(201).json({ success: true, created: result.count });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PUT /api/headmaster/alumni/:id — Update alumni record
+router.put('/alumni/:id', async (req: Request, res: Response) => {
+  try {
+    const { name, batch, contribution, role, phone, email, location, value, schoolId } = req.body;
+    const record = await prisma.headmasterAlumni.update({
+      where: { id: req.params.id },
+      data: {
+        name: name !== undefined ? name : undefined,
+        batch: batch !== undefined ? batch : undefined,
+        contribution: contribution !== undefined ? contribution : undefined,
+        role: role !== undefined ? role : undefined,
+        phone: phone !== undefined ? phone : undefined,
+        email: email !== undefined ? email : undefined,
+        location: location !== undefined ? location : undefined,
+        value: value !== undefined ? value : undefined,
+        schoolId: schoolId !== undefined ? schoolId : undefined,
+      },
+    });
+    res.json({ success: true, data: record });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

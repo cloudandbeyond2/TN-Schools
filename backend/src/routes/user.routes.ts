@@ -16,6 +16,9 @@ const SAFE_USER_SELECT = {
   role: true,
   isActive: true,
   schoolId: true,
+  district: true,
+  block: true,
+  assignedRegion: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -90,7 +93,7 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, email, mobile, password, schoolId } = req.body;
+    const { name, email, mobile, password, schoolId, district, block, assignedRegion } = req.body;
 
     const existingUser = await prisma.user.findUnique({ where: { id } });
     if (!existingUser) {
@@ -121,6 +124,9 @@ router.put('/:id', async (req: Request, res: Response) => {
         mobile: mobile !== undefined ? (mobile || null) : undefined,
         passwordHash: password !== undefined ? await hashPassword(password) : undefined,
         schoolId: schoolId !== undefined ? (schoolId || null) : undefined,
+        district: district !== undefined ? (district || null) : undefined,
+        block: block !== undefined ? (block || null) : undefined,
+        assignedRegion: assignedRegion !== undefined ? (assignedRegion || null) : undefined,
       },
       select: SAFE_USER_SELECT,
     });
