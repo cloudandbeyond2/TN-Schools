@@ -34,7 +34,7 @@ export default function HeadmasterDigitalLibraryPage() {
     if (!(session?.user as any)?.schoolId) return;
     try {
       setApprovalsLoading(true);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/digital-library-upload/pending?schoolId=${(session.user as any).schoolId}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/digital-library-upload/pending?schoolId=${(session?.user as any)?.schoolId}`);
       const data = await res.json();
       if (data.success) {
         setPendingItems(data.data);

@@ -50,7 +50,7 @@ export default function DigitalLibraryPage() {
       try {
         let url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/digital-library-upload`;
         if ((session?.user as any)?.schoolId) {
-          url += `?schoolId=${(session.user as any).schoolId}`;
+          url += `?schoolId=${(session?.user as any)?.schoolId}`;
         }
         const res = await fetch(url);
         const data = await res.json();
