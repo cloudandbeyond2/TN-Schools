@@ -124,15 +124,14 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
 
-    // Determine approval status based on role
+    const isGlobal = !schoolId || String(schoolId).toLowerCase() === 'global';
+
     // Headmaster uploads are auto-approved for their school.
-    // Super Admin and Teacher uploads go to PENDING for Headmaster to review.
     let approvalStatus = 'PENDING';
     if (role === 'HEADMASTER') {
       approvalStatus = 'APPROVED';
     }
 
-    const normalizedSchoolId = schoolId && schoolId !== 'global' ? String(schoolId) : null;
     let normalizedTags: string[] = [];
     if (tags) {
       try {
@@ -142,8 +141,14 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
       }
     }
 
-    const newUpload = await prisma.digitalLibraryUpload.create({
-      data: {
+    if (isGlobal && role === 'SUPER_ADMIN') {
+      const allSchools = await prisma.school.findMany({ select: { id: true } });
+      
+      if (allSchools.length === 0) {
+        return res.status(400).json({ success: false, error: 'No schools found in the system to assign to.' });
+      }
+
+      const uploadsToCreate = allSchools.map(school => ({
         title: String(title),
         type: String(type),
         subject: String(subject),
@@ -151,14 +156,38 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
         description: description ? String(description) : null,
         fileUrl: fileUrl ? String(fileUrl) : null,
         tags: normalizedTags,
-        schoolId: normalizedSchoolId,
+        schoolId: school.id,
         uploadedByRole: String(role),
         uploadedById: String(userId),
-        approvalStatus
-      }
-    });
-
-    return res.status(201).json({ success: true, data: newUpload, message: 'Resource uploaded successfully' });
+        approvalStatus: 'PENDING'
+      }));
+      
+      const result = await prisma.digitalLibraryUpload.createMany({
+        data: uploadsToCreate
+      });
+      
+      return res.status(201).json({ success: true, count: result.count, message: 'Resource sent to all Headmasters for approval' });
+    } else {
+      const normalizedSchoolId = !isGlobal ? String(schoolId) : null;
+      
+      const newUpload = await prisma.digitalLibraryUpload.create({
+        data: {
+          title: String(title),
+          type: String(type),
+          subject: String(subject),
+          class: String(cls),
+          description: description ? String(description) : null,
+          fileUrl: fileUrl ? String(fileUrl) : null,
+          tags: normalizedTags,
+          schoolId: normalizedSchoolId,
+          uploadedByRole: String(role),
+          uploadedById: String(userId),
+          approvalStatus
+        }
+      });
+      
+      return res.status(201).json({ success: true, data: newUpload, message: 'Resource uploaded successfully' });
+    }
   } catch (err: any) {
     console.error('[POST /api/digital-library-upload]', err.message);
     return res.status(500).json({ success: false, error: err.message });
