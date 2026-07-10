@@ -471,7 +471,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Attendance", href: "/parent/attendance", icon: "Calendar" },
       { label: "Homework Status", href: "/parent/homework", icon: "Edit3" },
       { label: "Notifications", href: "/parent/notifications", icon: "🔔" },
-      { label: "Child Health Report", href: "/student/health", icon: "HeartPulse" },
+      { label: "Child Health Report", href: "/parent/health", icon: "HeartPulse" },
       { label: "Leave Reports", href: "/parent/leave", icon: "FileText" },
       { label: "AI Assistant", href: "/parent/ai-assistant", icon: "Bot" },
       { label: "Scholarship", href: "/parent/scholarship", icon: "GraduationCap" },
