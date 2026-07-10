@@ -89,7 +89,11 @@ export default function HomeworkPage() {
       const result = await res.json();
       if (result.success && result.data) {
         const filtered = result.data.filter((hw: any) =>
-          teacherClasses.some(tc => `${tc.className}${tc.section} - ${tc.subject}` === hw.className)
+          teacherClasses.some(tc => {
+            const fullClass = `${tc.className}${tc.section} - ${tc.subject}`;
+            const baseClass = `${tc.className}${tc.section}`;
+            return hw.className === fullClass || hw.className === baseClass;
+          })
         ).map((hw: any) => ({
           ...hw,
           totalStudents: hw.submissions ? hw.submissions.length : 0,

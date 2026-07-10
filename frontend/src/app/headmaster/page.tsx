@@ -383,6 +383,7 @@ export default function HeadmasterDashboard() {
           { label: "Parents & PTA", icon: <i className="fi fi-rr-family"></i>, href: "/headmaster/parents", color: "border-amber-500/20 hover:border-amber-500/50" },
           { label: "Leave Management", icon: <i className="fi fi-rr-calendar"></i>, href: "/headmaster/leave", color: "border-pink-500/20 hover:border-pink-500/50" },
           { label: "Alumni Network", icon: <i className="fi fi-rr-diploma"></i>, href: "/headmaster/alumni", color: "border-purple-500/20 hover:border-purple-500/50" },
+          { label: "School Resources", icon: <i className="fi fi-rr-building"></i>, href: "/headmaster/resources", color: "border-cyan-500/20 hover:border-cyan-500/50" },
         ].map((link) => (
           <Link
             key={link.label}

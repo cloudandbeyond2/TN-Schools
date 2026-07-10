@@ -614,15 +614,42 @@ router.get('/staff', async (req: Request, res: Response) => {
 // POST /api/headmaster/staff — Add single staff member
 router.post('/staff', async (req: Request, res: Response) => {
   try {
-    const { name, emisId, subject, phone, email, attendance, performance, leaveUsed, password, schoolId } = req.body;
+    const { name, emisId, subject, phone, email, attendance, performance, leaveUsed, password, schoolId, address, dob, gender } = req.body;
     if (!name || !emisId) {
       return res.status(400).json({ success: false, error: 'name and emisId are required' });
     }
     const hashedPassword = await hashPassword(password || '123456');
     const staff = await prisma.headmasterStaff.upsert({
       where: { emisId },
-      update: { name, subject: subject || 'General', phone: phone || 'N/A', email: email || null, attendance: attendance ?? 100, performance: performance || 'Good', leaveUsed: leaveUsed ?? 0, password: hashedPassword, schoolId: schoolId || null },
-      create: { name, emisId, subject: subject || 'General', phone: phone || 'N/A', email: email || null, attendance: attendance ?? 100, performance: performance || 'Good', leaveUsed: leaveUsed ?? 0, password: hashedPassword, schoolId: schoolId || null },
+      update: { 
+        name, 
+        subject: subject || 'General', 
+        phone: phone || 'N/A', 
+        email: email || null, 
+        attendance: attendance ?? 100, 
+        performance: performance || 'Good', 
+        leaveUsed: leaveUsed ?? 0, 
+        password: hashedPassword, 
+        schoolId: schoolId || null,
+        address: address !== undefined ? address : undefined,
+        dob: dob ? new Date(dob) : undefined,
+        gender: gender !== undefined ? gender : undefined
+      },
+      create: { 
+        name, 
+        emisId, 
+        subject: subject || 'General', 
+        phone: phone || 'N/A', 
+        email: email || null, 
+        attendance: attendance ?? 100, 
+        performance: performance || 'Good', 
+        leaveUsed: leaveUsed ?? 0, 
+        password: hashedPassword, 
+        schoolId: schoolId || null,
+        address: address || null,
+        dob: dob ? new Date(dob) : null,
+        gender: gender || null
+      },
       select: SAFE_STAFF_SELECT,
     });
     res.status(201).json({ success: true, data: staff });
@@ -644,8 +671,35 @@ router.post('/staff/bulk', async (req: Request, res: Response) => {
       const hashedPassword = await hashPassword(s.password || '123456');
       await prisma.headmasterStaff.upsert({
         where: { emisId: s.emisId },
-        update: { name: s.name, subject: s.subject || 'General', phone: s.phone || 'N/A', email: s.email || null, attendance: s.attendance ?? 100, performance: s.performance || 'Good', leaveUsed: s.leaveUsed ?? s.leave ?? 0, password: hashedPassword, schoolId: s.schoolId || null },
-        create: { name: s.name, emisId: s.emisId, subject: s.subject || 'General', phone: s.phone || 'N/A', email: s.email || null, attendance: s.attendance ?? 100, performance: s.performance || 'Good', leaveUsed: s.leaveUsed ?? s.leave ?? 0, password: hashedPassword, schoolId: s.schoolId || null },
+        update: { 
+          name: s.name, 
+          subject: s.subject || 'General', 
+          phone: s.phone || 'N/A', 
+          email: s.email || null, 
+          attendance: s.attendance ?? 100, 
+          performance: s.performance || 'Good', 
+          leaveUsed: s.leaveUsed ?? s.leave ?? 0, 
+          password: hashedPassword, 
+          schoolId: s.schoolId || null,
+          address: s.address || null,
+          dob: s.dob ? new Date(s.dob) : null,
+          gender: s.gender || null
+        },
+        create: { 
+          name: s.name, 
+          emisId: s.emisId, 
+          subject: s.subject || 'General', 
+          phone: s.phone || 'N/A', 
+          email: s.email || null, 
+          attendance: s.attendance ?? 100, 
+          performance: s.performance || 'Good', 
+          leaveUsed: s.leaveUsed ?? s.leave ?? 0, 
+          password: hashedPassword, 
+          schoolId: s.schoolId || null,
+          address: s.address || null,
+          dob: s.dob ? new Date(s.dob) : null,
+          gender: s.gender || null
+        },
       });
       created++;
     }
@@ -658,7 +712,7 @@ router.post('/staff/bulk', async (req: Request, res: Response) => {
 // PUT /api/headmaster/staff/:id — Update staff member
 router.put('/staff/:id', async (req: Request, res: Response) => {
   try {
-    const { name, subject, phone, email, attendance, performance, leaveUsed, password, schoolId } = req.body;
+    const { name, subject, phone, email, attendance, performance, leaveUsed, password, schoolId, address, dob, gender } = req.body;
     const staff = await prisma.headmasterStaff.update({
       where: { id: req.params.id },
       data: {
@@ -671,6 +725,9 @@ router.put('/staff/:id', async (req: Request, res: Response) => {
         leaveUsed: leaveUsed !== undefined ? leaveUsed : undefined,
         password: password !== undefined ? await hashPassword(password) : undefined,
         schoolId: schoolId !== undefined ? schoolId : undefined,
+        address: address !== undefined ? address : undefined,
+        dob: dob !== undefined ? (dob ? new Date(dob) : null) : undefined,
+        gender: gender !== undefined ? gender : undefined
       },
       select: SAFE_STAFF_SELECT,
     });
@@ -948,6 +1005,30 @@ router.post('/alumni/bulk', async (req: Request, res: Response) => {
       }));
     const result = await prisma.headmasterAlumni.createMany({ data: records, skipDuplicates: false });
     res.status(201).json({ success: true, created: result.count });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PUT /api/headmaster/alumni/:id — Update alumni record
+router.put('/alumni/:id', async (req: Request, res: Response) => {
+  try {
+    const { name, batch, contribution, role, phone, email, location, value, schoolId } = req.body;
+    const record = await prisma.headmasterAlumni.update({
+      where: { id: req.params.id },
+      data: {
+        name: name !== undefined ? name : undefined,
+        batch: batch !== undefined ? batch : undefined,
+        contribution: contribution !== undefined ? contribution : undefined,
+        role: role !== undefined ? role : undefined,
+        phone: phone !== undefined ? phone : undefined,
+        email: email !== undefined ? email : undefined,
+        location: location !== undefined ? location : undefined,
+        value: value !== undefined ? value : undefined,
+        schoolId: schoolId !== undefined ? schoolId : undefined,
+      },
+    });
+    res.json({ success: true, data: record });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -1641,6 +1722,226 @@ router.get('/model-exams/student/:studentId', async (req: Request, res: Response
   }
 });
 
+// ─── School Resource Management Monitor ──────────────────────────────────────
+// 9 monitored categories: Classrooms | Laboratories | Computers |
+// Smart Classrooms | Libraries | Toilets | Drinking Water |
+// Electricity | Internet Facilities
+
+const RESOURCE_CATEGORIES: string[] = [
+  'Classrooms', 'Laboratories', 'Computers', 'Smart Classrooms',
+  'Libraries', 'Toilets', 'Drinking Water', 'Electricity', 'Internet Facilities',
+];
+
+// GET /api/headmaster/school-resources?schoolId=&category=
+router.get('/school-resources', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, category } = req.query;
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required.' });
+    }
+    const where: any = { schoolId: String(schoolId) };
+    if (category && String(category) !== 'All') {
+      where.category = String(category);
+    }
+    const resources = await prisma.schoolResource.findMany({
+      where,
+      orderBy: [{ category: 'asc' }, { createdAt: 'desc' }],
+    });
+    res.json({ success: true, count: resources.length, data: resources });
+  } catch (err) {
+    console.error('[school-resources GET]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/school-resources
+router.post('/school-resources', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, category, name, totalCount, functionalCount, status, remarks, lastAudited } = req.body;
+
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required.' });
+    }
+    if (!category || !RESOURCE_CATEGORIES.includes(String(category))) {
+      return res.status(400).json({ success: false, error: 'Invalid or missing category.' });
+    }
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ success: false, error: 'name is required.' });
+    }
+
+    const resource = await prisma.schoolResource.create({
+      data: {
+        schoolId: String(schoolId),
+        category: String(category),
+        name: String(name).trim(),
+        totalCount: totalCount != null ? Number(totalCount) : null,
+        functionalCount: functionalCount != null ? Number(functionalCount) : null,
+        status: status ? String(status) : 'Good',
+        remarks: remarks ? String(remarks) : null,
+        lastAudited: lastAudited ? new Date(String(lastAudited)) : null,
+      },
+    });
+    res.status(201).json({ success: true, data: resource });
+  } catch (err) {
+    console.error('[school-resources POST]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PATCH /api/headmaster/school-resources/:id
+router.patch('/school-resources/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.schoolResource.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Resource not found.' });
+    }
+    const { name, totalCount, functionalCount, status, remarks, lastAudited } = req.body;
+    const updated = await prisma.schoolResource.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name: String(name).trim() }),
+        ...(totalCount !== undefined && { totalCount: totalCount != null ? Number(totalCount) : null }),
+        ...(functionalCount !== undefined && { functionalCount: functionalCount != null ? Number(functionalCount) : null }),
+        ...(status !== undefined && { status: String(status) }),
+        ...(remarks !== undefined && { remarks: remarks ? String(remarks) : null }),
+        ...(lastAudited !== undefined && { lastAudited: lastAudited ? new Date(String(lastAudited)) : null }),
+      },
+    });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error('[school-resources PATCH]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─── Resource Reports → Higher Officials (BEO / DEO / Commissioner / Minister) ─
+
+const REPORT_RECIPIENTS = ['BEO', 'DEO', 'Commissioner', 'Minister'];
+const REPORT_PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
+const REPORT_STATUSES = ['Submitted', 'Acknowledged', 'In Progress', 'Resolved'];
+const REPORT_TYPES = ['Critical Alert', 'Category Summary', 'Full Infrastructure Report'];
+
+// GET /api/headmaster/resource-reports?schoolId=&recipientRole=&status=
+router.get('/resource-reports', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, recipientRole, status } = req.query;
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required.' });
+    }
+    const where: any = { schoolId: String(schoolId) };
+    if (recipientRole && String(recipientRole) !== 'All') where.recipientRole = String(recipientRole);
+    if (status && String(status) !== 'All') where.status = String(status);
+    const reports = await prisma.resourceReport.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json({ success: true, count: reports.length, data: reports });
+  } catch (err) {
+    console.error('[resource-reports GET]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/resource-reports
+router.post('/resource-reports', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, resourceId, category, recipientRole, reportType, priority, subject, description, snapshot } = req.body;
+
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required.' });
+    }
+    if (!recipientRole || !REPORT_RECIPIENTS.includes(String(recipientRole))) {
+      return res.status(400).json({ success: false, error: 'recipientRole must be one of: ' + REPORT_RECIPIENTS.join(', ') });
+    }
+    if (!subject || !String(subject).trim()) {
+      return res.status(400).json({ success: false, error: 'subject is required.' });
+    }
+    if (category != null && category !== '' && !RESOURCE_CATEGORIES.includes(String(category))) {
+      return res.status(400).json({ success: false, error: 'Invalid category.' });
+    }
+
+    const report = await prisma.resourceReport.create({
+      data: {
+        schoolId: String(schoolId),
+        resourceId: resourceId ? String(resourceId) : null,
+        category: category ? String(category) : null,
+        recipientRole: String(recipientRole),
+        reportType: reportType && REPORT_TYPES.includes(String(reportType)) ? String(reportType) : 'Category Summary',
+        priority: priority && REPORT_PRIORITIES.includes(String(priority)) ? String(priority) : 'Medium',
+        subject: String(subject).trim(),
+        description: description ? String(description) : null,
+        snapshot: snapshot ?? undefined,
+      },
+    });
+    res.status(201).json({ success: true, data: report });
+  } catch (err) {
+    console.error('[resource-reports POST]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PATCH /api/headmaster/resource-reports/:id  (status workflow updates)
+router.patch('/resource-reports/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.resourceReport.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Report not found.' });
+    }
+    const { status, priority, subject, description } = req.body;
+    if (status !== undefined && !REPORT_STATUSES.includes(String(status))) {
+      return res.status(400).json({ success: false, error: 'status must be one of: ' + REPORT_STATUSES.join(', ') });
+    }
+    if (priority !== undefined && !REPORT_PRIORITIES.includes(String(priority))) {
+      return res.status(400).json({ success: false, error: 'priority must be one of: ' + REPORT_PRIORITIES.join(', ') });
+    }
+    const updated = await prisma.resourceReport.update({
+      where: { id },
+      data: {
+        ...(status !== undefined && { status: String(status) }),
+        ...(priority !== undefined && { priority: String(priority) }),
+        ...(subject !== undefined && { subject: String(subject).trim() }),
+        ...(description !== undefined && { description: description ? String(description) : null }),
+      },
+    });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error('[resource-reports PATCH]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/headmaster/resource-reports/:id
+router.delete('/resource-reports/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.resourceReport.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Report not found.' });
+    }
+    await prisma.resourceReport.delete({ where: { id } });
+    res.json({ success: true, message: 'Report deleted.' });
+  } catch (err) {
+    console.error('[resource-reports DELETE]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/headmaster/school-resources/:id
+router.delete('/school-resources/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.schoolResource.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Resource not found.' });
+    }
+    await prisma.schoolResource.delete({ where: { id } });
+    res.json({ success: true, message: 'Resource deleted.' });
+  } catch (err) {
+    console.error('[school-resources DELETE]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
-
-

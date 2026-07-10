@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import KpiStrip from "@/components/kpi/KpiStrip";
 import { API_BASE } from "@/components/kpi/useKpis";
@@ -15,10 +16,18 @@ const blocks = [
 ];
 
 export default function DEODashboard() {
+  const { data: session } = useSession();
   const [districts, setDistricts] = useState<string[]>([]);
   const [district, setDistrict] = useState<string>("");
 
   useEffect(() => {
+    // Priority 1: Use the DEO's assigned district from their session/profile
+    const sessionDistrict = (session?.user as any)?.district as string | undefined;
+    if (sessionDistrict) {
+      setDistrict(sessionDistrict);
+      return;
+    }
+    // Priority 2: Fall back to fetching all districts from schools list
     fetch(`${API_BASE}/api/schools`)
       .then((r) => r.json())
       .then((json) => {
@@ -28,12 +37,12 @@ export default function DEODashboard() {
         setDistrict((d) => d || uniq[0] || "");
       })
       .catch(() => {});
-  }, []);
+  }, [session]);
 
   return (
     <PortalLayout
       title="DEO Dashboard"
-      subtitle="DEO Officer · Coimbatore District"
+      subtitle={district ? `DEO Officer · ${district} District` : "DEO Officer · District Education Officer"}
       avatarLetter="D"
       avatarColor="#ec4899"
       themeClass="theme-deo"

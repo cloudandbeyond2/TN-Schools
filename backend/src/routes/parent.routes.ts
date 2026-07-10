@@ -1,7 +1,35 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { callGemini } from './ai.routes';
 
 const router = Router();
+
+// Resolve parentId parameter: if it is a User ID, map it to the corresponding HeadmasterParent profile ID
+router.param('parentId', async (req: Request, res: Response, next, parentId) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: parentId }
+    });
+
+    if (user && user.role === 'PARENT') {
+      const hmParent = await prisma.headmasterParent.findFirst({
+        where: {
+          OR: [
+            { userId: user.id },
+            { email: user.email || undefined },
+            { phone: user.mobile || undefined }
+          ]
+        }
+      });
+      if (hmParent) {
+        req.params.parentId = hmParent.id;
+      }
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 // ─── Helper: compute month attendance summary ─────────────────────
 function getMonthRange(monthOffset = 0) {
@@ -172,11 +200,13 @@ router.get('/:parentId/child/:studentId/performance', async (req: Request, res: 
 router.get('/:parentId/child/:studentId/attendance', async (req: Request, res: Response) => {
   try {
     const { studentId } = req.params;
+    const { offset } = req.query;
+    const targetOffset = offset !== undefined ? Number(offset) : 0;
     const monthCount = 6;
 
     const monthlyData = await Promise.all(
-      Array.from({ length: monthCount }, (_, i) => i).reverse().map(async (offset) => {
-        const { start, end } = getMonthRange(offset);
+      Array.from({ length: monthCount }, (_, i) => i).reverse().map(async (offsetVal) => {
+        const { start, end } = getMonthRange(offsetVal);
         const records = await prisma.attendance.findMany({
           where: { studentId, date: { gte: start, lte: end } },
         });
@@ -189,14 +219,15 @@ router.get('/:parentId/child/:studentId/attendance', async (req: Request, res: R
         return {
           month: start.toLocaleString('default', { month: 'short', year: 'numeric' }),
           total, present, late, absent, leave, percentage: pct,
+          offset: offsetVal
         };
       })
     );
 
-    // Recent 30 days detailed
-    const { start: start30, end: end30 } = getMonthRange(0);
+    // Selected month detailed records
+    const { start: startTarget, end: endTarget } = getMonthRange(targetOffset);
     const recentRecords = await prisma.attendance.findMany({
-      where: { studentId, date: { gte: start30, lte: end30 } },
+      where: { studentId, date: { gte: startTarget, lte: endTarget } },
       orderBy: { date: 'desc' },
     });
 
@@ -252,6 +283,7 @@ router.get('/:parentId/child/:studentId/homework', async (req: Request, res: Res
         dueDate: h.dueDate,
         status: h.status,
         description: h.description,
+        subject: h.subject || 'General',
         submissionStatus: submission ? submission.status : 'pending',
         score: submission?.score ?? '—',
         feedback: submission?.feedback ?? null,
@@ -470,5 +502,300 @@ router.post('/notifications', async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, error: String(err) });
   }
 });
+
+// ─────────────────────────────────────────────────────────────────
+// GET /api/parent/:parentId/child/:studentId/performance-summary
+// Dynamic Performance summary combining grades, attendance, badges,
+// guidance history and homework feedback with Gemini AI or local fallback.
+// ─────────────────────────────────────────────────────────────────
+router.get('/:parentId/child/:studentId/performance-summary', async (req: Request, res: Response) => {
+  try {
+    const { studentId } = req.params;
+
+    // 1. Fetch student and user details
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      include: { user: { select: { name: true } } },
+    });
+    if (!student) {
+      return res.status(404).json({ success: false, error: 'Student not found' });
+    }
+
+    // 2. Fetch marks
+    const marks = await prisma.mark.findMany({
+      where: { studentId },
+      orderBy: { examType: 'asc' },
+    });
+
+    // 3. Fetch attendance
+    const attendance = await prisma.attendance.findMany({
+      where: { studentId },
+      orderBy: { date: 'asc' },
+    });
+
+    // 4. Fetch badges
+    const badges = await prisma.studentBadge.findMany({
+      where: { studentId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // 5. Fetch counseling / guides
+    const personalGuides = await prisma.personalGuide.findMany({
+      where: { studentId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // 6. Fetch homework submissions with feedback
+    const homeworkSubmissions = await prisma.homeworkSubmission.findMany({
+      where: { studentId },
+      include: { homework: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    // Compute subject averages and total average
+    const subjectScores: Record<string, number[]> = {};
+    for (const m of marks) {
+      if (!subjectScores[m.subject]) subjectScores[m.subject] = [];
+      subjectScores[m.subject].push(Math.round((m.scored / m.maxMarks) * 100));
+    }
+
+    const subjectAvgs = Object.entries(subjectScores).map(([subject, scores]) => {
+      const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+      return { subject, avg };
+    });
+
+    const overallAvg = subjectAvgs.length > 0
+      ? Math.round(subjectAvgs.reduce((sum, s) => sum + s.avg, 0) / subjectAvgs.length)
+      : 0;
+
+    // Compute attendance percentage
+    const totalDays = attendance.length;
+    const presentDays = attendance.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length;
+    const attendancePct = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 100;
+
+    // Extract feedback comments
+    const feedbacks: { source: string; text: string; date: Date }[] = [];
+    for (const b of badges) {
+      if (b.remark) {
+        feedbacks.push({
+          source: `Badge: ${b.badge}`,
+          text: b.remark,
+          date: b.createdAt,
+        });
+      }
+    }
+    for (const hw of homeworkSubmissions) {
+      if (hw.feedback) {
+        feedbacks.push({
+          source: `Homework: ${hw.homework.title}`,
+          text: hw.feedback,
+          date: hw.updatedAt,
+        });
+      }
+    }
+    for (const g of personalGuides) {
+      if (g.notes) {
+        feedbacks.push({
+          source: 'Counselor Session',
+          text: g.notes,
+          date: g.updatedAt,
+        });
+      }
+    }
+    // Sort feedbacks by date descending
+    feedbacks.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+    // Dynamically compute strengths
+    const strengths: string[] = [];
+    for (const s of subjectAvgs) {
+      if (s.avg >= 80) {
+        strengths.push(`Excellent performance in ${s.subject} (${s.avg}%)`);
+      }
+    }
+    if (attendancePct >= 90) {
+      strengths.push(`Outstanding attendance consistency at ${attendancePct}%`);
+    }
+    if (badges.length > 0) {
+      strengths.push(`Earned ${badges.length} motivation badge(s) for active classroom participation`);
+    }
+    if (strengths.length === 0 && subjectAvgs.length > 0) {
+      const best = subjectAvgs.reduce((a, b) => a.avg > b.avg ? a : b);
+      strengths.push(`Showing promising results in ${best.subject} (${best.avg}%)`);
+    }
+    if (strengths.length === 0) {
+      strengths.push('Regular class engagement and steady effort');
+    }
+
+    // Dynamically compute weak areas
+    const weaknesses: string[] = [];
+    for (const s of subjectAvgs) {
+      if (s.avg < 60) {
+        weaknesses.push(`Focus needed in ${s.subject} to improve conceptual understanding (${s.avg}%)`);
+      }
+    }
+    if (attendancePct < 75) {
+      weaknesses.push(`Low attendance (${attendancePct}%) is impacting progress; regular attendance is advised`);
+    }
+    const pendingHw = homeworkSubmissions.filter(h => h.status === 'pending' || h.status === 'assigned');
+    if (pendingHw.length > 1) {
+      weaknesses.push(`Has ${pendingHw.length} incomplete homework submissions; prompt completion is recommended`);
+    }
+    if (weaknesses.length === 0) {
+      weaknesses.push('No critical academic areas need immediate intervention; continue the good learning habits');
+    }
+
+    // Construct AI summary & tips or use fallback if GEMINI_API_KEY is not defined
+    let aiSummary = '';
+    let aiTips: string[] = [];
+    let tamilSummary = '';
+    let tamilTips: string[] = [];
+
+    const hasApiKey = process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0;
+
+    if (hasApiKey) {
+      try {
+        const prompt = `You are a helpful school academic counselor for Tamil Nadu Government Schools.
+Analyze this student's data and write a highly constructive, motivating academic summary for their parent.
+
+Student Name: ${student.user.name}
+Class: Class ${student.class}-${student.section}
+Attendance Rate: ${attendancePct}% (Total Days: ${totalDays}, Present: ${presentDays})
+Average Mark: ${overallAvg}%
+Subject-wise Averages:
+${subjectAvgs.map(s => `- ${s.subject}: ${s.avg}%`).join('\n')}
+
+Strengths Detected:
+${strengths.map(s => `- ${s}`).join('\n')}
+
+Weak Areas Detected:
+${weaknesses.map(w => `- ${w}`).join('\n')}
+
+Recent Teacher Comments/Feedback:
+${feedbacks.slice(0, 5).map(f => `- [${f.source}] ${f.text}`).join('\n')}
+
+Output format MUST be a JSON object with:
+1. "summary": A caring, professional paragraph (3-4 sentences) summarizing progress. Use translation-friendly language. Mention specific subjects if appropriate.
+2. "tips": An array of exactly 3 practical, actionable tips for parents to help their child improve or maintain their level at home.
+3. "tamilSummary": The Tamil translation of the summary paragraph.
+4. "tamilTips": An array of exactly 3 Tamil translations of the tips.
+
+Ensure the tone is warm, motivating, and culturally appropriate. Do not use markdown format inside the JSON fields.`;
+
+        const SCHEMA = {
+          type: 'OBJECT',
+          properties: {
+            summary: { type: 'STRING' },
+            tips: { type: 'ARRAY', items: { type: 'STRING' } },
+            tamilSummary: { type: 'STRING' },
+            tamilTips: { type: 'ARRAY', items: { type: 'STRING' } },
+          },
+          required: ['summary', 'tips', 'tamilSummary', 'tamilTips']
+        };
+
+        const result = await callGemini(prompt, true, SCHEMA);
+        if (result && result.summary && result.tips) {
+          aiSummary = result.summary;
+          aiTips = result.tips;
+          tamilSummary = result.tamilSummary || '';
+          tamilTips = result.tamilTips || [];
+        } else {
+          throw new Error('Invalid schema returned from Gemini');
+        }
+      } catch (err) {
+        console.error('Gemini API call failed for child performance summary:', err);
+        const fallback = generateRulesFallback(student.user.name, overallAvg, attendancePct, strengths, weaknesses);
+        aiSummary = fallback.summary;
+        aiTips = fallback.tips;
+        tamilSummary = fallback.tamilSummary;
+        tamilTips = fallback.tamilTips;
+      }
+    } else {
+      const fallback = generateRulesFallback(student.user.name, overallAvg, attendancePct, strengths, weaknesses);
+      aiSummary = fallback.summary;
+      aiTips = fallback.tips;
+      tamilSummary = fallback.tamilSummary;
+      tamilTips = fallback.tamilTips;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        studentId,
+        name: student.user.name,
+        class: student.class,
+        section: student.section,
+        overallAvg,
+        attendancePct,
+        strengths,
+        weaknesses,
+        feedbacks: feedbacks.map(f => ({ source: f.source, text: f.text, date: f.date.toISOString().split('T')[0] })),
+        aiSummary,
+        aiTips,
+        tamilSummary,
+        tamilTips,
+      },
+    });
+  } catch (err) {
+    console.error('Error generating performance summary:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// Fallback helper function to generate counseling summaries in English and Tamil
+function generateRulesFallback(name: string, avg: number, attendance: number, strengths: string[], weaknesses: string[]) {
+  const shortName = name.split(' ')[0];
+  let summary = '';
+  let tamilSummary = '';
+  let tips: string[] = [];
+  let tamilTips: string[] = [];
+
+  if (avg >= 80) {
+    summary = `${shortName} has displayed outstanding academic performance this term with a solid average score of ${avg}%. Their discipline in completing class tasks and active contribution in high-performing subjects are highly commendable. Supporting their current momentum will help them excel in future exams.`;
+    tamilSummary = `${shortName} இந்த பருவத்தில் ${avg}% சராசரி மதிப்பெண்ணுடன் சிறந்த கல்விச் செயல்திறனை வெளிப்படுத்தியுள்ளார். வகுப்புப் பணிகளை முடிப்பதில் உள்ள ஒழுக்கமும், சிறப்பாகச் செயல்படும் பாடங்களில் அவர்களின் பங்களிப்பும் மிகவும் பாராட்டத்தக்கது. அவர்களின் தற்போதைய வேகத்தை ஆதரிப்பது எதிர்காலத் தேர்வுகளில் அவர்கள் சிறந்து விளங்க உதவும்.`;
+    tips = [
+      'Encourage self-directed reading in advanced science and literature topics.',
+      'Maintain their excellent daily study routine of 1-2 hours at home.',
+      'Acknowledge their achievements to keep them motivated and confident.'
+    ];
+    tamilTips = [
+      'மேம்பட்ட அறிவியல் மற்றும் இலக்கிய தலைப்புகளில் சுயாதீனமான வாசிப்பை ஊக்குவிக்கவும்.',
+      'வீட்டில் 1-2 மணிநேரம் படிக்கும் அவர்களின் சிறந்த தினசரி பழக்கத்தைத் தொடரவும்.',
+      'அவர்களின் உந்துதலையும் தன்னம்பிக்கையையும் தக்கவைக்க அவர்களின் சாதனைகளை அங்கீகரிக்கவும்.'
+    ];
+  } else if (avg >= 60) {
+    summary = `${shortName} is performing well and maintains a good average of ${avg}%. They show a solid grasp of concepts in most subjects, though there is potential for improvement in specific areas. Regular practice and focused review before assessments will elevate their scores.`;
+    tamilSummary = `${shortName} நன்றாகச் செயல்பட்டு ${avg}% என்ற நல்ல சராசரியைத் தக்க வைத்துக் கொள்கிறார். பெரும்பாலான பாடங்களில் அவர்களுக்கு நல்ல புரிதல் உள்ளது, இருப்பினும் குறிப்பிட்ட பகுதிகளில் முன்னேற்றத்திற்கான வாய்ப்புகள் உள்ளன. தேர்வுகளுக்கு முன் வழக்கமான பயிற்சி மற்றும் கவனம் செலுத்துவது அவர்களின் மதிப்பெண்களை உயர்த்தும்.`;
+    tips = [
+      'Set aside 45 minutes daily specifically for reviewing challenging chapters.',
+      'Help them create visual mind maps or notes for subject formulas and facts.',
+      'Ensure they complete and submit homework tasks on time.'
+    ];
+    tamilTips = [
+      'சவாலான அத்தியாயங்களை மதிப்பாய்வு செய்ய தினமும் 45 நிமிடங்கள் ஒதுக்குங்கள்.',
+      'பாடச் சூத்திரங்கள் மற்றும் உண்மைகளுக்கான மன வரைபடங்கள் அல்லது குறிப்புகளை உருவாக்க அவர்களுக்கு உதவுங்கள்.',
+      'வீட்டுப் பாடங்களை அவர்கள் சரியான நேரத்தில் முடித்து சமர்ப்பிப்பதை உறுதிசெய்யவும்.'
+    ];
+  } else {
+    summary = `${shortName} is facing academic challenges with an average score of ${avg}%. Focused revision and additional guidance in weak subjects are crucial at this stage to build foundational concepts. Consistent support and tracking will bring positive progress.`;
+    tamilSummary = `${shortName} ${avg}% சராசரி மதிப்பெண்ணுடன் கல்விச் சவால்களை எதிர்கொள்கிறார். இந்த நிலையில் அடிப்படைக் கருத்துக்களை உருவாக்க பலவீனமான பாடங்களில் கவனம் செலுத்திய திருத்தமும் கூடுதல் வழிகாட்டுதலும் முக்கியமானவை. தொடர்ச்சியான ஆதரவும் கண்காணிப்பும் நேர்மறையான முன்னேற்றத்தைக் கொண்டுவரும்.`;
+    tips = [
+      'Arrange daily study reviews of core subjects and practice solving textbook questions.',
+      'Meet with subject teachers to identify specific study materials and topics for improvement.',
+      'Ensure regular daily school attendance to avoid missing critical class lessons.'
+    ];
+    tamilTips = [
+      'முக்கிய பாடங்களின் தினசரி படிப்பு மதிப்பாய்வுகளை ஏற்பாடு செய்து, பாடப்புத்தக கேள்விகளை தீர்க்க பயிற்சி செய்யுங்கள்.',
+      'முன்னேற்றத்திற்கான குறிப்பிட்ட ஆய்வுப் பொருட்கள் மற்றும் தலைப்புகளைக் கண்டறிய பாட ஆசிரியர்களைச் சந்திக்கவும்.',
+      'முக்கியமான வகுப்புப் பாடங்களைத் தவறவிடுவதைத் தவிர்க்க தினசரி பள்ளி வருகையை உறுதிசெய்யவும்.'
+    ];
+  }
+
+  if (attendance < 75) {
+    tips.push('Ensure regular school attendance and catch up immediately on missed topics.');
+    tamilTips.push('பள்ளிக்குத் தொடர்ந்து வருவதை உறுதிசெய்து, தவறவிட்ட பாடங்களை உடனடியாகப் படிக்கவும்.');
+  }
+
+  return { summary, tips: tips.slice(0, 3), tamilSummary, tamilTips: tamilTips.slice(0, 3) };
+}
 
 export default router;
