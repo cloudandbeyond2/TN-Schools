@@ -1010,6 +1010,30 @@ router.post('/alumni/bulk', async (req: Request, res: Response) => {
   }
 });
 
+// PUT /api/headmaster/alumni/:id — Update alumni record
+router.put('/alumni/:id', async (req: Request, res: Response) => {
+  try {
+    const { name, batch, contribution, role, phone, email, location, value, schoolId } = req.body;
+    const record = await prisma.headmasterAlumni.update({
+      where: { id: req.params.id },
+      data: {
+        name: name !== undefined ? name : undefined,
+        batch: batch !== undefined ? batch : undefined,
+        contribution: contribution !== undefined ? contribution : undefined,
+        role: role !== undefined ? role : undefined,
+        phone: phone !== undefined ? phone : undefined,
+        email: email !== undefined ? email : undefined,
+        location: location !== undefined ? location : undefined,
+        value: value !== undefined ? value : undefined,
+        schoolId: schoolId !== undefined ? schoolId : undefined,
+      },
+    });
+    res.json({ success: true, data: record });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // DELETE /api/headmaster/alumni/:id — Remove alumni contribution
 router.delete('/alumni/:id', async (req: Request, res: Response) => {
   try {

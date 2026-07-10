@@ -49,7 +49,6 @@ import pageRoutes from './routes/page.routes';
 import userRoutes from './routes/user.routes';
 import teacherRoutes from './routes/teacher.routes';
 import notificationRoutes from './routes/notification.routes';
-import digitalLibraryUploadRoutes from './routes/digitalLibraryUpload.routes';
 import classRoutes from './routes/class.routes';
 import parentRoutes from './routes/parent.routes';
 import centralContentRoutes from './routes/centralContent.routes';
@@ -70,8 +69,7 @@ import scienceLabsRoutes from './routes/scienceLabs.routes';
 import timetableRoutes from './routes/timetable.routes';
 import examScheduleRoutes from './routes/examSchedule.routes';
 import studyPlannerRoutes from './routes/studyPlanner.routes';
-import hierarchyRoutes from './routes/hierarchy.routes';
-
+import superadminAcademicsRoutes from './routes/superadmin.academics.routes';
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
 
@@ -134,17 +132,14 @@ app.use('/api', globalLimiter);
 app.use(express.json({ limit: '150mb' }));
 app.use(express.urlencoded({ limit: '150mb', extended: true }));
 
-import os from 'os';
-
-// Setup file uploads directory serving from OS temporary directory for cloud/serverless compatibility
-const uploadsDir = path.join(os.tmpdir(), 'uploads');
-
+// Serve uploaded files statically
+const uploadsDir = path.join(__dirname, '../uploads');
 try {
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
   }
-} catch (err) {
-  console.warn('[Warning] Could not create uploads directory in temp.');
+} catch (error) {
+  console.warn('[Warning] Could not create uploads directory (likely running in a read-only environment like Vercel).');
 }
 app.use('/uploads', express.static(uploadsDir));
 
@@ -192,7 +187,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/parent', parentRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/digital-library-upload', digitalLibraryUploadRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/centralized-content', centralContentRoutes);
 app.use('/api/celebrations', celebrationRoutes);
@@ -212,7 +206,7 @@ app.use('/api/science', scienceLabsRoutes);
 app.use('/api/timetable', timetableRoutes);
 app.use('/api/exam-schedule', examScheduleRoutes);
 app.use('/api/student', studyPlannerRoutes);
-app.use('/api/hierarchy', hierarchyRoutes);
+app.use('/api/superadmin/academics', superadminAcademicsRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
@@ -260,5 +254,4 @@ if (!process.env.VERCEL) {
   });
 }
 
-export default app;
-// Force nodemon auto-reload: schema sync completed.
+export default app;// trigger restart

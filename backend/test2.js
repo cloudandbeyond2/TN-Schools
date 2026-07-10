@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); prisma.academicResource.findMany({ where: { OR: [{ class: '10' }, { class: null }, { class: '' }], status: 'Active' }, include: { subject: true } }).then(console.log).catch(console.error);

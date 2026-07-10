@@ -503,6 +503,121 @@ function getSubjectNamesForGroup(groupNameOrCode: string): string[] {
   return ['tamil', 'english', 'mathematics'];
 }
 
+// GET /api/centralized-content/academics-dashboard — Aggregated data for Academics Page
+router.get('/academics-dashboard', async (req: Request, res: Response) => {
+  try {
+    const { class: cls, studentId, group } = req.query;
+
+    if (!cls) {
+      return res.status(400).json({
+        success: false,
+        error: "class parameter is required (e.g., ?class=10)"
+      });
+    }
+
+    const classStr = String(cls);
+    const isHigherSecondary = classStr === '11' || classStr === '12';
+
+    // Try to query PostgreSQL
+    const subjects = await prisma.centralSubject.findMany({
+      where: {
+        class: classStr
+      },
+      include: {
+        units: {
+          include: {
+            topics: {
+              include: {
+                contents: true
+              },
+              orderBy: { topicNumber: 'asc' }
+            }
+          },
+          orderBy: { unitNumber: 'asc' }
+        }
+      },
+      orderBy: {
+        createdAt: 'asc'
+      }
+    });
+
+    let filteredSubjects = subjects;
+
+    if (isHigherSecondary) {
+      let studentGroup = group ? String(group).trim() : "";
+
+      if (studentId) {
+        const student = await prisma.student.findUnique({
+          where: { id: String(studentId) },
+          select: { group: true }
+        });
+        if (student && student.group) {
+          studentGroup = student.group.trim();
+        }
+      }
+
+      const allowedSubjects = getSubjectNamesForGroup(studentGroup);
+      filteredSubjects = subjects.filter(sub => 
+        allowedSubjects.includes(sub.name.trim().toLowerCase())
+      );
+    }
+
+    res.json({
+      success: true,
+      data: filteredSubjects
+    });
+  } catch (err: any) {
+    console.warn("⚠️ Database query failed for academics-dashboard, falling back. Error:", err.message || err);
+
+    const { class: cls, studentId, group } = req.query;
+    const classStr = String(cls);
+    const isHigherSecondary = classStr === '11' || classStr === '12';
+
+    let filtered = fallbackSubjects.filter(sub => sub.class === classStr);
+
+    if (isHigherSecondary) {
+      let studentGroup = group ? String(group).trim() : "";
+
+      if (studentId) {
+        try {
+          const student = await prisma.student.findUnique({
+            where: { id: String(studentId) },
+            select: { group: true }
+          });
+          if (student && student.group) {
+            studentGroup = student.group.trim();
+          }
+        } catch (dbErr) {
+          console.warn("⚠️ Failed to fetch student group from DB in fallback path:", dbErr);
+        }
+      }
+
+      const allowedSubjects = getSubjectNamesForGroup(studentGroup);
+      filtered = filtered.filter(sub => 
+        allowedSubjects.includes(sub.name.trim().toLowerCase())
+      );
+    }
+
+    // Attach units and contents from fallbacks
+    const aggregatedFallback = filtered.map(sub => {
+      const units = (fallbackUnits[sub.id] || []).map(unit => {
+        const topics = (unit.topics || []).map((topic: any) => {
+          const contents = fallbackContents[topic.id] || [];
+          return { ...topic, contents };
+        });
+        return { ...unit, topics };
+      });
+      return { ...sub, units };
+    });
+
+    res.json({
+      success: true,
+      isFallback: true,
+      data: aggregatedFallback
+    });
+  }
+});
+
 // GET /api/centralized-content/subjects — Get all centralized subjects for a class
 router.get('/subjects', async (req: Request, res: Response) => {
   try {

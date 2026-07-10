@@ -35,12 +35,12 @@ interface Resource {
   type: "PDF" | "DOC" | "Video" | "Audio" | "Interactive" | "eBook" | "Link";
   meta: string; // size / pages / duration
   description: string;
-  url?: string;
   addedBy?: string;
   date?: string;
   progress?: number; // for videos (0-100)
   isNew?: boolean;
   popular?: boolean;
+  url?: string;
 }
 
 interface SubjectInfo {
@@ -120,87 +120,111 @@ export default function AcademicsHubPage() {
   const [previewResource, setPreviewResource] = useState<Resource | null>(null);
   const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
 
-  const studentClass = String((session?.user as any)?.class || "10");
-  const classNum = parseInt(studentClass.match(/\d+/)?.[0] || "10", 10);
-
-  const [subjects, setSubjects] = useState<SubjectInfo[]>([]);
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [syllabusData, setSyllabusData] = useState<Record<string, SyllabusUnit[]>>({});
-  const [loading, setLoading] = useState(true);
-
-  const studentId = String((session?.user as any)?.id || "");
+  const [dbSubjects, setDbSubjects] = useState<any[]>([]);
+  const [dbResources, setDbResources] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
+    const fetchData = async () => {
+      if (!session?.user) return;
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        
-        // 1. Fetch Subjects for this class
-        const subjectsRes = await fetch(`${API_URL}/api/superadmin/academics/subjects?class=${classNum}&status=Active`);
-        const subjectsJson = await subjectsRes.json();
-        
-        // 2. Fetch Resources for this class
-        const resourcesRes = await fetch(`${API_URL}/api/superadmin/academics/resources?class=${classNum}&status=Active`);
-        const resourcesJson = await resourcesRes.json();
-        
-        if (Array.isArray(subjectsJson)) {
-          const fetchedSubjects: SubjectInfo[] = [];
-          
-          subjectsJson.forEach((sub: any) => {
-            const subName = sub.name;
-            
-            // Map the backend AcademicSubject properties or fall back to default theme
-            const color = sub.color || "#64748b";
-            const gradient = `from-[${color}] to-slate-600`;
-            const icon = sub.icon || "📚";
-            
-            fetchedSubjects.push({
-              name: subName,
-              color,
-              gradient,
-              icon,
-              teacher: "Class Teacher",
-              progress: 0,
-              units: 0, // Need to implement actual syllabus fetching later
-              unitsDone: 0
+        const user = session.user as any;
+        const teacherId = user.id;
+        const schoolId = user.schoolId;
+
+        let teacherAssignments: { classNum: string, subjectName: string }[] = [];
+        if (teacherId && schoolId) {
+          const classesRes = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
+          if (classesRes.ok) {
+            const classesData = await classesRes.json();
+            const classesArray = Array.isArray(classesData) ? classesData : (classesData.data || []);
+            teacherAssignments = classesArray.map((c: any) => {
+              const match = String(c.className).match(/\d+/);
+              return {
+                classNum: match ? match[0] : String(c.className),
+                subjectName: c.subject
+              };
             });
-          });
-          
-          setSubjects(fetchedSubjects);
-          setSyllabusData({});
+          }
         }
 
-        if (Array.isArray(resourcesJson)) {
-          const fetchedResources: Resource[] = resourcesJson.map((res: any) => {
-            // Map the backend AcademicResource to the frontend Resource interface
-            return {
-              id: res.id,
-              title: res.title,
-              subject: res.subject?.name || "General",
-              category: res.category as any,
-              type: res.type as any,
-              meta: res.meta || "N/A",
-              description: res.description || "",
-              url: res.url,
-              addedBy: res.addedBy || "Admin",
-              isNew: res.isNew || false,
-              popular: res.popular || false
-            };
+        const [subRes, resRes] = await Promise.all([
+          fetch(`${API_URL}/api/superadmin/academics/subjects?status=Active`),
+          fetch(`${API_URL}/api/superadmin/academics/resources?status=Active`)
+        ]);
+
+        const isValid = (itemClass: any, itemSubject: any) => {
+          if (teacherAssignments.length === 0) return false;
+          return teacherAssignments.some(assignment => {
+            const classMatches = !itemClass || String(itemClass) === assignment.classNum;
+            const subjectMatches = !itemSubject || itemSubject === assignment.subjectName;
+            return classMatches && subjectMatches;
           });
-          setResources(fetchedResources);
+        };
+
+        if (subRes.ok) {
+          const data = await subRes.json();
+          if (Array.isArray(data)) {
+            setDbSubjects(data.filter((s: any) => isValid(s.class, s.name)));
+          } else {
+            setDbSubjects([]);
+          }
         }
-      } catch (err) {
-        console.error("Failed to fetch academics data", err);
+        if (resRes.ok) {
+          const data = await resRes.json();
+          if (Array.isArray(data)) {
+            setDbResources(data.filter((r: any) => isValid(r.class, r.subject?.name)));
+          } else {
+            setDbResources([]);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch academics data", error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
-    }
-    
-    if (classNum) {
-      fetchData();
-    }
-  }, [classNum, studentId]);
+    };
+    fetchData();
+  }, [session]);
+
+  const subjects = useMemo(() => {
+    return dbSubjects.map((s, idx) => {
+      const color = s.color || "#64748b";
+      return {
+        name: s.name,
+        color: color,
+        gradient: `from-[${color}] to-slate-600`,
+        icon: s.icon || "📚",
+        teacher: "Class Teacher",
+        progress: 0,
+        units: 0,
+        unitsDone: 0,
+        originalId: s.id
+      };
+    });
+  }, [dbSubjects]);
+
+  const resources = useMemo(() => {
+    return dbResources.map((r) => {
+      const subjectObj = dbSubjects.find(s => s.id === r.subjectId);
+      return {
+        id: r.id,
+        title: r.title || r.topicName || r.chapter || "Untitled",
+        subject: subjectObj ? subjectObj.name : "General",
+        category: r.category === "subjects" || r.category === "syllabus" ? "materials" : (r.category || "materials"),
+        type: r.type || "PDF",
+        meta: r.meta || "View details",
+        description: r.description || "No description provided.",
+        addedBy: r.addedBy || "Class Teacher",
+        date: r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "Recently",
+        progress: r.type === "Video" ? 0 : undefined,
+        isNew: false,
+        popular: false,
+        url: r.url || r.youtubeUrl || "#"
+      } as Resource;
+    });
+  }, [dbResources, dbSubjects]);
 
   // Load / persist bookmarks
   useEffect(() => {
@@ -428,20 +452,6 @@ export default function AcademicsHubPage() {
   };
 
   /* ── render ──────────────────────────────────────────── */
-  if (loading) {
-    return (
-      <PortalLayout
-        title="Academics & Subjects"
-        subtitle="Everything you need to learn — subjects, syllabus, books, notes and videos in one place."
-        themeClass="theme-student"
-      >
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full"></div>
-        </div>
-      </PortalLayout>
-    );
-  }
-
   return (
     <PortalLayout
       title="Academics & Subjects"
@@ -465,7 +475,7 @@ export default function AcademicsHubPage() {
                 className="text-[11px] font-black uppercase tracking-widest"
                 style={{ color: "rgba(255,255,255,0.85)" }}
               >
-                Class {studentClass} · Tamil Nadu State Board
+                Your Assigned Classes · Tamil Nadu State Board
               </span>
             </div>
             <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#fff" }}>
@@ -793,7 +803,7 @@ export default function AcademicsHubPage() {
       {activeTab === "syllabus" && (
         <div className="space-y-5">
           {syllabusSubjects.map((s) => {
-            const units = syllabusData[s.name] || [];
+            const units = buildSyllabus(s.name);
             return (
               <div key={s.name} className="glass rounded-2xl border border-[var(--border)] overflow-hidden">
                 <div
@@ -952,35 +962,53 @@ export default function AcademicsHubPage() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal header strip */}
-            <div
-              className={`h-36 bg-gradient-to-br ${subjectTheme(previewResource.subject).gradient} relative flex items-center justify-center`}
-            >
-              <span className="text-6xl opacity-30 absolute left-6 bottom-3">
-                {subjectTheme(previewResource.subject).icon}
-              </span>
-              {previewResource.category === "videos" ? (
-                <span
-                  className="w-16 h-16 rounded-full bg-white/25 backdrop-blur flex items-center justify-center shadow-lg"
+            {previewResource.category === "videos" && previewResource.url ? (
+              <div className="relative w-full aspect-video bg-black flex items-center justify-center">
+                <video 
+                  src={previewResource.url} 
+                  controls 
+                  autoPlay 
+                  className="w-full h-full object-contain"
+                />
+                <button
+                  onClick={() => setPreviewResource(null)}
+                  className="absolute top-3 right-3 p-2 rounded-full bg-black/50 hover:bg-black/80 active:scale-90 transition-all z-10"
                   style={{ color: "#fff" }}
                 >
-                  <Fi name="play" className="text-3xl" />
-                </span>
-              ) : (
-                <span
-                  className="w-16 h-16 rounded-2xl bg-white/25 backdrop-blur flex items-center justify-center shadow-lg"
-                  style={{ color: "#fff" }}
-                >
-                  <Fi name={TYPE_ICONS[previewResource.type]} className="text-3xl" />
-                </span>
-              )}
-              <button
-                onClick={() => setPreviewResource(null)}
-                className="absolute top-3 right-3 p-2 rounded-full bg-black/25 hover:bg-black/45 active:scale-90 transition-all"
-                style={{ color: "#fff" }}
+                  <Fi name="cross-small" className="text-base" />
+                </button>
+              </div>
+            ) : (
+              <div
+                className={`h-36 bg-gradient-to-br ${subjectTheme(previewResource.subject).gradient} relative flex items-center justify-center`}
               >
-                <Fi name="cross-small" className="text-base" />
-              </button>
-            </div>
+                <span className="text-6xl opacity-30 absolute left-6 bottom-3">
+                  {subjectTheme(previewResource.subject).icon}
+                </span>
+                {previewResource.category === "videos" ? (
+                  <span
+                    className="w-16 h-16 rounded-full bg-white/25 backdrop-blur flex items-center justify-center shadow-lg"
+                    style={{ color: "#fff" }}
+                  >
+                    <Fi name="play" className="text-3xl" />
+                  </span>
+                ) : (
+                  <span
+                    className="w-16 h-16 rounded-2xl bg-white/25 backdrop-blur flex items-center justify-center shadow-lg"
+                    style={{ color: "#fff" }}
+                  >
+                    <Fi name={TYPE_ICONS[previewResource.type]} className="text-3xl" />
+                  </span>
+                )}
+                <button
+                  onClick={() => setPreviewResource(null)}
+                  className="absolute top-3 right-3 p-2 rounded-full bg-black/25 hover:bg-black/45 active:scale-90 transition-all"
+                  style={{ color: "#fff" }}
+                >
+                  <Fi name="cross-small" className="text-base" />
+                </button>
+              </div>
+            )}
 
             <div className="p-6">
               <div className="flex items-center gap-2 mb-2 flex-wrap">

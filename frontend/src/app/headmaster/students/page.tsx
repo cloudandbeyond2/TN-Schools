@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
-import { Activity, Eye, Stethoscope, FileText, PlusCircle, HeartPulse, X, GraduationCap, User, Ruler, Weight, Droplet, Target, Ear, ShieldCheck, Download, Calendar, ClipboardList, Smile, Clock, Trash2 } from "lucide-react";
+import { Activity, Eye, Stethoscope, FileText, PlusCircle, HeartPulse, X, GraduationCap, User, Ruler, Weight, Droplet, Target, Ear, ShieldCheck, Download, Calendar, ClipboardList, Smile, Clock, Trash2, Lock, Unlock, CreditCard, Camera } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import Swal from "sweetalert2";
@@ -18,6 +18,65 @@ const getApiBase = () => {
 };
 
 const API_BASE = getApiBase();
+
+interface StudentConfidentialData {
+  streetAddress: string;
+  photo?: string;
+  aadharNumber?: string;
+  bankName?: string;
+  bankAccount?: string;
+  bankIfsc?: string;
+  schemes?: string[];
+  docAadhar?: string;
+  docIncome?: string;
+  docCommunity?: string;
+  docRation?: string;
+}
+
+const parseStudentAddress = (addressStr: string): StudentConfidentialData => {
+  try {
+    const parsed = JSON.parse(addressStr);
+    if (parsed && typeof parsed === "object") {
+      return {
+        streetAddress: parsed.streetAddress || "",
+        photo: parsed.photo || "",
+        aadharNumber: parsed.aadharNumber || "",
+        bankName: parsed.bankName || "",
+        bankAccount: parsed.bankAccount || "",
+        bankIfsc: parsed.bankIfsc || "",
+        schemes: Array.isArray(parsed.schemes) ? parsed.schemes : [],
+        docAadhar: parsed.docAadhar || "",
+        docIncome: parsed.docIncome || "",
+        docCommunity: parsed.docCommunity || "",
+        docRation: parsed.docRation || ""
+      };
+    }
+  } catch (e) {
+    // Fallback
+  }
+  return {
+    streetAddress: addressStr || "",
+    photo: "",
+    aadharNumber: "",
+    bankName: "",
+    bankAccount: "",
+    bankIfsc: "",
+    schemes: [],
+    docAadhar: "",
+    docIncome: "",
+    docCommunity: "",
+    docRation: ""
+  };
+};
+
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 interface ParsedPreviewStudent {
   id: number;
@@ -103,6 +162,7 @@ interface WatchlistStudent {
   state: string;
   city: string;
   pincode: string;
+  address?: string;
   admissionNumber?: string;
   studentStatus?: string;
   group?: string;
@@ -219,6 +279,20 @@ export default function StudentsMonitoringPage() {
     setNewAddress(s.address || "");
     setNewStudentStatus(s.studentStatus || "Active");
 
+    // Parse serialized confidential fields from address field
+    const meta = parseStudentAddress(s.address || "");
+    setNewStreetAddress(meta.streetAddress || s.address || "");
+    setNewPhoto(meta.photo || "");
+    setNewAadharNumber(meta.aadharNumber || "");
+    setNewBankName(meta.bankName || "");
+    setNewBankAccount(meta.bankAccount || "");
+    setNewBankIfsc(meta.bankIfsc || "");
+    setNewSchemes(meta.schemes || []);
+    setNewDocAadhar(meta.docAadhar || "");
+    setNewDocIncome(meta.docIncome || "");
+    setNewDocCommunity(meta.docCommunity || "");
+    setNewDocRation(meta.docRation || "");
+
     // Reset validation errors
     setRollError("");
     setPhoneError("");
@@ -270,6 +344,24 @@ export default function StudentsMonitoringPage() {
   const [newParentEmail, setNewParentEmail] = useState("");
   const [newAddress, setNewAddress] = useState("");
   const [newStudentStatus, setNewStudentStatus] = useState("Active");
+
+  // Confidential Fields states
+  const [newStreetAddress, setNewStreetAddress] = useState("");
+  const [newPhoto, setNewPhoto] = useState("");
+  const [newAadharNumber, setNewAadharNumber] = useState("");
+  const [newBankName, setNewBankName] = useState("");
+  const [newBankAccount, setNewBankAccount] = useState("");
+  const [newBankIfsc, setNewBankIfsc] = useState("");
+  const [newSchemes, setNewSchemes] = useState<string[]>([]);
+  const [newDocAadhar, setNewDocAadhar] = useState("");
+  const [newDocIncome, setNewDocIncome] = useState("");
+  const [newDocCommunity, setNewDocCommunity] = useState("");
+  const [newDocRation, setNewDocRation] = useState("");
+
+  // UI Control states
+  const [showAadhar, setShowAadhar] = useState(false);
+  const [showBankAccount, setShowBankAccount] = useState(false);
+  const [viewModalTab, setViewModalTab] = useState<"academic" | "confidential">("academic");
 
   // Live input validations
   const [pincodeError, setPincodeError] = useState("");
@@ -877,6 +969,20 @@ export default function StudentsMonitoringPage() {
       const url = isEditMode ? `${API_BASE}/api/headmaster/students/${editingStudentId}` : `${API_BASE}/api/headmaster/students`;
       const method = isEditMode ? "PUT" : "POST";
 
+      const serializedAddress = JSON.stringify({
+        streetAddress: newStreetAddress,
+        photo: newPhoto,
+        aadharNumber: newAadharNumber,
+        bankName: newBankName,
+        bankAccount: newBankAccount,
+        bankIfsc: newBankIfsc,
+        schemes: newSchemes,
+        docAadhar: newDocAadhar,
+        docIncome: newDocIncome,
+        docCommunity: newDocCommunity,
+        docRation: newDocRation
+      });
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
@@ -907,7 +1013,7 @@ export default function StudentsMonitoringPage() {
           motherName: newMotherName,
           motherOccupation: newMotherOccupation,
           parentEmail: newParentEmail,
-          address: newAddress,
+          address: serializedAddress,
           studentStatus: newStudentStatus,
           schoolId: mySchoolId || null,
         }),
@@ -929,6 +1035,19 @@ export default function StudentsMonitoringPage() {
         setNewBloodGroup(""); setNewReligion(""); setNewCommunity(""); setNewNationality("Indian");
         setNewFatherName(""); setNewFatherOccupation(""); setNewMotherName(""); setNewMotherOccupation("");
         setNewParentEmail(""); setNewAddress(""); setNewStudentStatus("Active");
+        
+        // Clear confidential fields states
+        setNewStreetAddress("");
+        setNewPhoto("");
+        setNewAadharNumber("");
+        setNewBankName("");
+        setNewBankAccount("");
+        setNewBankIfsc("");
+        setNewSchemes([]);
+        setNewDocAadhar("");
+        setNewDocIncome("");
+        setNewDocCommunity("");
+        setNewDocRation("");
 
         // Clear error states
         setRollError("");
@@ -1206,12 +1325,28 @@ export default function StudentsMonitoringPage() {
                           />
                         )}
                       </td>
-                      <td className="font-medium text-white">{s.name}</td>
-                      <td>
-                        <div className="text-xs text-slate-300">{s.rollNumber}</div>
-                        <div className="text-[10px] text-slate-500">{s.class}</div>
+                      <td className="font-medium text-slate-800 dark:text-white">
+                        <div className="flex items-center gap-3">
+                          {(() => {
+                            const meta = parseStudentAddress(s.address || "");
+                            if (meta.photo) {
+                              return <img src={meta.photo} alt={s.name} className="w-8 h-8 rounded-full object-cover border border-slate-700 shrink-0" />;
+                            } else {
+                              return (
+                                <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 flex items-center justify-center text-xs font-bold shrink-0 border border-slate-200 dark:border-slate-700">
+                                  {s.name.charAt(0).toUpperCase()}
+                                </div>
+                              );
+                            }
+                          })()}
+                          <span>{s.name}</span>
+                        </div>
                       </td>
-                      <td className="text-xs font-bold text-slate-300">
+                      <td>
+                        <div className="text-xs text-slate-800 dark:text-slate-300">{s.rollNumber}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-500">{s.class}</div>
+                      </td>
+                      <td className="text-xs font-bold text-slate-800 dark:text-slate-300">
                         {s.section || "—"}
                       </td>
                       <td>
@@ -1579,313 +1714,825 @@ export default function StudentsMonitoringPage() {
               <div className="flex flex-col gap-4">
                 {/* ── MANUAL ENTRY TAB ── */}
                 {modalTab === "manual" && (
-                  <form onSubmit={handleManualSubmit} className="space-y-4">
-                    <fieldset disabled={isViewMode}>
-                      <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Manual Entry</div>
-
-                      {/* Personal Details */}
-                      <div className="pt-1 pb-2 border-b border-slate-200">
-                        <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Personal Details</h4>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="col-span-2">
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Full Name</label>
-                          <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)}
-                            placeholder="e.g. Senthil Kumar"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Date of Birth</label>
-                          <input type="date" value={newDob} onChange={(e) => setNewDob(e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Gender</label>
-                          <select value={newGender} onChange={(e) => setNewGender(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                            <option value="">Select Gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Blood Group</label>
-                          <select value={newBloodGroup} onChange={(e) => setNewBloodGroup(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                            <option value="">Select Blood Group</option>
-                            <option value="A+">A+</option>
-                            <option value="A-">A-</option>
-                            <option value="B+">B+</option>
-                            <option value="B-">B-</option>
-                            <option value="O+">O+</option>
-                            <option value="O-">O-</option>
-                            <option value="AB+">AB+</option>
-                            <option value="AB-">AB-</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Religion</label>
-                          <select value={newReligion} onChange={(e) => setNewReligion(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                            <option value="">Select Religion</option>
-                            <option value="Hindu">Hindu</option>
-                            <option value="Muslim">Muslim</option>
-                            <option value="Christian">Christian</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Community</label>
-                          <select value={newCommunity} onChange={(e) => setNewCommunity(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                            <option value="">Select Community</option>
-                            <option value="BC">BC</option>
-                            <option value="MBC">MBC</option>
-                            <option value="SC">SC</option>
-                            <option value="ST">ST</option>
-                            <option value="OC">OC</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Nationality</label>
-                          <select value={newNationality} onChange={(e) => setNewNationality(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                            <option value="Indian">Indian</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Academic Details */}
-                      <div className="pt-3 pb-2 border-b border-slate-200">
-                        <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Academic Details</h4>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Admission Number</label>
-                          <input type="text" value={newAdmissionNumber} onChange={(e) => setNewAdmissionNumber(e.target.value)}
-                            placeholder="e.g. ADM2026101"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                            EMIS Number
-                            <span className="ml-1 text-slate-400 font-normal">(16 digits)</span>
-                          </label>
-                          <input type="text" id="manual-emis-number" value={newEmisNumber} onChange={(e) => handleEmisChange(e.target.value)}
-                            placeholder="e.g. 3302100010101234"
-                            maxLength={16}
-                            className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-colors ${emisError
-                                ? "border-red-400 focus:border-red-500 focus:bg-white"
-                                : newEmisNumber.length === 16
-                                  ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
-                                  : "border-slate-200 focus:border-blue-500 focus:bg-white"
-                              }`} />
-                          {emisError && (
-                            <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{emisError}</p>
+                  isViewMode ? (
+                    /* ── HIGH FIDELITY STUDENT PROFILE SHEET (VIEW MODE) ── */
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-slate-800 dark:text-slate-200">
+                      
+                      {/* Left Column: Profile Card */}
+                      <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-880 rounded-3xl p-5 flex flex-col items-center text-center space-y-4 self-start">
+                        
+                        {/* Profile Image */}
+                        <div className="relative w-24 h-24 rounded-full overflow-hidden shadow border-4 border-white dark:border-slate-800">
+                          {newPhoto ? (
+                            <img src={newPhoto} alt={newName} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white flex items-center justify-center text-3xl font-black">
+                              {newName.charAt(0).toUpperCase()}
+                            </div>
                           )}
                         </div>
+
                         <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                            Roll Number
-                            <span className="ml-1 text-red-500">*</span>
-                          </label>
-                          <input type="text" id="manual-roll-number" required value={newRollNumber} onChange={(e) => handleRollChange(e.target.value)}
-                            placeholder="e.g. HM10101"
-                            className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none transition-colors ${rollError
-                                ? "border-red-400 focus:border-red-500 focus:bg-white"
-                                : newRollNumber.length >= 3
-                                  ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
-                                  : "border-slate-200 focus:border-blue-500 focus:bg-white"
-                              }`} />
-                          {rollError && (
-                            <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{rollError}</p>
+                          <h3 className="text-base font-extrabold text-slate-900 dark:text-white leading-tight">{newName}</h3>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">{newClass} · Section {newSection}</p>
+                          {newGroup && (
+                            <span className="inline-block mt-1 px-2.5 py-0.5 bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-full text-[9px] font-black uppercase">
+                              Group {newGroup}
+                            </span>
                           )}
                         </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Academic Year</label>
-                          <input type="text" value={newAcademicYear} onChange={(e) => setNewAcademicYear(e.target.value)}
-                            placeholder="e.g. 2024-25"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+
+                        <div className="w-full space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800 text-left text-xs font-semibold text-slate-600 dark:text-slate-350">
+                          <div className="flex justify-between">
+                            <span className="text-slate-455">EMIS Number</span>
+                            <span className="font-extrabold text-slate-800 dark:text-white">{newEmisNumber || "—"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-455">Roll Number</span>
+                            <span className="font-extrabold text-slate-800 dark:text-white">{newRollNumber || "—"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-455">Admission No</span>
+                            <span className="font-extrabold text-slate-800 dark:text-white">{newAdmissionNumber || "—"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-455">Status</span>
+                            <span className={`px-2 py-0.2 rounded-full text-[9px] font-bold ${
+                              newStudentStatus === "Active" ? "bg-emerald-500/10 text-emerald-605" : "bg-red-500/10 text-red-600"
+                            }`}>{newStudentStatus}</span>
+                          </div>
                         </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Class</label>
-                          <select required value={newClass} onChange={(e) => setNewClass(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                            <option value="">Select Class</option>
-                            <option value="Class 6">Class 6</option>
-                            <option value="Class 7">Class 7</option>
-                            <option value="Class 8">Class 8</option>
-                            <option value="Class 9">Class 9</option>
-                            <option value="Class 10">Class 10</option>
-                            <option value="Class 11">Class 11</option>
-                            <option value="Class 12">Class 12</option>
-                          </select>
+
+                        <div className="w-full space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800 text-left text-xs font-semibold text-slate-600 dark:text-slate-350">
+                          <div className="flex justify-between">
+                            <span className="text-slate-455">Gender</span>
+                            <span className="font-bold text-slate-800 dark:text-white">{newGender || "—"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-455">Date of Birth</span>
+                            <span className="font-bold text-slate-800 dark:text-white">{newDob || "—"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-455">Blood Group</span>
+                            <span className="px-1.5 py-0.2 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900 rounded font-black text-[10px]">{newBloodGroup || "—"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-455">Religion/Caste</span>
+                            <span className="font-bold text-slate-800 dark:text-white">{newReligion || "—"} · {newCommunity || "—"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-455">Medium</span>
+                            <span className="font-bold text-slate-800 dark:text-white">{newMediumOfInstruction}</span>
+                          </div>
                         </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Section</label>
-                          <select value={newSection} onChange={(e) => setNewSection(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                            <option value="C">C</option>
-                            <option value="D">D</option>
-                            <option value="E">E</option>
-                            <option value="F">F</option>
-                            <option value="G">G</option>
-                            <option value="H">H</option>
-                          </select>
+
+                      </div>
+
+                      {/* Right Column: Tabbed Details */}
+                      <div className="md:col-span-2 space-y-4">
+                        
+                        {/* View Tabs */}
+                        <div className="flex gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                          <button
+                            type="button"
+                            onClick={() => setViewModalTab("academic")}
+                            className={`px-4 py-2 text-xs font-bold transition-all border-b-2 -mb-[10px] ${
+                              viewModalTab === "academic" 
+                                ? "border-blue-500 text-blue-600 dark:text-blue-400 font-extrabold" 
+                                : "border-transparent text-slate-400 hover:text-slate-650"
+                            }`}
+                          >
+                            🏫 Academic & Contact Info
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setViewModalTab("confidential")}
+                            className={`px-4 py-2 text-xs font-bold transition-all border-b-2 -mb-[10px] flex items-center gap-1.5 ${
+                              viewModalTab === "confidential" 
+                                ? "border-blue-500 text-blue-600 dark:text-blue-400 font-extrabold" 
+                                : "border-transparent text-slate-400 hover:text-slate-650"
+                            }`}
+                          >
+                            <Lock className="w-3.5 h-3.5 text-blue-500" />
+                            <span>🔐 Confidential Records</span>
+                          </button>
                         </div>
-                        {(newClass.includes("11") || newClass.includes("12")) && (
-                          <div className="col-span-2">
-                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">HSC Group (DGE code)</label>
-                            <select value={newGroup} onChange={(e) => setNewGroup(e.target.value)} className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-1.5 text-xs text-blue-900 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                              <option value="">Select Group</option>
-                              {Object.keys(streamLabels).map((stream) => (
-                                <optgroup key={stream} label={streamLabels[stream] || stream}>
-                                  {hscGroups
-                                    .filter((g) => g.streamCategory === stream)
-                                    .map((g) => (
-                                      <option key={g.code} value={g.code}>{g.name}</option>
-                                    ))}
-                                </optgroup>
-                              ))}
-                            </select>
-                            <p className="text-[9px] text-slate-400 mt-1">Official Annexure-I group codes — used for competitive exam recommendations on the student panel.</p>
+
+                        {/* Tab 1: Academic & Contact */}
+                        {viewModalTab === "academic" && (
+                          <div className="space-y-4 pt-2 fade-in">
+                            
+                            {/* Family Details */}
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl">
+                              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Parent / Guardian Details</h4>
+                              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700 dark:text-slate-350">
+                                <div>
+                                  <span className="text-slate-400 block mb-0.5">Father Name</span>
+                                  <span className="font-extrabold text-slate-800 dark:text-white">{newFatherName || "—"}</span>
+                                  {newFatherOccupation && <span className="text-[10px] text-slate-500 block">({newFatherOccupation})</span>}
+                                </div>
+                                <div>
+                                  <span className="text-slate-400 block mb-0.5">Mother Name</span>
+                                  <span className="font-extrabold text-slate-800 dark:text-white">{newMotherName || "—"}</span>
+                                  {newMotherOccupation && <span className="text-[10px] text-slate-500 block">({newMotherOccupation})</span>}
+                                </div>
+                                <div>
+                                  <span className="text-slate-400 block mb-0.5">Primary Guardian</span>
+                                  <span className="font-extrabold text-slate-800 dark:text-white">{newParentName || "—"}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-400 block mb-0.5">Parent Email</span>
+                                  <span className="font-extrabold text-slate-800 dark:text-white">{newParentEmail || "—"}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Contact Details */}
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl">
+                              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Contact & Address</h4>
+                              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700 dark:text-slate-350">
+                                <div>
+                                  <span className="text-slate-400 block mb-0.5">Mobile Contact</span>
+                                  <span className="font-black text-slate-800 dark:text-white">{newPhone || "—"}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-400 block mb-0.5">City & District</span>
+                                  <span className="font-bold text-slate-800 dark:text-white">{newCity || "—"}, {newDistrict || "—"}</span>
+                                </div>
+                                <div className="col-span-2">
+                                  <span className="text-slate-400 block mb-0.5">Permanent Address</span>
+                                  <p className="font-bold text-slate-800 dark:text-white">{newStreetAddress || newAddress || "—"}</p>
+                                  <p className="text-[10px] text-slate-500 mt-1">{newCity} · {newDistrict} · {newState} - {newPincode}</p>
+                                </div>
+                              </div>
+                            </div>
+
                           </div>
                         )}
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Medium of Instruction</label>
-                          <select value={newMediumOfInstruction} onChange={(e) => setNewMediumOfInstruction(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                            <option value="English">English</option>
-                            <option value="Tamil">Tamil</option>
-                            <option value="Hindi">Hindi</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Student Status</label>
-                          <select value={newStudentStatus} onChange={(e) => setNewStudentStatus(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Transferred">Transferred</option>
-                            <option value="Graduated">Graduated</option>
-                          </select>
-                        </div>
+
+                        {/* Tab 2: Confidential Records */}
+                        {viewModalTab === "confidential" && (
+                          <div className="space-y-4 pt-2 fade-in">
+                            
+                            {/* Privacy warning */}
+                            <div className="bg-blue-50/50 dark:bg-slate-900/60 border border-blue-100 dark:border-slate-800 p-3 rounded-2xl flex items-center gap-2.5">
+                              <ShieldCheck className="w-5 h-5 text-blue-500 shrink-0" />
+                              <span className="text-[11px] text-blue-800 dark:text-blue-300 font-semibold leading-relaxed">
+                                Access Restricted: Financial and national identity card documents are encrypted and masked under school governance policy.
+                              </span>
+                            </div>
+
+                            {/* Aadhaar Details */}
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl space-y-3">
+                              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aadhaar Identity Details</h4>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                                <div>
+                                  <span className="text-slate-400 block mb-0.5">Aadhaar Number</span>
+                                  <span className="font-mono text-sm font-bold text-slate-800 dark:text-white">
+                                    {newAadharNumber 
+                                      ? (showAadhar ? newAadharNumber.replace(/(\d{4})/g, '$1 ').trim() : "•••• •••• " + newAadharNumber.slice(-4)) 
+                                      : "Not Registered"}
+                                  </span>
+                                </div>
+                                <div className="flex gap-2">
+                                  {newAadharNumber && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowAadhar(!showAadhar)}
+                                      className="px-3 py-1.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-[10px] font-bold text-slate-700 dark:text-slate-350 hover:bg-slate-50 flex items-center gap-1 shadow-sm"
+                                    >
+                                      {showAadhar ? <Lock className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                                      <span>{showAadhar ? "Obscure" : "Reveal"}</span>
+                                    </button>
+                                  )}
+                                  
+                                  {newDocAadhar ? (
+                                    <a
+                                      href={newDocAadhar}
+                                      download={`aadhar_${newRollNumber}.png`}
+                                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-bold flex items-center gap-1 shadow-sm"
+                                    >
+                                      <Download className="w-3 h-3" />
+                                      <span>Download Copy</span>
+                                    </a>
+                                  ) : (
+                                    <span className="text-[10px] text-slate-400 italic font-semibold self-center">No Aadhaar document uploaded.</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Bank Account */}
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl space-y-3">
+                              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bank Details</h4>
+                              <div className="grid grid-cols-2 gap-4 text-xs border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <div>
+                                  <span className="text-slate-400 block mb-0.5">Bank Name</span>
+                                  <span className="font-extrabold text-slate-800 dark:text-white">{newBankName || "—"}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-400 block mb-0.5">Bank IFSC Code</span>
+                                  <span className="font-mono font-bold text-slate-800 dark:text-white">{newBankIfsc || "—"}</span>
+                                </div>
+                              </div>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs pt-1">
+                                <div>
+                                  <span className="text-slate-400 block mb-0.5">Account Number</span>
+                                  <span className="font-mono text-sm font-bold text-slate-800 dark:text-white">
+                                    {newBankAccount 
+                                      ? (showBankAccount ? newBankAccount : "••••••••" + newBankAccount.slice(-4)) 
+                                      : "Not Registered"}
+                                  </span>
+                                </div>
+                                {newBankAccount && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowBankAccount(!showBankAccount)}
+                                    className="px-3 py-1.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-[10px] font-bold text-slate-700 dark:text-slate-350 hover:bg-slate-50 flex items-center gap-1 shadow-sm"
+                                  >
+                                    {showBankAccount ? <Lock className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                                    <span>{showBankAccount ? "Obscure" : "Reveal Account"}</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Active Schemes */}
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl">
+                              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Welfare & Government Schemes Held</h4>
+                              {newSchemes.length === 0 ? (
+                                <p className="text-xs text-slate-400 italic">No welfare schemes hold by student.</p>
+                              ) : (
+                                <div className="flex flex-wrap gap-2">
+                                  {newSchemes.map((scheme) => (
+                                    <span key={scheme} className="px-3 py-1 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-650 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900 rounded-xl text-xs font-bold shadow-sm">
+                                      ✓ {scheme}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Welfare Certificates Attachments */}
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl">
+                              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Welfare Certificates & Attachments</h4>
+                              <div className="grid grid-cols-3 gap-3">
+                                
+                                <div className="bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-850 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
+                                  <span className="text-[10px] font-bold text-slate-400 block">Income Certificate</span>
+                                  {newDocIncome ? (
+                                    <>
+                                      <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded-md text-[9px] font-bold">Uploaded</span>
+                                      <a href={newDocIncome} download={`income_${newRollNumber}.png`} className="text-[10px] text-blue-650 dark:text-blue-400 font-bold underline hover:text-blue-705">Download</a>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-900 text-slate-400 rounded-md text-[9px] font-bold">Pending</span>
+                                      <span className="text-[9px] text-slate-400 italic">No document</span>
+                                    </>
+                                  )}
+                                </div>
+
+                                <div className="bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-850 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
+                                  <span className="text-[10px] font-bold text-slate-400 block">Community Certificate</span>
+                                  {newDocCommunity ? (
+                                    <>
+                                      <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded-md text-[9px] font-bold">Uploaded</span>
+                                      <a href={newDocCommunity} download={`community_${newRollNumber}.png`} className="text-[10px] text-blue-655 dark:text-blue-400 font-bold underline hover:text-blue-700">Download</a>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-900 text-slate-400 rounded-md text-[9px] font-bold">Pending</span>
+                                      <span className="text-[9px] text-slate-400 italic">No document</span>
+                                    </>
+                                  )}
+                                </div>
+
+                                <div className="bg-white dark:bg-slate-950 border border-slate-255 dark:border-slate-850 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
+                                  <span className="text-[10px] font-bold text-slate-400 block">Ration / Smart Card</span>
+                                  {newDocRation ? (
+                                    <>
+                                      <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded-md text-[9px] font-bold">Uploaded</span>
+                                      <a href={newDocRation} download={`ration_${newRollNumber}.png`} className="text-[10px] text-blue-655 dark:text-blue-400 font-bold underline hover:text-blue-700">Download</a>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-900 text-slate-400 rounded-md text-[9px] font-bold">Pending</span>
+                                      <span className="text-[9px] text-slate-400 italic">No document</span>
+                                    </>
+                                  )}
+                                </div>
+
+                              </div>
+                            </div>
+
+                          </div>
+                        )}
+
                       </div>
 
-                      {/* Parent Details */}
-                      <div className="pt-3 pb-2 border-b border-slate-200">
-                        <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Parent / Guardian Details</h4>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Name</label>
-                          <input type="text" value={newFatherName} onChange={(e) => setNewFatherName(e.target.value)}
-                            placeholder="e.g. Ramasamy"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                    </div>
+                  ) : (
+                    /* ── REGULAR ADD / EDIT STUDENT MANUAL FORM ── */
+                    <form onSubmit={handleManualSubmit} className="space-y-4">
+                      <fieldset disabled={isViewMode}>
+                        <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Manual Entry</div>
+
+                        {/* Personal Details */}
+                        <div className="pt-1 pb-2 border-b border-slate-200">
+                          <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Personal Details</h4>
                         </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Occupation</label>
-                          <input type="text" value={newFatherOccupation} onChange={(e) => setNewFatherOccupation(e.target.value)}
-                            placeholder="e.g. Farmer"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="col-span-2">
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Full Name</label>
+                            <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)}
+                              placeholder="e.g. Senthil Kumar"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Date of Birth</label>
+                            <input type="date" value={newDob} onChange={(e) => setNewDob(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Gender</label>
+                            <select value={newGender} onChange={(e) => setNewGender(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                              <option value="">Select Gender</option>
+                              <option value="Male">Male</option>
+                              <option value="Female">Female</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Blood Group</label>
+                            <select value={newBloodGroup} onChange={(e) => setNewBloodGroup(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                              <option value="">Select Blood Group</option>
+                              <option value="A+">A+</option>
+                              <option value="A-">A-</option>
+                              <option value="B+">B+</option>
+                              <option value="B-">B-</option>
+                              <option value="O+">O+</option>
+                              <option value="O-">O-</option>
+                              <option value="AB+">AB+</option>
+                              <option value="AB-">AB-</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Religion</label>
+                            <select value={newReligion} onChange={(e) => setNewReligion(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                              <option value="">Select Religion</option>
+                              <option value="Hindu">Hindu</option>
+                              <option value="Muslim">Muslim</option>
+                              <option value="Christian">Christian</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Community</label>
+                            <select value={newCommunity} onChange={(e) => setNewCommunity(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                              <option value="">Select Community</option>
+                              <option value="BC">BC</option>
+                              <option value="MBC">MBC</option>
+                              <option value="SC">SC</option>
+                              <option value="ST">ST</option>
+                              <option value="OC">OC</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Nationality</label>
+                            <select value={newNationality} onChange={(e) => setNewNationality(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                              <option value="Indian">Indian</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
                         </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Name</label>
-                          <input type="text" value={newMotherName} onChange={(e) => setNewMotherName(e.target.value)}
-                            placeholder="e.g. Lakshmi"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+
+                        {/* Academic Details */}
+                        <div className="pt-3 pb-2 border-b border-slate-200">
+                          <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Academic Details</h4>
                         </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Occupation</label>
-                          <input type="text" value={newMotherOccupation} onChange={(e) => setNewMotherOccupation(e.target.value)}
-                            placeholder="e.g. Homemaker"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Primary Contact Name</label>
-                          <input type="text" required value={newParentName} onChange={(e) => setNewParentName(e.target.value)}
-                            placeholder="e.g. Ramasamy A."
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Parent Email</label>
-                          <input type="email" value={newParentEmail} onChange={(e) => setNewParentEmail(e.target.value)}
-                            placeholder="e.g. parent@example.com"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                            Phone Number
-                            <span className="ml-1 text-red-500">*</span>
-                          </label>
-                          <input type="text" id="manual-phone-number" required value={newPhone} onChange={(e) => handlePhoneChange(e.target.value)}
-                            placeholder="e.g. 9876543210"
-                            maxLength={10}
-                            className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none transition-colors ${phoneError
-                                ? "border-red-400 focus:border-red-500 focus:bg-white"
-                                : newPhone.length === 10
-                                  ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
-                                  : "border-slate-200 focus:border-blue-500 focus:bg-white"
-                              }`} />
-                          {phoneError && (
-                            <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{phoneError}</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Admission Number</label>
+                            <input type="text" value={newAdmissionNumber} onChange={(e) => setNewAdmissionNumber(e.target.value)}
+                              placeholder="e.g. ADM2026101"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                              EMIS Number
+                              <span className="ml-1 text-slate-400 font-normal">(16 digits)</span>
+                            </label>
+                            <input type="text" id="manual-emis-number" value={newEmisNumber} onChange={(e) => handleEmisChange(e.target.value)}
+                              placeholder="e.g. 3302100010101234"
+                              maxLength={16}
+                              className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-colors ${emisError
+                                  ? "border-red-400 focus:border-red-500 focus:bg-white"
+                                  : newEmisNumber.length === 16
+                                    ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                                    : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                                }`} />
+                            {emisError && (
+                              <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{emisError}</p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                              Roll Number
+                              <span className="ml-1 text-red-550 font-normal">*</span>
+                            </label>
+                            <input type="text" id="manual-roll-number" required value={newRollNumber} onChange={(e) => handleRollChange(e.target.value)}
+                              placeholder="e.g. HM10101"
+                              className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none transition-colors ${rollError
+                                  ? "border-red-400 focus:border-red-500 focus:bg-white"
+                                  : newRollNumber.length >= 3
+                                    ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                                    : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                                }`} />
+                            {rollError && (
+                              <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{rollError}</p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Academic Year</label>
+                            <input type="text" value={newAcademicYear} onChange={(e) => setNewAcademicYear(e.target.value)}
+                              placeholder="e.g. 2024-25"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Class</label>
+                            <select required value={newClass} onChange={(e) => setNewClass(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                              <option value="">Select Class</option>
+                              <option value="Class 6">Class 6</option>
+                              <option value="Class 7">Class 7</option>
+                              <option value="Class 8">Class 8</option>
+                              <option value="Class 9">Class 9</option>
+                              <option value="Class 10">Class 10</option>
+                              <option value="Class 11">Class 11</option>
+                              <option value="Class 12">Class 12</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Section</label>
+                            <select value={newSection} onChange={(e) => setNewSection(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                              <option value="A">A</option>
+                              <option value="B">B</option>
+                              <option value="C">C</option>
+                              <option value="D">D</option>
+                              <option value="E">E</option>
+                              <option value="F">F</option>
+                              <option value="G">G</option>
+                              <option value="H">H</option>
+                            </select>
+                          </div>
+                          {(newClass.includes("11") || newClass.includes("12")) && (
+                            <div className="col-span-2">
+                              <label className="block text-[10px] text-slate-600 mb-1 font-semibold">HSC Group (DGE code)</label>
+                              <select value={newGroup} onChange={(e) => setNewGroup(e.target.value)} className="w-full bg-blue-50 border border-blue-200 rounded-xl px-3 py-1.5 text-xs text-blue-900 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                                <option value="">Select Group</option>
+                                {Object.keys(streamLabels).map((stream) => (
+                                  <optgroup key={stream} label={streamLabels[stream] || stream}>
+                                    {hscGroups
+                                      .filter((g) => g.streamCategory === stream)
+                                      .map((g) => (
+                                        <option key={g.code} value={g.code}>{g.name}</option>
+                                      ))}
+                                  </optgroup>
+                                ))}
+                              </select>
+                              <p className="text-[9px] text-slate-400 mt-1">Official Annexure-I group codes — used for competitive exam recommendations on the student panel.</p>
+                            </div>
                           )}
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Medium of Instruction</label>
+                            <select value={newMediumOfInstruction} onChange={(e) => setNewMediumOfInstruction(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                              <option value="English">English</option>
+                              <option value="Tamil">Tamil</option>
+                              <option value="Hindi">Hindi</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Student Status</label>
+                            <select value={newStudentStatus} onChange={(e) => setNewStudentStatus(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
+                              <option value="Active">Active</option>
+                              <option value="Inactive">Inactive</option>
+                              <option value="Transferred">Transferred</option>
+                              <option value="Graduated">Graduated</option>
+                            </select>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Address Details */}
-                      <div className="pt-3 pb-2 border-b border-slate-200">
-                        <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Address Details</h4>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="col-span-2">
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Address</label>
-                          <input type="text" value={newAddress} onChange={(e) => setNewAddress(e.target.value)}
-                            placeholder="e.g. 123 Main Street"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        {/* Parent Details */}
+                        <div className="pt-3 pb-2 border-b border-slate-200">
+                          <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Parent / Guardian Details</h4>
                         </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">City</label>
-                          <input type="text" required value={newCity} onChange={(e) => setNewCity(e.target.value)}
-                            placeholder="e.g. Coimbatore"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Name</label>
+                            <input type="text" value={newFatherName} onChange={(e) => setNewFatherName(e.target.value)}
+                              placeholder="e.g. Ramasamy"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Father Occupation</label>
+                            <input type="text" value={newFatherOccupation} onChange={(e) => setNewFatherOccupation(e.target.value)}
+                              placeholder="e.g. Farmer"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Name</label>
+                            <input type="text" value={newMotherName} onChange={(e) => setNewMotherName(e.target.value)}
+                              placeholder="e.g. Lakshmi"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Mother Occupation</label>
+                            <input type="text" value={newMotherOccupation} onChange={(e) => setNewMotherOccupation(e.target.value)}
+                              placeholder="e.g. Homemaker"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Primary Contact Name</label>
+                            <input type="text" required value={newParentName} onChange={(e) => setNewParentName(e.target.value)}
+                              placeholder="e.g. Ramasamy A."
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Parent Email</label>
+                            <input type="email" value={newParentEmail} onChange={(e) => setNewParentEmail(e.target.value)}
+                              placeholder="e.g. parent@example.com"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                              Phone Number
+                              <span className="ml-1 text-red-550 font-normal">*</span>
+                            </label>
+                            <input type="text" id="manual-phone-number" required value={newPhone} onChange={(e) => handlePhoneChange(e.target.value)}
+                              placeholder="e.g. 9876543210"
+                              maxLength={10}
+                              className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none transition-colors ${phoneError
+                                  ? "border-red-400 focus:border-red-500 focus:bg-white"
+                                  : newPhone.length === 10
+                                    ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                                    : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                                }`} />
+                            {phoneError && (
+                              <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{phoneError}</p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">District</label>
-                          <input type="text" required value={newDistrict} onChange={(e) => setNewDistrict(e.target.value)}
-                            placeholder="e.g. Coimbatore"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">State</label>
-                          <input type="text" required value={newState} onChange={(e) => setNewState(e.target.value)}
-                            placeholder="e.g. Tamil Nadu"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                            Pincode
-                            <span className="ml-1 text-slate-400 font-normal">(6 digits)</span>
-                          </label>
-                          <input type="text" id="manual-pincode" value={newPincode} onChange={(e) => handlePincodeChange(e.target.value)}
-                            placeholder="e.g. 641001"
-                            maxLength={6}
-                            className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-colors ${pincodeError
-                                ? "border-red-400 focus:border-red-500 focus:bg-white"
-                                : newPincode.length === 6
-                                  ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
-                                  : "border-slate-200 focus:border-blue-500 focus:bg-white"
-                              }`} />
-                          {pincodeError && (
-                            <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{pincodeError}</p>
-                          )}
-                        </div>
-                      </div>
 
-                      {!isViewMode && <button type="submit" disabled={isSaving}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-4 flex items-center justify-center gap-2">
-                        {isSaving ? (
-                          <><div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving...</>
-                        ) : isEditMode ? "💾 Update Student Record" : "💾 Save Student Record"}
-                      </button>}
-                    </fieldset>
-                  </form>
+                        {/* Address Details */}
+                        <div className="pt-3 pb-2 border-b border-slate-200">
+                          <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Address Details</h4>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="col-span-2">
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Address</label>
+                            <input type="text" value={newStreetAddress} onChange={(e) => setNewStreetAddress(e.target.value)}
+                              placeholder="e.g. 123 Main Street"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">City</label>
+                            <input type="text" required value={newCity} onChange={(e) => setNewCity(e.target.value)}
+                              placeholder="e.g. Coimbatore"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">District</label>
+                            <input type="text" required value={newDistrict} onChange={(e) => setNewDistrict(e.target.value)}
+                              placeholder="e.g. Coimbatore"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">State</label>
+                            <input type="text" required value={newState} onChange={(e) => setNewState(e.target.value)}
+                              placeholder="e.g. Tamil Nadu"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
+                              Pincode
+                              <span className="ml-1 text-slate-400 font-normal">(6 digits)</span>
+                            </label>
+                            <input type="text" id="manual-pincode" value={newPincode} onChange={(e) => handlePincodeChange(e.target.value)}
+                              placeholder="e.g. 641001"
+                              maxLength={6}
+                              className={`w-full bg-slate-50 border rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-colors ${pincodeError
+                                  ? "border-red-400 focus:border-red-500 focus:bg-white"
+                                  : newPincode.length === 6
+                                    ? "border-emerald-400 focus:border-emerald-500 focus:bg-white"
+                                    : "border-slate-200 focus:border-blue-500 focus:bg-white"
+                                }`} />
+                            {pincodeError && (
+                              <p className="mt-0.5 text-[9px] text-red-500 font-semibold">{pincodeError}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 🔐 Confidential Records & Document Uploads */}
+                        <div className="pt-3 pb-2 border-b border-slate-200 mt-2">
+                          <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <Lock className="w-3.5 h-3.5 text-blue-500" />
+                            <span>🔐 Confidential Records & Document Uploads</span>
+                          </h4>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                          
+                          {/* Student Photo */}
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold flex items-center gap-1">
+                              <Camera className="w-3 h-3 text-slate-400" />
+                              <span>Student Profile Photo</span>
+                            </label>
+                            <div className="flex items-center gap-3">
+                              {newPhoto && (
+                                <img src={newPhoto} alt="Preview" className="w-10 h-10 rounded-xl object-cover border border-slate-200" />
+                              )}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const b64 = await fileToBase64(file);
+                                    setNewPhoto(b64);
+                                  }
+                                }}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1 text-xs text-slate-700 focus:outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Aadhaar Number */}
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Aadhaar Number (12 digits)</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. 123456789012"
+                              maxLength={12}
+                              value={newAadharNumber}
+                              onChange={(e) => setNewAadharNumber(e.target.value.replace(/\D/g, "").slice(0, 12))}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors"
+                            />
+                          </div>
+
+                          {/* Aadhaar Document */}
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Upload Aadhaar Card Copy</label>
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const b64 = await fileToBase64(file);
+                                  setNewDocAadhar(b64);
+                                }
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1 text-xs text-slate-700 focus:outline-none"
+                            />
+                          </div>
+
+                          {/* Bank Name */}
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold flex items-center gap-1">
+                              <CreditCard className="w-3 h-3 text-slate-400" />
+                              <span>Bank Name</span>
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="e.g. State Bank of India"
+                              value={newBankName}
+                              onChange={(e) => setNewBankName(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors"
+                            />
+                          </div>
+
+                          {/* Account Number */}
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Bank Account Number</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. 30129482718"
+                              value={newBankAccount}
+                              onChange={(e) => setNewBankAccount(e.target.value.replace(/\D/g, ""))}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
+                            />
+                          </div>
+
+                          {/* IFSC Code */}
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Bank IFSC Code</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. SBIN0001234"
+                              value={newBankIfsc}
+                              onChange={(e) => setNewBankIfsc(e.target.value.toUpperCase())}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
+                            />
+                          </div>
+
+                          {/* Income Certificate File */}
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Income Certificate</label>
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const b64 = await fileToBase64(file);
+                                  setNewDocIncome(b64);
+                                }
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1 text-xs text-slate-700 focus:outline-none"
+                            />
+                          </div>
+
+                          {/* Community Certificate File */}
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Community Certificate</label>
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const b64 = await fileToBase64(file);
+                                  setNewDocCommunity(b64);
+                                }
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1 text-xs text-slate-700 focus:outline-none"
+                            />
+                          </div>
+
+                          {/* Ration Card File */}
+                          <div>
+                            <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Ration Card Smart Copy</label>
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const b64 = await fileToBase64(file);
+                                  setNewDocRation(b64);
+                                }
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1 text-xs text-slate-700 focus:outline-none"
+                            />
+                          </div>
+
+                          {/* Welfare Schemes held */}
+                          <div className="col-span-2 mt-1">
+                            <label className="block text-[10px] text-slate-600 mb-1.5 font-bold uppercase">Government Welfare Schemes Held</label>
+                            <div className="grid grid-cols-2 gap-2 border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-2xl">
+                              {[
+                                "Free Uniform Scheme",
+                                "Free Textbook Scheme",
+                                "Free Bicycle Scheme",
+                                "Noon Meal Program",
+                                "Pre-Matric Scholarship",
+                                "Post-Matric Scholarship",
+                                "Chief Minister's Breakfast Scheme"
+                              ].map((scheme) => {
+                                const isChecked = newSchemes.includes(scheme);
+                                return (
+                                  <label key={scheme} className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          setNewSchemes((prev) => [...prev, scheme]);
+                                        } else {
+                                          setNewSchemes((prev) => prev.filter((s) => s !== scheme));
+                                        }
+                                      }}
+                                      className="rounded border-slate-350 dark:border-slate-800 text-blue-600 focus:ring-blue-500/20 w-3.5 h-3.5"
+                                    />
+                                    <span>{scheme}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                        </div>
+
+                        {!isViewMode && <button type="submit" disabled={isSaving}
+                          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-4 flex items-center justify-center gap-2">
+                          {isSaving ? (
+                            <><div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving...</>
+                          ) : isEditMode ? "💾 Update Student Record" : "💾 Save Student Record"}
+                        </button>}
+                      </fieldset>
+                    </form>
+                  )
                 )} {/* end manual tab */}
 
                 {/* ── EXCEL IMPORT TAB ── */}

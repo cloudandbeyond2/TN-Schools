@@ -25,13 +25,13 @@ import { useSession } from "next-auth/react";
 
 // The categories the user requested
 const CATEGORIES = [
-  { id: "all", label: "All Resources", icon: Layers, gradient: "from-indigo-500 to-purple-600" },
-  { id: "e-books", label: "E-books", icon: Book, gradient: "from-blue-500 to-cyan-500" },
-  { id: "reference", label: "Reference books", icon: BookOpen, gradient: "from-emerald-500 to-teal-500" },
-  { id: "video", label: "Educational videos", icon: Video, gradient: "from-rose-500 to-pink-500" },
-  { id: "government", label: "Government learning materials", icon: Building2, gradient: "from-amber-500 to-orange-500" },
-  { id: "research", label: "Research content", icon: FlaskConical, gradient: "from-fuchsia-500 to-purple-500" },
-  { id: "competitive", label: "Competitive examination resources", icon: Trophy, gradient: "from-yellow-400 to-amber-500" },
+  { id: "all", label: "All Resources", flaticon: "https://cdn-icons-png.flaticon.com/128/2232/2232688.png", gradient: "from-indigo-500 to-purple-600" },
+  { id: "e-books", label: "E-books", flaticon: "https://cdn-icons-png.flaticon.com/128/3389/3389081.png", gradient: "from-blue-500 to-cyan-500" },
+  { id: "reference", label: "Reference books", flaticon: "https://cdn-icons-png.flaticon.com/128/3145/3145765.png", gradient: "from-emerald-500 to-teal-500" },
+  { id: "video", label: "Educational videos", flaticon: "https://cdn-icons-png.flaticon.com/128/2965/2965611.png", gradient: "from-rose-500 to-pink-500" },
+  { id: "government", label: "Government learning materials", flaticon: "https://cdn-icons-png.flaticon.com/128/1974/1974052.png", gradient: "from-amber-500 to-orange-500" },
+  { id: "research", label: "Research content", flaticon: "https://cdn-icons-png.flaticon.com/128/939/939329.png", gradient: "from-fuchsia-500 to-purple-500" },
+  { id: "competitive", label: "Competitive examination resources", flaticon: "https://cdn-icons-png.flaticon.com/128/3112/3112946.png", gradient: "from-yellow-400 to-amber-500" },
 ];
 
 // We will load resources dynamically
@@ -85,16 +85,16 @@ export default function DigitalLibraryPage() {
       <div className="space-y-8 text-left animate-in fade-in duration-500 pb-20">
         
         {/* Premium Hero Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-indigo-600 dark:bg-slate-900 p-8 md:p-12 shadow-2xl border border-indigo-500/20 dark:border-white/10 group">
+        <div className="relative overflow-hidden rounded-3xl bg-indigo-600 dark:bg-slate-900 p-6 sm:p-8 md:p-12 shadow-2xl border border-indigo-500/20 dark:border-white/10 group">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-600/40 dark:via-purple-600/40 dark:to-pink-600/40 opacity-90 dark:opacity-50 group-hover:opacity-100 dark:group-hover:opacity-70 transition-opacity duration-700" />
           <div className="absolute -right-16 -top-16 opacity-20 dark:opacity-10 transform rotate-12 scale-150 pointer-events-none transition-transform duration-1000 group-hover:scale-[1.6]">
-            <Library className="w-96 h-96 text-white" />
+            <img src="https://cdn-icons-png.flaticon.com/128/2232/2232688.png" className="w-96 h-96 grayscale invert" alt="library bg" />
           </div>
           
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
             <div className="space-y-4 max-w-2xl">
               <span className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold bg-white/20 dark:bg-white/10 backdrop-blur-md rounded-full border border-white/30 dark:border-white/20 text-white uppercase tracking-widest shadow-xl">
-                <Sparkles className="w-4 h-4 text-yellow-300" /> Premium Knowledge Hub
+                <img src="https://cdn-icons-png.flaticon.com/128/1666/1666579.png" className="w-4 h-4" alt="sparkles" /> Premium Knowledge Hub
               </span>
               <h2 className="text-4xl md:text-5xl font-black tracking-tight font-sans leading-tight text-white">
                 Limitless Learning, Anytime.
@@ -105,8 +105,8 @@ export default function DigitalLibraryPage() {
             </div>
 
             {/* Premium Search box */}
-            <div className="w-full md:w-96 bg-white dark:bg-white/10 backdrop-blur-2xl border border-transparent dark:border-white/20 p-2 pl-4 rounded-2xl shadow-xl flex items-center gap-3 transition-all focus-within:shadow-2xl focus-within:scale-[1.02]">
-              <Search className="w-5 h-5 text-indigo-500 dark:text-white/70 shrink-0" />
+            {/* <div className="w-full md:w-96 bg-white dark:bg-white/10 backdrop-blur-2xl border border-transparent dark:border-white/20 p-2 pl-4 rounded-2xl shadow-xl flex items-center gap-3 transition-all focus-within:shadow-2xl focus-within:scale-[1.02]">
+              <img src="https://cdn-icons-png.flaticon.com/128/6149/6149867.png" className="w-5 h-5 opacity-70 grayscale" alt="search" />
               <input
                 type="text"
                 value={searchQuery}
@@ -114,7 +114,7 @@ export default function DigitalLibraryPage() {
                 placeholder="Search resources, topics..."
                 className="w-full bg-transparent border-0 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-white/50 focus:ring-0 focus:outline-none text-base pr-2"
               />
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -122,20 +122,19 @@ export default function DigitalLibraryPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between px-2">
             <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-              <Layers className="w-5 h-5 text-indigo-500" /> Browse by Category
+              <img src="https://cdn-icons-png.flaticon.com/128/6532/6532057.png" className="w-6 h-6" alt="layers" /> Browse by Category
             </h3>
           </div>
           
           <div className="flex gap-4 overflow-x-auto pb-4 pt-2 px-2 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-indigo-200 dark:scrollbar-thumb-slate-700">
             {CATEGORIES.map((cat) => {
-              const Icon = cat.icon;
               const isActive = selectedCategory === cat.id;
               
               return (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`snap-start shrink-0 relative overflow-hidden rounded-2xl p-4 md:p-5 text-left transition-all duration-300 w-44 md:w-56 group border ${
+                  className={`snap-start shrink-0 relative overflow-hidden rounded-2xl p-4 md:p-5 text-left transition-all duration-300 w-40 sm:w-44 md:w-56 group border ${
                     isActive 
                       ? "border-transparent ring-2 ring-indigo-500 shadow-xl scale-105" 
                       : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-lg"
@@ -144,11 +143,11 @@ export default function DigitalLibraryPage() {
                   {isActive && (
                     <div className={`absolute inset-0 bg-gradient-to-br ${cat.gradient} opacity-100 z-0`} />
                   )}
-                  <div className="relative z-10 flex flex-col h-full gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                      isActive ? "bg-white/20 text-white" : `bg-gradient-to-br ${cat.gradient} text-white shadow-md`
+                  <div className="relative z-10 flex flex-col h-full gap-3 sm:gap-4">
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-colors ${
+                      isActive ? "bg-white/20" : `bg-gradient-to-br ${cat.gradient} shadow-md`
                     }`}>
-                      <Icon className="w-6 h-6" />
+                      <img src={cat.flaticon} className="w-5 h-5 sm:w-6 sm:h-6 brightness-0 invert opacity-90" alt={cat.label} />
                     </div>
                     <div>
                       <h4 className={`font-bold leading-tight ${isActive ? "text-white" : "text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`}>
@@ -171,7 +170,7 @@ export default function DigitalLibraryPage() {
         {selectedCategory === "all" && !searchQuery && (
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2 px-2">
-              <TrendingUp className="w-5 h-5 text-rose-500" /> Trending This Week
+              <img src="https://cdn-icons-png.flaticon.com/128/3041/3041490.png" className="w-6 h-6" alt="trending" /> Trending This Week
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2">
               {resources.slice(0, 3).map((res) => (
@@ -181,16 +180,16 @@ export default function DigitalLibraryPage() {
                     : res.fileUrl;
                   window.open(url, '_blank');
                 }} className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden transform hover:-translate-y-1">
-                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
-                    <Trophy className="w-24 h-24" />
+                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
+                    <img src="https://cdn-icons-png.flaticon.com/128/3112/3112946.png" className="w-24 h-24 grayscale" alt="trophy bg" />
                   </div>
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-full border border-indigo-100 dark:border-indigo-800/50">
                         {res.type.toUpperCase()}
                       </span>
-                      <span className="flex items-center gap-1 text-xs text-slate-400 font-medium">
-                        <Clock className="w-3.5 h-3.5" /> 5m read
+                      <span className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                        <img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" className="w-3.5 h-3.5 opacity-70 grayscale" alt="clock" /> 5m read
                       </span>
                     </div>
                     <div>
@@ -206,7 +205,7 @@ export default function DigitalLibraryPage() {
                         ))}
                       </div>
                       <div className="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center transform group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/30">
-                        <ChevronRight className="w-4 h-4" />
+                        <img src="https://cdn-icons-png.flaticon.com/128/2989/2989988.png" className="w-4 h-4 invert" alt="go" />
                       </div>
                     </div>
                   </div>
@@ -218,19 +217,19 @@ export default function DigitalLibraryPage() {
 
         {/* Resources Grid */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between px-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between px-2 gap-2 sm:gap-0">
             <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-              <Library className="w-5 h-5 text-indigo-500" /> 
+              <img src="https://cdn-icons-png.flaticon.com/128/2232/2232688.png" className="w-6 h-6" alt="library" /> 
               {selectedCategory === "all" ? "All Library Resources" : CATEGORIES.find(c => c.id === selectedCategory)?.label}
             </h3>
-            <span className="text-sm text-slate-500 font-medium bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
+            <span className="text-sm text-slate-500 font-medium bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full w-fit">
               {filteredResources.length} items
             </span>
           </div>
 
           {filteredResources.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm">
-              <Search className="w-16 h-16 text-slate-300 mb-4" />
+              <img src="https://cdn-icons-png.flaticon.com/128/6149/6149867.png" className="w-16 h-16 mb-4 opacity-50 grayscale" alt="empty" />
               <h3 className="text-xl font-bold text-slate-700 dark:text-slate-200">No resources found</h3>
               <p className="text-slate-500 mt-2 max-w-md">Try adjusting your search or selecting a different category to find what you're looking for.</p>
             </div>
@@ -250,11 +249,11 @@ export default function DigitalLibraryPage() {
                       {isVideo ? (
                         <>
                           <img src={`https://images.unsplash.com/photo-1616469829581-73993eb86b02?w=800&q=80`} alt="Video Thumbnail" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" />
-                          <PlayCircle className="w-12 h-12 text-white/90 relative z-10 group-hover:scale-110 transition-transform shadow-2xl drop-shadow-2xl" />
+                          <img src="https://cdn-icons-png.flaticon.com/128/3176/3176388.png" className="w-12 h-12 invert drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform" alt="play" />
                         </>
                       ) : (
-                        <div className="text-indigo-500/20 group-hover:text-indigo-500/40 transition-colors group-hover:scale-110 duration-500">
-                          <Book className="w-16 h-16" />
+                        <div className="transition-colors group-hover:scale-110 duration-500">
+                          <img src="https://cdn-icons-png.flaticon.com/128/3389/3389081.png" className="w-16 h-16 opacity-30 group-hover:opacity-60 transition-opacity" alt="book thumbnail" />
                         </div>
                       )}
                       
@@ -276,11 +275,11 @@ export default function DigitalLibraryPage() {
                       </div>
                       
                       <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                          <Search className="w-3 h-3" /> {res.size}
+                        <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1.5">
+                          <img src="https://cdn-icons-png.flaticon.com/128/2983/2983155.png" className="w-3 h-3 grayscale opacity-60" alt="doc" /> {res.size || 'PDF'}
                         </span>
                         <div className="flex items-center gap-1 text-xs font-bold text-indigo-500 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
-                          Access <ExternalLink className="w-3.5 h-3.5" />
+                          Access <img src="https://cdn-icons-png.flaticon.com/128/2989/2989988.png" className="w-3.5 h-3.5 opacity-80" alt="go" />
                         </div>
                       </div>
                     </div>
