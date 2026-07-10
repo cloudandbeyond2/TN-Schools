@@ -200,11 +200,13 @@ router.get('/:parentId/child/:studentId/performance', async (req: Request, res: 
 router.get('/:parentId/child/:studentId/attendance', async (req: Request, res: Response) => {
   try {
     const { studentId } = req.params;
+    const { offset } = req.query;
+    const targetOffset = offset !== undefined ? Number(offset) : 0;
     const monthCount = 6;
 
     const monthlyData = await Promise.all(
-      Array.from({ length: monthCount }, (_, i) => i).reverse().map(async (offset) => {
-        const { start, end } = getMonthRange(offset);
+      Array.from({ length: monthCount }, (_, i) => i).reverse().map(async (offsetVal) => {
+        const { start, end } = getMonthRange(offsetVal);
         const records = await prisma.attendance.findMany({
           where: { studentId, date: { gte: start, lte: end } },
         });
@@ -217,14 +219,15 @@ router.get('/:parentId/child/:studentId/attendance', async (req: Request, res: R
         return {
           month: start.toLocaleString('default', { month: 'short', year: 'numeric' }),
           total, present, late, absent, leave, percentage: pct,
+          offset: offsetVal
         };
       })
     );
 
-    // Recent 30 days detailed
-    const { start: start30, end: end30 } = getMonthRange(0);
+    // Selected month detailed records
+    const { start: startTarget, end: endTarget } = getMonthRange(targetOffset);
     const recentRecords = await prisma.attendance.findMany({
-      where: { studentId, date: { gte: start30, lte: end30 } },
+      where: { studentId, date: { gte: startTarget, lte: endTarget } },
       orderBy: { date: 'desc' },
     });
 
