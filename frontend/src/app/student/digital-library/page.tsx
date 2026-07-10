@@ -170,7 +170,7 @@ export default function DigitalLibraryPage() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2">
               {resources.slice(0, 3).map((res) => (
-                <div key={`trend-${res.id}`} className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden transform hover:-translate-y-1">
+                <div key={`trend-${res.id}`} onClick={() => window.open(res.fileUrl, '_blank')} className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden transform hover:-translate-y-1">
                   <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
                     <Trophy className="w-24 h-24" />
                   </div>
@@ -229,7 +229,7 @@ export default function DigitalLibraryPage() {
               {filteredResources.map((res) => {
                 const isVideo = res.type.toLowerCase().includes('video');
                 return (
-                  <div key={res.id} className="group flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer hover:border-indigo-400/50">
+                  <div key={res.id} onClick={() => window.open(res.fileUrl, '_blank')} className="group flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer hover:border-indigo-400/50">
                     {/* Media Thumbnail Area */}
                     <div className={`h-32 w-full relative overflow-hidden flex items-center justify-center ${isVideo ? 'bg-slate-900' : 'bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900'}`}>
                       {isVideo ? (
