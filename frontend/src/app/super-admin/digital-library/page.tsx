@@ -185,9 +185,10 @@ export default function SuperAdminDigitalLibraryPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">File Upload (PDF/Image)</label>
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">File Upload (PDF/Image/Video)</label>
                 <input 
                   type="file"
+                  accept="image/*,application/pdf,video/*"
                   onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-violet-500" 
                 />
