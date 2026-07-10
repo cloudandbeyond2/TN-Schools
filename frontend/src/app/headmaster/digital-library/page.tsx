@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
-import { Upload, CheckCircle2, AlertCircle, Check, X, FileText, Clock, Library } from "lucide-react";
+import { Upload, CheckCircle2, AlertCircle, Check, X, FileText, Clock, Library, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 const CATEGORIES = [
@@ -17,18 +17,23 @@ const CLASSES = ["6", "7", "8", "9", "10", "11", "12"];
 
 export default function HeadmasterDigitalLibraryPage() {
   const { data: session } = useSession();
-  const [activeTab, setActiveTab] = useState<'upload' | 'approvals'>('approvals');
+  const [activeTab, setActiveTab] = useState<'upload' | 'approvals' | 'allResources'>('approvals');
   
   // Upload State
   const [formData, setFormData] = useState({
     title: "", type: "E-books", subject: "", class: "10", description: "", fileUrl: ""
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Approvals State
   const [pendingItems, setPendingItems] = useState<any[]>([]);
   const [approvalsLoading, setApprovalsLoading] = useState(true);
+
+  // All Resources State
+  const [allResources, setAllResources] = useState<any[]>([]);
+  const [allResourcesLoading, setAllResourcesLoading] = useState(true);
 
   const fetchPending = async () => {
     if (!(session?.user as any)?.schoolId) return;
@@ -46,11 +51,44 @@ export default function HeadmasterDigitalLibraryPage() {
     }
   };
 
+  const fetchAllResources = async () => {
+    if (!(session?.user as any)?.schoolId) return;
+    try {
+      setAllResourcesLoading(true);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/digital-library-upload/school/${(session?.user as any)?.schoolId}`);
+      const data = await res.json();
+      if (data.success) {
+        setAllResources(data.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAllResourcesLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'approvals') {
       fetchPending();
+    } else if (activeTab === 'allResources') {
+      fetchAllResources();
     }
   }, [activeTab, (session?.user as any)?.schoolId]);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this resource?')) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/digital-library-upload/${id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        setAllResources(prev => prev.filter(item => item.id !== id));
+        setPendingItems(prev => prev.filter(item => item.id !== id));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,21 +96,31 @@ export default function HeadmasterDigitalLibraryPage() {
     setUploadMessage(null);
     
     try {
+      const submitData = new FormData();
+      submitData.append("title", formData.title);
+      submitData.append("type", formData.type);
+      submitData.append("subject", formData.subject);
+      submitData.append("class", formData.class);
+      submitData.append("description", formData.description);
+      submitData.append("fileUrl", formData.fileUrl);
+      submitData.append("role", "HEADMASTER");
+      submitData.append("userId", (session?.user as any)?.id || "");
+      submitData.append("schoolId", (session?.user as any)?.schoolId || "");
+      
+      if (selectedFile) {
+        submitData.append("file", selectedFile);
+      }
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/digital-library-upload`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          role: "HEADMASTER",
-          userId: (session?.user as any)?.id,
-          schoolId: (session?.user as any)?.schoolId
-        })
+        body: submitData
       });
       
       const data = await res.json();
       if (data.success) {
         setUploadMessage({ type: "success", text: "Resource directly uploaded and approved for your school!" });
         setFormData({ ...formData, title: "", description: "", fileUrl: "", subject: "" });
+        setSelectedFile(null);
       } else {
         setUploadMessage({ type: "error", text: data.error || "Failed to upload resource." });
       }
@@ -120,6 +168,12 @@ export default function HeadmasterDigitalLibraryPage() {
           >
             <Upload className="w-4 h-4" /> Direct Upload
           </button>
+          <button 
+            onClick={() => setActiveTab('allResources')}
+            className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'allResources' ? 'border-sky-600 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+          >
+            <Library className="w-4 h-4" /> All Resources
+          </button>
         </div>
 
         {/* Upload Tab */}
@@ -156,7 +210,11 @@ export default function HeadmasterDigitalLibraryPage() {
                   <input type="text" required value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 dark:bg-slate-800 dark:border-slate-700" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">File URL</label>
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">File Upload (PDF/Image)</label>
+                  <input type="file" onChange={e => setSelectedFile(e.target.files?.[0] || null)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-sky-500 dark:bg-slate-800 dark:border-slate-700" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">OR File URL</label>
                   <input type="url" value={formData.fileUrl} onChange={e => setFormData({...formData, fileUrl: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 dark:bg-slate-800 dark:border-slate-700" />
                 </div>
               </div>
@@ -211,6 +269,61 @@ export default function HeadmasterDigitalLibraryPage() {
                         className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-rose-100 hover:border-rose-500 hover:bg-rose-50 text-rose-600 font-bold rounded-xl transition-all"
                       >
                         <X className="w-5 h-5" /> Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* All Resources Tab */}
+        {activeTab === 'allResources' && (
+          <div className="space-y-4 animate-in fade-in zoom-in-95">
+            {allResourcesLoading ? (
+              <div className="text-center py-12 text-slate-500">Loading resources...</div>
+            ) : allResources.length === 0 ? (
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center shadow-sm">
+                <Library className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300">No resources found</h3>
+                <p className="text-slate-500 mt-2">Your school's library is empty.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {allResources.map((item) => (
+                  <div key={item.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-3">
+                        <span className="px-2.5 py-1 text-xs font-bold bg-sky-100 text-sky-700 rounded-lg">{item.type}</span>
+                        <span className="px-2.5 py-1 text-xs font-bold bg-slate-100 text-slate-600 rounded-lg">Class {item.class}</span>
+                        <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${item.approvalStatus === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : item.approvalStatus === 'REJECTED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {item.approvalStatus}
+                        </span>
+                        <span className="text-xs text-slate-500 font-medium">Uploaded by: {item.uploadedByRole}</span>
+                      </div>
+                      <h4 className="text-lg font-bold text-slate-800 dark:text-white">{item.title}</h4>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">{item.description}</p>
+                      <div className="text-sm font-semibold text-slate-600 dark:text-slate-300">Subject: {item.subject}</div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                      <button 
+                        onClick={() => {
+                          const url = item.fileUrl?.startsWith('/') 
+                            ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${item.fileUrl}` 
+                            : item.fileUrl;
+                          window.open(url, '_blank');
+                        }}
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-sky-50 text-sky-600 hover:bg-sky-100 font-bold rounded-xl transition-all"
+                      >
+                        <FileText className="w-5 h-5" /> View
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(item.id)}
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-rose-100 hover:border-rose-500 hover:bg-rose-50 text-rose-600 font-bold rounded-xl transition-all"
+                      >
+                        <Trash2 className="w-5 h-5" /> Delete
                       </button>
                     </div>
                   </div>

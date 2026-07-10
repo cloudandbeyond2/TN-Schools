@@ -503,12 +503,13 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Exam Schedule", href: "/headmaster/exams", icon: "FileText" },
       { label: "Model Exam Results", href: "/headmaster/model-exams", icon: "Edit3" },
       { label: "Manage Mock Tests", href: "/headmaster/mock-tests", icon: "Edit3" },
+      { label: "Digital Library", href: "/headmaster/digital-library", icon: "Library" },
 
       { label: "School Admin & Govt", href: "#", icon: "" },
       { label: "School Resources", href: "/headmaster/resources", icon: "Building" },
       { label: "Mid-Day Meal", href: "/headmaster/midday-meal", icon: "Utensils" },
       { label: "Scholarship", href: "/headmaster/scholarship", icon: "Award" },
-      { label: "Govt Schemes Update", href: "/headmaster/gov-schemes", icon: "Building2" },
+      { label: "Govt Scheme Management", href: "/headmaster/gov-schemes", icon: "Building2" },
 
       { label: "Extra Curricular & Info", href: "#", icon: "" },
       { label: "Public Portal Page", href: "/headmaster/portal", icon: "Globe" },

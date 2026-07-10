@@ -20,6 +20,7 @@ export default function TeacherDigitalLibraryPage() {
   const [formData, setFormData] = useState({
     title: "", type: "E-books", subject: "", class: "10", description: "", fileUrl: ""
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -29,21 +30,31 @@ export default function TeacherDigitalLibraryPage() {
     setMessage(null);
     
     try {
+      const submitData = new FormData();
+      submitData.append("title", formData.title);
+      submitData.append("type", formData.type);
+      submitData.append("subject", formData.subject);
+      submitData.append("class", formData.class);
+      submitData.append("description", formData.description);
+      submitData.append("fileUrl", formData.fileUrl);
+      submitData.append("role", "TEACHER");
+      submitData.append("userId", (session?.user as any)?.id || "");
+      submitData.append("schoolId", (session?.user as any)?.schoolId || "");
+      
+      if (selectedFile) {
+        submitData.append("file", selectedFile);
+      }
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/digital-library-upload`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          role: "TEACHER",
-          userId: (session?.user as any)?.id,
-          schoolId: (session?.user as any)?.schoolId
-        })
+        body: submitData
       });
       
       const data = await res.json();
       if (data.success) {
         setMessage({ type: "success", text: "Resource submitted! It is now pending Headmaster approval." });
         setFormData({ ...formData, title: "", description: "", fileUrl: "", subject: "" });
+        setSelectedFile(null);
       } else {
         setMessage({ type: "error", text: data.error || "Failed to submit resource." });
       }
@@ -100,7 +111,11 @@ export default function TeacherDigitalLibraryPage() {
                 <input type="text" required value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700" placeholder="e.g., Biology" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">File URL</label>
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">File Upload (PDF/Image)</label>
+                <input type="file" onChange={e => setSelectedFile(e.target.files?.[0] || null)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">OR File URL</label>
                 <input type="url" value={formData.fileUrl} onChange={e => setFormData({...formData, fileUrl: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700" />
               </div>
             </div>
