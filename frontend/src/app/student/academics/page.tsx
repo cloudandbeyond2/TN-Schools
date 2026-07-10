@@ -2,7 +2,7 @@
 
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
 
 /* ────────────────────────────────────────────────────────────
@@ -40,6 +40,7 @@ interface Resource {
   progress?: number; // for videos (0-100)
   isNew?: boolean;
   popular?: boolean;
+  url?: string;
 }
 
 interface SubjectInfo {
@@ -183,6 +184,20 @@ function buildResources(subjects: string[], cls: string): Resource[] {
   subjects.forEach((s, si) => {
     const slug = s.toLowerCase().replace(/\s+/g, "-");
     // Textbooks
+    if (s === "Tamil") {
+      out.push({
+        id: `${slug}-tb-real-1`,
+        title: `10th Std Tamil Text Book`,
+        subject: s,
+        category: "textbooks",
+        type: "PDF",
+        meta: "Class 10 Textbook",
+        description: `Official Samacheer Kalvi Tamil Textbook for Class 10.`,
+        isNew: true,
+        popular: true,
+        url: "https://drive.google.com/file/d/126HDzwgKz1gNaSXWJSow2upisHXVe57-/preview"
+      });
+    }
     out.push(
       {
         id: `${slug}-tb-1`,
@@ -264,6 +279,47 @@ function buildResources(subjects: string[], cls: string): Resource[] {
       }
     );
     // Video lessons
+    if (s === "Mathematics") {
+      out.push({
+        id: `${slug}-vid-real-1`,
+        title: `10th Maths (Tamil Medium): ஓர் உறவை 'R' குறியீடு...`,
+        subject: s,
+        category: "videos",
+        type: "Video",
+        meta: "Class 10 Video",
+        description: `Relations using R notation and ordered pairs.`,
+        progress: 0,
+        popular: true,
+        url: "/source/video/ஓர் உறவை 'R' குறியீடு மற்றும் வரிசைச் சோடிகளின் மூலமாக வெளிப்படுத்துதல்._720.mp4"
+      });
+    }
+    if (s === "Science" || s === "Physics") {
+      out.push({
+        id: `${slug}-vid-real-1`,
+        title: `10th Physics (Tamil Medium): நியூட்டனின் பொது ஈர்ப்பியல் விதி`,
+        subject: s,
+        category: "videos",
+        type: "Video",
+        meta: "Class 10 Video",
+        description: `Newton's Law of Universal Gravitation.`,
+        progress: 0,
+        popular: true,
+        url: "/source/video/நியூட்டனின் பொது ஈர்ப்பியல் விதி_720.mp4"
+      });
+      out.push({
+        id: `${slug}-vid-real-2`,
+        title: `10th Science (Tamil Medium): ஆல்பா, பீட்டா மற்றும் காமா கதிர்கள் பண்புகள்`,
+        subject: s,
+        category: "videos",
+        type: "Video",
+        meta: "Class 10 Video",
+        description: `Properties of Alpha, Beta, and Gamma Rays.`,
+        progress: 0,
+        popular: false,
+        url: "https://d1fiv8ydi7ukjo.cloudfront.net/manarkeni/video/fc7ae090-db2c-11ef-9d3e-635aff381b6a.mp4"
+      });
+    }
+
     const vids = [
       { t: "Concept Explainer", d: "18:42", p: [80, 35, 0][si % 3] },
       { t: "Solved Examples Walkthrough", d: "24:10", p: [100, 0, 55][si % 3] },
@@ -302,6 +358,17 @@ function buildResources(subjects: string[], cls: string): Resource[] {
         type: "Audio",
         meta: "8 episodes · 2h 40m",
         description: "Listen-and-learn audio series for revision on the go, mapped to the syllabus units.",
+      },
+      {
+        id: `${slug}-dc-3`,
+        title: `${s} Educational Comic (Tamil)`,
+        subject: s,
+        category: "digital",
+        type: "PDF",
+        meta: "Visual Learning",
+        description: "Engaging educational comic mapped to the syllabus to make learning fun.",
+        url: "https://d1xhvnydnrsiid.cloudfront.net/ee9c95a0-fccc-11f0-9df5-e5268b529681.pdf",
+        isNew: true,
       }
     );
     // Reference materials
@@ -1180,8 +1247,41 @@ export default function AcademicsHubPage() {
                 </p>
               )}
 
+              {/* ── Inline Tamil Audio Player ──────────────────────── */}
+              {previewResource.type === "Audio" && previewResource.subject === "Tamil" && (
+                <TamilAudioPlayer />
+              )}
+
+              {/* ── Inline Video Player ────────────────────────────── */}
+              {previewResource.type === "Video" && previewResource.url && (
+                <div className="mb-4 rounded-2xl overflow-hidden shadow-lg border border-[var(--border)] bg-black">
+                  <video
+                    src={previewResource.url}
+                    controls
+                    className="w-full aspect-video"
+                    controlsList="nodownload"
+                  />
+                </div>
+              )}
+
+              {/* ── Inline PDF Viewer ────────────────────────────── */}
+              {previewResource.type === "PDF" && previewResource.url && (
+                <div className="mb-4 rounded-2xl overflow-hidden shadow-lg border border-[var(--border)] bg-white">
+                  <iframe
+                    src={previewResource.url}
+                    className="w-full aspect-[3/4] sm:aspect-[16/10]"
+                    allow="autoplay"
+                  />
+                </div>
+              )}
+
               <div className="flex flex-wrap gap-2">
                 <button
+                  onClick={() => {
+                    if (previewResource.url && previewResource.type !== "Video") {
+                      window.open(previewResource.url, "_blank");
+                    }
+                  }}
                   className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl active:scale-95 transition-all"
                   style={{
                     background: `linear-gradient(135deg, ${subjectTheme(previewResource.subject).color}, ${subjectTheme(previewResource.subject).color}cc)`,
@@ -1245,6 +1345,126 @@ function EmptyState({ saved }: { saved: boolean }) {
           ? "Tap the bookmark icon on any resource to keep it handy here."
           : "Try a different keyword, or pick another subject from the chips above."}
       </p>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Tamil Audio Player — 10th Std MP3 Lessons
+   Served from /source/ (Next.js public folder)
+═══════════════════════════════════════════════════════════ */
+const TAMIL_TRACKS = [
+  { id: "10-1-1", src: "/source/10 - 1 - 1.mp3", title: "Iyal 1 – Part 1", titleTamil: "இயல் 1 – பகுதி 1", iyal: 1 },
+  { id: "10-2-1", src: "/source/10 - 2 - 1.mp3", title: "Iyal 2 – Part 1", titleTamil: "இயல் 2 – பகுதி 1", iyal: 2 },
+  { id: "10-2-2", src: "/source/10 - 2 - 2.mp3", title: "Iyal 2 – Part 2", titleTamil: "இயல் 2 – பகுதி 2", iyal: 2 },
+];
+
+function TamilAudioPlayer() {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  const fmt = (s: number) => {
+    if (!isFinite(s) || isNaN(s)) return "0:00";
+    return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+  };
+
+  const play = (track: typeof TAMIL_TRACKS[0]) => {
+    if (!audioRef.current) return;
+    if (activeId === track.id && playing) {
+      audioRef.current.pause();
+      setPlaying(false);
+      return;
+    }
+    if (activeId !== track.id) {
+      audioRef.current.src = track.src;
+      audioRef.current.load();
+      setProgress(0); setCurrentTime(0); setDuration(0);
+    }
+    setActiveId(track.id);
+    audioRef.current.play().then(() => setPlaying(true)).catch(() => {});
+  };
+
+  const onTime = () => {
+    if (!audioRef.current) return;
+    const c = audioRef.current.currentTime, d = audioRef.current.duration || 0;
+    setCurrentTime(c); setDuration(d); setProgress(d > 0 ? (c / d) * 100 : 0);
+  };
+
+  const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!audioRef.current || !duration) return;
+    const v = Number(e.target.value);
+    audioRef.current.currentTime = (v / 100) * duration;
+    setProgress(v);
+  };
+
+  const iyals = [1, 2];
+
+  return (
+    <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-3">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-lg">🎵</span>
+        <div>
+          <div className="text-xs font-black text-[var(--text-heading)]">10th Tamil Audio Lessons</div>
+          <div className="text-[10px] text-[var(--text-muted)]">வகுப்பு 10 – தமிழ் ஒலிப் பாடங்கள்</div>
+        </div>
+      </div>
+
+      <audio ref={audioRef} onTimeUpdate={onTime} onLoadedMetadata={onTime} onEnded={() => { setPlaying(false); setProgress(0); }} />
+
+      {iyals.map(iyal => (
+        <div key={iyal}>
+          <div className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1.5">
+            இயல் {iyal} — Iyal {iyal}
+          </div>
+          <div className="space-y-1.5">
+            {TAMIL_TRACKS.filter(t => t.iyal === iyal).map(track => {
+              const isActive = activeId === track.id;
+              return (
+                <div
+                  key={track.id}
+                  className={`rounded-xl border-2 p-2.5 transition-all ${
+                    isActive ? "border-amber-500 bg-amber-500/10" : "border-[var(--border)] hover:border-amber-400/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      onClick={() => play(track)}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 ${
+                        isActive && playing ? "bg-amber-500 text-white" : "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
+                      }`}
+                    >
+                      {isActive && playing ? (
+                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current">
+                          <rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/>
+                        </svg>
+                      ) : (
+                        <Fi name="play" className="text-xs" />
+                      )}
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold text-[var(--text-heading)] truncate">{track.title}</div>
+                      <div className="text-[9px] text-[var(--text-muted)]">{track.titleTamil}</div>
+                      {isActive && (
+                        <div className="mt-1.5 space-y-0.5">
+                          <input type="range" min={0} max={100} step={0.1} value={progress} onChange={seek}
+                            className="w-full h-1 accent-amber-500 cursor-pointer" />
+                          <div className="flex justify-between text-[9px] font-bold text-[var(--text-muted)]">
+                            <span>{fmt(currentTime)}</span><span>{fmt(duration)}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

@@ -866,10 +866,13 @@ export default function LanguageCoachingPage() {
                 <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700/50 pb-4">
                   <div>
                     <h3 className="text-lg font-black text-black dark:text-white">Listening Lab</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Listen to Maya narrate a short clip and select the correct answer to build context comprehension.</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Listen to real Tamil lesson audio and then take the comprehension quiz below.</p>
                   </div>
                   <Headphones className="w-5 h-5 text-indigo-500" />
                 </div>
+
+                {/* ── 10th Tamil Audio Lessons ──────────────────────────── */}
+                <TamilAudioLessons />
 
                 <div className="p-5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center">
                   <button onClick={() => speakVoice(listeningQuestion.audioText)} className="w-14 h-14 rounded-full bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 flex items-center justify-center shadow transition-all active:scale-95">
@@ -1052,5 +1055,185 @@ export default function LanguageCoachingPage() {
         </div>
       </div>
     </PortalLayout>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Tamil Audio Lessons Player
+   Serves MP3s from /source/ in the Next.js public folder.
+═══════════════════════════════════════════════════════════ */
+const TAMIL_AUDIO_TRACKS = [
+  {
+    id: "10-1-1",
+    src: "/source/10 - 1 - 1.mp3",
+    title: "Iyal 1 – Part 1",
+    titleTamil: "இயல் 1 – பகுதி 1",
+    iyal: 1,
+    duration: "",
+  },
+  {
+    id: "10-2-1",
+    src: "/source/10 - 2 - 1.mp3",
+    title: "Iyal 2 – Part 1",
+    titleTamil: "இயல் 2 – பகுதி 1",
+    iyal: 2,
+    duration: "",
+  },
+  {
+    id: "10-2-2",
+    src: "/source/10 - 2 - 2.mp3",
+    title: "Iyal 2 – Part 2",
+    titleTamil: "இயல் 2 – பகுதி 2",
+    iyal: 2,
+    duration: "",
+  },
+];
+
+function TamilAudioLessons() {
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const [activeTrack, setActiveTrack] = React.useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const [progress, setProgress] = React.useState(0); // 0-100
+  const [currentTime, setCurrentTime] = React.useState(0);
+  const [duration, setDuration] = React.useState(0);
+
+  const fmt = (sec: number) => {
+    if (!isFinite(sec) || isNaN(sec)) return "0:00";
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${String(s).padStart(2, "0")}`;
+  };
+
+  const loadTrack = (track: typeof TAMIL_AUDIO_TRACKS[0]) => {
+    if (!audioRef.current) return;
+    if (activeTrack === track.id && isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+      return;
+    }
+    if (activeTrack !== track.id) {
+      audioRef.current.src = track.src;
+      audioRef.current.load();
+      setProgress(0);
+      setCurrentTime(0);
+      setDuration(0);
+    }
+    setActiveTrack(track.id);
+    audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+  };
+
+  const handleTimeUpdate = () => {
+    if (!audioRef.current) return;
+    const cur = audioRef.current.currentTime;
+    const dur = audioRef.current.duration || 0;
+    setCurrentTime(cur);
+    setDuration(dur);
+    setProgress(dur > 0 ? (cur / dur) * 100 : 0);
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!audioRef.current || !duration) return;
+    const val = Number(e.target.value);
+    const newTime = (val / 100) * duration;
+    audioRef.current.currentTime = newTime;
+    setProgress(val);
+  };
+
+  const handleEnded = () => { setIsPlaying(false); setProgress(0); };
+
+  const iyals = Array.from(new Set(TAMIL_AUDIO_TRACKS.map(t => t.iyal)));
+
+  return (
+    <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-md flex-shrink-0">
+          <span className="text-lg">🎵</span>
+        </div>
+        <div>
+          <div className="text-sm font-black text-black dark:text-white">10th Tamil Audio Lessons</div>
+          <div className="text-[10px] text-slate-500 font-semibold">வகுப்பு 10 – தமிழ் ஒலிப் பாடங்கள்</div>
+        </div>
+      </div>
+
+      {/* Hidden audio element */}
+      <audio
+        ref={audioRef}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleTimeUpdate}
+        onEnded={handleEnded}
+      />
+
+      {/* Track list grouped by Iyal */}
+      {iyals.map(iyal => (
+        <div key={iyal}>
+          <div className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2">
+            இயல் {iyal} — Iyal {iyal}
+          </div>
+          <div className="space-y-2">
+            {TAMIL_AUDIO_TRACKS.filter(t => t.iyal === iyal).map(track => {
+              const isActive = activeTrack === track.id;
+              return (
+                <div
+                  key={track.id}
+                  className={`rounded-xl border-2 p-3 transition-all ${
+                    isActive
+                      ? "border-amber-500 bg-amber-500/10"
+                      : "border-slate-200 dark:border-slate-800 hover:border-amber-400/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Play / Pause button */}
+                    <button
+                      onClick={() => loadTrack(track)}
+                      className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-95 shadow ${
+                        isActive && isPlaying
+                          ? "bg-amber-500 text-white"
+                          : "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
+                      }`}
+                    >
+                      {isActive && isPlaying ? (
+                        /* Pause icon */
+                        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+                          <rect x="5" y="4" width="4" height="16" rx="1"/>
+                          <rect x="15" y="4" width="4" height="16" rx="1"/>
+                        </svg>
+                      ) : (
+                        <Play className="w-4 h-4 fill-current" />
+                      )}
+                    </button>
+
+                    {/* Track info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-black text-black dark:text-white truncate">{track.title}</div>
+                      <div className="text-[10px] text-slate-500 font-semibold">{track.titleTamil}</div>
+
+                      {/* Progress bar – only shown for active track */}
+                      {isActive && (
+                        <div className="mt-2 space-y-1">
+                          <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            step={0.1}
+                            value={progress}
+                            onChange={handleSeek}
+                            className="w-full h-1.5 accent-amber-500 cursor-pointer"
+                          />
+                          <div className="flex justify-between text-[9px] font-bold text-slate-400">
+                            <span>{fmt(currentTime)}</span>
+                            <span>{fmt(duration)}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
