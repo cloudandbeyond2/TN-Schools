@@ -336,8 +336,8 @@ router.get('/school/:schoolId/stats', async (req: Request, res: Response) => {
     const totalMarked = targetRecords.length;
     const unmarkedCount = Math.max(0, totalStudents - totalMarked);
 
-    const attendancePct = totalMarked > 0
-      ? Math.round(((presentCount + lateCount) / totalMarked) * 100 * 10) / 10
+    const attendancePct = totalStudents > 0
+      ? Math.round(((presentCount + lateCount) / totalStudents) * 100 * 10) / 10
       : 0;
 
     // Classwise stats
@@ -366,8 +366,8 @@ router.get('/school/:schoolId/stats', async (req: Request, res: Response) => {
     }
 
     const classWise = Object.entries(byClass).map(([className, counts]) => {
-      const pct = counts.marked > 0
-        ? Math.round(((counts.present + counts.late) / counts.marked) * 100 * 10) / 10
+      const pct = counts.total > 0
+        ? Math.round(((counts.present + counts.late) / counts.total) * 100 * 10) / 10
         : 0;
       return {
         className,
@@ -439,11 +439,10 @@ router.get('/school/:schoolId/stats', async (req: Request, res: Response) => {
       }
     }
 
-    // Monthly trends (last 6 months)
+    // Monthly trends (last 6 months ending at targetDate)
     const monthlyTrends = [];
-    const now = new Date();
     for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const d = new Date(targetDate.getFullYear(), targetDate.getMonth() - i, 1);
       const firstDay = new Date(d.getFullYear(), d.getMonth(), 1);
       const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
 
@@ -462,7 +461,7 @@ router.get('/school/:schoolId/stats', async (req: Request, res: Response) => {
         }
       });
 
-      const pct = totalM > 0 ? (presM / totalM) * 100 : (90 - Math.random() * 5); // fallback to around 85-90% if no records
+      const pct = totalM > 0 ? (presM / totalM) * 100 : 0; // 0 if no records exist
       
       monthlyTrends.push({
         month: d.toLocaleString('default', { month: 'short' }),
@@ -471,12 +470,13 @@ router.get('/school/:schoolId/stats', async (req: Request, res: Response) => {
       });
     }
 
-    // Daily trends (current month)
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    // Daily trends (selected date's month)
+    const startOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+    const endOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0, 23, 59, 59, 999);
     const dailyRecords = await prisma.attendance.findMany({
       where: {
         schoolId,
-        date: { gte: startOfMonth, lte: now }
+        date: { gte: startOfMonth, lte: endOfMonth }
       },
       select: {
         date: true,
@@ -503,15 +503,9 @@ router.get('/school/:schoolId/stats', async (req: Request, res: Response) => {
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    // Fallback daily trends if none exists
+    // Fallback daily trends if none exists for the target month
     if (dailyTrends.length === 0) {
-      for (let day = 1; day <= now.getDate(); day++) {
-        const dStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        dailyTrends.push({
-          date: dStr,
-          percentage: 85 + Math.floor(Math.random() * 12)
-        });
-      }
+      // Leave empty so calendar displays "No logs logged" grey boxes for dates with no entries
     }
 
     // Map all students to their attendance status on target date
