@@ -1,7 +1,9 @@
 "use client";
+
 import PortalLayout from "@/components/PortalLayout";
 import { Users, Tent, Plus, MapPin, Search, UserPlus, Trash2, WifiOff, Clock, Landmark } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import { ModalShell, Field, inputCls } from "@/components/pet/PetUi";
 import {
   PET_API_BASE,
@@ -45,13 +47,55 @@ interface ApiStudent {
   user?: { name: string };
 }
 
-const CLUB_ICONS = ["🏃", "⚽", "🏐", "🏏", "🤼", "♟️", "🧘", "🏸", "🏀", "🥇", "🎖️", "🤝", "⛑️", "🏕️", "🌱", "🚦", "🎗️"];
+const CLUB_ICONS = [
+  { value: "fi fi-rr-running", label: "Running" },
+  { value: "fi fi-rr-basketball", label: "Ball Sports" },
+  { value: "fi fi-rr-gym", label: "Wellness / Gym" },
+  { value: "fi fi-rr-chess-knight", label: "Chess" },
+  { value: "fi fi-rr-spa", label: "Yoga / Spa" },
+  { value: "fi fi-rr-trophy", label: "Trophy / Honors" },
+  { value: "fi fi-rr-badge", label: "Badge / Award" },
+  { value: "fi fi-rr-handshake", label: "NSS / JRC" },
+  { value: "fi fi-rr-medical-star", label: "First Aid" },
+  { value: "fi fi-rr-campground", label: "Scouts" },
+  { value: "fi fi-rr-leaf", label: "Green Corps" },
+  { value: "fi fi-rr-traffic-light", label: "RSP" },
+  { value: "fi fi-rr-ribbon", label: "Red Ribbon" }
+];
+
 const CLUB_CATEGORIES = [
   "Sports", "Athletics", "Indoor", "Wellness",
   "NCC", "NSS", "JRC", "Scouts & Guides", "Green Corps", "RSP", "Red Ribbon", "Other",
 ];
 
+const renderPetClubIcon = (iconStr: string) => {
+  if (iconStr && iconStr.startsWith("fi ")) {
+    return <i className={`${iconStr} text-xl text-blue-500`} />;
+  }
+  // legacy emoji mapping
+  const s = iconStr || "";
+  if (s === "🏃") return <i className="fi fi-rr-running text-xl text-blue-500" />;
+  if (s === "⚽" || s === "🏐" || s === "🏀") return <i className="fi fi-rr-basketball text-xl text-blue-500" />;
+  if (s === "🏏") return <i className="fi fi-rr-trophy text-xl text-blue-500" />;
+  if (s === "🤼") return <i className="fi fi-rr-gym text-xl text-blue-500" />;
+  if (s === "♟️") return <i className="fi fi-rr-chess-knight text-xl text-blue-500" />;
+  if (s === "🧘") return <i className="fi fi-rr-spa text-xl text-blue-500" />;
+  if (s === "🏸") return <i className="fi fi-rr-basketball text-xl text-blue-500" />;
+  if (s === "🥇") return <i className="fi fi-rr-trophy text-xl text-blue-500" />;
+  if (s === "🎖️") return <i className="fi fi-rr-badge text-xl text-blue-500" />;
+  if (s === "🤝") return <i className="fi fi-rr-handshake text-xl text-blue-500" />;
+  if (s === "⛑️") return <i className="fi fi-rr-medical-star text-xl text-blue-500" />;
+  if (s === "🏕️") return <i className="fi fi-rr-campground text-xl text-blue-500" />;
+  if (s === "🌱") return <i className="fi fi-rr-leaf text-xl text-blue-500" />;
+  if (s === "🚦") return <i className="fi fi-rr-traffic-light text-xl text-blue-500" />;
+  if (s === "🎗️") return <i className="fi fi-rr-ribbon text-xl text-blue-500" />;
+  return <i className="fi fi-rr-users text-xl text-blue-500" />;
+};
+
 export default function ClubsPage() {
+  const { data: session } = useSession();
+  const schoolId = (session?.user as any)?.schoolId || "";
+
   const [searchTerm, setSearchTerm] = useState("");
   const [mode, setMode] = useState<"loading" | "api" | "local">("loading");
 
@@ -70,39 +114,36 @@ export default function ClubsPage() {
   // Data loading: try the backend first, fall back to local demo data
   // -------------------------------------------------------------------------
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`${PET_API_BASE}/api/activities`, { signal: AbortSignal.timeout(12000) });
-        const json = await res.json();
-        if (!json.success) throw new Error("api error");
-        if (cancelled) return;
-        const clubs: ApiClub[] = json.data.discoverClubs || [];
-        setApiClubs(clubs);
-        setMode("api");
-        // fetch member counts in the background
-        clubs.forEach(async (c) => {
-          try {
-            const r = await fetch(`${PET_API_BASE}/api/activities/club/${c.id}/members`);
-            const j = await r.json();
-            if (j.success && !cancelled) {
-              setApiMemberCounts((prev) => ({ ...prev, [c.id]: j.count }));
-            }
-          } catch {
-            /* count stays unknown */
+  const loadClubsAndCounts = useCallback(async () => {
+    if (!schoolId) return;
+    try {
+      const res = await fetch(`${PET_API_BASE}/api/activities?schoolId=${schoolId}`, { signal: AbortSignal.timeout(12000) });
+      const json = await res.json();
+      if (!json.success) throw new Error("api error");
+      const clubs: ApiClub[] = json.data.discoverClubs || [];
+      setApiClubs(clubs);
+      setMode("api");
+      // fetch member counts in the background
+      clubs.forEach(async (c) => {
+        try {
+          const r = await fetch(`${PET_API_BASE}/api/activities/club/${c.id}/members`);
+          const j = await r.json();
+          if (j.success) {
+            setApiMemberCounts((prev) => ({ ...prev, [c.id]: j.data?.length || 0 }));
           }
-        });
-      } catch {
-        if (cancelled) return;
-        setLocalClubs(petLoad(LOCAL_CLUBS_KEY, DEFAULT_LOCAL_CLUBS));
-        setMode("local");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+        } catch {
+          /* count stays unknown */
+        }
+      });
+    } catch {
+      setLocalClubs(petLoad(LOCAL_CLUBS_KEY, DEFAULT_LOCAL_CLUBS));
+      setMode("local");
+    }
+  }, [schoolId]);
+
+  useEffect(() => {
+    loadClubsAndCounts();
+  }, [loadClubsAndCounts]);
 
   const saveLocalClubs = (next: LocalClub[]) => {
     setLocalClubs(next);
@@ -148,9 +189,6 @@ export default function ClubsPage() {
   // Create club
   // -------------------------------------------------------------------------
 
-  // One-click creation of the standard school-level units (NCC, NSS, JRC,
-  // Scouts & Guides, National Green Corps, RSP, Red Ribbon, Sports Club).
-  // Units that already exist (by name) are skipped.
   const [seedingUnits, setSeedingUnits] = useState(false);
 
   const handleAddSchoolUnits = async () => {
@@ -172,13 +210,14 @@ export default function ClubsPage() {
             body: JSON.stringify({
               name: u.name,
               category: u.category,
-              icon: u.icon,
+              icon: u.icon.startsWith("fi ") ? u.icon : `fi fi-rr-leaf`, // Map to Flaticon
               themeColor: "text-lime-600 dark:text-lime-400",
               themeBg: "bg-lime-500/10 border-lime-500/20",
               themeTagBg: "bg-lime-500/20",
               description: u.description,
               sponsor: "PET Staff",
               meetingTime: u.meetingTime,
+              schoolId
             }),
           });
           const json = await res.json();
@@ -236,6 +275,7 @@ export default function ClubsPage() {
           description: form.description,
           sponsor: "PET Staff",
           meetingTime: form.meetingTime,
+          schoolId
         }),
       });
       const json = await res.json();
@@ -258,35 +298,45 @@ export default function ClubsPage() {
   };
 
   return (
-    <PortalLayout>
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <PortalLayout
+      title="Clubs & Activities Hub"
+      subtitle="Extracurricular management for PE & Sports Staff"
+      avatarLetter="P"
+      avatarColor="#10b981"
+      themeClass="theme-pet"
+      accentColor="#10b981"
+    >
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 text-left">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--text-heading)]">Clubs & Activities</h1>
-            <p className="text-sm text-[var(--text-muted)] mt-1">Create sports clubs, add students and track participation</p>
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <i className="fi fi-rr-users text-emerald-500" /> Clubs & Activities
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">Create sports clubs, add students and track participation</p>
           </div>
-          <div className="flex gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={16} />
+          <div className="flex flex-wrap gap-3">
+            <div className="relative w-full sm:w-auto">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input
                 type="text"
                 placeholder="Search clubs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-4 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:border-blue-500 w-64"
+                className="w-full sm:w-64 pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
               />
             </div>
             <button
               onClick={handleAddSchoolUnits}
-              disabled={seedingUnits || mode === "loading"}
+              disabled={seedingUnits || mode === "loading" || !schoolId}
               title="Create NCC, NSS, JRC, Scouts & Guides, Green Corps, RSP, Red Ribbon and Sports Club"
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-md shadow-emerald-650/10"
             >
               <Landmark size={16} /> {seedingUnits ? "Adding..." : "Add School Units"}
             </button>
             <button
               onClick={() => setShowCreate(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
+              disabled={!schoolId}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-md shadow-blue-500/10"
             >
               <Plus size={16} /> New Club
             </button>
@@ -299,7 +349,7 @@ export default function ClubsPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg">
             <Tent size={40} className="opacity-80 mb-4" />
             <div className="text-4xl font-black mb-1">{mode === "loading" ? "…" : clubCount}</div>
@@ -324,60 +374,60 @@ export default function ClubsPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {cards.map((club) => (
-              <div key={club.id} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm hover:border-blue-500/30 transition-colors">
+              <div key={club.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:border-blue-500/30 transition-all hover:scale-[1.01] duration-300">
                 <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shrink-0">
-                      {club.icon || "🏅"}
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                      {renderPetClubIcon(club.icon)}
                     </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-[var(--text-heading)]">{club.name}</h3>
-                      <div className="text-sm text-[var(--text-muted)] font-semibold mt-0.5">Coordinator: {club.coordinator}</div>
+                    <div className="min-w-0">
+                      <h3 className="text-base font-bold text-slate-800 dark:text-white truncate">{club.name}</h3>
+                      <div className="text-xs text-slate-500 font-semibold mt-0.5">Coordinator: {club.coordinator}</div>
                     </div>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 shrink-0">
                     {club.category}
                   </span>
                 </div>
 
                 {club.description && (
-                  <p className="text-sm text-[var(--text-muted)] mb-4 leading-relaxed line-clamp-2">{club.description}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed line-clamp-2">{club.description}</p>
                 )}
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-[var(--border-light)]">
-                    <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Participants</div>
-                    <div className="text-lg font-black text-[var(--text-heading)]">
-                      {club.memberCount ?? "—"} <span className="text-xs text-[var(--text-muted)] font-medium">students</span>
+                <div className="grid grid-cols-2 gap-4 mb-4 text-xs">
+                  <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Participants</div>
+                    <div className="text-base font-black text-slate-850 dark:text-slate-200">
+                      {club.memberCount ?? 0} <span className="text-[10px] text-slate-500 font-medium">students</span>
                     </div>
                   </div>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-[var(--border-light)]">
-                    <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
                       <Clock size={10} /> Meeting Time
                     </div>
-                    <div className="text-sm font-semibold text-[var(--text-heading)] truncate">{club.meetingTime}</div>
+                    <div className="text-xs font-semibold text-slate-850 dark:text-slate-200 truncate">{club.meetingTime}</div>
                   </div>
                 </div>
 
                 <div className="flex gap-2">
                   <button
                     onClick={() => setManageClubId(club.id)}
-                    className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[var(--text-heading)] font-semibold py-2 rounded-xl text-sm transition-colors border border-[var(--border)] flex items-center justify-center gap-2"
+                    className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold py-2 rounded-xl text-xs transition-colors border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2"
                   >
-                    <UserPlus size={15} /> Manage Members
+                    <UserPlus size={14} /> Manage Members
                   </button>
                   <button
                     onClick={() => handleDeleteClub(club.id, club.name)}
-                    className="px-3 py-2 rounded-xl border border-[var(--border)] text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     title="Delete club"
                   >
-                    <Trash2 size={15} />
+                    <Trash2 size={14} />
                   </button>
                 </div>
               </div>
             ))}
             {cards.length === 0 && (
-              <div className="col-span-2 text-center py-10 text-[var(--text-muted)]">
+              <div className="col-span-2 text-center py-16 text-slate-500 italic text-xs">
                 No clubs found. Click <span className="font-bold">New Club</span> to create one.
               </div>
             )}
@@ -391,6 +441,7 @@ export default function ClubsPage() {
         <ApiMembersModal
           clubId={manageClubId}
           clubName={apiClubs.find((c) => c.id === manageClubId)?.name || "Club"}
+          schoolId={schoolId}
           onClose={() => setManageClubId(null)}
           onCountChange={(count) => setApiMemberCounts((prev) => ({ ...prev, [manageClubId]: count }))}
         />
@@ -420,7 +471,7 @@ function CreateClubModal({
 }) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Sports");
-  const [icon, setIcon] = useState("🏃");
+  const [icon, setIcon] = useState("fi fi-rr-running");
   const [meetingTime, setMeetingTime] = useState("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -442,11 +493,11 @@ function CreateClubModal({
 
   return (
     <ModalShell title="Create New Club" onClose={onClose}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 text-left">
         <Field label="Club Name">
           <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Athletics Club" className={inputCls} />
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Category">
             <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
               {CLUB_CATEGORIES.map((c) => (
@@ -454,21 +505,12 @@ function CreateClubModal({
               ))}
             </select>
           </Field>
-          <Field label="Icon">
-            <div className="flex flex-wrap gap-1.5">
-              {CLUB_ICONS.map((em) => (
-                <button
-                  type="button"
-                  key={em}
-                  onClick={() => setIcon(em)}
-                  className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center border transition-colors ${
-                    icon === em ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30" : "border-[var(--border)] hover:border-blue-300"
-                  }`}
-                >
-                  {em}
-                </button>
+          <Field label="Icon Visual">
+            <select value={icon} onChange={(e) => setIcon(e.target.value)} className={inputCls}>
+              {CLUB_ICONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
-            </div>
+            </select>
           </Field>
         </div>
         <Field label="Meeting Time">
@@ -478,7 +520,7 @@ function CreateClubModal({
           <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the club's activities and goals..." className={inputCls} />
         </Field>
         {error && <div className="text-sm text-red-500 font-semibold">{error}</div>}
-        <button type="submit" disabled={submitting} className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl transition-colors">
+        <button type="submit" disabled={submitting} className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl text-xs transition-colors shadow-md shadow-blue-500/10">
           {submitting ? "Creating..." : "Create Club"}
         </button>
       </form>
@@ -493,11 +535,13 @@ function CreateClubModal({
 function ApiMembersModal({
   clubId,
   clubName,
+  schoolId,
   onClose,
   onCountChange,
 }: {
   clubId: string;
   clubName: string;
+  schoolId: string;
   onClose: () => void;
   onCountChange: (count: number) => void;
 }) {
@@ -513,7 +557,7 @@ function ApiMembersModal({
       try {
         const [mRes, sRes] = await Promise.all([
           fetch(`${PET_API_BASE}/api/activities/club/${clubId}/members`),
-          fetch(`${PET_API_BASE}/api/students`),
+          fetch(`${PET_API_BASE}/api/students?schoolId=${schoolId}`),
         ]);
         const mJson = await mRes.json();
         const sJson = await sRes.json();
@@ -525,7 +569,7 @@ function ApiMembersModal({
         setLoading(false);
       }
     })();
-  }, [clubId]);
+  }, [clubId, schoolId]);
 
   useEffect(() => {
     if (!loading) onCountChange(members.length);
@@ -673,51 +717,51 @@ function MembersLayout({
   onRemove: (id: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
       <div>
-        <h4 className="text-sm font-bold text-[var(--text-heading)] mb-3 flex items-center gap-2">
+        <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
           <UserPlus size={15} /> Add Students
         </h4>
         <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={14} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name or class..."
-            className="w-full pl-8 pr-3 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:border-blue-500"
+            className="w-full pl-8 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
           />
         </div>
-        <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+        <div className="space-y-2 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
           {candidates.map((s) => (
-            <div key={s.id} className="flex items-center justify-between p-2.5 rounded-xl border border-[var(--border-light)] bg-slate-50 dark:bg-slate-800/40">
+            <div key={s.id} className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
               <div>
-                <div className="text-sm font-bold text-[var(--text-heading)]">{s.name}</div>
-                <div className="text-xs text-[var(--text-muted)] font-semibold">Class {s.class}</div>
+                <div className="text-xs font-bold text-slate-800 dark:text-white">{s.name}</div>
+                <div className="text-[10px] text-slate-500 font-semibold">Class {s.class}</div>
               </div>
               <button
                 onClick={() => onAdd(s.id)}
                 disabled={busyId === s.id}
-                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-lg text-xs font-bold flex items-center gap-1"
+                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-lg text-[10px] font-bold flex items-center gap-1"
               >
                 <Plus size={12} /> Add
               </button>
             </div>
           ))}
-          {candidates.length === 0 && <div className="text-xs text-[var(--text-muted)] text-center py-6">No students found.</div>}
+          {candidates.length === 0 && <div className="text-xs text-slate-500 text-center py-6">No students found.</div>}
         </div>
       </div>
 
       <div>
-        <h4 className="text-sm font-bold text-[var(--text-heading)] mb-3 flex items-center gap-2">
+        <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
           <Users size={15} /> Current Members ({members.length})
         </h4>
         {error && <div className="text-xs text-red-500 font-semibold mb-2">{error}</div>}
-        <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+        <div className="space-y-2 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
           {members.map((m) => (
-            <div key={m.id} className="flex items-center justify-between p-2.5 rounded-xl border border-[var(--border-light)]">
+            <div key={m.id} className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
               <div>
-                <div className="text-sm font-bold text-[var(--text-heading)]">{m.name}</div>
-                <div className="text-xs text-[var(--text-muted)] font-semibold">Class {m.class}</div>
+                <div className="text-xs font-bold text-slate-800 dark:text-white">{m.name}</div>
+                <div className="text-[10px] text-slate-500 font-semibold">Class {m.class}</div>
               </div>
               <button
                 onClick={() => onRemove(m.id)}
@@ -730,11 +774,10 @@ function MembersLayout({
             </div>
           ))}
           {members.length === 0 && (
-            <div className="text-xs text-[var(--text-muted)] text-center py-6">No members yet — add students from the left.</div>
+            <div className="text-xs text-slate-500 text-center py-6">No members yet — add students from the left.</div>
           )}
         </div>
       </div>
     </div>
   );
 }
-
