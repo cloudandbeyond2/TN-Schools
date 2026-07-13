@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import { Calendar, CheckCircle, XCircle, Clock, Search, FileText } from "lucide-react";
+// Lucide icon imports removed in favor of Flaticon classes
 import Swal from "sweetalert2";
 
 const getApiBase = () => {
@@ -125,42 +125,145 @@ export default function HeadmasterLeavePage() {
   });
 
   return (
-    <PortalLayout>
-      <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 animate-in fade-in zoom-in duration-500">
+    <PortalLayout
+      title="Leave Management"
+      subtitle="Review and approve student and staff leave requests for your school"
+      avatarLetter="V"
+      avatarColor="#3b82f6"
+      themeClass="theme-headmaster"
+      accentColor="#3b82f6"
+    >
+      <div className="leave-portal-container flex flex-col gap-6 w-full animate-in fade-in zoom-in duration-500">
         
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-heading)] tracking-tight">
-              Leave Management
-            </h1>
-            <p className="text-sm text-[var(--text-muted)] mt-1 font-medium">
-              Review and approve leave requests for your school.
-            </p>
-          </div>
-        </div>
+        <style dangerouslySetInnerHTML={{__html: `
+          /* Local light mode styles */
+          .leave-portal-container .custom-card {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          }
+          .leave-portal-container .custom-tab-container {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+          }
+          .leave-portal-container .custom-tab-btn {
+            color: #475569;
+          }
+          .leave-portal-container .custom-tab-btn:hover {
+            color: #0f172a;
+            background: #e2e8f0;
+          }
+          .leave-portal-container .custom-tab-btn.active-student {
+            background: #2563eb;
+            color: #ffffff;
+          }
+          .leave-portal-container .custom-tab-btn.active-teacher {
+            background: #d97706;
+            color: #ffffff;
+          }
+          .leave-portal-container .custom-tab-btn.active-status {
+            background: #2563eb;
+            color: #ffffff;
+          }
+          .leave-portal-container .custom-search {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #0f172a;
+          }
+          .leave-portal-container .custom-search::placeholder {
+            color: #94a3b8;
+          }
+          .leave-portal-container .custom-table-header {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            color: #475569;
+          }
+          .leave-portal-container .custom-table-row {
+            border-bottom: 1px solid #cbd5e1;
+            color: #334155;
+          }
+          .leave-portal-container .custom-table-row:hover {
+            background: #f8fafc;
+          }
+          .leave-portal-container .custom-text-name {
+            color: #0f172a;
+          }
+          .leave-portal-container .custom-text-muted {
+            color: #64748b;
+          }
+
+          /* Local dark mode overrides */
+          .dark .leave-portal-container .custom-card {
+            background: rgba(15, 23, 42, 0.45);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            box-shadow: none;
+          }
+          .dark .leave-portal-container .custom-tab-container {
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+          }
+          .dark .leave-portal-container .custom-tab-btn {
+            color: #94a3b8;
+          }
+          .dark .leave-portal-container .custom-tab-btn:hover {
+            color: #ffffff;
+            background: rgba(30, 41, 59, 0.5);
+          }
+          .dark .leave-portal-container .custom-tab-btn.active-student {
+            background: #2563eb;
+            color: #ffffff;
+          }
+          .dark .leave-portal-container .custom-tab-btn.active-teacher {
+            background: #d97706;
+            color: #ffffff;
+          }
+          .dark .leave-portal-container .custom-tab-btn.active-status {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+          }
+          .dark .leave-portal-container .custom-search {
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            color: #ffffff;
+          }
+          .dark .leave-portal-container .custom-table-header {
+            background: rgba(2, 6, 23, 0.2);
+            border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+            color: #64748b;
+          }
+          .dark .leave-portal-container .custom-table-row {
+            border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+            color: #cbd5e1;
+          }
+          .dark .leave-portal-container .custom-table-row:hover {
+            background: rgba(30, 41, 59, 0.2);
+          }
+          .dark .leave-portal-container .custom-text-name {
+            color: #ffffff;
+          }
+          .dark .leave-portal-container .custom-text-muted {
+            color: #64748b;
+          }
+        `}} />
 
         {/* Action Bar */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border)] shadow-sm">
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto overflow-x-auto">
+        <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between custom-card p-4 rounded-2xl shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto overflow-x-auto">
             {/* Role Tabs */}
-            <div className="flex p-1 bg-[var(--bg-main)] rounded-xl border border-[var(--border)]">
+            <div className="flex p-1 custom-tab-container rounded-xl">
               <button
                 onClick={() => setActiveRoleTab("Student")}
-                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-                  activeRoleTab === "Student"
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
+                className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap custom-tab-btn ${
+                  activeRoleTab === "Student" ? "active-student" : ""
                 }`}
               >
                 Student Leaves
               </button>
               <button
                 onClick={() => setActiveRoleTab("Teacher")}
-                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-                  activeRoleTab === "Teacher"
-                    ? "bg-amber-600 text-white shadow-md"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
+                className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap custom-tab-btn ${
+                  activeRoleTab === "Teacher" ? "active-teacher" : ""
                 }`}
               >
                 Teacher Leaves
@@ -168,23 +271,19 @@ export default function HeadmasterLeavePage() {
             </div>
 
             {/* Status Tabs */}
-            <div className="flex p-1 bg-[var(--bg-main)] rounded-xl border border-[var(--border)]">
+            <div className="flex p-1 custom-tab-container rounded-xl">
               <button
                 onClick={() => setActiveTab("Pending")}
-                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-                  activeTab === "Pending"
-                    ? "bg-[var(--primary)] text-slate-950 shadow-md"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
+                className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap custom-tab-btn ${
+                  activeTab === "Pending" ? "active-status" : ""
                 }`}
               >
                 Pending
               </button>
               <button
                 onClick={() => setActiveTab("History")}
-                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-                  activeTab === "History"
-                    ? "bg-[var(--primary)] text-slate-950 shadow-md"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
+                className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap custom-tab-btn ${
+                  activeTab === "History" ? "active-status" : ""
                 }`}
               >
                 History
@@ -194,99 +293,101 @@ export default function HeadmasterLeavePage() {
 
           {/* Search */}
           <div className="relative w-full md:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+            <i className="fi fi-rr-search absolute left-3.5 top-1/2 -translate-y-1/2 text-xs custom-text-muted" />
             <input
               type="text"
               placeholder="Search by name or reason..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-main)] text-sm text-[var(--text-heading)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all"
+              className="w-full pl-10 pr-4 py-2 rounded-xl text-xs custom-search focus:outline-none focus:border-blue-500 transition-colors"
             />
           </div>
         </div>
 
         {/* Requests List */}
-        <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden flex flex-col flex-1">
-          <div className="p-4 sm:p-5 border-b border-[var(--border)] flex items-center justify-between bg-[var(--bg-main)]/50">
-            <h2 className="text-base sm:text-lg font-extrabold text-[var(--text-heading)] flex items-center gap-2">
-              <FileText className="w-5 h-5 text-[var(--primary)]" />
+        <div className="custom-card rounded-2xl shadow-sm overflow-hidden flex flex-col flex-1">
+          <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between custom-table-header">
+            <h2 className="text-sm sm:text-base font-bold flex items-center gap-2">
+              <i className="fi fi-rr-document-signed text-base text-blue-500" />
               {activeTab} Requests
             </h2>
-            <div className="text-xs font-bold px-3 py-1 bg-[var(--primary)]/10 text-[var(--primary)] rounded-full">
+            <div className="text-[10px] sm:text-xs font-bold px-3 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full border border-blue-500/20">
               {filteredRequests.length} Total
             </div>
           </div>
 
-          <div className="p-0 overflow-x-auto">
+          <div className="p-0 overflow-x-auto w-full">
             {loading ? (
-              <div className="text-center py-12 text-sm text-[var(--text-muted)] animate-pulse">
+              <div className="text-center py-12 text-xs sm:text-sm custom-text-muted animate-pulse">
                 Loading requests...
               </div>
             ) : filteredRequests.length === 0 ? (
-              <div className="text-center py-12 text-sm text-[var(--text-muted)]">
+              <div className="text-center py-12 text-xs sm:text-sm custom-text-muted">
                 No {activeTab.toLowerCase()} requests found.
               </div>
             ) : (
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
-                  <tr className="bg-[var(--bg-main)] border-b border-[var(--border)] text-[var(--text-muted)] text-xs uppercase tracking-wider font-extrabold">
-                    <th className="p-4">Name / Role</th>
-                    <th className="p-4">Leave Type</th>
-                    <th className="p-4">Duration</th>
-                    <th className="p-4">Reason</th>
-                    <th className="p-4">Status</th>
-                    {activeTab === "Pending" && <th className="p-4 text-right">Actions</th>}
+                  <tr className="custom-table-header text-[10px] uppercase tracking-wider">
+                    <th className="px-4 py-3">Name / Role</th>
+                    <th className="px-4 py-3">Leave Type</th>
+                    <th className="px-4 py-3">Duration</th>
+                    <th className="px-4 py-3">Reason</th>
+                    <th className="px-4 py-3">Status</th>
+                    {activeTab === "Pending" && <th className="px-4 py-3 text-right">Actions</th>}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--border)]">
+                <tbody>
                   {filteredRequests.map((req) => (
-                    <tr key={req.id} className="hover:bg-[var(--bg-main)] transition-colors group">
-                      <td className="p-4">
-                        <div className="font-bold text-[var(--text-heading)] text-sm">{req.studentName}</div>
-                        <div className="text-xs text-[var(--text-muted)] mt-0.5">
+                    <tr key={req.id} className="custom-table-row text-[11px] sm:text-xs transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="font-bold custom-text-name text-xs sm:text-sm">{req.studentName}</div>
+                        <div className="text-[10px] sm:text-xs custom-text-muted mt-0.5">
                           {req.studentId ? "Student" : req.staffId ? "Staff/Teacher" : "Unknown"}
                         </div>
                       </td>
-                      <td className="p-4 text-sm font-medium text-[var(--text-heading)]">{req.type}</td>
-                      <td className="p-4 text-sm text-[var(--text-heading)] flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-[var(--text-muted)]" />
-                        {req.duration}
+                      <td className="px-4 py-3 font-semibold">{req.type}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <i className="fi fi-rr-calendar text-xs sm:text-sm custom-text-muted" />
+                          {req.duration}
+                        </div>
                       </td>
-                      <td className="p-4 text-sm text-[var(--text-muted)] max-w-xs truncate" title={req.reason}>
+                      <td className="px-4 py-3 custom-text-muted max-w-xs truncate" title={req.reason}>
                         {req.reason}
                       </td>
-                      <td className="p-4">
+                      <td className="px-4 py-3">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold ${
                             req.status === "Approved"
-                              ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                               : req.status === "Rejected"
-                              ? "bg-red-500/10 text-red-500 border border-red-500/20"
-                              : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                              ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                              : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                           }`}
                         >
                           {req.status === "Approved" ? (
-                            <CheckCircle className="w-3.5 h-3.5" />
+                            <i className="fi fi-rr-check-circle text-xs" />
                           ) : req.status === "Rejected" ? (
-                            <XCircle className="w-3.5 h-3.5" />
+                            <i className="fi fi-rr-cross-circle text-xs" />
                           ) : (
-                            <Clock className="w-3.5 h-3.5" />
+                            <i className="fi fi-rr-clock text-xs" />
                           )}
                           {req.status}
                         </span>
                       </td>
                       {activeTab === "Pending" && (
-                        <td className="p-4 text-right">
-                          <div className="flex justify-end gap-2 transition-opacity">
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex justify-end gap-2">
                             <button
                               onClick={() => handleAction(req.id, "Approved")}
-                              className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
+                              className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] sm:text-xs font-bold rounded-lg transition-colors shadow-sm"
                             >
                               Approve
                             </button>
                             <button
                               onClick={() => handleAction(req.id, "Rejected")}
-                              className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
+                              className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-red-600 hover:bg-red-700 text-white text-[10px] sm:text-xs font-bold rounded-lg transition-colors shadow-sm"
                             >
                               Reject
                             </button>
