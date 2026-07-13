@@ -127,6 +127,10 @@ const COLOR_MAP: Record<string, { primary: string; light: string; ring: string; 
   },
 };
 
+// Realistic AI image via Pollinations (free, no key)
+const pol = (prompt: string, w = 1000, h = 600) =>
+  `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&nologo=true`;
+
 // ---------------------------------------------------------------------------
 // Download helper
 // ---------------------------------------------------------------------------
@@ -195,6 +199,26 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
           >
             <span>⬇️</span> Download / Print
           </button>
+        </div>
+      </div>
+
+      {/* ================================================================== */}
+      {/* REALISTIC CONCEPT VISUAL (Pollinations)                            */}
+      {/* ================================================================== */}
+      <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-md relative">
+        <img
+          src={pol(`${heroTitle}, ${subject}, ${topic}, realistic educational illustration, vibrant, highly detailed, bright clean background`, 1200, 440)}
+          alt={heroTitle}
+          loading="lazy"
+          className="w-full h-40 md:h-56 object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex items-end p-5">
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.85)" }}>
+              <i className="fi fi-sr-picture leading-none" /> Real-World Visual · காட்சி விளக்கம்
+            </span>
+            <p className="font-bold text-sm md:text-lg" style={{ color: "#fff" }}>{heroTitle} — {heroSubtitle}</p>
+          </div>
         </div>
       </div>
 
@@ -380,12 +404,18 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
                 key={idx}
                 className={`bg-white border border-slate-200 p-4 rounded-2xl shadow-sm relative group hover:${colors.light} hover:${colors.border} transition-colors`}
               >
-                <div className={`absolute top-3 right-3 text-xs font-mono font-black text-slate-200 group-hover:${colors.text}`}>
+                <div className={`absolute top-3 right-3 z-10 text-xs font-mono font-black text-white/90 drop-shadow`}>
                   0{idx + 1}
                 </div>
-                <span className="text-2xl p-2 rounded-xl bg-slate-50 shadow-sm shrink-0 inline-block mb-3 border border-slate-100">
-                  {work.icon}
-                </span>
+                <div className="relative w-full h-24 rounded-2xl overflow-hidden mb-3 border border-slate-100 bg-slate-100">
+                  <img
+                    src={pol(`${work.step}, ${topic}, ${subject}, realistic educational, simple, bright`, 400, 240)}
+                    alt={work.step}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                  <span className="absolute bottom-1 left-1 text-xl drop-shadow-md">{work.icon}</span>
+                </div>
                 <h4 className="font-extrabold text-xs text-slate-800 leading-snug">{work.step}</h4>
                 <p className="text-[10px] text-slate-500 mt-1.5 leading-relaxed font-medium">{work.desc}</p>
               </div>

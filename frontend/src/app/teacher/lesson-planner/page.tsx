@@ -978,7 +978,7 @@ export default function LessonPlannerPage() {
                 </button>
               </div>
             ) : (
-              <div className="max-w-5xl mx-auto h-full flex flex-col">
+              <div className="w-full h-full flex flex-col">
 
                 {/* Hero band — topic header */}
                 <div
@@ -988,8 +988,10 @@ export default function LessonPlannerPage() {
                   <div className="absolute -bottom-12 -left-8 w-40 h-40 bg-white/10 rounded-full" />
                   <div className="relative z-10 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
                     <div className="flex items-start gap-4">
-                      <div className="shrink-0 w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl shadow-inner border border-white/20">
-                        {infographicData?.heroIcon || <i className="fi fi-sr-book-alt leading-none" style={{ color: "#fff" }} />}
+                      <div className="shrink-0 w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl leading-none overflow-hidden shadow-inner border border-white/20">
+                        <span className="truncate max-w-full leading-none" style={{ color: "#fff" }}>
+                          {(infographicData?.heroIcon && String(infographicData.heroIcon).slice(0, 2)) || <i className="fi fi-sr-book-alt leading-none" />}
+                        </span>
                       </div>
                       <div>
                         <div className="flex flex-wrap gap-2 mb-2">
@@ -1010,16 +1012,18 @@ export default function LessonPlannerPage() {
                 {activeTab === "overview" && (
                   <div className="flex-1 space-y-6">
 
-                    {/* KPI strip */}
+                    {/* KPI strip — adaptive so long Tamil values/descriptions stay fully visible */}
                     {stats.length > 0 && (
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {stats.slice(0, 4).map((stat: any, i: number) => {
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        {stats.slice(0, 3).map((stat: any, i: number) => {
                           const tint = kpiTints[i % kpiTints.length];
+                          const val = String(stat.value ?? "");
+                          const isShort = val.length <= 8;
                           return (
-                            <div key={i} className={`p-4 rounded-2xl border ${theme.border} ${theme.bgCard} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all`}>
-                              <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block truncate">{stat.label}</span>
-                              <span className={`block text-2xl font-black font-mono mt-1 ${tint.text}`}>{stat.value}</span>
-                              <p className={`text-[10px] ${theme.textMuted} mt-1 leading-snug line-clamp-2`}>{stat.desc}</p>
+                            <div key={i} className={`p-4 rounded-2xl border ${theme.border} ${theme.bgCard} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col`}>
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">{stat.label}</span>
+                              <span className={`block font-black mt-0.5 leading-tight break-words ${tint.text} ${isShort ? "text-2xl font-mono" : "text-base"}`}>{stat.value}</span>
+                              {stat.desc && <p className={`text-[11px] ${theme.textMuted} mt-1.5 leading-relaxed break-words`}>{stat.desc}</p>}
                             </div>
                           );
                         })}
