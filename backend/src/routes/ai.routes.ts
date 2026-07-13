@@ -469,6 +469,138 @@ Each slide: large bold title, minimal body (max 30 words), numbered bullets, one
 });
 
 // ===========================================================================
+// POST /api/ai/generate-lesson-quiz — lazy: 10 bilingual MCQs for the Assessment tool
+// ===========================================================================
+const LESSON_QUIZ_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    quiz: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          question: { type: 'STRING' },
+          questionTa: { type: 'STRING' },
+          options: { type: 'ARRAY', items: { type: 'STRING' } },
+          answer: { type: 'STRING' },
+          rationale: { type: 'STRING' },
+          difficulty: { type: 'STRING' },
+        },
+        required: ['question', 'questionTa', 'options', 'answer', 'rationale', 'difficulty'],
+      },
+    },
+  },
+  required: ['quiz'],
+};
+
+router.post('/generate-lesson-quiz', async (req: Request, res: Response) => {
+  try {
+    const { grade, subject, topic, textbookContext } = req.body;
+    const truncatedContext = limitContext(textbookContext, topic);
+
+    const prompt = `Generate EXACTLY 10 multiple-choice quiz questions for a Grade ${grade} ${subject} lesson on "${topic}" (TN State Board).
+${truncatedContext ? `Textbook context (only "${topic}"):\n${truncatedContext}\n` : ''}
+Rules:
+- Exactly 10 questions, all specifically about "${topic}".
+- Progressive difficulty: 4 "Easy", 4 "Medium", 2 "Hard" (set the "difficulty" field accordingly).
+- Each question: 4 options formatted like "A) ...", "B) ...", "C) ...", "D) ...".
+- "answer" is the FULL text of the correct option (e.g. "B) ...").
+- "questionTa" is a natural classroom Tamil translation of the question.
+- "rationale" briefly explains why the answer is correct (1 sentence).`;
+
+    const result = await callGemini(prompt, true, LESSON_QUIZ_SCHEMA, 20000, 120000);
+    res.json({ success: true, data: Array.isArray(result?.quiz) ? result.quiz : [] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// POST /api/ai/generate-lesson-podcast — lazy: bilingual 2-host audio script
+// ===========================================================================
+const LESSON_PODCAST_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    hosts: { type: 'ARRAY', items: { type: 'STRING' } },
+    script: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          speaker: { type: 'STRING' },
+          text: { type: 'STRING' },
+          lang: { type: 'STRING' },
+        },
+        required: ['speaker', 'text', 'lang'],
+      },
+    },
+  },
+  required: ['hosts', 'script'],
+};
+
+router.post('/generate-lesson-podcast', async (req: Request, res: Response) => {
+  try {
+    const { grade, subject, topic, textbookContext } = req.body;
+    const truncatedContext = limitContext(textbookContext, topic);
+
+    const prompt = `Write a lively 2-host educational podcast that teaches "${topic}" to a Grade ${grade} ${subject} student (TN State Board).
+${truncatedContext ? `Textbook context (only "${topic}"):\n${truncatedContext}\n` : ''}
+Rules:
+- hosts: exactly ["Arjun", "Meera"]. Arjun explains mostly in English; Meera adds warm Tamil explanations and analogies.
+- script: 12-14 alternating turns. Each turn: "speaker" is "Arjun" or "Meera"; "text" is 1-3 sentences; "lang" is "en" for English lines and "ta" for lines that are primarily Tamil.
+- Cover: a hook, the core concept, one real-world example, a common misconception, and a recap. Natural conversational tone, not a monologue.`;
+
+    const result = await callGemini(prompt, true, LESSON_PODCAST_SCHEMA, 16000, 120000);
+    res.json({ success: true, data: result && Array.isArray(result.script) ? result : { hosts: [], script: [] } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// POST /api/ai/generate-lesson-video — lazy: cinematic storyboard (image + narration)
+// ===========================================================================
+const LESSON_VIDEO_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    videoStoryboard: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          sceneNumber: { type: 'NUMBER' },
+          visualDescription: { type: 'STRING' },
+          narrationText: { type: 'STRING' },
+          subtitles: { type: 'STRING' },
+        },
+        required: ['sceneNumber', 'visualDescription', 'narrationText', 'subtitles'],
+      },
+    },
+  },
+  required: ['videoStoryboard'],
+};
+
+router.post('/generate-lesson-video', async (req: Request, res: Response) => {
+  try {
+    const { grade, subject, topic, textbookContext } = req.body;
+    const truncatedContext = limitContext(textbookContext, topic);
+
+    const prompt = `Create a cinematic 6-scene explainer-video storyboard that teaches "${topic}" to a Grade ${grade} ${subject} student (TN State Board).
+${truncatedContext ? `Textbook context (only "${topic}"):\n${truncatedContext}\n` : ''}
+Rules:
+- videoStoryboard: exactly 6 scenes, sceneNumber 1..6 in order (intro hook → concept → how it works → real-world example → key takeaway → recap/outro).
+- "visualDescription": a vivid, concrete image-generation prompt (what the camera sees) — realistic, detailed, education-friendly. No text overlays described.
+- "narrationText": 1-2 sentence English voiceover for the scene.
+- "subtitles": the same narration in natural Tamil.`;
+
+    const result = await callGemini(prompt, true, LESSON_VIDEO_SCHEMA, 16000, 120000);
+    res.json({ success: true, data: Array.isArray(result?.videoStoryboard) ? result.videoStoryboard : [] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
 // POST /api/ai/generate-study-plan
 // ===========================================================================
 router.post('/generate-study-plan', async (req: Request, res: Response) => {

@@ -66,6 +66,7 @@ router.get('/:parentId/children', async (req: Request, res: Response) => {
       section: l.student.section,
       rollNumber: l.student.rollNumber,
       gender: l.student.gender,
+      community: l.student.community,
       schoolId: l.student.schoolId,
     }));
 

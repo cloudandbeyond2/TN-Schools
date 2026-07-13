@@ -14,6 +14,7 @@ export interface Child {
   section: string;
   rollNumber: string | null;
   gender: string | null;
+  community: string | null;
   schoolId: string;
 }
 
