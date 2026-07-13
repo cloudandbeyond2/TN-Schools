@@ -546,7 +546,7 @@ export default function HeadmasterAttendancePage() {
                                 <td className="font-mono text-[11px] font-bold text-slate-400">{log.rollNumber}</td>
                                 <td className="font-bold text-white text-xs">{log.name}</td>
                                 <td>
-                                  <span className="bg-slate-950/60 border border-slate-800 px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-300">
+                                  <span className="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 px-2 py-0.5 rounded-md text-[10px] font-bold">
                                     Grade {log.class} - {log.section}
                                   </span>
                                 </td>
@@ -991,7 +991,7 @@ export default function HeadmasterAttendancePage() {
                               <td className="font-mono text-[11px] font-bold text-slate-400">{log.rollNumber}</td>
                               <td className="font-bold text-white text-xs">{log.name}</td>
                               <td>
-                                <span className="bg-slate-950/60 border border-slate-800 px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-300">
+                                <span className="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 px-2 py-0.5 rounded-md text-[10px] font-bold">
                                   Grade {log.class} - {log.section}
                                 </span>
                               </td>

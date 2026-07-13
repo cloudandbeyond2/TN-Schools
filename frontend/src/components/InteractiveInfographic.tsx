@@ -168,7 +168,7 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
       {/* ================================================================== */}
       {/* HEADER                                                              */}
       {/* ================================================================== */}
-      <div className={`bg-gradient-to-r ${colors.gradient} border border-slate-200 rounded-3xl p-5 md:p-7 shadow-xl relative overflow-hidden`}>
+      <div className={`bg-gradient-to-br ${colors.gradient} border border-slate-200 rounded-3xl p-5 md:p-7 shadow-xl relative overflow-hidden`}>
         {/* Decorative circles */}
         <div className={`absolute -top-10 -right-10 w-48 h-48 ${colors.primary} opacity-5 rounded-full`} />
         <div className={`absolute -bottom-8 -left-8 w-32 h-32 ${colors.primary} opacity-5 rounded-full`} />
