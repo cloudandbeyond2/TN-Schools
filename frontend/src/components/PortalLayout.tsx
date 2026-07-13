@@ -742,7 +742,10 @@ export default function PortalLayout({
         </div>
 
         {/* User Profile Section */}
-        <div onClick={() => router.push("/teacher/profile")} className="mx-4 p-3 border border-[var(--border)] rounded-2xl flex items-center gap-3 mb-6 bg-slate-50/50 dark:bg-slate-900/20 hover:bg-slate-100/50 dark:hover:bg-slate-800/20 transition-all block cursor-pointer">
+        <div 
+          onClick={userRole === "TEACHER" ? () => router.push("/teacher/profile") : undefined} 
+          className={`mx-4 p-3 border border-[var(--border)] rounded-2xl flex items-center gap-3 mb-6 bg-slate-50/50 dark:bg-slate-900/20 hover:bg-slate-100/50 dark:hover:bg-slate-800/20 transition-all block ${userRole === "TEACHER" ? "cursor-pointer" : ""}`}
+        >
           <div className="relative shrink-0">
              <div
                className="w-10 h-10 rounded-full text-white text-base font-bold flex items-center justify-center shadow-sm"
@@ -1022,15 +1025,27 @@ export default function PortalLayout({
                     <div className="text-xs font-bold text-[var(--text-heading)] truncate">{displayName}</div>
                     <div className="text-[10px] text-[var(--text-muted)] truncate">{displayEmail}</div>
                   </div>
-                  <Link 
-                    href="/teacher/profile" 
-                    onClick={() => setIsProfileOpen(false)} 
-                    scroll={false} 
-                    className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
-                  >
-                    <User className="w-3.5 h-3.5" /> 
-                    <span>{t.profileTitle}</span>
-                  </Link>
+                  {userRole === "TEACHER" ? (
+                    <Link 
+                      href="/teacher/profile" 
+                      onClick={() => setIsProfileOpen(false)} 
+                      scroll={false} 
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
+                    >
+                      <User className="w-3.5 h-3.5" /> 
+                      <span>{t.profileTitle}</span>
+                    </Link>
+                  ) : (
+                    <Link 
+                      href={userRole === "PARENT" ? "/parent" : (userRole === "PET" ? "/pet" : "/student")} 
+                      onClick={() => setIsProfileOpen(false)} 
+                      scroll={false} 
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
+                    >
+                      <User className="w-3.5 h-3.5" /> 
+                      <span>Dashboard Home</span>
+                    </Link>
+                  )}
                   <Link 
                     href="#" 
                     onClick={() => setIsProfileOpen(false)} 
