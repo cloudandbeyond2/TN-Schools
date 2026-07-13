@@ -32,7 +32,22 @@ export default function StudentRecordsPage() {
   const [showClassAdd, setShowClassAdd] = useState(false);
 
   useEffect(() => {
-    setRecords(petLoad(RECORDS_KEY, DEFAULT_RECORDS));
+    const loadedRecords = petLoad(RECORDS_KEY, DEFAULT_RECORDS);
+    if (!loadedRecords.some(r => r.name.toLowerCase() === "teenu")) {
+      loadedRecords.push({
+        id: "fr-teenu",
+        name: "Teenu",
+        class: "10A",
+        heightCm: 145,
+        weightKg: 40,
+        fitnessScore: 78,
+        mentalHealth: "Good",
+        sport: "Athletics",
+        status: "Healthy — Fit"
+      });
+      petSave(RECORDS_KEY, loadedRecords);
+    }
+    setRecords(loadedRecords);
     setLoaded(true);
   }, []);
 

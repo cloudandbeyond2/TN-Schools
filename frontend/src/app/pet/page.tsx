@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import {
   petLoad,
   stockStatus,
@@ -33,14 +34,50 @@ import {
   AwardRecord,
   Facility,
   FitnessRecord,
+  PET_API_BASE,
 } from "@/lib/petData";
 
 export default function PETDashboard() {
+  const { data: session } = useSession();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [events, setEvents] = useState<SportsEvent[]>([]);
   const [awards, setAwards] = useState<AwardRecord[]>([]);
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [records, setRecords] = useState<FitnessRecord[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [loadingAppts, setLoadingAppts] = useState(true);
+
+  const fetchAppointments = async () => {
+    if (!session?.user) return;
+    const userId = (session.user as any).id;
+    try {
+      const res = await fetch(`${PET_API_BASE}/api/parent/pta-appointments?teacherUserId=${userId}`);
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setAppointments(json.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch PTA appointments:", err);
+    } finally {
+      setLoadingAppts(false);
+    }
+  };
+
+  const handleUpdateStatus = async (apptId: string, status: 'Approved' | 'Rejected') => {
+    try {
+      const res = await fetch(`${PET_API_BASE}/api/parent/pta-appointments/${apptId}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status })
+      });
+      const json = await res.json();
+      if (json.success) {
+        fetchAppointments();
+      }
+    } catch (err) {
+      console.error("Failed to update status:", err);
+    }
+  };
 
   useEffect(() => {
     setInventory(petLoad(INVENTORY_KEY, DEFAULT_INVENTORY));
@@ -49,6 +86,12 @@ export default function PETDashboard() {
     setFacilities(petLoad(FACILITIES_KEY, DEFAULT_FACILITIES));
     setRecords(petLoad(RECORDS_KEY, DEFAULT_RECORDS));
   }, []);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchAppointments();
+    }
+  }, [session]);
 
   const equipAlerts = inventory.filter((i) => stockStatus(i) !== "ok").length;
   const upcomingEvents = events
@@ -148,6 +191,66 @@ export default function PETDashboard() {
               <Link href="/pet/inventory" className="block mt-4 text-center text-sm font-semibold text-blue-500 hover:underline">
                 Open Inventory
               </Link>
+            </div>
+
+            <div className="bg-[var(--bg-card)] rounded-2xl p-6 border border-[var(--border)] shadow-sm">
+              <h3 className="text-lg font-bold text-[var(--text-heading)] mb-4 flex items-center gap-2">
+                <Users size={18} className="text-emerald-500" /> PTA Meeting Requests
+              </h3>
+              <div className="space-y-3">
+                {loadingAppts ? (
+                  <div className="space-y-2">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="h-16 bg-slate-800/40 rounded-xl animate-pulse animate-duration-300" />
+                    ))}
+                  </div>
+                ) : appointments.length === 0 ? (
+                  <div className="text-sm text-[var(--text-muted)] text-center py-4">No meeting requests from parents.</div>
+                ) : (
+                  appointments.slice(0, 4).map((appt) => (
+                    <div key={appt.id} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-[var(--border-light)] text-xs text-left">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="font-bold text-[var(--text-heading)]">{appt.parentName}</span>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                          appt.status.toLowerCase() === "approved"
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                            : appt.status.toLowerCase() === "rejected"
+                            ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                            : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                        }`}>
+                          {appt.status}
+                        </span>
+                      </div>
+                      <div className="text-[var(--text-muted)] font-semibold mb-1">
+                        Student: <strong className="text-[var(--text-heading)]">{appt.studentName}</strong>
+                      </div>
+                      <div className="text-[var(--text-muted)] font-medium mb-2">
+                        📅 {appt.meetingDate} at {appt.timeSlot}
+                      </div>
+                      <div className="text-[var(--text-muted)] italic mb-2">
+                        &quot;{appt.reason}&quot;
+                      </div>
+
+                      {appt.status.toLowerCase() === "pending" && (
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            onClick={() => handleUpdateStatus(appt.id, "Approved")}
+                            className="flex-1 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] transition-colors cursor-pointer"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleUpdateStatus(appt.id, "Rejected")}
+                            className="flex-1 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] transition-colors cursor-pointer"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>

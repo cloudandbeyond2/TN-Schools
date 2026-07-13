@@ -1046,6 +1046,36 @@ router.delete('/alumni/:id', async (req: Request, res: Response) => {
 
 // ─── PTA Meeting Endpoints (Headmaster creates, parents view) ─────
 
+import fs from 'fs';
+import path from 'path';
+
+const RSVPS_FILE = path.join(__dirname, '../../data/pta_rsvps.json');
+
+function readRsvps(): Record<string, Record<string, any>> {
+  try {
+    if (!fs.existsSync(RSVPS_FILE)) {
+      return {};
+    }
+    const content = fs.readFileSync(RSVPS_FILE, 'utf8');
+    return JSON.parse(content);
+  } catch (err) {
+    console.error("Error reading RSVPs file:", err);
+    return {};
+  }
+}
+
+function writeRsvps(rsvps: Record<string, Record<string, any>>) {
+  try {
+    const dir = path.dirname(RSVPS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(RSVPS_FILE, JSON.stringify(rsvps, null, 2), 'utf8');
+  } catch (err) {
+    console.error("Error writing RSVPs file:", err);
+  }
+}
+
 // GET /api/headmaster/pta-meetings
 router.get('/pta-meetings', async (req: Request, res: Response) => {
   try {
@@ -1054,7 +1084,20 @@ router.get('/pta-meetings', async (req: Request, res: Response) => {
       where: schoolId ? { schoolId: String(schoolId) } : undefined,
       orderBy: { meetingDate: 'asc' },
     });
-    res.json({ success: true, count: meetings.length, data: meetings });
+
+    const rsvps = readRsvps();
+    const enrichedMeetings = meetings.map(m => {
+      const meetingRsvps = rsvps[m.id] || {};
+      const rsvpValues = Object.values(meetingRsvps);
+      return {
+        ...m,
+        rsvps: meetingRsvps,
+        acceptCount: rsvpValues.filter(v => (typeof v === 'object' && v ? (v as any).status : v) === 'Accept').length,
+        declineCount: rsvpValues.filter(v => (typeof v === 'object' && v ? (v as any).status : v) === 'Decline').length,
+      };
+    });
+
+    res.json({ success: true, count: enrichedMeetings.length, data: enrichedMeetings });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -1079,6 +1122,34 @@ router.post('/pta-meetings', async (req: Request, res: Response) => {
       },
     });
     res.status(201).json({ success: true, data: meeting });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PUT /api/headmaster/pta-meetings/:id/rsvp
+router.put('/pta-meetings/:id/rsvp', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { parentId, rsvpStatus, reason } = req.body;
+    if (!parentId || !rsvpStatus) {
+      return res.status(400).json({ success: false, error: 'parentId and rsvpStatus are required' });
+    }
+    if (!['Accept', 'Decline'].includes(rsvpStatus)) {
+      return res.status(400).json({ success: false, error: 'Invalid rsvpStatus' });
+    }
+
+    const rsvps = readRsvps();
+    if (!rsvps[id]) {
+      rsvps[id] = {};
+    }
+    rsvps[id][parentId] = {
+      status: rsvpStatus,
+      reason: rsvpStatus === 'Decline' ? (reason || null) : null
+    };
+    writeRsvps(rsvps);
+
+    res.json({ success: true, message: 'RSVP registered successfully' });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

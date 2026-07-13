@@ -273,6 +273,7 @@ export const DEFAULT_RECORDS: FitnessRecord[] = [
   { id: "fr-6", name: "Meena L.", class: "10B", heightCm: 156, weightKg: 47, fitnessScore: 81, mentalHealth: "Good", sport: "Sprint", status: "Zonal medalist" },
   { id: "fr-7", name: "Sanjay P.", class: "9A", heightCm: 160, weightKg: 55, fitnessScore: 74, mentalHealth: "Average", sport: "Kabaddi", status: "Regular practice" },
   { id: "fr-8", name: "Lakshmi N.", class: "7B", heightCm: 145, weightKg: 38, fitnessScore: 66, mentalHealth: "Good", sport: "Kho-Kho", status: "Junior squad" },
+  { id: "fr-9", name: "Teenu", class: "10A", heightCm: 145, weightKg: 40, fitnessScore: 78, mentalHealth: "Good", sport: "Athletics", status: "Healthy — Fit" },
 ];
 
 // ---------------------------------------------------------------------------

@@ -444,6 +444,41 @@ model PTAMeeting {
   @@index([createdByUserId])
 }
 
+
+
+model PTAAppointment {
+  id          String   @id @default(uuid())
+  parentId    String
+  teacherId   String
+  studentId   String
+  meetingDate String   // Stored as date string "YYYY-MM-DD"
+  timeSlot    String   // e.g. "10:00 AM - 10:30 AM"
+  status      String   @default("Pending") // Pending, Approved, Rejected, Completed
+  reason      String
+  notes       String?
+  schoolId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([parentId])
+  @@index([teacherId])
+  @@index([schoolId])
+}
+
+model TeacherMeetingSlot {
+  id          String   @id @default(uuid())
+  teacherId   String
+  dayOfWeek   String   // e.g. "Monday", "Tuesday", "Wednesday", etc.
+  timeSlot    String   // e.g. "10:00 AM - 10:30 AM"
+  isAvailable Boolean  @default(true)
+  schoolId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([teacherId])
+  @@index([schoolId])
+}
+
 model HeadmasterAlumni {
   id           String   @id @default(uuid())
   name         String
