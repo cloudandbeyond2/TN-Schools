@@ -1,47 +1,48 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 
 interface School {
-  id: number;
+  id: string | number;
   name: string;
   dise: string;
   district: string;
   block: string;
-  type: "GHS" | "GHSS" | "Middle" | "Primary";
-  medium: "Tamil" | "English" | "Both";
+  type: string;
+  medium: string;
   hm: string;
   students: number;
   teachers: number;
   status: "active" | "inactive";
 }
 
-const DISTRICTS = ["Coimbatore","Chennai","Madurai","Salem","Trichy","Tirunelveli","Erode","Vellore","Thanjavur","Dindigul"];
-const TYPES = ["GHS","GHSS","Middle","Primary"] as const;
-const MEDIUMS = ["Tamil","English","Both"] as const;
-
-const initialSchools: School[] = [
-  { id:1, name:"GHSS Coimbatore North", dise:"33012345", district:"Coimbatore", block:"Coimbatore South", type:"GHSS", medium:"Both", hm:"Mr. Venkatesh R.", students:1240, teachers:48, status:"active" },
-  { id:2, name:"GHS Madurai East", dise:"35089012", district:"Madurai", block:"Madurai East", type:"GHS", medium:"Tamil", hm:"Mrs. Anitha R.", students:876, teachers:32, status:"active" },
-  { id:3, name:"GHS Salem West", dise:"43002567", district:"Salem", block:"Salem Block", type:"GHS", medium:"Tamil", hm:"Mr. Ramesh K.", students:654, teachers:26, status:"active" },
-  { id:4, name:"GHSS Chennai Anna Nagar", dise:"01078923", district:"Chennai", block:"T. Nagar", type:"GHSS", medium:"English", hm:"Mrs. Sujatha M.", students:1850, teachers:72, status:"active" },
-  { id:5, name:"Middle School Erode", dise:"21034501", district:"Erode", block:"Erode Town", type:"Middle", medium:"Tamil", hm:"Mr. Durai S.", students:420, teachers:18, status:"active" },
-  { id:6, name:"GHS Vellore South", dise:"37056789", district:"Vellore", block:"Vellore Block", type:"GHS", medium:"Tamil", hm:"—", students:560, teachers:22, status:"inactive" },
-  { id:7, name:"GHSS Trichy Central", dise:"45091234", district:"Trichy", block:"Trichy Block", type:"GHSS", medium:"Both", hm:"Mr. Kumar R.", students:1560, teachers:60, status:"active" },
-  { id:8, name:"GHS Thanjavur", dise:"56012300", district:"Thanjavur", block:"Thanjavur Block", type:"GHS", medium:"Tamil", hm:"Mrs. Kavitha P.", students:730, teachers:28, status:"active" },
+const DISTRICTS = [
+  "Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore",
+  "Dharmapuri", "Dindigul", "Erode", "Kallakurichi", "Kancheepuram",
+  "Karur", "Krishnagiri", "Madurai", "Mayiladuthurai", "Nagapattinam",
+  "Kanyakumari", "Namakkal", "Perambalur", "Pudukkottai", "Ramanathapuram",
+  "Ranipet", "Salem", "Sivaganga", "Tenkasi", "Thanjavur",
+  "Theni", "Thiruvallur", "Thiruvarur", "Thoothukudi", "Tiruchirappalli",
+  "Tirunelveli", "Tirupathur", "Tiruppur", "Tiruvannamalai", "The Nilgiris",
+  "Vellore", "Viluppuram", "Virudhunagar"
 ];
+const TYPES = ["Government", "Aided", "Private", "GHS", "GHSS", "Middle", "Primary"] as const;
+const MEDIUMS = ["Tamil", "English", "Both"] as const;
 
-const typeColors: Record<School["type"], string> = {
-  GHSS:"text-violet-400 bg-violet-500/10 border-violet-500/30",
-  GHS:"text-blue-400 bg-blue-500/10 border-blue-500/30",
-  Middle:"text-amber-400 bg-amber-500/10 border-amber-500/30",
-  Primary:"text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+const typeColors: Record<string, string> = {
+  GHSS: "text-violet-400 bg-violet-500/10 border-violet-500/30",
+  GHS: "text-blue-400 bg-blue-500/10 border-blue-500/30",
+  Middle: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+  Primary: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+  Government: "text-violet-400 bg-violet-500/10 border-violet-500/30",
+  Aided: "text-amber-400 bg-amber-500/10 border-amber-500/30",
 };
 
-const emptyForm = { name:"", dise:"", district:"Coimbatore", block:"", type:"GHS" as School["type"], medium:"Tamil" as School["medium"], hm:"", students:0, teachers:0 };
+const emptyForm = { name: "", dise: "", district: "Coimbatore", block: "", type: "Government" as string, medium: "Tamil" as string, hm: "", students: 0, teachers: 0 };
 
 export default function SchoolManagement() {
-  const [schools, setSchools] = useState<School[]>(initialSchools);
+  const [schools, setSchools] = useState<School[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterDist, setFilterDist] = useState("All");
   const [filterType, setFilterType] = useState("All");
@@ -49,6 +50,40 @@ export default function SchoolManagement() {
   const [editSchool, setEditSchool] = useState<School | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [viewSchool, setViewSchool] = useState<School | null>(null);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  const fetchSchools = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/schools`);
+      const data = await res.json();
+      if (data.success) {
+        const mapped = data.data.map((s: any) => ({
+          id: s.id,
+          name: s.name,
+          dise: s.dise,
+          district: s.district,
+          block: s.block,
+          type: s.schoolType,
+          medium: s.mediumOfInstruction,
+          hm: s.headmasterName || "—",
+          students: s._count?.students || 0,
+          teachers: s._count?.teachers || 0,
+          status: "active",
+        }));
+        setSchools(mapped);
+      }
+    } catch (err) {
+      console.error("Error fetching schools:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSchools();
+  }, []);
 
   const filtered = schools.filter((s) => {
     const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -59,18 +94,60 @@ export default function SchoolManagement() {
   });
 
   const openAdd = () => { setEditSchool(null); setForm(emptyForm); setShowModal(true); };
-  const openEdit = (s: School) => { setEditSchool(s); setForm({ name:s.name, dise:s.dise, district:s.district, block:s.block, type:s.type, medium:s.medium, hm:s.hm, students:s.students, teachers:s.teachers }); setShowModal(true); };
-  const saveSchool = () => {
+  const openEdit = (s: School) => { setEditSchool(s); setForm({ name: s.name, dise: s.dise, district: s.district, block: s.block, type: s.type, medium: s.medium, hm: s.hm, students: s.students, teachers: s.teachers }); setShowModal(true); };
+
+  const saveSchool = async () => {
     if (!form.name || !form.dise) return;
-    if (editSchool) {
-      setSchools((prev) => prev.map((s) => s.id === editSchool.id ? { ...s, ...form } : s));
-    } else {
-      setSchools((prev) => [...prev, { id:Date.now(), ...form, status:"active" }]);
+    try {
+      const payload = {
+        dise: form.dise,
+        name: form.name,
+        district: form.district,
+        block: form.block,
+        schoolType: form.type,
+        mediumOfInstruction: form.medium,
+        headmasterName: form.hm || "N/A"
+      };
+      const endpoint = editSchool ? `${API_URL}/api/schools/${editSchool.id}` : `${API_URL}/api/schools`;
+      const method = editSchool ? "PUT" : "POST";
+      const res = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchSchools();
+        setShowModal(false);
+      } else {
+        alert(`Error saving school: ${data.error}`);
+      }
+    } catch (err) {
+      console.error("Error saving school:", err);
+      alert("Network error saving school");
     }
-    setShowModal(false);
   };
-  const deleteSchool = (id: number) => { setSchools((prev) => prev.filter((s) => s.id !== id)); if (viewSchool?.id === id) setViewSchool(null); };
-  const toggleStatus = (id: number) => setSchools((prev) => prev.map((s) => s.id === id ? { ...s, status: s.status === "active" ? "inactive" : "active" } : s));
+
+  const deleteSchool = async (id: string | number) => {
+    if (!confirm("Are you sure you want to delete this school?")) return;
+    try {
+      const res = await fetch(`${API_URL}/api/schools/${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchSchools();
+        if (viewSchool?.id === id) setViewSchool(null);
+      } else {
+        alert(`Error deleting school: ${data.error}`);
+      }
+    } catch (err) {
+      console.error("Error deleting school:", err);
+      alert("Network error deleting school");
+    }
+  };
+
+  const toggleStatus = (id: string | number) => setSchools((prev) => prev.map((s) => s.id === id ? { ...s, status: s.status === "active" ? "inactive" : "active" } : s));
 
   const totalStudents = schools.reduce((a, s) => a + s.students, 0);
   const totalTeachers = schools.reduce((a, s) => a + s.teachers, 0);
@@ -93,10 +170,10 @@ export default function SchoolManagement() {
       {/* Summary KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
-          { label:"Total Schools", value:schools.length.toLocaleString(), icon:"🏫", color:"text-blue-400" },
-          { label:"Active Schools", value:active.toLocaleString(), icon:"✅", color:"text-emerald-400" },
-          { label:"Total Students", value:totalStudents.toLocaleString(), icon:"🎓", color:"text-violet-400" },
-          { label:"Total Teachers", value:totalTeachers.toLocaleString(), icon:"📚", color:"text-amber-400" },
+          { label: "Total Schools", value: schools.length.toLocaleString(), icon: "🏫", color: "text-blue-400" },
+          { label: "Active Schools", value: active.toLocaleString(), icon: "✅", color: "text-emerald-400" },
+          { label: "Total Students", value: totalStudents.toLocaleString(), icon: "🎓", color: "text-violet-400" },
+          { label: "Total Teachers", value: totalTeachers.toLocaleString(), icon: "📚", color: "text-amber-400" },
         ].map((k) => (
           <div key={k.label} className="glass rounded-xl p-4 border border-slate-800">
             <div className="flex items-center gap-2 mb-2">
@@ -129,53 +206,65 @@ export default function SchoolManagement() {
       {/* Schools Table */}
       <div className="glass rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="data-table min-w-[800px]">
-            <thead>
-              <tr>
-                <th>School</th>
-                <th>DISE Code</th>
-                <th>Type</th>
-                <th>District / Block</th>
-                <th>Medium</th>
-                <th>Headmaster</th>
-                <th>Students</th>
-                <th>Status</th>
-                <th className="text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((s) => (
-                <tr key={s.id} className="cursor-pointer" onClick={() => setViewSchool(s)}>
-                  <td>
-                    <div className="text-xs font-semibold text-white">{s.name}</div>
-                  </td>
-                  <td className="font-mono">{s.dise}</td>
-                  <td>
-                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${typeColors[s.type]}`}>{s.type}</span>
-                  </td>
-                  <td>
-                    <div>{s.district}</div>
-                    <div className="text-slate-600">{s.block}</div>
-                  </td>
-                  <td>{s.medium}</td>
-                  <td>{s.hm || "—"}</td>
-                  <td className="font-bold text-white">{s.students.toLocaleString()}</td>
-                  <td>
-                    <button onClick={(e) => { e.stopPropagation(); toggleStatus(s.id); }}
-                      className={`relative w-10 h-5 rounded-full transition-colors ${s.status === "active" ? "bg-emerald-500" : "bg-slate-700"}`}>
-                      <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${s.status === "active" ? "translate-x-5" : "translate-x-0.5"}`} />
-                    </button>
-                  </td>
-                  <td className="text-right" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex gap-2 justify-end">
-                      <button onClick={() => openEdit(s)} className="text-[10px] text-blue-400 hover:text-blue-300 font-semibold">Edit</button>
-                      <button onClick={() => deleteSchool(s.id)} className="text-[10px] text-red-400 hover:text-red-300 font-semibold">Delete</button>
-                    </div>
-                  </td>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-8 h-8 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin mb-3" />
+              <span className="text-xs text-slate-400">Loading schools from database...</span>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-16">
+              <span className="text-3xl block mb-2">🏫</span>
+              <span className="text-xs text-slate-500">No schools found in selection.</span>
+            </div>
+          ) : (
+            <table className="data-table min-w-[800px]">
+              <thead>
+                <tr>
+                  <th>School</th>
+                  <th>DISE Code</th>
+                  <th>Type</th>
+                  <th>District / Block</th>
+                  <th>Medium</th>
+                  <th>Headmaster</th>
+                  <th>Students</th>
+                  <th>Status</th>
+                  <th className="text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((s) => (
+                  <tr key={s.id} className="cursor-pointer" onClick={() => setViewSchool(s)}>
+                    <td>
+                      <div className="text-xs font-semibold text-white">{s.name}</div>
+                    </td>
+                    <td className="font-mono">{s.dise}</td>
+                    <td>
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${typeColors[s.type] || typeColors["Government"]}`}>{s.type}</span>
+                    </td>
+                    <td>
+                      <div>{s.district}</div>
+                      <div className="text-slate-600">{s.block}</div>
+                    </td>
+                    <td>{s.medium}</td>
+                    <td>{s.hm || "—"}</td>
+                    <td className="font-bold text-white">{s.students.toLocaleString()}</td>
+                    <td>
+                      <button onClick={(e) => { e.stopPropagation(); toggleStatus(s.id); }}
+                        className={`relative w-10 h-5 rounded-full transition-colors ${s.status === "active" ? "bg-emerald-500" : "bg-slate-700"}`}>
+                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${s.status === "active" ? "translate-x-5" : "translate-x-0.5"}`} />
+                      </button>
+                    </td>
+                    <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-2 justify-end">
+                        <button onClick={() => openEdit(s)} className="text-[10px] text-blue-400 hover:text-blue-300 font-semibold">Edit</button>
+                        <button onClick={() => deleteSchool(s.id)} className="text-[10px] text-red-400 hover:text-red-300 font-semibold">Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
