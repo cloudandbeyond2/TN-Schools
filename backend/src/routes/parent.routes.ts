@@ -91,10 +91,9 @@ router.get('/:parentId/child/:studentId/summary', async (req: Request, res: Resp
     });
     if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
 
-    // Current month attendance
-    const { start, end } = getMonthRange(0);
+    // Overall academic year attendance
     const attendanceRecords = await prisma.attendance.findMany({
-      where: { studentId, date: { gte: start, lte: end } },
+      where: { studentId },
     });
     const totalDays = attendanceRecords.length;
     const presentDays = attendanceRecords.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length;
@@ -142,7 +141,7 @@ router.get('/:parentId/child/:studentId/summary', async (req: Request, res: Resp
         section: student.section,
         rollNumber: student.rollNumber,
         kpis: {
-          attendance: { value: `${attendancePct}%`, raw: attendancePct, sub: 'This month' },
+          attendance: { value: `${attendancePct}%`, raw: attendancePct, sub: 'Yearly average' },
           grade:      { value: grade, raw: avgMark, sub: 'Overall average' },
           homework:   { value: `${homeworkRate}%`, raw: homeworkRate, sub: 'Last 30 days' },
           rank:       { value: rank > 0 ? `#${rank}` : 'N/A', raw: rank, sub: `Out of ${classmateIds.length}` },
