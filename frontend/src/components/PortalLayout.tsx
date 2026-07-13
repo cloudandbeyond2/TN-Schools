@@ -335,13 +335,25 @@ export default function PortalLayout({
   const fetchNotifications = async () => {
     if (!session?.user) return;
     const userId = (session.user as any).id;
+    const role = (session.user as any).role;
     if (!userId) return;
     try {
-      const res = await fetch(`${API_URL}/api/notifications?userId=${userId}`);
+      let url = `${API_URL}/api/notifications?userId=${userId}`;
+      if (role === "PARENT") {
+        url = `${API_URL}/api/parent/${userId}/notifications`;
+      }
+      const res = await fetch(url);
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
-        setNotificationsList(data.data);
-        setUnreadCount(data.data.filter((n: any) => !n.read).length);
+        // Map parent notifications (or general ones) to standard format
+        const mapped = data.data.map((n: any) => ({
+          id: n.id,
+          message: n.title ? (n.message ? `${n.title}: ${n.message}` : n.title) : (n.message || ""),
+          read: n.isRead !== undefined ? n.isRead : n.read,
+          createdAt: n.createdAt
+        }));
+        setNotificationsList(mapped);
+        setUnreadCount(mapped.filter((n: any) => !n.read).length);
       }
     } catch (err) {
       console.error("Error fetching notifications", err);
@@ -351,12 +363,20 @@ export default function PortalLayout({
   const handleMarkAllRead = async () => {
     if (!session?.user) return;
     const userId = (session.user as any).id;
+    const role = (session.user as any).role;
     if (!userId) return;
     try {
-      const res = await fetch(`${API_URL}/api/notifications/read-all`, {
-        method: "PUT",
+      let url = `${API_URL}/api/notifications/read-all`;
+      let method = "PUT";
+      let body: any = { userId };
+      if (role === "PARENT") {
+        url = `${API_URL}/api/parent/${userId}/notifications/read-all`;
+        body = {};
+      }
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
+        body: role === "PARENT" ? undefined : JSON.stringify(body),
       });
       const data = await res.json();
       if (data.success) {
@@ -369,8 +389,15 @@ export default function PortalLayout({
   };
 
   const handleMarkSingleRead = async (id: string) => {
+    if (!session?.user) return;
+    const userId = (session.user as any).id;
+    const role = (session.user as any).role;
     try {
-      const res = await fetch(`${API_URL}/api/notifications/${id}/read`, {
+      let url = `${API_URL}/api/notifications/${id}/read`;
+      if (role === "PARENT") {
+        url = `${API_URL}/api/parent/${userId}/notifications/${id}/read`;
+      }
+      const res = await fetch(url, {
         method: "PUT",
       });
       const data = await res.json();

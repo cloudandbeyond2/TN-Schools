@@ -763,6 +763,14 @@ export default function StudentsMonitoringPage() {
         // instead of raw serial numbers (e.g. 41411) which JavaScript misparses as a year.
         const parsedData = XLSX.utils.sheet_to_json<ExcelStudentRow>(sheet, { raw: false, dateNF: 'yyyy-mm-dd' });
 
+        const MAX_LIMIT = 150;
+        if (parsedData.length > MAX_LIMIT) {
+          showToast(`❌ Limit Exceeded: File has ${parsedData.length} rows. Maximum allowed is ${MAX_LIMIT} rows per upload to ensure smooth processing.`, "error");
+          setIsUploading(false);
+          if (fileInputRef.current) fileInputRef.current.value = "";
+          return;
+        }
+
         const validated: ParsedPreviewStudent[] = parsedData.map((row, idx) => {
           const name = row["Full Name"]?.toString().trim() || "";
           const rollNumber = row["Roll Number"]?.toString().trim() || "";
@@ -2593,7 +2601,7 @@ export default function StudentsMonitoringPage() {
                         <>
                           <span className="text-4xl">📊</span>
                           <span className="text-xs font-bold text-slate-800">Import Student Roster</span>
-                          <span className="text-[9px] text-slate-500 leading-normal">Drag & drop Excel or click to upload</span>
+                          <span className="text-[9px] text-slate-500 leading-normal">Drag & drop Excel or click to upload (max 150 rows per file)</span>
                         </>
                       )}
                     </div>

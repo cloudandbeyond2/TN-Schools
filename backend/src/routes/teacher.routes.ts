@@ -923,12 +923,35 @@ router.put('/scholarships/:id', async (req: Request, res: Response) => {
 // 11. Parent-Teacher Messages (persisted to DB via Message model)
 // =========================================================================
 
+// Helper to resolve parentId from User ID to HeadmasterParent ID if needed
+async function resolveParentId(idStr: string): Promise<string> {
+  const user = await prisma.user.findUnique({
+    where: { id: idStr }
+  });
+  if (user && user.role === 'PARENT') {
+    const hmParent = await prisma.headmasterParent.findFirst({
+      where: {
+        OR: [
+          { userId: user.id },
+          { email: user.email || undefined },
+          { phone: user.mobile || undefined }
+        ]
+      }
+    });
+    if (hmParent) {
+      return hmParent.id;
+    }
+  }
+  return idStr;
+}
+
 // GET /api/teacher/messages/:parentId
 router.get('/messages/:parentId', async (req: Request, res: Response) => {
   try {
     const { parentId } = req.params;
+    const resolvedParentId = await resolveParentId(parentId);
     const msgs = await prisma.message.findMany({
-      where: { parentId },
+      where: { parentId: resolvedParentId },
       orderBy: { createdAt: 'asc' },
       select: { id: true, sender: true, text: true, createdAt: true },
     });
@@ -951,8 +974,9 @@ router.post('/messages', async (req: Request, res: Response) => {
     if (!parentId || !sender || !text) {
       return res.status(400).json({ success: false, error: 'parentId, sender, and text are required' });
     }
+    const resolvedParentId = await resolveParentId(parentId);
     const msg = await prisma.message.create({
-      data: { parentId, sender, text, schoolId: schoolId || null },
+      data: { parentId: resolvedParentId, sender, text, schoolId: schoolId || null },
     });
     const newMsg = {
       id: msg.id,

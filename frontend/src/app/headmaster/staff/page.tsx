@@ -816,6 +816,30 @@ export default function StaffManagementPage() {
     XLSX.writeFile(workbook, "school_staff_roster.xlsx");
   };
 
+  const downloadSampleTemplate = () => {
+    const headers = [
+      "Staff Name", "EMIS ID", "Category", "Subject/Role", "Phone",
+      "Email", "Joined Date", "Work Allocation", "Document Appointment",
+      "Address", "Attendance", "Performance", "Leave Used", "Password"
+    ];
+    const sampleRows = [
+      [
+        "Karthik Raja", "TCHKR001", "Teaching", "Mathematics", "9876543210",
+        "karthik.raja@email.com", "2024-06-01", "Class 10 Math & Physics", "Completed",
+        "12, Anna Salai, Coimbatore", "95", "Excellent", "1", "123456"
+      ],
+      [
+        "Meena Kumari", "NTCMK002", "Non-Teaching", "Librarian", "9876543211",
+        "meena.kumari@email.com", "2023-09-15", "Library Management", "Completed",
+        "45, Gandhi Road, Coimbatore", "98", "Good", "0", "123456"
+      ]
+    ];
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Staff Roster Template");
+    XLSX.writeFile(workbook, "sample_staff_roster_template.xlsx");
+  };
+
   const resetForm = () => {
     setFormName("");
     setFormEmisId("");
@@ -2370,6 +2394,18 @@ export default function StaffManagementPage() {
                   <span className="text-xs font-bold text-slate-800">Upload Staff Directory Template</span>
                   <span className="text-[10px] text-slate-400">Drag & drop .xlsx, .xls or .csv spreadsheets here</span>
                 </div>
+
+                <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs">
+                  <div className="text-slate-500 font-medium">Need a starting template?</div>
+                  <button
+                    onClick={downloadSampleTemplate}
+                    type="button"
+                    className="text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1 bg-blue-50 hover:bg-blue-100/60 px-3 py-1.5 rounded-xl border border-blue-100 transition-all"
+                  >
+                    📥 Download Sample Excel
+                  </button>
+                </div>
+
                 <input
                   type="file"
                   ref={fileInputRef}

@@ -4,17 +4,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
-import {
-  PartyPopper,
-  CalendarDays,
-  Gift,
-  Trash2,
-  Plus,
-  Loader2,
-  Calendar,
-  AlertCircle,
-  Pencil
-} from "lucide-react";
 
 interface Celebration {
   id: string;
@@ -204,7 +193,7 @@ export default function HeadmasterCelebrationsPage() {
     }
   };
 
-  const filteredCelebrations = celebrations.filter((c) => c.type === "EVENT");
+  const filteredCelebrations = celebrations;
 
   return (
     <PortalLayout
@@ -220,44 +209,46 @@ export default function HeadmasterCelebrationsPage() {
           
           {/* Left Columns - Celebration List */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="glass rounded-2xl p-6 border border-slate-800">
+            <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
-                <h2 className="text-base font-semibold text-white">🎉 Registered Celebrations & Events</h2>
+                <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
+                  <i className="fi fi-rr-party-horn text-blue-500 text-base" /> Registered Celebrations & Events
+                </h2>
               </div>
-              <p className="text-xs text-slate-550 mb-2 leading-relaxed">
+              <p className="text-[11px] sm:text-xs text-slate-550 mb-1 leading-relaxed">
                 Add school festivals and celebrations. These events will sync instantly to the Teacher Portal celebrations list.
               </p>
             </div>
 
             {/* List items */}
             {isLoading ? (
-              <div className="glass rounded-2xl p-16 border border-slate-800 flex flex-col items-center justify-center text-slate-500 text-xs">
-                <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
+              <div className="glass rounded-2xl p-12 sm:p-16 border border-slate-800 flex flex-col items-center justify-center text-slate-550 text-[11px] sm:text-xs">
+                <i className="fi fi-rr-spinner animate-spin text-blue-500 text-2xl mb-4" />
                 <span>Loading institution events...</span>
               </div>
             ) : filteredCelebrations.length === 0 ? (
-              <div className="glass rounded-2xl p-16 border border-slate-800 text-center text-slate-500 text-xs italic">
-                <AlertCircle className="w-8 h-8 text-slate-600 mx-auto mb-3" />
+              <div className="glass rounded-2xl p-12 sm:p-16 border border-slate-800 text-center text-slate-550 text-[11px] sm:text-xs italic">
+                <i className="fi fi-rr-info text-slate-600 text-2xl mx-auto mb-3" />
                 No events or celebrations found.
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {filteredCelebrations.map((item) => (
                   <div
                     key={item.id}
-                    className="glass rounded-2xl p-5 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-700 transition-colors"
+                    className="glass rounded-2xl p-4 sm:p-5 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-slate-700 transition-colors animate-in fade-in duration-300"
                   >
                     <div className="flex items-start gap-4">
                       {/* Celebration Icon */}
-                      <div className={`p-3 rounded-xl shrink-0 border ${
+                      <div className={`p-2.5 sm:p-3 rounded-xl shrink-0 border ${
                         item.type === "HOLIDAY" 
                           ? "bg-amber-500/10 text-amber-400 border-amber-500/20" 
                           : "bg-pink-500/10 text-pink-400 border-pink-500/20"
                       }`}>
                         {item.type === "HOLIDAY" ? (
-                          <Gift className="w-6 h-6" />
+                          <i className="fi fi-rr-gift text-base sm:text-lg" />
                         ) : (
-                          <PartyPopper className="w-6 h-6" />
+                          <i className="fi fi-rr-party-horn text-base sm:text-lg" />
                         )}
                       </div>
                       
@@ -272,14 +263,14 @@ export default function HeadmasterCelebrationsPage() {
                               School Event
                             </span>
                           )}
-                          <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5" />
+                          <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold flex items-center gap-1">
+                            <i className="fi fi-rr-calendar text-blue-400" />
                             {new Date(item.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                           </span>
                         </div>
-                        <h3 className="text-sm font-bold text-white leading-tight">{item.title}</h3>
+                        <h3 className="text-xs sm:text-sm font-bold text-white leading-tight">{item.title}</h3>
                         {item.description && (
-                          <p className="text-xs text-slate-400 leading-relaxed max-w-xl">{item.description}</p>
+                          <p className="text-[11px] sm:text-xs text-slate-400 leading-relaxed max-w-xl">{item.description}</p>
                         )}
                       </div>
                     </div>
@@ -287,17 +278,17 @@ export default function HeadmasterCelebrationsPage() {
                     <div className="flex gap-2 self-end sm:self-center shrink-0">
                       <button
                         onClick={() => handleStartEdit(item)}
-                        className="p-2 border border-slate-700 hover:border-blue-500 rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+                        className="p-1.5 sm:p-2 border border-slate-700 hover:border-blue-500 rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
                         title="Edit Celebration"
                       >
-                        <Pencil className="w-4 h-4" />
+                        <i className="fi fi-rr-edit text-xs sm:text-sm" />
                       </button>
                       <button
                         onClick={() => handleDelete(item.id, item.title)}
-                        className="p-2 border border-red-500/20 hover:border-red-500/50 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="p-1.5 sm:p-2 border border-red-500/20 hover:border-red-500/50 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
                         title="Delete Celebration"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <i className="fi fi-rr-trash text-xs sm:text-sm" />
                       </button>
                     </div>
                   </div>
@@ -307,45 +298,49 @@ export default function HeadmasterCelebrationsPage() {
           </div>
 
           {/* Right Column - Creation Form */}
-          <div className="glass rounded-2xl p-6 border border-slate-800 h-fit">
-            <h2 className="text-base font-semibold text-white mb-2 flex items-center gap-2">
-              {editingId ? <Pencil className="w-4 h-4 text-blue-500" /> : <Plus className="w-4 h-4 text-blue-500" />}
+          <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800 h-fit">
+            <h2 className="text-sm sm:text-base font-semibold text-white mb-2 flex items-center gap-2">
+              {editingId ? (
+                <i className="fi fi-rr-edit text-blue-500 text-base" />
+              ) : (
+                <i className="fi fi-rr-plus text-blue-500 text-base" />
+              )}
               {editingId ? "Edit Event / Celebration" : "Add Event / Celebration"}
             </h2>
-            <p className="text-xs text-slate-555 leading-relaxed mb-4">
+            <p className="text-[11px] sm:text-xs text-slate-555 leading-relaxed mb-4">
               {editingId ? "Modify the details of the selected celebration." : "Schedule school celebrations or festivals."}
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-[10px] text-slate-400 mb-1.5 font-bold uppercase tracking-wider">Title *</label>
+                <label className="block text-[9px] sm:text-[10px] text-slate-400 mb-1 sm:mb-1.5 font-bold uppercase tracking-wider">Title *</label>
                 <input
                   type="text"
                   placeholder="E.g., Annual Day, Sports Festival"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] text-slate-400 mb-1.5 font-bold uppercase tracking-wider">Date *</label>
+                <label className="block text-[9px] sm:text-[10px] text-slate-400 mb-1 sm:mb-1.5 font-bold uppercase tracking-wider">Date *</label>
                 <input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors [color-scheme:dark]"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] text-slate-400 mb-1.5 font-bold uppercase tracking-wider">Type *</label>
+                <label className="block text-[9px] sm:text-[10px] text-slate-400 mb-1 sm:mb-1.5 font-bold uppercase tracking-wider">Type *</label>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
                   required
                 >
                   <option value="EVENT">School Event</option>
@@ -354,13 +349,13 @@ export default function HeadmasterCelebrationsPage() {
               </div>
 
               <div>
-                <label className="block text-[10px] text-slate-400 mb-1.5 font-bold uppercase tracking-wider">Remarks / Description</label>
+                <label className="block text-[9px] sm:text-[10px] text-slate-400 mb-1 sm:mb-1.5 font-bold uppercase tracking-wider">Remarks / Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="E.g., Principal speech at 9 AM. Cultural events after lunch."
                   rows={4}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white placeholder-slate-650 focus:outline-none focus:border-blue-500 transition-colors resize-none"
                 />
               </div>
 
@@ -368,19 +363,25 @@ export default function HeadmasterCelebrationsPage() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors shadow-md flex items-center justify-center gap-2"
+                  className="w-full py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-[11px] sm:text-xs transition-colors shadow-md flex items-center justify-center gap-2"
                 >
                   {isSaving ? (
-                    <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {editingId ? "Updating..." : "Saving..."}</>
+                    <>
+                      <i className="fi fi-rr-spinner animate-spin text-xs" />{" "}
+                      {editingId ? "Updating..." : "Saving..."}
+                    </>
                   ) : (
-                    editingId ? "Update Celebration" : "Add to Portal"
+                    <>
+                      <i className="fi fi-rr-check text-xs" />{" "}
+                      {editingId ? "Update Celebration" : "Add to Portal"}
+                    </>
                   )}
                 </button>
                 {editingId && (
                   <button
                     type="button"
                     onClick={handleCancelEdit}
-                    className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors border border-slate-750"
+                    className="w-full py-1.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-[11px] sm:text-xs transition-colors border border-slate-750"
                   >
                     Cancel Edit
                   </button>

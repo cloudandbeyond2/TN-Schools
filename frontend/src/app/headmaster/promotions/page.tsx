@@ -4,7 +4,20 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
-import { ArrowUpCircle, CheckCircle2, Clock, XCircle, FileEdit, RefreshCw, Send, ChevronLeft, GraduationCap } from "lucide-react";
+interface IconProps {
+  className?: string;
+  size?: number;
+}
+
+const ArrowUpCircle = ({ className, size }: IconProps) => <i className={`fi fi-rr-arrow-circle-up inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const CheckCircle2 = ({ className, size }: IconProps) => <i className={`fi fi-rr-check-circle inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Clock = ({ className, size }: IconProps) => <i className={`fi fi-rr-clock inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const XCircle = ({ className, size }: IconProps) => <i className={`fi fi-rr-cross-circle inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const FileEdit = ({ className, size }: IconProps) => <i className={`fi fi-rr-edit inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const RefreshCw = ({ className, size }: IconProps) => <i className={`fi fi-rr-refresh inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Send = ({ className, size }: IconProps) => <i className={`fi fi-rr-paper-plane inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const ChevronLeft = ({ className, size }: IconProps) => <i className={`fi fi-rr-angle-left inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const GraduationCap = ({ className, size }: IconProps) => <i className={`fi fi-rr-graduation-cap inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -271,92 +284,94 @@ export default function PromotionsPage() {
       {!detail && (
         <>
           {/* Summary row */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
             {[
               { label: "Draft Batches", value: counts.draft, icon: FileEdit, color: "text-slate-300" },
               { label: "Pending BEO Approval", value: counts.pending, icon: Clock, color: "text-amber-400" },
               { label: "Approved", value: counts.approved, icon: CheckCircle2, color: "text-emerald-400" },
               { label: "Rejected", value: counts.rejected, icon: XCircle, color: "text-rose-400" },
             ].map((c) => (
-              <div key={c.label} className="glass p-5 rounded-2xl border border-slate-800">
+              <div key={c.label} className="glass p-3 sm:p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{c.label}</span>
-                  <c.icon size={16} className={c.color} />
+                  <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-500 tracking-wider truncate">{c.label}</span>
+                  <c.icon size={14} className={`${c.color} shrink-0 ml-1`} />
                 </div>
-                <div className={`text-2xl font-black mt-2 ${c.color}`}>{c.value}</div>
+                <div className={`text-lg sm:text-2xl font-black mt-2 ${c.color}`}>{c.value}</div>
               </div>
             ))}
           </div>
 
           <div className="glass rounded-2xl border border-slate-800 overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-slate-800">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-800">
               <div>
-                <h2 className="text-sm font-bold text-white">Promotion Batches</h2>
-                <p className="text-[11px] text-slate-500 mt-0.5">One batch per class per academic year. BEO approval moves students to the next class and archives the year.</p>
+                <h2 className="text-xs sm:text-sm font-bold text-white">Promotion Batches</h2>
+                <p className="text-[9px] sm:text-[11px] text-slate-500 mt-0.5">One batch per class per academic year. BEO approval moves students to the next class and archives the year.</p>
               </div>
               <button
                 onClick={() => setShowCreate(true)}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors"
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] sm:text-xs font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-colors w-full sm:w-auto justify-center"
               >
-                <ArrowUpCircle size={14} /> New Promotion Batch
+                <ArrowUpCircle size={12} /> New Promotion Batch
               </button>
             </div>
 
             {batches.length === 0 ? (
-              <div className="p-10 text-center text-slate-500 text-sm">
+              <div className="p-10 text-center text-slate-500 text-xs sm:text-sm">
                 No promotion batches yet. Create one to promote a class into the next academic year.
               </div>
             ) : (
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-[10px] uppercase text-slate-500 border-b border-slate-800">
-                    <th className="px-5 py-3">Class</th>
-                    <th className="px-5 py-3">Academic Year</th>
-                    <th className="px-5 py-3">Students</th>
-                    <th className="px-5 py-3">Status</th>
-                    <th className="px-5 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {batches.map((b) => (
-                    <tr key={b.id} className="border-b border-slate-800/60 hover:bg-slate-800/20 text-sm">
-                      <td className="px-5 py-3 font-bold text-white">
-                        {b.fromClass === "12" ? "Class 12 (Pass-out)" : `Class ${b.fromClass} → ${parseInt(b.fromClass) + 1}`}
-                      </td>
-                      <td className="px-5 py-3 text-slate-300">
-                        {b.fromAcademicYear} → {b.toAcademicYear}
-                      </td>
-                      <td className="px-5 py-3 text-slate-300">{b._count?.records ?? "—"}</td>
-                      <td className="px-5 py-3">
-                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${STATUS_STYLES[b.status]}`}>
-                          {STATUS_LABELS[b.status]}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-right whitespace-nowrap">
-                        <button
-                          onClick={() => openBatch(b.id)}
-                          className="text-xs font-bold text-blue-400 hover:text-blue-300"
-                        >
-                          {b.status === "DRAFT" || b.status === "REJECTED" ? "Edit decisions →" : "View →"}
-                        </button>
-                        {(b.status === "DRAFT" || b.status === "REJECTED") && (
-                          <button
-                            onClick={async () => {
-                              const c = await Swal.fire({ title: "Delete this draft batch?", icon: "warning", showCancelButton: true, confirmButtonText: "Delete", confirmButtonColor: "#e11d48" });
-                              if (!c.isConfirmed) return;
-                              await fetch(`${API_BASE}/api/promotions/batches/${b.id}`, { method: "DELETE" });
-                              loadBatches();
-                            }}
-                            className="ml-3 text-xs font-bold text-rose-400 hover:text-rose-300"
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </td>
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="text-[9px] sm:text-[10px] uppercase text-slate-500 border-b border-slate-800">
+                      <th className="px-3 sm:px-5 py-2 sm:py-3">Class</th>
+                      <th className="px-3 sm:px-5 py-2 sm:py-3">Academic Year</th>
+                      <th className="px-3 sm:px-5 py-2 sm:py-3">Students</th>
+                      <th className="px-3 sm:px-5 py-2 sm:py-3">Status</th>
+                      <th className="px-3 sm:px-5 py-2 sm:py-3"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {batches.map((b) => (
+                      <tr key={b.id} className="border-b border-slate-800/60 hover:bg-slate-800/20 text-[11px] sm:text-sm">
+                        <td className="px-3 sm:px-5 py-2 sm:py-3 font-bold text-white">
+                          {b.fromClass === "12" ? "Class 12 (Pass-out)" : `Class ${b.fromClass} → ${parseInt(b.fromClass) + 1}`}
+                        </td>
+                        <td className="px-3 sm:px-5 py-2 sm:py-3 text-slate-300">
+                          {b.fromAcademicYear} → {b.toAcademicYear}
+                        </td>
+                        <td className="px-3 sm:px-5 py-2 sm:py-3 text-slate-300">{b._count?.records ?? "—"}</td>
+                        <td className="px-3 sm:px-5 py-2 sm:py-3">
+                          <span className={`text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full border ${STATUS_STYLES[b.status]}`}>
+                            {STATUS_LABELS[b.status]}
+                          </span>
+                        </td>
+                        <td className="px-3 sm:px-5 py-2 sm:py-3 text-right whitespace-nowrap">
+                          <button
+                            onClick={() => openBatch(b.id)}
+                            className="text-[10px] sm:text-xs font-bold text-blue-400 hover:text-blue-300"
+                          >
+                            {b.status === "DRAFT" || b.status === "REJECTED" ? "Edit decisions →" : "View →"}
+                          </button>
+                          {(b.status === "DRAFT" || b.status === "REJECTED") && (
+                            <button
+                              onClick={async () => {
+                                const c = await Swal.fire({ title: "Delete this draft batch?", icon: "warning", showCancelButton: true, confirmButtonText: "Delete", confirmButtonColor: "#e11d48" });
+                                if (!c.isConfirmed) return;
+                                await fetch(`${API_BASE}/api/promotions/batches/${b.id}`, { method: "DELETE" });
+                                loadBatches();
+                              }}
+                              className="ml-2 sm:ml-3 text-[10px] sm:text-xs font-bold text-rose-400 hover:text-rose-300"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </>
@@ -366,45 +381,45 @@ export default function PromotionsPage() {
 
       {detail && !loading && (
         <div className="glass rounded-2xl border border-slate-800 overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3 p-5 border-b border-slate-800">
-            <div className="flex items-center gap-3">
-              <button onClick={() => { setDetail(null); loadBatches(); }} className="text-slate-400 hover:text-white">
-                <ChevronLeft size={18} />
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-800">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button onClick={() => { setDetail(null); loadBatches(); }} className="text-slate-400 hover:text-white shrink-0">
+                <ChevronLeft size={16} />
               </button>
               <div>
-                <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  {isFinalClass ? "Class 12 Pass-out" : `Class ${detail.fromClass} → ${parseInt(detail.fromClass) + 1}`}
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${STATUS_STYLES[detail.status]}`}>
+                <h2 className="text-xs sm:text-sm font-bold text-white flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <span>{isFinalClass ? "Class 12 Pass-out" : `Class ${detail.fromClass} → ${parseInt(detail.fromClass) + 1}`}</span>
+                  <span className={`text-[8px] sm:text-[10px] font-bold px-2.5 py-1 rounded-full border ${STATUS_STYLES[detail.status]}`}>
                     {STATUS_LABELS[detail.status]}
                   </span>
                 </h2>
-                <p className="text-[11px] text-slate-500 mt-0.5">
+                <p className="text-[9px] sm:text-[11px] text-slate-500 mt-0.5">
                   {detail.fromAcademicYear} → {detail.toAcademicYear} · {detail.records.length} students
                 </p>
               </div>
             </div>
             {editable && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full md:w-auto justify-start md:justify-end mt-2 md:mt-0">
                 <button
                   onClick={refreshStudents}
                   disabled={saving}
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-300 border border-slate-700 hover:border-slate-500 px-3 py-2 rounded-xl"
+                  className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-slate-300 border border-slate-700 hover:border-slate-500 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl flex-1 sm:flex-initial justify-center"
                 >
-                  <RefreshCw size={12} /> Sync Students
+                  <RefreshCw size={11} /> Sync Students
                 </button>
                 <button
                   onClick={() => saveDraft()}
                   disabled={saving}
-                  className="text-xs font-bold text-white bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl"
+                  className="text-[10px] sm:text-xs font-bold text-white bg-slate-700 hover:bg-slate-600 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl flex-1 sm:flex-initial justify-center"
                 >
                   Save Draft
                 </button>
                 <button
                   onClick={submitBatch}
                   disabled={saving}
-                  className="flex items-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl"
+                  className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl flex-1 sm:flex-initial justify-center"
                 >
-                  <Send size={12} /> Submit for BEO Approval
+                  <Send size={11} /> Submit
                 </button>
               </div>
             )}
@@ -425,36 +440,36 @@ export default function PromotionsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left mt-2">
               <thead>
-                <tr className="text-[10px] uppercase text-slate-500 border-b border-slate-800">
-                  <th className="px-5 py-3">Student</th>
-                  <th className="px-3 py-3">Roll No</th>
-                  <th className="px-3 py-3">Section</th>
-                  <th className="px-3 py-3">Attendance</th>
-                  <th className="px-3 py-3">Avg Marks</th>
-                  <th className="px-3 py-3">Decision</th>
-                  {!isFinalClass && <th className="px-3 py-3">To Section</th>}
+                <tr className="text-[9px] sm:text-[10px] uppercase text-slate-500 border-b border-slate-800">
+                  <th className="px-3 sm:px-5 py-2 sm:py-3">Student</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3">Roll No</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3">Section</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3">Attendance</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3">Avg Marks</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3">Decision</th>
+                  {!isFinalClass && <th className="px-2 sm:px-3 py-2 sm:py-3">To Section</th>}
                   {detail.records.some((r) => r.toClass === "11") || (!isFinalClass && parseInt(detail.fromClass) + 1 === 11) ? (
-                    <th className="px-3 py-3">HSC Group</th>
+                    <th className="px-2 sm:px-3 py-2 sm:py-3">HSC Group</th>
                   ) : null}
                 </tr>
               </thead>
               <tbody>
                 {detail.records.map((r) => (
-                  <tr key={r.id} className="border-b border-slate-800/60 text-sm">
-                    <td className="px-5 py-2.5 font-semibold text-white">{r.student.user.name}</td>
-                    <td className="px-3 py-2.5 text-slate-400">{r.student.rollNumber || "—"}</td>
-                    <td className="px-3 py-2.5 text-slate-400">{r.student.section}</td>
-                    <td className="px-3 py-2.5">
+                  <tr key={r.id} className="border-b border-slate-800/60 text-[11px] sm:text-sm">
+                    <td className="px-3 sm:px-5 py-2 sm:py-2.5 font-semibold text-white">{r.student.user.name}</td>
+                    <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-slate-400">{r.student.rollNumber || "—"}</td>
+                    <td className="px-2 sm:px-3 py-2 sm:py-2.5 text-slate-400">{r.student.section}</td>
+                    <td className="px-2 sm:px-3 py-2 sm:py-2.5">
                       <span className={`font-bold ${r.yearStats?.attendancePct != null && r.yearStats.attendancePct < 75 ? "text-rose-400" : "text-slate-300"}`}>
                         {r.yearStats?.attendancePct != null ? `${r.yearStats.attendancePct}%` : "—"}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5">
+                    <td className="px-2 sm:px-3 py-2 sm:py-2.5">
                       <span className={`font-bold ${r.yearStats?.averageMarksPct != null && r.yearStats.averageMarksPct < 35 ? "text-rose-400" : "text-slate-300"}`}>
                         {r.yearStats?.averageMarksPct != null ? `${r.yearStats.averageMarksPct}%` : "—"}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5">
+                    <td className="px-2 sm:px-3 py-2 sm:py-2.5">
                       {editable ? (
                         <select
                           value={r.result}
@@ -467,14 +482,14 @@ export default function PromotionsPage() {
                               toGroup: result === "PROMOTED" ? r.toGroup : null,
                             });
                           }}
-                          className="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white"
+                          className="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-[10px] sm:text-xs text-white"
                         >
                           {resultOptions.map((o) => (
                             <option key={o} value={o}>{o.charAt(0) + o.slice(1).toLowerCase()}</option>
                           ))}
                         </select>
                       ) : (
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+                        <span className={`text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full ${
                           r.result === "PROMOTED" || r.result === "GRADUATED"
                             ? "bg-emerald-500/10 text-emerald-400"
                             : r.result === "DETAINED"
@@ -486,12 +501,12 @@ export default function PromotionsPage() {
                       )}
                     </td>
                     {!isFinalClass && (
-                      <td className="px-3 py-2.5">
+                      <td className="px-2 sm:px-3 py-2 sm:py-2.5">
                         {editable && r.result === "PROMOTED" ? (
                           <input
                             value={r.toSection || ""}
                             onChange={(e) => updateRecord(r.id, { toSection: e.target.value.toUpperCase() })}
-                            className="w-14 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white"
+                            className="w-10 sm:w-14 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-[10px] sm:text-xs text-white"
                           />
                         ) : (
                           <span className="text-slate-400">{r.toSection || "—"}</span>
@@ -499,12 +514,12 @@ export default function PromotionsPage() {
                       </td>
                     )}
                     {(r.toClass === "11" || (!isFinalClass && parseInt(detail.fromClass) + 1 === 11)) && (
-                      <td className="px-3 py-2.5">
+                      <td className="px-2 sm:px-3 py-2 sm:py-2.5">
                         {editable && r.result === "PROMOTED" ? (
                           <select
                             value={r.toGroup || ""}
                             onChange={(e) => updateRecord(r.id, { toGroup: e.target.value || null })}
-                            className="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white max-w-[220px]"
+                            className="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-[10px] sm:text-xs text-white max-w-[120px] sm:max-w-[220px]"
                           >
                             <option value="">Select group…</option>
                             {groups.map((g) => (
