@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+
 // Removed lucide-react imports to use Flaticons exclusively
 
 type CulturalEvent = {
@@ -13,68 +14,61 @@ type CulturalEvent = {
   location: string;
   description: string;
   status: string;
-  schoolId: string;
 };
 
-export default function CulturalEventsPage() {
+const getApiBase = () => {
+  let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  if (url && !url.startsWith("http://") && !url.startsWith("https://")) {
+    url = `https://${url}`;
+  }
+  return url;
+};
+
+const API_BASE = getApiBase();
+
+export default function StudentCulturalEventsPage() {
   const { data: session } = useSession();
-  const schoolId = (session?.user as any)?.schoolId;
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const schoolId: string = (session?.user as any)?.schoolId || "";
+  const studentClass: string = (session?.user as any)?.classId || "9th A";
 
   const [events, setEvents] = useState<CulturalEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [studentClass, setStudentClass] = useState("");
-
-  // Modal for registering students
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
 
   const fetchEvents = useCallback(async () => {
     if (!schoolId) return;
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await fetch(`${API_URL}/api/teacher/cultural-events?schoolId=${schoolId}`);
-      const data = await res.json();
-      if (data.success) {
-        setEvents(data.data);
+      const res = await fetch(`${API_BASE}/api/teacher/cultural-events?schoolId=${schoolId}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setEvents(json.data);
       }
-    } catch (error) {
-      console.error("Failed to fetch events", error);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [schoolId, API_URL]);
+  }, [schoolId]);
 
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
 
-  // Fetch student class for default registration form
-  useEffect(() => {
-    async function fetchStudentProfile() {
-      if (!session?.user) return;
-      try {
-        const res = await fetch(`${API_URL}/api/students`);
-        const json = await res.json();
-        if (json.success) {
-          const profile = json.data.find((s: any) => s.userId === (session.user as any).id);
-          if (profile && profile.class) {
-            setStudentClass(profile.class);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch student profile", err);
-      }
-    }
-    fetchStudentProfile();
-  }, [session, API_URL]);
-
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const eventName = formData.get("event") as string;
+    const cls = formData.get("class") as string;
+    const count = formData.get("count") as string;
+
     setRegisterModalOpen(false);
+
     Swal.fire({
-      title: "Registered!",
-      text: "Yay! You are registered for the event! 🎉",
+      title: "Successfully Registered!",
+      text: `Yay! You registered class ${cls} with ${count} students for the event "${eventName}"! 🎉`,
       icon: "success",
+      confirmButtonText: "Awesome!",
       confirmButtonColor: "#f43f5e"
     });
   };
@@ -116,15 +110,6 @@ export default function CulturalEventsPage() {
             <p className="text-slate-650 dark:text-slate-350 font-bold mb-6 sm:mb-8 text-xs sm:text-sm md:text-base leading-relaxed">
               Let's celebrate our rich culture together! There will be yummy food, beautiful dances, traditional games, and lots of fun!
             </p>
-
-            <div className="flex flex-wrap gap-3 sm:gap-4">
-              <button onClick={() => setRegisterModalOpen(true)} className="px-6 py-3 sm:px-8 sm:py-4 bg-rose-500 text-white font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl transition-all shadow-md shadow-rose-500/30 hover:bg-rose-600 hover:scale-105 active:scale-95 border-b-4 border-rose-700">
-                Join the Fun! 🎫
-              </button>
-              <button onClick={() => Swal.fire({ title: 'Schedule', text: 'Downloading the fun schedule! ', icon: 'info' })} className="px-6 py-3 sm:px-8 sm:py-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl transition-all shadow-sm hover:bg-slate-200 dark:hover:bg-slate-600 border-2 border-slate-200 dark:border-slate-600">
-                See What's Happening
-              </button>
-            </div>
           </div>
         </div>
 
@@ -187,10 +172,9 @@ export default function CulturalEventsPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 sm:mt-6">
-                    <button onClick={() => setRegisterModalOpen(true)} className={`w-full py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black text-white bg-${color}-500 hover:bg-${color}-600 transition-colors shadow-md shadow-${color}-500/30 active:scale-95 flex items-center justify-center gap-2 border-b-4 border-${color}-700`}>
-                      <i className="fi fi-rr-ticket text-xs sm:text-sm" /> Get Tickets!
-                    </button>
+                  <div className="mt-4 sm:mt-6 text-center text-xs font-bold text-slate-500 bg-slate-50 dark:bg-slate-800/80 p-3 rounded-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center gap-1.5 shadow-sm">
+                    <i className="fi fi-rr-info text-blue-500 text-sm" />
+                    <span>Contact Staff to register & get tickets</span>
                   </div>
                 </div>
               )

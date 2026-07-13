@@ -4,59 +4,52 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
-// Removed lucide-react imports to use Flaticons exclusively
 
-type CulturalEvent = {
+interface CulturalEvent {
   id: string;
   title: string;
   eventDate: string;
   location: string;
   description: string;
   status: string;
-  schoolId: string;
+}
+
+const getApiBase = () => {
+  let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  if (url && !url.startsWith("http://") && !url.startsWith("https://")) {
+    url = `https://${url}`;
+  }
+  return url;
 };
 
-export default function CulturalEventsPage() {
+const API_URL = getApiBase();
+
+export default function TeacherCulturalEventsPage() {
   const { data: session } = useSession();
-  const schoolId = (session?.user as any)?.schoolId;
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const schoolId: string = (session?.user as any)?.schoolId || "";
 
   const [events, setEvents] = useState<CulturalEvent[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Modal for registering students
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
-
-  // Modal for creating/editing event
   const [eventModalOpen, setEventModalOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<CulturalEvent | null>(null);
 
-  const getDisplayLocation = (locStr: string | undefined): string => {
-    if (!locStr) return "";
-    try {
-      const parsed = JSON.parse(locStr);
-      return parsed.coordinator || "";
-    } catch {
-      return locStr;
-    }
-  };
-
   const fetchEvents = useCallback(async () => {
     if (!schoolId) return;
+    setLoading(true);
     try {
-      setLoading(true);
       const res = await fetch(`${API_URL}/api/teacher/cultural-events?schoolId=${schoolId}`);
-      const data = await res.json();
-      if (data.success) {
-        setEvents(data.data);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setEvents(json.data);
       }
-    } catch (error) {
-      console.error("Failed to fetch events", error);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [schoolId, API_URL]);
+  }, [schoolId]);
 
   useEffect(() => {
     fetchEvents();
@@ -64,11 +57,18 @@ export default function CulturalEventsPage() {
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const eventName = formData.get("event") as string;
+    const cls = formData.get("class") as string;
+    const count = formData.get("count") as string;
+
     setRegisterModalOpen(false);
+
     Swal.fire({
-      title: "Registered!",
-      text: "Yay! You are registered for the event! ",
+      title: "Successfully Registered Class!",
+      text: `Registered class ${cls} with ${count} students for the event "${eventName}"! 🎉`,
       icon: "success",
+      confirmButtonText: "Awesome!",
       confirmButtonColor: "#f43f5e"
     });
   };
@@ -85,15 +85,25 @@ export default function CulturalEventsPage() {
     setEventModalOpen(true);
   };
 
+  const getDisplayLocation = (locStr?: string) => {
+    if (!locStr) return "";
+    try {
+      const parsed = JSON.parse(locStr);
+      return parsed.coordinator || parsed.category || locStr;
+    } catch {
+      return locStr;
+    }
+  };
+
   const handleDeleteEvent = async (id: string, title: string) => {
     const result = await Swal.fire({
-      title: "Delete Event?",
-      text: `Are you sure you want to cancel "${title}"?`,
+      title: "Cancel Event?",
+      text: `Are you sure you want to cancel the event "${title}"?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#f43f5e",
-      cancelButtonColor: "#94a3b8",
-      confirmButtonText: "Yes, cancel it! "
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, cancel it!"
     });
 
     if (!result.isConfirmed) return;
@@ -200,7 +210,7 @@ export default function CulturalEventsPage() {
             <i className="fi fi-rr-camera text-slate-100 dark:text-slate-700/50 text-[120px]" />
           </div>
 
-          <div className="relative z-20 max-w-2xl">
+          <div className="relative z-20 max-w-2xl text-left">
             <div className="inline-flex items-center gap-1.5 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-3 py-1.5 sm:px-4 sm:py-2 mb-3 sm:mb-4 font-black tracking-widest text-[10px] sm:text-xs uppercase rounded-xl sm:rounded-2xl shadow-sm rotate-[-2deg] border-2 border-yellow-200 dark:border-yellow-700/50">
               <i className="fi fi-rr-star text-xs" /> The Big Event!
             </div>
@@ -211,14 +221,11 @@ export default function CulturalEventsPage() {
               Let's celebrate our rich culture together! There will be yummy food, beautiful dances, traditional games, and lots of fun!
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-              <button onClick={() => setRegisterModalOpen(true)} className="w-full py-3 sm:py-4 bg-rose-500 text-white font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl transition-all shadow-md shadow-rose-500/30 hover:bg-rose-600 hover:scale-105 active:scale-95 border-b-4 border-rose-700 flex items-center justify-center gap-2">
-                Join the Fun! <i className="fi fi-rr-ticket text-sm" />
-              </button>
-              <button onClick={() => Swal.fire({ title: 'Schedule', text: 'Downloading the fun schedule! ', icon: 'info' })} className="w-full py-3 sm:py-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl transition-all shadow-sm hover:bg-slate-200 dark:hover:bg-slate-600 border-2 border-slate-200 dark:border-slate-600 flex items-center justify-center gap-2">
-                See What's Happening
-              </button>
-              <button onClick={handleOpenCreate} className="w-full py-3 sm:py-4 bg-emerald-400 text-emerald-900 font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl transition-all shadow-md shadow-emerald-400/30 hover:scale-105 active:scale-95 border-b-4 border-emerald-600 flex items-center justify-center gap-2">
+            <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <p className="text-xs font-bold text-slate-500 max-w-lg leading-relaxed">
+                💡 Select <strong className="text-emerald-500">Add New Event</strong> to post cultural announcements, manage participant rosters, and coordinate activities.
+              </p>
+              <button onClick={handleOpenCreate} className="px-6 py-3 bg-emerald-400 text-emerald-900 font-black text-xs sm:text-sm rounded-xl transition-all shadow-md shadow-emerald-400/30 hover:scale-105 active:scale-95 border-b-4 border-emerald-600 flex items-center justify-center gap-2 shrink-0">
                 <i className="fi fi-rr-plus text-xs" /> Add New Event
               </button>
             </div>
@@ -248,7 +255,7 @@ export default function CulturalEventsPage() {
             ) : events.map((evt, i) => {
               const { icon, color } = getEventStyle(evt.title);
               return (
-                <div key={i} className={`p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border-4 border-${color}-100 dark:border-slate-700 hover:border-${color}-300 bg-${color}-50/50 hover:bg-${color}-50 dark:bg-slate-900/50 hover:-translate-y-2 hover:shadow-xl transition-all duration-300 flex flex-col h-full group relative`}>
+                <div key={i} className={`p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border-4 border-${color}-100 dark:border-slate-700 hover:border-${color}-300 bg-${color}-50/50 hover:bg-${color}-50 dark:bg-slate-900/50 hover:-translate-y-2 hover:shadow-xl transition-all duration-300 flex flex-col h-full group relative text-left`}>
 
                   <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <button onClick={() => handleOpenEdit(evt)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors shadow-sm border border-slate-200 dark:border-slate-700">
@@ -293,10 +300,9 @@ export default function CulturalEventsPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 sm:mt-6">
-                    <button onClick={() => setRegisterModalOpen(true)} className={`w-full py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black text-white bg-${color}-500 hover:bg-${color}-600 transition-colors shadow-md shadow-${color}-500/30 active:scale-95 flex items-center justify-center gap-2 border-b-4 border-${color}-700`}>
-                      <i className="fi fi-rr-ticket text-xs sm:text-sm" /> Get Tickets!
-                    </button>
+                  <div className="mt-4 sm:mt-6 text-center text-[11px] font-bold text-slate-505 bg-slate-50 dark:bg-slate-800/80 p-3 rounded-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center gap-1.5 shadow-sm">
+                    <i className="fi fi-rr-info text-blue-500 text-sm" />
+                    <span>Registration is managed on Student Portal</span>
                   </div>
                 </div>
               )
