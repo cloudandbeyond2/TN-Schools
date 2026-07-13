@@ -798,7 +798,13 @@ export default function PortalLayout({
                 scroll={false}
               >
                 <span className={`flex items-center justify-center transition-opacity ${isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}>
-                  {item.icon ? <LucideIcon name={item.icon as string} className="w-[18px] h-[18px]" /> : null}
+                  {item.icon ? (
+                    item.icon.startsWith("fi ") || item.icon.startsWith("fi-") ? (
+                      <i className={`${item.icon} text-[18px]`} />
+                    ) : (
+                      <LucideIcon name={item.icon as string} className="w-[18px] h-[18px]" />
+                    )
+                  ) : null}
                 </span>
                 <span>{currentLanguage === "தமிழ்" ? ((t as any).nav?.[item.label] || item.label) : item.label}</span>
               </Link>
