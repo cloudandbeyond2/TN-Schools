@@ -231,18 +231,20 @@ export default function EventsPage() {
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Event cards listing */}
-        <div className="lg:col-span-2 space-y-5">
-          <div className="glass rounded-2xl p-6 border border-slate-800">
+        <div className="lg:col-span-2 space-y-4">
+          <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
-              <h2 className="text-base font-semibold text-white">🎉 Calendar of Activities</h2>
+              <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
+                <i className="fi fi-rr-party-horn text-blue-500 text-base" /> Calendar of Activities
+              </h2>
               
               {/* Event toggle filters */}
-              <div className="flex gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl">
+              <div className="flex gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl overflow-x-auto max-w-full">
                 {(["All", "Upcoming", "Completed"] as const).map((filterVal) => (
                   <button
                     key={filterVal}
                     onClick={() => setActiveFilter(filterVal)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
                       activeFilter === filterVal
                         ? "bg-blue-600 text-white font-extrabold"
                         : "text-slate-400 hover:text-white hover:bg-slate-800"
@@ -253,42 +255,44 @@ export default function EventsPage() {
                 ))}
               </div>
             </div>
-            <p className="text-xs text-slate-500 mb-2 leading-relaxed">
+            <p className="text-[11px] sm:text-xs text-slate-500 mb-1 leading-relaxed">
               Track timelines, sports qualifiers, exhibitions, and parent council summits planned for this academic year.
             </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {loading ? (
-              <div className="glass rounded-2xl p-12 border border-slate-800 text-center text-slate-400 animate-pulse text-xs">
+              <div className="glass rounded-2xl p-12 border border-slate-800 text-center text-slate-400 animate-pulse text-[11px] sm:text-xs">
                 Loading school events...
               </div>
             ) : filteredEvents.length === 0 ? (
-              <div className="glass rounded-2xl p-8 border border-slate-800 text-center text-slate-550 italic text-xs">
+              <div className="glass rounded-2xl p-8 border border-slate-800 text-center text-slate-550 italic text-[11px] sm:text-xs">
                 No events currently found under this category.
               </div>
             ) : (
               filteredEvents.map((ev) => (
                 <div
                   key={ev.id}
-                  className="glass rounded-2xl p-6 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-750 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300"
+                  className="glass rounded-2xl p-4 sm:p-6 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-slate-750 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300"
                 >
-                  <div className="space-y-2 flex-1">
+                  <div className="space-y-1.5 sm:space-y-2 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md">
+                      <span className="text-[9px] sm:text-[10px] font-extrabold uppercase px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md">
                         {ev.category}
                       </span>
-                      <span className="text-[10px] text-slate-500 font-bold">📅 {ev.date}</span>
+                      <span className="text-[9px] sm:text-[10px] text-slate-500 font-bold flex items-center gap-1">
+                        <i className="fi fi-rr-calendar text-blue-400" /> {ev.date}
+                      </span>
                     </div>
-                    <h3 className="text-base font-bold text-white leading-tight">{ev.title}</h3>
-                    <p className="text-xs text-slate-400 leading-relaxed max-w-xl">{ev.description}</p>
-                    <div className="text-[11px] text-slate-500 font-semibold">
+                    <h3 className="text-sm sm:text-base font-bold text-white leading-tight">{ev.title}</h3>
+                    <p className="text-[11px] sm:text-xs text-slate-400 leading-relaxed max-w-xl">{ev.description}</p>
+                    <div className="text-[10px] sm:text-[11px] text-slate-500 font-semibold">
                       Coordinator: <strong className="text-slate-400 font-bold">{ev.coordinator}</strong>
                     </div>
                   </div>
 
-                  <div className="sm:text-right shrink-0 flex flex-col items-end gap-2">
-                    <span className={`badge ${
+                  <div className="sm:text-right shrink-0 flex flex-col items-start sm:items-end gap-1.5 sm:gap-2">
+                    <span className={`badge text-[9px] sm:text-[10px] px-2.5 py-1 ${
                       ev.status === "Scheduled"
                         ? "badge-blue"
                         : ev.status === "In Preparation"
@@ -299,9 +303,9 @@ export default function EventsPage() {
                     </span>
                     <button
                       onClick={() => handleDelete(ev.id)}
-                      className="text-[10px] font-bold text-rose-400 hover:text-rose-300 transition-colors"
+                      className="text-[9px] sm:text-[10px] font-bold text-rose-400 hover:text-rose-300 transition-colors mt-0.5 flex items-center gap-1"
                     >
-                      Delete
+                      <i className="fi fi-rr-trash" /> Delete
                     </button>
                   </div>
                 </div>
@@ -311,32 +315,34 @@ export default function EventsPage() {
         </div>
 
         {/* Event scheduler tool */}
-        <div className="glass rounded-2xl p-6 border border-slate-800 h-fit">
-          <h2 className="text-base font-semibold text-white mb-2">🗓️ Schedule New Activity</h2>
-          <p className="text-xs text-slate-500 leading-relaxed mb-4">
+        <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800 h-fit">
+          <h2 className="text-sm sm:text-base font-semibold text-white mb-2 flex items-center gap-2">
+            <i className="fi fi-rr-calendar-plus text-blue-500 text-base" /> Schedule New Activity
+          </h2>
+          <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed mb-4">
             Announce new sport meet dates, cultural matches, or internal exams to students, teachers, and parents portals.
           </p>
 
           <form onSubmit={handleAddEvent} className="space-y-4">
             <div>
-              <label className="block text-xs text-slate-400 mb-1.5 font-semibold">Event Title</label>
+              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">Event Title</label>
               <input
                 type="text"
                 placeholder="E.g., Chess Tournament Finals"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
                 required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-slate-400 mb-1.5 font-semibold">Category</label>
+                <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">Category</label>
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value as any)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
                 >
                   <option value="Academic">Academic</option>
                   <option value="Sports">Sports</option>
@@ -345,23 +351,23 @@ export default function EventsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1.5 font-semibold">Date</label>
+                <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">Date</label>
                 <input
                   type="date"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors [color-scheme:dark]"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors [color-scheme:dark]"
                   required
                 />
               </div>
             </div>
 
-             <div>
-              <label className="block text-xs text-slate-400 mb-1.5 font-semibold">Assign Coordinator Staff</label>
+            <div>
+              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">Assign Coordinator Staff</label>
               <select
                 value={newCoordinator}
                 onChange={(e) => setNewCoordinator(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
               >
                 {staffList.map((s) => (
                   <option key={s.id} value={`${s.name} (${s.subject})`}>
@@ -375,26 +381,26 @@ export default function EventsPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-slate-400 mb-1.5 font-semibold">Brief Description</label>
+              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">Brief Description</label>
               <textarea
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
                 placeholder="E.g., Matches to take place in main grounds. High school finals."
                 rows={3}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-650 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white placeholder-slate-650 focus:outline-none focus:border-blue-500 transition-colors resize-none"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-colors"
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-[11px] sm:text-xs transition-colors"
             >
               Publish Event to Portals
             </button>
           </form>
 
           {eventToast && (
-            <div className="mt-4 p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs rounded-xl leading-relaxed">
+            <div className="mt-4 p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] sm:text-xs rounded-xl leading-relaxed">
               {eventToast}
             </div>
           )}
