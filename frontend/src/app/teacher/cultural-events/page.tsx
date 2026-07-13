@@ -32,6 +32,16 @@ export default function CulturalEventsPage() {
   const [isEdit, setIsEdit] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<CulturalEvent | null>(null);
 
+  const getDisplayLocation = (locStr: string | undefined): string => {
+    if (!locStr) return "";
+    try {
+      const parsed = JSON.parse(locStr);
+      return parsed.coordinator || "";
+    } catch {
+      return locStr;
+    }
+  };
+
   const fetchEvents = useCallback(async () => {
     if (!schoolId) return;
     try {
@@ -111,10 +121,23 @@ export default function CulturalEventsPage() {
     if (!schoolId) return;
 
     const formData = new FormData(e.target as HTMLFormElement);
+    let locationVal = formData.get("location") as string;
+    if (isEdit && currentEvent?.location) {
+      try {
+        const parsed = JSON.parse(currentEvent.location);
+        locationVal = JSON.stringify({
+          category: parsed.category || "General",
+          coordinator: formData.get("location")
+        });
+      } catch {
+        // Not a JSON string
+      }
+    }
+
     const payload = {
       title: formData.get("title"),
       eventDate: formData.get("eventDate"),
-      location: formData.get("location"),
+      location: locationVal,
       description: formData.get("description") || "A wonderful cultural event!",
       status: formData.get("status"),
       schoolId
@@ -253,7 +276,14 @@ export default function CulturalEventsPage() {
                       <div className={`p-1.5 bg-${color}-100 rounded-lg text-${color}-600`}>
                         <MapPin className="w-4 h-4" />
                       </div>
-                      {evt.location}
+                      {(() => {
+                        try {
+                          const parsed = JSON.parse(evt.location);
+                          return parsed.coordinator ? `Coord: ${parsed.coordinator}` : (parsed.category || "School");
+                        } catch {
+                          return evt.location;
+                        }
+                      })()}
                     </div>
                   </div>
 
@@ -340,7 +370,7 @@ export default function CulturalEventsPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Location <MapPin className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
-                  <input required name="location" defaultValue={currentEvent?.location} type="text" placeholder="e.g., Auditorium" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all" />
+                  <input required name="location" defaultValue={getDisplayLocation(currentEvent?.location)} type="text" placeholder="e.g., Auditorium" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all" />
                 </div>
               </div>
               <div>

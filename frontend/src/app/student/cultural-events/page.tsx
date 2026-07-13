@@ -182,7 +182,14 @@ export default function CulturalEventsPage() {
                       <div className={`p-1.5 bg-${color}-100 rounded-lg text-${color}-600`}>
                         <MapPin className="w-4 h-4" />
                       </div>
-                      {evt.location}
+                      {(() => {
+                        try {
+                          const parsed = JSON.parse(evt.location);
+                          return parsed.coordinator ? `Coord: ${parsed.coordinator}` : (parsed.category || "School");
+                        } catch {
+                          return evt.location;
+                        }
+                      })()}
                     </div>
                   </div>
 

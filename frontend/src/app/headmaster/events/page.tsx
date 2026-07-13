@@ -1,10 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { useSession } from "next-auth/react";
+import Swal from "sweetalert2";
+
+const getApiBase = () => {
+  let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  if (url && !url.startsWith("http://") && !url.startsWith("https://")) {
+    url = `https://${url}`;
+  }
+  return url;
+};
+const API_BASE = getApiBase();
 
 interface SchoolEvent {
-  id: number;
+  id: string;
   title: string;
   category: "Sports" | "Academic" | "Cultural" | "General";
   date: string;
@@ -13,47 +24,193 @@ interface SchoolEvent {
   description: string;
 }
 
-export default function EventsPage() {
-  const [events, setEvents] = useState<SchoolEvent[]>([
-    { id: 1, title: "Annual Sports Athletics Meet", category: "Sports", date: "July 12, 2026", coordinator: "Mr. Prakash R. (PE)", status: "In Preparation", description: "District-level track and field heats for middle & high schools." },
-    { id: 2, title: "Science & Innovation Expo", category: "Academic", date: "June 29, 2026", coordinator: "Mr. Rajan K. (Science)", status: "In Preparation", description: "Student-crafted physics exhibits, chemical reactors, and robotics demos." },
-    { id: 3, title: "Pongal Cultural Festival", category: "Cultural", date: "Jan 14, 2026", coordinator: "Mrs. Kavitha S. (Tamil)", status: "Completed", description: "Traditional sweet rice preparation, folk dancing, and speech competitions." },
-    { id: 4, title: "Inaugural PTA General Council", category: "General", date: "June 24, 2026", coordinator: "Mr. Venkatesh R. (HM)", status: "Scheduled", description: "Staff roster alignments and welfare scheme review with parents." },
-  ]);
+interface CulturalEventBackend {
+  id: string;
+  title: string;
+  eventDate: string;
+  location: string;
+  description: string;
+  status: string;
+  schoolId?: string | null;
+}
 
+export default function EventsPage() {
+  const { data: session } = useSession();
+  const schoolId = (session?.user as any)?.schoolId || "";
+
+  const [events, setEvents] = useState<SchoolEvent[]>([]);
+  const [staffList, setStaffList] = useState<{ id: string; name: string; subject: string }[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<"All" | "Upcoming" | "Completed">("All");
 
   // Event Scheduler Form State
   const [newTitle, setNewTitle] = useState("");
   const [newCategory, setNewCategory] = useState<"Sports" | "Academic" | "Cultural" | "General">("Academic");
   const [newDate, setNewDate] = useState("");
-  const [newCoordinator, setNewCoordinator] = useState("Mrs. Sumathi Devi");
+  const [newCoordinator, setNewCoordinator] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [eventToast, setEventToast] = useState<string | null>(null);
 
-  const handleAddEvent = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle || !newDate) return;
+  const fetchData = useCallback(async () => {
+    if (!schoolId) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/teacher/cultural-events?schoolId=${schoolId}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const mapped: SchoolEvent[] = json.data.map((b: CulturalEventBackend) => {
+          let category: SchoolEvent["category"] = "General";
+          let coordinator = "Mrs. Sumathi Devi (Math)";
+          
+          try {
+            const meta = JSON.parse(b.location);
+            if (meta.category) category = meta.category;
+            if (meta.coordinator) coordinator = meta.coordinator;
+          } catch {
+            coordinator = b.location || "Mrs. Sumathi Devi (Math)";
+          }
 
-    const newEvent: SchoolEvent = {
-      id: Date.now(),
-      title: newTitle,
+          // Format Date nicely
+          const dateObj = new Date(b.eventDate);
+          const formattedDate = dateObj.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric"
+          });
+
+          // Status mapping
+          let status: SchoolEvent["status"] = "Scheduled";
+          if (b.status === "Completed") {
+            status = "Completed";
+          } else if (b.status === "In Preparation" || b.status === "upcoming" || b.status === "Upcoming") {
+            status = "In Preparation";
+          }
+
+          return {
+            id: b.id,
+            title: b.title,
+            category,
+            date: formattedDate,
+            coordinator,
+            status,
+            description: b.description
+          };
+        });
+
+        // Sort events chronologically descending (newest created or newest date first)
+        setEvents(mapped);
+      }
+      // Fetch permanent staff list
+      const staffRes = await fetch(`${API_BASE}/api/headmaster/staff?schoolId=${schoolId}`);
+      const staffJson = await staffRes.json();
+      if (staffJson.success && staffJson.data) {
+        setStaffList(staffJson.data.map((s: any) => ({
+          id: s.id,
+          name: s.name,
+          subject: s.subject || "General"
+        })));
+      }
+    } catch (err) {
+      console.error("Failed to load events:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [schoolId]);
+
+  useEffect(() => {
+    if (staffList.length > 0) {
+      const first = staffList[0];
+      setNewCoordinator(`${first.name} (${first.subject})`);
+    }
+  }, [staffList]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleAddEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle || !newDate || !schoolId) return;
+
+    // Serialize category and coordinator inside location field
+    const location = JSON.stringify({
       category: newCategory,
-      date: newDate,
-      coordinator: newCoordinator,
-      status: "Scheduled",
+      coordinator: newCoordinator
+    });
+
+    const body = {
+      title: newTitle,
+      eventDate: new Date(newDate).toISOString(),
+      location,
       description: newDesc || "No additional description provided.",
+      status: "Upcoming", // maps to "In Preparation"
+      schoolId
     };
 
-    setEvents(prev => [newEvent, ...prev]);
-    setEventToast(`✓ Event '${newTitle}' scheduled successfully! Added to the billboard.`);
-    
-    // Reset Form
-    setNewTitle("");
-    setNewDate("");
-    setNewDesc("");
-    
+    try {
+      const res = await fetch(`${API_BASE}/api/teacher/cultural-events`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const json = await res.json();
+      if (json.success) {
+        setEventToast(`✓ Event '${newTitle}' scheduled successfully! Added to the billboard.`);
+        // Reset Form
+        setNewTitle("");
+        setNewDate("");
+        setNewDesc("");
+        // Reload data
+        fetchData();
+      } else {
+        setEventToast(`❌ Error: ${json.error || "Failed to create event."}`);
+      }
+    } catch (err) {
+      console.error(err);
+      setEventToast(`❌ Error: Network failed to publish event.`);
+    }
+
     setTimeout(() => setEventToast(null), 4000);
+  };
+
+  const handleDelete = async (id: string) => {
+    const result = await Swal.fire({
+      title: "Delete Event?",
+      text: "Are you sure you want to delete this event?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, Delete",
+      background: 'var(--bg-card)',
+      color: 'var(--text-heading)'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/teacher/cultural-events/${id}`, {
+        method: "DELETE"
+      });
+      const json = await res.json();
+      if (json.success) {
+        Swal.fire({
+          title: "Deleted!",
+          text: "Event has been deleted successfully.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+          background: 'var(--bg-card)',
+          color: 'var(--text-heading)'
+        });
+        fetchData();
+      } else {
+        Swal.fire("Error", json.error || "Failed to delete event", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Network error while deleting event", "error");
+    }
   };
 
   const filteredEvents = events.filter((ev) => {
@@ -102,42 +259,53 @@ export default function EventsPage() {
           </div>
 
           <div className="space-y-4">
-            {filteredEvents.map((ev) => (
-              <div
-                key={ev.id}
-                className="glass rounded-2xl p-6 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-750 transition-colors"
-              >
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md">
-                      {ev.category}
-                    </span>
-                    <span className="text-[10px] text-slate-550 font-bold">📅 {ev.date}</span>
-                  </div>
-                  <h3 className="text-base font-bold text-white leading-tight">{ev.title}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed max-w-xl">{ev.description}</p>
-                  <div className="text-[11px] text-slate-500 font-semibold">
-                    Coordinator: <strong className="text-slate-400 font-bold">{ev.coordinator}</strong>
-                  </div>
-                </div>
-
-                <div className="sm:text-right shrink-0">
-                  <span className={`badge ${
-                    ev.status === "Scheduled"
-                      ? "badge-blue"
-                      : ev.status === "In Preparation"
-                      ? "badge-yellow"
-                      : "badge-green"
-                  }`}>
-                    {ev.status}
-                  </span>
-                </div>
+            {loading ? (
+              <div className="glass rounded-2xl p-12 border border-slate-800 text-center text-slate-400 animate-pulse text-xs">
+                Loading school events...
               </div>
-            ))}
-            {filteredEvents.length === 0 && (
+            ) : filteredEvents.length === 0 ? (
               <div className="glass rounded-2xl p-8 border border-slate-800 text-center text-slate-550 italic text-xs">
                 No events currently found under this category.
               </div>
+            ) : (
+              filteredEvents.map((ev) => (
+                <div
+                  key={ev.id}
+                  className="glass rounded-2xl p-6 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-750 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300"
+                >
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md">
+                        {ev.category}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-bold">📅 {ev.date}</span>
+                    </div>
+                    <h3 className="text-base font-bold text-white leading-tight">{ev.title}</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed max-w-xl">{ev.description}</p>
+                    <div className="text-[11px] text-slate-500 font-semibold">
+                      Coordinator: <strong className="text-slate-400 font-bold">{ev.coordinator}</strong>
+                    </div>
+                  </div>
+
+                  <div className="sm:text-right shrink-0 flex flex-col items-end gap-2">
+                    <span className={`badge ${
+                      ev.status === "Scheduled"
+                        ? "badge-blue"
+                        : ev.status === "In Preparation"
+                        ? "badge-yellow"
+                        : "badge-green"
+                    }`}>
+                      {ev.status}
+                    </span>
+                    <button
+                      onClick={() => handleDelete(ev.id)}
+                      className="text-[10px] font-bold text-rose-400 hover:text-rose-300 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))
             )}
           </div>
         </div>
@@ -179,27 +347,30 @@ export default function EventsPage() {
               <div>
                 <label className="block text-xs text-slate-400 mb-1.5 font-semibold">Date</label>
                 <input
-                  type="text"
-                  placeholder="E.g., July 18, 2026"
+                  type="date"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors [color-scheme:dark]"
                   required
                 />
               </div>
             </div>
 
-            <div>
+             <div>
               <label className="block text-xs text-slate-400 mb-1.5 font-semibold">Assign Coordinator Staff</label>
               <select
                 value={newCoordinator}
                 onChange={(e) => setNewCoordinator(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
               >
-                <option value="Mrs. Sumathi Devi (Math)">Mrs. Sumathi Devi (Math)</option>
-                <option value="Mr. Rajan K. (Science)">Mr. Rajan K. (Science)</option>
-                <option value="Mrs. Kavitha S. (Tamil)">Mrs. Kavitha S. (Tamil)</option>
-                <option value="Mr. Prakash R. (PE)">Mr. Prakash R. (PE)</option>
+                {staffList.map((s) => (
+                  <option key={s.id} value={`${s.name} (${s.subject})`}>
+                    {s.name} ({s.subject})
+                  </option>
+                ))}
+                {staffList.length === 0 && (
+                  <option value="Mrs. Sumathi Devi (Math)">Mrs. Sumathi Devi (Math)</option>
+                )}
               </select>
             </div>
 
