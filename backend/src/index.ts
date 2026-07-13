@@ -70,6 +70,7 @@ import timetableRoutes from './routes/timetable.routes';
 import examScheduleRoutes from './routes/examSchedule.routes';
 import studyPlannerRoutes from './routes/studyPlanner.routes';
 import superadminAcademicsRoutes from './routes/superadmin.academics.routes';
+import hierarchyRoutes from './routes/hierarchy.routes';
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
 
@@ -207,6 +208,7 @@ app.use('/api/timetable', timetableRoutes);
 app.use('/api/exam-schedule', examScheduleRoutes);
 app.use('/api/student', studyPlannerRoutes);
 app.use('/api/superadmin/academics', superadminAcademicsRoutes);
+app.use('/api/hierarchy', hierarchyRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {

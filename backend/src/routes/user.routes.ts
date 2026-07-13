@@ -122,8 +122,11 @@ router.put('/:id', async (req: Request, res: Response) => {
         name: name !== undefined ? name : undefined,
         email: email !== undefined ? email : undefined,
         mobile: mobile !== undefined ? (mobile || null) : undefined,
-        passwordHash: password !== undefined ? await hashPassword(password) : undefined,
+        passwordHash: (password !== undefined && password !== '') ? await hashPassword(password) : undefined,
         schoolId: schoolId !== undefined ? (schoolId || null) : undefined,
+        district: district !== undefined ? (district || null) : undefined,
+        block: block !== undefined ? (block || null) : undefined,
+        assignedRegion: assignedRegion !== undefined ? (assignedRegion || null) : undefined,
       },
       select: SAFE_USER_SELECT,
     });
