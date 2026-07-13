@@ -7,7 +7,12 @@ import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import InteractiveInfographic from "@/components/InteractiveInfographic";
 
-const syllabusOptions = ["TN State Board (Samacheer Kalvi)", "CBSE", "ICSE"];
+const syllabusOptions = [
+  "TN State Board (Samacheer Kalvi)",
+  "TN State Board Tamil Medium",
+  "CBSE",
+  "ICSE",
+];
 const grades = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
 const sections = ["All", "A", "B", "C", "D", "E"];
 
@@ -103,6 +108,15 @@ export default function LessonPlannerPage() {
   const [section, setSection] = useState<string>("All"); // Section targeting
   const [topic, setTopic] = useState("Pythagoras Theorem & Trigonometry");
   const [duration, setDuration] = useState("45 Minutes");
+
+  // Content language: "tamil" = Tamil Medium priority, "english" = English mode
+  const isTamilMediumSyllabus = (s: string) => s.toLowerCase().includes("tamil medium");
+  const [contentLanguage, setContentLanguage] = useState<"tamil" | "english">("english");
+
+  // Auto-switch language when syllabus changes
+  useEffect(() => {
+    setContentLanguage(isTamilMediumSyllabus(syllabus) ? "tamil" : "english");
+  }, [syllabus]);
 
   // Fetch school configuration for valid classes
   useEffect(() => {
@@ -344,6 +358,7 @@ export default function LessonPlannerPage() {
           subject,
           topic,
           duration,
+          language: contentLanguage,
           textbookContext: uploadedText || undefined
         })
       });
@@ -538,7 +553,7 @@ export default function LessonPlannerPage() {
           grade,
           messages: history,
           currentMessage: userMsg.content,
-          language: "bilingual"
+          language: contentLanguage === "tamil" ? "tamil" : "bilingual"
         })
       });
 
@@ -675,10 +690,10 @@ export default function LessonPlannerPage() {
       title="AI Lesson Studio"
       subtitle="Bilingual AI chapter sources, real-time doc chatting, and visual studio output synthesis"
     >
-      <div className={`grid grid-cols-1 xl:grid-cols-4 min-h-[calc(100vh-160px)] xl:h-[calc(100vh-160px)] rounded-2xl border ${theme.border} ${theme.bg} shadow-2xl transition-colors duration-300 relative overflow-y-auto xl:overflow-hidden`}>
+      <div className={`grid grid-cols-1 xl:grid-cols-4 xl:h-[calc(100vh-180px)] min-h-[500px] transition-colors duration-300 relative`}>
 
         {/* Sidebar (Left) */}
-        <div className={`col-span-1 flex flex-col ${theme.bgCard} border-b xl:border-b-0 xl:border-r ${theme.border} h-fit xl:h-full overflow-y-auto`}>
+        <div className={`col-span-1 flex flex-col ${theme.bgCard} border-b xl:border-b-0 xl:border-r ${theme.border} xl:h-full overflow-y-auto`}>
           <div className="flex-1 p-5 space-y-6 scrollbar-thin">
 
             {/* Generate Form */}
@@ -700,6 +715,40 @@ export default function LessonPlannerPage() {
                   >
                     {syllabusOptions.map((s) => <option key={s}>{s}</option>)}
                   </select>
+                </div>
+
+                {/* Content Language Toggle */}
+                <div>
+                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>Content Language</label>
+                  <div className={`flex rounded-xl border ${theme.border} overflow-hidden`}>
+                    <button
+                      type="button"
+                      onClick={() => setContentLanguage("tamil")}
+                      className={`flex-1 py-2 text-[11px] font-black transition-all flex items-center justify-center gap-1.5 ${
+                        contentLanguage === "tamil"
+                          ? "bg-orange-500 text-white shadow-inner"
+                          : `${theme.inputBg} ${theme.textMuted} hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600`
+                      }`}
+                    >
+                      <span className="text-base leading-none">அ</span> Tamil
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setContentLanguage("english")}
+                      className={`flex-1 py-2 text-[11px] font-black transition-all flex items-center justify-center gap-1.5 ${
+                        contentLanguage === "english"
+                          ? "bg-sky-500 text-white shadow-inner"
+                          : `${theme.inputBg} ${theme.textMuted} hover:bg-sky-50 dark:hover:bg-sky-500/10 hover:text-sky-600`
+                      }`}
+                    >
+                      <span className="text-base leading-none">A</span> English
+                    </button>
+                  </div>
+                  <p className={`text-[9px] ${theme.textMuted} mt-1.5`}>
+                    {contentLanguage === "tamil"
+                      ? "AI will generate primary content in Tamil"
+                      : "AI will generate content in English + Tamil translations"}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -882,7 +931,7 @@ export default function LessonPlannerPage() {
         </div>
 
         {/* Main Content Area */}
-        <div className="col-span-1 xl:col-span-3 flex flex-col h-full overflow-hidden relative">
+        <div className="col-span-1 xl:col-span-3 flex flex-col xl:h-full overflow-hidden relative">
 
           {/* Top Navbar */}
           <div className={`h-16 border-b ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl flex items-center justify-between px-4 xl:px-6 shrink-0 z-10`}>
@@ -952,7 +1001,7 @@ export default function LessonPlannerPage() {
           </div>
 
           {/* Main Stage */}
-          <div className="flex-1 overflow-y-auto p-4 xl:p-8 scrollbar-thin relative">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 xl:p-6 scrollbar-thin relative">
             {isGenerating ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className={`max-w-md w-full p-8 rounded-3xl border ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center text-center`}>

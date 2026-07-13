@@ -205,12 +205,22 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
       {/* ================================================================== */}
       {/* REALISTIC CONCEPT VISUAL (Pollinations)                            */}
       {/* ================================================================== */}
-      <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-md relative">
+      <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-md relative bg-slate-100">
         <img
           src={pol(`${heroTitle}, ${subject}, ${topic}, realistic educational illustration, vibrant, highly detailed, bright clean background`, 1200, 440)}
           alt={heroTitle}
           loading="lazy"
           className="w-full h-40 md:h-56 object-cover"
+          onError={(e) => {
+            const target = e.currentTarget;
+            const parent = target.parentElement;
+            if (!parent) return;
+            target.style.display = 'none';
+            const fb = document.createElement('div');
+            fb.className = 'w-full h-40 md:h-56 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-slate-100 to-slate-200';
+            fb.innerHTML = `<span style="font-size:3rem;line-height:1">${heroIcon}</span><p style="font-size:13px;font-weight:700;color:#64748b;text-align:center;max-width:280px;padding:0 12px">${heroTitle}</p>`;
+            parent.insertBefore(fb, parent.firstChild);
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex items-end p-5">
           <div>
@@ -236,11 +246,11 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
               <span className={`text-[9px] font-black ${colors.text} uppercase tracking-widest block mb-2`}>
                 Primary Formula / முதன்மை சூத்திரம்
               </span>
-              <div className={`text-2xl md:text-3xl font-black font-mono ${colors.text} py-3 px-4 ${colors.light} rounded-2xl inline-block border ${colors.border} border-opacity-40 shadow-inner`}>
+              <div className={`text-xl md:text-2xl font-black ${colors.text} py-3 px-4 ${colors.light} rounded-2xl inline-block border ${colors.border} border-opacity-40 shadow-inner max-w-full break-words leading-relaxed`}>
                 {data.formulaBox}
               </div>
               {data.formulaExplain && (
-                <p className="text-slate-600 text-xs font-medium mt-3 leading-relaxed text-left">
+                <p className="text-slate-600 text-xs font-medium mt-3 leading-relaxed text-left break-words">
                   {data.formulaExplain}
                 </p>
               )}
@@ -260,11 +270,11 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
           {/* Constant / Boundary Value */}
           {data?.constantName && (
             <div className={`${colors.light} border ${colors.border} border-opacity-40 rounded-3xl p-4 shadow-sm flex items-center gap-4`}>
-              <div className={`shrink-0 p-3 bg-white rounded-2xl shadow border ${colors.border} border-opacity-30 text-center min-w-[80px]`}>
-                <div className={`text-[9px] font-bold ${colors.text} uppercase tracking-wider leading-none mb-1`}>{data.constantName}</div>
-                <div className={`text-sm font-black font-mono ${colors.text}`}>{data.constantValue}</div>
+              <div className={`shrink-0 p-3 bg-white rounded-2xl shadow border ${colors.border} border-opacity-30 text-center min-w-[64px]`}>
+                <div className={`text-[9px] font-bold ${colors.text} uppercase tracking-wider leading-none mb-1 break-words`}>{data.constantName}</div>
+                <div className={`text-sm font-black ${colors.text} break-words`}>{data.constantValue}</div>
               </div>
-              <p className="text-slate-600 text-xs font-medium leading-relaxed">{data.constantExplain}</p>
+              <p className="text-slate-600 text-xs font-medium leading-relaxed break-words">{data.constantExplain}</p>
             </div>
           )}
 
@@ -285,9 +295,9 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
                 <tbody className="divide-y divide-slate-100">
                   {termTable.map((row, idx) => (
                     <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-2.5 pr-2 font-semibold text-slate-800 text-[11px]">{row.english}</td>
-                      <td className={`py-2.5 pr-2 font-semibold ${colors.text} text-[11px]`}>{row.tamil}</td>
-                      <td className="py-2.5 text-slate-500 text-[10px] leading-snug">{row.definition}</td>
+                      <td className="py-2.5 pr-2 font-semibold text-slate-800 text-[11px] break-words max-w-[80px]">{row.english}</td>
+                      <td className={`py-2.5 pr-2 font-semibold ${colors.text} text-[11px] break-words max-w-[80px]`}>{row.tamil}</td>
+                      <td className="py-2.5 text-slate-500 text-[10px] leading-snug break-words">{row.definition}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -326,9 +336,9 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
                   <span className="text-xl p-2 rounded-xl bg-white shadow-sm shrink-0 border border-slate-100">
                     {mod.icon}
                   </span>
-                  <div className="space-y-1">
-                    <h4 className="font-extrabold text-xs text-slate-800 leading-snug">{mod.title}</h4>
-                    <p className="text-[10.5px] text-slate-500 leading-relaxed font-medium">
+                  <div className="space-y-1 min-w-0">
+                    <h4 className="font-extrabold text-xs text-slate-800 leading-snug break-words">{mod.title}</h4>
+                    <p className="text-[10.5px] text-slate-500 leading-relaxed font-medium break-words">
                       {activeModule === mod.id
                         ? mod.desc
                         : "Click to explore this concept in detail..."}
@@ -362,15 +372,19 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
                     key={idx}
                     className="bg-white border border-slate-200 p-3.5 rounded-2xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
                   >
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider break-words">
                       {stat.label}
                     </span>
-                    <div className="flex items-baseline gap-2 mt-1.5">
-                      <span className={`text-lg font-black font-mono ${statColors[idx % statColors.length]}`}>
+                    <div className="mt-1.5">
+                      <span className={`${
+                        String(stat.value).length > 10
+                          ? 'text-xs font-bold'
+                          : 'text-lg font-black font-mono'
+                      } ${statColors[idx % statColors.length]} break-words leading-snug block`}>
                         {stat.value}
                       </span>
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-1 font-medium leading-snug">{stat.desc}</p>
+                    <p className="text-[10px] text-slate-500 mt-1 font-medium leading-snug break-words">{stat.desc}</p>
                   </div>
                 );
               })}
@@ -413,6 +427,16 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
                     alt={work.step}
                     loading="lazy"
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      const parent = target.parentElement;
+                      if (!parent) return;
+                      target.style.display = 'none';
+                      const fb = document.createElement('div');
+                      fb.className = 'w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-slate-100 to-slate-200';
+                      fb.innerHTML = `<span style="font-size:1.75rem;line-height:1">${work.icon}</span><p style="font-size:9px;font-weight:700;color:#64748b;text-align:center;max-width:100px;padding:0 6px;margin:0">${work.step}</p>`;
+                      parent.insertBefore(fb, parent.firstChild);
+                    }}
                   />
                   <span className="absolute bottom-1 left-1 text-xl drop-shadow-md">{work.icon}</span>
                 </div>

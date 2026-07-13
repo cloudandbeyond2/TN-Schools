@@ -56,6 +56,10 @@ function StudioViewContent() {
 
   const [genLoading, setGenLoading] = useState(false);
 
+  // Track whether the current slide's AI image failed to load
+  const [slideImgError, setSlideImgError] = useState(false);
+  useEffect(() => { setSlideImgError(false); }, [activeSlide]);
+
   // Sync theme with the app's chosen theme on first paint
   useEffect(() => {
     setIsDarkMode(document.documentElement.classList.contains("dark"));
@@ -364,15 +368,71 @@ function StudioViewContent() {
                   {/* Right: realistic image + infographic diagram */}
                   <div className="w-full lg:w-5/12 xl:w-2/5 shrink-0 flex flex-col gap-5">
                     <div className="relative rounded-3xl overflow-hidden border border-slate-100 shadow-inner bg-slate-100 aspect-[4/3]">
-                      <img
-                        src={pol(imgPrompt, 900, 675)}
-                        alt={slide.title}
-                        loading="lazy"
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <i className="fi fi-sr-picture leading-none" /> AI Visual
-                      </span>
+                      {!slideImgError ? (
+                        <img
+                          src={pol(imgPrompt, 900, 675)}
+                          alt={slide.title}
+                          loading="lazy"
+                          className="w-full h-full object-cover"
+                          onError={() => setSlideImgError(true)}
+                        />
+                      ) : (
+                        /* ── Rich fallback panel when Pollinations image unavailable ── */
+                        <div className={`w-full h-full flex flex-col gap-3 p-4 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100`}>
+                          {/* Header strip */}
+                          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-white bg-gradient-to-r ${accent.from} ${accent.to} shrink-0`}>
+                            <i className={`fi ${typeIcon} leading-none text-sm`} />
+                            <span className="text-[10px] font-black uppercase tracking-widest flex-1">{slide.graphicType?.replace(/_/g,' ') || 'Visual Overview'}</span>
+                            <i className="fi fi-sr-picture leading-none text-white/60 text-[9px]" />
+                          </div>
+
+                          {/* Teacher Note */}
+                          {slide.teacherNotes && (
+                            <div className="flex gap-2 p-3 rounded-xl bg-indigo-50 border border-indigo-100 shrink-0">
+                              <i className="fi fi-sr-graduation-cap text-indigo-500 text-sm leading-none mt-0.5 shrink-0" />
+                              <div className="min-w-0">
+                                <span className="block text-[8px] font-black text-indigo-500 uppercase tracking-wider mb-0.5">Teacher Note</span>
+                                <p className="text-[10px] text-slate-700 leading-relaxed font-medium break-words">{slide.teacherNotes}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Student Activity */}
+                          {slide.studentActivity && (
+                            <div className="flex gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-100 shrink-0">
+                              <i className="fi fi-sr-bulb text-emerald-500 text-sm leading-none mt-0.5 shrink-0" />
+                              <div className="min-w-0">
+                                <span className="block text-[8px] font-black text-emerald-500 uppercase tracking-wider mb-0.5">Student Activity</span>
+                                <p className="text-[10px] text-slate-700 leading-relaxed font-medium break-words">{slide.studentActivity}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Bullet icon flow — condensed */}
+                          {slide.bullets?.slice(0, 4).map((b: string, idx: number) => {
+                            const splitIdx = b.indexOf(':');
+                            const hasTitle = splitIdx > 0 && splitIdx < 50;
+                            const bTitle = hasTitle ? b.substring(0, splitIdx) : `Point ${idx + 1}`;
+                            const bDesc = hasTitle ? b.substring(splitIdx + 1).trim() : b;
+                            return (
+                              <div key={idx} className="flex items-start gap-2 px-2 py-1.5 rounded-lg bg-white border border-slate-100 shrink-0">
+                                <span className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-white text-[10px] bg-gradient-to-br ${accent.from} ${accent.to}`}>
+                                  <i className={`fi ${bulletIcons[idx % bulletIcons.length]} leading-none`} />
+                                </span>
+                                <div className="min-w-0">
+                                  <p className={`text-[9px] font-black ${accent.text} leading-none mb-0.5`}>{bTitle}</p>
+                                  <p className="text-[9px] text-slate-500 leading-snug font-medium break-words line-clamp-2">{bDesc}</p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {!slideImgError && (
+                        <span className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
+                          <i className="fi fi-sr-picture leading-none" /> AI Visual
+                        </span>
+                      )}
                     </div>
                     <div className="bg-slate-50 rounded-3xl border border-slate-100 p-5 flex-1 flex flex-col shadow-inner relative overflow-hidden min-h-[220px]">
                       <SlideVisual graphicType={slide.graphicType} graphicData={slide.graphicData} illustrationPrompt={slide.illustrationPrompt} animationSuggestion={slide.animationSuggestion} title={slide.title} subtitle={slide.subtitle} accent={accent} />
