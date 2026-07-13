@@ -7,7 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FcFolder, FcDocument, FcVideoFile, FcLink, FcAudioFile, FcReadingEbook, FcDataSheet } from "react-icons/fc";
 import Swal from "sweetalert2";
 
-const API_BASE = "http://localhost:5000/api/superadmin/academics";
+// const API_BASE = "http://localhost:5000/api/superadmin/academics";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface Subject {
   id: string;
@@ -480,8 +481,8 @@ export default function HeadmasterAcademicsPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-5 py-2.5 rounded-xl whitespace-nowrap font-bold text-sm transition-all duration-200 ${activeTab === tab.id
-                    ? "bg-slate-100 text-slate-800 border-2 border-slate-300 shadow-sm dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600"
-                    : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white shadow-sm"
+                  ? "bg-slate-100 text-slate-800 border-2 border-slate-300 shadow-sm dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600"
+                  : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white shadow-sm"
                   }`}
               >
                 {tab.label}
