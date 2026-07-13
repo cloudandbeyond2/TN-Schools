@@ -30,11 +30,6 @@ export default function CelebrationsPage() {
   const [celebrations, setCelebrations] = useState<Celebration[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [preparations] = useState([
-    { id: 1, task: "Decorate Main Hall 🎈", assignedTo: "Art Club", status: "In Progress", color: "pink" },
-    { id: 2, task: "Order Cake for Principal's B'day 🎂", assignedTo: "Admin Staff", status: "Completed", color: "emerald" },
-    { id: 3, task: "Setup Audio System 🎵", assignedTo: "IT Support", status: "Pending", color: "amber" },
-  ]);
 
   const [toastMsg, setToastMsg] = useState("");
 
@@ -163,10 +158,10 @@ export default function CelebrationsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="w-full">
 
           {/* Main List */}
-          <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-[2rem] sm:rounded-[2.5rem] shadow-lg border-4 border-rose-100 dark:border-slate-700 overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-[2rem] sm:rounded-[2.5rem] shadow-lg border-4 border-rose-100 dark:border-slate-700 overflow-hidden">
             <div className="flex bg-rose-50 dark:bg-slate-900 p-1.5 sm:p-2 gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
               <button
                 onClick={() => setActiveTab("today")}
@@ -342,43 +337,6 @@ export default function CelebrationsPage() {
                   ))}
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Preparation Checklist */}
-          <div className="bg-white dark:bg-slate-800 p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] shadow-lg border-4 border-amber-100 dark:border-slate-700 h-fit relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-amber-100/50 dark:bg-amber-900/20 rounded-bl-full pointer-events-none z-0"></div>
-
-            <h3 className="text-lg sm:text-xl font-black text-amber-900 dark:text-amber-100 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 relative z-10">
-              <div className="p-2 bg-amber-100 text-amber-600 rounded-xl rotate-12">
-                <i className="fi fi-rr-check text-base sm:text-lg" />
-              </div>
-              Celebration Tasks
-            </h3>
-
-            <div className="space-y-3 sm:space-y-4 relative z-10">
-              {preparations.map((prep) => (
-                <div key={prep.id} className={`p-4 rounded-xl sm:rounded-2xl border-4 ${prep.status === 'Completed' ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800' :
-                  prep.status === 'In Progress' ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800' :
-                    'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
-                  }`}>
-                  <div className="flex justify-between items-start mb-2 sm:mb-3 gap-2">
-                    <h4 className="text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 leading-tight">{prep.task}</h4>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="text-[10px] sm:text-xs font-bold text-slate-500 flex items-center gap-1.5">
-                      <i className="fi fi-rr-users text-xs" />
-                      <span className="text-slate-700 dark:text-slate-300">{prep.assignedTo}</span>
-                    </div>
-                    <span className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider border-2 shadow-sm ${prep.status === 'Completed' ? 'bg-emerald-100 text-emerald-700 border-emerald-300' :
-                      prep.status === 'In Progress' ? 'bg-blue-100 text-blue-700 border-blue-300' :
-                        'bg-white text-amber-600 border-amber-300'
-                      }`}>
-                      {prep.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
 
