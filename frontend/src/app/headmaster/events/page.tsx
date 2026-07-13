@@ -47,9 +47,24 @@ export default function EventsPage() {
   const [newTitle, setNewTitle] = useState("");
   const [newCategory, setNewCategory] = useState<"Sports" | "Academic" | "Cultural" | "General">("Academic");
   const [newDate, setNewDate] = useState("");
-  const [newCoordinator, setNewCoordinator] = useState("");
+  const [selectedCoordinators, setSelectedCoordinators] = useState<string[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
   const [newDesc, setNewDesc] = useState("");
   const [eventToast, setEventToast] = useState<string | null>(null);
+
+  // Click outside hook to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const fetchData = useCallback(async () => {
     if (!schoolId) return;
@@ -118,11 +133,11 @@ export default function EventsPage() {
   }, [schoolId]);
 
   useEffect(() => {
-    if (staffList.length > 0) {
+    if (staffList.length > 0 && selectedCoordinators.length === 0) {
       const first = staffList[0];
-      setNewCoordinator(`${first.name} (${first.subject})`);
+      setSelectedCoordinators([`${first.name} (${first.subject})`]);
     }
-  }, [staffList]);
+  }, [staffList, selectedCoordinators.length]);
 
   useEffect(() => {
     fetchData();
@@ -132,10 +147,15 @@ export default function EventsPage() {
     e.preventDefault();
     if (!newTitle || !newDate || !schoolId) return;
 
+    if (selectedCoordinators.length === 0) {
+      setEventToast(`❌ Error: Please assign at least one coordinator staff.`);
+      return;
+    }
+
     // Serialize category and coordinator inside location field
     const location = JSON.stringify({
       category: newCategory,
-      coordinator: newCoordinator
+      coordinator: selectedCoordinators.join(", ")
     });
 
     const body = {
@@ -362,22 +382,84 @@ export default function EventsPage() {
               </div>
             </div>
 
-            <div>
+            <div className="relative" ref={dropdownRef}>
               <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">Assign Coordinator Staff</label>
-              <select
-                value={newCoordinator}
-                onChange={(e) => setNewCoordinator(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
+              <div
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer flex justify-between items-center min-h-[38px]"
               >
-                {staffList.map((s) => (
-                  <option key={s.id} value={`${s.name} (${s.subject})`}>
-                    {s.name} ({s.subject})
-                  </option>
-                ))}
-                {staffList.length === 0 && (
-                  <option value="Mrs. Sumathi Devi (Math)">Mrs. Sumathi Devi (Math)</option>
+                {selectedCoordinators.length === 0 ? (
+                  <span className="text-slate-500">Select coordinator staff...</span>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5 max-w-[90%]">
+                    {selectedCoordinators.map((name) => (
+                      <span
+                        key={name}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCoordinators(selectedCoordinators.filter((c) => c !== name));
+                        }}
+                        className="bg-blue-600/30 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-md text-[10px] flex items-center gap-1 font-bold hover:bg-blue-600/50 hover:text-white transition-colors"
+                      >
+                        {name}
+                        <i className="fi fi-rr-cross-small text-[10px]" />
+                      </span>
+                    ))}
+                  </div>
                 )}
-              </select>
+                <i className={`fi fi-rr-angle-small-down text-slate-400 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+              </div>
+
+              {dropdownOpen && (
+                <div className="absolute left-0 right-0 mt-1 bg-slate-950 border border-slate-700 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto p-1.5 space-y-0.5 scrollbar-thin scrollbar-thumb-slate-800">
+                  {staffList.map((s) => {
+                    const staffVal = `${s.name} (${s.subject})`;
+                    const isChecked = selectedCoordinators.includes(staffVal);
+                    return (
+                      <div
+                        key={s.id}
+                        onClick={() => {
+                          if (isChecked) {
+                            setSelectedCoordinators(selectedCoordinators.filter((c) => c !== staffVal));
+                          } else {
+                            setSelectedCoordinators([...selectedCoordinators, staffVal]);
+                          }
+                        }}
+                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-900 text-xs text-slate-200 cursor-pointer transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}}
+                          className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 focus:ring-offset-0 pointer-events-none w-3.5 h-3.5"
+                        />
+                        <span>{s.name} ({s.subject})</span>
+                      </div>
+                    );
+                  })}
+                  {staffList.length === 0 && (
+                    <div
+                      onClick={() => {
+                        const defaultVal = "Mrs. Sumathi Devi (Math)";
+                        if (selectedCoordinators.includes(defaultVal)) {
+                          setSelectedCoordinators(selectedCoordinators.filter((c) => c !== defaultVal));
+                        } else {
+                          setSelectedCoordinators([...selectedCoordinators, defaultVal]);
+                        }
+                      }}
+                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-900 text-xs text-slate-200 cursor-pointer transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCoordinators.includes("Mrs. Sumathi Devi (Math)")}
+                        onChange={() => {}}
+                        className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 focus:ring-offset-0 pointer-events-none w-3.5 h-3.5"
+                      />
+                      <span>Mrs. Sumathi Devi (Math)</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div>
