@@ -223,42 +223,63 @@ router.post('/:schoolId/banner', upload.single('banner'), async (req: Request, r
 router.post('/:schoolId/gallery', upload.single('image'), async (req: Request, res: Response) => {
   try {
     const { schoolId } = req.params;
-    if (!req.file) {
-      return res.status(400).json({ success: false, error: 'No image file uploaded (field name: image)' });
-    }
     await createDefaultPortal(schoolId);
     const portal = await prisma.schoolPortal.findUnique({ where: { schoolId } });
     if (!portal) {
       return res.status(404).json({ success: false, error: 'Portal not found' });
     }
 
-    const imageUrl = `/uploads/${req.file.filename}`;
     const caption = req.body.caption || null;
     const orderRaw = req.body.order;
     const order = orderRaw !== undefined && orderRaw !== '' ? parseInt(orderRaw, 10) : undefined;
+    const imageId = req.body.imageId; // support updating by image ID directly
 
+    // 1. If we are updating an existing image by ID (and optionally changing the file/caption)
+    if (imageId) {
+      const existing = await prisma.schoolGalleryImage.findUnique({ where: { id: imageId } });
+      if (!existing) {
+        return res.status(404).json({ success: false, error: 'Image not found' });
+      }
+      const updated = await prisma.schoolGalleryImage.update({
+        where: { id: imageId },
+        data: {
+          ...(req.file && { imageUrl: `/uploads/${req.file.filename}` }),
+          ...(caption !== undefined && { caption }),
+        },
+      });
+      return res.json({ success: true, data: updated });
+    }
+    
+    // 2. If we are updating by order slot
     if (order !== undefined && !Number.isNaN(order)) {
-      // Replace the image occupying this slot, if any.
       const existing = await prisma.schoolGalleryImage.findFirst({
         where: { portalId: portal.id, order },
       });
       if (existing) {
         const updated = await prisma.schoolGalleryImage.update({
           where: { id: existing.id },
-          data: { imageUrl, caption: caption ?? existing.caption },
+          data: {
+            ...(req.file && { imageUrl: `/uploads/${req.file.filename}` }),
+            caption: caption ?? existing.caption,
+          },
         });
         return res.json({ success: true, data: updated });
       }
-      const created = await prisma.schoolGalleryImage.create({
-        data: { portalId: portal.id, imageUrl, caption, order },
-      });
-      return res.json({ success: true, data: created });
     }
 
-    // No slot specified → append to the end.
+    // 3. New upload (requires file)
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No image file uploaded (field name: image)' });
+    }
+    const imageUrl = `/uploads/${req.file.filename}`;
     const count = await prisma.schoolGalleryImage.count({ where: { portalId: portal.id } });
     const created = await prisma.schoolGalleryImage.create({
-      data: { portalId: portal.id, imageUrl, caption, order: count },
+      data: {
+        portalId: portal.id,
+        imageUrl,
+        caption,
+        order: order !== undefined && !Number.isNaN(order) ? order : count,
+      },
     });
     res.json({ success: true, data: created });
   } catch (err) {
