@@ -8,7 +8,8 @@ import { FcFolder, FcDocument, FcVideoFile, FcLink, FcAudioFile, FcReadingEbook,
 import Swal from "sweetalert2";
 
 // const API_BASE = "http://localhost:5000/api/superadmin/academics";
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+  }/superadmin/academics`;
 
 interface Subject {
   id: string;
