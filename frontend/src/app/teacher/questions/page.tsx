@@ -27,6 +27,7 @@ export default function QuestionGeneratorPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const [grade, setGrade] = useState("Grade 10");
+  const [schoolClasses, setSchoolClasses] = useState<string[]>([]);
   const [subject, setSubject] = useState("");
   const [subjectOptions, setSubjectOptions] = useState<{id: string; name: string}[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
@@ -35,6 +36,26 @@ export default function QuestionGeneratorPage() {
   const [mcqCount, setMcqCount] = useState(3);
   const [shortCount, setShortCount] = useState(2);
   const [longCount, setLongCount] = useState(1);
+
+  // Fetch school configuration for valid classes
+  useEffect(() => {
+    if (!schoolId) return;
+    const fetchSchoolDetails = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/schools/${schoolId}`);
+        const data = await res.json();
+        if (data.success && data.data?.classes) {
+          setSchoolClasses(data.data.classes);
+          if (data.data.classes.length > 0) {
+            setGrade(`Grade ${data.data.classes[0]}`);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching school details:", err);
+      }
+    };
+    fetchSchoolDetails();
+  }, [schoolId, API_URL]);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
@@ -473,11 +494,9 @@ export default function QuestionGeneratorPage() {
                   onChange={(e) => setGrade(e.target.value)}
                   className="w-full bg-[var(--bg-card)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)]"
                 >
-                  <option>Grade 8</option>
-                  <option>Grade 9</option>
-                  <option>Grade 10</option>
-                  <option>Grade 11</option>
-                  <option>Grade 12</option>
+                  {(schoolClasses.length > 0 ? schoolClasses : ["6", "7", "8", "9", "10", "11", "12"]).map((c) => (
+                    <option key={c} value={`Grade ${c}`}>Grade {c}</option>
+                  ))}
                 </select>
               </div>
 

@@ -6,11 +6,15 @@ const router = Router();
 // GET /api/activities — Fetch all clubs and events
 router.get('/', async (req: Request, res: Response) => {
   try {
+    const { schoolId } = req.query;
+
     const clubs = await prisma.club.findMany({
+      where: schoolId ? { schoolId: String(schoolId) } : undefined,
       orderBy: { name: 'asc' }
     });
 
     const events = await prisma.clubEvent.findMany({
+      where: schoolId ? { schoolId: String(schoolId) } : undefined,
       orderBy: { eventDate: 'asc' },
       take: 5
     });

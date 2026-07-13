@@ -135,7 +135,7 @@ router.get('/list', async (req: Request, res: Response) => {
     const { schoolId } = req.query;
 
     const staff = await prisma.headmasterStaff.findMany({
-      where: schoolId ? { schoolId: String(schoolId) } : undefined,
+      where: schoolId ? { schoolId: String(schoolId) } : { id: 'none' },
       select: { id: true, name: true, subject: true },
       orderBy: { name: 'asc' },
     });
