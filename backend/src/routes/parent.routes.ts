@@ -377,6 +377,24 @@ router.put('/:parentId/notifications/read-all', async (req: Request, res: Respon
 });
 
 // ─────────────────────────────────────────────────────────────────
+import fs from 'fs';
+import path from 'path';
+
+const RSVPS_FILE = path.join(__dirname, '../../data/pta_rsvps.json');
+
+function readRsvps(): Record<string, Record<string, any>> {
+  try {
+    if (!fs.existsSync(RSVPS_FILE)) {
+      return {};
+    }
+    const content = fs.readFileSync(RSVPS_FILE, 'utf8');
+    return JSON.parse(content);
+  } catch (err) {
+    console.error("Error reading RSVPs file in parent routes:", err);
+    return {};
+  }
+}
+
 // GET /api/parent/pta-meetings?schoolId=...
 // Upcoming/past PTA meetings for the school
 // ─────────────────────────────────────────────────────────────────
@@ -389,7 +407,13 @@ router.get('/pta-meetings', async (req: Request, res: Response) => {
       orderBy: { meetingDate: 'asc' },
     });
 
-    res.json({ success: true, count: meetings.length, data: meetings });
+    const rsvps = readRsvps();
+    const enrichedMeetings = meetings.map(m => ({
+      ...m,
+      rsvps: rsvps[m.id] || {}
+    }));
+
+    res.json({ success: true, count: enrichedMeetings.length, data: enrichedMeetings });
   } catch (err) {
     console.error('Error fetching PTA meetings:', err);
     res.status(500).json({ success: false, error: String(err) });
@@ -797,5 +821,275 @@ function generateRulesFallback(name: string, avg: number, attendance: number, st
 
   return { summary, tips: tips.slice(0, 3), tamilSummary, tamilTips: tamilTips.slice(0, 3) };
 }
+
+// =========================================================================
+// PTA Appointment & Teacher Slots Endpoints
+// =========================================================================
+
+// GET /api/parent/teachers?schoolId=...
+router.get('/teachers', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required' });
+    }
+    const ptStaff = await prisma.headmasterStaff.findMany({
+      where: {
+        schoolId: String(schoolId),
+        OR: [
+          { subject: { contains: 'Physical', mode: 'insensitive' } },
+          { subject: { contains: 'PT', mode: 'insensitive' } },
+          { subject: { contains: 'PE', mode: 'insensitive' } },
+          { subject: { contains: 'Sports', mode: 'insensitive' } }
+        ]
+      }
+    });
+
+    const mappedStaff = ptStaff.map(s => ({
+      id: s.id,
+      user: {
+        name: s.name,
+        email: s.email
+      }
+    }));
+
+    res.json({ success: true, data: mappedStaff });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/parent/teacher-slots?teacherId=...
+router.get('/teacher-slots', async (req: Request, res: Response) => {
+  try {
+    const { teacherId } = req.query;
+    if (!teacherId) {
+      return res.status(400).json({ success: false, error: 'teacherId is required' });
+    }
+    const slots = await prisma.teacherMeetingSlot.findMany({
+      where: { teacherId: String(teacherId), isAvailable: true }
+    });
+    res.json({ success: true, data: slots });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// Helper to resolve parentId from User ID to HeadmasterParent ID if needed
+async function resolveParentId(idStr: string): Promise<string> {
+  const user = await prisma.user.findUnique({
+    where: { id: idStr }
+  });
+  if (user && user.role === 'PARENT') {
+    const hmParent = await prisma.headmasterParent.findFirst({
+      where: {
+        OR: [
+          { userId: user.id },
+          { email: user.email || undefined },
+          { phone: user.mobile || undefined }
+        ]
+      }
+    });
+    if (hmParent) {
+      return hmParent.id;
+    }
+  }
+  return idStr;
+}
+
+// GET /api/parent/pta-appointments?parentId=... or ?teacherUserId=...
+router.get('/pta-appointments', async (req: Request, res: Response) => {
+  try {
+    const { parentId, teacherUserId } = req.query;
+
+    let whereClause: any = {};
+    if (parentId) {
+      const resolvedParentId = await resolveParentId(String(parentId));
+      whereClause.parentId = resolvedParentId;
+    } else if (teacherUserId) {
+      const teacher = await prisma.teacher.findUnique({
+        where: { userId: String(teacherUserId) }
+      });
+      if (teacher) {
+        whereClause.teacherId = teacher.id;
+      } else {
+        const staff = await prisma.headmasterStaff.findUnique({
+          where: { userId: String(teacherUserId) }
+        });
+        if (staff) {
+          whereClause.teacherId = staff.id;
+        }
+      }
+    } else {
+      return res.status(400).json({ success: false, error: 'parentId or teacherUserId is required' });
+    }
+
+    const appointments = await prisma.pTAAppointment.findMany({
+      where: whereClause,
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const enriched = await Promise.all(appointments.map(async (appt: any) => {
+      let teacherName = 'Unknown Teacher';
+      const teacher = await prisma.teacher.findUnique({
+        where: { id: appt.teacherId },
+        include: { user: { select: { name: true } } }
+      });
+      if (teacher?.user?.name) {
+        teacherName = teacher.user.name;
+      } else {
+        const staff = await prisma.headmasterStaff.findUnique({
+          where: { id: appt.teacherId }
+        });
+        if (staff?.name) {
+          teacherName = `${staff.name} (Physical Education)`;
+        }
+      }
+
+      const parent = await prisma.headmasterParent.findUnique({
+        where: { id: appt.parentId }
+      });
+
+      const student = await prisma.student.findUnique({
+        where: { id: appt.studentId },
+        include: { user: { select: { name: true } } }
+      });
+      return {
+        ...appt,
+        teacherName,
+        parentName: parent?.name || 'Unknown Parent',
+        studentName: student?.user?.name || 'Unknown Student'
+      };
+    }));
+
+    res.json({ success: true, data: enriched });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/parent/pta-appointments
+router.post('/pta-appointments', async (req: Request, res: Response) => {
+  try {
+    const { parentId, teacherId, studentId, meetingDate, timeSlot, reason, schoolId, studentName } = req.body;
+    if (!parentId || !teacherId || !studentId || !meetingDate || !timeSlot || !reason) {
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+    const resolvedParentId = await resolveParentId(String(parentId));
+    const appointment = await prisma.pTAAppointment.create({
+      data: {
+        parentId: resolvedParentId,
+        teacherId,
+        studentId,
+        meetingDate,
+        timeSlot,
+        reason,
+        schoolId,
+        status: 'Pending'
+      }
+    });
+
+    // Create notification
+    let teacherName = 'Teacher';
+    let targetUserId: string | null = null;
+
+    const teacher = await prisma.teacher.findUnique({
+      where: { id: teacherId },
+      include: { user: { select: { name: true } } }
+    });
+
+    if (teacher) {
+      if (teacher.user?.name) {
+        teacherName = teacher.user.name;
+      }
+      targetUserId = teacher.userId;
+    } else {
+      const staff = await prisma.headmasterStaff.findUnique({
+        where: { id: teacherId }
+      });
+      if (staff) {
+        if (staff.name) {
+          teacherName = `${staff.name} (Physical Education)`;
+        }
+        targetUserId = staff.userId;
+      }
+    }
+
+    const sName = studentName || 'your child';
+
+    // 1. Parent notification
+    await prisma.parentNotification.create({
+      data: {
+        parentId: resolvedParentId,
+        studentId,
+        type: 'PTA',
+        title: 'Appointment Requested',
+        message: `Appointment request submitted with Teacher ${teacherName} for ${sName} on ${meetingDate} at ${timeSlot}.`
+      }
+    });
+
+    // 2. Teacher/Staff notification
+    if (targetUserId) {
+      await prisma.notification.create({
+        data: {
+          userId: targetUserId,
+          message: `New PTA appointment requested by parent for ${sName} on ${meetingDate} at ${timeSlot}.`
+        }
+      });
+    }
+
+    res.status(201).json({ success: true, data: appointment });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PUT /api/parent/pta-appointments/:id/status
+router.put('/pta-appointments/:id/status', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status, notes } = req.body; // status: 'Approved' | 'Rejected'
+    if (!status) {
+      return res.status(400).json({ success: false, error: 'status is required' });
+    }
+
+    const appt = await prisma.pTAAppointment.update({
+      where: { id },
+      data: { status, notes }
+    });
+
+    // Fetch teacher/staff name
+    let teacherName = 'Teacher';
+    const teacher = await prisma.teacher.findUnique({
+      where: { id: appt.teacherId },
+      include: { user: { select: { name: true } } }
+    });
+    if (teacher?.user?.name) {
+      teacherName = teacher.user.name;
+    } else {
+      const staff = await prisma.headmasterStaff.findUnique({
+        where: { id: appt.teacherId }
+      });
+      if (staff?.name) {
+        teacherName = `${staff.name} (Physical Education)`;
+      }
+    }
+
+    // Create notification for parent
+    await prisma.parentNotification.create({
+      data: {
+        parentId: appt.parentId,
+        studentId: appt.studentId,
+        type: 'PTA',
+        title: `Appointment ${status}`,
+        message: `Your PTA meeting appointment request with ${teacherName} has been ${status.toLowerCase()}.`
+      }
+    });
+
+    res.json({ success: true, data: appt });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
 
 export default router;

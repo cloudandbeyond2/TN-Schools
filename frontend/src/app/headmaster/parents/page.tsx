@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
+import Swal from "sweetalert2";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -57,6 +58,10 @@ interface PTAMeeting {
   venue: string;
   status: "Upcoming" | "Completed" | "Cancelled";
   agenda: string[];
+  acceptCount?: number;
+  declineCount?: number;
+  tentativeCount?: number;
+  rsvps?: any;
 }
 
 interface ParsedPreviewPTAMember {
@@ -466,6 +471,30 @@ export default function ParentsPage() {
   const nextUpcomingMeeting = ptaMeetings.find(m => m.status === "Upcoming") || ptaMeetings[0];
   const fmtDate = (d: string) => new Date(d).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 
+  const showDeclineReasons = (m: PTAMeeting) => {
+    const rsvps = m.rsvps || {};
+    const declines = Object.entries(rsvps)
+      .filter(([_, r]: any) => (typeof r === 'object' ? r.status : r) === 'Decline');
+
+    if (declines.length === 0) return;
+
+    const contentHtml = declines.map(([pId, r]: any) => {
+      const parentName = committee.find(p => p.id === pId)?.name || "Registered Parent";
+      const reasonText = (typeof r === 'object' ? r.reason : '') || "No reason specified";
+      return `<div style="text-align: left; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+        <strong style="color: #1e293b;">${parentName}</strong>: 
+        <span style="color: #dc2626; font-style: italic; font-weight: 650;">"${reasonText}"</span>
+      </div>`;
+    }).join('');
+
+    Swal.fire({
+      title: 'Decline Reasons',
+      html: `<div style="max-height: 300px; overflow-y: auto;">${contentHtml}</div>`,
+      confirmButtonText: 'Close',
+      confirmButtonColor: '#3b82f6',
+    });
+  };
+
   return (
     <PortalLayout
       title="Parents & PTA Committee"
@@ -564,6 +593,87 @@ export default function ParentsPage() {
                   </div>
                 )
               })
+            )}
+          </div>
+        </div>
+
+        {/* PTA Meetings List & Scheduler */}
+        <div className="glass rounded-2xl p-6 border border-slate-800 flex flex-col">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-bold text-white">Scheduled PTA Meetings</h3>
+              {isLoading && <div className="w-4 h-4 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />}
+            </div>
+            <button
+              onClick={() => setIsPtaModalOpen(true)}
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-xl transition-all shadow-md whitespace-nowrap animate-pulse animate-duration-1000"
+            >
+              + Schedule PTA Meeting
+            </button>
+          </div>
+          <div className="space-y-3 max-h-[450px] overflow-y-auto pr-1">
+            {ptaMeetings.length === 0 && !isLoading ? (
+              <div className="text-center py-12 text-slate-500 text-xs bg-slate-900/40 rounded-xl border border-slate-850">
+                No PTA meetings scheduled.
+              </div>
+            ) : (
+              ptaMeetings.map((m) => (
+                <div key={m.id} className="p-4 border border-slate-200 rounded-xl bg-white/95 hover:bg-white text-slate-800 shadow-md transition-all duration-200">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className={`px-2 py-0.5 self-start text-[8px] font-black uppercase tracking-wider rounded border ${
+                        m.status === "Upcoming"
+                          ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                          : "bg-slate-100 text-slate-600 border-slate-200"
+                      }`}>
+                        {m.status}
+                      </span>
+                      <div className="font-extrabold text-slate-900 text-xs sm:text-sm mt-2 truncate">{m.title}</div>
+                      <div className="text-[10px] text-slate-500 font-bold mt-1">
+                        📅 {fmtDate(m.meetingDate)}
+                      </div>
+                      <div className="text-[10px] text-blue-650 font-bold mt-0.5">
+                        📍 {m.venue}
+                      </div>
+                      
+                      {/* RSVP Summary counts */}
+                      <div className="flex items-center gap-2 text-[9px] font-bold text-slate-650 mt-2 bg-slate-100/80 p-2 rounded-xl w-full max-w-max border border-slate-200/50">
+                        <span className="text-emerald-700 flex items-center gap-0.5">✅ Accepted: <strong className="font-black">{m.acceptCount || 0}</strong></span>
+                        <span className="text-slate-400">|</span>
+                        <span className="text-rose-700 flex items-center gap-0.5">
+                          ❌ Declined: <strong className="font-black">{m.declineCount || 0}</strong>
+                          {(m.declineCount || 0) > 0 && (
+                            <button
+                              onClick={() => showDeclineReasons(m)}
+                              className="text-[9px] text-blue-600 hover:text-blue-800 font-bold underline ml-1.5 cursor-pointer"
+                            >
+                              (View Reasons)
+                            </button>
+                          )}
+                        </span>
+                      </div>
+                      {m.description && (
+                        <p className="text-[11px] text-slate-600 mt-2 italic leading-relaxed break-words">{m.description}</p>
+                      )}
+                      {m.agenda && m.agenda.length > 0 && (
+                        <div className="mt-2.5 pt-2 border-t border-slate-200/50">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Agenda:</span>
+                          <p className="text-[10px] text-slate-500 font-semibold">{m.agenda.join(" · ")}</p>
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setMeetingToDelete(m)}
+                      className="shrink-0 text-[9px] text-red-650 hover:text-red-800 font-bold border border-red-200 hover:border-red-300 px-2 py-1 rounded-lg bg-red-50 transition-colors shadow-sm flex items-center gap-1 cursor-pointer"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))
             )}
           </div>
         </div>
