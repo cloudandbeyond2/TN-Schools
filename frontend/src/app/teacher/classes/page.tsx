@@ -110,29 +110,80 @@ export default function ClassesPage() {
 
   // ── Fetch ────────────────────────────────────────────────────
   const fetchClasses = useCallback(async () => {
-    if (!schoolId) return;
+    if (!schoolId || !teacherId) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
-      const data = await res.json();
-      if (data.success) setClasses(data.data);
+      // 1. Fetch classes for this teacher in this school
+      const classRes = await fetch(
+        `${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`
+      );
+      const classData = await classRes.json();
+      const fetchedClasses: ClassRoom[] = classData.success ? classData.data : [];
+      if (classData.success) setClasses(fetchedClasses);
 
+      // 2. Fetch timetable for this teacher & derive today's schedule
       try {
-        const timetableRes = await fetch(`${API_URL}/api/timetable/teacher/${teacherId}`);
+        const timetableRes = await fetch(
+          `${API_URL}/api/timetable/teacher/${teacherId}`
+        );
         const timetableData = await timetableRes.json();
-        if (timetableData.success) setTimetable(timetableData.data);
+        if (timetableData.success) {
+          const allSlots: any[] = timetableData.data;
+          setTimetable(allSlots);
+
+          // Filter to today's day-of-week (JS: 0=Sun,1=Mon,...,5=Fri,6=Sat)
+          // Backend stores dayOfWeek as 1=Mon … 5=Fri
+          const jsDow = new Date().getDay(); // 0=Sun … 6=Sat
+          const todayDow = jsDow === 0 ? 7 : jsDow; // map Sun→7 so weekends show nothing
+          const todaySlots = allSlots.filter(
+            (s: any) => s.dayOfWeek === todayDow
+          );
+
+          // Map timetable slots → DailyClass shape
+          const mapped: DailyClass[] = todaySlots.map((s: any) => {
+            // Try to link to a ClassRoom record for classRoomId
+            const matchedRoom = fetchedClasses.find(
+              (cr) =>
+                cr.className === String(s.class) &&
+                cr.section === s.section &&
+                cr.subject === s.subject
+            );
+            // Build a human-readable time slot from period number if not stored
+            const periodTimes: Record<number, string> = {
+              1: '09:00 AM – 09:45 AM',
+              2: '09:50 AM – 10:35 AM',
+              3: '10:45 AM – 11:30 AM',
+              4: '11:35 AM – 12:20 PM',
+              5: '01:00 PM – 01:45 PM',
+              6: '01:50 PM – 02:35 PM',
+              7: '02:40 PM – 03:25 PM',
+              8: '03:30 PM – 04:15 PM',
+            };
+            return {
+              id: s.id,
+              classRoomId: matchedRoom?.id ?? s.classRoomId ?? '',
+              className: String(s.class ?? s.className ?? ''),
+              section: s.section ?? '',
+              subject: s.subject ?? '',
+              period: s.period ?? 1,
+              timeSlot:
+                s.startTime && s.endTime
+                  ? `${s.startTime} – ${s.endTime}`
+                  : periodTimes[s.period] ?? `Period ${s.period}`,
+              status: (s.status as DailyClass['status']) ?? 'Scheduled',
+              notes: s.notes ?? '',
+            };
+          });
+
+          // Sort by period
+          mapped.sort((a, b) => a.period - b.period);
+          setTodayClasses(mapped);
+        }
       } catch (err) {
-        console.error(err);
+        console.error('[timetable fetch]', err);
       }
-
-      // Mock fetching today's classes
-      setTodayClasses([
-        { id: '1', classRoomId: 'c1', className: '10', section: 'A', subject: 'Mathematics', period: 1, timeSlot: '09:00 AM - 09:45 AM', status: 'Scheduled', notes: '' },
-        { id: '2', classRoomId: 'c2', className: '9', section: 'B', subject: 'Science', period: 3, timeSlot: '11:00 AM - 11:45 AM', status: 'Scheduled', notes: '' }
-      ]);
-
     } catch (e) {
-      console.error(e);
+      console.error('[fetchClasses]', e);
     } finally {
       setLoading(false);
     }
