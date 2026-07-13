@@ -1046,7 +1046,7 @@ import {
   Sliders
 } from "lucide-react";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const SECTION_METRICS: {
   [key: string]: Array<{ label: string; defaultVal: string; icon: string; color: string }>

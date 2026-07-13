@@ -56,12 +56,33 @@ export default function LessonPlannerPage() {
 
   const [syllabus, setSyllabus] = useState(syllabusOptions[0]);
   const [grade, setGrade] = useState(grades[4]); // Grade 10
+  const [schoolClasses, setSchoolClasses] = useState<string[]>([]);
   const [subject, setSubject] = useState("");
   const [subjectOptions, setSubjectOptions] = useState<{id: string; name: string}[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [section, setSection] = useState<string>("All"); // Section targeting
   const [topic, setTopic] = useState("Pythagoras Theorem & Trigonometry");
   const [duration, setDuration] = useState("45 Minutes");
+
+  // Fetch school configuration for valid classes
+  useEffect(() => {
+    if (!schoolId) return;
+    const fetchSchoolDetails = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/schools/${schoolId}`);
+        const data = await res.json();
+        if (data.success && data.data?.classes) {
+          setSchoolClasses(data.data.classes);
+          if (data.data.classes.length > 0) {
+            setGrade(`Grade ${data.data.classes[0]}`);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching school details:", err);
+      }
+    };
+    fetchSchoolDetails();
+  }, [schoolId, API_URL]);
 
   // PDF Upload state
   const [fileName, setFileName] = useState("");
@@ -645,7 +666,9 @@ export default function LessonPlannerPage() {
                       onChange={(e) => setGrade(e.target.value)}
                       className={`w-full ${theme.inputBg} border ${theme.borderSoft} rounded-xl px-3 py-2.5 text-xs ${theme.text} focus:outline-none focus:border-amber-500 transition-colors`}
                     >
-                      {grades.map((g) => <option key={g}>{g}</option>)}
+                      {(schoolClasses.length > 0 ? schoolClasses : ["6", "7", "8", "9", "10", "11", "12"]).map((c) => (
+                        <option key={c} value={`Grade ${c}`}>Grade {c}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
