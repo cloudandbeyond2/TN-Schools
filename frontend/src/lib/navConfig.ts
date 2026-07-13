@@ -626,13 +626,14 @@ export const roleConfigs: Record<string, PortalConfig> = {
     accentColor: "#7c3aed",
     navItems: [
       { label: "System Dashboard", href: "/super-admin", icon: "Activity" },
-
       { label: "People & Access", href: "#", icon: "" },
+
+      { label: "DEO Management", href: "/super-admin/deos", icon: "Map" },
       { label: "User Management", href: "/super-admin/users", icon: "Users" },
       { label: "Role & Permissions", href: "/super-admin/roles", icon: "Lock" },
       { label: "School Management", href: "/super-admin/schools", icon: "Building" },
       { label: "Headmaster Management", href: "/super-admin/headmasters", icon: "User" },
-      { label: "DEO Management", href: "/super-admin/deos", icon: "Map" },
+
 
       { label: "Academics & Content", href: "#", icon: "" },
       { label: "Academics Hub", href: "/super-admin/academics", icon: "GraduationCap" },
