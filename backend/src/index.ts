@@ -45,6 +45,7 @@ import attendanceRoutes from './routes/attendance.routes';
 import schoolRoutes from './routes/school.routes';
 import schoolPortalRoutes from './routes/schoolPortal.routes';
 import headmasterRoutes from './routes/headmaster.routes';
+import schoolHistoryRoutes from './routes/schoolHistory.routes';
 import pageRoutes from './routes/page.routes';
 import userRoutes from './routes/user.routes';
 import teacherRoutes from './routes/teacher.routes';
@@ -109,7 +110,9 @@ app.use(cors({
 app.options("*", cors());
 
 // ─── Security Headers ────────────────────────────────────────────
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
 // ─── Rate Limiting ───────────────────────────────────────────────
 const loginLimiter = rateLimit({
@@ -182,6 +185,7 @@ app.use('/api/activities', activitiesRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/schools', schoolRoutes);
 app.use('/api/school-portal', schoolPortalRoutes);
+app.use('/api/headmaster/history', schoolHistoryRoutes);
 app.use('/api/headmaster', headmasterRoutes);
 app.use('/api/pages', pageRoutes);
 app.use('/api/users', userRoutes);
