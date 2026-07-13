@@ -60,6 +60,10 @@ function StudioViewContent() {
   const [slideImgError, setSlideImgError] = useState(false);
   useEffect(() => { setSlideImgError(false); }, [activeSlide]);
 
+  // Track whether the current video scene's image failed to load
+  const [videoImgError, setVideoImgError] = useState(false);
+  useEffect(() => { setVideoImgError(false); }, [videoScene]);
+
   // Sync theme with the app's chosen theme on first paint
   useEffect(() => {
     setIsDarkMode(document.documentElement.classList.contains("dark"));
@@ -509,13 +513,50 @@ function StudioViewContent() {
                 </div>
 
                 <div className="w-full aspect-video max-w-4xl mx-auto rounded-3xl overflow-hidden relative mt-10 mb-8 group bg-slate-900 border border-slate-700/20 shadow-2xl">
-                  <img
-                    src={pol((scene?.visualDescription || "educational scene") + ", cinematic, highly detailed, 3d, beautiful educational animation style, vibrant", 1280, 720)}
-                    alt="Generated Scene"
-                    className="w-full h-full object-cover transition-transform duration-[10000ms] ease-linear scale-100 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 pt-16 flex flex-col items-center justify-end text-center pointer-events-none">
-                    <p className="text-white/90 text-sm md:text-base font-semibold max-w-2xl drop-shadow-md">{scene?.visualDescription}</p>
+                  {!videoImgError ? (
+                    <img
+                      src={pol((scene?.visualDescription || "educational scene") + ", cinematic, highly detailed, 3d, beautiful educational animation style, vibrant", 1280, 720)}
+                      alt="Generated Scene"
+                      className="w-full h-full object-cover transition-transform duration-[10000ms] ease-linear scale-100 group-hover:scale-110"
+                      onError={() => setVideoImgError(true)}
+                    />
+                  ) : (
+                    /* Cinematic fallback simulation layout */
+                    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-950 to-slate-950 flex flex-col justify-between p-6 sm:p-10 relative">
+                      {/* Video player aesthetics */}
+                      <div className="flex justify-between items-center w-full z-10 opacity-70">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-purple-300 flex items-center gap-1.5 bg-purple-950/60 px-3 py-1.5 rounded-lg border border-purple-500/20">
+                          <i className="fi fi-sr-picture leading-none" /> Visual Simulation Placeholder
+                        </span>
+                        <div className="flex items-center gap-2 text-rose-500 text-xs font-bold bg-slate-950/60 px-3 py-1.5 rounded-lg border border-rose-500/20">
+                          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping shrink-0" />
+                          LIVE SIMULATION
+                        </div>
+                      </div>
+
+                      {/* Film director style graphic cue */}
+                      <div className="flex flex-col items-center justify-center flex-1 text-center gap-4 my-auto select-none">
+                        <div className="w-20 h-20 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 text-3xl shadow-inner animate-pulse">
+                          🎬
+                        </div>
+                        <div className="max-w-md">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Visual Stage Prompt</span>
+                          <p className="text-xs text-purple-200/80 italic font-medium leading-relaxed">
+                            "{scene?.visualDescription || "No scene description available."}"
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Explicit clean borders bottom spacer */}
+                      <div className="h-6" />
+                    </div>
+                  )}
+
+                  {/* Caption Overlay - high contrast white text over black gradient strip */}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 pt-16 flex flex-col items-center justify-end text-center pointer-events-none">
+                    <p className="text-white font-bold text-sm md:text-base max-w-2xl drop-shadow-md leading-relaxed">
+                      {scene?.visualDescription}
+                    </p>
                   </div>
                 </div>
 

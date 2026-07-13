@@ -155,9 +155,15 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
   const colorKey = data?.conceptColor || "emerald";
   const colors = COLOR_MAP[colorKey] || COLOR_MAP.emerald;
 
+  // Bilingual formatter helper
+  const cleanBilingual = (title: string) => {
+    if (!title) return "";
+    return title.replace(/\s*\/\s*/g, " / ");
+  };
+
   // Resolve display title & icon
-  const heroTitle = data?.heroTitle || data?.title || topic;
-  const heroSubtitle = data?.heroSubtitle || data?.subtitle || subject;
+  const heroTitle = cleanBilingual(data?.heroTitle || data?.title || topic);
+  const heroSubtitle = cleanBilingual(data?.heroSubtitle || data?.subtitle || subject);
   const heroIcon = data?.heroIcon || "📚";
 
   // Resolve modules — fall back gracefully if missing
@@ -239,10 +245,16 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
 
         {/* ---- Formula & Law Hero (left) ---- */}
         <div className="lg:col-span-5 space-y-4">
+          <div className="border-b border-slate-200 pb-2 mb-1">
+            <span className={`text-[10px] font-black ${colors.text} uppercase tracking-wider block`}>
+              Formulas & Constants / சூத்திரங்கள் & மாறிலிகள்
+            </span>
+            <h3 className="text-slate-800 font-extrabold text-sm">Reference Values</h3>
+          </div>
 
           {/* Formula Box */}
           {data?.formulaBox && (
-            <div className={`bg-white border-2 ${colors.border} rounded-3xl p-5 shadow-lg text-center`}>
+            <div className={`bg-white border ${colors.border} rounded-3xl p-5 shadow-sm text-center`}>
               <span className={`text-[9px] font-black ${colors.text} uppercase tracking-widest block mb-2`}>
                 Primary Formula / முதன்மை சூத்திரம்
               </span>
@@ -284,19 +296,19 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
               <span className={`text-[9px] font-black ${colors.text} uppercase tracking-widest block mb-3`}>
                 Bilingual Key Terms / இருமொழி கலைச்சொற்கள்
               </span>
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs table-fixed">
                 <thead>
                   <tr className="border-b border-slate-100">
-                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider">English</th>
-                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider">Tamil</th>
-                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider">Definition</th>
+                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider w-[25%]">English</th>
+                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider w-[25%]">Tamil</th>
+                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider w-[50%]">Definition</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {termTable.map((row, idx) => (
                     <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-2.5 pr-2 font-semibold text-slate-800 text-[11px] break-words max-w-[80px]">{row.english}</td>
-                      <td className={`py-2.5 pr-2 font-semibold ${colors.text} text-[11px] break-words max-w-[80px]`}>{row.tamil}</td>
+                      <td className="py-2.5 pr-2 font-semibold text-slate-800 text-[11px] break-words">{row.english}</td>
+                      <td className={`py-2.5 pr-2 font-semibold ${colors.text} text-[11px] break-words`}>{row.tamil}</td>
                       <td className="py-2.5 text-slate-500 text-[10px] leading-snug break-words">{row.definition}</td>
                     </tr>
                   ))}
@@ -412,36 +424,38 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-stretch">
             {workflow.map((work, idx) => (
               <div
                 key={idx}
-                className={`bg-white border border-slate-200 p-4 rounded-2xl shadow-sm relative group hover:${colors.light} hover:${colors.border} transition-colors`}
+                className={`bg-white border border-slate-200 p-4 rounded-2xl shadow-sm relative group hover:${colors.light} hover:${colors.border} transition-colors flex flex-col justify-between h-full`}
               >
-                <div className={`absolute top-3 right-3 z-10 text-xs font-mono font-black text-white/90 drop-shadow`}>
-                  0{idx + 1}
+                <div>
+                  <div className={`absolute top-3 right-3 z-10 text-xs font-mono font-black text-white/90 drop-shadow`}>
+                    0{idx + 1}
+                  </div>
+                  <div className="relative w-full h-24 rounded-2xl overflow-hidden mb-3 border border-slate-100 bg-slate-100">
+                    <img
+                      src={pol(`${work.step}, ${topic}, ${subject}, realistic educational, simple, bright`, 400, 240)}
+                      alt={work.step}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        const parent = target.parentElement;
+                        if (!parent) return;
+                        target.style.display = 'none';
+                        const fb = document.createElement('div');
+                        fb.className = 'w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-slate-100 to-slate-200';
+                        fb.innerHTML = `<span style="font-size:1.75rem;line-height:1">${work.icon}</span><p style="font-size:9px;font-weight:700;color:#64748b;text-align:center;max-width:100px;padding:0 6px;margin:0">${work.step}</p>`;
+                        parent.insertBefore(fb, parent.firstChild);
+                      }}
+                    />
+                    <span className="absolute bottom-1 left-1 text-xl drop-shadow-md">{work.icon}</span>
+                  </div>
+                  <h4 className="font-extrabold text-xs text-slate-800 leading-snug">{work.step}</h4>
+                  <p className="text-[10px] text-slate-500 mt-1.5 leading-relaxed font-medium">{work.desc}</p>
                 </div>
-                <div className="relative w-full h-24 rounded-2xl overflow-hidden mb-3 border border-slate-100 bg-slate-100">
-                  <img
-                    src={pol(`${work.step}, ${topic}, ${subject}, realistic educational, simple, bright`, 400, 240)}
-                    alt={work.step}
-                    loading="lazy"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      const parent = target.parentElement;
-                      if (!parent) return;
-                      target.style.display = 'none';
-                      const fb = document.createElement('div');
-                      fb.className = 'w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-slate-100 to-slate-200';
-                      fb.innerHTML = `<span style="font-size:1.75rem;line-height:1">${work.icon}</span><p style="font-size:9px;font-weight:700;color:#64748b;text-align:center;max-width:100px;padding:0 6px;margin:0">${work.step}</p>`;
-                      parent.insertBefore(fb, parent.firstChild);
-                    }}
-                  />
-                  <span className="absolute bottom-1 left-1 text-xl drop-shadow-md">{work.icon}</span>
-                </div>
-                <h4 className="font-extrabold text-xs text-slate-800 leading-snug">{work.step}</h4>
-                <p className="text-[10px] text-slate-500 mt-1.5 leading-relaxed font-medium">{work.desc}</p>
               </div>
             ))}
           </div>
