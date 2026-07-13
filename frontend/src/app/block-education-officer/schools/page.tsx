@@ -480,7 +480,6 @@ export default function BlockSchoolsPage() {
                 <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                   <th className="px-4 py-3">DISE Code (School ID)</th>
                   <th className="px-4 py-3">School Name</th>
-                  <th className="px-4 py-3">Headmaster Name</th>
                   <th className="px-4 py-3">Address</th>
                   <th className="px-4 py-3">Category</th>
                   <th className="px-4 py-3 text-right">Actions</th>
@@ -504,9 +503,6 @@ export default function BlockSchoolsPage() {
                     </td>
                     <td className="px-4 py-3 font-bold text-slate-850 dark:text-white text-xs">
                       {s.name}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 font-semibold">
-                      👤 {s.headmasterName || "N/A"}
                     </td>
                     <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 max-w-xs truncate">
                       📍 {s.address || "Not provided"}
