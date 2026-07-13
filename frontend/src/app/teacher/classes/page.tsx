@@ -94,11 +94,30 @@ export default function ClassesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState("");
   const [filterSubj, setFilterSubj] = useState("All");
+  const [filterClass, setFilterClass] = useState("");
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   // Daily Classes State
   const [todayClasses, setTodayClasses] = useState<DailyClass[]>([]);
+  const [schoolClasses, setSchoolClasses] = useState<string[]>([]);
+
+  // Fetch school configuration for valid classes
+  useEffect(() => {
+    if (!schoolId) return;
+    const fetchSchoolDetails = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/schools/${schoolId}`);
+        const data = await res.json();
+        if (data.success && data.data?.classes) {
+          setSchoolClasses(data.data.classes);
+        }
+      } catch (err) {
+        console.error("Error fetching school details:", err);
+      }
+    };
+    fetchSchoolDetails();
+  }, [schoolId, API_URL]);
   
   // Modals State
   const [notesModalOpen, setNotesModalOpen] = useState(false);
@@ -191,6 +210,17 @@ export default function ClassesPage() {
 
   useEffect(() => { fetchClasses(); }, [fetchClasses]);
 
+  // Auto-select first class from DB when data loads
+  useEffect(() => {
+    if (classes.length > 0 && !filterClass) {
+      const sorted = [...classes].sort((a, b) => {
+        const diff = parseInt(a.className) - parseInt(b.className);
+        return diff !== 0 ? diff : a.section.localeCompare(b.section);
+      });
+      setFilterClass(`${sorted[0].className}-${sorted[0].section}`);
+    }
+  }, [classes]);
+
   // Dynamic schedule autofill when creating class details
   useEffect(() => {
     if (!schoolId || !isModal || editingId) return;
@@ -276,7 +306,10 @@ export default function ClassesPage() {
   // ── Open modal (add / edit) ──────────────────────────────────
   const openAdd = () => {
     setEditingId(null);
-    setForm({ ...EMPTY_FORM });
+    setForm({
+      ...EMPTY_FORM,
+      className: schoolClasses.length > 0 ? schoolClasses[0] : "10"
+    });
     setIsModal(true);
   };
 
@@ -391,6 +424,18 @@ export default function ClassesPage() {
   };
 
   // ── Filter ───────────────────────────────────────────────────
+  // Build unique class options from fetched PostgreSQL data (teacher-specific)
+  const classOptions = Array.from(
+    new Map(
+      classes.map((c) => [`${c.className}-${c.section}`, { className: c.className, section: c.section }])
+    ).values()
+  ).sort((a, b) => {
+    const numA = parseInt(a.className);
+    const numB = parseInt(b.className);
+    if (numA !== numB) return numA - numB;
+    return a.section.localeCompare(b.section);
+  });
+
   const filtered = classes.filter((c) => {
     const q = search.toLowerCase();
     const matchSearch =
@@ -399,7 +444,8 @@ export default function ClassesPage() {
       (c.roomNumber || "").toLowerCase().includes(q) ||
       (c.schedule || "").toLowerCase().includes(q);
     const matchSubj = filterSubj === "All" || c.subject === filterSubj;
-    return matchSearch && matchSubj;
+    const matchClass = !filterClass || filterClass === "All" || `${c.className}-${c.section}` === filterClass;
+    return matchSearch && matchSubj && matchClass;
   });
 
   const activeCount = classes.filter((c) => c.isActive).length;
@@ -519,35 +565,94 @@ export default function ClassesPage() {
 
       {/* Toolbar */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 mb-5 shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-sm font-bold text-slate-800 dark:text-white"><i className="fi fi-rr-clipboard mr-2 text-amber-500"></i>Class Directory</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Create and manage all your assigned class sections stored in PostgreSQL.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <input
-              type="text"
-              placeholder="Search class, subject, room..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 w-56 transition-colors"
-            />
-            <select
-              value={filterSubj}
-              onChange={(e) => setFilterSubj(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
-            >
-              <option value="All">All Subjects</option>
-              {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-bold text-slate-800 dark:text-white"><i className="fi fi-rr-clipboard mr-2 text-amber-500"></i>Class Directory</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Showing classes assigned to you from PostgreSQL — filter by class or subject.
+              </p>
+            </div>
             <button
               onClick={openAdd}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-md whitespace-nowrap"
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-md whitespace-nowrap self-start lg:self-auto"
             >
               + Create Class
             </button>
+          </div>
+
+          {/* Filter Row */}
+          <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 dark:border-slate-800 pt-4">
+            {/* Class Dropdown — fetched from DB */}
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Filter by Class</label>
+              <select
+                value={filterClass}
+                onChange={(e) => { setFilterClass(e.target.value); }}
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-white focus:outline-none focus:border-amber-500 transition-colors min-w-[160px]"
+              >
+                {classOptions.map((opt) => (
+                  <option key={`${opt.className}-${opt.section}`} value={`${opt.className}-${opt.section}`}>
+                    Class {opt.className} — {opt.section}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Subject Dropdown */}
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Filter by Subject</label>
+              <select
+                value={filterSubj}
+                onChange={(e) => setFilterSubj(e.target.value)}
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-white focus:outline-none focus:border-amber-500 transition-colors min-w-[150px]"
+              >
+                <option value="All">All Subjects</option>
+                {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+
+            {/* Search */}
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Search</label>
+              <input
+                type="text"
+                placeholder="Class, subject, room..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 w-52 transition-colors"
+              />
+            </div>
+
+            {/* Active Filter Chips */}
+            {(filterClass !== "All" || filterSubj !== "All" || search) && (
+              <div className="flex flex-wrap items-center gap-2 ml-auto">
+                {filterClass !== "All" && (
+                  <span className="inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                    <i className="fi fi-rr-school"></i> Class {filterClass.replace('-', ' — ')}
+                    <button onClick={() => setFilterClass("All")} className="ml-1 hover:text-amber-900">×</button>
+                  </span>
+                )}
+                {filterSubj !== "All" && (
+                  <span className="inline-flex items-center gap-1.5 bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-500/20 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                    <i className="fi fi-rr-book-alt"></i> {filterSubj}
+                    <button onClick={() => setFilterSubj("All")} className="ml-1 hover:text-sky-900">×</button>
+                  </span>
+                )}
+                {search && (
+                  <span className="inline-flex items-center gap-1.5 bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                    <i className="fi fi-rr-search"></i> "{search}"
+                    <button onClick={() => setSearch("")} className="ml-1 hover:text-slate-900">×</button>
+                  </span>
+                )}
+                <button
+                  onClick={() => { setFilterClass("All"); setFilterSubj("All"); setSearch(""); }}
+                  className="text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-white underline"
+                >
+                  Clear all
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -784,7 +889,9 @@ export default function ClassesPage() {
                     onChange={(e) => setForm({ ...form, className: e.target.value })}
                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                   >
-                    {CLASS_NUMS.map((c) => <option key={c} value={c}>Class {c}</option>)}
+                    {(schoolClasses.length > 0 ? schoolClasses : CLASS_NUMS).map((c) => (
+                      <option key={c} value={c}>Class {c}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
