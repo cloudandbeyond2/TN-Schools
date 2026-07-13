@@ -4,7 +4,36 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
-import { Activity, Eye, Stethoscope, FileText, PlusCircle, HeartPulse, X, GraduationCap, User, Ruler, Weight, Droplet, Target, Ear, ShieldCheck, Download, Calendar, ClipboardList, Smile, Clock, Trash2, Lock, Unlock, CreditCard, Camera } from "lucide-react";
+interface IconProps {
+  className?: string;
+  size?: number;
+}
+
+const Activity = ({ className, size }: IconProps) => <i className={`fi fi-rr-pulse inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Eye = ({ className, size }: IconProps) => <i className={`fi fi-rr-eye inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Stethoscope = ({ className, size }: IconProps) => <i className={`fi fi-rr-stethoscope inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const FileText = ({ className, size }: IconProps) => <i className={`fi fi-rr-document-signed inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const PlusCircle = ({ className, size }: IconProps) => <i className={`fi fi-rr-add inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const HeartPulse = ({ className, size }: IconProps) => <i className={`fi fi-rr-heart-rate inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const X = ({ className, size }: IconProps) => <i className={`fi fi-rr-cross inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const GraduationCap = ({ className, size }: IconProps) => <i className={`fi fi-rr-graduation-cap inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const User = ({ className, size }: IconProps) => <i className={`fi fi-rr-user inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Ruler = ({ className, size }: IconProps) => <i className={`fi fi-rr-ruler inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Weight = ({ className, size }: IconProps) => <i className={`fi fi-rr-weight inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Droplet = ({ className, size }: IconProps) => <i className={`fi fi-rr-drop inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Target = ({ className, size }: IconProps) => <i className={`fi fi-rr-target inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Ear = ({ className, size }: IconProps) => <i className={`fi fi-rr-hearing inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const ShieldCheck = ({ className, size }: IconProps) => <i className={`fi fi-rr-shield-check inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Download = ({ className, size }: IconProps) => <i className={`fi fi-rr-download inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Calendar = ({ className, size }: IconProps) => <i className={`fi fi-rr-calendar inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const ClipboardList = ({ className, size }: IconProps) => <i className={`fi fi-rr-clipboard-list inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Smile = ({ className, size }: IconProps) => <i className={`fi fi-rr-smile inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Clock = ({ className, size }: IconProps) => <i className={`fi fi-rr-clock inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Trash2 = ({ className, size }: IconProps) => <i className={`fi fi-rr-trash inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Lock = ({ className, size }: IconProps) => <i className={`fi fi-rr-lock inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Unlock = ({ className, size }: IconProps) => <i className={`fi fi-rr-unlock inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const CreditCard = ({ className, size }: IconProps) => <i className={`fi fi-rr-credit-card inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
+const Camera = ({ className, size }: IconProps) => <i className={`fi fi-rr-camera inline-flex items-center justify-center ${className || ""}`} style={size ? { fontSize: `${size}px` } : undefined} />;
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import Swal from "sweetalert2";
@@ -1248,28 +1277,30 @@ export default function StudentsMonitoringPage() {
       )}
 
       <div className="mb-6">
-        <div className="w-full glass rounded-2xl p-6 border border-slate-800">
-          <div className="flex justify-between items-center mb-5">
-            <h2 className="text-base font-semibold text-white">🏫 Student Watchlist Overview</h2>
-            <div className="flex items-center gap-3">
-              <div className="relative">
+        <div className="w-full glass rounded-2xl p-3 sm:p-6 border border-slate-800">
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 mb-5">
+            <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
+              <span>🏫</span> Student Watchlist Overview
+            </h2>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="relative flex-1 sm:flex-initial">
                 <input
                   type="text"
                   placeholder="Search students..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-3 py-2 pl-9 bg-slate-800/50 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 sm:w-64 transition-all"
+                  className="px-3 py-2 pl-9 bg-slate-800/50 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48 md:w-64 transition-all"
                 />
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 flex items-center">
+                  <i className="fi fi-rr-search text-[13px]" />
                 </div>
               </div>
               {selectedStudentIds.length > 0 && (
                 <button
                   onClick={handleBulkDelete}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-[10px] sm:text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-1 sm:gap-2"
                 >
-                  <Trash2 className="w-4 h-4" /> Delete Selected ({selectedStudentIds.length})
+                  <Trash2 className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Delete Selected</span> ({selectedStudentIds.length})
                 </button>
               )}
               <button
@@ -1280,14 +1311,14 @@ export default function StudentsMonitoringPage() {
                   setEditingStudentId(null);
                   setIsModalOpen(true);
                 }}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md"
+                className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[10px] sm:text-xs font-bold rounded-xl transition-all shadow-md"
               >
-                + Add Student / Roster
+                + Add Student<span className="hidden sm:inline"> / Roster</span>
               </button>
             </div>
           </div>
           {watchlist.length === 0 && !isLoading ? (
-            <div className="text-center py-16 text-slate-500 text-xs">
+            <div className="text-center py-16 text-slate-500 text-[10px] sm:text-xs">
               <div className="text-3xl mb-3">📋</div>
               <div className="font-semibold text-slate-400 mb-1">No student records yet</div>
               <div>Use the form or Excel import to add students to the database.</div>
@@ -1297,7 +1328,7 @@ export default function StudentsMonitoringPage() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th className="w-10">
+                    <th className="w-10 px-2 sm:px-4 py-2 sm:py-4">
                       <input
                         type="checkbox"
                         checked={isAllCurrentPageSelected}
@@ -1305,17 +1336,17 @@ export default function StudentsMonitoringPage() {
                         className="rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-blue-500/30"
                       />
                     </th>
-                    <th className="text-xs font-bold text-slate-500 uppercase tracking-wider py-4 text-left">Student Name</th>
-                    <th className="text-xs font-bold text-slate-500 uppercase tracking-wider py-4 text-left">Roll No / Class</th>
-                    <th className="text-xs font-bold text-slate-500 uppercase tracking-wider py-4 text-left">Section</th>
-                    <th className="text-xs font-bold text-slate-500 uppercase tracking-wider py-4 text-left">Parent Name</th>
-                    <th className="text-xs font-bold text-slate-500 uppercase tracking-wider py-4 text-left">Actions</th>
+                    <th className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider px-2 sm:px-4 py-2 sm:py-4 text-left">Student Name</th>
+                    <th className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider px-2 sm:px-4 py-2 sm:py-4 text-left">Roll No / Class</th>
+                    <th className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider px-2 sm:px-4 py-2 sm:py-4 text-left">Section</th>
+                    <th className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider px-2 sm:px-4 py-2 sm:py-4 text-left">Parent Name</th>
+                    <th className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider px-2 sm:px-4 py-2 sm:py-4 text-left">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentWatchlist.map((s) => (
                     <tr key={s.id || s.rollNumber}>
-                      <td>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3">
                         {s.id && (
                           <input
                             type="checkbox"
@@ -1325,74 +1356,74 @@ export default function StudentsMonitoringPage() {
                           />
                         )}
                       </td>
-                      <td className="font-medium text-slate-800 dark:text-white">
-                        <div className="flex items-center gap-3">
+                      <td className="font-medium text-slate-800 dark:text-white px-2 sm:px-4 py-2 sm:py-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
                           {(() => {
                             const meta = parseStudentAddress(s.address || "");
                             if (meta.photo) {
-                              return <img src={meta.photo} alt={s.name} className="w-8 h-8 rounded-full object-cover border border-slate-700 shrink-0" />;
+                              return <img src={meta.photo} alt={s.name} className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover border border-slate-700 shrink-0" />;
                             } else {
                               return (
-                                <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 flex items-center justify-center text-xs font-bold shrink-0 border border-slate-200 dark:border-slate-700">
+                                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0 border border-slate-200 dark:border-slate-700">
                                   {s.name.charAt(0).toUpperCase()}
                                 </div>
                               );
                             }
                           })()}
-                          <span>{s.name}</span>
+                          <span className="text-[11px] sm:text-sm">{s.name}</span>
                         </div>
                       </td>
-                      <td>
-                        <div className="text-xs text-slate-800 dark:text-slate-300">{s.rollNumber}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-500">{s.class}</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3">
+                        <div className="text-[10px] sm:text-xs text-slate-850 dark:text-slate-300">{s.rollNumber}</div>
+                        <div className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-500">{s.class}</div>
                       </td>
-                      <td className="text-xs font-bold text-slate-800 dark:text-slate-300">
+                      <td className="text-[10px] sm:text-xs font-bold text-slate-850 dark:text-slate-300 px-2 sm:px-4 py-2 sm:py-3">
                         {s.section || "—"}
                       </td>
-                      <td>
-                        <div className="text-xs text-slate-300">{s.parentName}</div>
-                        <div className="text-[10px] text-slate-500">{s.phone}</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3">
+                        <div className="text-[10px] sm:text-xs text-slate-300">{s.parentName}</div>
+                        <div className="text-[9px] sm:text-[10px] text-slate-500">{s.phone}</div>
                       </td>
-                      <td>
-                        <div className="flex items-center gap-2">
+                      <td className="px-2 sm:px-4 py-2 sm:py-3">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
                           <button
                             onClick={() => handleOpenView(s)}
-                            className="p-1.5 bg-slate-500/10 text-slate-400 hover:bg-slate-500/20 rounded-md transition-colors"
+                            className="p-1 sm:p-1.5 bg-slate-500/10 text-slate-400 hover:bg-slate-500/20 rounded-md transition-colors"
                             title="View Details"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </button>
                           <button
                             onClick={() => handleOpenEdit(s)}
-                            className="p-1.5 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 rounded-md transition-colors"
+                            className="p-1 sm:p-1.5 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 rounded-md transition-colors flex items-center justify-center"
                             title="Edit Student"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            <i className="fi fi-rr-edit text-[11px] sm:text-xs" />
                           </button>
                           {healthReports[s.id || s.rollNumber] ? (
                             <button
                               onClick={() => handleViewHealthReport(s)}
-                              className="p-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-md transition-colors"
+                              className="p-1 sm:p-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-md transition-colors"
                               title="View Health Report"
                             >
-                              <FileText className="w-4 h-4" />
+                              <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </button>
                           ) : (
                             <button
                               onClick={() => handleOpenHealthModal(s)}
-                              className="p-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-md transition-colors"
+                              className="p-1 sm:p-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-md transition-colors"
                               title="Add Health Report"
                             >
-                              <PlusCircle className="w-4 h-4" />
+                              <PlusCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </button>
                           )}
                           {s.id && (
                             <button
                               onClick={() => handleViewHistory(s)}
-                              className="p-1.5 bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 rounded-md transition-colors"
+                              className="p-1 sm:p-1.5 bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 rounded-md transition-colors"
                               title="Academic History"
                             >
-                              <Clock className="w-4 h-4" />
+                              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </button>
                           )}
                           {s.id && (
@@ -1401,10 +1432,10 @@ export default function StudentsMonitoringPage() {
                                 setStudentToDelete(s);
                                 setIsDeleteConfirmOpen(true);
                               }}
-                              className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-md transition-colors"
+                              className="p-1 sm:p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-md transition-colors"
                               title="Delete Student"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </button>
                           )}
                         </div>
@@ -2589,10 +2620,8 @@ export default function StudentsMonitoringPage() {
               <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
                 <Stethoscope className="w-6 h-6 text-emerald-500" /> Add Health Report
               </h3>
-              <button onClick={() => setIsHealthModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+              <button onClick={() => setIsHealthModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors flex items-center">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
