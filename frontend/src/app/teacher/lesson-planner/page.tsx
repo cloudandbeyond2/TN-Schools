@@ -2,23 +2,41 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
+import { useTheme } from "next-themes";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import InteractiveInfographic from "@/components/InteractiveInfographic";
-import SlideVisual from "@/components/SlideVisual";
-import { MoreVertical, X, Megaphone, Save, Sparkles, BookOpen, BarChart, Bot, CheckCircle, Globe, Hourglass, FileText, Video, Folder, Star, Book, Check, Monitor, Eye, Target, Clipboard, Timer } from "lucide-react";
 
 const syllabusOptions = ["TN State Board (Samacheer Kalvi)", "CBSE", "ICSE"];
 const grades = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
 const sections = ["All", "A", "B", "C", "D", "E"];
 
+// Generation pipeline steps — each paired with a Flaticon icon shown in the loader
 const steps = [
-  "Reading uploaded Textbook chapter...",
-  "Querying Gemini 2.5 Flash AI Engine...",
-  "Structuring pedagogical activities (Hook, Core, Evaluation)...",
-  "Translating technical terminology to Tamil...",
-  "Generating concept slides & visual infographics...",
-  "Synthesizing audio script and generating AI video...",
+  { icon: "fi-sr-book-alt", text: "Reading uploaded Textbook chapter..." },
+  { icon: "fi-sr-brain", text: "Querying Gemini 2.5 Flash AI Engine..." },
+  { icon: "fi-sr-diagram-project", text: "Structuring pedagogical activities (Hook, Core, Evaluation)..." },
+  { icon: "fi-sr-globe", text: "Translating technical terminology to Tamil..." },
+  { icon: "fi-sr-chart-histogram", text: "Generating concept slides & visual infographics..." },
+  { icon: "fi-sr-film", text: "Synthesizing audio script and generating AI video..." },
+];
+
+// Intelligence Studio tools — colorful Flaticon tiles
+const studioTools = [
+  { id: "slides", label: "Slide Deck", icon: "fi-sr-diagram-project", desc: "Interactive concept slides", chip: "from-blue-500 to-indigo-600" },
+  { id: "visualExplain", label: "Infographic", icon: "fi-sr-chart-histogram", desc: "Interactive visual mapping", chip: "from-emerald-500 to-teal-600" },
+  { id: "podcast", label: "Audio Podcast", icon: "fi-sr-comments", desc: "AI generated host summary", chip: "from-amber-500 to-orange-600" },
+  { id: "video", label: "Generate Video", icon: "fi-sr-film", desc: "Animated lecture simulation", chip: "from-rose-500 to-pink-600" },
+  { id: "bilingual", label: "Bilingual Glossary", icon: "fi-sr-globe", desc: "Tamil translation matrix", chip: "from-violet-500 to-purple-600" },
+  { id: "assessment", label: "Exit Tickets", icon: "fi-sr-checkbox", desc: "Quick assessment MCQs", chip: "from-sky-500 to-indigo-600" },
+] as const;
+
+// KPI color rotation for the stat strip
+const kpiTints = [
+  { text: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
+  { text: "text-sky-600", bg: "bg-sky-50 dark:bg-sky-500/10" },
+  { text: "text-amber-600", bg: "bg-amber-50 dark:bg-amber-500/10" },
+  { text: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-500/10" },
 ];
 
 interface LessonPlan {
@@ -49,6 +67,28 @@ interface ChatMessage {
   content: string;
 }
 
+// A colorful Flaticon chip used across section headers
+function FiChip({ icon, tint, soft }: { icon: string; tint: string; soft: string }) {
+  return (
+    <span className={`inline-flex items-center justify-center w-9 h-9 rounded-xl ${soft} ${tint} text-lg shrink-0 shadow-sm`}>
+      <i className={`fi ${icon} leading-none`} />
+    </span>
+  );
+}
+
+// A consistent, properly-aligned section header (icon chip + kicker + title)
+function SectionHeader({ icon, tint, soft, kicker, title }: { icon: string; tint: string; soft: string; kicker: string; title: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-5">
+      <FiChip icon={icon} tint={tint} soft={soft} />
+      <div>
+        <span className={`block text-[10px] font-black uppercase tracking-[0.15em] ${tint}`}>{kicker}</span>
+        <h3 className="font-black text-base text-slate-800 dark:text-white leading-tight">{title}</h3>
+      </div>
+    </div>
+  );
+}
+
 export default function LessonPlannerPage() {
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
@@ -77,15 +117,15 @@ export default function LessonPlannerPage() {
   const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
-  // UI State
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  // UI State — theme is driven by the real app theme (next-themes) so the page
+  // no longer fights globals.css light-mode overrides.
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const isDarkMode = mounted && resolvedTheme === "dark";
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "chat" | "studio">("overview");
-  const [isSidebarMenuOpen, setIsSidebarMenuOpen] = useState(false);
-  const [isNavbarMenuOpen, setIsNavbarMenuOpen] = useState(false);
-
-  // Intelligence Studio Modals
-  const [activeStudioTool, setActiveStudioTool] = useState<"slides" | "podcast" | "video" | "bilingual" | "assessment" | "visualExplain" | null>(null);
 
   // Concept slide deck state
   const [activeSlide, setActiveSlide] = useState(0);
@@ -105,9 +145,8 @@ export default function LessonPlannerPage() {
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
 
-  // Publish + present + bilingual state
+  // Publish + present state
   const [publishing, setPublishing] = useState(false);
-  const [lang, setLang] = useState<"en" | "ta">("en");
   const [presenting, setPresenting] = useState(false);
   const [presentIndex, setPresentIndex] = useState(0);
 
@@ -260,7 +299,6 @@ export default function LessonPlannerPage() {
     window.speechSynthesis.cancel();
     setIsPlayingPodcast(false);
     setPodcastIndex(-1);
-    setActiveStudioTool(null);
     setChatMessages([]);
     setChatInput("");
     setActiveTab("overview");
@@ -580,9 +618,10 @@ export default function LessonPlannerPage() {
     };
   }, []);
 
-  // Present-mode slides: title → each key point → infographic
-  const presentPoints = (currentPlan?.planData?.studentKeyPoints?.[lang] || currentPlan?.planData?.studentKeyPoints?.en || []);
-  const presentTotal = currentPlan ? presentPoints.length + 2 : 0; // title + points + infographic
+  // Present-mode slides: title → each key point (bilingual) → infographic
+  const kpEn = currentPlan?.planData?.studentKeyPoints?.en || [];
+  const kpTa = currentPlan?.planData?.studentKeyPoints?.ta || [];
+  const presentTotal = currentPlan ? kpEn.length + 2 : 0; // title + points + infographic
 
   useEffect(() => {
     if (!presenting) return;
@@ -603,10 +642,12 @@ export default function LessonPlannerPage() {
     text: isDarkMode ? "text-white" : "text-slate-900",
     textMuted: isDarkMode ? "text-slate-400" : "text-slate-500",
     border: isDarkMode ? "border-slate-800" : "border-slate-200",
-    borderSoft: isDarkMode ? "border-slate-850" : "border-slate-100",
+    borderSoft: isDarkMode ? "border-slate-800" : "border-slate-100",
     inputBg: isDarkMode ? "bg-slate-950" : "bg-slate-50",
-    sidebarOverlay: isDarkMode ? "bg-slate-950/90" : "bg-white/90",
   };
+
+  const infographicData = currentPlan?.planData?.infographic;
+  const stats = infographicData?.stats || [];
 
   return (
     <PortalLayout
@@ -622,7 +663,10 @@ export default function LessonPlannerPage() {
             {/* Generate Form */}
             <div className={`p-4 rounded-2xl border ${theme.border} ${theme.bgCardSoft} shadow-sm backdrop-blur-xl`}>
               <h2 className={`${theme.text} font-bold text-xs mb-4 flex items-center gap-2`}>
-                <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500"><Folder className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Document Sources
+                <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 text-sm">
+                  <i className="fi fi-sr-folder leading-none" />
+                </span>
+                Document Sources
               </h2>
 
               <form onSubmit={handleGenerate} className="space-y-4">
@@ -669,8 +713,8 @@ export default function LessonPlannerPage() {
 
                 {/* Section Targeting */}
                 <div>
-                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>
-                    Section <span className="text-amber-500"><Star className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
+                  <label className={`text-[10px] font-semibold ${theme.textMuted} mb-1.5 flex items-center gap-1.5`}>
+                    <i className="fi fi-sr-bullseye text-amber-500 leading-none" /> Section
                   </label>
                   <div className="flex gap-1.5 flex-wrap">
                     {sections.map((sec) => (
@@ -678,12 +722,12 @@ export default function LessonPlannerPage() {
                         key={sec}
                         type="button"
                         onClick={() => setSection(sec)}
-                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all border ${section === sec
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all border inline-flex items-center gap-1 ${section === sec
                           ? "bg-amber-500 text-slate-900 border-amber-500 shadow-md shadow-amber-500/25"
                           : `${theme.inputBg} ${theme.border} ${theme.textMuted} hover:border-amber-400`
                           }`}
                       >
-                        {sec === "All" ? <><Megaphone className="w-3 h-3 inline mr-1" /> All</> : sec}
+                        {sec === "All" ? <><i className="fi fi-sr-bell text-[9px] leading-none" /> All</> : sec}
                       </button>
                     ))}
                   </div>
@@ -719,32 +763,41 @@ export default function LessonPlannerPage() {
                 </div>
 
                 <div>
-                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}><Book className="w-4 h-4 inline-block mr-1 text-inherit" /> Upload Chapter PDF</label>
+                  <label className={`text-[10px] font-semibold ${theme.textMuted} mb-1.5 flex items-center gap-1.5`}>
+                    <i className="fi fi-sr-cloud-upload text-sky-500 leading-none" /> Upload Chapter PDF
+                  </label>
                   <div className="flex gap-2">
                     <input type="file" accept=".pdf,.txt" onChange={handleFileUpload} className="hidden" id="pdf-upload" />
                     <label
                       htmlFor="pdf-upload"
                       className={`flex-1 ${theme.inputBg} border border-dashed ${theme.border} hover:border-amber-500 rounded-xl px-3 py-2.5 text-xs ${theme.textMuted} cursor-pointer flex items-center justify-center gap-2 truncate transition-all`}
                     >
-                      {isReadingFile ? " Reading..." : fileName ? ` ${fileName.substring(0, 15)}...` : " Choose File..."}
+                      {isReadingFile ? "Reading..." : fileName ? `${fileName.substring(0, 15)}...` : "Choose File..."}
                     </label>
                   </div>
-                  {uploadedText && <span className="text-[9px] text-emerald-500 font-bold block mt-1.5"><Check className="w-4 h-4 inline-block mr-1 text-inherit" /> PDF context loaded into AI workspace.</span>}
+                  {uploadedText && (
+                    <span className="text-[9px] text-emerald-500 font-bold mt-1.5 flex items-center gap-1">
+                      <i className="fi fi-sr-check leading-none" /> PDF context loaded into AI workspace.
+                    </span>
+                  )}
                 </div>
 
                 <button
                   type="submit"
                   disabled={isGenerating}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 disabled:opacity-50 text-slate-900 text-xs font-black uppercase tracking-wider transition-all transform hover:scale-[1.02] shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 disabled:opacity-50 text-slate-900 text-xs font-black uppercase tracking-wider transition-all transform hover:scale-[1.02] shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
                 >
-                  {isGenerating ? "Synthesizing..." : " Generate Lesson"}
+                  <i className="fi fi-sr-brain leading-none" />
+                  {isGenerating ? "Synthesizing..." : "Generate Lesson"}
                 </button>
               </form>
             </div>
 
             {/* Saved Plans */}
             <div>
-              <h3 className={`${theme.text} font-bold text-xs px-1 mb-3`}>Saved Chapters</h3>
+              <h3 className={`${theme.text} font-bold text-xs px-1 mb-3 flex items-center gap-2`}>
+                <i className="fi fi-sr-book-alt text-indigo-500 leading-none" /> Saved Chapters
+              </h3>
               {loading ? (
                 <div className={`text-[10px] ${theme.textMuted} px-1`}>Loading saved data...</div>
               ) : savedPlans.length === 0 ? (
@@ -763,7 +816,6 @@ export default function LessonPlannerPage() {
                         window.speechSynthesis.cancel();
                         setIsPlayingPodcast(false);
                         setPodcastIndex(-1);
-                        setActiveStudioTool(null);
                         setChatInput("");
                         setSyllabus(plan.syllabus);
                         setGrade(plan.grade);
@@ -793,8 +845,9 @@ export default function LessonPlannerPage() {
                           handleDelete(plan.id);
                         }}
                         className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity font-bold px-2 hover:scale-110"
+                        aria-label="Delete lesson plan"
                       >
-                        <X className="w-4 h-4 inline-block mr-1 text-inherit" />
+                        <i className="fi fi-sr-cross-small leading-none" />
                       </button>
                     </div>
                   ))}
@@ -815,19 +868,19 @@ export default function LessonPlannerPage() {
               {currentPlan && !isGenerating && (
                 <div className="flex bg-slate-900/10 dark:bg-slate-900 rounded-xl p-1 shadow-inner border border-slate-200 dark:border-slate-800">
                   {[
-                    { id: "overview", label: "Overview", icon: <FileText className="w-5 h-5" /> },
-                    { id: "chat", label: "AI Tutor", icon: <Bot className="w-5 h-5" /> },
-                    { id: "studio", label: "Studio", icon: <Sparkles className="w-5 h-5" /> }
+                    { id: "overview", label: "Overview", icon: "fi-sr-document" },
+                    { id: "chat", label: "AI Tutor", icon: "fi-sr-comment-alt" },
+                    { id: "studio", label: "Studio", icon: "fi-sr-brain" }
                   ].map(tab => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as any)}
                       className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === tab.id
                         ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm"
-                        : `text-slate-500 hover:${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`
+                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                         }`}
                     >
-                      <span className="text-sm">{tab.icon}</span> <span className="hidden xl:inline">{tab.label}</span>
+                      <i className={`fi ${tab.icon} text-sm leading-none`} /> <span className="hidden xl:inline">{tab.label}</span>
                     </button>
                   ))}
                 </div>
@@ -848,30 +901,27 @@ export default function LessonPlannerPage() {
 
                   <button
                     onClick={() => { setPresentIndex(0); setPresenting(true); }}
-                    className="px-3 py-1.5 rounded-lg text-[10px] font-black text-slate-700 dark:text-white bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 transition-all"
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-black text-slate-700 dark:text-white bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 transition-all inline-flex items-center gap-1.5"
                     title="Fullscreen projection for the class"
                   >
-                    <Monitor className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> PRESENT
+                    <i className="fi fi-sr-eye leading-none" /> PRESENT
                   </button>
 
                   {currentPlan.id === "temp-unsaved" && (
                     <button
                       onClick={handleSave}
-                      className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 rounded-lg text-[10px] font-black text-white transition-transform hover:scale-105 shadow-md shadow-indigo-500/20"
+                      className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 rounded-lg text-[10px] font-black text-white transition-transform hover:scale-105 shadow-md shadow-indigo-500/20 inline-flex items-center gap-1.5"
                     >
-                      <><Save className="w-3 h-3 inline mr-1" /> SAVE</>
+                      <i className="fi fi-sr-check leading-none" /> SAVE
                     </button>
                   )}
 
                   <button
                     onClick={() => handlePublish(!currentPlan.isPublished)}
                     disabled={publishing}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black text-black transition-transform hover:scale-105 shadow-md disabled:opacity-60 ${currentPlan.isPublished
-                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400"
-                      : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20"
-                      }`}
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-black text-black transition-transform hover:scale-105 shadow-md disabled:opacity-60 bg-gradient-to-br from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20 inline-flex items-center gap-1.5"
                   >
-                    {publishing ? "..." : currentPlan.isPublished ? "UNPUBLISH" : <><Megaphone className="w-3 h-3 inline mr-1" /> PUBLISH TO CLASS</>}
+                    {publishing ? "..." : currentPlan.isPublished ? "UNPUBLISH" : <><i className="fi fi-sr-bell leading-none" /> PUBLISH TO CLASS</>}
                   </button>
                 </>
               )}
@@ -885,24 +935,26 @@ export default function LessonPlannerPage() {
                 <div className={`max-w-md w-full p-8 rounded-3xl border ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center text-center`}>
                   <div className="relative mb-8">
                     <div className="w-16 h-16 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin" />
-                    <div className="absolute inset-0 flex items-center justify-center text-amber-500"><Sparkles className="w-6 h-6" /></div>
+                    <div className="absolute inset-0 flex items-center justify-center text-amber-500 text-xl">
+                      <i className="fi fi-sr-brain leading-none" />
+                    </div>
                   </div>
                   <h3 className={`${theme.text} font-bold text-lg mb-4`}>Synthesizing Knowledge...</h3>
                   <div className="space-y-3 w-full">
-                    {steps.map((stepText, idx) => {
+                    {steps.map((step, idx) => {
                       let statusClass = theme.textMuted;
-                      let icon: any = "○";
+                      let icon = <i className={`fi ${step.icon} leading-none opacity-40`} />;
                       if (idx < currentStep) {
                         statusClass = "text-emerald-500 font-bold";
-                        icon = <CheckCircle className="w-4 h-4 text-emerald-500" />;
+                        icon = <i className="fi fi-sr-badge-check text-emerald-500 leading-none" />;
                       } else if (idx === currentStep) {
                         statusClass = "text-amber-500 font-bold animate-pulse";
-                        icon = <Hourglass className="w-5 h-5" />;
+                        icon = <i className="fi fi-sr-hourglass-end text-amber-500 leading-none" />;
                       }
                       return (
                         <div key={idx} className={`text-xs text-left flex items-start gap-3 ${statusClass} transition-colors`}>
-                          <span className="shrink-0">{icon}</span>
-                          <span className="leading-tight">{stepText}</span>
+                          <span className="shrink-0 text-sm w-4 text-center">{icon}</span>
+                          <span className="leading-tight">{step.text}</span>
                         </div>
                       );
                     })}
@@ -911,8 +963,8 @@ export default function LessonPlannerPage() {
               </div>
             ) : !currentPlan ? (
               <div className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto">
-                <div className="w-24 h-24 mb-6 rounded-3xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-5xl animate-bounce">
-                  <Book className="w-4 h-4 inline-block mr-1 text-inherit" />
+                <div className="w-24 h-24 mb-6 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-4xl animate-bounce shadow-xl shadow-indigo-500/30">
+                  <i className="fi fi-sr-book-alt leading-none" />
                 </div>
                 <h2 className={`${theme.text} font-black text-2xl mb-3`}>Intelligence Class Workspace</h2>
                 <p className={`text-sm ${theme.textMuted} leading-relaxed`}>
@@ -928,50 +980,79 @@ export default function LessonPlannerPage() {
             ) : (
               <div className="max-w-5xl mx-auto h-full flex flex-col">
 
-                {/* Header info */}
-                <div className="mb-6 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
-                  <div>
-                    <div className="flex gap-2 mb-2">
-                      <span className="px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase">{currentPlan.grade}</span>
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase">{currentPlan.subject}</span>
+                {/* Hero band — topic header */}
+                <div
+                  className="mb-6 rounded-3xl p-6 xl:p-8 relative overflow-hidden shadow-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-violet-600"
+                >
+                  <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/10 rounded-full" />
+                  <div className="absolute -bottom-12 -left-8 w-40 h-40 bg-white/10 rounded-full" />
+                  <div className="relative z-10 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+                    <div className="flex items-start gap-4">
+                      <div className="shrink-0 w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl shadow-inner border border-white/20">
+                        {infographicData?.heroIcon || <i className="fi fi-sr-book-alt leading-none" style={{ color: "#fff" }} />}
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          <span className="px-2.5 py-1 rounded-full bg-white/20 text-[10px] font-bold uppercase tracking-wide" style={{ color: "#fff" }}>{currentPlan.grade}</span>
+                          <span className="px-2.5 py-1 rounded-full bg-white/20 text-[10px] font-bold uppercase tracking-wide" style={{ color: "#fff" }}>{currentPlan.subject}</span>
+                          <span className="px-2.5 py-1 rounded-full bg-white/20 text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1" style={{ color: "#fff" }}>
+                            <i className="fi fi-sr-clock leading-none" /> {currentPlan.duration}
+                          </span>
+                        </div>
+                        <h1 className="font-black text-2xl xl:text-4xl leading-tight tracking-tight" style={{ color: "#fff" }}>{currentPlan.topic}</h1>
+                        <p className="text-xs mt-2 font-medium" style={{ color: "rgba(255,255,255,0.8)" }}>{currentPlan.syllabus}</p>
+                      </div>
                     </div>
-                    <h1 className={`${theme.text} font-black text-3xl xl:text-4xl`}>{currentPlan.topic}</h1>
-                    <p className={`text-xs ${theme.textMuted} mt-2 font-medium`}>{currentPlan.syllabus} • {currentPlan.duration}</p>
                   </div>
                 </div>
 
                 {/* Tab: Overview */}
                 {activeTab === "overview" && (
                   <div className="flex-1 space-y-6">
-                    {/* Student-facing preview banner + language toggle */}
-                    <div className={`p-4 rounded-2xl border ${theme.border} bg-gradient-to-r from-emerald-500/5 to-teal-500/5 flex flex-wrap items-center justify-between gap-3`}>
-                      <p className={`text-xs font-bold ${theme.textMuted} flex items-center gap-2`}>
-                        <span className="text-base"><Eye className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /></span> This is what students see when you publish — clear key points + the infographic.
-                      </p>
-                      <div className="flex bg-slate-900/10 dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-800">
-                        {(["en", "ta"] as const).map((l) => (
-                          <button
-                            key={l}
-                            onClick={() => setLang(l)}
-                            className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all ${lang === l ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm" : "text-slate-500"}`}
-                          >
-                            {l === "en" ? "English" : "தமிழ்"}
-                          </button>
-                        ))}
+
+                    {/* KPI strip */}
+                    {stats.length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {stats.slice(0, 4).map((stat: any, i: number) => {
+                          const tint = kpiTints[i % kpiTints.length];
+                          return (
+                            <div key={i} className={`p-4 rounded-2xl border ${theme.border} ${theme.bgCard} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all`}>
+                              <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block truncate">{stat.label}</span>
+                              <span className={`block text-2xl font-black font-mono mt-1 ${tint.text}`}>{stat.value}</span>
+                              <p className={`text-[10px] ${theme.textMuted} mt-1 leading-snug line-clamp-2`}>{stat.desc}</p>
+                            </div>
+                          );
+                        })}
                       </div>
+                    )}
+
+                    {/* Student-facing preview banner */}
+                    <div className={`p-4 rounded-2xl border ${theme.border} bg-emerald-50 dark:bg-emerald-500/5 flex flex-wrap items-center gap-3`}>
+                      <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-500 text-lg shrink-0">
+                        <i className="fi fi-sr-eye leading-none" />
+                      </span>
+                      <p className={`text-xs font-bold ${theme.textMuted} flex-1`}>
+                        This is what students see when you publish — clear bilingual key points + the infographic.
+                      </p>
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wide inline-flex items-center gap-1">
+                        <i className="fi fi-sr-globe leading-none" /> English + தமிழ்
+                      </span>
                     </div>
 
-                    {/* Student Key Points — the "clear points of view" */}
-                    {currentPlan.planData?.studentKeyPoints && (
+                    {/* Student Key Points — bilingual (English + Tamil together) */}
+                    {kpEn.length > 0 && (
                       <div className={`p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm`}>
-                        <h3 className="text-sm font-bold text-emerald-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                          <span className="text-xl"><Target className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Key Points to Remember
-                        </h3>
+                        <SectionHeader icon="fi-sr-bulb" tint="text-emerald-600" soft="bg-emerald-500/10" kicker="Remember This" title="Key Points to Remember" />
                         <ul className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-                          {(currentPlan.planData.studentKeyPoints[lang] || currentPlan.planData.studentKeyPoints.en || []).map((pt, i) => (
-                            <li key={i} className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/10 text-sm flex gap-3">
-                              <span className="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-black flex items-center justify-center shrink-0">{i + 1}</span>
-                              <span className={theme.text}>{pt}</span>
+                          {kpEn.map((pt, i) => (
+                            <li key={i} className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/10 flex gap-3">
+                              <span className="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                              <div className="space-y-1.5 min-w-0">
+                                <p className={`text-sm font-semibold ${theme.text}`}>{pt}</p>
+                                {kpTa[i] && (
+                                  <p className="text-sm text-emerald-700 dark:text-emerald-300 font-tamil leading-relaxed">{kpTa[i]}</p>
+                                )}
+                              </div>
                             </li>
                           ))}
                         </ul>
@@ -979,32 +1060,49 @@ export default function LessonPlannerPage() {
                     )}
 
                     {/* Visual Infographic */}
-                    {currentPlan.planData?.infographic && (
+                    {infographicData && (
                       <div className={`p-2 xl:p-4 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm overflow-hidden`}>
-                        <h3 className="text-sm font-bold text-violet-500 uppercase tracking-widest mb-2 px-3 pt-2 flex items-center gap-2">
-                          <span className="text-xl"><BarChart className="w-4 h-4 inline mr-1 text-emerald-500" /></span> Concept Infographic
-                        </h3>
-                        <InteractiveInfographic topic={currentPlan.topic} subject={currentPlan.subject} data={currentPlan.planData.infographic} />
+                        <div className="px-3 pt-2">
+                          <SectionHeader icon="fi-sr-chart-histogram" tint="text-violet-600" soft="bg-violet-500/10" kicker="Visual Explainer" title="Concept Infographic" />
+                        </div>
+                        <InteractiveInfographic topic={currentPlan.topic} subject={currentPlan.subject} data={infographicData} />
                       </div>
                     )}
 
+                    {/* Bilingual glossary preview */}
+                    {currentPlan.planData?.bilingual?.length > 0 && (
+                      <div className={`p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm`}>
+                        <SectionHeader icon="fi-sr-globe" tint="text-sky-600" soft="bg-sky-500/10" kicker="English + தமிழ்" title="Bilingual Key Terms" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {currentPlan.planData.bilingual.map((term, i) => (
+                            <div key={i} className="p-4 rounded-2xl bg-sky-50 dark:bg-sky-500/5 border border-sky-100 dark:border-sky-500/10 flex items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className={`text-sm font-bold ${theme.text} truncate`}>{term.english}</p>
+                                <p className="text-sm text-sky-700 dark:text-sky-300 font-tamil truncate">{term.tamil}</p>
+                              </div>
+                              <span className="text-[10px] font-mono text-slate-400 shrink-0 italic">{term.pronunciation}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Lesson Objectives */}
                     <div className={`p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm`}>
-                      <h3 className="text-sm font-bold text-indigo-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <span className="text-xl"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Lesson Objectives
-                      </h3>
+                      <SectionHeader icon="fi-sr-bullseye" tint="text-indigo-600" soft="bg-indigo-500/10" kicker="Learning Goals" title="Lesson Objectives" />
                       <ul className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                         {currentPlan.planData?.objectives?.map((obj, i) => (
-                          <li key={i} className={`p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/10 text-sm  flex gap-3`}>
-                            <span className="text-gray-500 font-bold shrink-0">{i + 1}.</span> {obj}
+                          <li key={i} className={`p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/10 text-sm flex gap-3 ${theme.text}`}>
+                            <span className="w-6 h-6 rounded-full bg-indigo-500 text-white text-xs font-black flex items-center justify-center shrink-0">{i + 1}</span>
+                            <span>{obj}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
+                    {/* Pedagogical Timeline */}
                     <div className={`p-6 rounded-3xl border ${theme.border} ${theme.bgCard} shadow-sm`}>
-                      <h3 className="text-sm font-bold text-amber-500 uppercase tracking-widest mb-6 flex items-center gap-2">
-                        <span className="text-xl"><Timer className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Pedagogical Timeline
-                      </h3>
+                      <SectionHeader icon="fi-sr-clock" tint="text-amber-600" soft="bg-amber-500/10" kicker="Lesson Flow" title="Pedagogical Timeline" />
                       <div className="relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px xl:before:mx-auto xl:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 dark:before:via-slate-700 before:to-transparent space-y-8">
                         {currentPlan.planData?.timeline?.map((item, i) => (
                           <div key={i} className="relative flex items-center justify-between xl:justify-normal xl:odd:flex-row-reverse group is-active">
@@ -1012,9 +1110,9 @@ export default function LessonPlannerPage() {
                               {i + 1}
                             </div>
                             <div className="w-[calc(100%-4rem)] xl:w-[calc(50%-2.5rem)] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 shadow-sm transition-transform hover:-translate-y-1">
-                              <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center justify-between mb-2 gap-2">
                                 <span className="font-bold text-amber-600 dark:text-amber-400 text-sm">{item.activity}</span>
-                                <span className="text-[10px] font-black px-2 py-1 bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-md">{item.time}</span>
+                                <span className="text-[10px] font-black px-2 py-1 bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-md shrink-0">{item.time}</span>
                               </div>
                               <p className={`text-xs ${theme.textMuted} leading-relaxed`}>{item.description}</p>
                             </div>
@@ -1028,14 +1126,16 @@ export default function LessonPlannerPage() {
                 {/* Tab: Chat */}
                 {activeTab === "chat" && (
                   <div className={`
-                    flex flex-col overflow-hidden 
+                    flex flex-col overflow-hidden
                     ${isDarkMode ? 'bg-[#0b141a]' : 'bg-[#efeae2]'}
-                    absolute inset-0 z-20 
+                    absolute inset-0 z-20
                     xl:relative xl:inset-auto xl:flex-1 xl:rounded-3xl xl:border xl:shadow-sm ${theme.border}
                   `}>
                     <div className={`p-3 xl:p-4 border-b flex justify-between items-center shrink-0 ${isDarkMode ? 'bg-[#202c33] border-[#202c33]' : 'bg-[#f0f2f5] border-[#d1d7db]'}`}>
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xl shadow-sm"><Bot className="w-4 h-4 inline mr-1 text-blue-500" /></div>
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-lg shadow-sm">
+                          <i className="fi fi-sr-comment-alt leading-none" />
+                        </div>
                         <div>
                           <h3 className={`font-bold text-sm ${isDarkMode ? 'text-[#e9edef]' : 'text-[#111b21]'}`}>AI Co-Teacher</h3>
                           <p className="text-[11px] text-[#00a884] font-medium">Online</p>
@@ -1077,8 +1177,9 @@ export default function LessonPlannerPage() {
                       <button
                         onClick={handleSendChat}
                         className="w-12 h-12 rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white flex items-center justify-center shrink-0 transition-transform hover:scale-105 shadow-sm"
+                        aria-label="Send message"
                       >
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
                       </button>
                     </div>
                   </div>
@@ -1087,14 +1188,7 @@ export default function LessonPlannerPage() {
                 {/* Tab: Studio */}
                 {activeTab === "studio" && (
                   <div className="flex-1 grid grid-cols-2 xl:grid-cols-3 gap-3 xl:gap-6 h-full content-start overflow-y-auto pb-8">
-                    {[
-                      { id: "slides", label: "Slide Deck", icon: "", desc: "Interactive concept slides", bg: "from-blue-500 to-indigo-600" },
-                      { id: "visualExplain", label: "Infographic", icon: <BarChart className="w-5 h-5" />, desc: "Interactive visual mapping", bg: "from-emerald-400 to-teal-500" },
-                      { id: "podcast", label: "Audio Podcast", icon: "", desc: "AI generated host summary", bg: "from-amber-400 to-orange-500" },
-                      { id: "video", label: "Generate Video", icon: <Video className="w-5 h-5" />, desc: "Animated lecture simulation", bg: "from-rose-400 to-red-500" },
-                      { id: "bilingual", label: "Bilingual Glossary", icon: <Globe className="w-5 h-5" />, desc: "Tamil translation matrix", bg: "from-violet-500 to-purple-600" },
-                      { id: "assessment", label: "Exit Tickets", icon: "", desc: "Quick assessment MCQs", bg: "from-cyan-400 to-blue-500" }
-                    ].map((tool) => (
+                    {studioTools.map((tool) => (
                       <div
                         key={tool.id}
                         onClick={() => {
@@ -1109,8 +1203,10 @@ export default function LessonPlannerPage() {
                         role="button"
                         tabIndex={0}
                       >
-                        <div className={`absolute top-0 right-0 w-24 h-24 xl:w-32 xl:h-32 bg-gradient-to-br ${tool.bg} opacity-10 rounded-bl-full -mr-6 -mt-6 xl:-mr-8 xl:-mt-8 group-hover:scale-110 transition-transform duration-500`} />
-                        <div className="text-3xl xl:text-4xl mb-3 xl:mb-4 group-hover:scale-110 transition-transform origin-left">{tool.icon}</div>
+                        <div className={`absolute top-0 right-0 w-24 h-24 xl:w-32 xl:h-32 bg-gradient-to-br ${tool.chip} opacity-10 rounded-bl-full -mr-6 -mt-6 xl:-mr-8 xl:-mt-8 group-hover:scale-110 transition-transform duration-500`} />
+                        <div className={`w-12 h-12 xl:w-14 xl:h-14 rounded-2xl bg-gradient-to-br ${tool.chip} flex items-center justify-center text-white text-xl xl:text-2xl mb-3 xl:mb-4 shadow-lg group-hover:scale-110 transition-transform origin-left`}>
+                          <i className={`fi ${tool.icon} leading-none`} />
+                        </div>
                         <h4 className={`text-sm xl:text-lg font-black ${theme.text} mb-1 transition-colors group-hover:text-indigo-500`}>{tool.label}</h4>
                         <p className={`text-[10px] xl:text-xs ${theme.textMuted} font-medium leading-tight hidden xl:block`}>{tool.desc}</p>
                       </div>
@@ -1137,16 +1233,12 @@ export default function LessonPlannerPage() {
           <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b border-slate-100 relative z-10 bg-white/80 backdrop-blur-md">
             <div className="flex items-center gap-3">
               <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold uppercase border border-indigo-100">{currentPlan.grade} • {currentPlan.subject}</span>
-              <div className="flex bg-slate-100 rounded-lg p-1">
-                {(["en", "ta"] as const).map((l) => (
-                  <button key={l} onClick={() => setLang(l)} className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
-                    {l === "en" ? "EN" : "தமிழ்"}
-                  </button>
-                ))}
-              </div>
+              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold uppercase border border-emerald-100 inline-flex items-center gap-1">
+                <i className="fi fi-sr-globe leading-none" /> English + தமிழ்
+              </span>
             </div>
-            <button onClick={() => setPresenting(false)} className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors">
-              <X size={20} />
+            <button onClick={() => setPresenting(false)} className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors" aria-label="Exit presentation">
+              <i className="fi fi-sr-cross-small leading-none text-xl" />
             </button>
           </div>
 
@@ -1155,12 +1247,12 @@ export default function LessonPlannerPage() {
             {presentIndex === 0 ? (
               <div className="text-center animate-in fade-in zoom-in duration-500 max-w-5xl">
                 <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-indigo-50 text-6xl mb-8 shadow-inner border border-indigo-100">
-                  {currentPlan.planData?.infographic?.heroIcon || <BookOpen className="w-12 h-12" />}
+                  {currentPlan.planData?.infographic?.heroIcon || <i className="fi fi-sr-book-alt leading-none text-indigo-500" />}
                 </div>
                 <h1 className="text-5xl xl:text-7xl font-black text-slate-900 mb-6 leading-tight tracking-tight drop-shadow-sm">{currentPlan.topic}</h1>
                 <p className="text-slate-500 text-xl xl:text-2xl font-semibold tracking-wide uppercase">{currentPlan.syllabus}</p>
               </div>
-            ) : presentIndex <= presentPoints.length ? (
+            ) : presentIndex <= kpEn.length ? (
               <div className="max-w-4xl w-full text-left animate-in fade-in slide-in-from-right-8 duration-400 bg-white rounded-[2.5rem] p-10 xl:p-16 shadow-2xl border border-slate-100 flex flex-col md:flex-row items-center gap-8 xl:gap-12 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-60"></div>
 
@@ -1169,20 +1261,11 @@ export default function LessonPlannerPage() {
                   <span className="text-xs xl:text-sm uppercase tracking-widest font-bold opacity-80">Key Point</span>
                 </div>
 
-                <div className="flex-1 relative z-10">
-                  {(() => {
-                    const pt = presentPoints[presentIndex - 1] || "";
-                    const splitIdx = pt.indexOf(':');
-                    if (splitIdx > 0 && splitIdx < 50) {
-                      return (
-                        <>
-                          <h3 className="text-2xl xl:text-3xl font-black text-emerald-600 mb-4 uppercase tracking-wide">{pt.substring(0, splitIdx)}</h3>
-                          <p className="text-3xl xl:text-5xl font-bold text-slate-800 leading-snug tracking-tight">{pt.substring(splitIdx + 1).trim()}</p>
-                        </>
-                      )
-                    }
-                    return <p className="text-3xl xl:text-5xl font-bold text-slate-800 leading-snug tracking-tight">{pt}</p>;
-                  })()}
+                <div className="flex-1 relative z-10 space-y-4">
+                  <p className="text-3xl xl:text-5xl font-bold text-slate-800 leading-snug tracking-tight">{kpEn[presentIndex - 1]}</p>
+                  {kpTa[presentIndex - 1] && (
+                    <p className="text-2xl xl:text-4xl font-semibold text-emerald-600 leading-snug font-tamil">{kpTa[presentIndex - 1]}</p>
+                  )}
                 </div>
               </div>
             ) : (
@@ -1203,7 +1286,7 @@ export default function LessonPlannerPage() {
             </button>
             <div className="flex gap-2 mx-4">
               {Array.from({ length: presentTotal }).map((_, i) => (
-                <button key={i} onClick={() => setPresentIndex(i)} className={`w-2.5 h-2.5 rounded-full transition-all ${i === presentIndex ? "bg-emerald-500 w-8 shadow-md shadow-emerald-500/30" : "bg-slate-200 hover:bg-slate-300"}`} />
+                <button key={i} onClick={() => setPresentIndex(i)} className={`w-2.5 h-2.5 rounded-full transition-all ${i === presentIndex ? "bg-emerald-500 w-8 shadow-md shadow-emerald-500/30" : "bg-slate-200 hover:bg-slate-300"}`} aria-label={`Go to slide ${i + 1}`} />
               ))}
             </div>
             <button
