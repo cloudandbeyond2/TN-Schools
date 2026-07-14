@@ -377,6 +377,54 @@ router.put('/:parentId/notifications/read-all', async (req: Request, res: Respon
 });
 
 // ─────────────────────────────────────────────────────────────────
+// PUT /api/parent/:parentId/notifications/:id/unread
+// Mark a single notification as unread
+// ─────────────────────────────────────────────────────────────────
+router.put('/:parentId/notifications/:id/unread', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.parentNotification.update({ where: { id }, data: { isRead: false } });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────
+// PUT /api/parent/:parentId/notifications/unread-all
+// Revert read state for multiple notification IDs
+// ─────────────────────────────────────────────────────────────────
+router.put('/:parentId/notifications/unread-all', async (req: Request, res: Response) => {
+  try {
+    const { parentId } = req.params;
+    const { ids } = req.body;
+    if (Array.isArray(ids) && ids.length > 0) {
+      await prisma.parentNotification.updateMany({
+        where: { id: { in: ids }, parentId },
+        data: { isRead: false }
+      });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────
+// DELETE /api/parent/:parentId/notifications/:id
+// Delete a specific notification
+// ─────────────────────────────────────────────────────────────────
+router.delete('/:parentId/notifications/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.parentNotification.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────
 import fs from 'fs';
 import path from 'path';
 
