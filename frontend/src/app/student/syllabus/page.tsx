@@ -68,9 +68,10 @@ export default function StudentSyllabusPage() {
 
       try {
         const studentId = (session?.user as any)?.studentId || "";
+        const cleanClass = studentClass.match(/\d+/)?.[0] || studentClass;
         const url = studentId 
-          ? `${API_URL}/api/centralized-content/subjects?class=${studentClass}&studentId=${studentId}`
-          : `${API_URL}/api/centralized-content/subjects?class=${studentClass}`;
+          ? `${API_URL}/api/centralized-content/subjects?class=${cleanClass}&studentId=${studentId}`
+          : `${API_URL}/api/centralized-content/subjects?class=${cleanClass}`;
         const res = await fetch(url);
         const json = await res.json();
         if (json.success) {
