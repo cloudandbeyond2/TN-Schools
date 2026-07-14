@@ -526,6 +526,14 @@ export default function PortalLayout({
   // Get active role from NextAuth token
   let userRole = (session?.user as any)?.role || "STUDENT";
 
+  // Level implied by the student's own class (6-8 middle, 9-10 high, 11-12 higher).
+  const sessionClassNum = parseInt(String((session?.user as any)?.class || "").match(/\d+/)?.[0] || "0", 10);
+  const classLevel =
+    sessionClassNum >= 11 ? "STUDENT_HIGHER"
+    : sessionClassNum >= 9 ? "STUDENT_HIGH"
+    : sessionClassNum >= 1 ? "STUDENT_MIDDLE"
+    : null;
+
   // Re-map student roles to specialized configurations based on path
   if (userRole === "STUDENT") {
     if (pathname.startsWith("/student/middle-school")) {
@@ -537,8 +545,10 @@ export default function PortalLayout({
     } else if (pathname === "/student") {
       // Leave as generic STUDENT for the portal landing page
     } else {
-      // Default to last active level for common tools
-      userRole = activeStudentLevel;
+      // Common tools: the student's real class decides the menu, so a Class 7
+      // student never sees the higher-secondary menu (and vice versa). Falls
+      // back to the last visited level only when the session has no class.
+      userRole = classLevel || activeStudentLevel;
     }
   }
 

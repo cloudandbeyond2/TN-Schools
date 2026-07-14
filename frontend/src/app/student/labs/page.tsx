@@ -147,8 +147,26 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { LucideIcon } from "@/components/LucideIcon";
+import { useStudentGroup } from "@/lib/useStudentGroup";
+import { HS_LAB_CATEGORIES, HS_LAB_TITLES } from "@/data/hsGroups";
+import type { Stream } from "@/data/scienceCenters";
 
-const featuredLabs = [
+// Classes 6-10 share one experiment pool. For Classes 11 & 12 every lab is
+// tagged with the higher-secondary stream that may access it (labs without a
+// stream tag default to the Science group).
+type FeaturedLab = {
+  id: number;
+  cls: number;
+  title: string;
+  subject: string;
+  duration: string;
+  level: string;
+  icon: string;
+  color: string;
+  stream?: Stream;
+};
+
+const featuredLabs: FeaturedLab[] = [
   // Class 6
   { id: 601, cls: 6, title: "Measuring Length & Motion", subject: "Physics", duration: "15 mins", level: "Class 6", icon: "Ruler", color: "from-blue-500 to-cyan-500" },
   { id: 602, cls: 6, title: "States of Matter", subject: "Chemistry", duration: "15 mins", level: "Class 6", icon: "Droplet", color: "from-emerald-500 to-teal-500" },
@@ -172,16 +190,50 @@ const featuredLabs = [
   { id: 1002, cls: 10, title: "Types of Chemical Reactions", subject: "Chemistry", duration: "28 mins", level: "Class 10", icon: "FlaskConical", color: "from-emerald-500 to-teal-500" },
   { id: 1003, cls: 10, title: "Human Circulatory System (3D)", subject: "Biology", duration: "30 mins", level: "Class 10", icon: "HeartPulse", color: "from-rose-500 to-pink-500" },
   { id: 1004, cls: 10, title: "Python Basics", subject: "Computer Science", duration: "30 mins", level: "Class 10", icon: "Code", color: "from-purple-500 to-fuchsia-500" },
-  // Class 11
-  { id: 1101, cls: 11, title: "Projectile Motion", subject: "Physics", duration: "30 mins", level: "Class 11", icon: "Target", color: "from-blue-500 to-cyan-500" },
-  { id: 1102, cls: 11, title: "Acid-Base Titration", subject: "Chemistry", duration: "30 mins", level: "Class 11", icon: "FlaskConical", color: "from-emerald-500 to-teal-500" },
-  { id: 1103, cls: 11, title: "Photosynthesis Simulation", subject: "Biology", duration: "28 mins", level: "Class 11", icon: "Leaf", color: "from-lime-500 to-green-500" },
-  { id: 1104, cls: 11, title: "C++ Loops & Arrays", subject: "Computer Science", duration: "35 mins", level: "Class 11", icon: "Cpu", color: "from-purple-500 to-fuchsia-500" },
-  // Class 12
-  { id: 1201, cls: 12, title: "Semiconductor Diodes", subject: "Physics", duration: "35 mins", level: "Class 12", icon: "Cpu", color: "from-blue-500 to-cyan-500" },
-  { id: 1202, cls: 12, title: "Electrochemistry Cell", subject: "Chemistry", duration: "35 mins", level: "Class 12", icon: "BatteryCharging", color: "from-emerald-500 to-teal-500" },
-  { id: 1203, cls: 12, title: "Human Heart Dissection (3D)", subject: "Biology", duration: "45 mins", level: "Class 12", icon: "HeartPulse", color: "from-rose-500 to-pink-500" },
-  { id: 1204, cls: 12, title: "Database SQL Queries", subject: "Computer Science", duration: "35 mins", level: "Class 12", icon: "Database", color: "from-purple-500 to-fuchsia-500" },
+  // Class 11 — Science group
+  { id: 1101, cls: 11, title: "Projectile Motion", subject: "Physics", duration: "30 mins", level: "Class 11", icon: "Target", color: "from-blue-500 to-cyan-500", stream: "Science" },
+  { id: 1102, cls: 11, title: "Acid-Base Titration", subject: "Chemistry", duration: "30 mins", level: "Class 11", icon: "FlaskConical", color: "from-emerald-500 to-teal-500", stream: "Science" },
+  { id: 1103, cls: 11, title: "Photosynthesis Simulation", subject: "Biology", duration: "28 mins", level: "Class 11", icon: "Leaf", color: "from-lime-500 to-green-500", stream: "Science" },
+  { id: 1105, cls: 11, title: "Plant Tissues & Anatomy", subject: "Botany", duration: "25 mins", level: "Class 11", icon: "Sprout", color: "from-lime-500 to-green-500", stream: "Science" },
+  { id: 1106, cls: 11, title: "Animal Kingdom Explorer", subject: "Zoology", duration: "25 mins", level: "Class 11", icon: "Bug", color: "from-emerald-500 to-teal-500", stream: "Science" },
+  // Class 11 — Computer Science group
+  { id: 1104, cls: 11, title: "C++ Loops & Arrays", subject: "Programming", duration: "35 mins", level: "Class 11", icon: "Code", color: "from-purple-500 to-fuchsia-500", stream: "ComputerScience" },
+  { id: 1107, cls: 11, title: "Python Coding Environment", subject: "Coding Environment", duration: "30 mins", level: "Class 11", icon: "Terminal", color: "from-cyan-500 to-sky-500", stream: "ComputerScience" },
+  { id: 1108, cls: 11, title: "Boolean Logic Simulator", subject: "Simulations", duration: "25 mins", level: "Class 11", icon: "Cpu", color: "from-indigo-500 to-violet-500", stream: "ComputerScience" },
+  // Class 11 — Commerce group
+  { id: 1110, cls: 11, title: "Journal & Ledger Practice", subject: "Accounting", duration: "30 mins", level: "Class 11", icon: "Calculator", color: "from-emerald-500 to-teal-500", stream: "Commerce" },
+  { id: 1111, cls: 11, title: "Forms of Business Organisation", subject: "Business Studies", duration: "25 mins", level: "Class 11", icon: "Briefcase", color: "from-amber-500 to-orange-500", stream: "Commerce" },
+  { id: 1112, cls: 11, title: "Demand & Supply Curves", subject: "Economics", duration: "25 mins", level: "Class 11", icon: "TrendingUp", color: "from-sky-500 to-blue-500", stream: "Commerce" },
+  // Class 11 — Arts & Humanities group
+  { id: 1113, cls: 11, title: "Interactive Map Reading", subject: "Geography", duration: "25 mins", level: "Class 11", icon: "Globe", color: "from-sky-500 to-blue-500", stream: "Arts" },
+  { id: 1114, cls: 11, title: "Indian History Timeline", subject: "History", duration: "25 mins", level: "Class 11", icon: "Landmark", color: "from-amber-500 to-orange-500", stream: "Arts" },
+  { id: 1115, cls: 11, title: "Constitution & Rights Explorer", subject: "Civics", duration: "25 mins", level: "Class 11", icon: "Scale", color: "from-purple-500 to-fuchsia-500", stream: "Arts" },
+  // Class 11 — Vocational group
+  { id: 1116, cls: 11, title: "Basic Circuit Wiring", subject: "Electrical", duration: "30 mins", level: "Class 11", icon: "Zap", color: "from-sky-500 to-blue-500", stream: "Vocational" },
+  { id: 1117, cls: 11, title: "Soil Testing & Crop Rotation", subject: "Agriculture", duration: "25 mins", level: "Class 11", icon: "Sprout", color: "from-emerald-500 to-teal-500", stream: "Vocational" },
+  { id: 1118, cls: 11, title: "Office Documents Workflow", subject: "Office & Web", duration: "25 mins", level: "Class 11", icon: "FileText", color: "from-purple-500 to-fuchsia-500", stream: "Vocational" },
+  // Class 12 — Science group
+  { id: 1201, cls: 12, title: "Semiconductor Diodes", subject: "Physics", duration: "35 mins", level: "Class 12", icon: "Cpu", color: "from-blue-500 to-cyan-500", stream: "Science" },
+  { id: 1202, cls: 12, title: "Electrochemistry Cell", subject: "Chemistry", duration: "35 mins", level: "Class 12", icon: "BatteryCharging", color: "from-emerald-500 to-teal-500", stream: "Science" },
+  { id: 1203, cls: 12, title: "Human Heart Dissection (3D)", subject: "Biology", duration: "45 mins", level: "Class 12", icon: "HeartPulse", color: "from-rose-500 to-pink-500", stream: "Science" },
+  { id: 1205, cls: 12, title: "Pollination & Plant Breeding", subject: "Botany", duration: "30 mins", level: "Class 12", icon: "Sprout", color: "from-lime-500 to-green-500", stream: "Science" },
+  { id: 1206, cls: 12, title: "Human Nervous System (3D)", subject: "Zoology", duration: "35 mins", level: "Class 12", icon: "Brain", color: "from-rose-500 to-pink-500", stream: "Science" },
+  // Class 12 — Computer Science group
+  { id: 1204, cls: 12, title: "Database SQL Queries", subject: "Programming", duration: "35 mins", level: "Class 12", icon: "Database", color: "from-purple-500 to-fuchsia-500", stream: "ComputerScience" },
+  { id: 1207, cls: 12, title: "Java Coding Environment", subject: "Coding Environment", duration: "35 mins", level: "Class 12", icon: "Terminal", color: "from-cyan-500 to-sky-500", stream: "ComputerScience" },
+  { id: 1208, cls: 12, title: "Computer Networks Simulation", subject: "Simulations", duration: "30 mins", level: "Class 12", icon: "Network", color: "from-indigo-500 to-violet-500", stream: "ComputerScience" },
+  // Class 12 — Commerce group
+  { id: 1210, cls: 12, title: "Final Accounts Simulation", subject: "Accounting", duration: "35 mins", level: "Class 12", icon: "Calculator", color: "from-emerald-500 to-teal-500", stream: "Commerce" },
+  { id: 1211, cls: 12, title: "Marketing & Management Sim", subject: "Business Studies", duration: "30 mins", level: "Class 12", icon: "Briefcase", color: "from-amber-500 to-orange-500", stream: "Commerce" },
+  { id: 1212, cls: 12, title: "National Income Explorer", subject: "Economics", duration: "30 mins", level: "Class 12", icon: "TrendingUp", color: "from-sky-500 to-blue-500", stream: "Commerce" },
+  // Class 12 — Arts & Humanities group
+  { id: 1213, cls: 12, title: "Climate Systems Explorer", subject: "Geography", duration: "30 mins", level: "Class 12", icon: "Globe", color: "from-sky-500 to-blue-500", stream: "Arts" },
+  { id: 1214, cls: 12, title: "Freedom Movement Archive", subject: "History", duration: "30 mins", level: "Class 12", icon: "Landmark", color: "from-amber-500 to-orange-500", stream: "Arts" },
+  { id: 1215, cls: 12, title: "Election Process Simulator", subject: "Civics", duration: "30 mins", level: "Class 12", icon: "Scale", color: "from-purple-500 to-fuchsia-500", stream: "Arts" },
+  // Class 12 — Vocational group
+  { id: 1216, cls: 12, title: "Solar Panel Installation", subject: "Electrical", duration: "35 mins", level: "Class 12", icon: "Zap", color: "from-sky-500 to-blue-500", stream: "Vocational" },
+  { id: 1217, cls: 12, title: "Organic Farming Simulation", subject: "Agriculture", duration: "30 mins", level: "Class 12", icon: "Sprout", color: "from-emerald-500 to-teal-500", stream: "Vocational" },
+  { id: 1218, cls: 12, title: "Build a Live Web Page", subject: "Office & Web", duration: "35 mins", level: "Class 12", icon: "Globe", color: "from-purple-500 to-fuchsia-500", stream: "Vocational" },
 ];
 
 const LAB_CLASSES = [6, 7, 8, 9, 10, 11, 12];
@@ -195,6 +247,8 @@ export default function VirtualLabsPage() {
   const { data: session } = useSession();
   const user = session?.user as any;
   const studentClass = user?.class ? parseInt(user.class) : null;
+  const studentGroup = useStudentGroup();
+  const isHigherSecondary = (studentClass || 10) >= 11;
 
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeClass, setActiveClass] = useState<number | "All">("All");
@@ -206,16 +260,35 @@ export default function VirtualLabsPage() {
     }
   }, [studentClass]);
 
+  // Classes 11 & 12 only see the lab categories their group may access.
+  const categories = [
+    "All",
+    ...(isHigherSecondary
+      ? HS_LAB_CATEGORIES[studentGroup]
+      : ["Physics", "Chemistry", "Biology", "Computer Science"]),
+  ];
+
+  // If the group (or class) changes, drop a category that no longer exists.
+  useEffect(() => {
+    setActiveCategory((prev) => (categories.includes(prev) ? prev : "All"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentGroup, isHigherSecondary]);
+
   const visibleLabs = featuredLabs.filter(
     (lab) =>
       (activeCategory === "All" || lab.subject === activeCategory) &&
-      (lab.cls === (studentClass || 10))
+      lab.cls === (studentClass || 10) &&
+      (!isHigherSecondary || (lab.stream || "Science") === studentGroup)
   );
+
+  const hero = isHigherSecondary
+    ? HS_LAB_TITLES[studentGroup]
+    : { title: "Virtual Science Labs", subtitle: "Perform safe, interactive 3D experiments from anywhere." };
 
   return (
     <PortalLayout
-      title="Virtual Science Labs"
-      subtitle="Perform safe, interactive 3D experiments from anywhere."
+      title={hero.title}
+      subtitle={hero.subtitle}
       avatarLetter="A"
       avatarColor="#06b6d4"
       themeClass="theme-student"
@@ -224,7 +297,7 @@ export default function VirtualLabsPage() {
 
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700/50 w-fit overflow-x-auto">
-           {["All", "Physics", "Chemistry", "Biology", "Computer Science"].map(cat => (
+           {categories.map(cat => (
              <button
                key={cat}
                onClick={() => setActiveCategory(cat)}
@@ -280,7 +353,8 @@ export default function VirtualLabsPage() {
               </div>
            </div>
 
-           {/* Interactive Demo Teaser */}
+           {/* Interactive Demo Teaser (circuit builder — Science / CS groups only) */}
+           {(!isHigherSecondary || studentGroup === "Science" || studentGroup === "ComputerScience") && (
            <div className="glass rounded-3xl p-8 border border-cyan-500/30 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/30 dark:to-blue-900/30 relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="absolute top-1/2 -translate-y-1/2 right-0 w-64 h-64 bg-cyan-500/20 blur-3xl rounded-full"></div>
               
@@ -297,6 +371,7 @@ export default function VirtualLabsPage() {
               
               <div className="text-8xl relative z-10 animate-[bounce_3s_infinite]">💡</div>
            </div>
+           )}
 
         </div>
 

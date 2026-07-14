@@ -182,6 +182,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Extracurricular & Wellbeing", href: "#", icon: "" },
       { label: "Sports & Athletics", href: "/student/sports", icon: "Activity" },
       { label: "Extracurriculars", href: "/student/activities", icon: "Smile" },
+      { label: "Social Activities", href: "/student/social-activities", icon: "HeartHandshake" },
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
       // { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
@@ -222,6 +223,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
+      { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       //{ label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
@@ -252,7 +254,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       // { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
-      { label: "Maths Formulas", href: "/student/maths-formulas", icon: "Calculator" },
+      // Maths Formulas (/student/maths-formulas) is Class-6 Samacheer data only — not shown for 9-10.
       { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
       { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
@@ -271,6 +273,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Extracurricular & Wellbeing", href: "#", icon: "" },
       { label: "Sports & Athletics", href: "/student/sports", icon: "Activity" },
       { label: "Extracurriculars", href: "/student/activities", icon: "Smile" },
+      { label: "Social Activities", href: "/student/social-activities", icon: "HeartHandshake" },
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
       { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
@@ -311,6 +314,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
+      { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
@@ -333,11 +337,11 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Test Preparation ──────────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Test Preparation", href: "#", icon: "" },
-      { label: "NEET/JEE Prep", href: "/student/higher-secondary/competitive", icon: "Rocket" },
+      { label: "Competitive Exam Prep", href: "/student/higher-secondary/competitive", icon: "Rocket" },
       { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
-      { label: "Maths Formulas", href: "/student/maths-formulas", icon: "Calculator" },
+      { label: "Formula Bank", href: "/student/higher-secondary/formulae", icon: "Calculator" },
       { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
       { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
@@ -359,6 +363,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Extracurricular & Wellbeing", href: "#", icon: "" },
       { label: "Sports & Athletics", href: "/student/sports", icon: "Activity" },
       { label: "Extracurriculars", href: "/student/activities", icon: "Smile" },
+      { label: "Social Activities", href: "/student/social-activities", icon: "HeartHandshake" },
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
       { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
@@ -369,11 +374,13 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "School & Career", href: "#", icon: "" },
       { label: "Announcements", href: "/student/announcements", icon: "Megaphone" },
       // { label: "College Admissions", href: "/student/higher-secondary/admissions", icon: "GraduationCap" },
+      { label: "Career Guidance", href: "/student/career", icon: "Compass" },
       { label: "Scholarships", href: "/student/higher-secondary/scholarships", icon: "ScrollText" },
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       { label: "Learning Platform", href: "/student/higher-secondary/learning-platform", icon: "Monitor" },
       { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
+      { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
 
       // ── Support & Safety ──────────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -701,7 +708,6 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
     { label: "Economics Data Center", href: "/student/science/economics", icon: "TrendingUp" },
     { label: "Business Statistics", href: "/student/science/business-stats", icon: "BarChart3" },
     { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
-    { label: "Career Guidance", href: "/student/career", icon: "Compass" },
   ],
   ComputerScience: [
     { label: "CS Campus", href: "/student/science-campus", icon: "Sparkles" },
@@ -721,7 +727,6 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
     { label: "History & Heritage Hub", href: "/student/science/history-hub", icon: "Landmark" },
     { label: "Civics & Politics Lab", href: "/student/science/civics-hub", icon: "Scale" },
     { label: "Economics Data Center", href: "/student/science/economics", icon: "TrendingUp" },
-    { label: "Career Guidance", href: "/student/career", icon: "Compass" },
   ],
   Vocational: [
     { label: "Vocational Campus", href: "/student/science-campus", icon: "Sparkles" },
@@ -730,22 +735,37 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
     { label: "Basic Electrical Lab", href: "/student/science/electrical-lab", icon: "Zap" },
     { label: "Agriculture Lab", href: "/student/science/agriculture-lab", icon: "Sprout" },
     { label: "Office & Web Design", href: "/student/science/office-mgmt", icon: "Award" },
-    { label: "Career Guidance", href: "/student/career", icon: "Compass" },
   ],
 };
 
+// Test-prep links that only make sense for particular higher-secondary groups.
+// Links not listed here are visible to every group.
+const GROUP_RESTRICTED_LINKS: Record<string, StudentGroup[]> = {
+  "/student/neet-prep": ["Science"],
+  // /student/higher-secondary/competitive is group-aware, so every group keeps it.
+  "/student/science-draw-mat": ["Science"],
+};
+
 // Return a copy of `items` with the Science Labs & Centers section replaced by
-// the section that matches the student's group. Non-Science groups only.
+// the section that matches the student's group, and group-restricted links
+// (NEET prep etc.) removed for groups they don't apply to.
 export function applyStudentGroup(items: NavItem[], group: StudentGroup): NavItem[] {
-  if (group === "Science") return items;
-  const start = items.findIndex((it) => it.label === SCIENCE_SECTION_LABEL);
-  if (start === -1) return items;
-  // The section runs until the next "---" separator (or end of list).
-  let end = items.findIndex((it, i) => i > start && it.label === "---");
-  if (end === -1) end = items.length;
-  return [
-    ...items.slice(0, start + 1),
-    ...GROUP_SCIENCE_SECTIONS[group],
-    ...items.slice(end),
-  ];
+  let result = items;
+  if (group !== "Science") {
+    const start = result.findIndex((it) => it.label === SCIENCE_SECTION_LABEL);
+    if (start !== -1) {
+      // The section runs until the next "---" separator (or end of list).
+      let end = result.findIndex((it, i) => i > start && it.label === "---");
+      if (end === -1) end = result.length;
+      result = [
+        ...result.slice(0, start + 1),
+        ...GROUP_SCIENCE_SECTIONS[group],
+        ...result.slice(end),
+      ];
+    }
+  }
+  return result.filter((it) => {
+    const allowed = GROUP_RESTRICTED_LINKS[it.href];
+    return !allowed || allowed.includes(group);
+  });
 }

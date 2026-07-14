@@ -4,6 +4,8 @@ import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
+import { useStudentGroup } from "@/lib/useStudentGroup";
+import { HS_GROUP_SUBJECTS, HS_GROUP_LABELS } from "@/data/hsGroups";
 
 /* ────────────────────────────────────────────────────────────
    Flaticon (uicons) glyph — the app loads uicons-regular-rounded,
@@ -128,8 +130,10 @@ export default function AcademicsHubPage() {
 
   const studentClass = String((session?.user as any)?.class || "10");
   const classNum = parseInt(studentClass.match(/\d+/)?.[0] || "10", 10);
+  const isHigherSecondary = classNum >= 11;
+  const studentGroup = useStudentGroup();
 
-  const [subjects, setSubjects] = useState<SubjectInfo[]>([]);
+  const [dbSubjects, setDbSubjects] = useState<SubjectInfo[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
   const [syllabusData, setSyllabusData] = useState<Record<string, SyllabusUnit[]>>({});
   const [loading, setLoading] = useState(true);
@@ -193,7 +197,7 @@ export default function AcademicsHubPage() {
             });
           });
           
-          setSubjects(fetchedSubjects);
+          setDbSubjects(fetchedSubjects);
           setSyllabusData(fetchedSyllabus);
         }
 
@@ -227,6 +231,28 @@ export default function AcademicsHubPage() {
       fetchData();
     }
   }, [classNum, studentId]);
+
+  // For Classes 11 & 12 the subject list is group-specific: show the full
+  // TN State Board subject set for the student's group, enriched with any
+  // matching subjects the super-admin has seeded for this class.
+  const subjects = useMemo<SubjectInfo[]>(() => {
+    if (!isHigherSecondary) return dbSubjects;
+    const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
+    return HS_GROUP_SUBJECTS[studentGroup].map((gs) => {
+      const fromDb = dbSubjects.find((d) => norm(d.name) === norm(gs.name));
+      if (fromDb) return fromDb;
+      return {
+        name: gs.name,
+        color: gs.color,
+        gradient: `from-[${gs.color}] to-slate-600`,
+        icon: gs.icon,
+        teacher: "Class Teacher",
+        progress: 0,
+        units: syllabusData[gs.name]?.length || 0,
+        unitsDone: 0,
+      };
+    });
+  }, [dbSubjects, syllabusData, isHigherSecondary, studentGroup]);
 
   // Load / persist bookmarks
   useEffect(() => {
@@ -576,6 +602,7 @@ export default function AcademicsHubPage() {
                 style={{ color: "rgba(255,255,255,0.85)" }}
               >
                 Class {studentClass} · Tamil Nadu State Board
+                {isHigherSecondary ? ` · ${HS_GROUP_LABELS[studentGroup]}` : ""}
               </span>
             </div>
             <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#fff" }}>
