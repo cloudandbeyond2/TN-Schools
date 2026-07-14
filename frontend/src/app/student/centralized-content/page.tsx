@@ -269,9 +269,10 @@ export default function CentralizedContentPage() {
       
       try {
         const studentId = (session?.user as any)?.studentId || "";
+        const cleanClass = selectedClass.match(/\d+/)?.[0] || selectedClass;
         const url = studentId 
-          ? `${API_URL}/api/centralized-content/subjects?class=${selectedClass}&studentId=${studentId}`
-          : `${API_URL}/api/centralized-content/subjects?class=${selectedClass}`;
+          ? `${API_URL}/api/centralized-content/subjects?class=${cleanClass}&studentId=${studentId}`
+          : `${API_URL}/api/centralized-content/subjects?class=${cleanClass}`;
         const res = await fetch(url);
         const json = await res.json();
         if (json.success) {

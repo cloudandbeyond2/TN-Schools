@@ -60,6 +60,7 @@ interface SyllabusUnit {
   topics: string[];
   status: "completed" | "in-progress" | "upcoming";
   term: string;
+  url?: string;
 }
 
 
@@ -148,17 +149,37 @@ export default function AcademicsHubPage() {
         // 2. Fetch Resources for this class
         const resourcesRes = await fetch(`${API_URL}/api/superadmin/academics/resources?class=${classNum}&status=Active`);
         const resourcesJson = await resourcesRes.json();
+
+        const fetchedSyllabus: Record<string, SyllabusUnit[]> = {};
+        if (Array.isArray(resourcesJson)) {
+          resourcesJson.forEach((res: any) => {
+            if (res.category === "syllabus") {
+              const subName = res.subject?.name || "General";
+              if (!fetchedSyllabus[subName]) {
+                fetchedSyllabus[subName] = [];
+              }
+              
+              fetchedSyllabus[subName].push({
+                unit: res.chapterNumber || res.chapter || `Unit ${fetchedSyllabus[subName].length + 1}`,
+                title: res.topicName || res.title,
+                topics: res.description ? [res.description] : ["Curriculum details"],
+                status: "in-progress",
+                term: res.term || "Term 1",
+                url: res.url
+              });
+            }
+          });
+        }
         
         if (Array.isArray(subjectsJson)) {
           const fetchedSubjects: SubjectInfo[] = [];
           
           subjectsJson.forEach((sub: any) => {
             const subName = sub.name;
-            
-            // Map the backend AcademicSubject properties or fall back to default theme
             const color = sub.color || "#64748b";
             const gradient = `from-[${color}] to-slate-600`;
             const icon = sub.icon || "📚";
+            const unitsCount = fetchedSyllabus[subName]?.length || 0;
             
             fetchedSubjects.push({
               name: subName,
@@ -167,13 +188,13 @@ export default function AcademicsHubPage() {
               icon,
               teacher: "Class Teacher",
               progress: 0,
-              units: 0, // Need to implement actual syllabus fetching later
+              units: unitsCount,
               unitsDone: 0
             });
           });
           
           setSubjects(fetchedSubjects);
-          setSyllabusData({});
+          setSyllabusData(fetchedSyllabus);
         }
 
         if (Array.isArray(resourcesJson)) {
@@ -240,6 +261,27 @@ export default function AcademicsHubPage() {
       return `https://www.youtube.com/embed/${url}`;
     }
     return url;
+  };
+
+  const getFileUrl = (url: string) => {
+    if (!url) return "#";
+    if (url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:")) return url;
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    return url.startsWith("/") ? `${API_URL}${url}` : `${API_URL}/${url}`;
+  };
+
+  const getYouTubeThumbnailUrl = (url: string) => {
+    if (!url) return null;
+    try {
+      if (url.includes("youtube.com") || url.includes("youtu.be")) {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        if (match && match[2].length === 11) {
+          return `https://img.youtube.com/vi/${match[2]}/hqdefault.jpg`;
+        }
+      }
+    } catch {}
+    return null;
   };
 
   const handleDownload = (resource: Resource) => {
@@ -404,6 +446,7 @@ export default function AcademicsHubPage() {
   const VideoCard = ({ r }: { r: Resource }) => {
     const t = subjectTheme(r.subject);
     const saved = bookmarks.includes(r.id);
+    const youtubeThumbnail = getYouTubeThumbnailUrl(r.url || "");
     return (
       <div className="glass rounded-2xl border border-[var(--border)] overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all group flex flex-col">
         {/* Thumbnail */}
@@ -411,13 +454,19 @@ export default function AcademicsHubPage() {
           onClick={() => setPreviewResource(r)}
           className={`relative h-32 bg-gradient-to-br ${t.gradient} flex items-center justify-center overflow-hidden`}
         >
-          <span className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
-          <span className="text-4xl opacity-40 absolute left-4 bottom-3">{t.icon}</span>
-          <span className="w-14 h-14 rounded-full bg-white/25 backdrop-blur flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+          {youtubeThumbnail ? (
+            <img src={youtubeThumbnail} alt={r.title} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <>
+              <span className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+              <span className="text-4xl opacity-40 absolute left-4 bottom-3">{t.icon}</span>
+            </>
+          )}
+          <span className="w-14 h-14 rounded-full bg-white/25 backdrop-blur flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg z-10">
             <Fi name="play" className="text-3xl" />
           </span>
           <span
-            className="absolute bottom-2 right-2 text-[10px] font-bold bg-black/60 px-2 py-0.5 rounded-md flex items-center gap-1"
+            className="absolute bottom-2 right-2 text-[10px] font-bold bg-black/60 px-2 py-0.5 rounded-md flex items-center gap-1 z-10"
             style={{ color: "#fff" }}
           >
             <Fi name="clock" className="text-[10px]" /> {r.meta}
@@ -926,6 +975,20 @@ export default function AcademicsHubPage() {
                               ))}
                             </ul>
                             <div className="flex gap-2 mt-3">
+                              {u.url && (
+                                <button
+                                  onClick={() => {
+                                    setActiveMedia({
+                                      type: "pdf",
+                                      url: u.url || "",
+                                      title: `${s.name} - ${u.unit} Syllabus`
+                                    });
+                                  }}
+                                  className="text-[10px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white"
+                                >
+                                  <Fi name="document" className="text-[9px]" /> View Syllabus
+                                </button>
+                              )}
                               <button
                                 onClick={() => {
                                   setSelectedSubject(s.name);
@@ -992,36 +1055,54 @@ export default function AcademicsHubPage() {
             className="w-full max-w-2xl bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal header strip */}
-            <div
-              className={`h-36 bg-gradient-to-br ${subjectTheme(previewResource.subject).gradient} relative flex items-center justify-center`}
-            >
-              <span className="text-6xl opacity-30 absolute left-6 bottom-3">
-                {subjectTheme(previewResource.subject).icon}
-              </span>
-              {previewResource.category === "videos" ? (
-                <span
-                  className="w-16 h-16 rounded-full bg-white/25 backdrop-blur flex items-center justify-center shadow-lg"
+            {previewResource.category === "videos" && previewResource.url ? (
+              <div className="relative w-full aspect-video bg-black flex items-center justify-center">
+                {previewResource.url.includes("youtube.com") || previewResource.url.includes("youtu.be") || previewResource.url.includes("youtube") ? (
+                  <iframe
+                    src={getYouTubeEmbedUrl(previewResource.url)}
+                    className="w-full h-full border-0 animate-in fade-in"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={previewResource.title}
+                  />
+                ) : (
+                  <video 
+                    src={getFileUrl(previewResource.url)} 
+                    controls 
+                    autoPlay 
+                    className="w-full h-full object-contain animate-in fade-in"
+                  />
+                )}
+                <button
+                  onClick={() => setPreviewResource(null)}
+                  className="absolute top-3 right-3 p-2 rounded-full bg-black/50 hover:bg-black/80 active:scale-90 transition-all z-10"
                   style={{ color: "#fff" }}
                 >
-                  <Fi name="play" className="text-3xl" />
+                  <Fi name="cross-small" className="text-base" />
+                </button>
+              </div>
+            ) : (
+              <div
+                className={`h-36 bg-gradient-to-br ${subjectTheme(previewResource.subject).gradient} relative flex items-center justify-center`}
+              >
+                <span className="text-6xl opacity-30 absolute left-6 bottom-3">
+                  {subjectTheme(previewResource.subject).icon}
                 </span>
-              ) : (
                 <span
                   className="w-16 h-16 rounded-2xl bg-white/25 backdrop-blur flex items-center justify-center shadow-lg"
                   style={{ color: "#fff" }}
                 >
                   <Fi name={TYPE_ICONS[previewResource.type]} className="text-3xl" />
                 </span>
-              )}
-              <button
-                onClick={() => setPreviewResource(null)}
-                className="absolute top-3 right-3 p-2 rounded-full bg-black/25 hover:bg-black/45 active:scale-90 transition-all"
-                style={{ color: "#fff" }}
-              >
-                <Fi name="cross-small" className="text-base" />
-              </button>
-            </div>
+                <button
+                  onClick={() => setPreviewResource(null)}
+                  className="absolute top-3 right-3 p-2 rounded-full bg-black/25 hover:bg-black/45 active:scale-90 transition-all"
+                  style={{ color: "#fff" }}
+                >
+                  <Fi name="cross-small" className="text-base" />
+                </button>
+              </div>
+            )}
 
             <div className="p-6">
               <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -1153,7 +1234,7 @@ export default function AcademicsHubPage() {
                     />
                   ) : (
                     <video 
-                      src={activeMedia.url} 
+                      src={getFileUrl(activeMedia.url)} 
                       controls 
                       autoPlay 
                       className="w-full h-full"
@@ -1166,7 +1247,7 @@ export default function AcademicsHubPage() {
                 <div className="w-full h-[60vh] rounded-2xl overflow-hidden shadow-lg border border-[var(--border)] bg-[var(--bg-card)] flex flex-col">
                   {/* PDF view using iframe */}
                   <iframe
-                    src={activeMedia.url}
+                    src={getFileUrl(activeMedia.url)}
                     className="w-full flex-1 border-0"
                     title={activeMedia.title}
                   />
@@ -1175,7 +1256,7 @@ export default function AcademicsHubPage() {
                       If the document does not display, click the button to open it.
                     </span>
                     <a
-                      href={activeMedia.url}
+                      href={getFileUrl(activeMedia.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"

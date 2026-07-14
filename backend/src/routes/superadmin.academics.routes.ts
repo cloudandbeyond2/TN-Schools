@@ -1,8 +1,37 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 const router = Router();
 const prisma = new PrismaClient();
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, "../../uploads");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+const upload = multer({ storage });
+
+router.post("/upload", upload.single("file"), (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+    res.json({ url: `/uploads/${req.file.filename}` });
+  } catch (error: any) {
+    console.error("Upload error:", error);
+    res.status(500).json({ error: "Internal Server Error", details: error.message });
+  }
+});
 
 // --- Subjects ---
 
