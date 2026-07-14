@@ -858,6 +858,91 @@ export const CENTER_CONTENT: Record<string, TopicContent> = {
     funFact: "A typical modern web page makes thousands of DOM manipulations per second to create smooth animations!",
     quiz: { question: "Which method selects an HTML element by its ID using JavaScript?", options: ["querySelector", "getElementById", "getElementByClass", "selectById"], answer: "getElementById" },
   },
+
+  // ── ARTS & HUMANITIES ────────────────────────────────────────────────────────
+  "Mapping:Latitude & Longitude": {
+    title: "Latitude & Longitude", emoji: "🌐",
+    summary: "Latitude and Longitude are coordinate systems used to identify any location on Earth. Latitudes measure north-south of the equator, while longitudes measure east-west of the prime meridian.",
+    keyPoints: ["Equator (0° Latitude) divides Earth into Northern and Southern hemispheres", "Prime Meridian (0° Longitude) passes through Greenwich, London", "International Date Line follows 180° Longitude", "Coordinates are measured in degrees, minutes, and seconds", "Helpful for GPS navigation and flight paths"],
+    formula: "Latitude: 0° to ±90° | Longitude: 0° to ±180°",
+    funFact: "Chennai's approximate coordinates are 13.08° N, 80.27° E!",
+    quiz: { question: "Which line corresponds to 0° Latitude?", options: ["Prime Meridian", "Tropic of Cancer", "Equator", "International Date Line"], answer: "Equator" },
+  },
+  "Mapping:Topography": {
+    title: "Topography", emoji: "⛰️",
+    summary: "Topography is the study of the shape and features of the surface of the Earth, including landforms like mountains, valleys, plains, and rivers.",
+    keyPoints: ["Contours are lines connecting points of equal elevation", "Closely spaced contours indicate steep slopes", "Topographical maps show both natural and man-made features", "Important for civil engineering, military planning, and hiking"],
+    funFact: "The highest topography on Earth is Mount Everest, while the lowest land topography is the Dead Sea shore!",
+    quiz: { question: "What do closely spaced contour lines represent?", options: ["Flat plain", "Steep slope", "Gentle slope", "River valley"], answer: "Steep slope" },
+  },
+  "Earth Systems:Atmosphere": {
+    title: "Atmosphere", emoji: "🌤️",
+    summary: "The Earth's atmosphere is a layer of gases surrounding the planet, retained by gravity. It protects life by absorbing UV radiation and warming the surface.",
+    keyPoints: ["Layers: Troposphere (weather) → Stratosphere (ozone) → Mesosphere → Thermosphere → Exosphere", "Gases: 78% Nitrogen, 21% Oxygen, 0.9% Argon, 0.04% Carbon Dioxide", "Atmospheric pressure decreases with altitude", "Troposphere contains 75% of the total atmospheric mass"],
+    funFact: "The ozone layer resides in the stratosphere and blocks 98% of high-frequency UV rays!",
+    quiz: { question: "In which layer of the atmosphere does weather occur?", options: ["Stratosphere", "Troposphere", "Mesosphere", "Thermosphere"], answer: "Troposphere" },
+  },
+  "Civilizations:Indus Valley Civilization": {
+    title: "Indus Valley Civilization", emoji: "🏺",
+    summary: "The Indus Valley Civilization (3300–1300 BCE) was a Bronze Age civilization in northwestern South Asia, famous for its urban planning, baked brick houses, and advanced drainage.",
+    keyPoints: ["Major sites: Harappa and Mohenjo-daro", "Known for grid-pattern street layouts and sewage systems", "No evidence of temples or monarchs; merchants and priests ruled", "Used copper, bronze, lead, and tin", "Undeciphered script written from right to left"],
+    funFact: "Mohenjo-daro featured the 'Great Bath', which is considered the earliest public water tank in history!",
+    quiz: { question: "Which is a major archaeological site of the Indus Valley Civilization?", options: ["Taj Mahal", "Harappa", "Madurai", "Hampi"], answer: "Harappa" },
+  },
+  "Civilizations:Ancient Tamil Kingdoms (Chola/Chera/Pandya)": {
+    title: "Ancient Tamil Kingdoms (Muvendar)", emoji: "🛡️",
+    summary: "The Cheras, Cholas, and Pandyas were the three ruling dynasties of ancient Tamilakam, patronizing Sangam literature, sea trade, and temple architecture.",
+    keyPoints: ["Cheras ruled the western coast (modern Kerala/Western TN)", "Cholas ruled the Kaveri delta, famous for naval expeditions and the Kallanai dam", "Pandyas ruled southern TN (capital Madurai), famous for pearl fishery", "Built massive structures like the Brihadisvara Temple (Tanjore)"],
+    funFact: "The Kallanai Dam, built by Karikala Chola on the Kaveri river, is one of the oldest water-regulatory structures still in use!",
+    quiz: { question: "Which ancient Tamil dynasty was famous for its pearl fishery and capital Madurai?", options: ["Cholas", "Cheras", "Pandyas", "Pallavas"], answer: "Pandyas" },
+  },
+  "Governance:Indian Constitution": {
+    title: "Indian Constitution", emoji: "📕",
+    summary: "The Constitution of India is the supreme law of India. Adopted on 26 Nov 1949 and in effect on 26 Jan 1950, it is the longest written national constitution.",
+    keyPoints: ["Drafted by a committee headed by Dr. B.R. Ambedkar", "Establishes India as a Sovereign, Socialist, Secular, Democratic Republic", "Guarantees six fundamental rights to citizens", "Federal system with unitary features"],
+    funFact: "The original Constitution was handwritten in English and Hindi, not typed or printed!",
+    quiz: { question: "Who was the chairman of the Drafting Committee of the Indian Constitution?", options: ["Mahatma Gandhi", "Jawaharlal Nehru", "Dr. B.R. Ambedkar", "Dr. Rajendra Prasad"], answer: "Dr. B.R. Ambedkar" },
+  },
+
+  // ── VOCATIONAL EDUCATION ─────────────────────────────────────────────────────
+  "Materials:Woodworking Basics": {
+    title: "Woodworking Basics", emoji: "🪵",
+    summary: "Woodworking involves cutting, shaping, and joining wood to create furniture, structures, and decorative items. Understanding wood grains is crucial.",
+    keyPoints: ["Hardwood comes from broad-leaved trees; Softwood from conifers", "Grain direction determines the strength and cutting resistance", "Key joints: Mortise & Tenon, Dovetail, Butt, and Lap joints", "Sanding is done along the grain to prevent scratches"],
+    funFact: "Balsa wood is legally classified as a hardwood, despite being softer than almost all softwoods!",
+    quiz: { question: "Which joint is famous for its strength and tensile resistance, resembling interlocking tails?", options: ["Butt joint", "Dovetail joint", "Lap joint", "Mitre joint"], answer: "Dovetail joint" },
+  },
+  "Wiring:House Wiring Basics": {
+    title: "House Wiring Basics", emoji: "🏠",
+    summary: "House wiring delivers electrical power safely from the mains to home appliances. It requires live, neutral, and earth wires for circuit safety.",
+    keyPoints: ["Live wire (usually Red/Brown) carries current; Neutral (Black/Blue) completes circuit", "Earth wire (Green/Yellow) routes leakage safely to the ground", "Appliances are connected in parallel so they operate independently", "Fuse or MCB breaks the circuit in case of overload"],
+    formula: "Power (W) = Voltage (V) × Current (A)",
+    funFact: "Electric shock protection devices (RCD/GFCI) can detect current leaks as small as 5 milliamps and trip in milliseconds!",
+    quiz: { question: "What wire color is standard for Earth/Ground connection in modern wiring?", options: ["Red", "Black", "Green/Yellow", "Blue"], answer: "Green/Yellow" },
+  },
+  "Wiring:Series & Parallel Circuits": {
+    title: "Series & Parallel Circuits", emoji: "🔌",
+    summary: "In a series circuit, components are connected end-to-end so there is only one path for current. In a parallel circuit, components are connected across each other, providing multiple paths.",
+    keyPoints: ["Series: Current is the same; Total resistance increases (R = R1 + R2)", "Parallel: Voltage is the same; Total resistance decreases (1/R = 1/R1 + 1/R2)", "If one bulb breaks in a series, all go out; in parallel, the rest stay on", "Household lights are connected in parallel"],
+    formula: "Series: R_total = R1 + R2 | Parallel: R_total = (R1*R2)/(R1+R2)",
+    funFact: "Old Christmas tree lights were connected in series, meaning a single blown bulb disabled the entire string!",
+    quiz: { question: "If two 10-ohm resistors are connected in series, what is the total resistance?", options: ["5 ohms", "10 ohms", "20 ohms", "100 ohms"], answer: "20 ohms" },
+  },
+  "Soil & Water:Soil Types & Testing": {
+    title: "Soil Types & Testing", emoji: "🟤",
+    summary: "Soil is the medium for plant growth. Soil testing determines pH, nutrients (nitrogen, phosphorus, potassium), and texture, aiding fertilization.",
+    keyPoints: ["Main soil types: Clay, Sand, Silt, and Loam (ideal blend)", "Soil pH ranges from 0 (acidic) to 14 (alkaline); 6.0 to 7.0 is ideal for most crops", "NPK ratio indicates Nitrogen (growth), Phosphorus (roots), and Potassium (health)", "Sandy soil drains quickly; Clay soil retains water but lacks aeration"],
+    funFact: "A single teaspoon of healthy soil contains more microorganisms than there are people on Earth!",
+    quiz: { question: "Which soil type is generally considered the best for agricultural farming?", options: ["Sandy soil", "Clay soil", "Silty soil", "Loam soil"], answer: "Loam soil" },
+  },
+  "Workflows:Spreadsheet Data Formulas": {
+    title: "Spreadsheet Data Formulas", emoji: "📊",
+    summary: "Spreadsheets like Excel or Google Sheets organize and compute data using cell grids. Formulas automate calculations like totals, averages, and conditional checks.",
+    keyPoints: ["Formulas always begin with an equals sign (=)", "SUM: adds a range of cells; AVERAGE: calculates mean", "IF: performs logical tests and returns specified values", "VLOOKUP/XLOOKUP: searches for data values in tables"],
+    formula: "=SUM(A1:A10) | =IF(B2>=35, 'Pass', 'Fail')",
+    funFact: "Spreadsheets were first invented in 1979 as VisiCalc, which helped sell personal computers to businesses!",
+    quiz: { question: "What character must all spreadsheet formulas start with?", options: ["+", "@", "=", "$"], answer: "=" },
+  },
 };
 
 export function getTopicContent(slug: string, groupHeading: string, itemLabel: string): TopicContent | undefined {

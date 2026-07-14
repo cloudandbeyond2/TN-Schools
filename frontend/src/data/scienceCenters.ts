@@ -11,7 +11,7 @@
 export type CenterStatus = "live" | "soon";
 
 // Higher-secondary group / stream.
-export type Stream = "Science" | "Commerce" | "ComputerScience";
+export type Stream = "Science" | "Commerce" | "ComputerScience" | "Arts" | "Vocational";
 
 export type ScienceCenter = {
   id: string;
@@ -22,14 +22,14 @@ export type ScienceCenter = {
   route: string;
   status: CenterStatus;
   accent: "emerald" | "sky" | "purple" | "amber" | "rose" | "indigo" | "cyan" | "orange" | "lime";
-  group: "Labs" | "Centers" | "Commerce" | "Computer Science" | "Library & Media" | "Innovation" | "For Teachers";
+  group: "Labs" | "Centers" | "Commerce" | "Computer Science" | "Arts" | "Vocational" | "Library & Media" | "Innovation" | "For Teachers";
   streams: Stream[];   // which higher-secondary groups see this center
 };
 
 const dyn = (id: string) => `/student/science/${id}`;
 
 // Centers that are useful to every stream (books, careers, museum, etc.)
-const ALL_STREAMS: Stream[] = ["Science", "Commerce", "ComputerScience"];
+const ALL_STREAMS: Stream[] = ["Science", "Commerce", "ComputerScience", "Arts", "Vocational"];
 
 export const SCIENCE_CENTERS: ScienceCenter[] = [
   // --- Labs (Science stream) ---
@@ -67,6 +67,17 @@ export const SCIENCE_CENTERS: ScienceCenter[] = [
   { id: "database-lab", name: "Database & SQL Lab", desc: "Tables, queries, joins — practice SQL live.", icon: "Database", route: dyn("database-lab"), status: "live", accent: "purple", group: "Computer Science", streams: ["ComputerScience"] },
   { id: "ai-ml", name: "AI & Machine Learning Lab", desc: "Datasets, models & no-code ML experiments.", icon: "Bot", route: dyn("ai-ml"), status: "live", accent: "emerald", group: "Computer Science", streams: ["ComputerScience"] },
 
+  // --- Arts & Humanities group ---
+  { id: "geography-lab", name: "Geography & Mapping Lab", nameTa: "புவியியல் ஆய்வகம்", desc: "Interactive mapping, GPS simulations, climate systems.", icon: "Globe", route: dyn("geography-lab"), status: "live", accent: "sky", group: "Arts", streams: ["Arts"] },
+  { id: "history-hub", name: "History & Heritage Hub", nameTa: "வரலாறு & பாரம்பரிய மையம்", desc: "Virtual archaeological digs, historical timelines & artifacts.", icon: "Landmark", route: dyn("history-hub"), status: "live", accent: "amber", group: "Arts", streams: ["Arts"] },
+  { id: "civics-hub", name: "Civics & Politics Lab", nameTa: "குடிமையியல் ஆய்வகம்", desc: "Mock parliaments, constitution structure, election simulators.", icon: "Scale", route: dyn("civics-hub"), status: "live", accent: "purple", group: "Arts", streams: ["Arts"] },
+
+  // --- Vocational Education group ---
+  { id: "vocational-campus", name: "Trades & Tech Hub", nameTa: "கைவினைத் தொழில்நுட்ப மையம்", desc: "Carpentry, metalworking, plumbing and technical skills.", icon: "Wrench", route: dyn("vocational-campus"), status: "live", accent: "orange", group: "Vocational", streams: ["Vocational"] },
+  { id: "electrical-lab", name: "Basic Electrical Lab", nameTa: "மின்சார ஆய்வகம்", desc: "Circuit wiring, safety protocols, solar panels, and electronics.", icon: "Zap", route: dyn("electrical-lab"), status: "live", accent: "sky", group: "Vocational", streams: ["Vocational"] },
+  { id: "agriculture-lab", name: "Agriculture Lab", nameTa: "விவசாய ஆய்வகம்", desc: "Smart organic farming, crop rotation, soil health.", icon: "Sprout", route: dyn("agriculture-lab"), status: "live", accent: "emerald", group: "Vocational", streams: ["Vocational"] },
+  { id: "office-mgmt", name: "Office & Web Design Lab", nameTa: "அலுவலக வடிவமைப்பு", desc: "Office suites, document workflows, and basic web creation.", icon: "Award", route: dyn("office-mgmt"), status: "live", accent: "purple", group: "Vocational", streams: ["Vocational"] },
+
   // --- Library & Media (all streams) ---
   { id: "library", name: "Science Book Library", nameTa: "அறிவியல் நூலகம்", desc: "All TN Govt books (PDF) — Class 6-12, TA & EN.", icon: "BookOpen", route: "/student/science-library", status: "live", accent: "sky", group: "Library & Media", streams: ALL_STREAMS },
   { id: "videos", name: "Experiment Videos", desc: "Curated lab & concept videos by subject and class.", icon: "Video", route: dyn("videos"), status: "live", accent: "rose", group: "Library & Media", streams: ALL_STREAMS },
@@ -84,7 +95,7 @@ export const SCIENCE_CENTERS: ScienceCenter[] = [
 ];
 
 export const CENTER_GROUPS: ScienceCenter["group"][] = [
-  "Labs", "Centers", "Commerce", "Computer Science", "Library & Media", "Innovation", "For Teachers",
+  "Labs", "Centers", "Commerce", "Computer Science", "Arts", "Vocational", "Library & Media", "Innovation", "For Teachers",
 ];
 
 // Streams offered on the Science Campus stream switcher.
@@ -92,6 +103,8 @@ export const STREAMS: { id: Stream; label: string; labelTa: string; emoji: strin
   { id: "Science", label: "Science", labelTa: "அறிவியல்", emoji: "🔬" },
   { id: "Commerce", label: "Commerce", labelTa: "வணிகவியல்", emoji: "📊" },
   { id: "ComputerScience", label: "Computer Science", labelTa: "கணினி அறிவியல்", emoji: "💻" },
+  { id: "Arts", label: "Arts", labelTa: "கலைகள்", emoji: "🏛️" },
+  { id: "Vocational", label: "Vocational", labelTa: "தொழிற்கல்வி", emoji: "🔧" },
 ];
 
 export function centersForStream(stream: Stream): ScienceCenter[] {

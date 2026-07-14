@@ -60,6 +60,33 @@ function CenterCard({ c }: { c: ScienceCenter }) {
   return live ? <Link href={c.route} className="block h-full">{inner}</Link> : <div className="h-full cursor-not-allowed">{inner}</div>;
 }
 
+const getApiBase = () => {
+  let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  if (url && !url.startsWith("http://") && !url.startsWith("https://")) {
+    url = `https://${url}`;
+  }
+  return url;
+};
+
+const API_BASE = getApiBase();
+
+const mapDbStreamToStream = (dbStream: string): Stream => {
+  const s = String(dbStream || "").toLowerCase();
+  if (s.includes("science & math") || s.includes("computer science")) return "ComputerScience";
+  if (s.includes("commerce") || s.includes("accountancy")) return "Commerce";
+  if (s.includes("arts") || s.includes("humanities")) return "Arts";
+  if (s.includes("vocational")) return "Vocational";
+  return "Science";
+};
+
+const mapStreamToDbStream = (stream: Stream): string => {
+  if (stream === "ComputerScience") return "Computer Science & Math";
+  if (stream === "Commerce") return "Commerce & Accountancy";
+  if (stream === "Arts") return "Arts & Humanities";
+  if (stream === "Vocational") return "Vocational Education";
+  return "Pure Science & Bio";
+};
+
 export default function ScienceCampusPage() {
   const { data: session } = useSession();
   const user = session?.user as any;
@@ -67,24 +94,77 @@ export default function ScienceCampusPage() {
   const isHigherSecondary = studentClass >= 11;
 
   const [stream, setStream] = useState<Stream>("Science");
+  const [studentId, setStudentId] = useState<string | null>(null);
 
-  // Load the saved group (shared with the sidebar).
+  // 1. Fetch studentId on session change
   useEffect(() => {
-    if (isHigherSecondary) {
-      const saved = localStorage.getItem("studentGroup") as Stream | null;
-      if (saved === "Science" || saved === "Commerce" || saved === "ComputerScience") {
-        setStream(saved);
-      }
-    } else {
-      setStream("Science"); // Default to Science for general middle/high school
+    if (!user?.id) return;
+    
+    if (user.studentId) {
+      setStudentId(user.studentId);
+      return;
+    }
+
+    fetch(`${API_BASE}/api/students`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data.length > 0) {
+          const myStudent = json.data.find((s: any) => s.userId === user.id);
+          if (myStudent) setStudentId(myStudent.id);
+        }
+      })
+      .catch((err) => console.error("Error loading student profile in campus page:", err));
+  }, [user]);
+
+  // 2. Load the saved group (shared with the sidebar) and fallback to DB stream.
+  useEffect(() => {
+    if (!isHigherSecondary) {
+      setStream("Science");
+      return;
+    }
+
+    // Check local storage first for quick display
+    const saved = localStorage.getItem("studentGroup") as Stream | null;
+    if (saved === "Science" || saved === "Commerce" || saved === "ComputerScience" || saved === "Arts" || saved === "Vocational") {
+      setStream(saved);
     }
   }, [isHigherSecondary]);
 
-  const pickStream = (s: Stream) => {
+  // 3. Keep group in sync with database portfolio stream
+  useEffect(() => {
+    if (!studentId || !isHigherSecondary) return;
+    
+    fetch(`${API_BASE}/api/students/${studentId}/dashboard-summary`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) {
+          const mapped = mapDbStreamToStream(json.data.stream);
+          setStream(mapped);
+          localStorage.setItem("studentGroup", mapped);
+          window.dispatchEvent(new Event("studentGroupChange"));
+        }
+      })
+      .catch((err) => console.error("Error syncing stream with DB:", err));
+  }, [studentId, isHigherSecondary]);
+
+  const pickStream = async (s: Stream) => {
     setStream(s);
     localStorage.setItem("studentGroup", s);
     // Let the sidebar (PortalLayout) update its menu immediately.
     window.dispatchEvent(new Event("studentGroupChange"));
+
+    if (studentId) {
+      const dbStream = mapStreamToDbStream(s);
+      try {
+        await fetch(`${API_BASE}/api/students/${studentId}/stream`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ stream: dbStream }),
+        });
+      } catch (err) {
+        console.error("Failed to persist stream update:", err);
+      }
+    }
   };
 
   const visible = SCIENCE_CENTERS.filter((c) => {

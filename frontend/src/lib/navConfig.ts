@@ -676,7 +676,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 // The "Science Labs & Centers" section of the sidebar swaps to match.
 // ============================================================================
 
-export type StudentGroup = "Science" | "Commerce" | "ComputerScience";
+export type StudentGroup = "Science" | "Commerce" | "ComputerScience" | "Arts" | "Vocational";
 
 // The section header label used to locate the block inside a nav config.
 const SCIENCE_SECTION_LABEL = "Science Labs & Centers";
@@ -713,6 +713,24 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
     { label: "AI & Machine Learning", href: "/student/science/ai-ml", icon: "Bot" },
     { label: "Robotics & AI Lab", href: "/student/science/robotics", icon: "Bot" },
     { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
+  ],
+  Arts: [
+    { label: "Arts Campus", href: "/student/science-campus", icon: "Sparkles" },
+    { label: "Book Library", href: "/student/science-library", icon: "BookOpen" },
+    { label: "Geography & Mapping", href: "/student/science/geography-lab", icon: "Globe" },
+    { label: "History & Heritage Hub", href: "/student/science/history-hub", icon: "Landmark" },
+    { label: "Civics & Politics Lab", href: "/student/science/civics-hub", icon: "Scale" },
+    { label: "Economics Data Center", href: "/student/science/economics", icon: "TrendingUp" },
+    { label: "Career Guidance", href: "/student/career", icon: "Compass" },
+  ],
+  Vocational: [
+    { label: "Vocational Campus", href: "/student/science-campus", icon: "Sparkles" },
+    { label: "Book Library", href: "/student/science-library", icon: "BookOpen" },
+    { label: "Trades & Tech Hub", href: "/student/science/vocational-campus", icon: "Wrench" },
+    { label: "Basic Electrical Lab", href: "/student/science/electrical-lab", icon: "Zap" },
+    { label: "Agriculture Lab", href: "/student/science/agriculture-lab", icon: "Sprout" },
+    { label: "Office & Web Design", href: "/student/science/office-mgmt", icon: "Award" },
+    { label: "Career Guidance", href: "/student/career", icon: "Compass" },
   ],
 };
 
