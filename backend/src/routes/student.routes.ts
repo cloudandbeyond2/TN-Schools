@@ -1108,7 +1108,10 @@ router.get('/:studentId/dashboard-summary', async (req: Request, res: Response) 
       "Mathematics": { icon: "📐", color: "#6366f1" },
       "Computer Science": { icon: "💻", color: "#8b5cf6" },
       "Accountancy": { icon: "📈", color: "#f59e0b" },
-      "Economics": { icon: "🏛️", color: "#f43f5e" }
+      "Economics": { icon: "🏛️", color: "#f43f5e" },
+      "Basic Electrical": { icon: "🔌", color: "#06b6d4" },
+      "Agriculture Science": { icon: "🌱", color: "#10b981" },
+      "Office Management": { icon: "💼", color: "#f59e0b" }
     };
 
     const calculatedSubjects: any[] = [];
@@ -1142,7 +1145,8 @@ router.get('/:studentId/dashboard-summary', async (req: Request, res: Response) 
         "Pure Science & Bio": ["Physics", "Chemistry", "Biology", "Mathematics"],
         "Computer Science & Math": ["Physics", "Chemistry", "Computer Science", "Mathematics"],
         "Commerce & Accountancy": ["Accountancy", "Commerce", "Economics", "Mathematics"],
-        "Arts & Humanities": ["History", "Geography", "Political Science", "Economics"]
+        "Arts & Humanities": ["History", "Geography", "Political Science", "Economics"],
+        "Vocational Education": ["Basic Electrical", "Agriculture Science", "Office Management", "Computer Science"]
       };
       const subs = defaultSubjects[stream] || defaultSubjects["Pure Science & Bio"];
       subs.forEach(name => {
@@ -1189,6 +1193,43 @@ router.get('/:studentId/dashboard-summary', async (req: Request, res: Response) 
     });
   } catch (err) {
     console.error('Error getting student dashboard summary:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+/* ------------------- PUT UPDATE STREAM FOR STUDENT ------------------- */
+router.put('/:studentId/stream', async (req: Request, res: Response) => {
+  try {
+    const { studentId } = req.params;
+    const { stream } = req.body;
+
+    if (!stream) {
+      return res.status(400).json({ success: false, error: 'Stream is required' });
+    }
+
+    // 1. Update Student group/stream in Student model
+    const student = await prisma.student.update({
+      where: { id: studentId },
+      data: { group: stream }
+    });
+
+    // 2. Upsert/update Portfolio stream
+    await prisma.portfolio.upsert({
+      where: { studentId },
+      update: { stream },
+      create: { studentId, bio: "Welcome to my digital portfolio!", stream }
+    });
+
+    res.json({
+      success: true,
+      message: 'Student stream updated successfully',
+      data: {
+        studentId,
+        stream
+      }
+    });
+  } catch (err) {
+    console.error('Error updating student stream:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });

@@ -635,7 +635,7 @@ export default function ScholarshipTrackingHub({
                                 📋 {t("Required Documents:", "தேவையான ஆவணங்கள்:")}
                               </span>
                               <div className="flex flex-wrap gap-1.5">
-                                {t(s.documents, s.documentsTA).map((doc, dIdx) => (
+                                {(lang === "EN" ? s.documents : s.documentsTA).map((doc, dIdx) => (
                                   <span key={dIdx} className="text-[8px] px-2 py-0.5 bg-slate-900 border border-slate-850 rounded text-slate-400 font-medium">
                                     {doc}
                                   </span>
