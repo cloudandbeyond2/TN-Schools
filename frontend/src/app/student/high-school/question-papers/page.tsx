@@ -1,0 +1,257 @@
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import PortalLayout from "@/components/PortalLayout";
+import { useSession } from "next-auth/react";
+import { FileText, Download, Clock, Filter, Award, Sparkles } from "lucide-react";
+
+const getApiBase = () => {
+  let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  if (url && !url.startsWith("http://") && !url.startsWith("https://")) {
+    url = `https://${url}`;
+  }
+  return url;
+};
+
+const API_BASE = getApiBase();
+
+const SUBJECTS = ["All", "Tamil", "English", "Mathematics", "Science", "Social Science"];
+const PAPER_TYPES = ["All", "Board", "Model", "Quarterly", "Half-Yearly", "Annual"];
+
+const SUBJECT_COLORS: Record<string, string> = {
+  Tamil: "#f59e0b",
+  English: "#10b981",
+  Mathematics: "#ef4444",
+  Science: "#3b82f6",
+  "Social Science": "#8b5cf6",
+};
+
+// Sample library shown until teachers upload real papers.
+const FALLBACK_PAPERS = [
+  { _id: "f1", class: "10", subject: "Mathematics", year: "2024", paperType: "Board", title: "SSLC Mathematics Public Exam 2024", durationMinutes: 180, maxMarks: 100, downloads: 128 },
+  { _id: "f2", class: "10", subject: "Science", year: "2024", paperType: "Board", title: "SSLC Science Public Exam 2024", durationMinutes: 180, maxMarks: 100, downloads: 96 },
+  { _id: "f3", class: "10", subject: "Tamil", year: "2023", paperType: "Board", title: "SSLC Tamil Public Exam 2023", durationMinutes: 180, maxMarks: 100, downloads: 87 },
+  { _id: "f4", class: "10", subject: "English", year: "2023", paperType: "Board", title: "SSLC English Public Exam 2023", durationMinutes: 180, maxMarks: 100, downloads: 74 },
+  { _id: "f5", class: "10", subject: "Social Science", year: "2024", paperType: "Model", title: "PTA Model Paper — Social Science", durationMinutes: 180, maxMarks: 100, downloads: 51 },
+  { _id: "f6", class: "9", subject: "Mathematics", year: "2024", paperType: "Annual", title: "Class 9 Mathematics Annual Exam 2024", durationMinutes: 150, maxMarks: 100, downloads: 42 },
+  { _id: "f7", class: "9", subject: "Science", year: "2024", paperType: "Half-Yearly", title: "Class 9 Science Half-Yearly 2024", durationMinutes: 150, maxMarks: 100, downloads: 35 },
+];
+
+export default function QuestionPapersPage() {
+  const { data: session } = useSession();
+  const [student, setStudent] = useState<any>(null);
+  const [papers, setPapers] = useState<any[]>([]);
+  const [selectedGrade, setSelectedGrade] = useState<"9" | "10">("10");
+  const [subjectFilter, setSubjectFilter] = useState("All");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [usingFallback, setUsingFallback] = useState(false);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/students`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data.length > 0) {
+          const myStudent = (session?.user as any)?.id
+            ? json.data.find((s: any) => s.userId === (session?.user as any)?.id)
+            : null;
+          const matched = myStudent || json.data[0];
+          setStudent(matched);
+          if (matched && String(matched.class) === "9") setSelectedGrade("9");
+        }
+      })
+      .catch((err) => console.error(err));
+  }, [session]);
+
+  useEffect(() => {
+    setLoading(true);
+    const params = new URLSearchParams({ class: selectedGrade });
+    if (student?.schoolId) params.set("schoolId", student.schoolId);
+    fetch(`${API_BASE}/api/sslc-prep/papers?${params.toString()}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data.length > 0) {
+          setPapers(json.data);
+          setUsingFallback(false);
+        } else {
+          setPapers(FALLBACK_PAPERS.filter((p) => p.class === selectedGrade));
+          setUsingFallback(true);
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        setPapers(FALLBACK_PAPERS.filter((p) => p.class === selectedGrade));
+        setUsingFallback(true);
+        setLoading(false);
+      });
+  }, [student, selectedGrade]);
+
+  const visiblePapers = useMemo(
+    () =>
+      papers.filter(
+        (p) =>
+          (subjectFilter === "All" || p.subject === subjectFilter) &&
+          (typeFilter === "All" || p.paperType === typeFilter)
+      ),
+    [papers, subjectFilter, typeFilter]
+  );
+
+  const years = useMemo(
+    () => Array.from(new Set(visiblePapers.map((p) => p.year))).sort().reverse(),
+    [visiblePapers]
+  );
+
+  const handleOpen = (paper: any) => {
+    if (!usingFallback) {
+      fetch(`${API_BASE}/api/sslc-prep/papers/${paper._id}/download`, { method: "POST" }).catch(() => {});
+      setPapers((prev) =>
+        prev.map((p) => (p._id === paper._id ? { ...p, downloads: (p.downloads || 0) + 1 } : p))
+      );
+    }
+    if (paper.fileUrl) window.open(paper.fileUrl, "_blank");
+  };
+
+  return (
+    <PortalLayout
+      title="Previous Question Papers"
+      subtitle="Board and model exam papers — the fastest way to learn the exam pattern."
+    >
+      {/* Stats strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
+        {[
+          { label: "Papers Available", value: String(visiblePapers.length), icon: FileText, color: "text-red-400" },
+          { label: "Years Covered", value: String(years.length), icon: Clock, color: "text-blue-400" },
+          { label: "Subjects", value: String(new Set(visiblePapers.map((p) => p.subject)).size), icon: Award, color: "text-emerald-400" },
+          { label: "Total Opens", value: String(visiblePapers.reduce((s, p) => s + (p.downloads || 0), 0)), icon: Download, color: "text-purple-400" },
+        ].map((kpi) => (
+          <div key={kpi.label} className="kpi-card border border-slate-700">
+            <kpi.icon className={`h-5 w-5 ${kpi.color} mb-2`} />
+            <div className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</div>
+            <div className="text-xs text-slate-400 mt-1">{kpi.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="glass rounded-2xl p-4 mb-6 border border-slate-700/50 flex flex-col lg:flex-row lg:items-center gap-4">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+          <Filter className="w-4 h-4" /> Filters
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {SUBJECTS.map((s) => (
+            <button
+              key={s}
+              onClick={() => setSubjectFilter(s)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                subjectFilter === s
+                  ? "bg-red-500 border-red-500 text-white"
+                  : "bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white"
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2 lg:ml-auto items-center">
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-red-500/50"
+          >
+            {PAPER_TYPES.map((t) => (
+              <option key={t} value={t}>{t === "All" ? "All Paper Types" : t}</option>
+            ))}
+          </select>
+          <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700">
+            {(["9", "10"] as const).map((g) => (
+              <button
+                key={g}
+                onClick={() => setSelectedGrade(g)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  selectedGrade === g ? "bg-red-500 text-white" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Class {g}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {usingFallback && (
+        <div className="mb-6 text-xs text-amber-300/90 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 flex items-center gap-2">
+          <Sparkles className="w-4 h-4 shrink-0" />
+          Showing the sample paper library — papers uploaded by your teachers will appear here automatically.
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500" />
+        </div>
+      ) : years.length === 0 ? (
+        <div className="glass rounded-2xl p-10 border border-slate-700/50 text-center">
+          <FileText className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+          <p className="text-slate-400 text-sm">No question papers match these filters yet.</p>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {years.map((year) => (
+            <div key={year} className="fade-in">
+              <div className="flex items-center gap-3 mb-4">
+                <h3 className="text-lg font-bold text-white">{year}</h3>
+                <div className="flex-1 h-px bg-slate-700/60" />
+                <span className="text-xs text-slate-500">
+                  {visiblePapers.filter((p) => p.year === year).length} papers
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {visiblePapers
+                  .filter((p) => p.year === year)
+                  .map((paper) => {
+                    const color = SUBJECT_COLORS[paper.subject] || "#ef4444";
+                    return (
+                      <div
+                        key={paper._id}
+                        className="glass rounded-2xl p-5 border border-slate-700/50 hover:border-red-500/50 hover:-translate-y-1 transition-all group flex flex-col"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center"
+                            style={{ backgroundColor: `${color}22`, border: `1px solid ${color}55` }}
+                          >
+                            <FileText className="w-5 h-5" style={{ color }} />
+                          </div>
+                          <span
+                            className="text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider"
+                            style={{ backgroundColor: `${color}22`, color }}
+                          >
+                            {paper.paperType}
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-bold text-white mb-1 leading-snug">{paper.title}</h4>
+                        <p className="text-[11px] text-slate-500 mb-4">
+                          {paper.subject} · {paper.durationMinutes} min · {paper.maxMarks} marks
+                        </p>
+                        <div className="mt-auto flex items-center justify-between">
+                          <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                            <Download className="w-3 h-3" /> {paper.downloads || 0} opens
+                          </span>
+                          <button
+                            onClick={() => handleOpen(paper)}
+                            className="text-xs font-bold px-4 py-2 rounded-lg bg-slate-800 text-slate-300 group-hover:bg-red-500/20 group-hover:text-red-300 border border-transparent group-hover:border-red-500/40 transition-colors"
+                          >
+                            {paper.fileUrl ? "Open Paper" : "View Details"}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </PortalLayout>
+  );
+}

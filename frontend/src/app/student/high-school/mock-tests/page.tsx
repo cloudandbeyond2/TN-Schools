@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { BookOpen, Clock, FileText, CheckCircle, Play, ArrowLeft, Award, HelpCircle, ShieldAlert, Globe } from "lucide-react";
 import Swal from "sweetalert2";
+import { useSession } from "next-auth/react";
 
 interface MockTest {
   id: string;
+  sslcId?: string; // set for teacher-published tests served by /api/sslc-prep (graded server-side)
   title: string;
   subject: string;
   duration: number; // in minutes
@@ -151,6 +153,8 @@ const mockTestsData: MockTest[] = [
 ];
 
 export default function MockTestsPage() {
+  const { data: session } = useSession();
+  const [student, setStudent] = useState<any>(null);
   const [selectedSubject, setSelectedSubject] = useState("All");
   const [activeTest, setActiveTest] = useState<MockTest | null>(null);
   
@@ -168,9 +172,66 @@ export default function MockTestsPage() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+  // Resolve the logged-in student (needed to record attempts against their profile)
+  useEffect(() => {
+    fetch(`${API_URL}/api/students`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data.length > 0) {
+          const myStudent = (session?.user as any)?.id
+            ? json.data.find((s: any) => s.userId === (session?.user as any)?.id)
+            : null;
+          setStudent(myStudent || json.data[0]);
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
+
+  // Teacher-published SSLC mock tests (answer keys are stripped by the server;
+  // these tests are graded server-side when submitted).
+  const fetchSSLCTests = async (): Promise<MockTest[]> => {
+    try {
+      const params = new URLSearchParams();
+      if (student?.class === "9" || student?.class === 9) params.set("class", "9");
+      else params.set("class", "10");
+      if (student?.schoolId) params.set("schoolId", student.schoolId);
+      const res = await fetch(`${API_URL}/api/sslc-prep/mock-tests?${params.toString()}`);
+      const data = await res.json();
+      if (!data.success || !Array.isArray(data.data)) return [];
+      return data.data.map((t: any) => ({
+        id: `sslc-${t._id}`,
+        sslcId: String(t._id),
+        title: t.title,
+        subject: t.subject,
+        duration: t.durationMinutes || 180,
+        totalMarks: t.totalMarks || 100,
+        questionCount: t.questionCount || (t.questions || []).length,
+        difficulty: t.difficulty || "Medium",
+        questions: (t.questions || []).map((q: any) => ({
+          id: q.qid,
+          type: q.type,
+          text: q.text,
+          options: q.options,
+          answer: q.answer || "",
+          marks: q.marks || 1,
+        })),
+      }));
+    } catch {
+      return [];
+    }
+  };
+
   const fetchLiveMockTests = async () => {
     try {
       setLoading(true);
+      const sslcTests = await fetchSSLCTests();
+      if (sslcTests.length > 0) {
+        setDbTests((prev) => {
+          const legacy = prev.filter((t) => !t.sslcId);
+          return [...sslcTests, ...legacy];
+        });
+      }
       const res = await fetch(`${API_URL}/api/teacher/questions?grade=Grade 10`);
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
@@ -209,7 +270,10 @@ export default function MockTestsPage() {
           return acc;
         }, {});
         
-        setDbTests(Object.values(grouped));
+        setDbTests((prev) => {
+          const sslc = prev.filter((t) => t.sslcId);
+          return [...sslc, ...(Object.values(grouped) as MockTest[])];
+        });
       }
     } catch (err) {
       console.error("Error loading live mock exams:", err);
@@ -220,9 +284,10 @@ export default function MockTestsPage() {
 
   useEffect(() => {
     fetchLiveMockTests();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [student]);
 
-  const subjects = ["All", "Mathematics", "Science", "Social Science"];
+  const subjects = ["All", "Tamil", "English", "Mathematics", "Science", "Social Science"];
 
   const allAvailableTests = [...dbTests, ...mockTestsData];
   const filteredTests = selectedSubject === "All" 
@@ -273,14 +338,52 @@ export default function MockTestsPage() {
     setAnswers(prev => ({ ...prev, [qId]: val }));
   };
 
-  const handleFinishTest = () => {
+  const handleFinishTest = async () => {
     if (!activeTest) return;
+
+    // Teacher-published SSLC tests are graded on the server (answer keys
+    // are never sent to the browser). Short answers use a self-evaluation
+    // heuristic consistent with the local simulator.
+    if (activeTest.sslcId) {
+      const selfMarks: Record<string, number> = {};
+      activeTest.questions.forEach((q) => {
+        if (q.type !== "mcq") {
+          selfMarks[q.id] = (answers[q.id] || "").trim().length > 10 ? q.marks : 0;
+        }
+      });
+      try {
+        const res = await fetch(`${API_URL}/api/sslc-prep/mock-tests/${activeTest.sslcId}/attempts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            studentId: student?.id || (session?.user as any)?.id,
+            answers,
+            selfMarks,
+          }),
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          setScore(data.data.score);
+          setTestFinished(true);
+          Swal.fire({
+            title: "Exam Submitted!",
+            text: `You scored ${data.data.score} out of ${data.data.maxScore} Marks (${data.data.percentage}%). Your attempt has been recorded for your teacher.`,
+            icon: "success",
+            confirmButtonColor: "#3b82f6"
+          });
+          return;
+        }
+      } catch (err) {
+        console.error("Server grading failed, falling back to local scoring:", err);
+      }
+    }
+
     let computedScore = 0;
     activeTest.questions.forEach(q => {
       if (q.type === "mcq") {
         const studentAns = (answers[q.id] || "").toUpperCase().trim();
-        const correctAns = q.answer.toUpperCase().trim().charAt(0);
-        if (studentAns === correctAns) {
+        const correctAns = (q.answer || "").toUpperCase().trim().charAt(0);
+        if (correctAns && studentAns === correctAns) {
           computedScore += q.marks;
         }
       } else {
@@ -499,13 +602,14 @@ export default function MockTestsPage() {
               const longQuestions = activeTest.questions.filter(q => q.type !== 'mcq' && q.marks >= 5);
 
               const renderQuestion = (q: any, idx: number, globalIdx: number) => {
-                const isCorrect = q.type === 'mcq' && answers[q.id] === q.answer.trim().charAt(0);
+                const hasKey = !!(q.answer || "").trim();
+                const isCorrect = q.type === 'mcq' && hasKey && answers[q.id] === (q.answer || "").trim().charAt(0);
                 return (
                   <div
                     key={q.id}
                     className={`bg-[var(--bg-card)] border-2 rounded-2xl p-5 md:p-6 transition-all ${
                       testFinished
-                        ? q.type === 'mcq'
+                        ? q.type === 'mcq' && hasKey
                           ? isCorrect
                             ? 'border-emerald-200 dark:border-emerald-950 bg-emerald-500/5'
                             : 'border-rose-200 dark:border-rose-950 bg-rose-500/5'
@@ -530,7 +634,7 @@ export default function MockTestsPage() {
                         {q.options.map((opt: string, optIdx: number) => {
                           const optionLetter = opt.trim().charAt(0);
                           const isSelected = answers[q.id] === optionLetter;
-                          const isOptionCorrect = q.answer.trim().charAt(0) === optionLetter;
+                          const isOptionCorrect = hasKey && (q.answer || "").trim().charAt(0) === optionLetter;
 
                           return (
                             <button
@@ -567,7 +671,7 @@ export default function MockTestsPage() {
                           placeholder={t.typeHere}
                           className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all resize-none"
                         />
-                        {testFinished && (
+                        {testFinished && hasKey && (
                           <div className="mt-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
                             <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">{t.modelKey}</span>
                             <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed italic">"{q.answer}"</p>

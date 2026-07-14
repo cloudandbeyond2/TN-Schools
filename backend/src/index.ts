@@ -75,6 +75,7 @@ import superadminAcademicsRoutes from './routes/superadmin.academics.routes';
 import hierarchyRoutes from './routes/hierarchy.routes';
 import ministerRoutes from './routes/minister.routes';
 import commissionerRoutes from './routes/commissioner.routes';
+import sslcPrepRoutes from './routes/sslcPrep.routes';
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
 
@@ -116,6 +117,7 @@ app.options("*", cors());
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   contentSecurityPolicy: false,
+  frameguard: false,
 }));
 
 // ─── Rate Limiting ───────────────────────────────────────────────
@@ -220,6 +222,7 @@ app.use('/api/superadmin/academics', superadminAcademicsRoutes);
 app.use('/api/hierarchy', hierarchyRoutes);
 app.use('/api/minister', ministerRoutes);
 app.use('/api/commissioner', commissionerRoutes);
+app.use('/api/sslc-prep', sslcPrepRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
