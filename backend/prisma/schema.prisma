@@ -294,6 +294,20 @@ model MidDayMeal {
   @@index([recordedByUserId])
 }
 
+model Reward {
+  id        String   @id @default(uuid())
+  schoolId  String
+  title     String
+  recipient String
+  category  String   // "School Award", "Student Medal", "Teacher Recognition"
+  date      String   // Year, e.g. "2026"
+  citation  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+}
+
 model SchoolAsset {
   id               String    @id @default(uuid())
   schoolId         String
