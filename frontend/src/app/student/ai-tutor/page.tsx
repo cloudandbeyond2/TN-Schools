@@ -49,6 +49,7 @@ export default function AITutorPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
   const [showSidebar, setShowSidebar] = useState(false);
+  const [isChatPoppedOut, setIsChatPoppedOut] = useState(false);
 
   // History list
   const [pastSessions, setPastSessions] = useState<SavedSession[]>([]);
@@ -313,36 +314,90 @@ export default function AITutorPage() {
                   {language === "bilingual" ? "Tamil + English" : language === "tamil" ? "Tamil" : "English"}
                 </div>
               </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsChatPoppedOut(true)}
+                className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-white font-bold text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"
+                title="Pop out chat to extended readable view"
+              >
+                <Sliders className="w-3.5 h-3.5" /> Pop out
+              </button>
+              <span className="badge badge-blue text-[9px] sm:text-xs flex-shrink-0">Active</span>
             </div>
-            <span className="badge badge-blue text-[9px] sm:text-xs flex-shrink-0">Active</span>
-          </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-            {messages.map((msg, i) => (
-              <div key={i} className={`flex gap-2 sm:gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                {msg.role === "assistant" && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Bot className="w-4.5 h-4.5 text-white" />
+          {(() => {
+            const parseBoldText = (text: string) => {
+              if (!text) return "";
+              const parts = text.split(/(\*\*[^*]+\*\*)/g);
+              return parts.map((part, idx) => {
+                if (part.startsWith("**") && part.endsWith("**")) {
+                  return <strong key={idx} className="font-extrabold text-white dark:text-slate-100">{part.slice(2, -2)}</strong>;
+                }
+                return part;
+              });
+            };
+
+            const renderMarkdownMessage = (content: string) => {
+              if (!content) return null;
+              const lines = content.split("\n");
+              return lines.map((line, lineIdx) => {
+                // Heading check (## Heading or ### Heading)
+                if (line.startsWith("## ") || line.startsWith("### ")) {
+                  const headingText = line.replace(/^#{2,3}\s+/, "");
+                  return (
+                    <h4 key={lineIdx} className="font-extrabold text-sm sm:text-base mt-3 mb-1 text-white dark:text-slate-100">
+                      {parseBoldText(headingText)}
+                    </h4>
+                  );
+                }
+                // Bullet list check (* item or - item)
+                if (line.trim().startsWith("* ") || line.trim().startsWith("- ")) {
+                  const listText = line.replace(/^\s*[\*\-]\s+/, "");
+                  return (
+                    <div key={lineIdx} className="flex items-start gap-1.5 ml-2 my-1">
+                      <span className="text-slate-400 mt-1.5 shrink-0 select-none text-[8px]">•</span>
+                      <span className="flex-1">{parseBoldText(listText)}</span>
+                    </div>
+                  );
+                }
+                // Regular paragraph
+                return (
+                  <p key={lineIdx} className="my-1.5 leading-relaxed break-words">
+                    {parseBoldText(line)}
+                  </p>
+                );
+              });
+            };
+
+            return (
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+                {messages.map((msg, i) => (
+                  <div key={i} className={`flex gap-2 sm:gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    {msg.role === "assistant" && (
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Bot className="w-4.5 h-4.5 text-white" />
+                      </div>
+                    )}
+                    <div
+                      className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm leading-relaxed ${
+                        msg.role === "user"
+                          ? "bg-indigo-600 text-white rounded-tr-sm"
+                          : "bg-slate-800 text-slate-200 rounded-tl-sm border border-slate-700"
+                      }`}
+                    >
+                      {renderMarkdownMessage(msg.content)}
+                    </div>
+                    {msg.role === "user" && (
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-xs sm:text-sm font-bold text-white flex-shrink-0 mt-0.5">
+                        A
+                      </div>
+                    )}
                   </div>
-                )}
-                <div
-                  className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-indigo-600 text-white rounded-tr-sm"
-                      : "bg-slate-800 text-slate-200 rounded-tl-sm border border-slate-700"
-                  }`}
-                  style={{ whiteSpace: "pre-line" }}
-                >
-                  {msg.content}
-                </div>
-                {msg.role === "user" && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-xs sm:text-sm font-bold text-white flex-shrink-0 mt-0.5">
-                    A
-                  </div>
-                )}
+                ))}
               </div>
-            ))}
+            );
+          })()}
 
             {/* Typing indicator */}
             {isTyping && (
@@ -395,6 +450,136 @@ export default function AITutorPage() {
           </div>
         </div>
       </div>
+
+      {/* ───── Popped out Extended Student AI Tutor Chat Modal ───── */}
+      {isChatPoppedOut && (
+        <div className="fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-200">
+          <div className="w-full max-w-4xl h-[85vh] rounded-[2rem] bg-slate-900 border border-slate-800 shadow-2xl flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+                  <Bot className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-base text-white">
+                    AI Tutor <span className="text-xs font-normal text-slate-500 ml-1.5">(Extended View)</span>
+                  </h3>
+                  <div className="text-xs text-slate-500 flex items-center gap-1.5">
+                    <span className="pulse-dot w-2 h-2" /> Active · {selectedSubject}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsChatPoppedOut(false)}
+                className="px-4 py-2 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 border border-slate-700/60 transition-transform active:scale-95"
+              >
+                <X className="w-4 h-4" /> Close
+              </button>
+            </div>
+
+            {/* Modal Message Stream */}
+            {(() => {
+              const parseBoldText = (text: string) => {
+                if (!text) return "";
+                const parts = text.split(/(\*\*[^*]+\*\*)/g);
+                return parts.map((part, idx) => {
+                  if (part.startsWith("**") && part.endsWith("**")) {
+                    return <strong key={idx} className="font-extrabold text-white">{part.slice(2, -2)}</strong>;
+                  }
+                  return part;
+                });
+              };
+
+              const renderMarkdownMessage = (content: string) => {
+                if (!content) return null;
+                const lines = content.split("\n");
+                return lines.map((line, lineIdx) => {
+                  if (line.startsWith("## ") || line.startsWith("### ")) {
+                    const headingText = line.replace(/^#{2,3}\s+/, "");
+                    return (
+                      <h4 key={lineIdx} className="font-extrabold text-base sm:text-lg mt-4 mb-2 text-white">
+                        {parseBoldText(headingText)}
+                      </h4>
+                    );
+                  }
+                  if (line.trim().startsWith("* ") || line.trim().startsWith("- ")) {
+                    const listText = line.replace(/^\s*[\*\-]\s+/, "");
+                    return (
+                      <div key={lineIdx} className="flex items-start gap-2 ml-3 my-1.5 text-slate-300">
+                        <span className="text-slate-500 mt-2 shrink-0 select-none text-[8px]">•</span>
+                        <span className="flex-1 text-sm sm:text-base">{parseBoldText(listText)}</span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <p key={lineIdx} className="my-2 leading-relaxed break-words text-slate-300 text-sm sm:text-base">
+                      {parseBoldText(line)}
+                    </p>
+                  );
+                });
+              };
+
+              return (
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin">
+                  {messages.map((msg, i) => (
+                    <div key={i} className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                      {msg.role === "assistant" && (
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5 animate-in zoom-in">
+                          <Bot className="w-4.5 h-4.5 text-white" />
+                        </div>
+                      )}
+                      <div
+                        className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-5 py-3.5 shadow-md ${
+                          msg.role === "user"
+                            ? "bg-indigo-600 text-white rounded-tr-sm"
+                            : "bg-slate-800 text-slate-200 rounded-tl-sm border border-slate-700"
+                        }`}
+                      >
+                        {renderMarkdownMessage(msg.content)}
+                      </div>
+                    </div>
+                  ))}
+                  {isTyping && (
+                    <div className="flex gap-3 justify-start">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center flex-shrink-0 animate-pulse">
+                        <Bot className="w-4.5 h-4.5 text-white" />
+                      </div>
+                      <div className="bg-slate-800 border border-slate-700 rounded-2xl rounded-tl-sm px-5 py-4 flex gap-1.5 items-center">
+                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Modal Input Bar */}
+            <div className="p-4 border-t border-slate-800 shrink-0">
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                  placeholder="Ask anything..."
+                  className="flex-1 bg-slate-950 border border-slate-700 rounded-2xl px-5 py-4 text-base text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
+                />
+                <button
+                  onClick={sendMessage}
+                  className="px-6 py-4 rounded-2xl text-base font-semibold text-white transition-all hover:opacity-90 active:scale-95 flex-shrink-0 flex items-center gap-2"
+                  style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
+                >
+                  <span>Send</span>
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </PortalLayout>
   );
 }

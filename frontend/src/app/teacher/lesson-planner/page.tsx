@@ -7,7 +7,12 @@ import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import InteractiveInfographic from "@/components/InteractiveInfographic";
 
-const syllabusOptions = ["TN State Board (Samacheer Kalvi)", "CBSE", "ICSE"];
+const syllabusOptions = [
+  "TN State Board (Samacheer Kalvi)",
+  "TN State Board Tamil Medium",
+  "CBSE",
+  "ICSE",
+];
 const grades = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
 const sections = ["All", "A", "B", "C", "D", "E"];
 
@@ -104,6 +109,15 @@ export default function LessonPlannerPage() {
   const [topic, setTopic] = useState("Pythagoras Theorem & Trigonometry");
   const [duration, setDuration] = useState("45 Minutes");
 
+  // Content language: "tamil" = Tamil Medium priority, "english" = English mode
+  const isTamilMediumSyllabus = (s: string) => s.toLowerCase().includes("tamil medium");
+  const [contentLanguage, setContentLanguage] = useState<"tamil" | "english">("english");
+
+  // Auto-switch language when syllabus changes
+  useEffect(() => {
+    setContentLanguage(isTamilMediumSyllabus(syllabus) ? "tamil" : "english");
+  }, [syllabus]);
+
   // Fetch school configuration for valid classes
   useEffect(() => {
     if (!schoolId) return;
@@ -165,6 +179,7 @@ export default function LessonPlannerPage() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
+  const [isChatPoppedOut, setIsChatPoppedOut] = useState(false);
 
   // Publish + present state
   const [publishing, setPublishing] = useState(false);
@@ -344,6 +359,7 @@ export default function LessonPlannerPage() {
           subject,
           topic,
           duration,
+          language: contentLanguage,
           textbookContext: uploadedText || undefined
         })
       });
@@ -538,7 +554,7 @@ export default function LessonPlannerPage() {
           grade,
           messages: history,
           currentMessage: userMsg.content,
-          language: "bilingual"
+          language: contentLanguage === "tamil" ? "tamil" : "bilingual"
         })
       });
 
@@ -675,10 +691,10 @@ export default function LessonPlannerPage() {
       title="AI Lesson Studio"
       subtitle="Bilingual AI chapter sources, real-time doc chatting, and visual studio output synthesis"
     >
-      <div className={`grid grid-cols-1 xl:grid-cols-4 min-h-[calc(100vh-160px)] xl:h-[calc(100vh-160px)] rounded-2xl border ${theme.border} ${theme.bg} shadow-2xl transition-colors duration-300 relative overflow-y-auto xl:overflow-hidden`}>
+      <div className={`grid grid-cols-1 xl:grid-cols-4 xl:h-[calc(100vh-180px)] min-h-[500px] transition-colors duration-300 relative`}>
 
         {/* Sidebar (Left) */}
-        <div className={`col-span-1 flex flex-col ${theme.bgCard} border-b xl:border-b-0 xl:border-r ${theme.border} h-fit xl:h-full overflow-y-auto`}>
+        <div className={`col-span-1 flex flex-col ${theme.bgCard} border-b xl:border-b-0 xl:border-r ${theme.border} xl:h-full overflow-y-auto`}>
           <div className="flex-1 p-5 space-y-6 scrollbar-thin">
 
             {/* Generate Form */}
@@ -700,6 +716,40 @@ export default function LessonPlannerPage() {
                   >
                     {syllabusOptions.map((s) => <option key={s}>{s}</option>)}
                   </select>
+                </div>
+
+                {/* Content Language Toggle */}
+                <div>
+                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>Content Language</label>
+                  <div className={`flex rounded-xl border ${theme.border} overflow-hidden`}>
+                    <button
+                      type="button"
+                      onClick={() => setContentLanguage("tamil")}
+                      className={`flex-1 py-2 text-[11px] font-black transition-all flex items-center justify-center gap-1.5 ${
+                        contentLanguage === "tamil"
+                          ? "bg-orange-500 text-white shadow-inner"
+                          : `${theme.inputBg} ${theme.textMuted} hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600`
+                      }`}
+                    >
+                      <span className="text-base leading-none">அ</span> Tamil
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setContentLanguage("english")}
+                      className={`flex-1 py-2 text-[11px] font-black transition-all flex items-center justify-center gap-1.5 ${
+                        contentLanguage === "english"
+                          ? "bg-sky-500 text-white shadow-inner"
+                          : `${theme.inputBg} ${theme.textMuted} hover:bg-sky-50 dark:hover:bg-sky-500/10 hover:text-sky-600`
+                      }`}
+                    >
+                      <span className="text-base leading-none">A</span> English
+                    </button>
+                  </div>
+                  <p className={`text-[9px] ${theme.textMuted} mt-1.5`}>
+                    {contentLanguage === "tamil"
+                      ? "AI will generate primary content in Tamil"
+                      : "AI will generate content in English + Tamil translations"}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -882,7 +932,7 @@ export default function LessonPlannerPage() {
         </div>
 
         {/* Main Content Area */}
-        <div className="col-span-1 xl:col-span-3 flex flex-col h-full overflow-hidden relative">
+        <div className="col-span-1 xl:col-span-3 flex flex-col xl:h-full overflow-hidden relative">
 
           {/* Top Navbar */}
           <div className={`h-16 border-b ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl flex items-center justify-between px-4 xl:px-6 shrink-0 z-10`}>
@@ -952,7 +1002,7 @@ export default function LessonPlannerPage() {
           </div>
 
           {/* Main Stage */}
-          <div className="flex-1 overflow-y-auto p-4 xl:p-8 scrollbar-thin relative">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 xl:p-6 scrollbar-thin relative">
             {isGenerating ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className={`max-w-md w-full p-8 rounded-3xl border ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center text-center`}>
@@ -1168,29 +1218,88 @@ export default function LessonPlannerPage() {
                           <p className="text-[11px] text-[#00a884] font-medium">Online</p>
                         </div>
                       </div>
+                      <button
+                        onClick={() => setIsChatPoppedOut(true)}
+                        className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 font-black text-[9px] uppercase tracking-wider transition-all hover:scale-105 shadow-sm ${
+                          isDarkMode
+                            ? "bg-[#2a3942] border-[#374248] text-white hover:bg-slate-700"
+                            : "bg-white border-[#d1d7db] text-slate-700 hover:bg-slate-50"
+                        }`}
+                        title="Pop out chat to extended readable view"
+                      >
+                        <i className="fi fi-sr-expand leading-none" /> Pop out
+                      </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin">
-                      {chatMessages.map((msg, i) => (
-                        <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                          <div className={`max-w-[85%] xl:max-w-[75%] px-4 py-2 text-[14px] leading-relaxed shadow-sm ${msg.role === "user"
-                            ? `${isDarkMode ? 'bg-[#005c4b] text-[#e9edef]' : 'bg-[#d9fdd3] text-[#111b21]'} rounded-2xl rounded-tr-sm`
-                            : `${isDarkMode ? 'bg-[#202c33] text-[#e9edef]' : 'bg-white text-[#111b21]'} rounded-2xl rounded-tl-sm`
-                            }`} style={{ whiteSpace: "pre-line" }}>
-                            {msg.content}
-                          </div>
+                    {/* Helper to parse basic markdown (**bold**, ## heading, list bullets) */}
+                    {(() => {
+                      const parseBoldText = (text: string) => {
+                        if (!text) return "";
+                        const parts = text.split(/(\*\*[^*]+\*\*)/g);
+                        return parts.map((part, idx) => {
+                          if (part.startsWith("**") && part.endsWith("**")) {
+                            return <strong key={idx} className="font-extrabold text-slate-900 dark:text-white">{part.slice(2, -2)}</strong>;
+                          }
+                          return part;
+                        });
+                      };
+
+                      const renderMarkdownMessage = (content: string) => {
+                        if (!content) return null;
+                        const lines = content.split("\n");
+                        return lines.map((line, lineIdx) => {
+                          // Heading check (## Heading or ### Heading)
+                          if (line.startsWith("## ") || line.startsWith("### ")) {
+                            const headingText = line.replace(/^#{2,3}\s+/, "");
+                            return (
+                              <h4 key={lineIdx} className="font-extrabold text-sm mt-3 mb-1 text-slate-900 dark:text-slate-100">
+                                {parseBoldText(headingText)}
+                              </h4>
+                            );
+                          }
+                          // Bullet list check (* item or - item)
+                          if (line.trim().startsWith("* ") || line.trim().startsWith("- ")) {
+                            const listText = line.replace(/^\s*[\*\-]\s+/, "");
+                            return (
+                              <div key={lineIdx} className="flex items-start gap-1.5 ml-2 my-1">
+                                <span className="text-slate-400 mt-1.5 shrink-0 select-none text-[8px]">•</span>
+                                <span className="flex-1">{parseBoldText(listText)}</span>
+                              </div>
+                            );
+                          }
+                          // Regular paragraph
+                          return (
+                            <p key={lineIdx} className="my-1.5 leading-relaxed break-words">
+                              {parseBoldText(line)}
+                            </p>
+                          );
+                        });
+                      };
+
+                      return (
+                        <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin">
+                          {chatMessages.map((msg, i) => (
+                            <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                              <div className={`max-w-[85%] xl:max-w-[75%] px-4 py-2 text-[14px] leading-relaxed shadow-sm ${msg.role === "user"
+                                ? `${isDarkMode ? 'bg-[#005c4b] text-[#e9edef]' : 'bg-[#d9fdd3] text-[#111b21]'} rounded-2xl rounded-tr-sm`
+                                : `${isDarkMode ? 'bg-[#202c33] text-[#e9edef]' : 'bg-white text-[#111b21]'} rounded-2xl rounded-tl-sm`
+                                }`}>
+                                {renderMarkdownMessage(msg.content)}
+                              </div>
+                            </div>
+                          ))}
+                          {chatLoading && (
+                            <div className="flex justify-start">
+                              <div className={`px-4 py-3 rounded-2xl rounded-tl-sm text-sm ${isDarkMode ? 'bg-[#202c33]' : 'bg-white'} shadow-sm flex gap-1.5 items-center`}>
+                                <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" />
+                                <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                                <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      ))}
-                      {chatLoading && (
-                        <div className="flex justify-start">
-                          <div className={`px-4 py-3 rounded-2xl rounded-tl-sm text-sm ${isDarkMode ? 'bg-[#202c33]' : 'bg-white'} shadow-sm flex gap-1.5 items-center`}>
-                            <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" />
-                            <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-                            <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "300ms" }} />
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                      );
+                    })()}
 
                     <div className={`p-2 flex gap-2 shrink-0 items-end ${isDarkMode ? 'bg-[#202c33]' : 'bg-[#f0f2f5]'}`}>
                       <input
@@ -1323,6 +1432,137 @@ export default function LessonPlannerPage() {
             >
               Next →
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ───── Popped out Extended AI Tutor Chat Modal ───── */}
+      {isChatPoppedOut && currentPlan && (
+        <div className="fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-200">
+          <div className={`w-full max-w-4xl h-[85vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border border-opacity-50 transition-all ${
+            isDarkMode 
+              ? "bg-[#0b141a] border-[#222e35]" 
+              : "bg-[#efeae2] border-slate-200"
+          }`}>
+            {/* Modal Header */}
+            <div className={`p-4 border-b flex justify-between items-center shrink-0 ${
+              isDarkMode ? "bg-[#202c33] border-[#202c33]" : "bg-[#f0f2f5] border-[#d1d7db]"
+            }`}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-lg shadow-sm">
+                  <i className="fi fi-sr-comment-alt leading-none" />
+                </div>
+                <div>
+                  <h3 className={`font-bold text-sm sm:text-base ${isDarkMode ? "text-[#e9edef]" : "text-[#111b21]"}`}>
+                    AI Co-Teacher <span className="text-xs font-normal text-slate-400 ml-1.5">(Extended View)</span>
+                  </h3>
+                  <p className="text-[10px] sm:text-xs text-[#00a884] font-medium">Online</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsChatPoppedOut(false)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 ${
+                  isDarkMode 
+                    ? "bg-[#2a3942] text-white hover:bg-slate-700" 
+                    : "bg-white text-slate-700 hover:bg-slate-100 border border-[#d1d7db]"
+                }`}
+              >
+                <i className="fi fi-sr-cross-small leading-none" /> Close
+              </button>
+            </div>
+
+            {/* Modal Message Stream - Slightly larger text and padding for extended reading comfort */}
+            {(() => {
+              const parseBoldText = (text: string) => {
+                if (!text) return "";
+                const parts = text.split(/(\*\*[^*]+\*\*)/g);
+                return parts.map((part, idx) => {
+                  if (part.startsWith("**") && part.endsWith("**")) {
+                    return <strong key={idx} className="font-extrabold text-slate-900 dark:text-white">{part.slice(2, -2)}</strong>;
+                  }
+                  return part;
+                });
+              };
+
+              const renderMarkdownMessage = (content: string) => {
+                if (!content) return null;
+                const lines = content.split("\n");
+                return lines.map((line, lineIdx) => {
+                  if (line.startsWith("## ") || line.startsWith("### ")) {
+                    const headingText = line.replace(/^#{2,3}\s+/, "");
+                    return (
+                      <h4 key={lineIdx} className="font-extrabold text-base sm:text-lg mt-4 mb-2 text-slate-900 dark:text-slate-100">
+                        {parseBoldText(headingText)}
+                      </h4>
+                    );
+                  }
+                  if (line.trim().startsWith("* ") || line.trim().startsWith("- ")) {
+                    const listText = line.replace(/^\s*[\*\-]\s+/, "");
+                    return (
+                      <div key={lineIdx} className="flex items-start gap-2 ml-3 my-1.5">
+                        <span className="text-slate-400 mt-2 shrink-0 select-none text-[8px]">•</span>
+                        <span className="flex-1 text-sm sm:text-base">{parseBoldText(listText)}</span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <p key={lineIdx} className="my-2 leading-relaxed break-words text-sm sm:text-base">
+                      {parseBoldText(line)}
+                    </p>
+                  );
+                });
+              };
+
+              return (
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin">
+                  {chatMessages.map((msg, i) => (
+                    <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[85%] sm:max-w-[80%] px-5 py-3.5 shadow-md ${
+                        msg.role === "user"
+                          ? `${isDarkMode ? 'bg-[#005c4b] text-[#e9edef]' : 'bg-[#d9fdd3] text-[#111b21]'} rounded-2xl rounded-tr-sm`
+                          : `${isDarkMode ? 'bg-[#202c33] text-[#e9edef]' : 'bg-white text-[#111b21]'} rounded-2xl rounded-tl-sm`
+                      }`}>
+                        {renderMarkdownMessage(msg.content)}
+                      </div>
+                    </div>
+                  ))}
+                  {chatLoading && (
+                    <div className="flex justify-start">
+                      <div className={`px-5 py-4 rounded-2xl rounded-tl-sm ${isDarkMode ? 'bg-[#202c33]' : 'bg-white'} shadow-md flex gap-1.5 items-center`}>
+                        <div className="w-2.5 h-2.5 rounded-full bg-slate-400 animate-bounce" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <div className="w-2.5 h-2.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Modal Input Bar */}
+            <div className={`p-4 flex gap-3 shrink-0 items-end ${isDarkMode ? "bg-[#202c33]" : "bg-[#f0f2f5]"}`}>
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
+                placeholder="Type a message..."
+                className={`flex-1 rounded-full px-6 py-4 text-base focus:outline-none transition-shadow ${
+                  isDarkMode 
+                    ? "bg-[#2a3942] text-[#e9edef] placeholder-[#8696a0]" 
+                    : "bg-white text-[#111b21] placeholder-[#667781] border border-slate-300/40"
+                }`}
+              />
+              <button
+                onClick={handleSendChat}
+                className="w-14 h-14 rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white flex items-center justify-center shrink-0 transition-all hover:scale-105 shadow-md"
+                aria-label="Send message"
+              >
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+                  <path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       )}

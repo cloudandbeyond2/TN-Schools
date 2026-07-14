@@ -311,40 +311,112 @@ function LabDiagram({ graphicData, accent }: Pick<SlideVisualProps, "graphicData
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Real-World Applications Grid
+// Keyword → Flaticon class resolver (English + Tamil)
+// ─────────────────────────────────────────────────────────────────────────────
+function resolveAppFlaticon(text: string): string {
+  const t = text.toLowerCase();
+  if (/air|wind|breath|atmosphere|oxygen|காற்று|மூச்சு|வளிமண்டல/.test(t)) return "fi-sr-wind";
+  if (/water|liquid|ocean|river|sea|rain|நீர்|கடல்|ஆறு|மழை|திரவ/.test(t)) return "fi-sr-water";
+  if (/body|human|blood|organ|physio|உடல்|மனித|இரத்த|உடற்கூறு/.test(t)) return "fi-sr-person-simple";
+  if (/food|cook|nutri|agri|farm|crop|உணவு|சமைய|விவசாய|விளை/.test(t)) return "fi-sr-carrot";
+  if (/cloth|textile|fabric|garment|wear|ஆடை|துணி|நெசவு/.test(t)) return "fi-sr-shirt";
+  if (/medic|hospital|drug|pharma|disease|cure|மருத்துவ|மருந்து|நோய்|ஆரோக்கிய/.test(t)) return "fi-sr-hospital";
+  if (/electr|power|energy|battery|circuit|current|மின்|ஆற்றல்|சக்தி|மின்சார/.test(t)) return "fi-sr-bolt";
+  if (/industr|factory|manufactur|produc|plant|தொழிற்|உற்பத்தி/.test(t)) return "fi-sr-industry-windows";
+  if (/transport|vehicle|car|train|bus|ship|ஊர்தி|வாகன|ரயில்|பேருந்த/.test(t)) return "fi-sr-car";
+  if (/plane|aircraft|aviation|விமான/.test(t)) return "fi-sr-plane";
+  if (/space|planet|star|rocket|satellite|astrono|விண்|கோள்|விண்வெளி/.test(t)) return "fi-sr-rocket";
+  if (/comput|tech|digital|softwar|internet|ai|கணினி|தொழில்நுட்ப|மென்பொருள்/.test(t)) return "fi-sr-laptop";
+  if (/phone|mobile|communicat|signal|radio|தொலைபேசி|தொடர்பு/.test(t)) return "fi-sr-mobile";
+  if (/environment|nature|ecolog|plant|tree|forest|சுற்றுச்சூழல்|இயற்கை|மரம்|காடு/.test(t)) return "fi-sr-leaf";
+  if (/fire|heat|temperature|combust|flame|வெப்ப|தீ/.test(t)) return "fi-sr-fire";
+  if (/sound|music|vibrat|audio|ஒலி|இசை/.test(t)) return "fi-sr-music";
+  if (/light|optic|lens|vision|photo|ஒளி|காட்சி/.test(t)) return "fi-sr-brightness";
+  if (/atom|nuclear|molecul|chemi|react|அணு|மூலக்கூறு|வேதி/.test(t)) return "fi-sr-atom";
+  if (/force|gravity|motion|kinetic|mechanic|விசை|ஈர்ப்பு|இயக்க/.test(t)) return "fi-sr-target";
+  if (/magnet|electromag|காந்த/.test(t)) return "fi-sr-magnet";
+  if (/home|house|domestic|household|வீட்டு|இல்லம்/.test(t)) return "fi-sr-home";
+  if (/school|educat|learn|class|student|பள்ளி|கல்வி|மாணவர்/.test(t)) return "fi-sr-school";
+  if (/sport|exercise|fitness|game|விளையாட்ட|உடற்பயிற்சி/.test(t)) return "fi-sr-ball";
+  if (/construct|build|civil|bridge|கட்ட|கட்டிடம்|பாலம்/.test(t)) return "fi-sr-hammer";
+  if (/mining|geolog|earth|soil|rock|mineral|சுரங்க|புவி|மண்/.test(t)) return "fi-sr-mountains";
+  if (/health|wellbeing|hygiene|ஆரோக்கி|சுகாதார/.test(t)) return "fi-sr-heart-health";
+  if (/camera|photo|image|photography|புகைப்படம்/.test(t)) return "fi-sr-camera";
+  if (/paint|art|design|கலை|வண்ண/.test(t)) return "fi-sr-palette";
+  if (/book|library|study|படிப்பு|நூலக/.test(t)) return "fi-sr-book-alt";
+  if (/law|legal|court|justice|சட்ட|நீதி/.test(t)) return "fi-sr-balance-scale";
+  return "fi-sr-globe";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Real-World Applications Grid (HTML-based to support Flaticon web font icons)
 // ─────────────────────────────────────────────────────────────────────────────
 function ApplicationsGrid({ graphicData, accent }: Pick<SlideVisualProps, "graphicData" | "accent">) {
   const { pri, sec, light } = getHex(accent);
-  const textFill = accent?.from?.includes("amber") ? "#1e293b" : "white";
   const apps: string[] = graphicData?.values || ["Industrial Use", "Home Application", "Medical Field", "Transport"];
-  const icons = ["🏭", "🏠", "🏥", "🚗", "🌾", "⚡"];
+  const colors = [pri, sec, pri, sec];
+
   return (
-    <svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" className="w-full h-full rounded-2xl">
-      <rect width="320" height="220" rx="14" fill={light} />
-      <text x="160" y="20" textAnchor="middle" fontSize="10" fontWeight="800" fill={pri} fontFamily="sans-serif">🌍 REAL-WORLD APPLICATIONS</text>
-      <text x="160" y="33" textAnchor="middle" fontSize="8" fill="#64748b" fontFamily="sans-serif">நடைமுறை பயன்பாடுகள்</text>
-      {apps.slice(0, 4).map((app, i) => {
-        const col = i % 2;
-        const row = Math.floor(i / 2);
-        const x = 16 + col * 152;
-        const y = 44 + row * 84;
-        const color = i % 2 === 0 ? pri : sec;
-        return (
-          <g key={i}>
-            <rect x={x} y={y} width="138" height="72" rx="12" fill="white" stroke={color} strokeWidth="1.2" />
-            <rect x={x} y={y} width="138" height="72" rx="12" fill={color} fillOpacity="0.04" />
-            <text x={x + 20} y={y + 26} fontSize="18">{icons[i]}</text>
-            <foreignObject x={x + 40} y={y + 8} width="88" height="56">
-              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                <p style={{ margin: 0, fontSize: '7.5px', lineHeight: '1.25', color: '#334155', fontFamily: 'sans-serif', fontWeight: 'bold', textAlign: 'left', wordBreak: 'break-word', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                  {app}
-                </p>
-              </div>
-            </foreignObject>
-          </g>
-        );
-      })}
-    </svg>
+    <div className="w-full h-full flex flex-col" style={{ background: light, borderRadius: 16, overflow: 'hidden', padding: '12px 14px 12px' }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: 10 }}>
+        <span style={{ fontSize: 13, fontWeight: 900, color: pri, textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'sans-serif', display: 'block' }}>
+          🌍 Real-World Applications
+        </span>
+        <span style={{ fontSize: 11, color: '#64748b', fontFamily: 'sans-serif', display: 'block', marginTop: 2 }}>நடைமுறை பயன்பாடுகள்</span>
+      </div>
+      {/* 2×2 Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, flex: 1 }}>
+        {apps.slice(0, 4).map((app, i) => {
+          const color = colors[i];
+          const iconClass = resolveAppFlaticon(app);
+          return (
+            <div key={i} style={{
+              background: 'white',
+              borderRadius: 12,
+              border: `1.5px solid ${color}40`,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '12px 8px',
+              overflow: 'hidden',
+            }}>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: `${color}20`,
+                flexShrink: 0,
+              }}>
+                <i className={`fi ${iconClass} leading-none`} style={{ fontSize: 22, color }} />
+              </span>
+              <p style={{
+                margin: 0,
+                fontSize: '12px',
+                lineHeight: 1.3,
+                color: '#1e293b',
+                fontFamily: 'sans-serif',
+                fontWeight: 700,
+                textAlign: 'center',
+                wordBreak: 'break-word',
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                maxWidth: '100%',
+              }}>
+                {app}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

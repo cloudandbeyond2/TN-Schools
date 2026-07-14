@@ -56,6 +56,14 @@ function StudioViewContent() {
 
   const [genLoading, setGenLoading] = useState(false);
 
+  // Track whether the current slide's AI image failed to load
+  const [slideImgError, setSlideImgError] = useState(false);
+  useEffect(() => { setSlideImgError(false); }, [activeSlide]);
+
+  // Track whether the current video scene's image failed to load
+  const [videoImgError, setVideoImgError] = useState(false);
+  useEffect(() => { setVideoImgError(false); }, [videoScene]);
+
   // Sync theme with the app's chosen theme on first paint
   useEffect(() => {
     setIsDarkMode(document.documentElement.classList.contains("dark"));
@@ -364,15 +372,71 @@ function StudioViewContent() {
                   {/* Right: realistic image + infographic diagram */}
                   <div className="w-full lg:w-5/12 xl:w-2/5 shrink-0 flex flex-col gap-5">
                     <div className="relative rounded-3xl overflow-hidden border border-slate-100 shadow-inner bg-slate-100 aspect-[4/3]">
-                      <img
-                        src={pol(imgPrompt, 900, 675)}
-                        alt={slide.title}
-                        loading="lazy"
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <i className="fi fi-sr-picture leading-none" /> AI Visual
-                      </span>
+                      {!slideImgError ? (
+                        <img
+                          src={pol(imgPrompt, 900, 675)}
+                          alt={slide.title}
+                          loading="lazy"
+                          className="w-full h-full object-cover"
+                          onError={() => setSlideImgError(true)}
+                        />
+                      ) : (
+                        /* ── Rich fallback panel when Pollinations image unavailable ── */
+                        <div className={`w-full h-full flex flex-col gap-3 p-4 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100`}>
+                          {/* Header strip */}
+                          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-white bg-gradient-to-r ${accent.from} ${accent.to} shrink-0`}>
+                            <i className={`fi ${typeIcon} leading-none text-sm`} />
+                            <span className="text-[10px] font-black uppercase tracking-widest flex-1">{slide.graphicType?.replace(/_/g,' ') || 'Visual Overview'}</span>
+                            <i className="fi fi-sr-picture leading-none text-white/60 text-[9px]" />
+                          </div>
+
+                          {/* Teacher Note */}
+                          {slide.teacherNotes && (
+                            <div className="flex gap-2 p-3 rounded-xl bg-indigo-50 border border-indigo-100 shrink-0">
+                              <i className="fi fi-sr-graduation-cap text-indigo-500 text-sm leading-none mt-0.5 shrink-0" />
+                              <div className="min-w-0">
+                                <span className="block text-[8px] font-black text-indigo-500 uppercase tracking-wider mb-0.5">Teacher Note</span>
+                                <p className="text-[10px] text-slate-700 leading-relaxed font-medium break-words">{slide.teacherNotes}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Student Activity */}
+                          {slide.studentActivity && (
+                            <div className="flex gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-100 shrink-0">
+                              <i className="fi fi-sr-bulb text-emerald-500 text-sm leading-none mt-0.5 shrink-0" />
+                              <div className="min-w-0">
+                                <span className="block text-[8px] font-black text-emerald-500 uppercase tracking-wider mb-0.5">Student Activity</span>
+                                <p className="text-[10px] text-slate-700 leading-relaxed font-medium break-words">{slide.studentActivity}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Bullet icon flow — condensed */}
+                          {slide.bullets?.slice(0, 4).map((b: string, idx: number) => {
+                            const splitIdx = b.indexOf(':');
+                            const hasTitle = splitIdx > 0 && splitIdx < 50;
+                            const bTitle = hasTitle ? b.substring(0, splitIdx) : `Point ${idx + 1}`;
+                            const bDesc = hasTitle ? b.substring(splitIdx + 1).trim() : b;
+                            return (
+                              <div key={idx} className="flex items-start gap-2 px-2 py-1.5 rounded-lg bg-white border border-slate-100 shrink-0">
+                                <span className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-white text-[10px] bg-gradient-to-br ${accent.from} ${accent.to}`}>
+                                  <i className={`fi ${bulletIcons[idx % bulletIcons.length]} leading-none`} />
+                                </span>
+                                <div className="min-w-0">
+                                  <p className={`text-[9px] font-black ${accent.text} leading-none mb-0.5`}>{bTitle}</p>
+                                  <p className="text-[9px] text-slate-500 leading-snug font-medium break-words line-clamp-2">{bDesc}</p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {!slideImgError && (
+                        <span className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
+                          <i className="fi fi-sr-picture leading-none" /> AI Visual
+                        </span>
+                      )}
                     </div>
                     <div className="bg-slate-50 rounded-3xl border border-slate-100 p-5 flex-1 flex flex-col shadow-inner relative overflow-hidden min-h-[220px]">
                       <SlideVisual graphicType={slide.graphicType} graphicData={slide.graphicData} illustrationPrompt={slide.illustrationPrompt} animationSuggestion={slide.animationSuggestion} title={slide.title} subtitle={slide.subtitle} accent={accent} />
@@ -449,13 +513,50 @@ function StudioViewContent() {
                 </div>
 
                 <div className="w-full aspect-video max-w-4xl mx-auto rounded-3xl overflow-hidden relative mt-10 mb-8 group bg-slate-900 border border-slate-700/20 shadow-2xl">
-                  <img
-                    src={pol((scene?.visualDescription || "educational scene") + ", cinematic, highly detailed, 3d, beautiful educational animation style, vibrant", 1280, 720)}
-                    alt="Generated Scene"
-                    className="w-full h-full object-cover transition-transform duration-[10000ms] ease-linear scale-100 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 pt-16 flex flex-col items-center justify-end text-center pointer-events-none">
-                    <p className="text-white/90 text-sm md:text-base font-semibold max-w-2xl drop-shadow-md">{scene?.visualDescription}</p>
+                  {!videoImgError ? (
+                    <img
+                      src={pol((scene?.visualDescription || "educational scene") + ", cinematic, highly detailed, 3d, beautiful educational animation style, vibrant", 1280, 720)}
+                      alt="Generated Scene"
+                      className="w-full h-full object-cover transition-transform duration-[10000ms] ease-linear scale-100 group-hover:scale-110"
+                      onError={() => setVideoImgError(true)}
+                    />
+                  ) : (
+                    /* Cinematic fallback simulation layout */
+                    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-950 to-slate-950 flex flex-col justify-between p-6 sm:p-10 relative">
+                      {/* Video player aesthetics */}
+                      <div className="flex justify-between items-center w-full z-10 opacity-70">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-purple-300 flex items-center gap-1.5 bg-purple-950/60 px-3 py-1.5 rounded-lg border border-purple-500/20">
+                          <i className="fi fi-sr-picture leading-none" /> Visual Simulation Placeholder
+                        </span>
+                        <div className="flex items-center gap-2 text-rose-500 text-xs font-bold bg-slate-950/60 px-3 py-1.5 rounded-lg border border-rose-500/20">
+                          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping shrink-0" />
+                          LIVE SIMULATION
+                        </div>
+                      </div>
+
+                      {/* Film director style graphic cue */}
+                      <div className="flex flex-col items-center justify-center flex-1 text-center gap-4 my-auto select-none">
+                        <div className="w-20 h-20 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 text-3xl shadow-inner animate-pulse">
+                          🎬
+                        </div>
+                        <div className="max-w-md">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Visual Stage Prompt</span>
+                          <p className="text-xs text-purple-200/80 italic font-medium leading-relaxed">
+                            "{scene?.visualDescription || "No scene description available."}"
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Explicit clean borders bottom spacer */}
+                      <div className="h-6" />
+                    </div>
+                  )}
+
+                  {/* Caption Overlay - high contrast white text over black gradient strip */}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 pt-16 flex flex-col items-center justify-end text-center pointer-events-none">
+                    <p className="text-white font-bold text-sm md:text-base max-w-2xl drop-shadow-md leading-relaxed">
+                      {scene?.visualDescription}
+                    </p>
                   </div>
                 </div>
 
