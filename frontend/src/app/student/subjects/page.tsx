@@ -195,14 +195,15 @@ export default function SubjectsPage() {
                 >
                   Go to Subject →
                 </Link>
-                <button 
-                  className="p-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-black dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors tooltip-trigger relative group/btn"
+                <Link 
+                  href={`/student/ai-tutor?subject=${encodeURIComponent(subject.name)}&question=${encodeURIComponent(`Hi! Can you tutor me in ${subject.name}? I want to learn this subject.`)}`}
+                  className="p-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-black dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors tooltip-trigger relative group/btn flex items-center justify-center cursor-pointer"
                 >
                   🤖
                   <span className="absolute -top-10 right-0 md:left-1/2 md:-translate-x-1/2 bg-slate-800 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                     Ask AI Tutor
                   </span>
-                </button>
+                </Link>
               </div>
             </div>
           ))}
