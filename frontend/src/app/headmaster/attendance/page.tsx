@@ -133,6 +133,7 @@ export default function HeadmasterAttendancePage() {
   const [data, setData] = useState<StatsData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const [isMarkAllHovered, setIsMarkAllHovered] = useState<boolean>(false);
 
   // Fetch all stats
   const fetchStats = useCallback(async () => {
@@ -200,6 +201,85 @@ export default function HeadmasterAttendancePage() {
     } finally {
       setIsUpdating(null);
     }
+  };
+
+  // Batch mark all matching students as present
+  const handleMarkAllPresent = async () => {
+    if (!mySchoolId || !data?.dailyLogs) return;
+
+    // Get the list of student logs that are in the filtered view and not already PRESENT
+    const targetLogs = filteredDailyLogs.filter(log => log.status !== "PRESENT");
+    
+    if (targetLogs.length === 0) {
+      Swal.fire({
+        icon: "info",
+        title: "No students to mark",
+        text: "All matched students are already marked as PRESENT.",
+        confirmButtonColor: "#3b82f6",
+        background: "#1e293b",
+        color: "#fff"
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: "Mark All Present?",
+      text: `Do you want to mark all ${targetLogs.length} matched students as PRESENT for ${selectedDate}?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#10b981",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Yes, Mark All",
+      background: "#1e293b",
+      color: "#fff"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setIsLoading(true);
+        try {
+          const records = targetLogs.map(log => ({
+            studentId: log.studentId,
+            schoolId: mySchoolId,
+            date: selectedDate,
+            status: "PRESENT",
+            method: "Manual",
+            period: 0,
+            subject: "General"
+          }));
+
+          const res = await fetch(`${API_BASE}/api/attendance`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              records,
+              notifySMS: false
+            })
+          });
+
+          const json = await res.json();
+          if (json.success) {
+            Swal.fire({
+              toast: true,
+              position: "top-end",
+              icon: "success",
+              title: `Marked ${targetLogs.length} students as PRESENT`,
+              showConfirmButton: false,
+              timer: 2000,
+              timerProgressBar: true,
+              background: "#1e293b",
+              color: "#fff"
+            });
+            await fetchStats();
+          } else {
+            Swal.fire("Error", json.error || "Failed to update attendance records", "error");
+          }
+        } catch (err) {
+          console.error("Error bulk updating status:", err);
+          Swal.fire("Error", "Server error during bulk update", "error");
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    });
   };
 
   // Trigger absence warning SMS to parent
@@ -503,20 +583,39 @@ export default function HeadmasterAttendancePage() {
                       <p className="text-xs text-slate-400 mt-0.5">Edit status or verify daily marks. Total matched: {filteredDailyLogs.length}</p>
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-400">Status Filter:</span>
-                      <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-200 cursor-pointer focus:outline-none focus:border-blue-500"
-                      >
-                        <option value="All">All Statuses</option>
-                        <option value="PRESENT">Present</option>
-                        <option value="ABSENT">Absent</option>
-                        <option value="LATE">Late</option>
-                        <option value="LEAVE">Leave</option>
-                        <option value="UNMARKED">Unmarked</option>
-                      </select>
+                    <div className="flex flex-wrap items-center gap-3">
+                      {filteredDailyLogs.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleMarkAllPresent}
+                          onMouseEnter={() => setIsMarkAllHovered(true)}
+                          onMouseLeave={() => setIsMarkAllHovered(false)}
+                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 border border-emerald-500/20 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
+                          style={{
+                            color: isMarkAllHovered ? "#ffffff" : "#34d399",
+                            backgroundColor: isMarkAllHovered ? "#10b981" : "rgba(16, 185, 129, 0.1)"
+                          }}
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Mark All Present
+                        </button>
+                      )}
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-400">Status Filter:</span>
+                        <select
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                          className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-200 cursor-pointer focus:outline-none focus:border-blue-500"
+                        >
+                          <option value="All">All Statuses</option>
+                          <option value="PRESENT">Present</option>
+                          <option value="ABSENT">Absent</option>
+                          <option value="LATE">Late</option>
+                          <option value="LEAVE">Leave</option>
+                          <option value="UNMARKED">Unmarked</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
 
@@ -573,21 +672,21 @@ export default function HeadmasterAttendancePage() {
                                       <button
                                         onClick={() => handleStatusChange(log.studentId, "PRESENT")}
                                         disabled={log.status === "PRESENT"}
-                                        className="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500 hover:text-slate-950 text-emerald-400 rounded-lg text-[10px] font-bold transition-all border border-emerald-500/20 disabled:opacity-30 disabled:hover:bg-emerald-500/10 disabled:hover:text-emerald-400"
+                                        className="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-400 rounded-lg text-[10px] font-bold transition-all border border-emerald-500/20 disabled:opacity-30 disabled:hover:bg-emerald-500/10 disabled:hover:text-emerald-400"
                                       >
                                         Present
                                       </button>
                                       <button
                                         onClick={() => handleStatusChange(log.studentId, "ABSENT")}
                                         disabled={log.status === "ABSENT"}
-                                        className="px-2 py-1 bg-rose-500/10 hover:bg-rose-500 hover:text-slate-950 text-rose-400 rounded-lg text-[10px] font-bold transition-all border border-rose-500/20 disabled:opacity-30 disabled:hover:bg-rose-500/10 disabled:hover:text-rose-400"
+                                        className="px-2 py-1 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 rounded-lg text-[10px] font-bold transition-all border border-rose-500/20 disabled:opacity-30 disabled:hover:bg-rose-500/10 disabled:hover:text-rose-400"
                                       >
                                         Absent
                                       </button>
                                       <button
                                         onClick={() => handleStatusChange(log.studentId, "LATE")}
                                         disabled={log.status === "LATE"}
-                                        className="px-2 py-1 bg-amber-500/10 hover:bg-amber-500 hover:text-slate-950 text-amber-400 rounded-lg text-[10px] font-bold transition-all border border-amber-500/20 disabled:opacity-30 disabled:hover:bg-amber-500/10 disabled:hover:text-amber-400"
+                                        className="px-2 py-1 bg-amber-500/10 hover:bg-amber-500 hover:text-white text-amber-400 rounded-lg text-[10px] font-bold transition-all border border-amber-500/20 disabled:opacity-30 disabled:hover:bg-amber-500/10 disabled:hover:text-amber-400"
                                       >
                                         Late
                                       </button>
@@ -638,21 +737,21 @@ export default function HeadmasterAttendancePage() {
                                   <button
                                     onClick={() => handleStatusChange(log.studentId, "PRESENT")}
                                     disabled={log.status === "PRESENT"}
-                                    className="px-2 py-0.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-slate-950 text-emerald-400 rounded-md text-[9px] font-bold transition-all border border-emerald-500/20 disabled:opacity-30"
+                                    className="px-2 py-0.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-400 rounded-md text-[9px] font-bold transition-all border border-emerald-500/20 disabled:opacity-30"
                                   >
                                     Present
                                   </button>
                                   <button
                                     onClick={() => handleStatusChange(log.studentId, "ABSENT")}
                                     disabled={log.status === "ABSENT"}
-                                    className="px-2 py-0.5 bg-rose-500/10 hover:bg-rose-500 hover:text-slate-950 text-rose-400 rounded-md text-[9px] font-bold transition-all border border-rose-500/20 disabled:opacity-30"
+                                    className="px-2 py-0.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 rounded-md text-[9px] font-bold transition-all border border-rose-500/20 disabled:opacity-30"
                                   >
                                     Absent
                                   </button>
                                   <button
                                     onClick={() => handleStatusChange(log.studentId, "LATE")}
                                     disabled={log.status === "LATE"}
-                                    className="px-2 py-0.5 bg-amber-500/10 hover:bg-amber-500 hover:text-slate-950 text-amber-400 rounded-md text-[9px] font-bold transition-all border border-amber-500/20 disabled:opacity-30"
+                                    className="px-2 py-0.5 bg-amber-500/10 hover:bg-amber-500 hover:text-white text-amber-400 rounded-md text-[9px] font-bold transition-all border border-amber-500/20 disabled:opacity-30"
                                   >
                                     Late
                                   </button>
@@ -1005,7 +1104,7 @@ export default function HeadmasterAttendancePage() {
                                 ) : (
                                   <button
                                     onClick={() => handleStatusChange(log.studentId, "PRESENT")}
-                                    className="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500 hover:text-slate-950 text-emerald-400 rounded-lg text-[10px] font-bold transition-all border border-emerald-500/25"
+                                    className="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-400 rounded-lg text-[10px] font-bold transition-all border border-emerald-500/25"
                                   >
                                     Mark Present
                                   </button>

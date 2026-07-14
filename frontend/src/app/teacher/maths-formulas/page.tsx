@@ -329,7 +329,7 @@ export default function MathsFormulasPage() {
       
       {/* Interactive Sandbox & Memory Modal */}
       {modalOpen && selectedFormula && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-[100] flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] w-full max-w-lg shadow-2xl border-4 border-slate-100 dark:border-slate-700 animate-in zoom-in-95 flex flex-col overflow-hidden">
              
              {/* Modal Header (Formula Display) */}
