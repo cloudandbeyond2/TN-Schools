@@ -475,6 +475,115 @@ async function buildPrediction(studentDbId: string) {
   };
 }
 
+function buildPredictionsBatch(
+  students: any[],
+  allMarks: any[],
+  allModelResults: any[],
+  allAttempts: any[]
+) {
+  const marksByStudent: Record<string, any[]> = {};
+  for (const m of allMarks) {
+    if (!marksByStudent[m.studentId]) marksByStudent[m.studentId] = [];
+    marksByStudent[m.studentId].push(m);
+  }
+
+  const modelResultsByStudent: Record<string, any[]> = {};
+  for (const r of allModelResults) {
+    if (!modelResultsByStudent[r.studentId]) modelResultsByStudent[r.studentId] = [];
+    modelResultsByStudent[r.studentId].push(r);
+  }
+
+  const attemptsByStudent: Record<string, any[]> = {};
+  for (const a of allAttempts) {
+    if (!attemptsByStudent[a.studentId]) attemptsByStudent[a.studentId] = [];
+    attemptsByStudent[a.studentId].push(a);
+  }
+
+  const results: Record<string, any> = {};
+
+  for (const student of students) {
+    const studentDbId = student.id;
+    const history: Record<string, SubjectHistoryPoint[]> = {};
+    const push = (subject: string, percent: number, at: Date, source: string) => {
+      const key = SSLC_SUBJECTS.find((s) => s.toLowerCase() === subject.toLowerCase()) || subject;
+      if (!history[key]) history[key] = [];
+      history[key].push({ percent: Math.round(percent * 10) / 10, at: new Date(at).getTime(), source });
+    };
+
+    const sMarks = marksByStudent[studentDbId] || [];
+    for (const m of sMarks) {
+      if (m.maxMarks > 0) push(m.subject, (m.scored / m.maxMarks) * 100, m.createdAt, m.examType);
+    }
+
+    const sModelResults = modelResultsByStudent[studentDbId] || [];
+    for (const r of sModelResults) {
+      const subjectCols: Array<[string, number | null]> = [
+        ['Tamil', r.tamil], ['English', r.english], ['Mathematics', r.mathematics],
+        ['Science', r.science], ['Social Science', r.socialScience],
+      ];
+      for (const [subject, scored] of subjectCols) {
+        if (scored !== null && scored !== undefined) {
+          push(subject, scored, r.createdAt, r.exam?.examName || 'Model Exam');
+        }
+      }
+    }
+
+    const sAttempts = attemptsByStudent[studentDbId] || [];
+    for (const a of sAttempts) {
+      push(a.subject, a.percentage, a.createdAt, `Mock: ${a.testTitle}`);
+    }
+
+    for (const key of Object.keys(history)) history[key].sort((a, b) => a.at - b.at);
+
+    const subjects = SSLC_SUBJECTS.map((subject) => {
+      const points = history[subject] || [];
+      const { predicted, trend } = predictNextPercent(points);
+      const avg = points.length
+        ? Math.round((points.reduce((s, p) => s + p.percent, 0) / points.length) * 10) / 10
+        : 0;
+      let confidence = 0;
+      if (points.length >= 2) {
+        const variance = points.reduce((s, p) => s + Math.pow(p.percent - avg, 2), 0) / points.length;
+        confidence = Math.round(Math.max(20, Math.min(95, 40 + points.length * 8 - Math.sqrt(variance))));
+      } else if (points.length === 1) {
+        confidence = 30;
+      }
+      return {
+        subject,
+        samples: points.length,
+        averagePercent: avg,
+        predictedPercent: predicted,
+        predictedMarks: Math.round(predicted),
+        trend,
+        confidence,
+        grade: gradeForPercent(predicted),
+        risk: predicted < 35 ? 'High' : predicted < 55 ? 'Medium' : 'Low',
+        history: points.slice(-10),
+      };
+    });
+
+    const withData = subjects.filter((s) => s.samples > 0);
+    const predictedTotal = subjects.reduce((sum, s) => sum + (s.samples > 0 ? s.predictedMarks : 0), 0);
+    const overallPercent = withData.length
+      ? Math.round((withData.reduce((s, x) => s + x.predictedPercent, 0) / withData.length) * 10) / 10
+      : 0;
+
+    results[studentDbId] = {
+      subjects,
+      overall: {
+        predictedTotal,
+        maxTotal: 500,
+        overallPercent,
+        grade: gradeForPercent(overallPercent),
+        passLikely: withData.length > 0 && withData.every((s) => s.predictedPercent >= 35),
+        subjectsWithData: withData.length,
+      },
+    };
+  }
+
+  return results;
+}
+
 /* ════════════════════════════════════════════════════════════════════
    PERFORMANCE PREDICTIONS
    ════════════════════════════════════════════════════════════════════ */
@@ -663,8 +772,41 @@ router.get('/analytics/school', requireRole(STAFF_ROLES), async (req: Request, r
 
     let teacherConditions: any = {};
     if (teacherId) {
+      const teacherIds: string[] = [teacherId];
+
+      const user = await prisma.user.findUnique({
+        where: { id: teacherId },
+        select: { email: true }
+      });
+      if (user && user.email) {
+        const staff = await prisma.headmasterStaff.findFirst({
+          where: { email: user.email },
+          select: { id: true }
+        });
+        if (staff) {
+          teacherIds.push(staff.id);
+        }
+      }
+
+      const staff = await prisma.headmasterStaff.findUnique({
+        where: { id: teacherId },
+        select: { email: true }
+      });
+      if (staff && staff.email) {
+        const matchedUser = await prisma.user.findFirst({
+          where: { email: { equals: staff.email, mode: 'insensitive' } },
+          select: { id: true }
+        });
+        if (matchedUser) {
+          teacherIds.push(matchedUser.id);
+        }
+      }
+
       const teacherClassrooms = await prisma.classRoom.findMany({
-        where: { schoolId, teacherId },
+        where: { 
+          schoolId, 
+          teacherId: { in: teacherIds }
+        },
         select: { className: true, section: true }
       });
       if (teacherClassrooms.length > 0) {
@@ -735,11 +877,29 @@ router.get('/analytics/school', requireRole(STAFF_ROLES), async (req: Request, r
 
     // Per-student predictions (bounded to keep the endpoint responsive).
     const scanLimit = Math.min(students.length, 120);
-    const perStudent: any[] = [];
-    for (let i = 0; i < scanLimit; i++) {
-      const s = students[i];
-      const prediction = await buildPrediction(s.id);
-      perStudent.push({
+    const activeStudentSubset = students.slice(0, scanLimit);
+    const activeStudentIds = activeStudentSubset.map(s => s.id);
+
+    const [allMarks, allModelResults] = await Promise.all([
+      prisma.mark.findMany({ where: { studentId: { in: activeStudentIds } } }),
+      prisma.modelExamResult.findMany({
+        where: { studentId: { in: activeStudentIds } },
+        include: { exam: true }
+      })
+    ]);
+
+    const subsetAttempts = attempts.filter(a => activeStudentIds.includes(a.studentId));
+
+    const batchPredictions = buildPredictionsBatch(
+      activeStudentSubset,
+      allMarks,
+      allModelResults,
+      subsetAttempts
+    );
+
+    const perStudent = activeStudentSubset.map((s) => {
+      const prediction = batchPredictions[s.id];
+      return {
         studentId: s.id,
         name: s.user?.name || 'Student',
         rollNumber: s.rollNumber,
@@ -751,10 +911,10 @@ router.get('/analytics/school', requireRole(STAFF_ROLES), async (req: Request, r
         passLikely: prediction.overall.passLikely,
         subjectsWithData: prediction.overall.subjectsWithData,
         weakestSubject: prediction.subjects
-          .filter((x) => x.samples > 0)
-          .sort((a, b) => a.predictedPercent - b.predictedPercent)[0]?.subject || null,
-      });
-    }
+          .filter((x: any) => x.samples > 0)
+          .sort((a: any, b: any) => a.predictedPercent - b.predictedPercent)[0]?.subject || null,
+      };
+    });
 
     const withData = perStudent.filter((p) => p.subjectsWithData > 0);
     const atRisk = withData
