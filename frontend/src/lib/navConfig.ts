@@ -107,7 +107,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     themeClass: "theme-student",
     accentColor: "#6366f1",
     navItems: [
-       { label: "Dashboard", href: "/parent", icon: "Home" },
+      { label: "Dashboard", href: "/parent", icon: "Home" },
       { label: "Child Performance", href: "/parent/performance", icon: "Activity" },
       { label: "Attendance", href: "/parent/attendance", icon: "Calendar" },
       { label: "Homework Status", href: "/parent/homework", icon: "Edit3" },
@@ -235,6 +235,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Board Prep", href: "/student/high-school/board-prep", icon: "Target" },
       { label: "Mock Tests", href: "/student/high-school/mock-tests", icon: "Edit3" },
+      { label: "Model Exams", href: "/student/high-school/model-exams", icon: "ClipboardCheck" },
       { label: "Question Papers (PYQ)", href: "/student/high-school/question-papers", icon: "FileText" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
@@ -473,7 +474,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
     themeClass: "theme-parent",
     accentColor: "#10b981",
     navItems: [
-       { label: "Dashboard", href: "/parent", icon: "Home" },
+      { label: "Dashboard", href: "/parent", icon: "Home" },
       { label: "Child Performance", href: "/parent/performance", icon: "Activity" },
       { label: "Attendance", href: "/parent/attendance", icon: "Calendar" },
       { label: "Homework Status", href: "/parent/homework", icon: "Edit3" },
@@ -624,6 +625,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Connect with School", href: "/minister/connect", icon: "Radio" },
     ],
   },
+
   SUPERADMIN: {
     title: "Super Admin Portal",
     subtitle: "System Management & Dynamic Governance",
