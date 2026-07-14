@@ -1044,12 +1044,17 @@ export default function CareerGuidancePage() {
                 {/* Step 2 — Academics */}
                 {assessStep === 1 && (
                   <div className="p-5 space-y-5">
+                    {/* Class-level badge */}
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800">
+                      <span className="text-sm">🎓</span>
+                      <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400">{subjectLevelLabel}</span>
+                    </div>
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-wider text-emerald-500 mb-2">
                         ✅ {lang === "EN" ? "Strong subjects (select all that apply):" : "வலுவான பாடங்கள்:"}
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {SUBJECT_OPTIONS.map(s => {
+                        {subjectOptions.map(s => {
                           const active = strongSubjects.includes(s);
                           return (
                             <button
@@ -1068,7 +1073,7 @@ export default function CareerGuidancePage() {
                         📈 {lang === "EN" ? "Subjects to improve (optional):" : "மேம்படுத்த வேண்டிய பாடங்கள் (விருப்பம்):"}
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {SUBJECT_OPTIONS.filter(s => !strongSubjects.includes(s)).map(s => {
+                        {subjectOptions.filter(s => !strongSubjects.includes(s)).map(s => {
                           const active = weakSubjects.includes(s);
                           return (
                             <button
