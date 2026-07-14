@@ -235,6 +235,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Board Prep", href: "/student/high-school/board-prep", icon: "Target" },
       { label: "Mock Tests", href: "/student/high-school/mock-tests", icon: "Edit3" },
+      { label: "Question Papers (PYQ)", href: "/student/high-school/question-papers", icon: "FileText" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
@@ -243,6 +244,9 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Test Preparation ──────────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Test Preparation", href: "#", icon: "" },
+      { label: "Prep Plans", href: "/student/high-school/prep-plans", icon: "BookOpen" },
+      { label: "AI Revision Plan", href: "/student/high-school/revision-plan", icon: "Bot" },
+      { label: "Performance Predictions", href: "/student/high-school/predictions", icon: "TrendingUp" },
       { label: "Study Boost", href: "/student/high-school/study-boost", icon: "Zap" },
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
@@ -413,6 +417,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // Academics & Guidance
       { label: "Academics & Guidance", href: "#", icon: "" },
       { label: "Academics Hub", href: "/teacher/academics", icon: "BookOpen" },
+      { label: "SSLC Board Prep", href: "/teacher/sslc-prep", icon: "Target" },
       { label: "NEET Preparation", href: "/teacher/neet-prep", icon: "Microscope" },
       { label: "Digital Library", href: "/teacher/digital-library", icon: "Book" },
       { label: "Personal Guide", href: "/teacher/personal-guide", icon: "Compass" },
@@ -506,6 +511,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Exam Schedule", href: "/headmaster/exams", icon: "fi fi-rr-document-signed" },
       { label: "Model Exam Results", href: "/headmaster/model-exams", icon: "fi fi-rr-edit" },
       { label: "Manage Mock Tests", href: "/headmaster/mock-tests", icon: "fi fi-rr-edit" },
+      { label: "SSLC Board Prep", href: "/headmaster/sslc-prep", icon: "fi fi-rr-stats" },
       { label: "Digital Library", href: "/headmaster/digital-library", icon: "fi fi-rr-book-alt" },
 
       { label: "School Admin & Govt", href: "#", icon: "" },

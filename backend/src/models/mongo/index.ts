@@ -220,6 +220,217 @@ BoardPrepSchema.index({ studentId: 1, class: 1 }, { unique: true });
 
 export const BoardPrep = mongoose.models.BoardPrep || mongoose.model<IBoardPrep>('BoardPrep', BoardPrepSchema);
 
+// ─── SSLC Board Preparation Hub (Classes 9 & 10) ───────────────────
+// Question papers, subject prep plans, mock tests + attempts and
+// AI revision plans. Writes are role-guarded in sslcPrep.routes.ts.
+
+export interface ISSLCQuestionPaper extends Document {
+  schoolId?: string; // null/undefined = state-wide paper visible to every school
+  class: string; // "9" | "10"
+  subject: string;
+  year: string; // e.g. "2024"
+  paperType: string; // Board | Model | Quarterly | Half-Yearly | Annual
+  title: string;
+  fileUrl?: string;
+  durationMinutes: number;
+  maxMarks: number;
+  uploadedById?: string;
+  uploadedByName?: string;
+  uploadedByRole?: string;
+  downloads: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const SSLCQuestionPaperSchema = new Schema<ISSLCQuestionPaper>({
+  schoolId:       { type: String, index: true },
+  class:          { type: String, required: true, index: true },
+  subject:        { type: String, required: true },
+  year:           { type: String, required: true },
+  paperType:      { type: String, default: 'Board' },
+  title:          { type: String, required: true },
+  fileUrl:        { type: String },
+  durationMinutes:{ type: Number, default: 180 },
+  maxMarks:       { type: Number, default: 100 },
+  uploadedById:   { type: String },
+  uploadedByName: { type: String },
+  uploadedByRole: { type: String },
+  downloads:      { type: Number, default: 0 },
+}, { timestamps: true });
+
+export const SSLCQuestionPaper = mongoose.models.SSLCQuestionPaper || mongoose.model<ISSLCQuestionPaper>('SSLCQuestionPaper', SSLCQuestionPaperSchema);
+
+export interface ISSLCPrepPlan extends Document {
+  schoolId: string;
+  class: string; // "9" | "10"
+  subject: string;
+  title: string;
+  description?: string;
+  teacherId?: string;
+  teacherName?: string;
+  published: boolean;
+  weeks: Array<{
+    week: number;
+    focus: string;
+    topics: string[];
+    activities: string[];
+  }>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const SSLCPrepPlanSchema = new Schema<ISSLCPrepPlan>({
+  schoolId:    { type: String, required: true, index: true },
+  class:       { type: String, required: true, index: true },
+  subject:     { type: String, required: true },
+  title:       { type: String, required: true },
+  description: { type: String },
+  teacherId:   { type: String },
+  teacherName: { type: String },
+  published:   { type: Boolean, default: false },
+  weeks: [{
+    week:       { type: Number, required: true },
+    focus:      { type: String, required: true },
+    topics:     { type: [String], default: [] },
+    activities: { type: [String], default: [] },
+  }],
+}, { timestamps: true });
+
+export const SSLCPrepPlan = mongoose.models.SSLCPrepPlan || mongoose.model<ISSLCPrepPlan>('SSLCPrepPlan', SSLCPrepPlanSchema);
+
+export interface ISSLCMockTest extends Document {
+  schoolId?: string; // null = available to all schools
+  class: string; // "9" | "10"
+  subject: string;
+  title: string;
+  durationMinutes: number;
+  totalMarks: number;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  published: boolean;
+  createdById?: string;
+  createdByName?: string;
+  createdByRole?: string;
+  questions: Array<{
+    qid: string;
+    type: 'mcq' | 'short';
+    text: string;
+    options: string[];
+    answer: string;
+    marks: number;
+  }>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const SSLCMockTestSchema = new Schema<ISSLCMockTest>({
+  schoolId:        { type: String, index: true },
+  class:           { type: String, required: true, index: true },
+  subject:         { type: String, required: true },
+  title:           { type: String, required: true },
+  durationMinutes: { type: Number, default: 180 },
+  totalMarks:      { type: Number, default: 100 },
+  difficulty:      { type: String, enum: ['Easy', 'Medium', 'Hard'], default: 'Medium' },
+  published:       { type: Boolean, default: false },
+  createdById:     { type: String },
+  createdByName:   { type: String },
+  createdByRole:   { type: String },
+  questions: [{
+    qid:     { type: String, required: true },
+    type:    { type: String, enum: ['mcq', 'short'], required: true },
+    text:    { type: String, required: true },
+    options: { type: [String], default: [] },
+    answer:  { type: String, required: true },
+    marks:   { type: Number, default: 1 },
+  }],
+}, { timestamps: true });
+
+export const SSLCMockTest = mongoose.models.SSLCMockTest || mongoose.model<ISSLCMockTest>('SSLCMockTest', SSLCMockTestSchema);
+
+export interface ISSLCMockAttempt extends Document {
+  testId: string;
+  studentId: string;
+  studentName?: string;
+  schoolId?: string;
+  class: string;
+  subject: string;
+  testTitle: string;
+  answers: Record<string, string>;
+  score: number;
+  maxScore: number;
+  percentage: number;
+  correctCount: number;
+  questionCount: number;
+  timeTakenSeconds?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const SSLCMockAttemptSchema = new Schema<ISSLCMockAttempt>({
+  testId:           { type: String, required: true, index: true },
+  studentId:        { type: String, required: true, index: true },
+  studentName:      { type: String },
+  schoolId:         { type: String, index: true },
+  class:            { type: String, required: true },
+  subject:          { type: String, required: true },
+  testTitle:        { type: String, required: true },
+  answers:          { type: Schema.Types.Mixed, default: {} },
+  score:            { type: Number, required: true },
+  maxScore:         { type: Number, required: true },
+  percentage:       { type: Number, required: true },
+  correctCount:     { type: Number, default: 0 },
+  questionCount:    { type: Number, default: 0 },
+  timeTakenSeconds: { type: Number },
+}, { timestamps: true });
+
+export const SSLCMockAttempt = mongoose.models.SSLCMockAttempt || mongoose.model<ISSLCMockAttempt>('SSLCMockAttempt', SSLCMockAttemptSchema);
+
+export interface ISSLCRevisionPlan extends Document {
+  studentId: string;
+  class: string; // "9" | "10"
+  dailyMinutes: number;
+  focusAreas: Array<{
+    subject: string;
+    reason: string;
+    priority: 'High' | 'Medium' | 'Low';
+    averagePercent: number;
+  }>;
+  days: Array<{
+    day: number;
+    subject: string;
+    focus: string;
+    tasks: Array<{ text: string; done: boolean }>;
+  }>;
+  source: string; // 'ai'
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const SSLCRevisionPlanSchema = new Schema<ISSLCRevisionPlan>({
+  studentId:    { type: String, required: true, index: true },
+  class:        { type: String, required: true },
+  dailyMinutes: { type: Number, default: 90 },
+  focusAreas: [{
+    subject:        { type: String, required: true },
+    reason:         { type: String, required: true },
+    priority:       { type: String, enum: ['High', 'Medium', 'Low'], default: 'Medium' },
+    averagePercent: { type: Number, default: 0 },
+  }],
+  days: [{
+    day:     { type: Number, required: true },
+    subject: { type: String, required: true },
+    focus:   { type: String, required: true },
+    tasks: [{
+      text: { type: String, required: true },
+      done: { type: Boolean, default: false },
+    }],
+  }],
+  source: { type: String, default: 'ai' },
+}, { timestamps: true });
+
+SSLCRevisionPlanSchema.index({ studentId: 1, class: 1 }, { unique: true });
+
+export const SSLCRevisionPlan = mongoose.models.SSLCRevisionPlan || mongoose.model<ISSLCRevisionPlan>('SSLCRevisionPlan', SSLCRevisionPlanSchema);
+
 // Language Coaching Progress
 export interface ILanguageCoachingProgress extends Document {
   studentId: string;
