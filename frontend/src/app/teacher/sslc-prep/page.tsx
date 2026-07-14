@@ -61,6 +61,33 @@ export default function TeacherSSLCPrepPage() {
 
   const [activeTab, setActiveTab] = useState<"overview" | "tests" | "papers" | "plans">("overview");
   const [selectedGrade, setSelectedGrade] = useState<"9" | "10">("10");
+  const [classrooms, setClassrooms] = useState<any[]>([]);
+  const [selectedClassroom, setSelectedClassroom] = useState<string>("all");
+
+  // Fetch teacher classrooms
+  useEffect(() => {
+    if (schoolId && sessionUser?.id) {
+      fetch(`${API_BASE}/api/classes?schoolId=${schoolId}&teacherId=${sessionUser.id}`)
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success && Array.isArray(json.data)) {
+            setClassrooms(json.data);
+          }
+        })
+        .catch((err) => console.error("Error loading teacher classrooms", err));
+    }
+  }, [schoolId, sessionUser?.id]);
+
+  const activeSubjects = (() => {
+    let list: string[] = [];
+    if (selectedClassroom && selectedClassroom !== "all") {
+      const cr = classrooms.find((c) => c.id === selectedClassroom);
+      if (cr && cr.subject) list = [cr.subject];
+    } else if (classrooms.length > 0) {
+      list = Array.from(new Set(classrooms.map((c: any) => c.subject).filter(Boolean)));
+    }
+    return list.length > 0 ? list : SUBJECTS;
+  })();
 
   // ── Overview / analytics ──────────────────────────────────────────
   const [analytics, setAnalytics] = useState<any>(null);
@@ -90,12 +117,50 @@ export default function TeacherSSLCPrepPage() {
   const [planWeeks, setPlanWeeks] = useState([{ week: 1, focus: "", topics: "", activities: "" }]);
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
 
+  // Auto-default form subject fields based on active subjects
+  useEffect(() => {
+    if (activeSubjects.length > 0 && !activeSubjects.includes(testSubject)) {
+      setTestSubject(activeSubjects[0]);
+    }
+  }, [activeSubjects, testSubject]);
+
+  useEffect(() => {
+    if (activeSubjects.length > 0 && !activeSubjects.includes(paperForm.subject)) {
+      setPaperForm((prev) => ({ ...prev, subject: activeSubjects[0] }));
+    }
+  }, [activeSubjects, paperForm.subject]);
+
+  useEffect(() => {
+    if (activeSubjects.length > 0 && !activeSubjects.includes(planForm.subject)) {
+      setPlanForm((prev) => ({ ...prev, subject: activeSubjects[0] }));
+    }
+  }, [activeSubjects, planForm.subject]);
+
   /* ─── Data loading ─────────────────────────────────────────────── */
 
   const loadAnalytics = useCallback(() => {
     if (!schoolId) return;
     setAnalyticsLoading(true);
-    fetch(`${API_BASE}/api/sslc-prep/analytics/school?schoolId=${schoolId}&class=${selectedGrade}`, {
+
+    const params = new URLSearchParams();
+    params.append("schoolId", schoolId);
+    if (sessionUser?.id) {
+      params.append("teacherId", sessionUser.id);
+    }
+
+    if (selectedClassroom && selectedClassroom !== "all") {
+      const classroom = classrooms.find((c) => c.id === selectedClassroom);
+      if (classroom) {
+        params.append("class", classroom.className);
+        params.append("section", classroom.section);
+      } else {
+        params.append("class", selectedGrade);
+      }
+    } else {
+      params.append("class", selectedGrade);
+    }
+
+    fetch(`${API_BASE}/api/sslc-prep/analytics/school?${params.toString()}`, {
       headers: { "X-User-Role": role },
     })
       .then((res) => res.json())
@@ -104,38 +169,68 @@ export default function TeacherSSLCPrepPage() {
         setAnalyticsLoading(false);
       })
       .catch(() => setAnalyticsLoading(false));
-  }, [schoolId, selectedGrade, role]);
+  }, [schoolId, selectedGrade, role, selectedClassroom, classrooms, sessionUser?.id]);
 
   const loadTests = useCallback(() => {
-    const params = new URLSearchParams({ class: selectedGrade, all: "true" });
+    const params = new URLSearchParams({ all: "true" });
     if (schoolId) params.set("schoolId", schoolId);
+
+    let activeGrade = selectedGrade;
+    if (selectedClassroom && selectedClassroom !== "all") {
+      const classroom = classrooms.find((c) => c.id === selectedClassroom);
+      if (classroom) {
+        activeGrade = classroom.className;
+      }
+    }
+    params.set("class", activeGrade);
+
     fetch(`${API_BASE}/api/sslc-prep/mock-tests?${params.toString()}`, {
       headers: { "X-User-Role": role },
     })
       .then((res) => res.json())
       .then((json) => json.success && setTests(json.data))
       .catch(() => {});
-  }, [selectedGrade, schoolId, role]);
+  }, [selectedGrade, schoolId, role, selectedClassroom, classrooms]);
 
   const loadPapers = useCallback(() => {
-    const params = new URLSearchParams({ class: selectedGrade });
+    const params = new URLSearchParams();
     if (schoolId) params.set("schoolId", schoolId);
+
+    let activeGrade = selectedGrade;
+    if (selectedClassroom && selectedClassroom !== "all") {
+      const classroom = classrooms.find((c) => c.id === selectedClassroom);
+      if (classroom) {
+        activeGrade = classroom.className;
+      }
+    }
+    params.set("class", activeGrade);
+
     fetch(`${API_BASE}/api/sslc-prep/papers?${params.toString()}`)
       .then((res) => res.json())
       .then((json) => json.success && setPapers(json.data))
       .catch(() => {});
-  }, [selectedGrade, schoolId]);
+  }, [selectedGrade, schoolId, selectedClassroom, classrooms]);
 
   const loadPlans = useCallback(() => {
-    const params = new URLSearchParams({ class: selectedGrade, includeDrafts: "true" });
+    const params = new URLSearchParams({ includeDrafts: "true" });
     if (schoolId) params.set("schoolId", schoolId);
+
+    let activeGrade = selectedGrade;
+    if (selectedClassroom && selectedClassroom !== "all") {
+      const classroom = classrooms.find((c) => c.id === selectedClassroom);
+      if (classroom) {
+        activeGrade = classroom.className;
+      }
+    }
+    params.set("class", activeGrade);
+
     fetch(`${API_BASE}/api/sslc-prep/plans?${params.toString()}`, {
       headers: { "X-User-Role": role },
     })
       .then((res) => res.json())
       .then((json) => json.success && setPlans(json.data))
       .catch(() => {});
-  }, [selectedGrade, schoolId, role]);
+  }, [selectedGrade, schoolId, role, selectedClassroom, classrooms]);
 
   useEffect(() => {
     loadAnalytics();
@@ -362,18 +457,66 @@ export default function TeacherSSLCPrepPage() {
             </button>
           ))}
         </div>
-        <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700 self-start">
-          {(["9", "10"] as const).map((g) => (
-            <button
-              key={g}
-              onClick={() => setSelectedGrade(g)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                selectedGrade === g ? "bg-amber-500 text-slate-900 shadow-lg" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              Class {g}
-            </button>
-          ))}
+        <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700 self-start overflow-x-auto max-w-full">
+          {classrooms.length > 0 ? (
+            <>
+              {/* All Classes option */}
+              <button
+                onClick={() => {
+                  setSelectedClassroom("all");
+                  if (classrooms.length > 0) {
+                    setSelectedGrade(classrooms[0].className as "9" | "10");
+                  } else {
+                    setSelectedGrade("10");
+                  }
+                }}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                  selectedClassroom === "all"
+                    ? "bg-amber-500 text-slate-900 shadow-lg"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                All Classes
+              </button>
+
+              {/* Dynamically render each assigned classroom */}
+              {classrooms.map((cr) => (
+                <button
+                  key={cr.id}
+                  onClick={() => {
+                    setSelectedClassroom(cr.id);
+                    setSelectedGrade(cr.className as "9" | "10");
+                  }}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                    selectedClassroom === cr.id
+                      ? "bg-amber-500 text-slate-900 shadow-lg"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Class {cr.className}-{cr.section}
+                </button>
+              ))}
+            </>
+          ) : (
+            <>
+              {(["9", "10"] as const).map((g) => (
+                <button
+                  key={g}
+                  onClick={() => {
+                    setSelectedGrade(g);
+                    setSelectedClassroom("all");
+                  }}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                    selectedGrade === g && selectedClassroom === "all"
+                      ? "bg-amber-500 text-slate-900 shadow-lg"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Class {g} (All)
+                </button>
+              ))}
+            </>
+          )}
         </div>
       </div>
 
@@ -417,7 +560,11 @@ export default function TeacherSSLCPrepPage() {
                 <BarChart2 className="w-4 h-4 text-amber-400" /> Mock Test Subject Averages
               </h3>
               <div className="space-y-4">
-                {(analytics?.subjectAverages || SUBJECTS.map((s) => ({ subject: s, attempts: 0, averagePercent: null }))).map((s: any) => {
+                {((analytics?.subjectAverages || []).filter((s: any) => activeSubjects.includes(s.subject))
+                  .length > 0
+                    ? (analytics?.subjectAverages || []).filter((s: any) => activeSubjects.includes(s.subject))
+                    : activeSubjects.map((s) => ({ subject: s, attempts: 0, averagePercent: null }))
+                ).map((s: any) => {
                   const color = SUBJECT_COLORS[s.subject] || "#f59e0b";
                   return (
                     <div key={s.subject}>
@@ -550,7 +697,7 @@ export default function TeacherSSLCPrepPage() {
                 />
                 <select value={testSubject} onChange={(e) => setTestSubject(e.target.value)}
                   className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none">
-                  {SUBJECTS.map((s) => <option key={s}>{s}</option>)}
+                  {activeSubjects.map((s) => <option key={s}>{s}</option>)}
                 </select>
                 <div className="flex gap-2">
                   <select value={testDifficulty} onChange={(e) => setTestDifficulty(e.target.value)}
@@ -723,7 +870,7 @@ export default function TeacherSSLCPrepPage() {
               />
               <select value={paperForm.subject} onChange={(e) => setPaperForm({ ...paperForm, subject: e.target.value })}
                 className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none">
-                {SUBJECTS.map((s) => <option key={s}>{s}</option>)}
+                {activeSubjects.map((s) => <option key={s}>{s}</option>)}
               </select>
               <div className="flex gap-2">
                 <input
@@ -811,7 +958,7 @@ export default function TeacherSSLCPrepPage() {
                 />
                 <select value={planForm.subject} onChange={(e) => setPlanForm({ ...planForm, subject: e.target.value })}
                   className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none">
-                  {SUBJECTS.map((s) => <option key={s}>{s}</option>)}
+                  {activeSubjects.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <textarea
