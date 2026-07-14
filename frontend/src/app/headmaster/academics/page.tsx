@@ -1610,12 +1610,37 @@ export default function HeadmasterAcademicsPage() {
                     <>
                       <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Upload File</label>
                       <div className="relative w-full px-4 py-2 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl flex items-center justify-center bg-slate-50 dark:bg-slate-955 cursor-pointer overflow-hidden min-h-[48px]">
-                        <input type="file" onChange={(e) => {
+                        <input type="file" onChange={async (e) => {
                           const file = e.target.files?.[0];
-                          if (file) setResourceForm({ ...resourceForm, url: `/uploads/${file.name}` });
+                          if (!file) return;
+                          
+                          setResourceForm(prev => ({ ...prev, url: "Uploading..." }));
+                          
+                          const formData = new FormData();
+                          formData.append("file", file);
+                          
+                          try {
+                            const res = await fetch(`${API_BASE}/upload`, {
+                              method: "POST",
+                              body: formData
+                            });
+                            
+                            if (!res.ok) {
+                              throw new Error("Upload failed");
+                            }
+                            
+                            const data = await res.json();
+                            if (data.url) {
+                              setResourceForm(prev => ({ ...prev, url: data.url }));
+                            }
+                          } catch (err) {
+                            console.error(err);
+                            alert("File upload failed. Defaulting to local path.");
+                            setResourceForm(prev => ({ ...prev, url: `/uploads/${file.name}` }));
+                          }
                         }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                         <span className="text-xs text-slate-500 font-medium">
-                          {resourceForm.url && resourceForm.url.startsWith('/uploads') ? '✓ ' + resourceForm.url.split('/').pop() : 'Click to Browse / Drag File'}
+                          {resourceForm.url === "Uploading..." ? "Uploading file..." : (resourceForm.url && resourceForm.url.startsWith('/uploads') ? '✓ ' + resourceForm.url.split('/').pop() : 'Click to Browse / Drag File')}
                         </span>
                       </div>
                     </>

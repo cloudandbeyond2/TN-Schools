@@ -2015,4 +2015,62 @@ router.delete('/school-resources/:id', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/headmaster/rewards?schoolId=XYZ
+router.get('/rewards', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId parameter is required' });
+    }
+    const rewards = await prisma.reward.findMany({
+      where: { schoolId: String(schoolId) },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ success: true, data: rewards });
+  } catch (err) {
+    console.error('Error fetching rewards:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/headmaster/rewards
+router.post('/rewards', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, title, recipient, category, date, citation } = req.body;
+    if (!schoolId || !title || !recipient || !category) {
+      return res.status(400).json({ success: false, error: 'Missing required parameters' });
+    }
+    const newReward = await prisma.reward.create({
+      data: {
+        schoolId,
+        title,
+        recipient,
+        category,
+        date: date || String(new Date().getFullYear()),
+        citation: citation || 'Honored for outstanding contributions.'
+      }
+    });
+    res.json({ success: true, data: newReward });
+  } catch (err) {
+    console.error('Error creating reward:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/headmaster/rewards/:id
+router.delete('/rewards/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.reward.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Reward record not found' });
+    }
+    await prisma.reward.delete({ where: { id } });
+    res.json({ success: true, message: 'Reward record deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting reward:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
