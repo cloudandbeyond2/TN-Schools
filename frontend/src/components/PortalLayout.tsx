@@ -317,6 +317,7 @@ export default function PortalLayout({
   const [notificationsList, setNotificationsList] = useState<any[]>([]);
   const [activeStudentLevel, setActiveStudentLevel] = useState("STUDENT_HIGHER");
   const [studentGroup, setStudentGroup] = useState<StudentGroup>("Science");
+  const [studentGroupCode, setStudentGroupCode] = useState<string>("");
   const [disabledRoutes, setDisabledRoutes] = useState<Set<string>>(new Set());
   const { data: session, status } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -450,6 +451,24 @@ export default function PortalLayout({
       window.removeEventListener("storage", readGroup);
     };
   }, []);
+
+  // Fetch student group code for display
+  useEffect(() => {
+    if (session?.user && (session.user as any).role === "STUDENT" && (session.user as any).studentId) {
+      const studentId = (session.user as any).studentId;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      fetch(`${apiUrl}/api/students/${studentId}`)
+        .then(res => res.json())
+        .then(json => {
+          if (json.success && json.data?.group) {
+            setStudentGroupCode(json.data.group);
+          } else if (json.success && json.group) {
+            setStudentGroupCode(json.group);
+          }
+        })
+        .catch(err => console.error("Failed to load student group code:", err));
+    }
+  }, [session]);
 
   useEffect(() => {
     if (pathname.startsWith("/student/middle-school")) {
@@ -767,6 +786,11 @@ export default function PortalLayout({
             <div className="text-sm font-bold text-[var(--text-heading)] truncate">{displayName}</div>
             {classDisplay && <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 truncate mt-0.5">{classDisplay}</div>}
             <div className="text-[10px] text-[var(--text-muted)] truncate capitalize">{userRole.replace(/_/g, " ").toLowerCase()}</div>
+            {userRole === "STUDENT_HIGHER" && studentGroup && (
+              <div className="text-[10px] text-indigo-500 dark:text-indigo-400 font-medium line-clamp-2 leading-snug mt-0.5">
+                {studentGroup} Group {studentGroupCode ? `(${studentGroupCode})` : ""}
+              </div>
+            )}
           </div>
         </div>
 
