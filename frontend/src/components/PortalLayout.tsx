@@ -241,7 +241,16 @@ const translations = {
       "Page Management": "பக்க மேலாண்மை",
       "Audit & Config": "தணிக்கை & கட்டமைப்பு",
       "System Logs": "கணினி பதிவுகள்",
-      "Portal Settings": "வலைவாசல் அமைப்புகள்"
+      "Portal Settings": "வலைவாசல் அமைப்புகள்",
+      "Arts Campus": "கலை வளாகம்",
+      "Vocational Campus": "தொழில்நுட்ப வளாகம்",
+      "Geography & Mapping": "புவியியல் & வரைபடம்",
+      "History & Heritage Hub": "வரலாறு & பாரம்பரிய மையம்",
+      "Civics & Politics Lab": "குடிமையியல் & அரசியல் ஆய்வகம்",
+      "Trades & Tech Hub": "கைவினை & தொழில்நுட்ப மையம்",
+      "Basic Electrical Lab": "அடிப்படை மின்சார ஆய்வகம்",
+      "Agriculture Lab": "விவசாய ஆய்வகம்",
+      "Office & Web Design": "அலுவலகம் & வலை வடிவமைப்பு"
     },
     liveConnection: "நேரடி இணைப்பு",
     notificationsTitle: "அறிவிப்புகள்",
@@ -429,8 +438,8 @@ export default function PortalLayout({
   useEffect(() => {
     const readGroup = () => {
       const g = localStorage.getItem("studentGroup");
-      if (g === "Science" || g === "Commerce" || g === "ComputerScience") {
-        setStudentGroup(g);
+      if (g === "Science" || g === "Commerce" || g === "ComputerScience" || g === "Arts" || g === "Vocational") {
+        setStudentGroup(g as any);
       }
     };
     readGroup();

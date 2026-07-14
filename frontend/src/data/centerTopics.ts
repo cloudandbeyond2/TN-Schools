@@ -298,6 +298,76 @@ export const CENTER_TOPICS: Record<string, CenterTopics> = {
       { heading: "Build", items: [I("Image Classifier","🖼️"),I("Chatbot Demo","💬"),I("Model Playground","🎛️")] },
     ],
   },
+  "geography-lab": {
+    slug: "geography-lab", title: "Geography & Mapping Lab", titleTa: "புவியியல் ஆய்வகம்",
+    tagline: "Interactive mapping, GIS systems, and weather patterns.",
+    icon: "Globe", grad: "from-sky-500 to-indigo-600",
+    groups: [
+      { heading: "Mapping", items: [I("Latitude & Longitude","🌐"),I("Topography","⛰️"),I("GIS & Remote Sensing","📡")] },
+      { heading: "Earth Systems", items: [I("Atmosphere","🌤️"),I("Ocean Currents","🌊"),I("Monsoon Dynamics","🌧️")] },
+      { heading: "Practice", items: [I("Map Projection Builder","🗺️"),I("Weather Station Simulator","🌡️")] },
+    ],
+  },
+  "history-hub": {
+    slug: "history-hub", title: "History & Heritage Hub", titleTa: "வரலாறு & பாரம்பரிய மையம்",
+    tagline: "Virtual archaeological digs, historical timelines & artifacts.",
+    icon: "Landmark", grad: "from-amber-500 to-orange-600",
+    groups: [
+      { heading: "Civilizations", items: [I("Indus Valley Civilization","🏺"),I("Ancient Tamil Kingdoms (Chola/Chera/Pandya)","🛡️"),I("Megastructures","🏛️")] },
+      { heading: "Timelines", items: [I("Indian Independence Movement","🇮🇳"),I("World Wars","🌍")] },
+      { heading: "Archaeology", items: [I("Excavation Simulation","⛏️"),I("Deciphering Inscriptions","📜")] },
+    ],
+  },
+  "civics-hub": {
+    slug: "civics-hub", title: "Civics & Politics Lab", titleTa: "குடிமையியல் ஆய்வகம்",
+    tagline: "Mock parliaments, constitution structure, election simulators.",
+    icon: "Scale", grad: "from-purple-500 to-fuchsia-600",
+    groups: [
+      { heading: "Governance", items: [I("Indian Constitution","📕"),I("Preamble & Rights","⚖️"),I("Three Branches of Government","🏛️")] },
+      { heading: "Electoral Systems", items: [I("How Elections Work","🗳️"),I("Voter Literacy Campaign","👥")] },
+      { heading: "Simulations", items: [I("Mock Parliament Debate","🗣️"),I("Bill Drafting Simulator","📝")] },
+    ],
+  },
+  "vocational-campus": {
+    slug: "vocational-campus", title: "Trades & Tech Hub", titleTa: "கைவினைத் தொழில்நுட்ப மையம்",
+    tagline: "Carpentry, metalworking, plumbing and technical skills.",
+    icon: "Wrench", grad: "from-orange-500 to-red-600",
+    groups: [
+      { heading: "Materials", items: [I("Woodworking Basics","🪵"),I("Metal Fabrication","🔩"),I("Plumbing Systems","🚰")] },
+      { heading: "Safety & Tools", items: [I("Hand Tools Guide","🪚"),I("Safety Wear Guidelines","🥽"),I("Workshop First Aid","🩹")] },
+      { heading: "Practice", items: [I("Joint Assembly Builder","🪵"),I("Pipe Fitting Simulator","🔧")] },
+    ],
+  },
+  "electrical-lab": {
+    slug: "electrical-lab", title: "Basic Electrical Lab", titleTa: "மின்சார ஆய்வகம்",
+    tagline: "Circuit wiring, safety protocols, solar panels, and electronics.",
+    icon: "Zap", grad: "from-sky-500 to-blue-600",
+    groups: [
+      { heading: "Wiring", items: [I("House Wiring Basics","🏠"),I("Series & Parallel Circuits","🔌"),I("Safety Fuses & MCBs","⚡")] },
+      { heading: "Green Energy", items: [I("Solar Power Principles","☀️"),I("Inverters & Batteries","🔋")] },
+      { heading: "Practice", items: [I("Wiring Sandbox","🔌"),I("Multimeter Measurement","📟")] },
+    ],
+  },
+  "agriculture-lab": {
+    slug: "agriculture-lab", title: "Agriculture Lab", titleTa: "விவசாய ஆய்வகம்",
+    tagline: "Smart organic farming, crop rotation, soil health.",
+    icon: "Sprout", grad: "from-emerald-500 to-green-600",
+    groups: [
+      { heading: "Soil & Water", items: [I("Soil Types & Testing","🟤"),I("Drip & Sprinkler Irrigation","💧")] },
+      { heading: "Crop Science", items: [I("Crop Rotation Planner","🌾"),I("Organic Fertilizers","🍂"),I("Pest Management","🐛")] },
+      { heading: "Modern Tech", items: [I("Hydroponics Setup","🌱"),I("Greenhouse Control","🌡️")] },
+    ],
+  },
+  "office-mgmt": {
+    slug: "office-mgmt", title: "Office & Web Design Lab", titleTa: "அலுவலக வடிவமைப்பு",
+    tagline: "Office suites, document workflows, and basic web creation.",
+    icon: "Award", grad: "from-purple-500 to-indigo-600",
+    groups: [
+      { heading: "Workflows", items: [I("Spreadsheet Data Formulas","📊"),I("Document Processing","📄")] },
+      { heading: "Web Design", items: [I("Basic HTML/CSS Pages","💻"),I("User Interface Design","🎨")] },
+      { heading: "Practice", items: [I("Office Suite Challenge","⌨️"),I("Portfolio Web Builder","🌐")] },
+    ],
+  },
 };
 
 export function getCenterTopics(slug: string): CenterTopics | undefined {
