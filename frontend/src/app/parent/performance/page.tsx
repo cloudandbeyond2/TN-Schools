@@ -349,15 +349,15 @@ export default function PerformancePage() {
           { label: "Best Subject", value: (topSubject as any)?.subject?.split(" ")[0] ?? "—", icon: <BookOpen className="w-5 h-5 text-blue-400" />, color: "text-blue-400" },
           { label: "Needs Attention", value: (lowestSubject as any)?.subject?.split(" ")[0] ?? "—", icon: <AlertTriangle className="w-5 h-5 text-rose-400" />, color: "text-rose-400" },
         ].map(k => (
-          <div key={k.label} className="kpi-card flex items-center justify-between p-4 glass rounded-2xl hover:scale-[1.02] transition-all duration-300">
-            <div>
-              <div className="text-xs text-slate-500 font-semibold mb-1">{k.label}</div>
+          <div key={k.label} className="kpi-card flex flex-col items-center justify-center text-center p-4 glass rounded-2xl hover:scale-[1.02] transition-all duration-300 gap-3">
+            <div className="flex flex-col items-center text-center w-full">
+              <div className="text-xs text-slate-500 font-semibold mb-1 text-center">{k.label}</div>
               {loading || childrenLoading
-                ? <div className="h-7 w-16 bg-slate-700/60 rounded animate-pulse" />
-                : <div className={`text-2xl font-black tracking-tight ${k.color}`}>{k.value}</div>
+                ? <div className="h-7 w-16 bg-slate-700/60 rounded animate-pulse mx-auto" />
+                : <div className={`text-2xl font-black tracking-tight text-center ${k.color}`}>{k.value}</div>
               }
             </div>
-            <div className="p-3 bg-slate-900/50 rounded-2xl border border-slate-800">{k.icon}</div>
+            <div className="p-3 bg-slate-900/50 rounded-2xl border border-slate-800 flex items-center justify-center">{k.icon}</div>
           </div>
         ))}
       </div>
