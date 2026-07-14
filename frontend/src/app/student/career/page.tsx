@@ -1049,7 +1049,7 @@ export default function CareerGuidancePage() {
                         ✅ {lang === "EN" ? "Strong subjects (select all that apply):" : "வலுவான பாடங்கள்:"}
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {SUBJECT_OPTIONS.map(s => {
+                        {subjectOptions.map(s => {
                           const active = strongSubjects.includes(s);
                           return (
                             <button
@@ -1068,7 +1068,7 @@ export default function CareerGuidancePage() {
                         📈 {lang === "EN" ? "Subjects to improve (optional):" : "மேம்படுத்த வேண்டிய பாடங்கள் (விருப்பம்):"}
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {SUBJECT_OPTIONS.filter(s => !strongSubjects.includes(s)).map(s => {
+                        {subjectOptions.filter(s => !strongSubjects.includes(s)).map(s => {
                           const active = weakSubjects.includes(s);
                           return (
                             <button
