@@ -63,6 +63,7 @@ export default function TeacherSSLCPrepPage() {
   const [selectedGrade, setSelectedGrade] = useState<"9" | "10">("10");
   const [classrooms, setClassrooms] = useState<any[]>([]);
   const [selectedClassroom, setSelectedClassroom] = useState<string>("all");
+  const [predictionsPage, setPredictionsPage] = useState(1);
 
   // Fetch teacher classrooms
   useEffect(() => {
@@ -72,6 +73,9 @@ export default function TeacherSSLCPrepPage() {
         .then((json) => {
           if (json.success && Array.isArray(json.data)) {
             setClassrooms(json.data);
+            if (json.data.length > 0) {
+              setSelectedGrade(json.data[0].className as any);
+            }
           }
         })
         .catch((err) => console.error("Error loading teacher classrooms", err));
@@ -141,6 +145,7 @@ export default function TeacherSSLCPrepPage() {
   const loadAnalytics = useCallback(() => {
     if (!schoolId) return;
     setAnalyticsLoading(true);
+    setPredictionsPage(1);
 
     const params = new URLSearchParams();
     params.append("schoolId", schoolId);
@@ -157,7 +162,9 @@ export default function TeacherSSLCPrepPage() {
         params.append("class", selectedGrade);
       }
     } else {
-      params.append("class", selectedGrade);
+      if (classrooms.length === 0) {
+        params.append("class", selectedGrade);
+      }
     }
 
     fetch(`${API_BASE}/api/sslc-prep/analytics/school?${params.toString()}`, {
@@ -175,14 +182,14 @@ export default function TeacherSSLCPrepPage() {
     const params = new URLSearchParams({ all: "true" });
     if (schoolId) params.set("schoolId", schoolId);
 
-    let activeGrade = selectedGrade;
     if (selectedClassroom && selectedClassroom !== "all") {
       const classroom = classrooms.find((c) => c.id === selectedClassroom);
       if (classroom) {
-        activeGrade = classroom.className;
+        params.set("class", classroom.className);
       }
+    } else if (classrooms.length === 0) {
+      params.set("class", selectedGrade);
     }
-    params.set("class", activeGrade);
 
     fetch(`${API_BASE}/api/sslc-prep/mock-tests?${params.toString()}`, {
       headers: { "X-User-Role": role },
@@ -196,14 +203,14 @@ export default function TeacherSSLCPrepPage() {
     const params = new URLSearchParams();
     if (schoolId) params.set("schoolId", schoolId);
 
-    let activeGrade = selectedGrade;
     if (selectedClassroom && selectedClassroom !== "all") {
       const classroom = classrooms.find((c) => c.id === selectedClassroom);
       if (classroom) {
-        activeGrade = classroom.className;
+        params.set("class", classroom.className);
       }
+    } else if (classrooms.length === 0) {
+      params.set("class", selectedGrade);
     }
-    params.set("class", activeGrade);
 
     fetch(`${API_BASE}/api/sslc-prep/papers?${params.toString()}`)
       .then((res) => res.json())
@@ -215,14 +222,14 @@ export default function TeacherSSLCPrepPage() {
     const params = new URLSearchParams({ includeDrafts: "true" });
     if (schoolId) params.set("schoolId", schoolId);
 
-    let activeGrade = selectedGrade;
     if (selectedClassroom && selectedClassroom !== "all") {
       const classroom = classrooms.find((c) => c.id === selectedClassroom);
       if (classroom) {
-        activeGrade = classroom.className;
+        params.set("class", classroom.className);
       }
+    } else if (classrooms.length === 0) {
+      params.set("class", selectedGrade);
     }
-    params.set("class", activeGrade);
 
     fetch(`${API_BASE}/api/sslc-prep/plans?${params.toString()}`, {
       headers: { "X-User-Role": role },
@@ -540,7 +547,14 @@ export default function TeacherSSLCPrepPage() {
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: `Class ${selectedGrade} Students`, value: analytics?.totals?.students ?? "—", icon: Users, color: "text-amber-400" },
+              {
+                label: selectedClassroom !== "all"
+                  ? `Class ${classrooms.find((c) => c.id === selectedClassroom)?.className}-${classrooms.find((c) => c.id === selectedClassroom)?.section || ""} Students`
+                  : (classrooms.length > 0 ? "All My Students" : `Class ${selectedGrade} Students`),
+                value: analytics?.totals?.students ?? "—",
+                icon: Users,
+                color: "text-amber-400"
+              },
               { label: "Avg Syllabus Done", value: analytics ? `${analytics.totals.avgSyllabusCompletion}%` : "—", icon: BookOpen, color: "text-blue-400" },
               { label: "Mock Participation", value: analytics ? `${analytics.totals.mockParticipationPercent}%` : "—", icon: ClipboardList, color: "text-emerald-400" },
               { label: "Predicted Pass Rate", value: analytics ? `${analytics.totals.predictedPassRate}%` : "—", icon: TrendingUp, color: "text-purple-400" },
@@ -619,53 +633,150 @@ export default function TeacherSSLCPrepPage() {
           </div>
 
           {/* Student prediction leaderboard */}
-          <div className="glass rounded-2xl p-6 border border-slate-700/50">
-            <h3 className="text-base font-bold text-white mb-4">Student Performance Predictions</h3>
-            {(analytics?.students || []).length === 0 ? (
-              <div className="text-xs text-slate-500 py-6 text-center">
-                No prediction data yet — predictions appear as marks and mock attempts are recorded.
+          {(() => {
+            const totalPredictions = analytics?.students?.length || 0;
+            const predictionsPerPage = 8;
+            const totalPages = Math.ceil(totalPredictions / predictionsPerPage);
+            const paginatedStudents = (analytics?.students || []).slice(
+              (predictionsPage - 1) * predictionsPerPage,
+              predictionsPage * predictionsPerPage
+            );
+
+            return (
+              <div className="glass rounded-2xl p-6 border border-slate-700/50">
+                <h3 className="text-base font-bold text-white mb-4">Student Performance Predictions</h3>
+                {totalPredictions === 0 ? (
+                  <div className="text-xs text-slate-500 py-6 text-center">
+                    No prediction data yet — predictions appear as marks and mock attempts are recorded.
+                  </div>
+                ) : (
+                  <>
+                    <div className="overflow-x-auto rounded-xl">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="text-slate-500 dark:text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30">
+                            <th className="py-3.5 px-4 whitespace-nowrap font-semibold">Student</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap font-semibold">Class</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap font-semibold">Predicted Total</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap font-semibold">Overall %</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap font-semibold">Grade</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap font-semibold">Weakest Subject</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap font-semibold text-right">Outlook</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paginatedStudents.map((s: any) => {
+                            let percentBadgeClass = "bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700/50";
+                            if (s.subjectsWithData > 0) {
+                              const pct = s.overallPercent;
+                              if (pct < 50) {
+                                percentBadgeClass = "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20";
+                              } else if (pct < 75) {
+                                percentBadgeClass = "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20";
+                              } else {
+                                percentBadgeClass = "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
+                              }
+                            }
+
+                            let outlookBadgeClass = "bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60";
+                            let outlookText = "No data";
+                            if (s.subjectsWithData > 0) {
+                              if (s.passLikely) {
+                                outlookBadgeClass = "bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20";
+                                outlookText = "On Track";
+                              } else {
+                                outlookBadgeClass = "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20";
+                                outlookText = "At Risk";
+                              }
+                            }
+
+                            return (
+                              <tr key={s.studentId} className="border-b border-slate-200 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                                <td className="py-3.5 px-4 whitespace-nowrap">
+                                  <span className="font-bold text-slate-800 dark:text-slate-200 text-sm hover:text-amber-500 dark:hover:text-amber-400 transition-colors">{s.name}</span>
+                                  <div className="text-[10px] text-slate-500 mt-0.5">Roll: {s.rollNumber}</div>
+                                </td>
+                                <td className="py-3.5 px-4 whitespace-nowrap">
+                                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800/80 font-semibold text-[10px]">
+                                    {s.class}{s.section}
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-4 whitespace-nowrap">
+                                  {s.subjectsWithData > 0 ? (
+                                    <div className="flex items-baseline gap-0.5">
+                                      <span className="text-amber-600 dark:text-amber-400 font-black text-sm">{s.predictedTotal}</span>
+                                      <span className="text-slate-500 text-[10px]">/500</span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-slate-600">—</span>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-4 whitespace-nowrap">
+                                  {s.subjectsWithData > 0 ? (
+                                    <span className={`px-2.5 py-1 rounded text-[10px] font-black ${percentBadgeClass}`}>
+                                      {s.overallPercent}%
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-600">—</span>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-4 whitespace-nowrap">
+                                  {s.subjectsWithData > 0 ? (
+                                    <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-900 text-amber-600 dark:text-amber-500 border border-slate-200 dark:border-slate-800 font-bold text-[10px]">
+                                      {s.grade}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-600">—</span>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-4 whitespace-nowrap">
+                                  {s.weakestSubject ? (
+                                    <span className="text-slate-700 dark:text-slate-300 font-medium">{s.weakestSubject}</span>
+                                  ) : (
+                                    <span className="text-slate-600">—</span>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-4 whitespace-nowrap text-right">
+                                  <span className={`px-2.5 py-1 rounded text-[10px] font-black uppercase ${outlookBadgeClass}`}>
+                                    {outlookText}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Pagination controls */}
+                    {totalPages > 1 && (
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800/60 pt-4">
+                        <span>
+                          Showing {((predictionsPage - 1) * predictionsPerPage) + 1} to {Math.min(predictionsPage * predictionsPerPage, totalPredictions)} of {totalPredictions} students
+                        </span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setPredictionsPage(prev => Math.max(prev - 1, 1))}
+                            disabled={predictionsPage === 1}
+                            className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-slate-900/60 transition-all font-semibold text-xs"
+                          >
+                            Previous
+                          </button>
+                          <button
+                            onClick={() => setPredictionsPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={predictionsPage === totalPages}
+                            className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-slate-900/60 transition-all font-semibold text-xs"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="text-slate-500 uppercase text-[10px] border-b border-slate-700/60">
-                      <th className="py-2.5 pr-4">Student</th>
-                      <th className="py-2.5 pr-4">Class</th>
-                      <th className="py-2.5 pr-4">Predicted Total</th>
-                      <th className="py-2.5 pr-4">Overall %</th>
-                      <th className="py-2.5 pr-4">Grade</th>
-                      <th className="py-2.5 pr-4">Weakest Subject</th>
-                      <th className="py-2.5">Outlook</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {analytics.students.slice(0, 25).map((s: any) => (
-                      <tr key={s.studentId} className="border-b border-slate-800/60 hover:bg-slate-800/30">
-                        <td className="py-2.5 pr-4 font-semibold text-slate-200">{s.name}</td>
-                        <td className="py-2.5 pr-4 text-slate-400">{s.class}{s.section}</td>
-                        <td className="py-2.5 pr-4 font-bold text-amber-400">
-                          {s.subjectsWithData > 0 ? `${s.predictedTotal}/500` : "—"}
-                        </td>
-                        <td className="py-2.5 pr-4 text-slate-300">{s.subjectsWithData > 0 ? `${s.overallPercent}%` : "—"}</td>
-                        <td className="py-2.5 pr-4 text-slate-300">{s.subjectsWithData > 0 ? s.grade : "—"}</td>
-                        <td className="py-2.5 pr-4 text-slate-400">{s.weakestSubject || "—"}</td>
-                        <td className="py-2.5">
-                          {s.subjectsWithData === 0 ? (
-                            <span className="text-slate-500">No data</span>
-                          ) : s.passLikely ? (
-                            <span className="text-emerald-400 font-bold">On Track</span>
-                          ) : (
-                            <span className="text-red-400 font-bold">At Risk</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+            );
+          })()}
         </div>
       )}
 
