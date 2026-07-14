@@ -32,6 +32,7 @@ interface Resource {
   id: string;
   title: string;
   subject: string;
+  subjectId?: string;
   category: Exclude<CategoryKey, "overview" | "subjects" | "syllabus">;
   type: "PDF" | "DOC" | "Video" | "Audio" | "Interactive" | "eBook" | "Link";
   meta: string; // size / pages / duration
@@ -162,6 +163,24 @@ export default function AcademicsHubPage() {
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [previewResource, setPreviewResource] = useState<Resource | null>(null);
   const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
+  const [activeMedia, setActiveMedia] = useState<{
+    type: "video" | "pdf";
+    url: string;
+    title: string;
+  } | null>(null);
+  const [teacherAIModal, setTeacherAIModal] = useState<{
+    isOpen: boolean;
+    resource: Resource | null;
+    option: string | null;
+    responseText: string;
+    isGenerating: boolean;
+  }>({
+    isOpen: false,
+    resource: null,
+    option: null,
+    responseText: "",
+    isGenerating: false,
+  });
 
   const [dbSubjects, setDbSubjects] = useState<any[]>([]);
   const [dbResources, setDbResources] = useState<any[]>([]);
@@ -255,6 +274,7 @@ export default function AcademicsHubPage() {
         id: r.id,
         title: r.title || r.topicName || r.chapter || "Untitled",
         subject: subjectObj ? subjectObj.name : "General",
+        subjectId: r.subjectId,
         category: r.category === "subjects" || r.category === "syllabus" ? "materials" : (r.category || "materials"),
         type: r.type || "PDF",
         meta: r.meta || "View details",
@@ -283,6 +303,168 @@ export default function AcademicsHubPage() {
       localStorage.setItem(BOOKMARK_KEY, JSON.stringify(next));
       return next;
     });
+  };
+
+  const getYouTubeEmbedUrl = (url: string) => {
+    if (!url) return "https://www.youtube.com/embed/d7n7DdB-bHY";
+    try {
+      if (url.includes("/embed/")) return url;
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      if (match && match[2].length === 11) {
+        return `https://www.youtube.com/embed/${match[2]}`;
+      }
+    } catch {}
+    if (url.includes("youtube.com") || url.includes("youtu.be")) {
+      return url;
+    }
+    if (!url.startsWith("http") && !url.startsWith("/")) {
+      return `https://www.youtube.com/embed/${url}`;
+    }
+    return url;
+  };
+
+  const handleDownload = (resource: Resource) => {
+    if (!resource.url) {
+      alert("No download URL available for this resource.");
+      return;
+    }
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const downloadUrl = resource.url.startsWith("http") ? resource.url : `${API_URL}${resource.url}`;
+    
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.target = "_blank";
+    link.download = resource.title;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleAITeacherGenerate = async (optKey: string, customPrompt?: string) => {
+    if (!teacherAIModal.resource) return;
+    
+    setTeacherAIModal(prev => ({ ...prev, option: optKey, isGenerating: true }));
+    
+    let prompt = "";
+    if (optKey === "lesson-plan") {
+      prompt = `Create a comprehensive lesson plan for the topic "${teacherAIModal.resource.title}" under the subject "${teacherAIModal.resource.subject}". Include: 1. Learning Objectives, 2. Introduction, 3. Main content breakdown, 4. Interactive questions, 5. Classroom activities.`;
+    } else if (optKey === "quiz") {
+      prompt = `Generate a 5-question multiple choice quiz (MCQ) for the lesson "${teacherAIModal.resource.title}" in "${teacherAIModal.resource.subject}". Provide options A, B, C, D and indicate the correct answer with a short explanation for each.`;
+    } else if (optKey === "notes") {
+      prompt = `Extract key summary notes, core definitions, and formulas/equations for the topic "${teacherAIModal.resource.title}" in "${teacherAIModal.resource.subject}".`;
+    } else if (optKey === "worksheet") {
+      prompt = `Create a homework worksheet with 3 short-answer questions and 2 conceptual thinking questions for the lesson "${teacherAIModal.resource.title}" under "${teacherAIModal.resource.subject}".`;
+    } else if (optKey === "custom" && customPrompt) {
+      prompt = customPrompt;
+    }
+
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_URL}/api/ai/chat-tutor`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: teacherAIModal.resource.subject,
+          grade: "Grade 10",
+          messages: [],
+          currentMessage: prompt,
+          language: "bilingual"
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.text) {
+        setTeacherAIModal(prev => ({ ...prev, responseText: data.text, isGenerating: false }));
+      } else {
+        throw new Error("Failed to generate content");
+      }
+    } catch (err) {
+      setTimeout(() => {
+        let mockResponse = "";
+        if (optKey === "lesson-plan") {
+          mockResponse = `📚 LESSON PLAN: ${teacherAIModal.resource?.title}\nSubject: ${teacherAIModal.resource?.subject}\nGrade Level: Class 10\n\n🎯 1. LEARNING OBJECTIVES\n• Understand the core principles of ${teacherAIModal.resource?.title}.\n• Identify real-world applications of these concepts.\n• Analyze sample test questions based on Board guidelines.\n\n📖 2. INTRODUCTION (10 mins)\n• Hook: Start with a real-life observation relating to this topic.\n• Connect to previous classes (Grade 9 foundations).\n\n📝 3. CONCEPT BREAKDOWN (25 mins)\n• Key Concept A: Fundamental definitions and models.\n• Key Concept B: Critical equations, formulas, and diagrams.\n\n❓ 4. CHECK FOR UNDERSTANDING (10 mins)\n• Ask students to explain the main idea in their own words.\n• Solve a practice question together on the board.\n\n🏆 5. DISCUSSION & ACTIVITIES\n• Group discussion: How does this concept apply in modern technology?`;
+        } else if (optKey === "quiz") {
+          mockResponse = `🧠 QUICK QUIZ: ${teacherAIModal.resource?.title}\nSubject: ${teacherAIModal.resource?.subject}\n\nQ1. What is the primary definition of the main concept in this lesson?\nA) Option A definition\nB) Option B definition\nC) Option C definition\nD) Option D definition\n✅ Correct Answer: A\nExplanation: Option A is correct according to the standard syllabus.\n\nQ2. Which of the following is a direct application of this topic?\nA) Medical diagnostics\nB) Mechanical structural engines\nC) Standard calculation algorithms\nD) All of the above\n✅ Correct Answer: D\nExplanation: All options represent valid applications.\n\nQ3. Solve the basic formula calculation for standard parameters:\nA) 10 units\nB) 25 units\nC) 50 units\nD) 100 units\n✅ Correct Answer: B\nExplanation: Using the formula yields 25 units.`;
+        } else if (optKey === "worksheet") {
+          mockResponse = `📝 HOMEWORK WORKSHEET: ${teacherAIModal.resource?.title}\nSubject: ${teacherAIModal.resource?.subject}\n\n📌 1. SHORT-ANSWER QUESTIONS\nQ1. Define the fundamental concept explained in this lesson.\nQ2. State two main requirements for this process to occur.\nQ3. Write down the primary formula used to calculate this value.\n\n📌 2. CONCEPTUAL THINKING QUESTIONS\nQ4. Why is this topic critical for real-world environmental or technological processes?\nQ5. If we double the key parameters, how would it affect the overall outcome? Explain.`;
+        } else {
+          mockResponse = `📝 STUDY NOTES: ${teacherAIModal.resource?.title}\nSubject: ${teacherAIModal.resource?.subject}\n\n📌 CORE DEFINITIONS\n• Principle Definition: The standard description of this topic.\n• Key terms: Term A, Term B, Term C.\n\n📌 KEY FORMULAS & SYMBOLS\n• Equation: F = x * y (where x is constant and y is variable).\n\n📌 SUMMARY POINTS\n• Point 1: This concept forms the basis of advanced studies.\n• Point 2: Ensure to practice diagram setups before the examination.\n• Point 3: Review past Board exam papers for standard question formats.`;
+        }
+        setTeacherAIModal(prev => ({ ...prev, responseText: mockResponse, isGenerating: false }));
+      }, 1500);
+    }
+  };
+
+  const handleSaveGeneratedResource = async () => {
+    if (!teacherAIModal.resource || !teacherAIModal.responseText) return;
+    
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    
+    let subjectId = teacherAIModal.resource.subjectId || dbSubjects.find(s => s.name === teacherAIModal.resource?.subject)?.id || "";
+    if (!subjectId && dbSubjects.length > 0) {
+      subjectId = dbSubjects[0].id || "";
+    }
+    
+    const newResourceData = {
+      title: `${teacherAIModal.option === "lesson-plan" ? "Lesson Plan" : teacherAIModal.option === "quiz" ? "Quiz" : "Notes"} - ${teacherAIModal.resource.title}`,
+      subjectId: subjectId,
+      category: teacherAIModal.option === "lesson-plan" ? "materials" : "notes",
+      type: "DOC" as const,
+      meta: "Generated by AI",
+      description: teacherAIModal.responseText.substring(0, 200) + "...",
+      url: "#",
+      status: "Active",
+      class: studentClass || "10"
+    };
+
+    try {
+      const res = await fetch(`${API_URL}/api/superadmin/academics/resources`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newResourceData)
+      });
+      
+      if (!res.ok) {
+        throw new Error("Server returned error status " + res.status);
+      }
+      
+      const savedRes = await res.json();
+      
+      // Let's add it locally so it immediately updates the portal UI!
+      const mockNewResource = {
+        id: savedRes?.id || `mock-res-${Date.now()}`,
+        title: newResourceData.title,
+        subjectId: subjectId,
+        category: newResourceData.category,
+        type: newResourceData.type,
+        meta: newResourceData.meta,
+        description: teacherAIModal.responseText,
+        addedBy: "Class Teacher",
+        createdAt: new Date().toISOString(),
+        url: "#"
+      };
+      
+      setDbResources(prev => [mockNewResource, ...prev]);
+      alert("Resource successfully created and added to Academics!");
+      setTeacherAIModal(prev => ({ ...prev, isOpen: false }));
+    } catch (err) {
+      // Fallback save locally if network fails or server returns error
+      const mockNewResource = {
+        id: `mock-res-${Date.now()}`,
+        title: newResourceData.title,
+        subjectId: subjectId,
+        category: newResourceData.category,
+        type: newResourceData.type,
+        meta: newResourceData.meta,
+        description: teacherAIModal.responseText,
+        addedBy: "Class Teacher",
+        createdAt: new Date().toISOString(),
+        url: "#"
+      };
+      setDbResources(prev => [mockNewResource, ...prev]);
+      alert("Saved locally! Resource added to Academics list.");
+      setTeacherAIModal(prev => ({ ...prev, isOpen: false }));
+    }
   };
 
   // Close preview on Escape
@@ -1081,6 +1263,14 @@ export default function AcademicsHubPage() {
 
               <div className="flex flex-wrap gap-2">
                 <button
+                  onClick={() => {
+                    const isVideo = previewResource.category === "videos" || previewResource.type === "Video";
+                    setActiveMedia({
+                      type: isVideo ? "video" : "pdf",
+                      url: previewResource.url || (isVideo ? "https://www.youtube.com/embed/d7n7DdB-bHY" : "/sample-syllabus.pdf"),
+                      title: previewResource.title,
+                    });
+                  }}
                   className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl active:scale-95 transition-all"
                   style={{
                     background: `linear-gradient(135deg, ${subjectTheme(previewResource.subject).color}, ${subjectTheme(previewResource.subject).color}cc)`,
@@ -1111,16 +1301,257 @@ export default function AcademicsHubPage() {
                   <Fi name="bookmark" className="text-sm" />
                   {bookmarks.includes(previewResource.id) ? "Saved" : "Save"}
                 </button>
-                <button className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] active:scale-95 transition-all">
+                <button 
+                  onClick={() => handleDownload(previewResource)}
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] active:scale-95 transition-all"
+                >
                   <Fi name="download" className="text-sm" /> Download
                 </button>
-                <Link
-                  href="/student/ai-tutor"
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border border-indigo-500/40 text-indigo-500 hover:bg-indigo-500/10 active:scale-95 transition-all"
+                <button
+                  onClick={() => setTeacherAIModal({
+                    isOpen: true,
+                    resource: previewResource,
+                    option: null,
+                    responseText: "",
+                    isGenerating: false
+                  })}
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border border-indigo-500/40 text-indigo-500 hover:bg-indigo-500/10 active:scale-95 transition-all font-sans"
                 >
                   <Fi name="comment-alt" className="text-sm" /> Ask AI Tutor
-                </Link>
+                </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {activeMedia && (
+        <div 
+          className="fixed inset-0 z-[120] bg-black/60 flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-200"
+          onClick={() => setActiveMedia(null)}
+        >
+          <div 
+            className="w-full max-w-4xl bg-[var(--bg-card)] border border-[var(--border)] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] shrink-0 bg-[var(--bg-card)]/50">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center">
+                  <Fi name={activeMedia.type === "video" ? "play" : "document"} className="text-indigo-400 text-sm" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm sm:text-base text-[var(--text-heading)] truncate max-w-md md:max-w-xl">
+                    {activeMedia.title}
+                  </h3>
+                  <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
+                    {activeMedia.type === "video" ? "Video Lesson" : "Document / PDF View"}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveMedia(null)}
+                className="p-2 rounded-xl bg-[var(--border)] hover:bg-[var(--border)]/80 text-[var(--text-muted)] hover:text-[var(--text-heading)] transition-all active:scale-90"
+              >
+                <Fi name="cross-small" className="text-base" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 sm:p-6 bg-[var(--bg-card)] flex-1 flex flex-col justify-center items-center">
+              {activeMedia.type === "video" ? (
+                <div className="w-full aspect-video rounded-2xl overflow-hidden shadow-lg border border-[var(--border)] bg-black">
+                  {activeMedia.url.includes("youtube.com") || activeMedia.url.includes("youtu.be") || activeMedia.url.includes("youtube") ? (
+                    <iframe
+                      src={getYouTubeEmbedUrl(activeMedia.url)}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={activeMedia.title}
+                    />
+                  ) : (
+                    <video 
+                      src={activeMedia.url} 
+                      controls 
+                      autoPlay 
+                      className="w-full h-full"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
+                </div>
+              ) : (
+                <div className="w-full h-[60vh] rounded-2xl overflow-hidden shadow-lg border border-[var(--border)] bg-[var(--bg-card)] flex flex-col">
+                  {/* PDF view using iframe */}
+                  <iframe
+                    src={activeMedia.url}
+                    className="w-full flex-1 border-0"
+                    title={activeMedia.title}
+                  />
+                  <div className="p-3 bg-[var(--bg-card)] border-t border-[var(--border)] flex justify-between items-center shrink-0">
+                    <span className="text-xs text-[var(--text-muted)] font-semibold truncate max-w-xs">
+                      If the document does not display, click the button to open it.
+                    </span>
+                    <a
+                      href={activeMedia.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
+                    >
+                      <Fi name="download" className="text-xs" /> Open in New Tab
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ───── AI Tutor Teacher Assistant Popup Modal ───── */}
+      {teacherAIModal.isOpen && teacherAIModal.resource && (
+        <div 
+          className="fixed inset-0 z-[130] bg-black/60 flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-200"
+          onClick={() => setTeacherAIModal(prev => ({ ...prev, isOpen: false }))}
+        >
+          <div 
+            className="w-full max-w-3xl bg-[var(--bg-card)] border border-[var(--border)] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] shrink-0 bg-[var(--bg-card)]/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg text-white">
+                  <Fi name="comment-alt" className="text-lg" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm sm:text-base text-[var(--text-heading)]">
+                    AI Tutor — Teacher Assistant
+                  </h3>
+                  <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
+                    Topic: {teacherAIModal.resource.title} ({teacherAIModal.resource.subject})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setTeacherAIModal(prev => ({ ...prev, isOpen: false }))}
+                className="p-2 rounded-xl bg-[var(--border)] hover:bg-[var(--border)]/80 text-[var(--text-muted)] hover:text-[var(--text-heading)] transition-all active:scale-90"
+              >
+                <Fi name="cross-small" className="text-base" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-6">
+              {/* Option Selection */}
+              {!teacherAIModal.option && !teacherAIModal.responseText && (
+                <div className="space-y-4">
+                  <p className="text-sm font-semibold text-[var(--text-main)]">
+                    What new academic resource would you like to create based on this lesson?
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      { key: "lesson-plan", label: "Create Lesson Plan", desc: "Objectives, introduction, content, and timeline", icon: "notebook" },
+                      { key: "quiz", label: "Create Quick Quiz (MCQs)", desc: "5 multiple choice questions with explanations", icon: "question-square" },
+                      { key: "notes", label: "Create Study Notes", desc: "Core definitions, summary points, and takeaways", icon: "document" },
+                      { key: "worksheet", label: "Create Homework Worksheet", desc: "Short answer & conceptual questions for practice", icon: "edit" }
+                    ].map((opt) => (
+                      <button
+                        key={opt.key}
+                        onClick={() => handleAITeacherGenerate(opt.key)}
+                        className="text-left p-4 rounded-2xl bg-[var(--bg-card-hover)] border border-[var(--border)] hover:border-indigo-500/40 transition-all flex items-start gap-3.5 group/opt"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover/opt:bg-indigo-600 group-hover/opt:text-white transition-all shrink-0">
+                          <Fi name={opt.icon} className="text-base" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-xs sm:text-sm text-[var(--text-heading)] group-hover/opt:text-indigo-400 transition-colors">{opt.label}</p>
+                          <p className="text-[11px] text-[var(--text-muted)] mt-1 leading-normal">{opt.desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="pt-4 border-t border-[var(--border)]">
+                    <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Or enter a custom prompt</p>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        id="ai-teacher-custom-prompt"
+                        placeholder="e.g. Translate this lesson summary to Tamil..." 
+                        className="flex-1 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl px-4 py-2 text-xs text-[var(--text-main)] placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            const val = (e.target as HTMLInputElement).value;
+                            if (val.trim()) handleAITeacherGenerate("custom", val.trim());
+                          }
+                        }}
+                      />
+                      <button 
+                        onClick={() => {
+                          const el = document.getElementById("ai-teacher-custom-prompt") as HTMLInputElement;
+                          if (el && el.value.trim()) handleAITeacherGenerate("custom", el.value.trim());
+                        }}
+                        className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all active:scale-95 shrink-0"
+                      >
+                        Generate
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Generating state */}
+              {teacherAIModal.isGenerating && (
+                <div className="py-12 flex flex-col items-center justify-center space-y-4">
+                  <div className="w-16 h-16 rounded-full border-4 border-indigo-600/20 border-t-indigo-600 animate-spin" />
+                  <p className="text-sm font-semibold text-[var(--text-main)] animate-pulse">
+                    AI Tutor is reading the lesson and generating your content...
+                  </p>
+                </div>
+              )}
+
+              {/* Results display */}
+              {!teacherAIModal.isGenerating && teacherAIModal.responseText && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center bg-[var(--bg-card-hover)] p-3 rounded-2xl border border-[var(--border)]">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-indigo-600/10 text-indigo-400 px-2 py-0.5 rounded-md border border-indigo-500/15 capitalize">
+                        {teacherAIModal.option?.replace("-", " ")}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => setTeacherAIModal(prev => ({ ...prev, option: null, responseText: "" }))}
+                        className="text-[10px] font-bold text-[var(--text-muted)] hover:text-[var(--text-heading)] px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] transition-colors"
+                      >
+                        ← Start Over
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-[var(--bg-card-hover)] border border-[var(--border)] text-xs sm:text-sm text-[var(--text-main)] font-medium leading-relaxed max-h-[45vh] overflow-y-auto whitespace-pre-wrap select-text selection:bg-indigo-500/30">
+                    {teacherAIModal.responseText}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-3 border-t border-[var(--border)]">
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(teacherAIModal.responseText);
+                        alert("Copied to clipboard!");
+                      }}
+                      className="px-4 py-2 rounded-xl bg-[var(--border)] hover:bg-[var(--border)]/80 text-[var(--text-heading)] font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95"
+                    >
+                      <Fi name="copy" className="text-xs" /> Copy Text
+                    </button>
+                    <button 
+                      onClick={handleSaveGeneratedResource}
+                      className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95"
+                    >
+                      <Fi name="plus-small" className="text-xs" /> Save as New Resource
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

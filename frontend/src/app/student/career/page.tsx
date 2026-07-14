@@ -836,7 +836,14 @@ export default function CareerGuidancePage() {
 
         {/* Quick Links */}
         <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
-          <Link href="/student/ai-tutor" className="text-xs font-black px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/40 dark:text-indigo-300">
+          <Link 
+            href={`/student/ai-tutor?subject=General&question=${encodeURIComponent(
+              expandedCareer 
+                ? `I am interested in a career as a "${t(CAREERS.find(c => c.id === expandedCareer)?.title || "")}". Can you guide me through the subject requirements, NEET/JEE/CLAT exams, eligibility, course duration, and preparation steps?`
+                : "Can you provide general guidance on career options, streams, and entrance exams for students in Tamil Nadu after Class 10/12?"
+            )}`}
+            className="text-xs font-black px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/40 dark:text-indigo-300"
+          >
             🤖 {lang === "EN" ? "Ask AI Tutor" : "AI ஆசிரியர்"}
           </Link>
           <Link href="/student/science-library" className="text-xs font-black px-3 py-1.5 rounded-lg bg-sky-100 text-sky-700 hover:bg-sky-200 dark:bg-sky-900/40 dark:text-sky-300">

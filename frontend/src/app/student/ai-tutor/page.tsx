@@ -59,6 +59,34 @@ export default function AITutorPage() {
     setSessionId(`session-${Date.now()}`);
   }, []);
 
+  // 2. Read query parameters (subject and question) from other screens
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const subjectParam = params.get("subject");
+      const questionParam = params.get("question");
+
+      if (subjectParam) {
+        const matched = subjects.find(
+          (s) => s.toLowerCase() === subjectParam.toLowerCase()
+        );
+        if (matched) {
+          setSelectedSubject(matched);
+        } else {
+          setSelectedSubject(subjectParam);
+        }
+      }
+
+      if (questionParam) {
+        setInput(questionParam);
+        
+        // Clean URL to prevent prefilling on manually refreshing the page
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (!session?.user) return;
     const userId = (session.user as any)?.id;

@@ -119,6 +119,11 @@ export default function AcademicsHubPage() {
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [previewResource, setPreviewResource] = useState<Resource | null>(null);
   const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
+  const [activeMedia, setActiveMedia] = useState<{
+    type: "video" | "pdf";
+    url: string;
+    title: string;
+  } | null>(null);
 
   const studentClass = String((session?.user as any)?.class || "10");
   const classNum = parseInt(studentClass.match(/\d+/)?.[0] || "10", 10);
@@ -216,6 +221,42 @@ export default function AcademicsHubPage() {
       localStorage.setItem(BOOKMARK_KEY, JSON.stringify(next));
       return next;
     });
+  };
+
+  const getYouTubeEmbedUrl = (url: string) => {
+    if (!url) return "https://www.youtube.com/embed/d7n7DdB-bHY";
+    try {
+      if (url.includes("/embed/")) return url;
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      if (match && match[2].length === 11) {
+        return `https://www.youtube.com/embed/${match[2]}`;
+      }
+    } catch {}
+    if (url.includes("youtube.com") || url.includes("youtu.be")) {
+      return url;
+    }
+    if (!url.startsWith("http") && !url.startsWith("/")) {
+      return `https://www.youtube.com/embed/${url}`;
+    }
+    return url;
+  };
+
+  const handleDownload = (resource: Resource) => {
+    if (!resource.url) {
+      alert("No download URL available for this resource.");
+      return;
+    }
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const downloadUrl = resource.url.startsWith("http") ? resource.url : `${API_URL}${resource.url}`;
+    
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.target = "_blank";
+    link.download = resource.title;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Close preview on Escape
@@ -1009,6 +1050,14 @@ export default function AcademicsHubPage() {
 
               <div className="flex flex-wrap gap-2">
                 <button
+                  onClick={() => {
+                    const isVideo = previewResource.category === "videos" || previewResource.type === "Video";
+                    setActiveMedia({
+                      type: isVideo ? "video" : "pdf",
+                      url: previewResource.url || (isVideo ? "https://www.youtube.com/embed/d7n7DdB-bHY" : "/sample-syllabus.pdf"),
+                      title: previewResource.title,
+                    });
+                  }}
                   className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl active:scale-95 transition-all"
                   style={{
                     background: `linear-gradient(135deg, ${subjectTheme(previewResource.subject).color}, ${subjectTheme(previewResource.subject).color}cc)`,
@@ -1039,16 +1088,103 @@ export default function AcademicsHubPage() {
                   <Fi name="bookmark" className="text-sm" />
                   {bookmarks.includes(previewResource.id) ? "Saved" : "Save"}
                 </button>
-                <button className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] active:scale-95 transition-all">
+                <button 
+                  onClick={() => handleDownload(previewResource)}
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] active:scale-95 transition-all"
+                >
                   <Fi name="download" className="text-sm" /> Download
                 </button>
                 <Link
-                  href="/student/ai-tutor"
+                  href={`/student/ai-tutor?subject=${encodeURIComponent(previewResource.subject)}&question=${encodeURIComponent(`Can you explain the concepts and key details covered in the lesson "${previewResource.title}" under ${previewResource.subject}?`)}`}
                   className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border border-indigo-500/40 text-indigo-500 hover:bg-indigo-500/10 active:scale-95 transition-all"
                 >
                   <Fi name="comment-alt" className="text-sm" /> Ask AI Tutor
                 </Link>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ───── Media Preview Modal (Video / PDF Player Popup) ───── */}
+      {activeMedia && (
+        <div 
+          className="fixed inset-0 z-[120] bg-black/60 flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-200"
+          onClick={() => setActiveMedia(null)}
+        >
+          <div 
+            className="w-full max-w-4xl bg-[var(--bg-card)] border border-[var(--border)] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] shrink-0 bg-[var(--bg-card)]/50">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center">
+                  <Fi name={activeMedia.type === "video" ? "play" : "document"} className="text-indigo-400 text-sm" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm sm:text-base text-[var(--text-heading)] truncate max-w-md md:max-w-xl">
+                    {activeMedia.title}
+                  </h3>
+                  <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
+                    {activeMedia.type === "video" ? "Video Lesson" : "Document / PDF View"}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveMedia(null)}
+                className="p-2 rounded-xl bg-[var(--border)] hover:bg-[var(--border)]/80 text-[var(--text-muted)] hover:text-[var(--text-heading)] transition-all active:scale-90"
+              >
+                <Fi name="cross-small" className="text-base" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 sm:p-6 bg-[var(--bg-card)] flex-1 flex flex-col justify-center items-center">
+              {activeMedia.type === "video" ? (
+                <div className="w-full aspect-video rounded-2xl overflow-hidden shadow-lg border border-[var(--border)] bg-black">
+                  {activeMedia.url.includes("youtube.com") || activeMedia.url.includes("youtu.be") || activeMedia.url.includes("youtube") ? (
+                    <iframe
+                      src={getYouTubeEmbedUrl(activeMedia.url)}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={activeMedia.title}
+                    />
+                  ) : (
+                    <video 
+                      src={activeMedia.url} 
+                      controls 
+                      autoPlay 
+                      className="w-full h-full"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
+                </div>
+              ) : (
+                <div className="w-full h-[60vh] rounded-2xl overflow-hidden shadow-lg border border-[var(--border)] bg-[var(--bg-card)] flex flex-col">
+                  {/* PDF view using iframe */}
+                  <iframe
+                    src={activeMedia.url}
+                    className="w-full flex-1 border-0"
+                    title={activeMedia.title}
+                  />
+                  <div className="p-3 bg-[var(--bg-card)] border-t border-[var(--border)] flex justify-between items-center shrink-0">
+                    <span className="text-xs text-[var(--text-muted)] font-semibold truncate max-w-xs">
+                      If the document does not display, click the button to open it.
+                    </span>
+                    <a
+                      href={activeMedia.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
+                    >
+                      <Fi name="download" className="text-xs" /> Open in New Tab
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
