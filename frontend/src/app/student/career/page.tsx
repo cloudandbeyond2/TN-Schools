@@ -289,71 +289,6 @@ const EXAMS = [
   { name: "IBPS PO | வங்கி பி.ஓ தேர்வு", date: "Oct 2026", for: "Bank Probationary Officer | வங்கி அதிகாரி பணி", eligibility: "Any Graduation | ஏதேனும் ஒரு பட்டப்படிப்பு", body: "IBPS | வங்கிப் பணியாளர் தேர்வு நிறுவனம்", color: "from-emerald-500 to-teal-500" },
 ];
 
-const QUIZ_QUESTIONS = [
-  {
-    q: "What do you enjoy most? / உங்களுக்கு மிகவும் பிடிப்பது எது?",
-    options: [
-      "Helping sick people get better / உடல்நலமில்லாதவர்களுக்கு உதவுவது",
-      "Building or fixing things / புதியவற்றை உருவாக்குவது அல்லது பழுதுபார்ப்பது",
-      "Reading and arguing logically / படிப்பது மற்றும் தர்க்கரீதியாக விவாதிப்பது",
-      "Working with numbers & money / எண்கள் மற்றும் பணத்துடன் வேலை செய்வது",
-      "Coding & problem solving / கணினி நிரலாக்கம் மற்றும் சிக்கல் தீர்த்தல்",
-      "Teaching and guiding others / பிறருக்கு கற்பிப்பது மற்றும் வழிகாட்டுவது"
-    ]
-  },
-  {
-    q: "Which subject excites you most? / உங்களுக்குப் பிடித்த பாடம் எது?",
-    options: [
-      "Biology / உயிரியல்",
-      "Physics & Math / இயற்பியல் & கணிதம்",
-      "History & Polity / வரலாறு & குடிமையியல்",
-      "Economics & Accounts / பொருளியல் & கணக்குப் பதிவியல்",
-      "Computer Science / கணினி அறிவியல்",
-      "Any — I love all subjects / அனைத்தும் - எல்லா பாடங்களும் பிடிக்கும்"
-    ]
-  },
-  {
-    q: "Which work environment fits you? / உங்களுக்கு எந்த வேலைச் சூழல் பிடிக்கும்?",
-    options: [
-      "Hospital / Clinic | மருத்துவமனை / கிளினிக்",
-      "Office / Field | அலுவலகம் / வெளிக்களப் பணி",
-      "Courtroom / Government | நீதிமன்றம் / அரசு அலுவலகம்",
-      "Bank / Corporate | வங்கி / பெருநிறுவனம்",
-      "Tech company / Remote | தொழில்நுட்ப நிறுவனம் / வீட்டில் இருந்தே பணி",
-      "School / College | பள்ளி / கல்லூரி"
-    ]
-  },
-  {
-    q: "What is your long-term goal? / உங்களது நீண்ட கால இலக்கு என்ன?",
-    options: [
-      "Save lives / உயிர்களைக் காப்பாற்றுவது",
-      "Build infrastructure or software / உள்கட்டமைப்பு அல்லது மென்பொருளை உருவாக்குவது",
-      "Serve the nation / public / தேசத்திற்கு / மக்களுக்கு சேவை செய்வது",
-      "Grow wealth / செல்வத்தை பெருக்குவது மற்றும் நிர்வகிப்பது",
-      "Innovate with technology / புதிய தொழில்நுட்பங்களை உருவாக்குவது",
-      "Inspire the next generation / அடுத்த தலைமுறையை ஊக்குவிப்பது"
-    ]
-  },
-  {
-    q: "How much risk are you comfortable with? / நீங்கள் எவ்வளவு ரிஸ்க் எடுக்கத் தயார்?",
-    options: [
-      "Low — stable government job / குறைவு - நிலையான அரசு வேலை",
-      "Medium — corporate with growth / நடுத்தரம் - கார்ப்பரேட் வளர்ச்சி வேலை",
-      "High — startup / entrepreneurship / அதிகம் - சொந்தத் தொழில் / ஸ்டார்ட்அப்",
-      "I want to study more first / நான் முதலில் இன்னும் நன்றாகப் படிக்க வேண்டும்"
-    ]
-  },
-];
-
-const QUIZ_RESULTS: Record<string, { careers: string[]; note: string }> = {
-  "0": { careers: ["doctor"], note: "Your passion for helping people makes Medicine a natural fit. / மக்களுக்கு உதவ வேண்டும் என்ற உங்கள் எண்ணம் மருத்துவத் துறைக்கு உகந்தது." },
-  "1": { careers: ["engineer", "software"], note: "Your love for building & fixing things points to Engineering or IT. / புதியவற்றை உருவாக்க விரும்பும் உங்களுக்குப் பொறியியல் அல்லது ஐ.டி துறை சிறந்தது." },
-  "2": { careers: ["ias", "tnpsc", "lawyer"], note: "Your civic interest aligns perfectly with Civil Services or Law. / சமூக அக்கறை கொண்ட உங்களுக்குக் குடிமைப் பணிகள் அல்லது சட்டத் துறை மிகவும் உகந்தது." },
-  "3": { careers: ["banking", "tnpsc"], note: "Your aptitude for numbers suits Banking, Finance, or CA. / எண்களைக் கையாளும் உங்கள் திறன் வங்கி, நிதித்துறை அல்லது சி.ஏ படிப்பிற்கு உகந்தது." },
-  "4": { careers: ["software", "engineer"], note: "Technology is your domain — Software Engineering is the path! / தொழில்நுட்பம் உங்களுக்கானது - மென்பொருள் பொறியியல் சிறந்த தேர்வாகும்!" },
-  "5": { careers: ["teacher"], note: "Your passion for guiding others makes Teaching a fulfilling career. / மற்றவர்களுக்கு வழிகாட்ட விரும்பும் உங்களுக்குக் கற்பித்தல் பணி சிறந்ததாகும்." },
-};
-
 const CATEGORIES = [
   "All | அனைத்தும்",
   "Medical | மருத்துவம்",
@@ -367,6 +302,117 @@ const CATEGORIES = [
   "Education | கல்வித் துறை"
 ];
 
+// ── ASSESSMENT DATA ───────────────────────────────────────────────────────────
+
+const INTEREST_OPTIONS = [
+  { id: "science", label: "Science & Experiments | அறிவியல் சோதனைகள்", emoji: "🔬" },
+  { id: "computers", label: "Computers & Coding | கணினி & குறியீடு", emoji: "💻" },
+  { id: "maths", label: "Mathematics | கணிதம்", emoji: "📐" },
+  { id: "biology", label: "Biology & Nature | உயிரியல்", emoji: "🌿" },
+  { id: "history", label: "History & Society | வரலாறு & சமூகம்", emoji: "📜" },
+  { id: "arts", label: "Arts & Drawing | கலை & ஓவியம்", emoji: "🎨" },
+  { id: "sports", label: "Sports & Fitness | விளையாட்டு", emoji: "⚽" },
+  { id: "reading", label: "Reading & Writing | வாசிப்பு & எழுத்து", emoji: "📚" },
+  { id: "helping", label: "Helping Others | பிறருக்கு உதவுவது", emoji: "🤝" },
+  { id: "leadership", label: "Leadership & Organising | தலைமைத்துவம்", emoji: "🏆" },
+  { id: "business", label: "Business & Money | வணிகம்", emoji: "💰" },
+  { id: "nature", label: "Farming & Nature | விவசாயம்", emoji: "🌾" },
+];
+
+// SUBJECT_OPTIONS is now class-aware — computed inside the component below.
+// See getSubjectsByClass() for the full mapping.
+function getSubjectsByClass(cls: number): string[] {
+  if (cls >= 11) {
+    // Higher Secondary (Class 11-12): stream subjects
+    return [
+      "Mathematics | கணிதம்",
+      "Physics | இயற்பியல்",
+      "Chemistry | வேதியியல்",
+      "Biology | உயிரியல்",
+      "Botany | தாவரவியல்",
+      "Zoology | விலங்கியல்",
+      "Computer Science | கணினி அறிவியல்",
+      "Economics | பொருளியல்",
+      "Accountancy | கணக்குப்பதிவியல்",
+      "Commerce | வணிகவியல்",
+      "History | வரலாறு",
+      "Political Science | குடிமையியல்",
+      "Geography | புவியியல்",
+      "English | ஆங்கிலம்",
+      "Tamil | தமிழ்",
+    ];
+  } else if (cls >= 9) {
+    // High School (Class 9-10): SSLC subjects
+    return [
+      "Tamil | தமிழ்",
+      "English | ஆங்கிலம்",
+      "Mathematics | கணிதம்",
+      "Science | அறிவியல்",
+      "Social Science | சமூக அறிவியல்",
+      "Computer Science | கணினி அறிவியல்",
+    ];
+  } else {
+    // Middle School (Class 6-8): core subjects
+    return [
+      "Tamil | தமிழ்",
+      "English | ஆங்கிலம்",
+      "Mathematics | கணிதம்",
+      "Science | அறிவியல்",
+      "Social Science | சமூக அறிவியல்",
+      "Hindi | இந்தி",
+    ];
+  }
+}
+
+
+const SKILL_OPTIONS = [
+  { id: "problem-solving", label: "Problem Solving | சிக்கல் தீர்க்கும் திறன்", emoji: "🧩" },
+  { id: "communication", label: "Communication | தொடர்புத் திறன்", emoji: "🗣️" },
+  { id: "leadership", label: "Leadership | தலைமைத்துவம்", emoji: "🎯" },
+  { id: "creativity", label: "Creativity | ஆக்கத்திறன்", emoji: "💡" },
+  { id: "discipline", label: "Discipline & Hard Work | ஒழுக்கம்", emoji: "💪" },
+  { id: "teamwork", label: "Teamwork | குழுப் பணி", emoji: "🤝" },
+  { id: "memory", label: "Good Memory | நல்ல ஞாபகத்திறன்", emoji: "🧠" },
+  { id: "physical", label: "Physical Fitness | உடல் திறன்", emoji: "🏃" },
+];
+
+const PREF_OPTIONS = [
+  { id: "stable", label: "Stable Government Job | நிலையான அரசு வேலை", emoji: "🏛️" },
+  { id: "high-salary", label: "High Salary | அதிக சம்பளம்", emoji: "💰" },
+  { id: "service", label: "Serving Society | சமூக சேவை", emoji: "🌟" },
+  { id: "creative", label: "Creative & Innovative Work | ஆக்கத்திறன்", emoji: "🎨" },
+  { id: "travel", label: "Travel & Outdoor Work | பயண வாய்ப்பு", emoji: "✈️" },
+  { id: "prestige", label: "Social Prestige | சமூக மரியாதை", emoji: "👑" },
+  { id: "growth", label: "Fast Career Growth | வேக வளர்ச்சி", emoji: "📈" },
+  { id: "wlb", label: "Work-Life Balance | வாழ்க்கை சமநிலை", emoji: "⚖️" },
+];
+
+type AssessmentResult = {
+  topCareers: {
+    title: string; titleTa: string; matchScore: number;
+    whyMatch: string; whyMatchTa: string;
+    roadmap: string; roadmapTa: string;
+    examTip: string; examTipTa: string;
+    stream: string; salaryRange: string;
+  }[];
+  personalityProfile: {
+    type: string; typeTa: string;
+    description: string; descriptionTa: string;
+    traits: string[]; traitsTa: string[]; emoji: string;
+  };
+  strengthReport: {
+    strongSubjects: string[]; improvementAreas: string[];
+    studyTip: string; studyTipTa: string;
+    uniqueStrength: string; uniqueStrengthTa: string;
+  };
+  actionPlan: {
+    immediate: string[]; shortTerm: string[]; longTerm: string[];
+    immediateTa: string[]; shortTermTa: string[]; longTermTa: string[];
+  };
+  motivationalNote: string;
+  motivationalNoteTa: string;
+};
+
 // ── COMPONENT ─────────────────────────────────────────────────────────────────
 
 export default function CareerGuidancePage() {
@@ -375,13 +421,37 @@ export default function CareerGuidancePage() {
   const studentClass = parseInt(user?.class || "10");
   const studentName = user?.name?.split(" ")[0] || "Student";
 
+
+
+
   const [lang, setLang] = useState<"EN" | "TA">("EN");
-  const [activeTab, setActiveTab] = useState<"explore" | "quiz" | "exams" | "colleges">("explore");
+  const [activeTab, setActiveTab] = useState<"explore" | "assessment" | "exams" | "colleges">("explore");
   const [selectedCategory, setSelectedCategory] = useState("All | அனைத்தும்");
   const [expandedCareer, setExpandedCareer] = useState<string | null>(null);
-  const [quizStep, setQuizStep] = useState(0);
-  const [quizAnswers, setQuizAnswers] = useState<number[]>([]);
-  const [quizDone, setQuizDone] = useState(false);
+
+  // ── Class-aware subject list (depends on lang) ────────────────────────────
+  const subjectOptions = getSubjectsByClass(studentClass);
+  const subjectLevelLabel =
+    studentClass >= 11
+      ? lang === "EN" ? `Class ${studentClass} — Higher Secondary Stream Subjects` : `${studentClass}ஆம் வகுப்பு — மேல்நிலைப் பாடங்கள்`
+      : studentClass >= 9
+      ? lang === "EN" ? `Class ${studentClass} — SSLC Subjects` : `${studentClass}ஆம் வகுப்பு — SSLC பாடங்கள்`
+      : lang === "EN" ? `Class ${studentClass} — Core Subjects` : `${studentClass}ஆம் வகுப்பு — அடிப்படைப் பாடங்கள்`;
+
+
+  // ── Assessment state ───────────────────────────────────────────────────────
+  const [assessStep, setAssessStep] = useState(0);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [strongSubjects, setStrongSubjects] = useState<string[]>([]);
+  const [weakSubjects, setWeakSubjects] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [workStyle, setWorkStyle] = useState<"Outdoor" | "Office" | "Both">("Both");
+  const [roleModel, setRoleModel] = useState("");
+  const [hobbies, setHobbies] = useState("");
+  const [selectedPrefs, setSelectedPrefs] = useState<string[]>([]);
+  const [assessLoading, setAssessLoading] = useState(false);
+  const [assessResult, setAssessResult] = useState<AssessmentResult | null>(null);
+  const [assessError, setAssessError] = useState<string | null>(null);
 
   // Helper function to extract correct translation
   const t = (bilingualText: string) => {
@@ -403,26 +473,78 @@ export default function CareerGuidancePage() {
     return c.category.startsWith(cleanCat);
   });
 
-  const handleQuizAnswer = (idx: number) => {
-    const next = [...quizAnswers, idx];
-    setQuizAnswers(next);
-    if (quizStep < QUIZ_QUESTIONS.length - 1) {
-      setQuizStep(s => s + 1);
-    } else {
-      setQuizDone(true);
+  const toggleChip = (val: string, list: string[], setter: (v: string[]) => void) => {
+    setter(list.includes(val) ? list.filter(x => x !== val) : [...list, val]);
+  };
+
+  const handleSubmitAssessment = async () => {
+    setAssessLoading(true);
+    setAssessError(null);
+    setAssessResult(null);
+    try {
+      const payload = {
+        studentName,
+        studentClass,
+        language: lang === "EN" ? "English" : "Tamil",
+        interests: selectedInterests,
+        academicStrengths: strongSubjects,
+        weakSubjects,
+        skills: selectedSkills,
+        careerPreferences: selectedPrefs,
+        workStyle,
+        roleModel,
+        hobbies,
+      };
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiBase}/api/ai/career-aptitude`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "AI analysis failed");
+      setAssessResult(json.data);
+    } catch (e: any) {
+      setAssessError(e.message || "Something went wrong. Please try again.");
+    } finally {
+      setAssessLoading(false);
     }
   };
 
-  const topChoice = quizAnswers.length > 0 ? String(quizAnswers[0]) : "1";
-  const quizResult = QUIZ_RESULTS[topChoice] || QUIZ_RESULTS["1"];
-  const recommendedCareers = CAREERS.filter(c => quizResult.careers.includes(c.id));
+  const resetAssessment = () => {
+    setAssessStep(0);
+    setSelectedInterests([]);
+    setStrongSubjects([]);
+    setWeakSubjects([]);
+    setSelectedSkills([]);
+    setWorkStyle("Both");
+    setRoleModel("");
+    setHobbies("");
+    setSelectedPrefs([]);
+    setAssessResult(null);
+    setAssessError(null);
+    setAssessLoading(false);
+  };
 
   const TABS = [
     { id: "explore", label: "🔭 Explore Careers | தொழில்களை ஆராயுங்கள்" },
-    { id: "quiz", label: "🧠 Career Quiz | வினாடி வினா" },
+    { id: "assessment", label: "🎯 Aptitude Assessment | திறன் மதிப்பீடு" },
     { id: "exams", label: "📅 Exam Calendar | தேர்வு காலண்டர்" },
     { id: "colleges", label: "🏫 TN Colleges | தமிழக கல்லூரிகள்" },
   ] as const;
+
+  const STEP_LABELS = [
+    lang === "EN" ? "Interests" : "ஆர்வங்கள்",
+    lang === "EN" ? "Academics" : "கல்வி",
+    lang === "EN" ? "Skills" : "திறன்கள்",
+    lang === "EN" ? "Preferences" : "விருப்பங்கள்",
+  ];
+
+  // Match score color
+  const scoreColor = (s: number) =>
+    s >= 90 ? "from-emerald-500 to-green-600" :
+    s >= 75 ? "from-blue-500 to-indigo-600" :
+    "from-amber-500 to-orange-500";
 
   return (
     <PortalLayout
@@ -458,14 +580,14 @@ export default function CareerGuidancePage() {
               🎯 {lang === "EN" ? `Class ${studentClass} Career Guidance` : `${studentClass}ஆம் வகுப்பு தொழில் வழிகாட்டி`}
             </span>
             <h2 className="text-3xl font-black text-white mb-2">
-              {lang === "EN" 
-                ? `Hello ${studentName}! What will you become?` 
+              {lang === "EN"
+                ? `Hello ${studentName}! What will you become?`
                 : `வணக்கம் ${studentName}! நீங்கள் என்னவாக விரும்புகிறீர்கள்?`}
             </h2>
             <p className="text-white/85 text-sm font-medium leading-relaxed">
               {lang === "EN"
-                ? "Explore career paths, entrance exams, top Tamil Nadu colleges and get a personalised recommendation."
-                : "பல்வேறு தொழில் வாய்ப்புகள், நுழைவுத் தேர்வுகள், தமிழகத்தின் சிறந்த கல்லூரிகள் மற்றும் உங்களுக்கான தனிப்பட்ட ஆலோசனைகளைப் பெறுங்கள்."}
+                ? "Explore careers, take our AI Aptitude Assessment, browse entrance exams and top Tamil Nadu colleges."
+                : "பல்வேறு தொழில்களை ஆராயுங்கள், AI திறன் மதிப்பீட்டை மேற்கொள்ளுங்கள், நுழைவுத் தேர்வுகள் மற்றும் சிறந்த கல்லூரிகளைப் பாருங்கள்."}
             </p>
             <div className="flex flex-wrap gap-2 mt-4">
               {["🩺 Medical | மருத்துவம்", "⚙️ Engineering | பொறியியல்", "💻 Technology | தொழில்நுட்பம்", "🏛️ Civil Services | குடிமைப்பணி", "⚖️ Law | சட்டம்"].map(tag => (
@@ -619,84 +741,477 @@ export default function CareerGuidancePage() {
           </div>
         )}
 
-        {/* ── TAB 2: CAREER QUIZ ─────────────────────────────────────────────── */}
-        {activeTab === "quiz" && (
+        {/* ── TAB 2: AI APTITUDE ASSESSMENT ──────────────────────────────────── */}
+        {activeTab === "assessment" && (
           <div className="space-y-5 text-left">
-            {!quizDone ? (
-              <div className="bg-white dark:bg-slate-800 rounded-3xl border-2 border-slate-100 dark:border-slate-700 p-6 shadow-sm">
-                {/* Progress */}
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-wider text-indigo-500">
-                      {lang === "EN" ? `Question ${quizStep + 1} of ${QUIZ_QUESTIONS.length}` : `கேள்வி ${quizStep + 1} / ${QUIZ_QUESTIONS.length}`}
-                    </p>
-                    <h3 className="text-sm font-black text-slate-850 dark:text-white mt-1 leading-relaxed">{t(QUIZ_QUESTIONS[quizStep].q)}</h3>
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
-                    <span className="text-lg font-black text-indigo-600 dark:text-indigo-400">{quizStep + 1}</span>
-                  </div>
-                </div>
-                <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full mb-6">
-                  <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all" style={{ width: `${((quizStep) / QUIZ_QUESTIONS.length) * 100}%` }} />
-                </div>
-                <div className="grid grid-cols-1 gap-3">
-                  {QUIZ_QUESTIONS[quizStep].options.map((opt, i) => (
-                    <button
-                      key={opt}
-                      onClick={() => handleQuizAnswer(i)}
-                      className="w-full text-left px-4 py-3.5 rounded-2xl border-2 border-slate-100 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 text-xs font-bold text-slate-700 dark:text-slate-200 transition-all hover:-translate-y-0.5"
-                    >
-                      {t(opt)}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  onClick={() => { setQuizStep(0); setQuizAnswers([]); setQuizDone(false); }}
-                  className="mt-4 text-xs text-slate-400 hover:text-slate-600 font-medium"
-                >
-                  ↺ {lang === "EN" ? "Restart Quiz" : "மீண்டும் தொடங்குக"}
-                </button>
-              </div>
-            ) : (
+
+            {/* ── RESULT VIEW ─────────────────────────────────────────────────── */}
+            {assessResult && !assessLoading && (
               <div className="space-y-5">
-                {/* Result */}
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl p-6 text-white text-left">
-                  <p className="text-xs font-black uppercase tracking-wider mb-2 opacity-80">{lang === "EN" ? "Your Career Match" : "உங்களுக்கான சிறந்த தேர்வு"}</p>
-                  <h3 className="text-2xl font-black mb-2">{recommendedCareers.map(c => t(c.title)).join(" or ")}</h3>
-                  <p className="text-xs text-white/85 leading-relaxed font-semibold">{t(quizResult.note)}</p>
-                  <button
-                    onClick={() => { setQuizStep(0); setQuizAnswers([]); setQuizDone(false); }}
-                    className="mt-4 bg-white/20 hover:bg-white/30 text-white text-xs font-black px-4 py-2 rounded-xl transition-all"
-                  >
-                    ↺ {lang === "EN" ? "Retake Quiz" : "மீண்டும் செய்ய"}
-                  </button>
+                {/* Header */}
+                <div className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-600 rounded-3xl p-6 text-white shadow-xl">
+                  <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
+                  <div className="relative z-10">
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-1">
+                      {lang === "EN" ? "✨ Your AI Career Report" : "✨ உங்கள் AI தொழில் அறிக்கை"}
+                    </p>
+                    <h3 className="text-2xl font-black mb-1">{studentName}</h3>
+                    <p className="text-white/75 text-xs font-medium">
+                      {lang === "EN"
+                        ? `Class ${studentClass} · Personalised career analysis powered by Gemini AI`
+                        : `${studentClass}ஆம் வகுப்பு · Gemini AI மூலம் தனிப்பட்ட தொழில் பகுப்பாய்வு`}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Matched career cards */}
-                {recommendedCareers.map(career => (
-                  <div key={career.id} className="bg-white dark:bg-slate-800 rounded-3xl border-2 border-slate-100 dark:border-slate-700 p-5 shadow-sm text-left">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-14 h-14 flex items-center justify-center shrink-0">
-                        <FlatIcon name={career.id} className="w-14 h-14" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-black text-slate-800 dark:text-white">{t(career.title)}</h3>
-                        <p className="text-xs text-slate-500 font-medium">{t(career.path)}</p>
-                      </div>
+                {/* Personality Profile */}
+                <div className="bg-white dark:bg-slate-800 rounded-3xl border-2 border-slate-100 dark:border-slate-700 p-5 shadow-sm">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl shadow-md">
+                      {assessResult.personalityProfile.emoji}
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed mb-3">{t(career.description)}</p>
-                    <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
-                      <p className="text-[9px] font-black uppercase text-indigo-500 mb-1">💡 {lang === "EN" ? "Your Next Step" : "உங்களது அடுத்த கட்டம்"}</p>
-                      <p className="text-[10px] text-indigo-700 dark:text-indigo-300 font-medium">{t(career.proTip)}</p>
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-wider text-purple-500">
+                        {lang === "EN" ? "Your Personality Profile" : "உங்கள் ஆளுமை சுயவிவரம்"}
+                      </p>
+                      <h4 className="text-base font-black text-slate-800 dark:text-white">
+                        {lang === "EN" ? assessResult.personalityProfile.type : assessResult.personalityProfile.typeTa}
+                      </h4>
                     </div>
-                    <button
-                      onClick={() => { setActiveTab("explore"); setExpandedCareer(career.id); setSelectedCategory("All | அனைத்தும்"); }}
-                      className={`mt-3 text-xs font-black px-4 py-2 rounded-xl text-white bg-gradient-to-r ${career.grad}`}
-                    >
-                      {lang === "EN" ? "View Full Details →" : "முழு விவரங்கள் →"}
-                    </button>
                   </div>
-                ))}
+                  <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed mb-3">
+                    {lang === "EN" ? assessResult.personalityProfile.description : assessResult.personalityProfile.descriptionTa}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {(lang === "EN" ? assessResult.personalityProfile.traits : assessResult.personalityProfile.traitsTa).map(tr => (
+                      <span key={tr} className="text-[10px] font-black px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">{tr}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Top 3 Career Matches */}
+                <div>
+                  <h3 className="text-sm font-black text-slate-800 dark:text-white mb-3 flex items-center gap-2">
+                    🏆 {lang === "EN" ? "Your Top 3 Career Matches" : "உங்களுக்கான சிறந்த 3 தொழில்கள்"}
+                  </h3>
+                  <div className="space-y-4">
+                    {assessResult.topCareers.map((career, i) => (
+                      <div key={career.title} className="bg-white dark:bg-slate-800 rounded-3xl border-2 border-slate-100 dark:border-slate-700 overflow-hidden shadow-sm">
+                        {/* Career header bar */}
+                        <div className={`bg-gradient-to-r ${scoreColor(career.matchScore)} p-4 flex items-center justify-between`}>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-black text-sm">
+                              {i + 1}
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-black text-white">
+                                {lang === "EN" ? career.title : career.titleTa}
+                              </h4>
+                              <p className="text-[10px] text-white/80 font-medium">{career.stream} Stream · {career.salaryRange}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-black text-white">{career.matchScore}%</p>
+                            <p className="text-[9px] text-white/70 font-bold uppercase">Match</p>
+                          </div>
+                        </div>
+                        {/* Career body */}
+                        <div className="p-4 space-y-3">
+                          {/* Why it fits */}
+                          <div className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl">
+                            <p className="text-[9px] font-black uppercase text-slate-400 mb-1">💡 {lang === "EN" ? "Why This Fits You" : "இது உங்களுக்கு ஏன் ஏற்றது"}</p>
+                            <p className="text-xs text-slate-700 dark:text-slate-200 font-medium leading-relaxed">
+                              {lang === "EN" ? career.whyMatch : career.whyMatchTa}
+                            </p>
+                          </div>
+                          {/* Roadmap */}
+                          <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
+                            <p className="text-[9px] font-black uppercase text-indigo-500 mb-1">🗺️ {lang === "EN" ? "Your Roadmap" : "உங்கள் பாதை"}</p>
+                            <p className="text-xs text-indigo-700 dark:text-indigo-300 font-medium leading-relaxed">
+                              {lang === "EN" ? career.roadmap : career.roadmapTa}
+                            </p>
+                          </div>
+                          {/* Exam tip */}
+                          <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-100 dark:border-amber-900/30">
+                            <p className="text-[9px] font-black uppercase text-amber-500 mb-1">📝 {lang === "EN" ? "Key Exam & Tip" : "முக்கிய தேர்வு & ஆலோசனை"}</p>
+                            <p className="text-xs text-amber-800 dark:text-amber-300 font-medium leading-relaxed">
+                              {lang === "EN" ? career.examTip : career.examTipTa}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Strength Report */}
+                <div className="bg-white dark:bg-slate-800 rounded-3xl border-2 border-slate-100 dark:border-slate-700 p-5 shadow-sm">
+                  <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                    📊 {lang === "EN" ? "Your Strength Report" : "உங்கள் திறன் அறிக்கை"}
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-emerald-500 mb-2">✅ {lang === "EN" ? "Strong Areas" : "வலுவான பகுதிகள்"}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {assessResult.strengthReport.strongSubjects.map(s => (
+                          <span key={s} className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-rose-500 mb-2">📈 {lang === "EN" ? "Areas to Improve" : "மேம்படுத்த வேண்டியவை"}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {assessResult.strengthReport.improvementAreas.map(s => (
+                          <span key={s} className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-sky-50 dark:bg-sky-950/30 rounded-2xl border border-sky-100 dark:border-sky-900/30 mb-3">
+                    <p className="text-[9px] font-black uppercase text-sky-500 mb-1">🌟 {lang === "EN" ? "Your Unique Strength" : "உங்கள் தனித்திறன்"}</p>
+                    <p className="text-xs text-sky-700 dark:text-sky-300 font-medium">
+                      {lang === "EN" ? assessResult.strengthReport.uniqueStrength : assessResult.strengthReport.uniqueStrengthTa}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-violet-50 dark:bg-violet-950/30 rounded-2xl border border-violet-100 dark:border-violet-900/30">
+                    <p className="text-[9px] font-black uppercase text-violet-500 mb-1">📚 {lang === "EN" ? "Study Tip" : "படிப்பு ஆலோசனை"}</p>
+                    <p className="text-xs text-violet-700 dark:text-violet-300 font-medium">
+                      {lang === "EN" ? assessResult.strengthReport.studyTip : assessResult.strengthReport.studyTipTa}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Plan */}
+                <div className="bg-white dark:bg-slate-800 rounded-3xl border-2 border-slate-100 dark:border-slate-700 p-5 shadow-sm">
+                  <h4 className="text-sm font-black text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                    🗓️ {lang === "EN" ? "Your Action Plan" : "உங்கள் செயல் திட்டம்"}
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {[
+                      { label: lang === "EN" ? "This Week" : "இந்த வாரம்", items: lang === "EN" ? assessResult.actionPlan.immediate : assessResult.actionPlan.immediateTa, color: "rose", icon: "⚡" },
+                      { label: lang === "EN" ? "Next 6 Months" : "அடுத்த 6 மாதங்கள்", items: lang === "EN" ? assessResult.actionPlan.shortTerm : assessResult.actionPlan.shortTermTa, color: "amber", icon: "📅" },
+                      { label: lang === "EN" ? "1–2 Years" : "1-2 ஆண்டுகள்", items: lang === "EN" ? assessResult.actionPlan.longTerm : assessResult.actionPlan.longTermTa, color: "emerald", icon: "🚀" },
+                    ].map(col => (
+                      <div key={col.label} className={`p-3 bg-${col.color}-50 dark:bg-${col.color}-950/30 rounded-2xl border border-${col.color}-100 dark:border-${col.color}-900/30`}>
+                        <p className={`text-[9px] font-black uppercase text-${col.color}-600 dark:text-${col.color}-400 mb-2`}>{col.icon} {col.label}</p>
+                        <ul className="space-y-1.5">
+                          {col.items.map((item, i) => (
+                            <li key={i} className={`flex items-start gap-1.5 text-[10px] text-${col.color}-800 dark:text-${col.color}-200 font-medium`}>
+                              <span className="mt-0.5 shrink-0">•</span> {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Motivational Note */}
+                <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl p-6 text-white shadow-lg">
+                  <div className="absolute right-4 top-4 text-6xl opacity-10">💬</div>
+                  <p className="text-[10px] font-black uppercase tracking-wider opacity-70 mb-2">
+                    {lang === "EN" ? "A Note for You" : "உங்களுக்கான செய்தி"}
+                  </p>
+                  <p className="text-sm font-semibold leading-relaxed">
+                    {lang === "EN" ? assessResult.motivationalNote : assessResult.motivationalNoteTa}
+                  </p>
+                </div>
+
+                {/* Re-assess + Explore */}
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={resetAssessment}
+                    className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-black hover:bg-indigo-700 transition-all shadow-md"
+                  >
+                    ↺ {lang === "EN" ? "Re-take Assessment" : "மீண்டும் மதிப்பீடு செய்க"}
+                  </button>
+                  <button
+                    onClick={() => { setActiveTab("explore"); setExpandedCareer(null); }}
+                    className="px-5 py-2.5 rounded-xl border-2 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 text-xs font-black hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all"
+                  >
+                    🔭 {lang === "EN" ? "Explore All Careers" : "அனைத்து தொழில்களையும் பாருங்கள்"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── LOADING VIEW ─────────────────────────────────────────────────── */}
+            {assessLoading && (
+              <div className="flex flex-col items-center justify-center py-20 gap-5">
+                <div className="relative w-20 h-20">
+                  <div className="absolute inset-0 rounded-full border-4 border-indigo-100 dark:border-indigo-900/40" />
+                  <div className="absolute inset-0 rounded-full border-4 border-t-indigo-600 animate-spin" />
+                  <div className="absolute inset-3 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-2xl animate-pulse">🤖</div>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-black text-slate-800 dark:text-white">
+                    {lang === "EN" ? "Gemini AI is analysing your profile…" : "Gemini AI உங்கள் சுயவிவரத்தை பகுப்பாய்வு செய்கிறது…"}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1 font-medium">
+                    {lang === "EN" ? "This may take 15–30 seconds" : "இது 15-30 விநாடிகள் ஆகலாம்"}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  {["🔬 Analysing interests", "📚 Reviewing academics", "🧠 Building profile", "🎯 Matching careers"].map((s, i) => (
+                    <div key={s} className="text-[9px] font-bold px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 animate-pulse" style={{ animationDelay: `${i * 0.3}s` }}>
+                      {s}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── ERROR VIEW ─────────────────────────────────────────────────────── */}
+            {assessError && !assessLoading && (
+              <div className="p-5 bg-rose-50 dark:bg-rose-950/30 rounded-3xl border-2 border-rose-100 dark:border-rose-900/40 text-center">
+                <p className="text-2xl mb-2">😕</p>
+                <p className="text-sm font-black text-rose-700 dark:text-rose-300 mb-1">
+                  {lang === "EN" ? "Analysis failed" : "பகுப்பாய்வு தோல்வியடைந்தது"}
+                </p>
+                <p className="text-xs text-rose-500 font-medium mb-4">{assessError}</p>
+                <button
+                  onClick={() => { setAssessError(null); setAssessStep(3); }}
+                  className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-black hover:bg-rose-700 transition-all"
+                >
+                  {lang === "EN" ? "Try Again" : "மீண்டும் முயற்சி செய்க"}
+                </button>
+              </div>
+            )}
+
+            {/* ── FORM VIEW ─────────────────────────────────────────────────────── */}
+            {!assessLoading && !assessResult && !assessError && (
+              <div className="bg-white dark:bg-slate-800 rounded-3xl border-2 border-slate-100 dark:border-slate-700 overflow-hidden shadow-sm">
+                {/* Progress bar */}
+                <div className="p-5 border-b border-slate-100 dark:border-slate-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-indigo-500">
+                        {lang === "EN" ? `Step ${assessStep + 1} of 4` : `கட்டம் ${assessStep + 1} / 4`}
+                      </p>
+                      <h3 className="text-sm font-black text-slate-800 dark:text-white mt-0.5">{STEP_LABELS[assessStep]}</h3>
+                    </div>
+                    <div className="flex gap-1.5">
+                      {[0, 1, 2, 3].map(i => (
+                        <div key={i} className={`h-2 rounded-full transition-all ${i <= assessStep ? "bg-indigo-600 w-6" : "bg-slate-200 dark:bg-slate-700 w-2"}`} />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full">
+                    <div
+                      className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
+                      style={{ width: `${((assessStep + 1) / 4) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Step 1 — Interests */}
+                {assessStep === 0 && (
+                  <div className="p-5 space-y-4">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      {lang === "EN" ? "Select everything that excites you (choose as many as you like):" : "உங்களுக்கு ஆர்வமான அனைத்தையும் தேர்ந்தெடுங்கள்:"}
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {INTEREST_OPTIONS.map(opt => {
+                        const active = selectedInterests.includes(opt.id);
+                        return (
+                          <button
+                            key={opt.id}
+                            onClick={() => toggleChip(opt.id, selectedInterests, setSelectedInterests)}
+                            className={`flex items-center gap-2.5 p-3 rounded-2xl border-2 text-left transition-all ${active ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40" : "border-slate-100 dark:border-slate-700 hover:border-indigo-200"}`}
+                          >
+                            <span className="text-xl shrink-0">{opt.emoji}</span>
+                            <span className={`text-[10px] font-bold leading-tight ${active ? "text-indigo-700 dark:text-indigo-300" : "text-slate-600 dark:text-slate-300"}`}>
+                              {t(opt.label)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">
+                        {lang === "EN" ? "Hobbies / Other interests (optional)" : "பொழுதுபோக்குகள் (விருப்பம்)"}
+                      </label>
+                      <input
+                        value={hobbies}
+                        onChange={e => setHobbies(e.target.value)}
+                        placeholder={lang === "EN" ? "e.g. Drawing, Cricket, Gardening…" : "எ.கா. ஓவியம், கிரிக்கெட், தோட்டப் பணி…"}
+                        className="w-full px-4 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-transparent text-xs font-medium text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-indigo-400 transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2 — Academics */}
+                {assessStep === 1 && (
+                  <div className="p-5 space-y-5">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-emerald-500 mb-2">
+                        ✅ {lang === "EN" ? "Strong subjects (select all that apply):" : "வலுவான பாடங்கள்:"}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {SUBJECT_OPTIONS.map(s => {
+                          const active = strongSubjects.includes(s);
+                          return (
+                            <button
+                              key={s}
+                              onClick={() => toggleChip(s, strongSubjects, setStrongSubjects)}
+                              className={`px-3 py-1.5 rounded-xl text-[10px] font-bold border-2 transition-all ${active ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300" : "border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-200"}`}
+                            >
+                              {t(s)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-rose-500 mb-2">
+                        📈 {lang === "EN" ? "Subjects to improve (optional):" : "மேம்படுத்த வேண்டிய பாடங்கள் (விருப்பம்):"}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {SUBJECT_OPTIONS.filter(s => !strongSubjects.includes(s)).map(s => {
+                          const active = weakSubjects.includes(s);
+                          return (
+                            <button
+                              key={s}
+                              onClick={() => toggleChip(s, weakSubjects, setWeakSubjects)}
+                              className={`px-3 py-1.5 rounded-xl text-[10px] font-bold border-2 transition-all ${active ? "border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300" : "border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-200"}`}
+                            >
+                              {t(s)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3 — Skills & Work Style */}
+                {assessStep === 2 && (
+                  <div className="p-5 space-y-5">
+                    <div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-3">
+                        {lang === "EN" ? "Select your strengths and skills:" : "உங்கள் திறன்களைத் தேர்ந்தெடுங்கள்:"}
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {SKILL_OPTIONS.map(sk => {
+                          const active = selectedSkills.includes(sk.id);
+                          return (
+                            <button
+                              key={sk.id}
+                              onClick={() => toggleChip(sk.id, selectedSkills, setSelectedSkills)}
+                              className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all text-center ${active ? "border-sky-500 bg-sky-50 dark:bg-sky-950/40" : "border-slate-100 dark:border-slate-700 hover:border-sky-200"}`}
+                            >
+                              <span className="text-2xl">{sk.emoji}</span>
+                              <span className={`text-[9px] font-bold leading-tight ${active ? "text-sky-700 dark:text-sky-300" : "text-slate-600 dark:text-slate-300"}`}>
+                                {t(sk.label)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {/* Work style */}
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                        {lang === "EN" ? "Preferred work environment:" : "விரும்பிய பணிச் சூழல்:"}
+                      </p>
+                      <div className="flex gap-2">
+                        {(["Outdoor", "Office", "Both"] as const).map(ws => (
+                          <button
+                            key={ws}
+                            onClick={() => setWorkStyle(ws)}
+                            className={`flex-1 py-2.5 rounded-xl text-xs font-black border-2 transition-all ${workStyle === ws ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300" : "border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300"}`}
+                          >
+                            {ws === "Outdoor" ? "🌳 " : ws === "Office" ? "🏢 " : "⚖️ "}
+                            {lang === "EN" ? ws : ws === "Outdoor" ? "வெளியில்" : ws === "Office" ? "அலுவலகம்" : "இரண்டும்"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Role model */}
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">
+                        {lang === "EN" ? "Who is your role model? (optional)" : "உங்கள் முன்மாதிரி யார்? (விருப்பம்)"}
+                      </label>
+                      <input
+                        value={roleModel}
+                        onChange={e => setRoleModel(e.target.value)}
+                        placeholder={lang === "EN" ? "e.g. Dr. APJ Abdul Kalam, Srinivasa Ramanujan…" : "எ.கா. டாக்டர் எ.பி.ஜே. அப்துல் கலாம்…"}
+                        className="w-full px-4 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-transparent text-xs font-medium text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-indigo-400 transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4 — Career Preferences */}
+                {assessStep === 3 && (
+                  <div className="p-5 space-y-4">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      {lang === "EN" ? "What matters most to you in a career? (select all that apply):" : "உங்கள் தொழிலில் எது மிக முக்கியம்? (அனைத்தையும் தேர்ந்தெடுக்கலாம்):"}
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {PREF_OPTIONS.map(pref => {
+                        const active = selectedPrefs.includes(pref.id);
+                        return (
+                          <button
+                            key={pref.id}
+                            onClick={() => toggleChip(pref.id, selectedPrefs, setSelectedPrefs)}
+                            className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all text-center ${active ? "border-violet-500 bg-violet-50 dark:bg-violet-950/40" : "border-slate-100 dark:border-slate-700 hover:border-violet-200"}`}
+                          >
+                            <span className="text-2xl">{pref.emoji}</span>
+                            <span className={`text-[9px] font-bold leading-tight ${active ? "text-violet-700 dark:text-violet-300" : "text-slate-600 dark:text-slate-300"}`}>
+                              {t(pref.label)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Summary review before submit */}
+                    <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+                      <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">
+                        {lang === "EN" ? "Your assessment summary" : "உங்கள் மதிப்பீட்டு சுருக்கம்"}
+                      </p>
+                      {[
+                        { label: lang === "EN" ? "Interests" : "ஆர்வங்கள்", val: selectedInterests.length > 0 ? `${selectedInterests.length} selected` : "—" },
+                        { label: lang === "EN" ? "Strong Subjects" : "வலுவான பாடங்கள்", val: strongSubjects.length > 0 ? strongSubjects.map(s => t(s)).join(", ") : "—" },
+                        { label: lang === "EN" ? "Skills" : "திறன்கள்", val: selectedSkills.length > 0 ? `${selectedSkills.length} selected` : "—" },
+                        { label: lang === "EN" ? "Work Style" : "பணிச் சூழல்", val: workStyle },
+                      ].map(row => (
+                        <div key={row.label} className="flex justify-between items-start gap-2">
+                          <span className="text-[10px] text-slate-400 font-medium shrink-0">{row.label}</span>
+                          <span className="text-[10px] text-slate-700 dark:text-slate-200 font-bold text-right">{row.val}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Navigation buttons */}
+                <div className="p-5 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center gap-3">
+                  <button
+                    onClick={() => assessStep > 0 ? setAssessStep(s => s - 1) : undefined}
+                    disabled={assessStep === 0}
+                    className="px-4 py-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 disabled:opacity-40 hover:border-slate-300 transition-all"
+                  >
+                    ← {lang === "EN" ? "Back" : "முந்தைய"}
+                  </button>
+                  {assessStep < 3 ? (
+                    <button
+                      onClick={() => setAssessStep(s => s + 1)}
+                      className="px-6 py-2 rounded-xl bg-indigo-600 text-white text-xs font-black hover:bg-indigo-700 transition-all shadow-md"
+                    >
+                      {lang === "EN" ? "Next →" : "அடுத்து →"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleSubmitAssessment}
+                      className="px-6 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-black hover:opacity-90 transition-all shadow-md shadow-indigo-500/30"
+                    >
+                      🤖 {lang === "EN" ? "Analyse with AI" : "AI மூலம் பகுப்பாய்வு செய்"}
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -836,12 +1351,8 @@ export default function CareerGuidancePage() {
 
         {/* Quick Links */}
         <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
-          <Link 
-            href={`/student/ai-tutor?subject=General&question=${encodeURIComponent(
-              expandedCareer 
-                ? `I am interested in a career as a "${t(CAREERS.find(c => c.id === expandedCareer)?.title || "")}". Can you guide me through the subject requirements, NEET/JEE/CLAT exams, eligibility, course duration, and preparation steps?`
-                : "Can you provide general guidance on career options, streams, and entrance exams for students in Tamil Nadu after Class 10/12?"
-            )}`}
+          <Link
+            href={`/student/ai-tutor?subject=General&question=${encodeURIComponent("Can you provide general guidance on career options, streams, and entrance exams for students in Tamil Nadu after Class 10/12?")}`}
             className="text-xs font-black px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/40 dark:text-indigo-300"
           >
             🤖 {lang === "EN" ? "Ask AI Tutor" : "AI ஆசிரியர்"}

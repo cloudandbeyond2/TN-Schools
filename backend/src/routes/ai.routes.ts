@@ -1191,4 +1191,138 @@ Return ONLY valid JSON matching this schema. Do not add markdown framing other t
   }
 });
 
+// ===========================================================================
+// POST /api/ai/career-aptitude
+// AI-powered Career Aptitude Assessment for Tamil Nadu school students.
+// Analyzes interests, academic profile, skills, and preferences to generate
+// a personalized bilingual (English/Tamil) career guidance report.
+// ===========================================================================
+const CAREER_APTITUDE_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    topCareers: {
+      type: 'ARRAY',
+      description: 'Exactly 3 best-fit career recommendations',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          title:    { type: 'STRING', description: 'Career title in English' },
+          titleTa:  { type: 'STRING', description: 'Career title in Tamil' },
+          matchScore: { type: 'INTEGER', description: 'Match percentage 60-99' },
+          whyMatch:   { type: 'STRING', description: 'Why this career fits (English, 2 sentences)' },
+          whyMatchTa: { type: 'STRING', description: 'Why this career fits (Tamil, 2 sentences)' },
+          roadmap:    { type: 'STRING', description: 'Step-by-step path after school (English)' },
+          roadmapTa:  { type: 'STRING', description: 'Step-by-step path after school (Tamil)' },
+          examTip:    { type: 'STRING', description: 'Key entrance exam and one preparation tip (English)' },
+          examTipTa:  { type: 'STRING', description: 'Key entrance exam and one preparation tip (Tamil)' },
+          stream:     { type: 'STRING', description: 'Recommended stream: Science / Commerce / Arts / Any' },
+          salaryRange: { type: 'STRING', description: 'Expected salary range e.g. ₹6–40 LPA' },
+        },
+        required: ['title', 'titleTa', 'matchScore', 'whyMatch', 'whyMatchTa', 'roadmap', 'roadmapTa', 'examTip', 'examTipTa', 'stream', 'salaryRange'],
+      },
+    },
+    personalityProfile: {
+      type: 'OBJECT',
+      properties: {
+        type:          { type: 'STRING', description: 'Personality archetype name, e.g. "The Innovator"' },
+        typeTa:        { type: 'STRING', description: 'Personality archetype name in Tamil' },
+        description:   { type: 'STRING', description: '2-sentence description in English' },
+        descriptionTa: { type: 'STRING', description: '2-sentence description in Tamil' },
+        traits:        { type: 'ARRAY', items: { type: 'STRING' }, description: '5 personality trait labels' },
+        traitsTa:      { type: 'ARRAY', items: { type: 'STRING' }, description: '5 personality trait labels in Tamil' },
+        emoji:         { type: 'STRING', description: 'One emoji representing this personality' },
+      },
+      required: ['type', 'typeTa', 'description', 'descriptionTa', 'traits', 'traitsTa', 'emoji'],
+    },
+    strengthReport: {
+      type: 'OBJECT',
+      properties: {
+        strongSubjects:      { type: 'ARRAY', items: { type: 'STRING' }, description: 'Top 3-4 strong subject/skill areas' },
+        improvementAreas:    { type: 'ARRAY', items: { type: 'STRING' }, description: '2-3 areas to improve' },
+        studyTip:            { type: 'STRING', description: 'One specific actionable study tip (English)' },
+        studyTipTa:          { type: 'STRING', description: 'One specific actionable study tip (Tamil)' },
+        uniqueStrength:      { type: 'STRING', description: 'One standout quality this student has (English)' },
+        uniqueStrengthTa:    { type: 'STRING', description: 'One standout quality this student has (Tamil)' },
+      },
+      required: ['strongSubjects', 'improvementAreas', 'studyTip', 'studyTipTa', 'uniqueStrength', 'uniqueStrengthTa'],
+    },
+    actionPlan: {
+      type: 'OBJECT',
+      properties: {
+        immediate:  { type: 'ARRAY', items: { type: 'STRING' }, description: '3 things to do right now (this week)' },
+        shortTerm:  { type: 'ARRAY', items: { type: 'STRING' }, description: '3 goals for the next 6 months' },
+        longTerm:   { type: 'ARRAY', items: { type: 'STRING' }, description: '3 goals for 1-2 years from now' },
+        immediateTa: { type: 'ARRAY', items: { type: 'STRING' }, description: '3 immediate actions in Tamil' },
+        shortTermTa: { type: 'ARRAY', items: { type: 'STRING' }, description: '3 short-term goals in Tamil' },
+        longTermTa:  { type: 'ARRAY', items: { type: 'STRING' }, description: '3 long-term goals in Tamil' },
+      },
+      required: ['immediate', 'shortTerm', 'longTerm', 'immediateTa', 'shortTermTa', 'longTermTa'],
+    },
+    motivationalNote:   { type: 'STRING', description: '2-sentence personal encouragement in English, using the student name' },
+    motivationalNoteTa: { type: 'STRING', description: '2-sentence personal encouragement in Tamil, using the student name' },
+  },
+  required: ['topCareers', 'personalityProfile', 'strengthReport', 'actionPlan', 'motivationalNote', 'motivationalNoteTa'],
+};
+
+router.post('/career-aptitude', async (req: Request, res: Response) => {
+  try {
+    const {
+      studentName = 'Student',
+      studentClass = 10,
+      language = 'English',
+      interests = [],
+      academicStrengths = [],
+      weakSubjects = [],
+      skills = [],
+      careerPreferences = [],
+      workStyle = 'Both',
+      roleModel = '',
+      hobbies = '',
+    } = req.body;
+
+    const isTamil = language === 'Tamil';
+
+    const prompt = `You are an expert Tamil Nadu school career counselor with 20 years of experience.
+A student from Tamil Nadu Government School has completed a Career Aptitude Assessment. 
+Analyze their profile and generate a comprehensive, personalized career guidance report.
+
+STUDENT PROFILE:
+- Name: ${studentName}
+- Class: ${studentClass} (Tamil Nadu State Board)
+- Interests: ${interests.join(', ') || 'Not specified'}
+- Academic Strengths: ${academicStrengths.join(', ') || 'Not specified'}
+- Weak Subjects: ${weakSubjects.join(', ') || 'None mentioned'}
+- Skills: ${skills.join(', ') || 'Not specified'}
+- Career Preferences: ${careerPreferences.join(', ') || 'Not specified'}
+- Preferred Work Style: ${workStyle}
+- Role Model: ${roleModel || 'Not specified'}
+- Hobbies: ${hobbies || 'Not specified'}
+
+CONTEXT:
+- Student is in Tamil Nadu, India — recommend careers relevant to TN/Indian education system
+- Consider TN Board curriculum: NEET for Medical, JEE/TNEA for Engineering, CLAT for Law, TNPSC/UPSC for Civil Services
+- Class ${studentClass} students should be given age-appropriate and actionable advice
+- Prioritize government college opportunities (IIT Madras, NIT Trichy, Anna University, AIIMS Madurai, MMC, etc.)
+- Be specific and warm — this student may be the first in their family to explore career planning
+
+RULES:
+- Recommend EXACTLY 3 careers in topCareers, ordered from best to third-best match
+- matchScore must reflect genuine alignment with the student's profile (60–99)
+- All Tamil text (titleTa, whyMatchTa, roadmapTa, examTipTa, typeTa, descriptionTa, traitsTa, studyTipTa, uniqueStrengthTa, immediateTa, shortTermTa, longTermTa, motivationalNoteTa) must be in proper, natural Tamil (not just transliteration)
+- Action plan items must be concrete and achievable for a Class ${studentClass} student
+- Motivational note must address the student by first name and be warm, encouraging, and specific
+
+${isTamil ? 'IMPORTANT: The student prefers Tamil — make Tamil sections especially rich and detailed.' : ''}
+
+Return a JSON object matching the provided schema exactly.`;
+
+    const result = await callGemini(prompt, true, CAREER_APTITUDE_SCHEMA, 4096, 60000);
+
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[POST /api/ai/career-aptitude]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
