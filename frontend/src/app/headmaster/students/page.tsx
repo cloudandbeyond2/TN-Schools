@@ -1220,6 +1220,47 @@ export default function StudentsMonitoringPage() {
 
   const isAllCurrentPageSelected = filteredWatchlist.length > 0 && filteredWatchlist.every(s => s.id && selectedStudentIds.includes(s.id));
 
+  const handleExportExcel = () => {
+    const exportSource = selectedStudentIds.length > 0
+      ? watchlist.filter(s => s.id && selectedStudentIds.includes(s.id))
+      : filteredWatchlist;
+
+    if (exportSource.length === 0) {
+      showToast("⚠️ No students to export.", "error");
+      return;
+    }
+
+    const rows = exportSource.map((s) => ({
+      "Full Name": s.name,
+      "Roll Number": s.rollNumber,
+      "Class": s.class,
+      "Section": s.section || "",
+      "Group": s.group || "",
+      "Parent Name": s.parentName,
+      "Phone": s.phone,
+      "City": s.city,
+      "District": s.district,
+      "State": s.state,
+      "Pincode": s.pincode,
+      "Address": s.address || "",
+      "Gender": s.gender || "",
+      "Admission Number": s.admissionNumber || "",
+      "Student Status": s.studentStatus || "Active",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    // Auto column widths
+    const colWidths = Object.keys(rows[0] || {}).map((key) => ({
+      wch: Math.max(key.length, ...rows.map(r => String((r as any)[key] || "").length)) + 2,
+    }));
+    ws["!cols"] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Students");
+    XLSX.writeFile(wb, `Students_Export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    showToast(`✅ Exported ${rows.length} student record${rows.length > 1 ? "s" : ""} to Excel.`, "success");
+  };
+
   const activeCount = watchlist.filter((s) => !s.studentStatus || s.studentStatus === "Active").length;
   const boysCount = watchlist.filter((s) => s.gender === "Male").length;
   const girlsCount = watchlist.filter((s) => s.gender === "Female").length;
@@ -1318,6 +1359,17 @@ export default function StudentsMonitoringPage() {
                   <Trash2 className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Delete Selected</span> ({selectedStudentIds.length})
                 </button>
               )}
+              <button
+                onClick={handleExportExcel}
+                className="px-3 sm:px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] sm:text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-1.5"
+                title={selectedStudentIds.length > 0 ? `Export ${selectedStudentIds.length} selected` : "Export all filtered students"}
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">
+                  {selectedStudentIds.length > 0 ? `Export (${selectedStudentIds.length})` : "Export Excel"}
+                </span>
+                <span className="sm:hidden">XLS</span>
+              </button>
               <button
                 onClick={() => {
                   populateForm({});
