@@ -156,10 +156,14 @@ export default function ParentDashboard() {
     fetchNotifications();
   }, [fetchChildren, fetchNotifications]);
 
+  // Dynamic child context filter reset to ensure correct synchronization
   useEffect(() => {
     if (activeChild) {
       fetchChildData(activeChild);
-      setSubPage(1); // reset sub pagination
+      setSubPage(1);
+      setNotifPage(1);
+      setNotifFilter("ALL");
+      setSelectedExam("ALL"); // Resets exam state to recalculate available exam terms for the new child
     }
   }, [activeChild, fetchChildData]);
 
@@ -282,8 +286,6 @@ export default function ParentDashboard() {
   // Filtered Notifications - dynamic sorting based on both category and active child context
   const filteredNotifications = useMemo(() => {
     return notifications.filter(n => {
-      // Dynamic child context filter: notification is relevant if it's linked directly to the child,
-      // or if it's a general announcement (studentId is null/undefined).
       const matchesChild = !activeChild || !n.studentId || n.studentId === activeChild.studentId;
       const matchesType = notifFilter === "ALL" || matchNotifType(n.type, notifFilter);
       return matchesChild && matchesType;
@@ -319,7 +321,7 @@ export default function ParentDashboard() {
       {/* ── Welcome Header with Live Refresh Button ────────────────── */}
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-2.5">
             <i className="fi fi-rr-apps text-emerald-500"></i> Parent Dashboard
           </h1>
           <p className="text-slate-550 dark:text-slate-400 text-xs mt-0.5 font-normal">
@@ -329,19 +331,19 @@ export default function ParentDashboard() {
         <button
           onClick={handleRefresh}
           disabled={refreshing || loading}
-          className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-655 dark:text-slate-400 hover:text-emerald-500 disabled:opacity-50 transition-all flex items-center justify-center w-9 h-9 shrink-0 shadow-sm"
+          className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-655 dark:text-slate-400 hover:text-emerald-500 disabled:opacity-50 transition-all flex items-center justify-center w-10 h-10 shrink-0 shadow-sm"
           title="Sync Live Data"
         >
           <i className={`fi fi-rr-refresh ${refreshing ? "animate-spin" : ""}`}></i>
         </button>
       </div>
 
-      {/* ── Children Selector & Profile Info Card ────────────────── */}
+      {/* ── Children Selector & Profile Info Card (Spacious paddings) ── */}
       {children.length > 0 && activeChild && (
-        <div className="bg-white dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 mb-6 shadow-sm">
+        <div className="bg-white dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 mb-6 shadow-md">
           {/* Sibling Toggle Strip if multiple children */}
           {children.length > 1 && (
-            <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-100 dark:border-slate-800/80 overflow-x-auto whitespace-nowrap scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-100 dark:border-slate-800/80 overflow-x-auto whitespace-nowrap scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               <span className="text-[10px] text-slate-550 dark:text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0">
                 <i className="fi fi-rr-portrait text-slate-400"></i> Wards:
               </span>
@@ -349,8 +351,8 @@ export default function ParentDashboard() {
                 {children.map((child) => (
                   <button
                     key={child.studentId}
-                    onClick={() => { setActiveChild(child); setSubPage(1); }}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shrink-0 ${
+                    onClick={() => { setActiveChild(child); }}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shrink-0 ${
                       activeChild.studentId === child.studentId
                         ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/10 scale-105"
                         : "bg-slate-100 dark:bg-slate-800 text-slate-655 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700/30"
@@ -366,29 +368,29 @@ export default function ParentDashboard() {
           )}
 
           {/* Child Active Profile Card Details */}
-          <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left justify-between">
-            <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left justify-between">
+            <div className="flex flex-col sm:flex-row items-center gap-5">
               {/* Avatar circle */}
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500/20 to-teal-600/35 border border-emerald-500/20 flex items-center justify-center text-xl font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500/20 to-teal-600/35 border border-emerald-500/20 flex items-center justify-center text-2xl font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
                 {activeChild.name.charAt(0)}
               </div>
               <div>
-                <h2 className="text-base font-bold text-slate-855 dark:text-white leading-tight">{activeChild.name}</h2>
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-2 gap-y-1 mt-1 text-xs text-slate-500 dark:text-slate-400 font-medium">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">Class {activeChild.class}-{activeChild.section}</span>
+                <h2 className="text-lg font-bold text-slate-855 dark:text-white leading-tight">{activeChild.name}</h2>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-2.5 gap-y-1.5 mt-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <span className="font-bold text-slate-750 dark:text-slate-300">Class {activeChild.class}-{activeChild.section}</span>
                   <span className="opacity-40">•</span>
-                  <span>Roll Number: <span className="font-semibold text-slate-700 dark:text-slate-300">{activeChild.rollNumber || "—"}</span></span>
+                  <span>Roll Number: <span className="font-bold text-slate-750 dark:text-slate-300">{activeChild.rollNumber || "—"}</span></span>
                   {activeChild.community && (
                     <>
                       <span className="opacity-40">•</span>
-                      <span>Caste/Community: <span className="font-semibold text-slate-700 dark:text-slate-300">{activeChild.community}</span></span>
+                      <span>Caste/Community: <span className="font-bold text-slate-750 dark:text-slate-300">{activeChild.community}</span></span>
                     </>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="text-xs text-slate-455 dark:text-slate-400 italic bg-slate-50 dark:bg-slate-955/20 border border-slate-200 dark:border-slate-800/80 px-3.5 py-2 rounded-xl max-w-xs font-normal flex gap-1.5 leading-relaxed text-left shrink-0">
+            <div className="text-xs text-slate-455 dark:text-slate-400 italic bg-slate-50 dark:bg-slate-955/20 border border-slate-200 dark:border-slate-800/80 px-4 py-2.5 rounded-xl max-w-xs font-normal flex gap-2 leading-relaxed text-left shrink-0">
               <i className="fi fi-rr-info text-slate-500 mt-0.5 shrink-0"></i>
               <span>To update profile, community, or parent link details, please contact school administrators.</span>
             </div>
@@ -398,12 +400,12 @@ export default function ParentDashboard() {
 
       {/* ── Collapsible Historical Archives Section ────────────────── */}
       {activeChild && (
-        <div className="bg-slate-50 dark:bg-slate-955/20 border border-slate-205 dark:border-slate-800/80 rounded-2xl p-4 mb-6 shadow-sm">
+        <div className="bg-slate-50 dark:bg-slate-955/20 border border-slate-205 dark:border-slate-800/80 rounded-2xl p-5 mb-6 shadow-md">
           <button 
             onClick={() => setShowArchive(!showArchive)}
             className="w-full flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-350 hover:text-emerald-500 transition-colors uppercase tracking-wider"
           >
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-2">
               <i className="fi fi-rr-time-past text-slate-405"></i> Academic History Archive ({activeChild.name.split(" ")[0]})
             </span>
             <i className={`fi ${showArchive ? "fi-rr-angle-small-up" : "fi-rr-angle-small-down"} text-base`}></i>
@@ -422,8 +424,8 @@ export default function ParentDashboard() {
 
       {/* ── No linked children error layout ──────────────── */}
       {!loading && children.length === 0 && (
-        <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center shadow-md mb-6">
-          <i className="fi fi-rr-users-alt text-slate-400 text-5xl block mb-4"></i>
+        <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center shadow-md mb-6">
+          <i className="fi fi-rr-users-alt text-slate-400 text-6xl block mb-4"></i>
           <h2 className="text-slate-800 dark:text-white font-bold text-lg mb-2">No Children Linked Yet</h2>
           <p className="text-slate-505 dark:text-slate-400 text-xs max-w-md mx-auto leading-relaxed font-normal">
             Your parent portal account hasn&apos;t been connected to any student registers. Please contact the class teacher or school Principal to link your mobile number and ward&apos;s EMIS profile.
@@ -434,8 +436,8 @@ export default function ParentDashboard() {
       {/* ── Main Dashboard Content Grid ─────────────────── */}
       {(children.length > 0 || loading) && (
         <>
-          {/* KPI Strip - Graphic & Image-Oriented gauges */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {/* KPI Strip - Graphic & Image-Oriented gauges with roomy layout */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
             {KPI_META.map((meta) => {
               const kpi = kpiValues ? (kpiValues as any)[meta.key] : null;
               const rawVal = kpi?.raw ?? 0;
@@ -443,20 +445,20 @@ export default function ParentDashboard() {
               return (
                 <div
                   key={meta.key}
-                  className="bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 p-5 rounded-2xl flex flex-col justify-between hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-300 shadow-sm dark:shadow-xl"
+                  className="bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 p-6 rounded-2xl flex flex-col justify-between hover:scale-[1.03] hover:-translate-y-0.5 transition-all duration-300 shadow-sm dark:shadow-xl"
                 >
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-3">
                     <span className="text-[11px] text-slate-550 dark:text-slate-400 font-bold uppercase tracking-wider">{meta.label}</span>
                     <span className="text-[10px] font-bold text-slate-450 dark:text-slate-400">{kpi?.sub ?? ""}</span>
                   </div>
 
                   {loading ? (
-                    <div className="flex items-center justify-between py-2">
+                    <div className="flex items-center justify-between py-3">
                       <div className="h-8 w-20 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
                       <div className="w-12 h-12 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between gap-2 py-1">
+                    <div className="flex items-center justify-between gap-3 py-1.5">
                       <div className={`text-2xl font-black ${meta.color} tracking-tight`}>
                         {kpi?.value ?? "—"}
                       </div>
@@ -510,7 +512,7 @@ export default function ParentDashboard() {
                     </div>
                   )}
 
-                  <div className="flex items-center gap-1.5 text-[10px] text-slate-450 dark:text-slate-500 mt-2 font-semibold">
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-450 dark:text-slate-500 mt-3.5 pt-2 border-t border-slate-50 dark:border-slate-800/40 font-semibold">
                     <span className={`w-1.5 h-1.5 rounded-full ${rawVal >= 75 ? 'bg-emerald-500' : 'bg-amber-500'}`} />
                     <span>Real-time DB Connection Active</span>
                   </div>
@@ -519,22 +521,22 @@ export default function ParentDashboard() {
             })}
           </div>
 
-          {/* Marks & Notifications Row */}
+          {/* Marks & Notifications Row - Premium cards spacing layout */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Subject Marks block */}
-            <div className="lg:col-span-2 bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-2xl p-5 shadow-sm dark:shadow-2xl flex flex-col justify-between">
+            <div className="lg:col-span-2 bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-2xl p-6 md:p-8 shadow-md flex flex-col justify-between">
               <div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 border-b border-slate-100 dark:border-slate-800 pb-3">
-                  <h2 className="text-sm font-bold text-slate-850 dark:text-white flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 border-b border-slate-100 dark:border-slate-800 pb-4">
+                  <h2 className="text-sm font-bold text-slate-855 dark:text-white flex items-center gap-2">
                     <i className="fi fi-rr-chart-bar text-emerald-500"></i> Subject Marks Graphical Analytics
                   </h2>
                   
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <div className="flex items-center gap-2.5 w-full sm:w-auto">
                     {/* View switcher: Chart vs Table */}
-                    <div className="bg-slate-100 dark:bg-slate-955 p-0.5 rounded-lg border border-slate-250 dark:border-slate-850 flex gap-0.5 shrink-0">
+                    <div className="bg-slate-100 dark:bg-slate-955 p-0.5 rounded-lg border border-slate-250 dark:border-slate-855 flex gap-0.5 shrink-0">
                       <button
                         onClick={() => setPerfViewMode("CHART")}
-                        className={`p-1 px-2.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all ${
+                        className={`p-1 px-3 rounded-md text-[10px] font-bold flex items-center gap-1.5 transition-all ${
                           perfViewMode === "CHART"
                             ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-455 shadow-sm"
                             : "text-slate-500 hover:text-slate-700"
@@ -544,7 +546,7 @@ export default function ParentDashboard() {
                       </button>
                       <button
                         onClick={() => setPerfViewMode("TABLE")}
-                        className={`p-1 px-2.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all ${
+                        className={`p-1 px-3 rounded-md text-[10px] font-bold flex items-center gap-1.5 transition-all ${
                           perfViewMode === "TABLE"
                             ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-455 shadow-sm"
                             : "text-slate-500 hover:text-slate-700"
@@ -558,7 +560,7 @@ export default function ParentDashboard() {
                     <select
                       value={selectedExam}
                       onChange={e => { setSelectedExam(e.target.value); setSubPage(1); }}
-                      className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350 px-3 py-1.5 rounded-xl text-xs outline-none cursor-pointer focus:border-emerald-500/80 flex-1 sm:w-44"
+                      className="bg-slate-50 dark:bg-slate-955 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350 px-3.5 py-1.5 rounded-xl text-xs outline-none cursor-pointer focus:border-emerald-500/80 flex-1 sm:w-44"
                     >
                       <option value="ALL">Comparison: All Exams</option>
                       {sortedExamTypes.map(et => (
@@ -569,13 +571,13 @@ export default function ParentDashboard() {
                 </div>
 
                 {perfLoading ? (
-                  <div className="space-y-3">
+                  <div className="space-y-3.5">
                     {[1, 2, 3, 4, 5].map(i => (
                       <div key={i} className="h-12 bg-slate-100 dark:bg-slate-800/60 rounded-xl animate-pulse" />
                     ))}
                   </div>
                 ) : subjects.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500 text-xs font-normal">
+                  <div className="text-center py-16 text-slate-500 text-xs font-normal">
                     No marks recorded yet for {activeChild?.name}.
                   </div>
                 ) : perfViewMode === "CHART" ? (
@@ -606,11 +608,11 @@ export default function ParentDashboard() {
                             return (
                               <div key={m.subject} className="flex flex-col items-center group relative w-16">
                                 {/* Bar Tooltip */}
-                                <div className="absolute -top-12 bg-slate-800 dark:bg-slate-955 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 whitespace-nowrap">
+                                <div className="absolute -top-12 bg-slate-800 dark:bg-slate-955 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 whitespace-nowrap">
                                   {m.subject}: {val}%
                                 </div>
 
-                                {/* Solid, high-visibility background colors instead of hex-alpha gradients */}
+                                {/* Solid, high-visibility background colors */}
                                 <div 
                                   className="w-8 rounded-t-lg transition-all duration-550 shadow-sm relative"
                                   style={{
@@ -620,12 +622,12 @@ export default function ParentDashboard() {
                                 />
 
                                 {/* Floating Score Label */}
-                                <span className="text-[10px] font-extrabold text-slate-700 dark:text-slate-300 mt-1">
+                                <span className="text-[10px] font-extrabold text-slate-700 dark:text-slate-300 mt-1.5">
                                   {val}%
                                 </span>
                                 
                                 {/* Shortened Subject Name label with helper */}
-                                <span className="text-[10px] font-bold text-slate-500 mt-0.5 truncate max-w-[60px] text-center">
+                                <span className="text-[10px] font-bold text-slate-500 mt-1 truncate max-w-[60px] text-center">
                                   {formatSubjName(m.subject)}
                                 </span>
                               </div>
@@ -636,9 +638,9 @@ export default function ParentDashboard() {
                     </div>
                     
                     {/* Graph legend */}
-                    <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
+                    <div className="flex flex-wrap gap-x-4 gap-y-2.5 justify-center mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/80">
                       {subjects.map((m, idx) => (
-                        <div key={m.subject} className="flex items-center gap-1.5">
+                        <div key={m.subject} className="flex items-center gap-2">
                           <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: SUBJECT_COLORS[idx % SUBJECT_COLORS.length] }} />
                           <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{m.subject}</span>
                         </div>
@@ -668,15 +670,15 @@ export default function ParentDashboard() {
                           const colorCode = SUBJECT_COLORS[idx % SUBJECT_COLORS.length];
                           return (
                             <tr key={m.subject} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-colors">
-                              <td className="py-3 px-3 font-bold text-slate-800 dark:text-slate-200" style={{ borderLeft: `3px solid ${colorCode}` }}>
-                                <span className="pl-1.5">{m.subject}</span>
+                              <td className="py-3.5 px-3 font-bold text-slate-800 dark:text-slate-200" style={{ borderLeft: `3px solid ${colorCode}` }}>
+                                <span className="pl-2">{m.subject}</span>
                               </td>
                               {sortedExamTypes.map(et => (
-                                <td key={et} className="py-3 px-3 font-semibold text-slate-655 dark:text-slate-300">
+                                <td key={et} className="py-3.5 px-3 font-semibold text-slate-655 dark:text-slate-300">
                                   {m[et] ?? "—"}
                                 </td>
                               ))}
-                              <td className="py-3 px-3">
+                              <td className="py-3.5 px-3">
                                 {vals.length >= 2 ? (
                                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1 ${
                                     last >= prev
@@ -718,12 +720,12 @@ export default function ParentDashboard() {
                       const colorCode = SUBJECT_COLORS[idx % SUBJECT_COLORS.length];
 
                       return (
-                        <div key={m.subject} className="bg-slate-55 dark:bg-slate-900/60 border border-slate-205 dark:border-slate-800/80 rounded-xl p-3.5 flex flex-col gap-2">
+                        <div key={m.subject} className="bg-slate-55 dark:bg-slate-900/60 border border-slate-205 dark:border-slate-800/80 rounded-xl p-4 flex flex-col gap-2">
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center" style={{ borderLeft: `3px solid ${colorCode}` }}>
                               <span className="pl-2">{m.subject}</span>
                             </span>
-                            <span className={`text-[11px] px-2 py-0.5 rounded font-extrabold border-slate-200/50 ${textColor} ${bgColor}`}>
+                            <span className={`text-[11px] px-2.5 py-0.5 rounded font-extrabold border-slate-200/50 ${textColor} ${bgColor}`}>
                               Score: {mark ?? "—"}
                             </span>
                           </div>
@@ -741,7 +743,7 @@ export default function ParentDashboard() {
 
                     {/* Subject Pagination */}
                     {totalSubPages > 1 && (
-                      <div className="flex items-center justify-between border-t border-slate-105 dark:border-slate-800 pt-3 text-xs">
+                      <div className="flex items-center justify-between border-t border-slate-105 dark:border-slate-800 pt-4 text-xs">
                         <span className="text-slate-505 font-medium">
                           Page {subPage} of {totalSubPages}
                         </span>
@@ -749,14 +751,14 @@ export default function ParentDashboard() {
                           <button
                             onClick={() => setSubPage(p => Math.max(1, p - 1))}
                             disabled={subPage === 1}
-                            className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold"
+                            className="px-3 py-1.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold"
                           >
                             Prev
                           </button>
                           <button
                             onClick={() => setSubPage(p => Math.min(totalSubPages, p + 1))}
                             disabled={subPage === totalSubPages}
-                            className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold"
+                            className="px-3 py-1.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold"
                           >
                             Next
                           </button>
@@ -766,17 +768,17 @@ export default function ParentDashboard() {
                   </div>
                 )}
               </div>
-              <div className="mt-4 border-t border-slate-105 dark:border-slate-800/80 pt-3">
-                <Link href="/parent/performance" className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-505 font-bold transition-colors inline-flex items-center gap-1">
+              <div className="mt-4 border-t border-slate-105 dark:border-slate-800/80 pt-4">
+                <Link href="/parent/performance" className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-505 font-bold transition-colors inline-flex items-center gap-1.5">
                   View Full Academic Reports <i className="fi fi-rr-angle-small-right"></i>
                 </Link>
               </div>
             </div>
 
             {/* Notifications Center with filters and pagination */}
-            <div className="bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-2xl p-5 shadow-sm dark:shadow-2xl flex flex-col justify-between">
+            <div className="bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-2xl p-6 md:p-8 shadow-md flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div className="flex items-center justify-between mb-5 border-b border-slate-100 dark:border-slate-800 pb-3">
                   <h2 className="text-sm font-bold text-slate-855 dark:text-white flex items-center gap-2">
                     <i className="fi fi-rr-bell text-emerald-500"></i> Notifications
                   </h2>
@@ -798,7 +800,7 @@ export default function ParentDashboard() {
                     <button
                       key={cat.id}
                       onClick={() => { setNotifFilter(cat.id); setNotifPage(1); }}
-                      className={`text-[10px] px-2.5 py-1 rounded-lg font-bold border transition-all ${
+                      className={`text-[10px] px-3 py-1 rounded-lg font-bold border transition-all ${
                         notifFilter === cat.id
                           ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
                           : "bg-slate-50 dark:bg-slate-955 border-slate-205 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-350"
@@ -810,27 +812,27 @@ export default function ParentDashboard() {
                 </div>
 
                 {filteredNotifications.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500 text-xs font-normal">
-                    <i className="fi fi-rr-bell-ring text-3xl block text-slate-300 dark:text-slate-700 mb-2"></i>
+                  <div className="text-center py-16 text-slate-500 text-xs font-normal">
+                    <i className="fi fi-rr-bell-ring text-3xl block text-slate-300 dark:text-slate-700 mb-3"></i>
                     No notifications in this category.
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-3.5">
                     {paginatedNotifications.map((n) => {
                       const meta = notifMeta(n.type);
                       return (
                         <div
                           key={n.id}
-                          className={`p-3 rounded-xl border text-xs bg-slate-55 dark:bg-slate-955/20 ${meta.border} ${!n.isRead ? "ring-1 ring-emerald-500/20" : ""}`}
+                          className={`p-3.5 rounded-xl border text-xs bg-slate-55 dark:bg-slate-955/20 ${meta.border} ${!n.isRead ? "ring-1 ring-emerald-500/20" : ""}`}
                         >
                           <div className="flex gap-2.5 items-start">
-                            <span className={`w-6 h-6 rounded-lg ${meta.bg} border ${meta.border} flex items-center justify-center shrink-0 mt-0.5`}>
+                            <span className={`w-6.5 h-6.5 rounded-lg ${meta.bg} border ${meta.border} flex items-center justify-center shrink-0 mt-0.5`}>
                               <i className={`fi ${meta.icon} ${meta.color} text-[10px]`}></i>
                             </span>
                             <div className="flex-1">
                               <p className="text-slate-800 dark:text-slate-200 font-bold leading-snug">{n.title}</p>
                               <p className="text-slate-550 dark:text-slate-400 mt-0.5 leading-snug font-normal">{n.message}</p>
-                              <p className="text-slate-400 dark:text-slate-505 text-[10px] mt-1 font-semibold">
+                              <p className="text-slate-400 dark:text-slate-505 text-[10px] mt-1.5 font-semibold">
                                 {new Date(n.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                               </p>
                             </div>
@@ -844,22 +846,22 @@ export default function ParentDashboard() {
 
               {/* Notification pagination controls */}
               {totalNotifPages > 1 && (
-                <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 text-xs mt-4">
+                <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-4 text-xs mt-4">
                   <span className="text-slate-505 font-medium">
                     Page {notifPage} of {totalNotifPages}
                   </span>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1.5">
                     <button
                       onClick={() => setNotifPage(p => Math.max(1, p - 1))}
                       disabled={notifPage === 1}
-                      className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold"
+                      className="px-3 py-1.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold"
                     >
                       Prev
                     </button>
                     <button
                       onClick={() => setNotifPage(p => Math.min(totalNotifPages, p + 1))}
                       disabled={notifPage === totalNotifPages}
-                      className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold"
+                      className="px-3 py-1.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold"
                     >
                       Next
                     </button>
@@ -869,12 +871,12 @@ export default function ParentDashboard() {
             </div>
           </div>
 
-        {/* ── Quick Access Services Grid ───────────────────── */}
-        <div className="bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-2xl p-5 shadow-sm dark:shadow-2xl mb-6">
-          <h2 className="text-sm font-bold text-slate-855 dark:text-white mb-4 flex items-center gap-2">
+        {/* ── Quick Access Services Grid ── */}
+        <div className="bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-2xl p-6 md:p-8 shadow-md mb-6">
+          <h2 className="text-sm font-bold text-slate-855 dark:text-white mb-5 flex items-center gap-2">
             <i className="fi fi-rr-apps text-emerald-500"></i> Quick Access Services
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: "Attendance", href: "/parent/attendance", icon: "fi-rr-calendar", color: "from-emerald-500/10 to-teal-500/5 hover:border-emerald-500/40 text-emerald-600 dark:text-emerald-400" },
               { label: "Homework",   href: "/parent/homework",   icon: "fi-rr-document-signed", color: "from-blue-500/10 to-cyan-500/5 hover:border-blue-500/40 text-blue-600 dark:text-blue-400" },
@@ -884,7 +886,7 @@ export default function ParentDashboard() {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br ${item.color} border border-slate-200 dark:border-slate-800 hover:scale-[1.03] hover:-translate-y-0.5 transition-all duration-300 shadow-sm`}
+                className={`flex items-center gap-3.5 p-4.5 rounded-xl bg-gradient-to-br ${item.color} border border-slate-200 dark:border-slate-800 hover:scale-[1.03] hover:-translate-y-0.5 transition-all duration-300 shadow-sm`}
               >
                 <i className={`fi ${item.icon} text-lg shrink-0`}></i>
                 <span className="text-xs font-bold">{item.label}</span>
@@ -893,20 +895,20 @@ export default function ParentDashboard() {
           </div>
         </div>
 
-        {/* ── AI Parent Assistant Insights ─────────────────── */}
-        <div className="bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-2xl p-5 shadow-sm dark:shadow-2xl">
+        {/* ── AI Parent Assistant Insights ── */}
+        <div className="bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-800/60 rounded-2xl p-6 md:p-8 shadow-md">
           <div className="flex items-start gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/35 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-455 shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/35 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-455 shrink-0">
               <i className="fi fi-rr-sparkles text-lg animate-pulse"></i>
             </div>
             <div className="flex-1 w-full">
-              <h2 className="text-sm font-bold text-slate-855 dark:text-white mb-1 flex items-center gap-1">
+              <h2 className="text-sm font-bold text-slate-855 dark:text-white mb-1 flex items-center gap-1.5">
                 AI Parent Assistant Insights
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-normal">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 font-normal">
                 Personalised learning reviews and progress advice computed for your child.
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                   {
                     icon: "fi-rr-book-alt", label: "Learning Recommendation", color: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/10",
@@ -929,8 +931,8 @@ export default function ParentDashboard() {
                       : "Loading…",
                   },
                 ].map((card) => (
-                  <div key={card.label} className="bg-slate-50 dark:bg-slate-955/20 rounded-xl p-4 border border-slate-205 dark:border-slate-800 hover:scale-[1.01] transition-transform">
-                    <span className={`w-7 h-7 rounded-lg ${card.bg} border ${card.border} flex items-center justify-center mb-2.5`}>
+                  <div key={card.label} className="bg-slate-50 dark:bg-slate-955/20 rounded-xl p-4.5 border border-slate-205 dark:border-slate-800 hover:scale-[1.01] transition-transform">
+                    <span className={`w-8 h-8 rounded-lg ${card.bg} border ${card.border} flex items-center justify-center mb-3`}>
                       <i className={`fi ${card.icon} ${card.color} text-xs`}></i>
                     </span>
                     <div className="text-xs font-bold text-slate-800 dark:text-slate-355 mb-1">{card.label}</div>
@@ -938,8 +940,8 @@ export default function ParentDashboard() {
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80">
-                <Link href="/parent/ai-assistant" className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-505 font-bold transition-colors inline-flex items-center gap-1">
+              <div className="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/80">
+                <Link href="/parent/ai-assistant" className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-505 font-bold transition-colors inline-flex items-center gap-1.5">
                   Consult AI Assistant Chat <i className="fi fi-rr-angle-small-right"></i>
                 </Link>
               </div>
