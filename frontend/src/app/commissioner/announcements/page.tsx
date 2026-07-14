@@ -1,24 +1,35 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 
-interface Announcement { id: number; title: string; body: string; target: string; date: string; priority: string; }
-
-const initialAnnouncements: Announcement[] = [
-  { id: 1, title: "SSLC Board Exam Date Sheet Released", body: "The SSLC Board Examinations for 2024-25 will commence from March 10, 2025. All district offices must ensure preparation is complete by February 15.", target: "All Districts", date: "2024-11-01", priority: "High" },
-  { id: 2, title: "Mid-Day Meal Menu Revision", body: "New nutritional menu guidelines to take effect from December 1, 2024. All schools must implement revised menu with egg provision 4 days a week.", target: "All Schools", date: "2024-10-20", priority: "High" },
-  { id: 3, title: "Annual Teacher Training Program", body: "The state-level teacher training program will be held from November 15-30 at designated regional centers. Attendance mandatory.", target: "All Teachers", date: "2024-10-15", priority: "Medium" },
-  { id: 4, title: "Digital Classroom Rollout Phase 3", body: "Phase 3 of the Digital Classroom Initiative will cover 8,000 additional schools. Equipment delivery begins December 2024.", target: "Selected Districts", date: "2024-10-10", priority: "Medium" },
-];
+interface Announcement {
+  id: string | number;
+  title: string;
+  body: string;
+  target: string;
+  date: string;
+  priority: string;
+}
 
 export default function CommissionerAnnouncementsPage() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>(initialAnnouncements);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [form, setForm] = useState({ title: "", body: "", target: "All Districts", date: "", priority: "Medium" });
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/commissioner/announcements`)
+      .then((r) => r.json())
+      .then((json) => { if (json.success) setAnnouncements(json.data); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [API_URL]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Prepend to local state
     setAnnouncements(p => [{ ...form, id: p.length + 1 }, ...p]);
     setIsModalOpen(false);
     setToast(`📢 Announcement '${form.title}' broadcast to ${form.target}.`);
@@ -29,10 +40,10 @@ export default function CommissionerAnnouncementsPage() {
     <PortalLayout title="Announcements" subtitle="Commissioner · State Operations" avatarLetter="C" avatarColor="#06b6d4" themeClass="theme-commissioner" accentColor="#06b6d4">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Announcements", value: announcements.length.toString(), icon: "📢", color: "text-cyan-400" },
-          { label: "High Priority", value: announcements.filter(a => a.priority === "High").length.toString(), icon: "🔴", color: "text-red-400" },
-          { label: "Target: All Districts", value: announcements.filter(a => a.target === "All Districts").length.toString(), icon: "🗺️", color: "text-violet-400" },
-          { label: "This Month", value: announcements.filter(a => a.date.startsWith("2024-11")).length.toString(), icon: "📅", color: "text-emerald-400" },
+          { label: "Total Announcements", value: loading ? "..." : announcements.length.toString(), icon: "📢", color: "text-cyan-400" },
+          { label: "High Priority", value: loading ? "..." : announcements.filter(a => a.priority === "High" || a.priority === "HIGH").length.toString(), icon: "🔴", color: "text-red-400" },
+          { label: "Target: All Districts", value: loading ? "..." : announcements.filter(a => a.target === "All Districts").length.toString(), icon: "🗺️", color: "text-violet-400" },
+          { label: "This Month", value: loading ? "..." : announcements.filter(a => a.date && (a.date.startsWith("2024-11") || a.date.includes("Nov"))).length.toString(), icon: "📅", color: "text-emerald-400" },
         ].map(k => (
           <div key={k.label} className="kpi-card">
             <div className="text-2xl mb-2">{k.icon}</div>
@@ -48,21 +59,35 @@ export default function CommissionerAnnouncementsPage() {
           <h2 className="text-base font-semibold text-white">📢 Commissioner's Announcements</h2>
           <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold rounded-xl">+ Issue Announcement</button>
         </div>
-        <div className="space-y-4">
-          {announcements.map(a => (
-            <div key={a.id} className="p-5 bg-slate-900/60 rounded-2xl border border-slate-800 hover:border-cyan-500/30 transition-all">
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex items-center gap-2">
-                  <span className={`badge text-[9px] ${a.priority === "High" ? "badge-red" : "badge-yellow"}`}>{a.priority}</span>
-                  <span className="badge badge-blue text-[9px]">{a.target}</span>
-                  <span className="text-[10px] text-slate-500">{a.date}</span>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="w-8 h-8 rounded-full border-2 border-cyan-500/20 border-t-cyan-500 animate-spin mb-3" />
+            <span className="text-xs text-slate-500">Loading announcements...</span>
+          </div>
+        ) : announcements.length === 0 ? (
+          <div className="text-center py-10 border border-dashed border-slate-700 rounded-xl">
+            <span className="text-3xl block mb-2">📢</span>
+            <p className="text-sm text-slate-400 font-medium">No announcements published yet.</p>
+            <p className="text-xs text-slate-650 mt-1">Announcements created by the Commissioner will appear here.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {announcements.map(a => (
+              <div key={a.id} className="p-5 bg-slate-900/60 rounded-2xl border border-slate-800 hover:border-cyan-500/30 transition-all">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`badge text-[9px] ${a.priority === "High" || a.priority === "HIGH" ? "badge-red" : "badge-yellow"}`}>{a.priority}</span>
+                    <span className="badge badge-blue text-[9px]">{a.target}</span>
+                    <span className="text-[10px] text-slate-500">{a.date}</span>
+                  </div>
                 </div>
+                <h3 className="text-sm font-bold text-white mb-2">{a.title}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{a.body}</p>
               </div>
-              <h3 className="text-sm font-bold text-white mb-2">{a.title}</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">{a.body}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {isModalOpen && (
