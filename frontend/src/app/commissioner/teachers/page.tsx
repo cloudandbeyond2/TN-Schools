@@ -1,27 +1,42 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 
-interface Teacher { id: number; name: string; district: string; subject: string; vacancies: number; filled: number; pending: number; }
+interface SubjectTeacher {
+  id: number;
+  name: string;
+  district: string;
+  subject: string;
+  vacancies: number;
+  filled: number;
+  pending: number;
+}
 
-const initialData: Teacher[] = [
-  { id: 1, name: "Mathematics", district: "State-wide", subject: "Mathematics", vacancies: 4200, filled: 3850, pending: 350 },
-  { id: 2, name: "Science", district: "State-wide", subject: "Science (Physics/Chemistry/Biology)", vacancies: 3800, filled: 3400, pending: 400 },
-  { id: 3, name: "Tamil", district: "State-wide", subject: "Tamil Language", vacancies: 5100, filled: 5050, pending: 50 },
-  { id: 4, name: "English", district: "State-wide", subject: "English", vacancies: 3200, filled: 2950, pending: 250 },
-  { id: 5, name: "Social Science", district: "State-wide", subject: "History/Geography/Civics", vacancies: 2800, filled: 2600, pending: 200 },
-];
-
-const districtShortages = [
-  { district: "Tirunelveli", subject: "Mathematics", short: 142 },
-  { district: "Salem", subject: "Science", short: 118 },
-  { district: "Dharmapuri", subject: "English", short: 98 },
-  { district: "Namakkal", subject: "Mathematics", short: 87 },
-  { district: "Villupuram", subject: "Science", short: 76 },
-];
+interface DistrictShortage {
+  district: string;
+  subject: string;
+  short: number;
+}
 
 export default function CommissionerTeachersPage() {
   const [activeTab, setActiveTab] = useState<"subject" | "district">("subject");
+  const [subjectWise, setSubjectWise] = useState<SubjectTeacher[]>([]);
+  const [districtShortages, setDistrictShortages] = useState<DistrictShortage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/commissioner/teachers`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success) {
+          setSubjectWise(json.data.subjectWise);
+          setDistrictShortages(json.data.districtShortages);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [API_URL]);
 
   return (
     <PortalLayout title="Teacher Deployment" subtitle="Commissioner · State Operations" avatarLetter="C" avatarColor="#06b6d4" themeClass="theme-commissioner" accentColor="#06b6d4">
@@ -45,11 +60,16 @@ export default function CommissionerTeachersPage() {
         <button onClick={() => setActiveTab("district")} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === "district" ? "bg-cyan-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}>District Shortages</button>
       </div>
 
-      {activeTab === "subject" ? (
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="w-8 h-8 rounded-full border-2 border-cyan-500/20 border-t-cyan-500 animate-spin mb-3" />
+          <span className="text-xs text-slate-500">Loading teacher deployment metrics...</span>
+        </div>
+      ) : activeTab === "subject" ? (
         <div className="glass rounded-2xl p-6 border border-slate-800">
           <h2 className="text-base font-semibold text-white mb-4">👩‍🏫 Subject-wise Deployment (State)</h2>
           <div className="space-y-4">
-            {initialData.map(d => {
+            {subjectWise.map(d => {
               const pct = Math.round((d.filled / d.vacancies) * 100);
               return (
                 <div key={d.id} className="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
