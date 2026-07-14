@@ -1314,7 +1314,7 @@ export default function HeadmasterExamsPage() {
       {/* ─── Create / Edit Exam Modal ─────────────────────────────────────── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-scaleUp">
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl animate-scaleUp">
             
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/40">
@@ -1457,22 +1457,22 @@ export default function HeadmasterExamsPage() {
               )}
 
               {/* ④ Subject (Edit mode) + Date + Duration */}
-              <div className={`grid gap-4 border-t border-slate-850 pt-3 ${editingExam ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"}`}>
-                {editingExam && (
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Subject <span className="text-rose-400">*</span></label>
-                    <select
-                      value={formData.subject}
-                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
-                    >
-                      {SUBJECT_OPTIONS.map((subj) => (
-                        <option key={subj} value={subj}>{subj}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+              {editingExam && (
+                <div className="border-t border-slate-850 pt-3">
+                  <label className="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Subject <span className="text-rose-400">*</span></label>
+                  <select
+                    value={formData.subject}
+                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
+                  >
+                    {SUBJECT_OPTIONS.map((subj) => (
+                      <option key={subj} value={subj}>{subj}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
+              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${!editingExam ? "border-t border-slate-850 pt-3" : ""}`}>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
                     Exam Date <span className="text-rose-400">*</span>
@@ -1482,7 +1482,7 @@ export default function HeadmasterExamsPage() {
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-all"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 transition-all"
                   />
                 </div>
 
@@ -1604,8 +1604,8 @@ export default function HeadmasterExamsPage() {
               </div>
 
               {/* ⑦ Time Slot + Hall + Invigilator */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-slate-850 pt-3">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-850 pt-3">
+                <div className="sm:col-span-2">
                   <label className="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
                     Time Slot
                   </label>
