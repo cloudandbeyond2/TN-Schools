@@ -314,6 +314,8 @@ export default function AITutorPage() {
                   {language === "bilingual" ? "Tamil + English" : language === "tamil" ? "Tamil" : "English"}
                 </div>
               </div>
+            </div>
+
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsChatPoppedOut(true)}
@@ -324,6 +326,7 @@ export default function AITutorPage() {
               </button>
               <span className="badge badge-blue text-[9px] sm:text-xs flex-shrink-0">Active</span>
             </div>
+          </div>
 
           {/* Messages */}
           {(() => {
@@ -412,7 +415,6 @@ export default function AITutorPage() {
                 </div>
               </div>
             )}
-          </div>
 
           {/* Input */}
           <div className="px-4 py-3 sm:px-5 sm:py-4 border-t border-slate-800">
