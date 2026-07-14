@@ -372,7 +372,7 @@ export default function ScienceCenterPage() {
                       isActive ? "border-purple-400 bg-purple-50/20 dark:bg-slate-900" : "border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800"
                     }`}
                   >
-                    {slug === "stem" || slug === "question-bank" ? (
+                    {slug === "stem" || slug === "question-bank" || slug === "database-lab" ? (
                       <div className="mb-2 group-hover:scale-105 transition-transform flex items-center justify-center w-fit">
                         <FlatIcon name={it.label} className="w-12 h-12" />
                       </div>
@@ -949,7 +949,11 @@ export default function ScienceCenterPage() {
               {/* Hero card */}
               <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border-2 border-slate-100 dark:border-slate-700 shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="text-3xl">{content.emoji}</span>
+                  {slug === "stem" || slug === "question-bank" || slug === "database-lab" ? (
+                    <FlatIcon name={itemLabel} className="w-10 h-10 shrink-0" />
+                  ) : (
+                    <span className="text-3xl shrink-0">{content.emoji}</span>
+                  )}
                   <div>
                     <h3 className="text-base font-black text-slate-800 dark:text-white">{t(content.title)}</h3>
                     <p className="text-xs text-slate-400 font-medium">{lang === "EN" ? groupHeading : (HEADINGS_TR[groupHeading] || groupHeading)}</p>
