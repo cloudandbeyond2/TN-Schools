@@ -7,7 +7,6 @@ import { roleConfigs, NavItem, applyStudentGroup, StudentGroup } from "@/lib/nav
 import ThemeToggle from "@/components/ThemeToggle";
 import { useTheme } from "next-themes";
 import { LucideIcon } from "@/components/LucideIcon";
-import { Menu, Bell, Globe, ChevronDown, User, Settings, HelpCircle, LogOut } from "lucide-react";
 
 interface PortalLayoutProps {
   children: React.ReactNode;
@@ -694,7 +693,7 @@ export default function PortalLayout({
               onClick={() => signOut({ callbackUrl: "/login" })}
               className="flex-1 py-2.5 rounded-xl border border-[var(--border-light)] text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)] transition-all flex items-center justify-center gap-2"
             >
-              <LogOut size={16} /> Sign Out
+              <i className="fi fi-rr-exit text-sm shrink-0" /> Sign Out
             </button>
             <Link
               href={defaultDest}
@@ -820,7 +819,7 @@ export default function PortalLayout({
             onClick={() => signOut({ callbackUrl: "/" })}
             className="sidebar-item text-[var(--text-muted)] hover:text-red-500 text-left w-full flex items-center gap-2"
           >
-            <LogOut size={18} className="opacity-80" />
+            <i className="fi fi-rr-exit text-[18px] opacity-80" />
             <span>{t.signOut}</span>
           </button>
         </div>
@@ -868,7 +867,7 @@ export default function PortalLayout({
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="Open Sidebar"
             >
-              <Menu className="w-5 h-5" />
+              <i className="fi fi-rr-menu-burger text-[18px]" />
             </button>
             
             {/* Simplified Logo on Mobile/Tablet */}
@@ -915,9 +914,9 @@ export default function PortalLayout({
                 className="flex items-center gap-1.5 px-3 py-1.5 border border-[var(--border)] rounded-xl text-xs font-semibold text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200 active:scale-95"
                 title="Language"
               >
-                <Globe className="w-3.5 h-3.5" />
+                <i className="fi fi-rr-globe text-[14px]" />
                 <span>{currentLanguage}</span>
-                <ChevronDown className="w-3 h-3 opacity-60" />
+                <i className="fi fi-rr-angle-small-down text-[12px] opacity-60" />
               </button>
               {isLanguageDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-32 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-lg z-50 py-1 animate-in fade-in slide-in-from-top-1 duration-200">
@@ -957,7 +956,7 @@ export default function PortalLayout({
                 className="relative p-2 text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] rounded-full transition-all duration-200 active:scale-95"
                 aria-label="Notifications"
               >
-                <Bell className="w-5 h-5" />
+                <i className="fi fi-rr-bell text-[18px]" />
                 {unreadCount > 0 && (
                   <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full text-white text-[9px] flex items-center justify-center font-bold border-2 border-[var(--bg-card)] animate-pulse">
                     {unreadCount}
@@ -1032,7 +1031,7 @@ export default function PortalLayout({
                       scroll={false} 
                       className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
                     >
-                      <User className="w-3.5 h-3.5" /> 
+                      <i className="fi fi-rr-user text-[14px]" /> 
                       <span>{t.profileTitle}</span>
                     </Link>
                   ) : (
@@ -1042,7 +1041,7 @@ export default function PortalLayout({
                       scroll={false} 
                       className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
                     >
-                      <User className="w-3.5 h-3.5" /> 
+                      <i className="fi fi-rr-user text-[14px]" /> 
                       <span>Dashboard Home</span>
                     </Link>
                   )}
@@ -1052,7 +1051,7 @@ export default function PortalLayout({
                     scroll={false} 
                     className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
                   >
-                    <Settings className="w-3.5 h-3.5" /> 
+                    <i className="fi fi-rr-settings text-[14px]" /> 
                     <span>{t.settings}</span>
                   </Link>
                   <Link 
@@ -1061,7 +1060,7 @@ export default function PortalLayout({
                     scroll={false} 
                     className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
                   >
-                    <HelpCircle className="w-3.5 h-3.5" /> 
+                    <i className="fi fi-rr-interrogation text-[14px]" /> 
                     <span>{t.help}</span>
                   </Link>
                   <div className="my-1 border-t border-[var(--border)]" />
@@ -1072,7 +1071,7 @@ export default function PortalLayout({
                     }} 
                     className="flex w-full items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
                   >
-                    <LogOut className="w-3.5 h-3.5" /> 
+                    <i className="fi fi-rr-exit text-[14px]" /> 
                     <span>{t.signOut}</span>
                   </button>
                 </div>

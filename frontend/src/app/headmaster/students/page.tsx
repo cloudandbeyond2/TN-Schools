@@ -1240,7 +1240,7 @@ export default function StudentsMonitoringPage() {
           <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Student data is scoped to your assigned school only.</p>
         </div>
         <div className="flex items-center gap-2 bg-blue-600/10 border border-blue-500/30 rounded-xl px-4 py-2 w-full sm:w-auto">
-          <span className="text-blue-400 text-base">🏫</span>
+          <i className="fi fi-rr-school text-blue-400 text-base" />
           <span className="text-xs font-bold text-blue-300">
             {schools.find((s) => s.id === mySchoolId)?.name || (mySchoolId ? "Your School" : "No school linked")}
           </span>
@@ -1251,10 +1251,10 @@ export default function StudentsMonitoringPage() {
       {/* Metrics Row */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-6 fade-in">
         {[
-          { label: "Total Students", value: isLoading ? "..." : watchlist.length.toString(), icon: "🎓", color: "text-blue-400", bg: "bg-blue-500/10", sub: "All registered students" },
-          { label: "Active Students", value: isLoading ? "..." : activeCount.toString(), icon: "✅", color: "text-emerald-400", bg: "bg-emerald-500/10", sub: "Currently attending" },
-          { label: "Boys", value: isLoading ? "..." : boysCount.toString(), icon: "👦", color: "text-indigo-400", bg: "bg-indigo-500/10", sub: "Male students" },
-          { label: "Girls", value: isLoading ? "..." : girlsCount.toString(), icon: "👧", color: "text-pink-400", bg: "bg-pink-500/10", sub: "Female students" },
+          { label: "Total Students", value: isLoading ? "..." : watchlist.length.toString(), icon: <i className="fi fi-rr-graduation-cap" />, color: "text-blue-400", bg: "bg-blue-500/10", sub: "All registered students" },
+          { label: "Active Students", value: isLoading ? "..." : activeCount.toString(), icon: <i className="fi fi-rr-checkbox" />, color: "text-emerald-400", bg: "bg-emerald-500/10", sub: "Currently attending" },
+          { label: "Boys", value: isLoading ? "..." : boysCount.toString(), icon: <i className="fi fi-rr-user" />, color: "text-indigo-400", bg: "bg-indigo-500/10", sub: "Male students" },
+          { label: "Girls", value: isLoading ? "..." : girlsCount.toString(), icon: <i className="fi fi-rr-user" />, color: "text-pink-400", bg: "bg-pink-500/10", sub: "Female students" },
         ].map((kpi) => (
           <div key={kpi.label} className="glass rounded-2xl p-3 sm:p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all shadow-sm">
             <div className="flex flex-col text-left min-w-0">
@@ -1274,12 +1274,19 @@ export default function StudentsMonitoringPage() {
             ? "bg-red-950/95 border-red-500/40 text-red-200"
             : "bg-emerald-950/95 border-emerald-500/40 text-emerald-200"
           }`}>
-          <span>{toast.msg}</span>
+          <div className="flex items-center gap-2">
+            {toast.type === "error" ? (
+              <i className="fi fi-rr-exclamation text-red-400 text-sm shrink-0" />
+            ) : (
+              <i className="fi fi-rr-check-circle text-emerald-400 text-sm shrink-0" />
+            )}
+            <span>{toast.msg.replace(/^[⚠️❌🔴🎉🗑️📊\s]+/, "")}</span>
+          </div>
           <button
             onClick={() => setToast(null)}
-            className="text-[10px] font-bold text-slate-450 hover:text-white shrink-0 ml-2"
+            className="text-[10px] font-bold text-slate-455 hover:text-white shrink-0 ml-2 flex items-center justify-center"
           >
-            ✕
+            <i className="fi fi-rr-cross text-[9px]" />
           </button>
         </div>
       )}
@@ -1288,7 +1295,7 @@ export default function StudentsMonitoringPage() {
         <div className="w-full glass rounded-2xl p-3 sm:p-6 border border-slate-800">
           <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 mb-5">
             <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-              <span>🏫</span> Student Watchlist Overview
+              <i className="fi fi-rr-school text-blue-400" /> Student Watchlist Overview
             </h2>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <div className="relative flex-1 sm:flex-initial">
@@ -1327,7 +1334,9 @@ export default function StudentsMonitoringPage() {
           </div>
           {watchlist.length === 0 && !isLoading ? (
             <div className="text-center py-16 text-slate-500 text-[10px] sm:text-xs">
-              <div className="text-3xl mb-3">📋</div>
+              <div className="text-3xl mb-3 text-slate-400">
+                <i className="fi fi-rr-clipboard-list" />
+              </div>
               <div className="font-semibold text-slate-400 mb-1">No student records yet</div>
               <div>Use the form or Excel import to add students to the database.</div>
             </div>
@@ -1501,7 +1510,7 @@ export default function StudentsMonitoringPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400 text-xl shrink-0">
-              📊
+              <i className="fi fi-rr-file-spreadsheet text-lg" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-white">Bulk Student Import</h2>
@@ -1527,14 +1536,14 @@ export default function StudentsMonitoringPage() {
               }}
               className="flex items-center gap-2 px-4 py-2.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 text-xs font-bold rounded-xl transition-all whitespace-nowrap"
             >
-              📤 Upload Now
+              <i className="fi fi-rr-upload" /> Upload Now
             </button>
           </div>
         </div>
 
         {/* Template columns reference */}
         <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">📋 Template Columns Reference</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3"><i className="fi fi-rr-clipboard-list mr-1" /> Template Columns Reference</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-1.5">
             {[
               { col: "Full Name", req: true },
@@ -1602,7 +1611,7 @@ export default function StudentsMonitoringPage() {
                       : "text-slate-500 hover:text-slate-700"
                     }`}
                 >
-                  ✏️ Manual Entry
+                  <span className="flex items-center gap-1.5"><i className="fi fi-rr-edit" /> Manual Entry</span>
                 </button>
                 <button
                   type="button"
@@ -1613,14 +1622,14 @@ export default function StudentsMonitoringPage() {
                       : "text-slate-500 hover:text-slate-700"
                     }`}
                 >
-                  📊 Excel Import
+                  <span className="flex items-center gap-1.5"><i className="fi fi-rr-file-spreadsheet" /> Excel Import</span>
                 </button>
               </div>
               <button
                 onClick={() => { setIsModalOpen(false); setPreviewStudents([]); setModalTab("manual"); }}
-                className="text-slate-500 hover:text-slate-800 text-xs font-semibold self-end sm:self-auto"
+                className="text-slate-500 hover:text-slate-800 text-xs font-semibold self-end sm:self-auto flex items-center gap-1"
               >
-                ✕ Close
+                <i className="fi fi-rr-cross text-[9px]" /> Close
               </button>
             </div>
 
@@ -1709,9 +1718,13 @@ export default function StudentsMonitoringPage() {
                             <td className="p-3 text-slate-700">{s.studentStatus}</td>
                             <td className="p-3 text-right">
                               {s.isValid ? (
-                                <span className="text-emerald-600 font-medium">✓ Ready</span>
+                                <span className="text-emerald-600 font-medium flex items-center justify-end gap-1">
+                                  <i className="fi fi-rr-check-circle" /> Ready
+                                </span>
                               ) : (
-                                <span className="text-red-500 font-semibold" title={s.validationError}>⚠️ Invalid</span>
+                                <span className="text-red-500 font-semibold flex items-center justify-end gap-1" title={s.validationError}>
+                                  <i className="fi fi-rr-exclamation" /> Invalid
+                                </span>
                               )}
                             </td>
                           </tr>
@@ -1737,7 +1750,9 @@ export default function StudentsMonitoringPage() {
                       {isSaving ? (
                         <><div className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving to DB... {importProgress}%</>
                       ) : (
-                        `💾 Save to Database (${previewStudents.filter((s) => s.isValid).length} Students)`
+                        <span className="flex items-center gap-1.5 justify-center">
+                          <i className="fi fi-rr-disk" /> Save to Database ({previewStudents.filter((s) => s.isValid).length} Students)
+                        </span>
                       )}
                     </span>
                   </button>
