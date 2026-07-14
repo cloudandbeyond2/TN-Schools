@@ -1031,7 +1031,7 @@ export default function PortalLayout({
                       scroll={false} 
                       className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
                     >
-                      <User className="w-3.5 h-3.5" /> 
+                      <i className="fi fi-rr-user text-[14px]" /> 
                       <span>{t.profileTitle}</span>
                     </Link>
                   ) : (
@@ -1041,7 +1041,7 @@ export default function PortalLayout({
                       scroll={false} 
                       className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
                     >
-                      <User className="w-3.5 h-3.5" /> 
+                      <i className="fi fi-rr-user text-[14px]" /> 
                       <span>Dashboard Home</span>
                     </Link>
                   )}
