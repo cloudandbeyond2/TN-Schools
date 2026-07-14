@@ -656,12 +656,54 @@ router.patch('/revision-plan/:studentId/task', async (req: Request, res: Respons
 
 router.get('/analytics/school', requireRole(STAFF_ROLES), async (req: Request, res: Response) => {
   try {
-    const { schoolId, class: cls } = req.query as Record<string, string>;
+    const { schoolId, class: cls, section, teacherId } = req.query as Record<string, string>;
     if (!schoolId) return res.status(400).json({ success: false, error: 'schoolId is required' });
-    const classes = cls ? [cls] : ['9', '10'];
+    
+    let classes = cls ? [cls] : ['9', '10'];
+
+    let teacherConditions: any = {};
+    if (teacherId) {
+      const teacherClassrooms = await prisma.classRoom.findMany({
+        where: { schoolId, teacherId },
+        select: { className: true, section: true }
+      });
+      if (teacherClassrooms.length > 0) {
+        let filteredClassrooms = teacherClassrooms;
+        if (cls) {
+          filteredClassrooms = filteredClassrooms.filter(c => c.className === cls);
+        }
+        if (section) {
+          filteredClassrooms = filteredClassrooms.filter(c => c.section.toUpperCase() === section.toUpperCase());
+        }
+
+        if (filteredClassrooms.length > 0) {
+          teacherConditions = {
+            OR: filteredClassrooms.map((cr) => ({
+              class: cr.className,
+              section: cr.section
+            }))
+          };
+          classes = Array.from(new Set(filteredClassrooms.map(c => c.className)));
+        } else {
+          teacherConditions = { id: 'none' };
+          classes = [];
+        }
+      } else {
+        teacherConditions = { id: 'none' };
+        classes = [];
+      }
+    } else {
+      teacherConditions = {
+        class: { in: classes },
+        ...(section ? { section } : {})
+      };
+    }
 
     const students = await prisma.student.findMany({
-      where: { schoolId, class: { in: classes } },
+      where: { 
+        schoolId, 
+        ...teacherConditions
+      },
       include: { user: true },
     });
     const studentIds = students.map((s: any) => s.id);
