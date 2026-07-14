@@ -67,6 +67,14 @@ export default function SuperAdminDigitalLibraryPage() {
       submitData.append("userId", (session?.user as any)?.id || "admin");
       
       if (selectedFile) {
+        if (selectedFile.size > 4.5 * 1024 * 1024) {
+          setMessage({
+            type: "error",
+            text: "File size exceeds the 4.5MB serverless upload limit. Please optimize the file size or provide a direct File URL instead.",
+          });
+          setLoading(false);
+          return;
+        }
         submitData.append("file", selectedFile);
       }
 
@@ -75,6 +83,16 @@ export default function SuperAdminDigitalLibraryPage() {
         body: submitData
       });
       
+      if (!res.ok) {
+        if (res.status === 413) {
+          throw new Error("File is too large for the upload gateway (limit 4.5MB). Please use a smaller file size.");
+        }
+        if (res.status === 404) {
+          throw new Error("Upload service is currently unavailable. Please contact the administrator.");
+        }
+        throw new Error(`Server returned status ${res.status}`);
+      }
+
       const data = await res.json();
       if (data.success) {
         setMessage({ type: "success", text: "Resource uploaded successfully! It is now pending Headmaster approval." });
@@ -83,9 +101,9 @@ export default function SuperAdminDigitalLibraryPage() {
       } else {
         setMessage({ type: "error", text: data.error || "Failed to upload resource." });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setMessage({ type: "error", text: "An error occurred during upload." });
+      setMessage({ type: "error", text: err.message || "An error occurred during upload." });
     } finally {
       setLoading(false);
     }

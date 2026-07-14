@@ -127,6 +127,10 @@ const COLOR_MAP: Record<string, { primary: string; light: string; ring: string; 
   },
 };
 
+// Realistic AI image via Pollinations (free, no key)
+const pol = (prompt: string, w = 1000, h = 600) =>
+  `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&nologo=true`;
+
 // ---------------------------------------------------------------------------
 // Download helper
 // ---------------------------------------------------------------------------
@@ -151,9 +155,15 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
   const colorKey = data?.conceptColor || "emerald";
   const colors = COLOR_MAP[colorKey] || COLOR_MAP.emerald;
 
+  // Bilingual formatter helper
+  const cleanBilingual = (title: string) => {
+    if (!title) return "";
+    return title.replace(/\s*\/\s*/g, " / ");
+  };
+
   // Resolve display title & icon
-  const heroTitle = data?.heroTitle || data?.title || topic;
-  const heroSubtitle = data?.heroSubtitle || data?.subtitle || subject;
+  const heroTitle = cleanBilingual(data?.heroTitle || data?.title || topic);
+  const heroSubtitle = cleanBilingual(data?.heroSubtitle || data?.subtitle || subject);
   const heroIcon = data?.heroIcon || "📚";
 
   // Resolve modules — fall back gracefully if missing
@@ -199,24 +209,60 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
       </div>
 
       {/* ================================================================== */}
+      {/* REALISTIC CONCEPT VISUAL (Pollinations)                            */}
+      {/* ================================================================== */}
+      <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-md relative bg-slate-100">
+        <img
+          src={pol(`${heroTitle}, ${subject}, ${topic}, realistic educational illustration, vibrant, highly detailed, bright clean background`, 1200, 440)}
+          alt={heroTitle}
+          loading="lazy"
+          className="w-full h-40 md:h-56 object-cover"
+          onError={(e) => {
+            const target = e.currentTarget;
+            const parent = target.parentElement;
+            if (!parent) return;
+            target.style.display = 'none';
+            const fb = document.createElement('div');
+            fb.className = 'w-full h-40 md:h-56 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-slate-100 to-slate-200';
+            fb.innerHTML = `<span style="font-size:3rem;line-height:1">${heroIcon}</span><p style="font-size:13px;font-weight:700;color:#64748b;text-align:center;max-width:280px;padding:0 12px">${heroTitle}</p>`;
+            parent.insertBefore(fb, parent.firstChild);
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent flex items-end p-5">
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.85)" }}>
+              <i className="fi fi-sr-picture leading-none" /> Real-World Visual · காட்சி விளக்கம்
+            </span>
+            <p className="font-bold text-sm md:text-lg" style={{ color: "#fff" }}>{heroTitle} — {heroSubtitle}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ================================================================== */}
       {/* MAIN GRID — Hero + Modules + Stats                                 */}
       {/* ================================================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
         {/* ---- Formula & Law Hero (left) ---- */}
         <div className="lg:col-span-5 space-y-4">
+          <div className="border-b border-slate-200 pb-2 mb-1">
+            <span className={`text-[10px] font-black ${colors.text} uppercase tracking-wider block`}>
+              Formulas & Constants / சூத்திரங்கள் & மாறிலிகள்
+            </span>
+            <h3 className="text-slate-800 font-extrabold text-sm">Reference Values</h3>
+          </div>
 
           {/* Formula Box */}
           {data?.formulaBox && (
-            <div className={`bg-white border-2 ${colors.border} rounded-3xl p-5 shadow-lg text-center`}>
+            <div className={`bg-white border ${colors.border} rounded-3xl p-5 shadow-sm text-center`}>
               <span className={`text-[9px] font-black ${colors.text} uppercase tracking-widest block mb-2`}>
                 Primary Formula / முதன்மை சூத்திரம்
               </span>
-              <div className={`text-2xl md:text-3xl font-black font-mono ${colors.text} py-3 px-4 ${colors.light} rounded-2xl inline-block border ${colors.border} border-opacity-40 shadow-inner`}>
+              <div className={`text-xl md:text-2xl font-black ${colors.text} py-3 px-4 ${colors.light} rounded-2xl inline-block border ${colors.border} border-opacity-40 shadow-inner max-w-full break-words leading-relaxed`}>
                 {data.formulaBox}
               </div>
               {data.formulaExplain && (
-                <p className="text-slate-600 text-xs font-medium mt-3 leading-relaxed text-left">
+                <p className="text-slate-600 text-xs font-medium mt-3 leading-relaxed text-left break-words">
                   {data.formulaExplain}
                 </p>
               )}
@@ -236,11 +282,11 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
           {/* Constant / Boundary Value */}
           {data?.constantName && (
             <div className={`${colors.light} border ${colors.border} border-opacity-40 rounded-3xl p-4 shadow-sm flex items-center gap-4`}>
-              <div className={`shrink-0 p-3 bg-white rounded-2xl shadow border ${colors.border} border-opacity-30 text-center min-w-[80px]`}>
-                <div className={`text-[9px] font-bold ${colors.text} uppercase tracking-wider leading-none mb-1`}>{data.constantName}</div>
-                <div className={`text-sm font-black font-mono ${colors.text}`}>{data.constantValue}</div>
+              <div className={`shrink-0 p-3 bg-white rounded-2xl shadow border ${colors.border} border-opacity-30 text-center min-w-[64px]`}>
+                <div className={`text-[9px] font-bold ${colors.text} uppercase tracking-wider leading-none mb-1 break-words`}>{data.constantName}</div>
+                <div className={`text-sm font-black ${colors.text} break-words`}>{data.constantValue}</div>
               </div>
-              <p className="text-slate-600 text-xs font-medium leading-relaxed">{data.constantExplain}</p>
+              <p className="text-slate-600 text-xs font-medium leading-relaxed break-words">{data.constantExplain}</p>
             </div>
           )}
 
@@ -250,20 +296,20 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
               <span className={`text-[9px] font-black ${colors.text} uppercase tracking-widest block mb-3`}>
                 Bilingual Key Terms / இருமொழி கலைச்சொற்கள்
               </span>
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs table-fixed">
                 <thead>
                   <tr className="border-b border-slate-100">
-                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider">English</th>
-                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider">Tamil</th>
-                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider">Definition</th>
+                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider w-[25%]">English</th>
+                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider w-[25%]">Tamil</th>
+                    <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider w-[50%]">Definition</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {termTable.map((row, idx) => (
                     <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-2.5 pr-2 font-semibold text-slate-800 text-[11px]">{row.english}</td>
-                      <td className={`py-2.5 pr-2 font-semibold ${colors.text} text-[11px]`}>{row.tamil}</td>
-                      <td className="py-2.5 text-slate-500 text-[10px] leading-snug">{row.definition}</td>
+                      <td className="py-2.5 pr-2 font-semibold text-slate-800 text-[11px] break-words">{row.english}</td>
+                      <td className={`py-2.5 pr-2 font-semibold ${colors.text} text-[11px] break-words`}>{row.tamil}</td>
+                      <td className="py-2.5 text-slate-500 text-[10px] leading-snug break-words">{row.definition}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -302,9 +348,9 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
                   <span className="text-xl p-2 rounded-xl bg-white shadow-sm shrink-0 border border-slate-100">
                     {mod.icon}
                   </span>
-                  <div className="space-y-1">
-                    <h4 className="font-extrabold text-xs text-slate-800 leading-snug">{mod.title}</h4>
-                    <p className="text-[10.5px] text-slate-500 leading-relaxed font-medium">
+                  <div className="space-y-1 min-w-0">
+                    <h4 className="font-extrabold text-xs text-slate-800 leading-snug break-words">{mod.title}</h4>
+                    <p className="text-[10.5px] text-slate-500 leading-relaxed font-medium break-words">
                       {activeModule === mod.id
                         ? mod.desc
                         : "Click to explore this concept in detail..."}
@@ -338,15 +384,19 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
                     key={idx}
                     className="bg-white border border-slate-200 p-3.5 rounded-2xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
                   >
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider break-words">
                       {stat.label}
                     </span>
-                    <div className="flex items-baseline gap-2 mt-1.5">
-                      <span className={`text-lg font-black font-mono ${statColors[idx % statColors.length]}`}>
+                    <div className="mt-1.5">
+                      <span className={`${
+                        String(stat.value).length > 10
+                          ? 'text-xs font-bold'
+                          : 'text-lg font-black font-mono'
+                      } ${statColors[idx % statColors.length]} break-words leading-snug block`}>
                         {stat.value}
                       </span>
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-1 font-medium leading-snug">{stat.desc}</p>
+                    <p className="text-[10px] text-slate-500 mt-1 font-medium leading-snug break-words">{stat.desc}</p>
                   </div>
                 );
               })}
@@ -374,20 +424,38 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-stretch">
             {workflow.map((work, idx) => (
               <div
                 key={idx}
-                className={`bg-white border border-slate-200 p-4 rounded-2xl shadow-sm relative group hover:${colors.light} hover:${colors.border} transition-colors`}
+                className={`bg-white border border-slate-200 p-4 rounded-2xl shadow-sm relative group hover:${colors.light} hover:${colors.border} transition-colors flex flex-col justify-between h-full`}
               >
-                <div className={`absolute top-3 right-3 text-xs font-mono font-black text-slate-200 group-hover:${colors.text}`}>
-                  0{idx + 1}
+                <div>
+                  <div className={`absolute top-3 right-3 z-10 text-xs font-mono font-black text-white/90 drop-shadow`}>
+                    0{idx + 1}
+                  </div>
+                  <div className="relative w-full h-24 rounded-2xl overflow-hidden mb-3 border border-slate-100 bg-slate-100">
+                    <img
+                      src={pol(`${work.step}, ${topic}, ${subject}, realistic educational, simple, bright`, 400, 240)}
+                      alt={work.step}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        const parent = target.parentElement;
+                        if (!parent) return;
+                        target.style.display = 'none';
+                        const fb = document.createElement('div');
+                        fb.className = 'w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-slate-100 to-slate-200';
+                        fb.innerHTML = `<span style="font-size:1.75rem;line-height:1">${work.icon}</span><p style="font-size:9px;font-weight:700;color:#64748b;text-align:center;max-width:100px;padding:0 6px;margin:0">${work.step}</p>`;
+                        parent.insertBefore(fb, parent.firstChild);
+                      }}
+                    />
+                    <span className="absolute bottom-1 left-1 text-xl drop-shadow-md">{work.icon}</span>
+                  </div>
+                  <h4 className="font-extrabold text-xs text-slate-800 leading-snug">{work.step}</h4>
+                  <p className="text-[10px] text-slate-500 mt-1.5 leading-relaxed font-medium">{work.desc}</p>
                 </div>
-                <span className="text-2xl p-2 rounded-xl bg-slate-50 shadow-sm shrink-0 inline-block mb-3 border border-slate-100">
-                  {work.icon}
-                </span>
-                <h4 className="font-extrabold text-xs text-slate-800 leading-snug">{work.step}</h4>
-                <p className="text-[10px] text-slate-500 mt-1.5 leading-relaxed font-medium">{work.desc}</p>
               </div>
             ))}
           </div>

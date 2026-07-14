@@ -911,10 +911,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Light mode text readability corrections for hardcoded dark-theme selectors */
-:root:not(.dark) .theme-card .text-white,
-:root:not(.dark) .glass .text-white,
-:root:not(.dark) .glass-strong .text-white,
-:root:not(.dark) .kpi-card .text-white,
+:root:not(.dark) .theme-card .text-white:not(button):not(a):not(.btn-primary):not(.btn-glow),
+:root:not(.dark) .glass .text-white:not(button):not(a):not(.btn-primary):not(.btn-glow),
+:root:not(.dark) .glass-strong .text-white:not(button):not(a):not(.btn-primary):not(.btn-glow),
+:root:not(.dark) .kpi-card .text-white:not(button):not(a):not(.btn-primary):not(.btn-glow),
 :root:not(.dark) .theme-card h1,
 :root:not(.dark) .theme-card h2,
 :root:not(.dark) .theme-card h3,

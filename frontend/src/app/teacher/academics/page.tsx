@@ -137,6 +137,21 @@ const buildSyllabus = (subject: string): SyllabusUnit[] => {
   ];
 };
 
+const getCategoryGradient = (key: CategoryKey) => {
+  switch (key) {
+    case "overview": return "linear-gradient(135deg, #64748b, #475569)";
+    case "subjects": return "linear-gradient(135deg, #6366f1, #8b5cf6)";
+    case "syllabus": return "linear-gradient(135deg, #10b981, #0d9488)";
+    case "textbooks": return "linear-gradient(135deg, #f59e0b, #ea580c)";
+    case "materials": return "linear-gradient(135deg, #3b82f6, #0284c7)";
+    case "notes": return "linear-gradient(135deg, #ec4899, #f43f5e)";
+    case "videos": return "linear-gradient(135deg, #ef4444, #f97316)";
+    case "digital": return "linear-gradient(135deg, #a855f7, #7c3aed)";
+    case "reference": return "linear-gradient(135deg, #06b6d4, #0284c7)";
+    default: return "linear-gradient(135deg, #6366f1, #8b5cf6)";
+  }
+};
+
 export default function AcademicsHubPage() {
   const { data: session } = useSession();
   const studentClass = "10"; // Placeholder for teacher class
@@ -584,10 +599,10 @@ export default function AcademicsHubPage() {
               onClick={() => setActiveTab(c.key)}
               className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${
                 active
-                  ? `bg-gradient-to-br ${c.gradient} shadow-md`
+                  ? "shadow-md text-white font-extrabold"
                   : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
               }`}
-              style={active ? { color: "#fff" } : undefined}
+              style={active ? { background: getCategoryGradient(c.key), color: "#fff" } : undefined}
             >
               <Fi name={c.icon} className="text-sm" />
               {c.label}
@@ -661,11 +676,12 @@ export default function AcademicsHubPage() {
                   className="glass rounded-2xl p-5 border border-[var(--border)] text-left hover:-translate-y-1 hover:shadow-xl transition-all group relative overflow-hidden"
                 >
                   <div
-                    className={`absolute -top-10 -right-10 w-28 h-28 rounded-full blur-3xl opacity-15 group-hover:opacity-35 transition-opacity bg-gradient-to-br ${c.gradient}`}
+                    className="absolute -top-10 -right-10 w-28 h-28 rounded-full blur-3xl opacity-15 group-hover:opacity-35 transition-opacity"
+                    style={{ background: getCategoryGradient(c.key) }}
                   />
                   <div
-                    className={`w-11 h-11 rounded-xl bg-gradient-to-br ${c.gradient} flex items-center justify-center shadow-lg mb-3 group-hover:scale-110 transition-transform`}
-                    style={{ color: "#fff" }}
+                    className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg mb-3 group-hover:scale-110 transition-transform"
+                    style={{ background: getCategoryGradient(c.key), color: "#fff" }}
                   >
                     <Fi name={c.icon} className="text-xl" />
                   </div>

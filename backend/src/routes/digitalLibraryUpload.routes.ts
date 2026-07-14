@@ -217,6 +217,41 @@ router.put('/:id/approve', async (req: Request, res: Response) => {
   }
 });
 
+// PUT /api/digital-library-upload/:id
+// Update an existing resource
+router.put('/:id', upload.single('file'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { title, type, subject, class: cls, description } = req.body;
+    let { fileUrl } = req.body;
+
+    if (req.file) {
+      fileUrl = `/uploads/${req.file.filename}`;
+    }
+
+    const updatedData: any = {};
+    if (title) updatedData.title = String(title);
+    if (type) updatedData.type = String(type);
+    if (subject) updatedData.subject = String(subject);
+    if (cls) updatedData.class = String(cls);
+    if (description !== undefined) updatedData.description = description ? String(description) : null;
+    if (fileUrl !== undefined) updatedData.fileUrl = fileUrl ? String(fileUrl) : null;
+
+    // Reset approvalStatus to PENDING if a teacher or user edits their resource
+    updatedData.approvalStatus = 'PENDING';
+
+    const updated = await prisma.digitalLibraryUpload.update({
+      where: { id },
+      data: updatedData
+    });
+
+    return res.json({ success: true, data: updated, message: 'Resource updated successfully' });
+  } catch (err: any) {
+    console.error('[PUT /api/digital-library-upload/:id]', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to update resource' });
+  }
+});
+
 // DELETE /api/digital-library-upload/:id
 // Delete a resource
 router.delete('/:id', async (req: Request, res: Response) => {

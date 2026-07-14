@@ -60,7 +60,9 @@ export default function PersonalKpiStrip({ studentId, title = "My Academic KPIs"
     <div className="mb-6">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div>
-          <h2 className={`text-base font-semibold ${dark ? "text-white" : "text-slate-800 dark:text-white"}`}>📊 {title}</h2>
+          <h2 className={`text-base font-semibold flex items-center ${dark ? "text-white" : "text-slate-800 dark:text-white"}`}>
+            <i className="fi fi-rr-chart-histogram text-emerald-500 mr-2"></i> {title}
+          </h2>
           <p className="text-[11px] text-slate-500">
             {data?.source === "snapshot" ? "Archived year — from your academic history" : "Live data for the selected academic year"}
           </p>
@@ -71,7 +73,7 @@ export default function PersonalKpiStrip({ studentId, title = "My Academic KPIs"
         <KpiCard
           label="Class"
           value={v(data ? `${data.class}${data.section ? ` – ${data.section}` : ""}` : "")}
-          icon={GraduationCap}
+          flaticonClass="fi-rr-graduation-cap"
           color={dark ? "text-blue-400" : "text-blue-500"}
           variant={variant}
           sub={data?.group ? `HSC Group ${data.group}` : undefined}
@@ -79,7 +81,7 @@ export default function PersonalKpiStrip({ studentId, title = "My Academic KPIs"
         <KpiCard
           label="Attendance"
           value={v(data?.attendancePct != null ? `${data.attendancePct}%` : "—")}
-          icon={CalendarCheck}
+          flaticonClass="fi-rr-calendar"
           color={dark ? "text-emerald-400" : "text-emerald-500"}
           variant={variant}
           sub="Year average"
@@ -87,7 +89,7 @@ export default function PersonalKpiStrip({ studentId, title = "My Academic KPIs"
         <KpiCard
           label="Average Marks"
           value={v(data?.averageMarksPct != null ? `${data.averageMarksPct}%` : "—")}
-          icon={BookOpenCheck}
+          flaticonClass="fi-rr-stats"
           color={dark ? "text-violet-400" : "text-violet-500"}
           variant={variant}
           sub={data?.averageMarksPct != null ? (data.averageMarksPct >= 35 ? "Above pass mark" : "Below pass mark") : undefined}
@@ -95,7 +97,7 @@ export default function PersonalKpiStrip({ studentId, title = "My Academic KPIs"
         <KpiCard
           label="Subjects Tracked"
           value={v(data?.marksSummary?.length ?? 0)}
-          icon={Layers}
+          flaticonClass="fi-rr-layers"
           color={dark ? "text-amber-400" : "text-amber-500"}
           variant={variant}
           sub={data?.result ? `Year result: ${data.result}` : undefined}

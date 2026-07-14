@@ -368,10 +368,28 @@ const LESSON_CORE_SCHEMA = {
 
 router.post('/generate-lesson-plan', async (req: Request, res: Response) => {
   try {
-    const { syllabus, grade, subject, topic, duration, textbookContext } = req.body;
+    const { syllabus, grade, subject, topic, duration, textbookContext, language } = req.body;
     const truncatedContext = limitContext(textbookContext, topic);
+    const isTamil = language === 'tamil';
 
-    const prompt = `You are an expert curriculum developer for Tamil Nadu (TN) State Board schools.
+    const prompt = isTamil
+      ? `நீங்கள் தமிழ்நாடு மாநில வாரிய பள்ளிகளுக்கான நிபுணத்துவம் வாய்ந்த பாடத்திட்ட உருவாக்குநர். கீழ்கண்ட தகவல்களுக்கு ஏற்ப ஒரு விரிவான பாட திட்டம் உருவாக்கவும்:
+- பாடத்திட்டம்: ${syllabus}
+- வகுப்பு: ${grade}
+- பாடம்: ${subject}
+- தலைப்பு: ${topic}
+- காலம்: ${duration}
+${truncatedContext ? `\nபாடநூல் பகுதி (\"${topic}\" பற்றிய தகவல்களை மட்டும் பயன்படுத்தவும்):\n${truncatedContext}` : ''}
+\"${topic}\" பற்றிய தகவல்கள் இல்லாவிட்டால், தரமான TN Board பாடத்திட்டத்தை பின்பற்றவும்.
+
+JSON schema-ஐ பின்பற்றி திரும்ப அனுப்பவும். அனைத்து உள்ளடக்கமும் குறிப்பாக \"${topic}\" பற்றியது மட்டுமே இருக்க வேண்டும். விதிகள்:
+- objectives: சரியாக 3 கற்றல் நோக்கங்கள் — தமிழில் எழுதவும்.
+- timeline: சரியாக 4 கட்டங்கள் — \"அறிமுகம் (Hook)\", \"முக்கிய போதனை (Core Instruction)\", \"வழிகாட்டப்பட்ட பயிற்சி (Guided Practice)\", \"மதிப்பீடு (Exit Ticket)\" — மொத்தம் ${duration} ஆகும். விவரங்கள் தமிழில்.
+- studentKeyPoints: 5-6 முக்கிய புள்ளிகள் — en (ஆங்கிலம்) மற்றும் ta (தமிழ்) — இரண்டும் சம எண்ணிக்கையில், ஒரே வரிசையில். ta புள்ளிகள் இயற்கையான வகுப்பறை தமிழில் இருக்க வேண்டும்.
+- bilingual: 5 முக்கிய தொழில்நுட்ப சொற்கள் (english, tamil, pronunciation).
+- exitTickets: சரியாக 5 MCQ கேள்விகள் — கேள்விகள் தமிழிலும் ஆங்கிலத்திலும் — options \"A) ...\", answer is full correct option text.
+- infographic: ${topic} பற்றிய உண்மையான தரவு — heroTitle (இரு மொழிகளிலும்), heroSubtitle \"${grade} ${subject}\", heroIcon (சிறந்த emoji), conceptColor (emerald/sky/indigo/amber/rose/teal/violet), 4 modules, 3 stats, 4 workflow steps, formulaBox + formulaExplain (தமிழில்), lawTitle + lawDesc (தமிழில்), 3 termTable entries, constantName/Value/Explain.`
+      : `You are an expert curriculum developer for Tamil Nadu (TN) State Board schools.
 Create the CORE of a syllabus-aligned lesson plan for:
 - Syllabus: ${syllabus}
 - Grade/Class: ${grade}
@@ -463,6 +481,138 @@ Each slide: large bold title, minimal body (max 30 words), numbered bullets, one
 
     const result = await callGemini(prompt, true, LESSON_SLIDES_SCHEMA, 32000, 150000);
     res.json({ success: true, data: Array.isArray(result?.slides) ? result.slides : [] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// POST /api/ai/generate-lesson-quiz — lazy: 10 bilingual MCQs for the Assessment tool
+// ===========================================================================
+const LESSON_QUIZ_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    quiz: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          question: { type: 'STRING' },
+          questionTa: { type: 'STRING' },
+          options: { type: 'ARRAY', items: { type: 'STRING' } },
+          answer: { type: 'STRING' },
+          rationale: { type: 'STRING' },
+          difficulty: { type: 'STRING' },
+        },
+        required: ['question', 'questionTa', 'options', 'answer', 'rationale', 'difficulty'],
+      },
+    },
+  },
+  required: ['quiz'],
+};
+
+router.post('/generate-lesson-quiz', async (req: Request, res: Response) => {
+  try {
+    const { grade, subject, topic, textbookContext } = req.body;
+    const truncatedContext = limitContext(textbookContext, topic);
+
+    const prompt = `Generate EXACTLY 10 multiple-choice quiz questions for a Grade ${grade} ${subject} lesson on "${topic}" (TN State Board).
+${truncatedContext ? `Textbook context (only "${topic}"):\n${truncatedContext}\n` : ''}
+Rules:
+- Exactly 10 questions, all specifically about "${topic}".
+- Progressive difficulty: 4 "Easy", 4 "Medium", 2 "Hard" (set the "difficulty" field accordingly).
+- Each question: 4 options formatted like "A) ...", "B) ...", "C) ...", "D) ...".
+- "answer" is the FULL text of the correct option (e.g. "B) ...").
+- "questionTa" is a natural classroom Tamil translation of the question.
+- "rationale" briefly explains why the answer is correct (1 sentence).`;
+
+    const result = await callGemini(prompt, true, LESSON_QUIZ_SCHEMA, 20000, 120000);
+    res.json({ success: true, data: Array.isArray(result?.quiz) ? result.quiz : [] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// POST /api/ai/generate-lesson-podcast — lazy: bilingual 2-host audio script
+// ===========================================================================
+const LESSON_PODCAST_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    hosts: { type: 'ARRAY', items: { type: 'STRING' } },
+    script: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          speaker: { type: 'STRING' },
+          text: { type: 'STRING' },
+          lang: { type: 'STRING' },
+        },
+        required: ['speaker', 'text', 'lang'],
+      },
+    },
+  },
+  required: ['hosts', 'script'],
+};
+
+router.post('/generate-lesson-podcast', async (req: Request, res: Response) => {
+  try {
+    const { grade, subject, topic, textbookContext } = req.body;
+    const truncatedContext = limitContext(textbookContext, topic);
+
+    const prompt = `Write a lively 2-host educational podcast that teaches "${topic}" to a Grade ${grade} ${subject} student (TN State Board).
+${truncatedContext ? `Textbook context (only "${topic}"):\n${truncatedContext}\n` : ''}
+Rules:
+- hosts: exactly ["Arjun", "Meera"]. Arjun explains mostly in English; Meera adds warm Tamil explanations and analogies.
+- script: 12-14 alternating turns. Each turn: "speaker" is "Arjun" or "Meera"; "text" is 1-3 sentences; "lang" is "en" for English lines and "ta" for lines that are primarily Tamil.
+- Cover: a hook, the core concept, one real-world example, a common misconception, and a recap. Natural conversational tone, not a monologue.`;
+
+    const result = await callGemini(prompt, true, LESSON_PODCAST_SCHEMA, 16000, 120000);
+    res.json({ success: true, data: result && Array.isArray(result.script) ? result : { hosts: [], script: [] } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// POST /api/ai/generate-lesson-video — lazy: cinematic storyboard (image + narration)
+// ===========================================================================
+const LESSON_VIDEO_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    videoStoryboard: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          sceneNumber: { type: 'NUMBER' },
+          visualDescription: { type: 'STRING' },
+          narrationText: { type: 'STRING' },
+          subtitles: { type: 'STRING' },
+        },
+        required: ['sceneNumber', 'visualDescription', 'narrationText', 'subtitles'],
+      },
+    },
+  },
+  required: ['videoStoryboard'],
+};
+
+router.post('/generate-lesson-video', async (req: Request, res: Response) => {
+  try {
+    const { grade, subject, topic, textbookContext } = req.body;
+    const truncatedContext = limitContext(textbookContext, topic);
+
+    const prompt = `Create a cinematic 6-scene explainer-video storyboard that teaches "${topic}" to a Grade ${grade} ${subject} student (TN State Board).
+${truncatedContext ? `Textbook context (only "${topic}"):\n${truncatedContext}\n` : ''}
+Rules:
+- videoStoryboard: exactly 6 scenes, sceneNumber 1..6 in order (intro hook → concept → how it works → real-world example → key takeaway → recap/outro).
+- "visualDescription": a vivid, concrete image-generation prompt (what the camera sees) — realistic, detailed, education-friendly. No text overlays described.
+- "narrationText": 1-2 sentence English voiceover for the scene.
+- "subtitles": the same narration in natural Tamil.`;
+
+    const result = await callGemini(prompt, true, LESSON_VIDEO_SCHEMA, 16000, 120000);
+    res.json({ success: true, data: Array.isArray(result?.videoStoryboard) ? result.videoStoryboard : [] });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -697,24 +847,34 @@ Requirements:
 router.post('/chat-tutor', async (req: Request, res: Response) => {
   try {
     const { subject, grade, messages, currentMessage, language } = req.body;
+    const isTamil = language === 'tamil';
 
     const historyText = (messages || [])
       .map((m: any) => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.content}`)
       .join('\n');
 
-    const prompt = `
-You are a helpful, bilingual AI Tutor for Tamil Nadu school students.
+    const prompt = isTamil
+      ? `நீங்கள் தமிழ்நாடு மாணவர்களுக்கான இரண்டு மொழி AI ஆசிரியர்.
+மாணவர் படிக்கும் பாடம்: ${subject}, வகுப்பு: ${grade}.
+முதன்மை மொழி: தமிழ் (Tamil). கடினமான தொழில்நுட்ப சொற்கள் மட்டும் ஆங்கிலத்தில் கொடுக்கலாம்.
+
+உரையாடல் வரலாறு:
+${historyText}
+மாணவர்: ${currentMessage}
+
+தெளிவான bullet points, bold text, numbered lists பயன்படுத்தி பதில் அளிக்கவும்.
+தொனி ஊக்கமளிக்கும் வகையில், வகுப்பறை தமிழில் இயற்கையாக பேசவும்.`
+      : `You are a helpful, bilingual AI Tutor for Tamil Nadu school students.
 You speak both Tamil (தமிழ்) and English (Tanglish is also allowed).
 The student is studying: Subject = ${subject}, Grade = ${grade}.
-Language mode: ${language}.
+Language mode: bilingual — mix English explanation with Tamil reinforcement.
 
 Conversation history:
 ${historyText}
 Student: ${currentMessage}
 
 Answer clearly with bullet points, bold text, and numbered lists where helpful.
-Keep the tone encouraging and pedagogical. Alternate English/Tamil sentences in bilingual mode.
-`;
+Keep the tone encouraging and pedagogical. Alternate English/Tamil sentences.`;
 
     const result = await callGemini(prompt, false);
     res.json({ success: true, text: result });
