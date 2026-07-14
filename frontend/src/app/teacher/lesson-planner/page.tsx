@@ -103,7 +103,7 @@ export default function LessonPlannerPage() {
   const [grade, setGrade] = useState(grades[4]); // Grade 10
   const [schoolClasses, setSchoolClasses] = useState<string[]>([]);
   const [subject, setSubject] = useState("");
-  const [subjectOptions, setSubjectOptions] = useState<{id: string; name: string}[]>([]);
+  const [subjectOptions, setSubjectOptions] = useState<{ id: string; name: string }[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [section, setSection] = useState<string>("All"); // Section targeting
   const [topic, setTopic] = useState("Pythagoras Theorem & Trigonometry");
@@ -691,10 +691,10 @@ export default function LessonPlannerPage() {
       title="AI Lesson Studio"
       subtitle="Bilingual AI chapter sources, real-time doc chatting, and visual studio output synthesis"
     >
-      <div className={`grid grid-cols-1 xl:grid-cols-4 xl:h-[calc(100vh-180px)] min-h-[500px] transition-colors duration-300 relative`}>
+      <div className={`grid grid-cols-1 xl:grid-cols-4 min-h-[500px] transition-colors duration-300 relative`}>
 
         {/* Sidebar (Left) */}
-        <div className={`col-span-1 flex flex-col ${theme.bgCard} border-b xl:border-b-0 xl:border-r ${theme.border} xl:h-full overflow-y-auto`}>
+        <div className={`col-span-1 flex flex-col ${theme.bgCard} border-b xl:border-b-0 xl:border-r ${theme.border} overflow-y-auto`}>
           <div className="flex-1 p-5 space-y-6 scrollbar-thin">
 
             {/* Generate Form */}
@@ -725,22 +725,20 @@ export default function LessonPlannerPage() {
                     <button
                       type="button"
                       onClick={() => setContentLanguage("tamil")}
-                      className={`flex-1 py-2 text-[11px] font-black transition-all flex items-center justify-center gap-1.5 ${
-                        contentLanguage === "tamil"
-                          ? "bg-orange-500 text-white shadow-inner"
-                          : `${theme.inputBg} ${theme.textMuted} hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600`
-                      }`}
+                      className={`flex-1 py-2 text-[11px] font-black transition-all flex items-center justify-center gap-1.5 ${contentLanguage === "tamil"
+                        ? "bg-orange-500 text-white shadow-inner"
+                        : `${theme.inputBg} ${theme.textMuted} hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600`
+                        }`}
                     >
                       <span className="text-base leading-none">அ</span> Tamil
                     </button>
                     <button
                       type="button"
                       onClick={() => setContentLanguage("english")}
-                      className={`flex-1 py-2 text-[11px] font-black transition-all flex items-center justify-center gap-1.5 ${
-                        contentLanguage === "english"
-                          ? "bg-sky-500 text-white shadow-inner"
-                          : `${theme.inputBg} ${theme.textMuted} hover:bg-sky-50 dark:hover:bg-sky-500/10 hover:text-sky-600`
-                      }`}
+                      className={`flex-1 py-2 text-[11px] font-black transition-all flex items-center justify-center gap-1.5 ${contentLanguage === "english"
+                        ? "bg-sky-500 text-white shadow-inner"
+                        : `${theme.inputBg} ${theme.textMuted} hover:bg-sky-50 dark:hover:bg-sky-500/10 hover:text-sky-600`
+                        }`}
                     >
                       <span className="text-base leading-none">A</span> English
                     </button>
@@ -932,7 +930,7 @@ export default function LessonPlannerPage() {
         </div>
 
         {/* Main Content Area */}
-        <div className="col-span-1 xl:col-span-3 flex flex-col xl:h-full overflow-hidden relative">
+        <div className="col-span-1 xl:col-span-3 flex flex-col relative">
 
           {/* Top Navbar */}
           <div className={`h-16 border-b ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl flex items-center justify-between px-4 xl:px-6 shrink-0 z-10`}>
@@ -1002,7 +1000,7 @@ export default function LessonPlannerPage() {
           </div>
 
           {/* Main Stage */}
-          <div className="flex-1 min-h-0 overflow-y-auto p-4 xl:p-6 scrollbar-thin relative">
+          <div className="flex-1 p-4 xl:p-6 relative">
             {isGenerating ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className={`max-w-md w-full p-8 rounded-3xl border ${theme.border} ${theme.bgCardSoft} backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center text-center`}>
@@ -1055,18 +1053,19 @@ export default function LessonPlannerPage() {
 
                 {/* Hero band — topic header */}
                 <div
-                  className="mb-6 rounded-3xl p-6 xl:p-8 relative overflow-hidden shadow-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-violet-600"
+                  className="hero-band mb-6 rounded-3xl p-6 xl:p-8 relative shadow-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-violet-600"
                 >
-                  <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/10 rounded-full" />
-                  <div className="absolute -bottom-12 -left-8 w-40 h-40 bg-white/10 rounded-full" />
+                  {/* Decorative blobs — clipped individually so they don't overflow the card */}
+                  <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/10 rounded-full overflow-hidden" />
+                  <div className="absolute -bottom-12 -left-8 w-40 h-40 bg-white/10 rounded-full overflow-hidden" />
                   <div className="relative z-10 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-                    <div className="flex items-start gap-4">
-                      <div className="shrink-0 w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl leading-none overflow-hidden shadow-inner border border-white/20">
-                        <span className="truncate max-w-full leading-none" style={{ color: "#fff" }}>
+                    <div className="flex items-start gap-4 w-full">
+                      <div className="shrink-0 w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl leading-none shadow-inner border border-white/20">
+                        <span className="leading-none" style={{ color: "#fff" }}>
                           {(infographicData?.heroIcon && String(infographicData.heroIcon).slice(0, 2)) || <i className="fi fi-sr-book-alt leading-none" />}
                         </span>
                       </div>
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap gap-2 mb-2">
                           <span className="px-2.5 py-1 rounded-full bg-white/20 text-[10px] font-bold uppercase tracking-wide" style={{ color: "#fff" }}>{currentPlan.grade}</span>
                           <span className="px-2.5 py-1 rounded-full bg-white/20 text-[10px] font-bold uppercase tracking-wide" style={{ color: "#fff" }}>{currentPlan.subject}</span>
@@ -1074,7 +1073,7 @@ export default function LessonPlannerPage() {
                             <i className="fi fi-sr-clock leading-none" /> {currentPlan.duration}
                           </span>
                         </div>
-                        <h1 className="font-black text-2xl xl:text-4xl leading-tight tracking-tight" style={{ color: "#fff" }}>{currentPlan.topic}</h1>
+                        <h1 className="font-black text-2xl xl:text-4xl leading-tight tracking-tight break-words" style={{ color: "#fff" }}>{currentPlan.topic}</h1>
                         <p className="text-xs mt-2 font-medium" style={{ color: "rgba(255,255,255,0.8)" }}>{currentPlan.syllabus}</p>
                       </div>
                     </div>
@@ -1220,11 +1219,10 @@ export default function LessonPlannerPage() {
                       </div>
                       <button
                         onClick={() => setIsChatPoppedOut(true)}
-                        className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 font-black text-[9px] uppercase tracking-wider transition-all hover:scale-105 shadow-sm ${
-                          isDarkMode
-                            ? "bg-[#2a3942] border-[#374248] text-white hover:bg-slate-700"
-                            : "bg-white border-[#d1d7db] text-slate-700 hover:bg-slate-50"
-                        }`}
+                        className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 font-black text-[9px] uppercase tracking-wider transition-all hover:scale-105 shadow-sm ${isDarkMode
+                          ? "bg-[#2a3942] border-[#374248] text-white hover:bg-slate-700"
+                          : "bg-white border-[#d1d7db] text-slate-700 hover:bg-slate-50"
+                          }`}
                         title="Pop out chat to extended readable view"
                       >
                         <i className="fi fi-sr-expand leading-none" /> Pop out
@@ -1439,15 +1437,13 @@ export default function LessonPlannerPage() {
       {/* ───── Popped out Extended AI Tutor Chat Modal ───── */}
       {isChatPoppedOut && currentPlan && (
         <div className="fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-200">
-          <div className={`w-full max-w-4xl h-[85vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border border-opacity-50 transition-all ${
-            isDarkMode 
-              ? "bg-[#0b141a] border-[#222e35]" 
-              : "bg-[#efeae2] border-slate-200"
-          }`}>
-            {/* Modal Header */}
-            <div className={`p-4 border-b flex justify-between items-center shrink-0 ${
-              isDarkMode ? "bg-[#202c33] border-[#202c33]" : "bg-[#f0f2f5] border-[#d1d7db]"
+          <div className={`w-full max-w-4xl h-[85vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border border-opacity-50 transition-all ${isDarkMode
+            ? "bg-[#0b141a] border-[#222e35]"
+            : "bg-[#efeae2] border-slate-200"
             }`}>
+            {/* Modal Header */}
+            <div className={`p-4 border-b flex justify-between items-center shrink-0 ${isDarkMode ? "bg-[#202c33] border-[#202c33]" : "bg-[#f0f2f5] border-[#d1d7db]"
+              }`}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-lg shadow-sm">
                   <i className="fi fi-sr-comment-alt leading-none" />
@@ -1461,11 +1457,10 @@ export default function LessonPlannerPage() {
               </div>
               <button
                 onClick={() => setIsChatPoppedOut(false)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 ${
-                  isDarkMode 
-                    ? "bg-[#2a3942] text-white hover:bg-slate-700" 
-                    : "bg-white text-slate-700 hover:bg-slate-100 border border-[#d1d7db]"
-                }`}
+                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 ${isDarkMode
+                  ? "bg-[#2a3942] text-white hover:bg-slate-700"
+                  : "bg-white text-slate-700 hover:bg-slate-100 border border-[#d1d7db]"
+                  }`}
               >
                 <i className="fi fi-sr-cross-small leading-none" /> Close
               </button>
@@ -1517,11 +1512,10 @@ export default function LessonPlannerPage() {
                 <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin">
                   {chatMessages.map((msg, i) => (
                     <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[85%] sm:max-w-[80%] px-5 py-3.5 shadow-md ${
-                        msg.role === "user"
-                          ? `${isDarkMode ? 'bg-[#005c4b] text-[#e9edef]' : 'bg-[#d9fdd3] text-[#111b21]'} rounded-2xl rounded-tr-sm`
-                          : `${isDarkMode ? 'bg-[#202c33] text-[#e9edef]' : 'bg-white text-[#111b21]'} rounded-2xl rounded-tl-sm`
-                      }`}>
+                      <div className={`max-w-[85%] sm:max-w-[80%] px-5 py-3.5 shadow-md ${msg.role === "user"
+                        ? `${isDarkMode ? 'bg-[#005c4b] text-[#e9edef]' : 'bg-[#d9fdd3] text-[#111b21]'} rounded-2xl rounded-tr-sm`
+                        : `${isDarkMode ? 'bg-[#202c33] text-[#e9edef]' : 'bg-white text-[#111b21]'} rounded-2xl rounded-tl-sm`
+                        }`}>
                         {renderMarkdownMessage(msg.content)}
                       </div>
                     </div>
@@ -1547,11 +1541,10 @@ export default function LessonPlannerPage() {
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
                 placeholder="Type a message..."
-                className={`flex-1 rounded-full px-6 py-4 text-base focus:outline-none transition-shadow ${
-                  isDarkMode 
-                    ? "bg-[#2a3942] text-[#e9edef] placeholder-[#8696a0]" 
-                    : "bg-white text-[#111b21] placeholder-[#667781] border border-slate-300/40"
-                }`}
+                className={`flex-1 rounded-full px-6 py-4 text-base focus:outline-none transition-shadow ${isDarkMode
+                  ? "bg-[#2a3942] text-[#e9edef] placeholder-[#8696a0]"
+                  : "bg-white text-[#111b21] placeholder-[#667781] border border-slate-300/40"
+                  }`}
               />
               <button
                 onClick={handleSendChat}

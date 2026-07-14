@@ -145,6 +145,14 @@ h1, h2, h3, h4, h5, h6 {
   color: inherit !important;
 }
 
+/* Hero bands on colored/gradient backgrounds — force all text to white */
+.hero-band, .hero-band * {
+  color: #ffffff !important;
+}
+.hero-band .text-white\/80 {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
 .btn-primary {
   background-color: var(--portal-color, var(--primary));
   color: #ffffff !important;
