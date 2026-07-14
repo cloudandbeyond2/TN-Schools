@@ -31,6 +31,7 @@ export default function ScholarshipPage() {
   const [applications, setApplications] = useState<ScholarshipApp[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<"All" | "Disbursed" | "Approved" | "Pending Verification">("All");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Verification Form State
   const [selectedAppId, setSelectedAppId] = useState<string>("");
@@ -72,6 +73,10 @@ export default function ScholarshipPage() {
       setSelectedAppId(firstPending.id);
     }
   }, [applications, selectedAppId]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter, applications.length]);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,6 +120,13 @@ export default function ScholarshipPage() {
     (app) => activeFilter === "All" || app.status === activeFilter
   );
 
+  const itemsPerPage = 5;
+  const totalPages = Math.ceil(filteredApps.length / itemsPerPage);
+  const paginatedApps = filteredApps.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <PortalLayout
       title="Scholarship Distribution & Verification Desk"
@@ -126,49 +138,55 @@ export default function ScholarshipPage() {
     >
       {/* Summary Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Total Disbursed Funds</span>
-          <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-black text-white">₹{totalDisbursed.toLocaleString()}</span>
-            <span className="text-[10px] text-emerald-400 font-bold">Processed</span>
+        {[
+          {
+            label: "Total Disbursed Funds",
+            value: `₹${totalDisbursed.toLocaleString()}`,
+            sub: "Credited direct to Aadhaar linked accounts.",
+            icon: <i className="fi fi-rr-sack-dollar text-lg" />,
+            color: "text-emerald-400",
+            bg: "bg-emerald-500/10"
+          },
+          {
+            label: "Approved Batches",
+            value: `${approvedCount} ${approvedCount === 1 ? "Application" : "Applications"}`,
+            sub: "Ready for Treasury officer authorization.",
+            icon: <i className="fi fi-rr-checkbox text-lg" />,
+            color: "text-blue-400",
+            bg: "bg-blue-500/10"
+          },
+          {
+            label: "Pending EMIS Audits",
+            value: `${pendingCount} ${pendingCount === 1 ? "Application" : "Applications"}`,
+            sub: "Verify academic records & community tags.",
+            icon: <i className="fi fi-rr-clipboard-list text-lg" />,
+            color: "text-amber-500",
+            bg: "bg-amber-500/10"
+          },
+          {
+            label: "Target Conversion",
+            value: `${conversionPct}%`,
+            sub: "Active mapping for eligible students.",
+            icon: <i className="fi fi-rr-arrow-trend-up text-lg" />,
+            color: "text-indigo-400",
+            bg: "bg-indigo-500/10"
+          }
+        ].map((kpi, idx) => (
+          <div key={idx} className="glass p-4 rounded-2xl border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all shadow-sm">
+            <div className="flex flex-col text-left min-w-0">
+              <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider truncate">{kpi.label}</span>
+              <div className="flex items-baseline gap-2 mt-1.5">
+                <span className="text-xl font-black text-white">{kpi.value}</span>
+              </div>
+              <div className="text-[10px] text-slate-400 mt-1 truncate">
+                {kpi.sub}
+              </div>
+            </div>
+            <div className={`p-2.5 rounded-xl ${kpi.bg} ${kpi.color} shrink-0 ml-3 flex items-center justify-center`}>
+              {kpi.icon}
+            </div>
           </div>
-          <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-            Credited direct to Aadhaar linked accounts.
-          </div>
-        </div>
-
-        <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Approved Batches</span>
-          <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-black text-blue-400">{approvedCount} {approvedCount === 1 ? "App" : "Apps"}</span>
-            <span className="text-[10px] text-slate-400 font-bold">Awaiting release</span>
-          </div>
-          <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-            Ready for Treasury officer authorization.
-          </div>
-        </div>
-
-        <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Pending EMIS Audits</span>
-          <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-black text-amber-500">{pendingCount} {pendingCount === 1 ? "App" : "Apps"}</span>
-            <span className="text-[10px] text-amber-400 font-bold">Needs headmaster signoff</span>
-          </div>
-          <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-            Verify academic records & community tags.
-          </div>
-        </div>
-
-        <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Target Conversion</span>
-          <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-black text-emerald-400">{conversionPct}%</span>
-            <span className="text-[10px] text-emerald-500 font-bold">Goal</span>
-          </div>
-          <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-            Active mapping for eligible students.
-          </div>
-        </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -176,7 +194,9 @@ export default function ScholarshipPage() {
         <div className="lg:col-span-2 glass rounded-2xl p-6 border border-slate-800">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-base font-semibold text-white">🎓 Community Scholarship Register</h2>
+              <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                <i className="fi fi-rr-graduation-cap text-blue-400" /> Community Scholarship Register
+              </h2>
               <p className="text-xs text-slate-500 leading-relaxed">Applicants flagged for social welfare bursary allocations.</p>
             </div>
 
@@ -204,7 +224,7 @@ export default function ScholarshipPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredApps.map((app) => (
+              {paginatedApps.map((app) => (
                 <div
                   key={app.id}
                   className="p-4 bg-slate-900/60 rounded-xl border border-slate-850 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
@@ -240,13 +260,53 @@ export default function ScholarshipPage() {
                   No matching applications found.
                 </div>
               )}
+
+              {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-800/80 pt-4 mt-6">
+                  <button
+                    type="button"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className="w-full sm:w-auto px-3.5 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-slate-300 hover:text-white rounded-xl border border-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <i className="fi fi-rr-angle-left text-[10px]" /> Previous
+                  </button>
+                  
+                  <div className="flex items-center gap-1.5 flex-wrap justify-center font-bold">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
+                      <button
+                        key={pageNumber}
+                        onClick={() => setCurrentPage(pageNumber)}
+                        className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          currentPage === pageNumber
+                            ? "bg-blue-600 text-white font-extrabold shadow-md shadow-blue-500/20"
+                            : "bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800/80"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    className="w-full sm:w-auto px-3.5 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-slate-300 hover:text-white rounded-xl border border-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    Next <i className="fi fi-rr-angle-right text-[10px]" />
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
 
         {/* Verification workspace */}
         <div className="glass rounded-2xl p-6 border border-slate-800 h-fit">
-          <h2 className="text-base font-semibold text-white mb-2">✅ Verify Candidate Data</h2>
+          <h2 className="text-base font-semibold text-white flex items-center gap-2 mb-2">
+            <i className="fi fi-rr-checkbox text-blue-400" /> Verify Candidate Data
+          </h2>
           <p className="text-xs text-slate-500 leading-relaxed mb-4">
             Perform EMIS Community Cert audits and clear pending scholarship grants for processing.
           </p>
