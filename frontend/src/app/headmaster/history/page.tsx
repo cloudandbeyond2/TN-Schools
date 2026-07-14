@@ -36,6 +36,7 @@ export default function HistoryPage() {
   const [newYear, setNewYear] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [newDetails, setNewDetails] = useState("");
+  const [editingMilestoneId, setEditingMilestoneId] = useState<string | number | null>(null);
   const [historyToast, setHistoryToast] = useState<string | null>(null);
 
   const fetchMilestones = useCallback(async () => {
@@ -67,31 +68,58 @@ export default function HistoryPage() {
     fetchMilestones();
   }, [fetchMilestones]);
 
+  const handleStartEdit = (ms: Milestone) => {
+    setEditingMilestoneId(ms.id);
+    setNewYear(ms.year);
+    setNewTitle(ms.title);
+    setNewDetails(ms.details);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMilestoneId(null);
+    setNewYear("");
+    setNewTitle("");
+    setNewDetails("");
+  };
+
   const handleAddMilestone = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newYear || !newTitle || !newDetails || !schoolId) return;
 
     try {
-      const res = await fetch(`${API_BASE}/api/headmaster/history`, {
-        method: "POST",
+      const isEditing = editingMilestoneId !== null;
+      const url = isEditing
+        ? `${API_BASE}/api/headmaster/history/${editingMilestoneId}`
+        : `${API_BASE}/api/headmaster/history`;
+      const method = isEditing ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           schoolId,
           year: newYear,
           title: newTitle,
           details: newDetails,
-          icon: "📜"
+          icon: isEditing
+            ? milestones.find(m => String(m.id) === String(editingMilestoneId))?.icon || "📜"
+            : "📜"
         })
       });
       const json = await res.json();
       if (json.success) {
-        setHistoryToast(`✓ Historical milestone for year ${newYear} logged and sorted into school archive!`);
+        setHistoryToast(
+          isEditing
+            ? `✓ Historical milestone for year ${newYear} updated in school archive!`
+            : `✓ Historical milestone for year ${newYear} logged and sorted into school archive!`
+        );
         setNewYear("");
         setNewTitle("");
         setNewDetails("");
+        setEditingMilestoneId(null);
         fetchMilestones();
       } else {
-        Swal.fire("Error", json.error || "Failed to add milestone", "error");
+        Swal.fire("Error", json.error || `Failed to ${isEditing ? "update" : "add"} milestone`, "error");
       }
     } catch (err) {
       console.error(err);
@@ -180,14 +208,23 @@ export default function HistoryPage() {
                 </span>
 
                 <div className="glass rounded-2xl p-5 border border-slate-800 hover:border-slate-750 transition-colors relative">
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => handleDeleteMilestone(ms.id, ms.year)}
-                    className="absolute top-4 right-4 p-1.5 bg-slate-900/80 hover:bg-red-650 text-slate-400 hover:text-white rounded-lg border border-slate-700 transition-colors opacity-0 group-hover:opacity-100"
-                    title="Remove Milestone"
-                  >
-                    <i className="fi fi-rr-trash text-xs" />
-                  </button>
+                  {/* Action Buttons */}
+                  <div className="absolute top-4 right-4 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleStartEdit(ms)}
+                      className="p-1.5 bg-slate-900/80 hover:bg-blue-600 text-slate-400 hover:text-white rounded-lg border border-slate-700 transition-colors cursor-pointer"
+                      title="Edit Milestone"
+                    >
+                      <i className="fi fi-rr-edit text-xs" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMilestone(ms.id, ms.year)}
+                      className="p-1.5 bg-slate-900/80 hover:bg-red-650 text-slate-400 hover:text-white rounded-lg border border-slate-700 transition-colors cursor-pointer"
+                      title="Remove Milestone"
+                    >
+                      <i className="fi fi-rr-trash text-xs" />
+                    </button>
+                  </div>
 
                   <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md">
                     {ms.year}
@@ -209,10 +246,12 @@ export default function HistoryPage() {
         {/* Archival entry workspace */}
         <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800 h-fit">
           <h2 className="text-sm sm:text-base font-semibold text-white mb-2 flex items-center gap-2">
-            <i className="fi fi-rr-edit text-blue-500" /> Document Campus Milestone
+            <i className="fi fi-rr-edit text-blue-500" /> {editingMilestoneId !== null ? "Edit Campus Milestone" : "Document Campus Milestone"}
           </h2>
           <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed mb-4 font-medium">
-            Log construction expansions, national honors, or notable alumni visits to the permanent history books.
+            {editingMilestoneId !== null
+              ? "Modify the selected historical milestone details, calendar year, or description archive details."
+              : "Log construction expansions, national honors, or notable alumni visits to the permanent history books."}
           </p>
 
           <form onSubmit={handleAddMilestone} className="space-y-4">
@@ -254,12 +293,25 @@ export default function HistoryPage() {
               />
             </div>
 
-            <button
-              type="submit"
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-colors"
-            >
-              Add to School Archives
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                className={`py-2.5 font-bold rounded-xl text-xs transition-colors cursor-pointer ${
+                  editingMilestoneId !== null ? "w-2/3 bg-blue-600 hover:bg-blue-700 text-white" : "w-full bg-blue-600 hover:bg-blue-700 text-white"
+                }`}
+              >
+                {editingMilestoneId !== null ? "Save Changes" : "Add to School Archives"}
+              </button>
+              {editingMilestoneId !== null && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="w-1/3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors cursor-pointer border border-slate-700"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
 
           {historyToast && (

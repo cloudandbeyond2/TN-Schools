@@ -105,4 +105,41 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
+// PUT /api/headmaster/history/:id
+router.put('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { schoolId, year, title, details, icon } = req.body;
+    if (!schoolId || !year || !title || !details) {
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+
+    const filepath = getFilePath(schoolId);
+    if (!fs.existsSync(filepath)) {
+      return res.status(404).json({ success: false, error: 'History file not found' });
+    }
+
+    const milestones = JSON.parse(fs.readFileSync(filepath, 'utf8'));
+    const index = milestones.findIndex((ms: any) => String(ms.id) === String(id));
+    if (index === -1) {
+      return res.status(404).json({ success: false, error: 'Milestone not found' });
+    }
+
+    milestones[index] = {
+      ...milestones[index],
+      year: String(year),
+      title,
+      details,
+      icon: icon || milestones[index].icon || "📜"
+    };
+
+    milestones.sort((a: any, b: any) => Number(a.year) - Number(b.year));
+
+    fs.writeFileSync(filepath, JSON.stringify(milestones, null, 2));
+    res.json({ success: true, data: milestones[index] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
