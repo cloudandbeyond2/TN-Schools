@@ -46,6 +46,7 @@ export default function HeadmasterPortalPage() {
   const [showStudentLogin, setShowStudentLogin] = useState(true);
   const [showParentLogin, setShowParentLogin] = useState(true);
   const [isPublished, setIsPublished] = useState(true);
+  const [imageError, setImageError] = useState<Record<string, boolean>>({});
 
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -311,34 +312,69 @@ export default function HeadmasterPortalPage() {
               }}
             />
             <div className="grid grid-cols-2 gap-3">
-              {galleryImages.map((g) => (
-                <div key={g.id} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 group">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={resolveAsset(g.imageUrl)} alt={g.caption || "Gallery"} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <button
-                      onClick={() => {
-                        gallerySlotRef.current = g.order;
-                        galleryInputRef.current?.click();
-                      }}
-                      className="px-2 py-1 bg-white/90 text-slate-800 text-[10px] font-bold rounded-md"
-                    >
-                      Replace
-                    </button>
-                    <button
-                      onClick={() => deleteGallery(g.id)}
-                      className="px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded-md"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                  {g.caption && (
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-1.5">
-                      <span className="text-[10px] font-semibold text-white">{g.caption}</span>
+              {galleryImages.map((g) => {
+                const parsedCaption = (() => {
+                  if (!g.caption) return { title: "Campus Highlight", category: "Academic", description: "", gradient: "from-teal-400 to-emerald-600" };
+                  try {
+                    const parsed = JSON.parse(g.caption);
+                    return {
+                      title: parsed.title || "Campus Highlight",
+                      category: parsed.category || "Academic",
+                      description: parsed.description || "",
+                      gradient: parsed.gradient || "from-teal-400 to-emerald-600"
+                    };
+                  } catch {
+                    return { title: g.caption, category: "Academic", description: "", gradient: "from-teal-400 to-emerald-600" };
+                  }
+                })();
+
+                return (
+                  <div key={g.id} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 group">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {g.imageUrl && !imageError[g.id] ? (
+                      <img
+                        src={resolveAsset(g.imageUrl)}
+                        alt={parsedCaption.title}
+                        className="w-full h-full object-cover"
+                        onError={() => setImageError((prev) => ({ ...prev, [g.id]: true }))}
+                      />
+                    ) : (
+                      <div className={`w-full h-full bg-gradient-to-br ${parsedCaption.gradient} flex flex-col items-center justify-center p-3 text-center`}>
+                        <span className="text-white text-[9px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 bg-black/30 rounded-md mb-1">
+                          {parsedCaption.category}
+                        </span>
+                        <span className="text-white text-[10px] font-bold truncate max-w-full">
+                          {parsedCaption.title}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => {
+                          gallerySlotRef.current = g.order;
+                          galleryInputRef.current?.click();
+                        }}
+                        className="px-2 py-1 bg-white/90 text-slate-800 text-[10px] font-bold rounded-md"
+                      >
+                        Replace
+                      </button>
+                      <button
+                        onClick={() => deleteGallery(g.id)}
+                        className="px-2 py-1 bg-red-500 text-white text-[10px] font-bold rounded-md"
+                      >
+                        Delete
+                      </button>
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-1.5">
+                      <span className="text-[10px] font-semibold text-white truncate block">
+                        {parsedCaption.title}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             {galleryImages.length === 0 && (
               <p className="text-xs text-slate-400 italic text-center py-6">No gallery images yet.</p>

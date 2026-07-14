@@ -65,6 +65,7 @@ export default function SchoolPortalPage() {
   const [lightbox, setLightbox] = useState<GalleryImage | null>(null);
   const [mobileNav, setMobileNav] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [imageError, setImageError] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
@@ -89,6 +90,31 @@ export default function SchoolPortalPage() {
       finally { setLoading(false); }
     })();
   }, [dise]);
+
+  useEffect(() => {
+    if (!data?.portal?.gallery) return;
+    const checkImages = () => {
+      const imgs = document.querySelectorAll("img");
+      imgs.forEach((img) => {
+        if (img.complete && img.naturalWidth === 0) {
+          const src = img.getAttribute("src");
+          const matchedItem = data.portal?.gallery?.find(
+            (g) => resolveAsset(g.imageUrl) === src
+          );
+          if (matchedItem) {
+            setImageError((prev) => ({ ...prev, [matchedItem.id]: true }));
+          }
+        }
+      });
+    };
+    checkImages();
+    window.addEventListener("load", checkImages);
+    const timer = setTimeout(checkImages, 1000);
+    return () => {
+      window.removeEventListener("load", checkImages);
+      clearTimeout(timer);
+    };
+  }, [data]);
 
   const accent = data?.portal?.primaryColor || "#059669";
   const cssVars = useMemo(() => ({ ["--accent" as any]: accent }), [accent]);
@@ -363,23 +389,56 @@ export default function SchoolPortalPage() {
           <h2 className="text-3xl font-black text-slate-900 dark:text-white mt-2">Photo Gallery</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {gallery.map((g, i) => (
-            <button
-              key={g.id}
-              onClick={() => setLightbox(g)}
-              className={`relative rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 group ${i === 0 ? "col-span-2 row-span-2 aspect-[16/10] md:aspect-auto" : "aspect-[4/3]"}`}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={resolveAsset(g.imageUrl)} alt={g.caption || "School gallery"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-70 group-hover:opacity-90 transition-opacity" />
-              <div className="absolute bottom-0 inset-x-0 p-3 flex items-center justify-between">
-                <span className="text-xs font-bold text-white drop-shadow">{g.caption || "Campus"}</span>
-                <span className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                  <ArrowRight className="w-3.5 h-3.5 -rotate-45" />
-                </span>
-              </div>
-            </button>
-          ))}
+          {gallery.map((g, i) => {
+            const parsedCaption = (() => {
+              if (!g.caption) return { title: "Campus Highlight", category: "Academic", description: "", gradient: "from-teal-400 to-emerald-600" };
+              try {
+                const parsed = JSON.parse(g.caption);
+                return {
+                  title: parsed.title || "Campus Highlight",
+                  category: parsed.category || "Academic",
+                  description: parsed.description || "",
+                  gradient: parsed.gradient || "from-teal-400 to-emerald-600"
+                };
+              } catch {
+                return { title: g.caption, category: "Academic", description: "", gradient: "from-teal-400 to-emerald-600" };
+              }
+            })();
+
+            return (
+              <button
+                key={g.id}
+                onClick={() => setLightbox(g)}
+                className={`relative rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 group ${i === 0 ? "col-span-2 row-span-2 aspect-[16/10]" : "aspect-[4/3]"} flex flex-col`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {g.imageUrl && !imageError[g.id] ? (
+                  <img
+                    src={resolveAsset(g.imageUrl)}
+                    alt={parsedCaption.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 flex-1"
+                    onError={() => setImageError((prev) => ({ ...prev, [g.id]: true }))}
+                  />
+                ) : (
+                  <div className={`w-full h-full bg-gradient-to-br ${parsedCaption.gradient} flex flex-col items-center justify-center p-4 text-center group-hover:scale-105 transition-transform duration-500 flex-1`}>
+                    <span className="text-white text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 bg-black/30 rounded-md mb-1">
+                      {parsedCaption.category}
+                    </span>
+                    <span className="text-white text-xs font-bold leading-tight truncate max-w-full">
+                      {parsedCaption.title}
+                    </span>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-70 group-hover:opacity-90 transition-opacity pointer-events-none" />
+                <div className="absolute bottom-0 inset-x-0 p-3 flex items-center justify-between pointer-events-none">
+                  <span className="text-xs font-bold text-white drop-shadow truncate pr-2">{parsedCaption.title}</span>
+                  <span className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <ArrowRight className="w-3.5 h-3.5 -rotate-45" />
+                  </span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -394,20 +453,56 @@ export default function SchoolPortalPage() {
             <EmptyState text="No events have been announced yet. Check back soon!" />
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {events.map((ev) => (
-                <div key={ev.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm hover:shadow-lg transition-all flex gap-4">
-                  <div className="shrink-0 w-14 rounded-xl text-white text-center py-2 shadow" style={{ background: `linear-gradient(160deg, ${accent}, ${accent}cc)` }}>
-                    <div className="text-lg font-black leading-none">{dayOf(ev.date)}</div>
-                    <div className="text-[9px] font-bold tracking-wider mt-1">{monOf(ev.date)}</div>
+              {events.map((ev) => {
+                const parsedLocation = (() => {
+                  let category = ev.type || "Event";
+                  let coordinator = "";
+                  let isJson = false;
+
+                  if (ev.location && ev.location.startsWith("{")) {
+                    try {
+                      const meta = JSON.parse(ev.location);
+                      if (meta.category) category = meta.category;
+                      if (meta.coordinator) coordinator = meta.coordinator;
+                      isJson = true;
+                    } catch {
+                      coordinator = ev.location;
+                    }
+                  } else {
+                    coordinator = ev.location || "";
+                  }
+
+                  return { category, coordinator, isJson };
+                })();
+
+                return (
+                  <div key={ev.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm hover:shadow-lg transition-all flex gap-4">
+                    <div className="shrink-0 w-14 rounded-xl text-white text-center py-2 shadow" style={{ background: `linear-gradient(160deg, ${accent}, ${accent}cc)` }}>
+                      <div className="text-lg font-black leading-none">{dayOf(ev.date)}</div>
+                      <div className="text-[9px] font-bold tracking-wider mt-1">{monOf(ev.date)}</div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full mb-1.5" style={{ background: `${accent}14`, color: accent }}>
+                        {parsedLocation.category}
+                      </span>
+                      <h3 className="text-sm font-black text-slate-900 dark:text-white leading-snug">{ev.title}</h3>
+                      {parsedLocation.coordinator && (
+                        <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 truncate">
+                          {parsedLocation.isJson ? (
+                            <Users className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          ) : (
+                            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          )}
+                          <span className="truncate">
+                            {parsedLocation.isJson ? `Coordinator: ${parsedLocation.coordinator}` : parsedLocation.coordinator}
+                          </span>
+                        </p>
+                      )}
+                      {ev.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{ev.description}</p>}
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full mb-1.5" style={{ background: `${accent}14`, color: accent }}>{ev.type}</span>
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white leading-snug">{ev.title}</h3>
-                    {ev.location && <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> {ev.location}</p>}
-                    {ev.description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{ev.description}</p>}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -473,18 +568,57 @@ export default function SchoolPortalPage() {
       </footer>
 
       {/* ─── Lightbox ─── */}
-      {lightbox && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
-          <button className="absolute top-5 right-5 text-white opacity-80 hover:opacity-100" onClick={() => setLightbox(null)} aria-label="Close">
-            <X className="w-7 h-7" />
-          </button>
-          <div className="max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={resolveAsset(lightbox.imageUrl)} alt={lightbox.caption || "Gallery"} className="w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl" />
-            {lightbox.caption && <p className="text-center text-white opacity-90 text-sm font-semibold mt-4">{lightbox.caption}</p>}
+      {lightbox && (() => {
+        const parsedCaption = (() => {
+          if (!lightbox.caption) return { title: "Campus Highlight", category: "Academic", description: "", gradient: "from-teal-400 to-emerald-600" };
+          try {
+            const parsed = JSON.parse(lightbox.caption);
+            return {
+              title: parsed.title || "Campus Highlight",
+              category: parsed.category || "Academic",
+              description: parsed.description || "",
+              gradient: parsed.gradient || "from-teal-400 to-emerald-600"
+            };
+          } catch {
+            return { title: lightbox.caption, category: "Academic", description: "", gradient: "from-teal-400 to-emerald-600" };
+          }
+        })();
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
+            <button className="absolute top-5 right-5 text-white opacity-80 hover:opacity-100" onClick={() => setLightbox(null)} aria-label="Close">
+              <X className="w-7 h-7" />
+            </button>
+            <div className="max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {lightbox.imageUrl && !imageError[lightbox.id] ? (
+                <img
+                  src={resolveAsset(lightbox.imageUrl)}
+                  alt={parsedCaption.title}
+                  className="w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl mx-auto"
+                  onError={() => setImageError((prev) => ({ ...prev, [lightbox.id]: true }))}
+                />
+              ) : (
+                <div className={`w-full max-w-lg aspect-[4/3] bg-gradient-to-br ${parsedCaption.gradient} flex flex-col items-center justify-center p-6 text-center rounded-2xl shadow-2xl mx-auto`}>
+                  <span className="text-white text-xs uppercase font-extrabold tracking-wider px-2 py-0.5 bg-black/30 rounded-md mb-2">
+                    {parsedCaption.category}
+                  </span>
+                  <span className="text-white text-xl font-bold leading-tight mb-2">
+                    {parsedCaption.title}
+                  </span>
+                  {parsedCaption.description && (
+                    <p className="text-white/85 text-xs mt-1 max-w-sm leading-relaxed">
+                      {parsedCaption.description}
+                    </p>
+                  )}
+                </div>
+              )}
+              <p className="text-center text-white opacity-90 text-sm font-semibold mt-4">{parsedCaption.title}</p>
+              {parsedCaption.description && <p className="text-center text-white/70 text-xs mt-1">{parsedCaption.description}</p>}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ─── Login popups ─── */}
       {loginModal && (
