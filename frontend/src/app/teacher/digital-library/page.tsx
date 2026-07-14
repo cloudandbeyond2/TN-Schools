@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { Upload, CheckCircle2, AlertCircle, BookOpen, Trash2, Edit3, X, Loader2, Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
+import Swal from "sweetalert2";
 
 const CATEGORIES = [
   "E-books",
@@ -28,6 +29,87 @@ export default function TeacherDigitalLibraryPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [classrooms, setClassrooms] = useState<any[]>([]);
+  const [classroomsLoaded, setClassroomsLoaded] = useState(false);
+
+  const teacherClasses = Array.from(new Set(classrooms.map((c) => c.className))).sort();
+  const finalClasses = teacherClasses;
+
+  const activeSubjects = Array.from(
+    new Set(
+      classrooms
+        .filter((c) => c.className === formData.class)
+        .map((c) => c.subject)
+        .filter(Boolean)
+    )
+  ).sort();
+  const finalSubjects = activeSubjects as string[];
+
+  const handleClassChange = (newClass: string) => {
+    const newSubjects = Array.from(
+      new Set(
+        classrooms
+          .filter((c) => c.className === newClass)
+          .map((c) => c.subject)
+          .filter(Boolean)
+      )
+    ).sort() as string[];
+    setFormData((prev) => ({
+      ...prev,
+      class: newClass,
+      subject: newSubjects.includes(prev.subject) ? prev.subject : (newSubjects[0] || "")
+    }));
+  };
+
+  useEffect(() => {
+    const fetchClassrooms = async () => {
+      const schoolId = (session?.user as any)?.schoolId;
+      const teacherId = (session?.user as any)?.id;
+      if (!schoolId || !teacherId) return;
+      try {
+        const getApiUrl = () => {
+          if (typeof window !== "undefined") {
+            if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+              return "http://localhost:5000";
+            }
+          }
+          return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        };
+        const API_URL = getApiUrl();
+        const res = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.success && Array.isArray(json.data)) {
+            setClassrooms(json.data);
+            setClassroomsLoaded(true);
+            if (!editingId && json.data.length > 0) {
+              const defaultClass = json.data[0].className;
+              const defaultSubjects = Array.from(
+                new Set(
+                  json.data
+                    .filter((c: any) => c.className === defaultClass)
+                    .map((c: any) => c.subject)
+                    .filter(Boolean)
+                )
+              ).sort() as string[];
+              const defaultSubject = defaultSubjects[0] || "";
+              setFormData((prev) => ({
+                ...prev,
+                class: defaultClass,
+                subject: defaultSubject
+              }));
+            } else {
+              setClassroomsLoaded(true);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error loading teacher classrooms", err);
+        setClassroomsLoaded(true);
+      }
+    };
+    fetchClassrooms();
+  }, [session, editingId]);
 
   const fetchItems = async () => {
     if (!session?.user) return;
@@ -85,9 +167,13 @@ export default function TeacherDigitalLibraryPage() {
       
       if (selectedFile) {
         if (selectedFile.size > 4.5 * 1024 * 1024) {
-          setMessage({
-            type: "error",
+          Swal.fire({
+            icon: "warning",
+            title: "File too large",
             text: "File size exceeds the 4.5MB serverless upload limit. Please optimize the file size or provide a direct File URL instead.",
+            confirmButtonColor: "#3b82f6",
+            background: document.documentElement.classList.contains("dark") ? "#1e293b" : "#ffffff",
+            color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
           });
           setLoading(false);
           return;
@@ -128,11 +214,15 @@ export default function TeacherDigitalLibraryPage() {
 
       const data = await res.json();
       if (data.success) {
-        setMessage({ 
-          type: "success", 
+        Swal.fire({
+          icon: "success",
+          title: editingId ? "Updated!" : "Submitted!",
           text: editingId 
             ? "Resource updated successfully! It is now pending Headmaster approval." 
-            : "Resource submitted successfully! It is now pending Headmaster approval." 
+            : "Resource submitted successfully! It is now pending Headmaster approval.",
+          confirmButtonColor: "#10b981",
+          background: document.documentElement.classList.contains("dark") ? "#1e293b" : "#ffffff",
+          color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
         });
         setFormData({ title: "", type: "E-books", subject: "", class: "10", description: "", fileUrl: "" });
         setSelectedFile(null);
@@ -140,7 +230,14 @@ export default function TeacherDigitalLibraryPage() {
         setShowModal(false);
         fetchItems();
       } else {
-        setMessage({ type: "error", text: data.error || "Failed to submit resource." });
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: data.error || "Failed to submit resource.",
+          confirmButtonColor: "#ef4444",
+          background: document.documentElement.classList.contains("dark") ? "#1e293b" : "#ffffff",
+          color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+        });
       }
     } catch (err: any) {
       console.error(err);
@@ -167,11 +264,22 @@ export default function TeacherDigitalLibraryPage() {
 
   const openCreateModal = () => {
     setEditingId(null);
+    const defaultClass = classrooms.length > 0 ? classrooms[0].className : "";
+    const defaultSubjects = Array.from(
+      new Set(
+        classrooms
+          .filter((c: any) => c.className === defaultClass)
+          .map((c: any) => c.subject)
+          .filter(Boolean)
+      )
+    ).sort() as string[];
+    const defaultSubject = defaultSubjects[0] || "";
+
     setFormData({
       title: "",
       type: "E-books",
-      subject: "",
-      class: "10",
+      subject: defaultSubject,
+      class: defaultClass,
       description: "",
       fileUrl: ""
     });
@@ -186,7 +294,20 @@ export default function TeacherDigitalLibraryPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this resource?")) return;
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Yes, delete it!",
+      background: document.documentElement.classList.contains("dark") ? "#1e293b" : "#ffffff",
+      color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       const getApiUrl = () => {
         if (typeof window !== "undefined") {
@@ -201,17 +322,39 @@ export default function TeacherDigitalLibraryPage() {
         method: "DELETE"
       });
       if (res.ok) {
-        setMessage({ type: "success", text: "Resource deleted successfully." });
+        Swal.fire({
+          title: "Deleted!",
+          text: "Resource has been deleted successfully.",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+          background: document.documentElement.classList.contains("dark") ? "#1e293b" : "#ffffff",
+          color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+        });
         fetchItems();
         if (editingId === id) {
           closeCreateModal();
         }
       } else {
-        setMessage({ type: "error", text: "Failed to delete resource." });
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: "Failed to delete resource.",
+          confirmButtonColor: "#ef4444",
+          background: document.documentElement.classList.contains("dark") ? "#1e293b" : "#ffffff",
+          color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+        });
       }
     } catch (error) {
       console.error(error);
-      setMessage({ type: "error", text: "An error occurred while deleting the resource." });
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "An error occurred while deleting the resource.",
+        confirmButtonColor: "#ef4444",
+        background: document.documentElement.classList.contains("dark") ? "#1e293b" : "#ffffff",
+        color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+      });
     }
   };
 
@@ -373,13 +516,31 @@ export default function TeacherDigitalLibraryPage() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-705 dark:text-slate-300">Class Level *</label>
-                  <select value={formData.class} onChange={e => setFormData({...formData, class: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white">
-                    {CLASSES.map(cls => <option key={cls} value={cls}>Class {cls}</option>)}
+                  <select
+                    value={formData.class}
+                    onChange={(e) => handleClassChange(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white"
+                  >
+                    {finalClasses.map((cls) => (
+                      <option key={cls} value={cls}>
+                        Class {cls}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-705 dark:text-slate-300">Subject *</label>
-                  <input type="text" required value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white" placeholder="e.g., Biology" />
+                  <select
+                    value={formData.subject}
+                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white"
+                  >
+                    {finalSubjects.map((subj) => (
+                      <option key={subj} value={subj}>
+                        {subj}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-705 dark:text-slate-300">File Upload (PDF/Image/Video)</label>

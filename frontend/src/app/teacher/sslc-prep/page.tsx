@@ -19,7 +19,6 @@ const getApiBase = () => {
 
 const API_BASE = getApiBase();
 
-const SUBJECTS = ["Tamil", "English", "Mathematics", "Science", "Social Science"];
 const PAPER_TYPES = ["Board", "Model", "Quarterly", "Half-Yearly", "Annual"];
 
 const SUBJECT_COLORS: Record<string, string> = {
@@ -90,7 +89,7 @@ export default function TeacherSSLCPrepPage() {
     } else if (classrooms.length > 0) {
       list = Array.from(new Set(classrooms.map((c: any) => c.subject).filter(Boolean)));
     }
-    return list.length > 0 ? list : SUBJECTS;
+    return list;
   })();
 
   // ── Overview / analytics ──────────────────────────────────────────
