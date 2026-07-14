@@ -346,7 +346,7 @@ export default function TeacherCelebrationsPage() {
 
       {/* Calendar Modal */}
       {calendarModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-[100] flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-800 rounded-[2rem] sm:rounded-[2.5rem] w-full max-w-lg shadow-2xl border-4 border-pink-200 dark:border-slate-700 animate-in zoom-in-95 p-4 sm:p-6 relative">
             <button
               onClick={() => setCalendarModalOpen(false)}

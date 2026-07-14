@@ -1044,6 +1044,11 @@ export default function CareerGuidancePage() {
                 {/* Step 2 — Academics */}
                 {assessStep === 1 && (
                   <div className="p-5 space-y-5">
+                    {/* Class-level badge */}
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800">
+                      <span className="text-sm">🎓</span>
+                      <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400">{subjectLevelLabel}</span>
+                    </div>
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-wider text-emerald-500 mb-2">
                         ✅ {lang === "EN" ? "Strong subjects (select all that apply):" : "வலுவான பாடங்கள்:"}
