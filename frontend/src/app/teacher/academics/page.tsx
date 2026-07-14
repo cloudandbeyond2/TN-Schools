@@ -353,7 +353,7 @@ export default function AcademicsHubPage() {
   };
 
   const getFileUrl = (url: string) => {
-    if (!url) return "#";
+    if (!url || url === "#") return "#";
     if (url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:")) return url;
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
     return url.startsWith("/") ? `${API_URL}${url}` : `${API_URL}/${url}`;
@@ -373,21 +373,47 @@ export default function AcademicsHubPage() {
     return null;
   };
 
-  const handleDownload = (resource: Resource) => {
+  const handleDownload = async (resource: Resource) => {
     if (!resource.url) {
       alert("No download URL available for this resource.");
       return;
     }
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-    const downloadUrl = resource.url.startsWith("http") ? resource.url : `${API_URL}${resource.url}`;
+    const downloadUrl = getFileUrl(resource.url);
     
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.target = "_blank";
-    link.download = resource.title;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const response = await fetch(downloadUrl);
+      if (!response.ok) throw new Error("Network response was not ok");
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      
+      let filename = resource.title;
+      if (resource.url.includes(".")) {
+        const ext = resource.url.split(".").pop();
+        if (ext && ext.length < 5) {
+          filename += `.${ext}`;
+        }
+      } else {
+        filename += resource.type === "Video" ? ".mp4" : ".pdf";
+      }
+      
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Direct blob download failed, falling back to open tab", err);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.target = "_blank";
+      link.download = resource.title;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const handleAITeacherGenerate = async (optKey: string, customPrompt?: string) => {
@@ -648,12 +674,6 @@ export default function AcademicsHubPage() {
               style={{ background: `linear-gradient(135deg, ${t.color}, ${t.color}cc)`, color: "#fff" }}
             >
               <Fi name="eye" className="text-xs" /> {r.category === "videos" ? "Watch" : "Open"}
-            </button>
-            <button
-              className="p-1.5 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)] active:scale-95 transition-all"
-              title="Download for offline use"
-            >
-              <Fi name="download" className="text-sm" />
             </button>
           </div>
         </div>
@@ -1149,7 +1169,10 @@ export default function AcademicsHubPage() {
               </div>
             ) : (
               <div
-                className={`h-36 bg-gradient-to-br ${subjectTheme(previewResource.subject).gradient} relative flex items-center justify-center`}
+                className="h-36 relative flex items-center justify-center"
+                style={{
+                  background: `linear-gradient(135deg, ${subjectTheme(previewResource.subject).color || '#64748b'}, #475569)`
+                }}
               >
                 <span className="text-6xl opacity-30 absolute left-6 bottom-3">
                   {subjectTheme(previewResource.subject).icon}
@@ -1323,26 +1346,13 @@ export default function AcademicsHubPage() {
                   )}
                 </div>
               ) : (
-                <div className="w-full h-[60vh] rounded-2xl overflow-hidden shadow-lg border border-[var(--border)] bg-[var(--bg-card)] flex flex-col">
+                <div className="w-full h-[60vh] rounded-2xl overflow-hidden shadow-lg border border-[var(--border)] bg-[var(--bg-card)]">
                   {/* PDF view using iframe */}
                   <iframe
                     src={getFileUrl(activeMedia.url)}
-                    className="w-full flex-1 border-0"
+                    className="w-full h-full border-0"
                     title={activeMedia.title}
                   />
-                  <div className="p-3 bg-[var(--bg-card)] border-t border-[var(--border)] flex justify-between items-center shrink-0">
-                    <span className="text-xs text-[var(--text-muted)] font-semibold truncate max-w-xs">
-                      If the document does not display, click the button to open it.
-                    </span>
-                    <a
-                      href={getFileUrl(activeMedia.url)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
-                    >
-                      <Fi name="download" className="text-xs" /> Open in New Tab
-                    </a>
-                  </div>
                 </div>
               )}
             </div>
