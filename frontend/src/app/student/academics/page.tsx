@@ -546,7 +546,7 @@ export default function AcademicsHubPage() {
               onClick={() => setActiveTab(c.key)}
               className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${
                 active
-                  ? `bg-gradient-to-br ${c.gradient} shadow-md`
+                  ? `bg-gradient-to-br ${c.gradient} shadow-md text-white`
                   : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
               }`}
               style={active ? { color: "#fff" } : undefined}
