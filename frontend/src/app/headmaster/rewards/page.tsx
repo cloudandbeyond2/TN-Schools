@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { useSession } from "next-auth/react";
 
 interface HonorRecord {
-  id: number;
+  id: string;
   title: string;
   recipient: string;
   category: "School Award" | "Student Medal" | "Teacher Recognition";
@@ -12,14 +13,22 @@ interface HonorRecord {
   citation: string;
 }
 
+const getApiBase = () => {
+  let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  if (url && !url.startsWith("http://") && !url.startsWith("https://")) {
+    url = `https://${url}`;
+  }
+  return url;
+};
+
+const API_BASE = getApiBase();
+
 export default function RewardsPage() {
-  const [honors, setHonors] = useState<HonorRecord[]>([
-    { id: 1, title: "Clean School Campus State Award (Swachh Vidyalaya)", recipient: "GHS Coimbatore", category: "School Award", date: "2025", citation: "Awarded by the School Education Department for excellence in hygiene, fresh water supply, and garbage segregation." },
-    { id: 2, title: "State Science Congress Gold Medalist", recipient: "Arjun Kumar (Class 10A)", category: "Student Medal", date: "2026", citation: "For building the AI-driven water distribution prototype under the guidance of Mr. Rajan." },
-    { id: 3, title: "Best Science Educator State Citation", recipient: "Mr. Rajan K. (Science)", category: "Teacher Recognition", date: "2026", citation: "Recognized at Chennai HQ for pioneering virtual laboratory worksheets and mentoring 5 state science winners." },
-    { id: 4, title: "District Athletics Hurdles Champion", recipient: "Shalini S. (Class 11)", category: "Student Medal", date: "2026", citation: "Gold medal winner in the 100m hurdles representing GHS Coimbatore." },
-    { id: 5, title: "DISE Enrollment Growth Trophy", recipient: "GHS Coimbatore", category: "School Award", date: "2025", citation: "Given to schools achieving +15% student retention rate year-on-year." },
-  ]);
+  const { data: session } = useSession();
+  const schoolId: string = (session?.user as any)?.schoolId || "";
+
+  const [honors, setHonors] = useState<HonorRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Honor register Form State
   const [honorTitle, setHonorTitle] = useState("");
@@ -28,119 +37,201 @@ export default function RewardsPage() {
   const [citationText, setCitationText] = useState("");
   const [rewardToast, setRewardToast] = useState<string | null>(null);
 
-  const handlePostHonor = (e: React.FormEvent) => {
+  const fetchHonors = useCallback(async () => {
+    if (!schoolId) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/headmaster/rewards?schoolId=${schoolId}`);
+      const json = await res.json();
+      if (json.success) {
+        setHonors(json.data);
+      }
+    } catch (err) {
+      console.error("Error fetching rewards:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [schoolId]);
+
+  useEffect(() => {
+    fetchHonors();
+  }, [fetchHonors]);
+
+  const handlePostHonor = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!honorTitle || !recipientName) return;
+    if (!honorTitle || !recipientName || !schoolId) return;
 
-    const newRecord: HonorRecord = {
-      id: Date.now(),
-      title: honorTitle,
-      recipient: recipientName,
-      category: honorCat,
-      date: "2026",
-      citation: citationText || "Honored for outstanding contributions to the institution's community goals."
-    };
+    try {
+      const res = await fetch(`${API_BASE}/api/headmaster/rewards`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          schoolId,
+          title: honorTitle,
+          recipient: recipientName,
+          category: honorCat,
+          date: "2026",
+          citation: citationText || "Honored for outstanding contributions to the institution's community goals."
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setRewardToast(`✓ New Honor cataloged! '${honorTitle}' added under ${honorCat} roster.`);
+        // Reset Form
+        setHonorTitle("");
+        setRecipientName("");
+        setCitationText("");
+        fetchHonors(); // Reload dynamic list
+        setTimeout(() => setRewardToast(null), 4000);
+      } else {
+        alert("Failed to record citation: " + (json.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("Error posting rewards:", err);
+      alert("Server error occurred.");
+    }
+  };
 
-    setHonors(prev => [newRecord, ...prev]);
-    setRewardToast(`✓ New Honor cataloged! '${honorTitle}' added under ${honorCat} roster.`);
-    
-    // Reset Form
-    setHonorTitle("");
-    setRecipientName("");
-    setCitationText("");
-
-    setTimeout(() => setRewardToast(null), 4000);
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this honor record?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/headmaster/rewards/${id}`, {
+        method: "DELETE"
+      });
+      const json = await res.json();
+      if (json.success) {
+        setRewardToast("✓ Honor record deleted successfully.");
+        fetchHonors();
+        setTimeout(() => setRewardToast(null), 4000);
+      } else {
+        alert("Failed to delete record: " + (json.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("Error deleting reward:", err);
+      alert("Server error occurred.");
+    }
   };
 
   return (
     <PortalLayout
       title="Rewards, Honors & Citations Board"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
-      avatarLetter="V"
+      subtitle={`${session?.user?.name || "Headmaster"} · School ID: ${schoolId || "33012345"}`}
+      avatarLetter={session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "H"}
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
       accentColor="#3b82f6"
     >
       {/* Honors counter Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">State Recognitions</span>
-          <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-black text-amber-400">3 Awards</span>
-            <span className="text-[10px] text-amber-500 font-bold">State Level</span>
+        {[
+          {
+            label: "State Level Recognitions",
+            value: `${honors.filter((hn) => hn.category === "School Award").length} ${honors.filter((hn) => hn.category === "School Award").length === 1 ? "Award" : "Awards"}`,
+            sub: "Highest ranking in school block.",
+            icon: <i className="fi fi-rr-crown text-lg" />,
+            color: "text-amber-400",
+            bg: "bg-amber-500/10"
+          },
+          {
+            label: "Student Medals",
+            value: `${honors.filter((hn) => hn.category === "Student Medal").length} ${honors.filter((hn) => hn.category === "Student Medal").length === 1 ? "Medal" : "Medals"}`,
+            sub: "District and state level achievements.",
+            icon: <i className="fi fi-rr-trophy text-lg" />,
+            color: "text-blue-400",
+            bg: "bg-blue-500/10"
+          },
+          {
+            label: "Teacher Citations",
+            value: `${honors.filter((hn) => hn.category === "Teacher Recognition").length} ${honors.filter((hn) => hn.category === "Teacher Recognition").length === 1 ? "Educator" : "Educators"}`,
+            sub: "ICT, virtual worksheets & pedagogy.",
+            icon: <i className="fi fi-rr-badge-check text-lg" />,
+            color: "text-emerald-400",
+            bg: "bg-emerald-500/10"
+          },
+          {
+            label: "DISE School Rank",
+            value: "Grade A+",
+            sub: "Composite score (Top 5% statewide).",
+            icon: <i className="fi fi-rr-chart-user text-lg" />,
+            color: "text-indigo-400",
+            bg: "bg-indigo-500/10"
+          }
+        ].map((kpi, idx) => (
+          <div key={idx} className="glass p-4 rounded-2xl border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all shadow-sm">
+            <div className="flex flex-col text-left min-w-0">
+              <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider truncate">{kpi.label}</span>
+              <div className="flex items-baseline gap-2 mt-1.5">
+                <span className="text-xl font-black text-white">{kpi.value}</span>
+              </div>
+              <div className="text-[10px] text-slate-400 mt-1 truncate">
+                {kpi.sub}
+              </div>
+            </div>
+            <div className={`p-2.5 rounded-xl ${kpi.bg} ${kpi.color} shrink-0 ml-3 flex items-center justify-center`}>
+              {kpi.icon}
+            </div>
           </div>
-          <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-            Highest ranking in block cohort.
-          </div>
-        </div>
-
-        <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Student Medals</span>
-          <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-black text-white">12 Medals</span>
-            <span className="text-[10px] text-blue-400 font-bold">District Heats</span>
-          </div>
-          <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-            Including 4 sports athletic Golds.
-          </div>
-        </div>
-
-        <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Teacher Citations</span>
-          <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-black text-emerald-400">4 Staff</span>
-            <span className="text-[10px] text-emerald-500 font-bold">Commended</span>
-          </div>
-          <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-            Recognized for ICT & Lab innovations.
-          </div>
-        </div>
-
-        <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">DISE School Rank</span>
-          <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-black text-white">Grade A+</span>
-            <span className="text-[10px] text-emerald-400 font-bold">Top 5%</span>
-          </div>
-          <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-            Infrastructure & results composite.
-          </div>
-        </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Honors Listing Board */}
         <div className="lg:col-span-2 glass rounded-2xl p-6 border border-slate-800">
-          <h2 className="text-base font-semibold text-white mb-1">🏆 School Honors Ledger</h2>
+          <h2 className="text-base font-semibold text-white flex items-center gap-2 mb-1">
+            <i className="fi fi-rr-trophy text-blue-400" /> School Honors Ledger
+          </h2>
           <p className="text-xs text-slate-500 mb-5 leading-relaxed">Official registry of awards won by students, faculty, and school operations.</p>
 
-          <div className="space-y-4">
-            {honors.map((hn) => (
-              <div
-                key={hn.id}
-                className="p-4 bg-slate-900/60 rounded-xl border border-slate-850 flex flex-col sm:flex-row sm:items-start justify-between gap-3 hover:border-slate-700 transition-colors"
-              >
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md">
-                      🏅 {hn.category}
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-bold">Year: {hn.date}</span>
+          {isLoading ? (
+            <div className="py-12 text-center text-slate-400 font-bold flex items-center justify-center gap-2">
+              <i className="fi fi-rr-spinner animate-spin text-lg" /> Loading honors ledger...
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {honors.map((hn) => (
+                <div
+                  key={hn.id}
+                  className="p-4 bg-slate-900/60 rounded-xl border border-slate-850 flex flex-col sm:flex-row sm:items-start justify-between gap-3 hover:border-slate-700 transition-colors"
+                >
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md flex items-center gap-1">
+                        <i className="fi fi-rr-medal text-[10px] text-amber-400" /> {hn.category}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-bold">Year: {hn.date}</span>
+                    </div>
+                    <h3 className="text-sm font-bold text-white leading-tight">{hn.title}</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">{hn.citation}</p>
+                    <div className="text-[11px] text-slate-500">
+                      Recipient: <strong className="text-slate-350">{hn.recipient}</strong>
+                    </div>
                   </div>
-                  <h3 className="text-sm font-bold text-white leading-tight">{hn.title}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">{hn.citation}</p>
-                  <div className="text-[11px] text-slate-500">
-                    Recipient: <strong className="text-slate-350">{hn.recipient}</strong>
+
+                  <div className="sm:self-center shrink-0">
+                    <button
+                      onClick={() => handleDelete(hn.id)}
+                      title="Delete citation"
+                      className="w-8 h-8 rounded-lg bg-slate-950 hover:bg-red-950/20 border border-slate-800 hover:border-red-900/50 flex items-center justify-center text-slate-400 hover:text-red-450 transition-all cursor-pointer shadow-inner"
+                    >
+                      <i className="fi fi-rr-trash text-xs" />
+                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+              {honors.length === 0 && (
+                <div className="py-6 text-center text-slate-500 italic">
+                  No honors recorded yet.
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Add Honor Entry form */}
         <div className="glass rounded-2xl p-6 border border-slate-800 h-fit">
-          <h2 className="text-base font-semibold text-white mb-2">🏅 Record New Citation</h2>
+          <h2 className="text-base font-semibold text-white flex items-center gap-2 mb-2">
+            <i className="fi fi-rr-medal text-blue-400" /> Record New Citation
+          </h2>
           <p className="text-xs text-slate-500 leading-relaxed mb-4 font-medium">
             Register certificates, science fair recognitions, or sports medals won by pupils or teaching staff.
           </p>
@@ -175,7 +266,7 @@ export default function RewardsPage() {
               <select
                 value={honorCat}
                 onChange={(e) => setHonorCat(e.target.value as any)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer"
               >
                 <option value="School Award">School Award</option>
                 <option value="Student Medal">Student Medal</option>
@@ -196,7 +287,7 @@ export default function RewardsPage() {
 
             <button
               type="submit"
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-colors"
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
             >
               Post Citation Record
             </button>
