@@ -141,6 +141,36 @@ export default function HeadmasterMockTestsPage() {
     }
   };
 
+  const handleDeleteTest = async (id: string) => {
+    try {
+      const confirm = await Swal.fire({
+        title: "Delete Mock Exam?",
+        text: "Are you sure you want to delete this? It will be removed from all student and staff portals.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#3b82f6",
+        confirmButtonText: "Yes, delete it!"
+      });
+
+      if (confirm.isConfirmed) {
+        const res = await fetch(`${API_URL}/api/teacher/questions/${id}`, {
+          method: "DELETE"
+        });
+        const data = await res.json();
+        if (data.success) {
+          Swal.fire("Deleted!", "The mock exam content has been removed.", "success");
+          fetchProfileAndExistingTests();
+        } else {
+          Swal.fire("Error", data.error || "Failed to delete.", "error");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "An unexpected error occurred while deleting.", "error");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const activeSchoolId = profile?.schoolId || (session?.user as any)?.schoolId;
@@ -222,9 +252,28 @@ export default function HeadmasterMockTestsPage() {
                     onChange={(e) => setSubject(e.target.value)}
                     className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-main)]"
                   >
-                    <option>Mathematics</option>
-                    <option>Science</option>
-                    <option>Social Science</option>
+                    {["Grade 11", "Grade 12"].includes(grade) ? (
+                      <>
+                        <option>Tamil</option>
+                        <option>English</option>
+                        <option>Physics</option>
+                        <option>Chemistry</option>
+                        <option>Mathematics</option>
+                        <option>Biology</option>
+                        <option>Computer Science</option>
+                        <option>Commerce</option>
+                        <option>Accountancy</option>
+                        <option>Economics</option>
+                      </>
+                    ) : (
+                      <>
+                        <option>Tamil</option>
+                        <option>English</option>
+                        <option>Mathematics</option>
+                        <option>Science</option>
+                        <option>Social Science</option>
+                      </>
+                    )}
                   </select>
                 </div>
                 <div className="space-y-1">
@@ -234,6 +283,8 @@ export default function HeadmasterMockTestsPage() {
                     onChange={(e) => setGrade(e.target.value)}
                     className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-main)]"
                   >
+                    <option>Grade 6</option>
+                    <option>Grade 7</option>
                     <option>Grade 8</option>
                     <option>Grade 9</option>
                     <option>Grade 10</option>
@@ -374,8 +425,15 @@ export default function HeadmasterMockTestsPage() {
             ) : (
               <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                 {existingTests.map((t, idx) => (
-                  <div key={idx} className="p-3.5 rounded-xl border border-[var(--border)] bg-[var(--bg-main)]">
-                    <div className="flex justify-between items-center mb-1">
+                  <div key={idx} className="p-3.5 rounded-xl border border-[var(--border)] bg-[var(--bg-main)] relative group">
+                    <button 
+                      onClick={() => handleDeleteTest(t.id)}
+                      className="absolute top-2 right-2 p-1.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-500 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                      title="Delete Mock Exam Content"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                    <div className="flex justify-between items-center mb-1 pr-8">
                       <span className="text-[9px] font-black uppercase text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">{t.subject}</span>
                       <span className="text-[9px] text-slate-400 font-bold">{t.grade}</span>
                     </div>
