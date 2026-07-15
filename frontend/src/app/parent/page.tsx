@@ -630,7 +630,7 @@ export default function ParentDashboard() {
                 ) : selectedExam === "ALL" ? (
                   /* ALL Exams - Full comparison table */
                   <div className="overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-left border-collapse text-xs">
+                    <table className="w-full text-left border-collapse text-xs min-w-[500px]">
                       <thead>
                         <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold">
                           <th className="py-2.5 px-3">Subject</th>

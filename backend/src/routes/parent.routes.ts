@@ -660,11 +660,91 @@ router.get('/:parentId/child/:studentId/performance-summary', async (req: Reques
       return res.status(404).json({ success: false, error: 'Student not found' });
     }
 
-    // 2. Fetch marks
-    const marks = await prisma.mark.findMany({
-      where: { studentId },
-      orderBy: { examType: 'asc' },
+    // 2. Fetch marks (Check ModelExamResult first, fallback to Mark)
+    const modelExamResults = await prisma.modelExamResult.findMany({
+      where: {
+        studentId,
+        exam: { isLocked: true },
+      },
+      include: { exam: true },
     });
+
+    let overallAvg = 0;
+    const subjectAvgs: { subject: string; avg: number }[] = [];
+
+    if (modelExamResults.length > 0) {
+      const subjectSums: Record<string, { scored: number; max: number; count: number }> = {};
+      let totalScored = 0;
+      let totalMax = 0;
+
+      for (const r of modelExamResults) {
+        totalScored += r.total || 0;
+        totalMax += r.maxTotal || 500;
+
+        if (r.tamil !== null) {
+          if (!subjectSums['Tamil']) subjectSums['Tamil'] = { scored: 0, max: 0, count: 0 };
+          subjectSums['Tamil'].scored += r.tamil;
+          subjectSums['Tamil'].max += 100;
+          subjectSums['Tamil'].count++;
+        }
+        if (r.english !== null) {
+          if (!subjectSums['English']) subjectSums['English'] = { scored: 0, max: 0, count: 0 };
+          subjectSums['English'].scored += r.english;
+          subjectSums['English'].max += 100;
+          subjectSums['English'].count++;
+        }
+        if (r.mathematics !== null) {
+          if (!subjectSums['Mathematics']) subjectSums['Mathematics'] = { scored: 0, max: 0, count: 0 };
+          subjectSums['Mathematics'].scored += r.mathematics;
+          subjectSums['Mathematics'].max += 100;
+          subjectSums['Mathematics'].count++;
+        }
+        if (r.science !== null) {
+          if (!subjectSums['Science']) subjectSums['Science'] = { scored: 0, max: 0, count: 0 };
+          subjectSums['Science'].scored += r.science;
+          subjectSums['Science'].max += 100;
+          subjectSums['Science'].count++;
+        }
+        if (r.socialScience !== null) {
+          if (!subjectSums['Social Science']) subjectSums['Social Science'] = { scored: 0, max: 0, count: 0 };
+          subjectSums['Social Science'].scored += r.socialScience;
+          subjectSums['Social Science'].max += 100;
+          subjectSums['Social Science'].count++;
+        }
+        if (r.extraSubject !== null && r.extraSubjectName) {
+          const extraName = r.extraSubjectName;
+          if (!subjectSums[extraName]) subjectSums[extraName] = { scored: 0, max: 0, count: 0 };
+          subjectSums[extraName].scored += r.extraSubject;
+          subjectSums[extraName].max += 100;
+          subjectSums[extraName].count++;
+        }
+      }
+
+      overallAvg = totalMax > 0 ? Math.round((totalScored / totalMax) * 100) : 0;
+
+      for (const [subject, s] of Object.entries(subjectSums)) {
+        subjectAvgs.push({
+          subject,
+          avg: s.max > 0 ? Math.round((s.scored / s.max) * 100) : 0,
+        });
+      }
+    } else {
+      const marks = await prisma.mark.findMany({
+        where: { studentId },
+      });
+      const subjectScores: Record<string, number[]> = {};
+      for (const m of marks) {
+        if (!subjectScores[m.subject]) subjectScores[m.subject] = [];
+        subjectScores[m.subject].push(Math.round((m.scored / m.maxMarks) * 100));
+      }
+      for (const [subject, scores] of Object.entries(subjectScores)) {
+        const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+        subjectAvgs.push({ subject, avg });
+      }
+      overallAvg = subjectAvgs.length > 0
+        ? Math.round(subjectAvgs.reduce((sum, s) => sum + s.avg, 0) / subjectAvgs.length)
+        : 0;
+    }
 
     // 3. Fetch attendance
     const attendance = await prisma.attendance.findMany({
@@ -690,22 +770,6 @@ router.get('/:parentId/child/:studentId/performance-summary', async (req: Reques
       include: { homework: true },
       orderBy: { updatedAt: 'desc' },
     });
-
-    // Compute subject averages and total average
-    const subjectScores: Record<string, number[]> = {};
-    for (const m of marks) {
-      if (!subjectScores[m.subject]) subjectScores[m.subject] = [];
-      subjectScores[m.subject].push(Math.round((m.scored / m.maxMarks) * 100));
-    }
-
-    const subjectAvgs = Object.entries(subjectScores).map(([subject, scores]) => {
-      const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-      return { subject, avg };
-    });
-
-    const overallAvg = subjectAvgs.length > 0
-      ? Math.round(subjectAvgs.reduce((sum, s) => sum + s.avg, 0) / subjectAvgs.length)
-      : 0;
 
     // Compute attendance percentage
     const totalDays = attendance.length;
