@@ -51,11 +51,11 @@ export default function TeacherSSLCPrepPage() {
   const role = sessionUser?.role || "TEACHER";
   const schoolId = sessionUser?.schoolId || "";
 
-  // Requests that create/update/delete SSLC content carry the caller's
-  // role so the backend permission middleware can enforce access.
+  // Role enforcement now rides on the Authorization bearer token that the
+  // global fetch bridge attaches; no role header is needed.
   const staffHeaders = useCallback(
-    () => ({ "Content-Type": "application/json", "X-User-Role": role }),
-    [role]
+    () => ({ "Content-Type": "application/json" }),
+    []
   );
 
   const [activeTab, setActiveTab] = useState<"overview" | "tests" | "papers" | "plans">("overview");
@@ -167,7 +167,6 @@ export default function TeacherSSLCPrepPage() {
     }
 
     fetch(`${API_BASE}/api/sslc-prep/analytics/school?${params.toString()}`, {
-      headers: { "X-User-Role": role },
     })
       .then((res) => res.json())
       .then((json) => {
@@ -191,7 +190,6 @@ export default function TeacherSSLCPrepPage() {
     }
 
     fetch(`${API_BASE}/api/sslc-prep/mock-tests?${params.toString()}`, {
-      headers: { "X-User-Role": role },
     })
       .then((res) => res.json())
       .then((json) => json.success && setTests(json.data))
@@ -231,7 +229,6 @@ export default function TeacherSSLCPrepPage() {
     }
 
     fetch(`${API_BASE}/api/sslc-prep/plans?${params.toString()}`, {
-      headers: { "X-User-Role": role },
     })
       .then((res) => res.json())
       .then((json) => json.success && setPlans(json.data))
@@ -330,7 +327,6 @@ export default function TeacherSSLCPrepPage() {
     setAttemptsFor(test);
     setAttempts([]);
     const res = await fetch(`${API_BASE}/api/sslc-prep/mock-tests/${test._id}/attempts`, {
-      headers: { "X-User-Role": role },
     });
     const json = await res.json();
     if (json.success) setAttempts(json.data);

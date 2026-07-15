@@ -4,6 +4,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
+import { UPLOAD_LIMITS, documentFileFilter } from '../utils/uploads';
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -20,7 +21,7 @@ const storage = multer.diskStorage({
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   },
 });
-const upload = multer({ storage });
+const upload = multer({ storage, limits: UPLOAD_LIMITS, fileFilter: documentFileFilter });
 
 const router = Router();
 

@@ -15,8 +15,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         try {
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-          console.log("Authorize called. NextAuth connecting to API URL:", apiUrl);
-          
+
           const res = await fetch(`${apiUrl}/api/users/auth`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -52,6 +51,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = (user as any).role;
         token.id = (user as any).id;
+        token.backendToken = (user as any).token || null; // JWT for Authorization: Bearer on backend API calls
         token.schoolId = (user as any).schoolId;
         token.schoolName = (user as any).schoolName || null;
         token.schoolDise = (user as any).schoolDise || null;
@@ -71,6 +71,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).role = token.role;
         (session.user as any).id = token.id;
+        (session.user as any).backendToken = token.backendToken || null;
         (session.user as any).schoolId = token.schoolId;
         (session.user as any).schoolName = token.schoolName || null;
         (session.user as any).schoolDise = token.schoolDise || null;

@@ -4,6 +4,7 @@ import { createDefaultPortal } from './school.routes';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { UPLOAD_LIMITS, documentFileFilter } from '../utils/uploads';
 
 // Reuse the same disk-storage / uploads convention as the rest of the API.
 const storage = multer.diskStorage({
@@ -19,7 +20,7 @@ const storage = multer.diskStorage({
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   },
 });
-const upload = multer({ storage });
+const upload = multer({ storage, limits: UPLOAD_LIMITS, fileFilter: documentFileFilter });
 
 const router = Router();
 

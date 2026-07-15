@@ -8,7 +8,7 @@ import {
   SSLCMockAttempt,
   SSLCRevisionPlan,
 } from '../models/mongo';
-import { requireRole, AppRole } from '../middleware/auth.middleware';
+import { requireRole, getAuthUser, AppRole } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -18,8 +18,10 @@ const OVERSIGHT_ROLES: AppRole[] = ['HEADMASTER', 'BEO', 'DEO', 'COMMISSIONER', 
 
 const SSLC_SUBJECTS = ['Tamil', 'English', 'Mathematics', 'Science', 'Social Science'];
 
-const isStaffRole = (req: Request) =>
-  STAFF_ROLES.includes(String(req.headers['x-user-role'] || '') as AppRole);
+const isStaffRole = (req: Request) => {
+  const user = getAuthUser(req);
+  return !!user && STAFF_ROLES.includes(user.role);
+};
 
 /* ════════════════════════════════════════════════════════════════════
    PREVIOUS QUESTION PAPERS

@@ -8,7 +8,7 @@ import { getGroup } from '../constants/hscGroups';
 
 const pdfUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 150 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (file.mimetype === 'application/pdf') cb(null, true);
     else cb(new Error('Only PDF files are allowed'));
@@ -17,7 +17,7 @@ const pdfUpload = multer({
 
 const generalUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 150 * 1024 * 1024 }
+  limits: { fileSize: 50 * 1024 * 1024 }
 });
 
 const materialsStorage = multer.diskStorage({
@@ -1180,7 +1180,7 @@ async function callGeminiMultimodal(prompt: string, base64Image: string, mimeTyp
     throw new Error('GEMINI_API_KEY is missing. Please add it to your environment.');
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
 
   // Clean base64 data if it has header prefix like data:image/png;base64,
   let cleanBase64 = base64Image;
@@ -1215,6 +1215,7 @@ async function callGeminiMultimodal(prompt: string, base64Image: string, mimeTyp
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(postData),
+        'x-goog-api-key': apiKey,
       },
     };
 
@@ -1438,7 +1439,7 @@ async function callGeminiJSON(prompt: string, schema: any): Promise<any> {
     throw new Error('GEMINI_API_KEY is missing. Please add it to backend/.env');
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
@@ -1458,7 +1459,7 @@ async function callGeminiJSON(prompt: string, schema: any): Promise<any> {
     const postData = JSON.stringify(payload);
     const options = {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) }
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData), 'x-goog-api-key': apiKey }
     };
 
     const req = https.request(url, options, (res) => {
@@ -1719,7 +1720,7 @@ async function callGeminiWithPdf(prompt: string, base64Pdf: string, schema: any)
     throw new Error('GEMINI_API_KEY is missing. Please add it to backend/.env');
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
   const payload = {
     contents: [
       {
@@ -1742,7 +1743,8 @@ async function callGeminiWithPdf(prompt: string, base64Pdf: string, schema: any)
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
+        'Content-Length': Buffer.byteLength(postData),
+        'x-goog-api-key': apiKey
       }
     };
     const req = https.request(url, options, (resp) => {

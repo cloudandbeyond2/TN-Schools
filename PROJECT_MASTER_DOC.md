@@ -76,7 +76,7 @@
 | **Database Name** | `tn_schools_ecosystem` |
 | **Public IP** | `34.70.195.126` (development) |
 
-> **SECURITY WARNING:** The `.env` file contains hardcoded credentials. The PostgreSQL password is `Cloudandbeyond@1`. This MUST be rotated before any production deployment. The old `CLOUD_SQL_SETUP.md` had a different IP and password — those are now outdated.
+> **SECURITY WARNING:** The `.env` file contains hardcoded credentials (kept out of git). The PostgreSQL password previously written here in plaintext has been redacted and MUST be rotated — treat any credential that ever appeared in this file's git history as compromised. The old `CLOUD_SQL_SETUP.md` had a different IP and password — those are now outdated.
 
 ### MongoDB Atlas
 
@@ -97,9 +97,9 @@ NODE_ENV=development
 MONGODB_URI="mongodb+srv://colossusiq_db_user:<password>@cluster0.i8eiwkd.mongodb.net/tn_schools_ecosystem"
 
 CLOUD_SQL_PUBLIC_IP="34.70.195.126"
-POSTGRES_URI="postgresql://postgres:Cloudandbeyond%401@34.70.195.126:5432/tn_schools_ecosystem?sslmode=disable"
+POSTGRES_URI="postgresql://postgres:<url-encoded-password>@34.70.195.126:5432/tn_schools_ecosystem?sslmode=disable"
 
-NEXTAUTH_SECRET="tn-schools-ai-ecosystem-secret-2025"
+NEXTAUTH_SECRET="<generate-with-openssl-rand-base64-32>"
 NEXTAUTH_URL="http://localhost:3000"
 
 # MISSING — needs to be added:
@@ -972,7 +972,7 @@ Deleting a Teacher leaves ghost teacherId references in all Timetable rows — n
 | `complete_schema_analysis.md` | "HeadmasterStaff on MongoDB" | WRONG — HeadmasterStaff is defined in schema.prisma (PostgreSQL Prisma), not MongoDB |
 | `system_integration_guide.md` | HeadmasterProfile "created and integrated" | Confirmed correct — exists at schema line 112 with proper @relation |
 | `system_integration_guide.md` | WatchlistStudent studentId is "NEW FK" | Confirmed correct — studentId String? @unique with @relation to Student exists |
-| `CLOUD_SQL_SETUP.md` | Instance: free-trial-first-project, password: 0=]k... | .env shows password: Cloudandbeyond@1, IP: 34.70.195.126 — credentials changed |
+| `CLOUD_SQL_SETUP.md` | Instance: free-trial-first-project, password: (redacted) | .env holds the current password (redacted), IP: 34.70.195.126 — credentials changed |
 | `CLOUD_SQL_SETUP.md` | File path: `d:/cab-work/tn-school/backend/.env` | Actual path: `f:/School Project Latest/TN-Schools/backend/.env` |
 | `db_overview.md` | "10 tables: User, School, Student..." | Schema now has 50+ models — massively expanded |
 | `db_overview.md` | "HeadmasterParent has no userId link" | userId String? @unique field exists — but still has no @relation directive |

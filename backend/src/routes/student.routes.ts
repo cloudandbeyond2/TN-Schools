@@ -5,6 +5,7 @@ import https from 'https';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { UPLOAD_LIMITS, documentFileFilter } from '../utils/uploads';
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -19,7 +20,7 @@ const storage = multer.diskStorage({
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
-const upload = multer({ storage });
+const upload = multer({ storage, limits: UPLOAD_LIMITS, fileFilter: documentFileFilter });
 
 const router = Router();
 
@@ -687,7 +688,7 @@ async function callGeminiMaya(userMessage: string, history: Array<{role: string,
     throw new Error('GEMINI_API_KEY is missing');
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
 
   const prompt = `You are Maya, a friendly AI Spoken English tutor for Tamil students. The student will converse with you in a mix of Tamil, English, and Tanglish (Tamil words written in English letters).
 Your instructions:
@@ -716,7 +717,8 @@ Response JSON:`;
     const req = https.request(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
       }
     }, (res) => {
       let data = '';

@@ -1,8 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { AIChat, Portfolio, LearningPath, Wellness, LibraryCompanion } from '../models/mongo';
 import https from 'https';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
+
+// Every AI endpoint proxies to the paid Gemini API — logged-in users only.
+router.use(authenticate);
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -165,7 +169,8 @@ export async function callGemini(prompt: string, jsonMode: boolean = false, sche
     throw new Error('GEMINI_API_KEY is missing. Please add it to backend/.env');
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  // API key goes in a header, not the query string, so it never lands in URL logs
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
 
   const payload: any = {
     contents: [{ parts: [{ text: prompt }] }],
@@ -196,6 +201,7 @@ export async function callGemini(prompt: string, jsonMode: boolean = false, sche
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(postData),
+        'x-goog-api-key': GEMINI_API_KEY,
       },
     };
 

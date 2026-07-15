@@ -74,7 +74,7 @@ function robustParseJSON(text: string): any {
 }
 
 async function callGemini(prompt: string): Promise<any> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
@@ -94,6 +94,7 @@ async function callGemini(prompt: string): Promise<any> {
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(postData),
+        'x-goog-api-key': GEMINI_API_KEY,
       },
     };
 

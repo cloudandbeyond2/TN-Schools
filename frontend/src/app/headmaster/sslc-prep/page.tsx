@@ -47,9 +47,7 @@ export default function HeadmasterSSLCPrepPage() {
     setError(null);
     const params = new URLSearchParams({ schoolId });
     if (selectedGrade) params.set("class", selectedGrade);
-    fetch(`${API_BASE}/api/sslc-prep/analytics/school?${params.toString()}`, {
-      headers: { "X-User-Role": role },
-    })
+    fetch(`${API_BASE}/api/sslc-prep/analytics/school?${params.toString()}`)
       .then((res) => res.json())
       .then((json) => {
         if (json.success) setAnalytics(json.data);
@@ -69,7 +67,7 @@ export default function HeadmasterSSLCPrepPage() {
   const togglePublish = async (test: any) => {
     await fetch(`${API_BASE}/api/sslc-prep/mock-tests/${test.id}/publish`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "X-User-Role": role },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ published: !test.published }),
     });
     loadAnalytics();

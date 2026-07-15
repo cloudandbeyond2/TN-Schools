@@ -247,7 +247,7 @@ async function callGemini(prompt: string): Promise<string> {
     throw new Error('GEMINI_API_KEY is missing. Please add it to backend/.env');
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { maxOutputTokens: 1000 },
@@ -258,6 +258,7 @@ async function callGemini(prompt: string): Promise<string> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-goog-api-key': GEMINI_API_KEY,
       }
     }, (res) => {
       let data = '';

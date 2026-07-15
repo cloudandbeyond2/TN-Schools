@@ -3,6 +3,8 @@ import { PrismaClient } from "@prisma/client";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { authenticate, requireMinRole } from "../middleware/auth.middleware";
+import { UPLOAD_LIMITS, documentFileFilter } from "../utils/uploads";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -16,12 +18,17 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+    // basename() strips any client-supplied directory components (path traversal)
+    const safeName = path.basename(file.originalname).replace(/[^a-zA-Z0-9._-]/g, "_");
+    cb(null, `${Date.now()}-${safeName}`);
   }
 });
-const upload = multer({ storage });
+const upload = multer({ storage, limits: UPLOAD_LIMITS, fileFilter: documentFileFilter });
 
-router.post("/upload", upload.single("file"), (req: Request, res: Response) => {
+// Reads require any logged-in user; content management requires headmaster and above.
+router.use(authenticate);
+
+router.post("/upload", requireMinRole("HEADMASTER"), upload.single("file"), (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -63,7 +70,7 @@ router.get("/subjects", async (req: Request, res: Response) => {
 });
 
 // Create a subject
-router.post("/subjects", async (req: Request, res: Response) => {
+router.post("/subjects", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
     const { name, color, icon, class: className, section, subjectCode, medium, description, status } = req.body;
     if (!name) return res.status(400).json({ error: "Name is required" });
@@ -82,7 +89,7 @@ router.post("/subjects", async (req: Request, res: Response) => {
 });
 
 // Update a subject
-router.put("/subjects/:id", async (req: Request, res: Response) => {
+router.put("/subjects/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, color, icon, class: className, section, subjectCode, medium, description, status } = req.body;
@@ -99,7 +106,7 @@ router.put("/subjects/:id", async (req: Request, res: Response) => {
 });
 
 // Delete a subject
-router.delete("/subjects/:id", async (req: Request, res: Response) => {
+router.delete("/subjects/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.academicSubject.delete({
@@ -145,7 +152,7 @@ router.get("/resources", async (req: Request, res: Response) => {
 });
 
 // Create a resource
-router.post("/resources", async (req: Request, res: Response) => {
+router.post("/resources", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
     const { 
       title, subjectId, category, type, url, meta, description, addedBy, isNew, popular, 
@@ -175,7 +182,7 @@ router.post("/resources", async (req: Request, res: Response) => {
 });
 
 // Update a resource
-router.put("/resources/:id", async (req: Request, res: Response) => {
+router.put("/resources/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { 
@@ -203,7 +210,7 @@ router.put("/resources/:id", async (req: Request, res: Response) => {
 });
 
 // Delete a resource
-router.delete("/resources/:id", async (req: Request, res: Response) => {
+router.delete("/resources/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.academicResource.delete({

@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { Role } from '@prisma/client';
 import { hashPassword, verifyPassword } from '../utils/password';
+import { signAuthToken } from '../utils/jwt';
+import { requireMinRole } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -24,7 +26,7 @@ const SAFE_USER_SELECT = {
 } as const;
 
 // GET /api/users - List users by role
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', requireMinRole('HEADMASTER'), async (req: Request, res: Response) => {
   try {
     const { role } = req.query;
     if (role && !Object.values(Role).includes(role as Role)) {
@@ -44,11 +46,11 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // POST /api/users - Create a new user
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', requireMinRole('BEO'), async (req: Request, res: Response) => {
   try {
     const { name, email, mobile, role, password, schoolId } = req.body;
-    if (!name || !email || !role) {
-      return res.status(400).json({ success: false, error: 'Name, email, and role are required' });
+    if (!name || !email || !role || !password) {
+      return res.status(400).json({ success: false, error: 'Name, email, role, and password are required' });
     }
 
     if (!Object.values(Role).includes(role as Role)) {
@@ -76,7 +78,7 @@ router.post('/', async (req: Request, res: Response) => {
         email,
         mobile: mobile || null,
         role: role as Role,
-        passwordHash: await hashPassword(password || "123456"),
+        passwordHash: await hashPassword(password),
         schoolId: schoolId || null,
       },
       select: SAFE_USER_SELECT,
@@ -90,7 +92,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // PUT /api/users/:id - Update a user
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', requireMinRole('BEO'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, email, mobile, password, schoolId, district, block, assignedRegion } = req.body;
@@ -139,7 +141,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 });
 
 // DELETE /api/users/:id - Delete a user and all dependent records
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', requireMinRole('BEO'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -245,16 +247,8 @@ router.post('/auth', async (req: Request, res: Response) => {
         parentMobile === cleanPhone;
 
       if (!matchesPhone) {
-        console.warn(`Auth failed for roll ${cleanRoll}: incorrect phone number provided.`);
         return res.status(400).json({ success: false, error: 'Incorrect phone number.' });
       }
-
-    console.log("Student Login:");
-console.log({
-  schoolId: student.schoolId,
-  class: student.class,
-  section: student.section,
-});
 
 return res.json({
   success: true,
@@ -270,6 +264,13 @@ return res.json({
     section: student.section,
     studentId: student.id,           // Student record ID (for leave, homework, etc.)
     rollNumber: student.rollNumber,  // Roll number for display
+    token: signAuthToken({
+      id: student.user.id,
+      role: 'STUDENT',
+      schoolId: student.schoolId,
+      studentId: student.id,
+      name: student.user.name,
+    }),
   }),
 });
     } else {
@@ -296,9 +297,10 @@ return res.json({
         if (teacher && await verifyPassword(password, teacher.password)) {
           isPasswordValid = true;
           // Synchronize password to PostgreSQL User table for future logins
+          // (always store a bcrypt hash — never copy a possibly-plaintext value)
           await prisma.user.update({
             where: { id: pgUser.id },
-            data: { passwordHash: teacher.password }
+            data: { passwordHash: await hashPassword(password) }
           });
         }
       }
@@ -311,9 +313,10 @@ return res.json({
         if (parent && await verifyPassword(password, parent.password)) {
           isPasswordValid = true;
           // Synchronize password to PostgreSQL User table for future logins
+          // (always store a bcrypt hash — never copy a possibly-plaintext value)
           await prisma.user.update({
             where: { id: pgUser.id },
-            data: { passwordHash: parent.password }
+            data: { passwordHash: await hashPassword(password) }
           });
         }
       }
@@ -336,15 +339,24 @@ return res.json({
         });
 
         const teacherSubject = teacher?.subject ?? "General";
+        const teacherRole = isPetSubject(teacherSubject) ? "PET" : "TEACHER";
+        const teacherId = teacher?.id ?? pgUser.id;
+        const teacherSchoolId = teacher?.schoolId ?? pgUser.schoolId;
         return res.json({
             success: true,
             data: await withSchoolInfo({
-                id: teacher?.id ?? pgUser.id,
+                id: teacherId,
                 name: teacher?.name ?? pgUser.name,
                 email: pgUser.email,
-                role: isPetSubject(teacherSubject) ? "PET" : "TEACHER",
-                schoolId: teacher?.schoolId ?? pgUser.schoolId,
+                role: teacherRole,
+                schoolId: teacherSchoolId,
                 subject: teacherSubject,
+                token: signAuthToken({
+                    id: teacherId,
+                    role: teacherRole,
+                    schoolId: teacherSchoolId,
+                    name: teacher?.name ?? pgUser.name,
+                }),
             }),
         });
     }
@@ -361,6 +373,12 @@ return res.json({
             district: (pgUser as any).district || null,
             block: (pgUser as any).block || null,
             assignedRegion: (pgUser as any).assignedRegion || null,
+            token: signAuthToken({
+                id: pgUser.id,
+                role: pgUser.role,
+                schoolId: pgUser.schoolId,
+                name: pgUser.name,
+            }),
         }),
     });
 }
@@ -373,15 +391,22 @@ return res.json({
         if (!(await verifyPassword(password, staffMember.password))) {
           return res.status(400).json({ success: false, error: 'Invalid password.' });
         }
+        const staffRole = isPetSubject(staffMember.subject) ? 'PET' : 'TEACHER';
         return res.json({
           success: true,
           data: await withSchoolInfo({
             id: String(staffMember.id),
             name: staffMember.name,
             email: staffMember.email || cleanEmail,
-            role: isPetSubject(staffMember.subject) ? 'PET' : 'TEACHER',
+            role: staffRole,
             schoolId: staffMember.schoolId || null,
-            subject: staffMember.subject || 'General'
+            subject: staffMember.subject || 'General',
+            token: signAuthToken({
+              id: String(staffMember.id),
+              role: staffRole,
+              schoolId: staffMember.schoolId || null,
+              name: staffMember.name,
+            }),
           })
         });
       }
@@ -402,7 +427,13 @@ return res.json({
             name: parentMember.name,
             email: parentMember.email || cleanEmail,
             role: 'PARENT',
-            schoolId: parentMember.schoolId || null
+            schoolId: parentMember.schoolId || null,
+            token: signAuthToken({
+              id: String(parentMember.id),
+              role: 'PARENT',
+              schoolId: parentMember.schoolId || null,
+              name: parentMember.name,
+            }),
           })
         });
       }

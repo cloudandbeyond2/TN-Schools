@@ -1,7 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { requireMinRole } from '../middleware/auth.middleware';
 
 const router = Router();
+
+// Governance data — commissioner level and above only.
+router.use(requireMinRole('COMMISSIONER'));
 
 // ─── GET /api/commissioner/analytics ──────────────────────────────────────────
 router.get('/analytics', async (_req: Request, res: Response) => {

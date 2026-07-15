@@ -5,34 +5,8 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv'; // trigger nodemon reload
 import { connectMongoDB } from './config/db';
 import { prisma } from './config/prisma';
-import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-// Startup copy task for premium educational infographic assets
-try {
-  const destDir = path.join(__dirname, '../../frontend/public/images');
-  if (!fs.existsSync(destDir)) {
-    fs.mkdirSync(destDir, { recursive: true });
-  }
-
-  // 1. Smart Farm Sync
-  const srcFarm = "C:\\Users\\WIN\\.gemini\\antigravity-ide\\brain\\7e726b9b-a531-4fad-84b7-139b9c7a801c\\smart_farm_infographic_1782371804730.png";
-  const destFarm = path.join(destDir, "smart_farm_infographic.png");
-  if (fs.existsSync(srcFarm)) {
-    fs.copyFileSync(srcFarm, destFarm);
-    console.log("✅ [Startup Image Sync] Copied generated smart farm infographic to frontend!");
-  }
-
-  // 2. Laboratory Classroom Sync
-  const srcLab = "C:\\Users\\WIN\\.gemini\\antigravity-ide\\brain\\7e726b9b-a531-4fad-84b7-139b9c7a801c\\laboratory_lesson_infographic_1782372221562.png";
-  const destLab = path.join(destDir, "laboratory_lesson_infographic.png");
-  if (fs.existsSync(srcLab)) {
-    fs.copyFileSync(srcLab, destLab);
-    console.log("✅ [Startup Image Sync] Copied generated laboratory lesson infographic to frontend!");
-  }
-} catch (e) {
-  console.error("❌ [Startup Image Sync] Failed to copy images:", e);
-}
 
 // Route imports
 import aiRoutes from './routes/ai.routes';
@@ -91,7 +65,7 @@ const allowedOrigins = [
   "https://tn-schools.vercel.app",
 ];
 
-app.use(cors({
+const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
 
@@ -108,13 +82,14 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: [
     "Content-Type",
-    "Authorization",
-    "x-user-role",
-    "X-User-Role"
+    "Authorization"
   ]
-}));
+};
 
-app.options("*", cors());
+app.use(cors(corsOptions));
+
+// Preflight must use the same strict options as regular requests
+app.options("*", cors(corsOptions));
 
 // ─── Security Headers ────────────────────────────────────────────
 app.use(helmet({
@@ -142,8 +117,10 @@ const globalLimiter = rateLimit({
 app.use('/api', globalLimiter);
 
 // ─── Other Middleware ──────────────────────────────────────────────
-app.use(express.json({ limit: '150mb' }));
-app.use(express.urlencoded({ limit: '150mb', extended: true }));
+// Large binary uploads go through multer (with per-route size caps), so JSON
+// bodies only need headroom for base64 image payloads used by a few AI flows.
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ limit: '25mb', extended: true }));
 
 // Serve uploaded files statically
 const uploadsDir = path.join(__dirname, '../uploads');
