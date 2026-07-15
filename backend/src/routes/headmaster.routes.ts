@@ -1121,6 +1121,36 @@ router.post('/pta-meetings', async (req: Request, res: Response) => {
         agenda: Array.isArray(agenda) ? agenda : [],
       },
     });
+
+    // Notify all parents of this school about the new PTA meeting
+    if (schoolId) {
+      try {
+        const parents = await prisma.headmasterParent.findMany({
+          where: { schoolId },
+          select: { id: true }
+        });
+
+        const meetingDateFormatted = new Date(meetingDate).toLocaleDateString('en-IN', {
+          day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        if (parents.length > 0) {
+          await prisma.parentNotification.createMany({
+            data: parents.map(p => ({
+              parentId: p.id,
+              type: 'PTA_MEETING',
+              title: `📅 New PTA Meeting Scheduled`,
+              message: `"${title}" has been scheduled on ${meetingDateFormatted} at ${venue || 'School Auditorium'}. Please confirm your attendance in the Parent Portal.`,
+              isRead: false,
+            }))
+          });
+        }
+      } catch (notifErr) {
+        // Notification failure should not block the meeting creation response
+        console.error('[PTA Meeting Notification Error]', notifErr);
+      }
+    }
+
     res.status(201).json({ success: true, data: meeting });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });

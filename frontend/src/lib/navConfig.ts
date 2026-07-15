@@ -405,7 +405,6 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Awards & Certifications", href: "/pet/awards", icon: "Trophy" },
       { label: "Ground Condition", href: "/pet/ground-condition", icon: "Map" },
       { label: "Clubs & Activities", href: "/pet/clubs", icon: "Users" },
-      { label: "Parent Messages", href: "/pet/messages", icon: "MessageSquare" },
     ],
   },
   TEACHER: {
