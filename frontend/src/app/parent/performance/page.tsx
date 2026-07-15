@@ -594,7 +594,7 @@ export default function PerformancePage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="data-table">
+            <table className="data-table w-full min-w-[500px]">
               <thead>
                 <tr>
                   <th className="w-44" style={{ textAlign: "left" }}>Subject</th>
@@ -736,7 +736,7 @@ export default function PerformancePage() {
                   No records matching the selected filter criteria.
                 </div>
               ) : (
-                <table className="data-table">
+                <table className="data-table w-full min-w-[700px]">
                   <thead>
                     <tr>
                       <th className="text-left">Subject</th>

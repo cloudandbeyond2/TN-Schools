@@ -92,9 +92,6 @@ export default function ParentDashboard() {
   const [perfLoading, setPerfLoading] = useState(false);
   const [refreshing, setRefreshing]   = useState(false);
 
-  // Archive accordion toggle
-  const [showArchive, setShowArchive] = useState(false);
-
   // View toggle: Chart vs Table
   const [perfViewMode, setPerfViewMode] = useState<"CHART" | "TABLE">("CHART");
 
@@ -398,27 +395,14 @@ export default function ParentDashboard() {
         </div>
       )}
 
-      {/* ── Collapsible Historical Archives Section ────────────────── */}
+      {/* ── Current Year Academic KPIs ────────────────────────────── */}
       {activeChild && (
         <div className="bg-slate-50 dark:bg-slate-955/20 border border-slate-205 dark:border-slate-800/80 rounded-2xl p-5 mb-6 shadow-md">
-          <button 
-            onClick={() => setShowArchive(!showArchive)}
-            className="w-full flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-350 hover:text-emerald-500 transition-colors uppercase tracking-wider"
-          >
-            <span className="flex items-center gap-2">
-              <i className="fi fi-rr-time-past text-slate-405"></i> Academic History Archive ({activeChild.name.split(" ")[0]})
-            </span>
-            <i className={`fi ${showArchive ? "fi-rr-angle-small-up" : "fi-rr-angle-small-down"} text-base`}></i>
-          </button>
-          {showArchive && (
-            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800/60 animate-in fade-in duration-200">
-              <PersonalKpiStrip
-                studentId={activeChild.studentId}
-                title="Historical Academic Records"
-                variant="light"
-              />
-            </div>
-          )}
+          <PersonalKpiStrip
+            studentId={activeChild.studentId}
+            title={`Academic Performance — ${activeChild.name.split(" ")[0]}`}
+            variant="light"
+          />
         </div>
       )}
 
@@ -512,10 +496,6 @@ export default function ParentDashboard() {
                     </div>
                   )}
 
-                  <div className="flex items-center gap-1.5 text-[10px] text-slate-450 dark:text-slate-500 mt-3.5 pt-2 border-t border-slate-50 dark:border-slate-800/40 font-semibold">
-                    <span className={`w-1.5 h-1.5 rounded-full ${rawVal >= 75 ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                    <span>Real-time DB Connection Active</span>
-                  </div>
                 </div>
               );
             })}
@@ -650,7 +630,7 @@ export default function ParentDashboard() {
                 ) : selectedExam === "ALL" ? (
                   /* ALL Exams - Full comparison table */
                   <div className="overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-left border-collapse text-xs">
+                    <table className="w-full text-left border-collapse text-xs min-w-[500px]">
                       <thead>
                         <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold">
                           <th className="py-2.5 px-3">Subject</th>
@@ -878,17 +858,51 @@ export default function ParentDashboard() {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "Attendance", href: "/parent/attendance", icon: "fi-rr-calendar", color: "from-emerald-500/10 to-teal-500/5 hover:border-emerald-500/40 text-emerald-600 dark:text-emerald-400" },
-              { label: "Homework",   href: "/parent/homework",   icon: "fi-rr-document-signed", color: "from-blue-500/10 to-cyan-500/5 hover:border-blue-500/40 text-blue-600 dark:text-blue-400" },
-              { label: "Scholarship",href: "/parent/scholarship",icon: "fi-rr-graduation-cap", color: "from-purple-500/10 to-violet-500/5 hover:border-purple-500/40 text-purple-600 dark:text-purple-400" },
-              { label: "PTA Meetings",href: "/parent/pta",      icon: "fi-rr-users", color: "from-amber-500/10 to-orange-500/5 hover:border-amber-500/40 text-amber-600 dark:text-amber-400" },
+              { 
+                label: "Attendance", 
+                href: "/parent/attendance", 
+                icon: "fi-rr-calendar", 
+                bg: "from-emerald-500/10 to-teal-500/5 hover:from-emerald-500/15 hover:to-teal-500/10", 
+                border: "border-emerald-500/20 dark:border-emerald-500/10 hover:border-emerald-500/40", 
+                text: "text-emerald-700 dark:text-emerald-400",
+                iconBg: "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300"
+              },
+              { 
+                label: "Homework",   
+                href: "/parent/homework",   
+                icon: "fi-rr-document-signed", 
+                bg: "from-blue-500/10 to-cyan-500/5 hover:from-blue-500/15 hover:to-cyan-500/10", 
+                border: "border-blue-500/20 dark:border-blue-500/10 hover:border-blue-500/40", 
+                text: "text-blue-700 dark:text-blue-400",
+                iconBg: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300"
+              },
+              { 
+                label: "Scholarship",
+                href: "/parent/scholarship",
+                icon: "fi-rr-graduation-cap", 
+                bg: "from-purple-500/10 to-violet-500/5 hover:from-purple-500/15 hover:to-violet-500/10", 
+                border: "border-purple-500/20 dark:border-purple-500/10 hover:border-purple-500/40", 
+                text: "text-purple-700 dark:text-purple-400",
+                iconBg: "bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-300"
+              },
+              { 
+                label: "PTA Meetings",
+                href: "/parent/pta",      
+                icon: "fi-rr-users", 
+                bg: "from-amber-500/10 to-orange-500/5 hover:from-amber-500/15 hover:to-orange-500/10", 
+                border: "border-amber-500/20 dark:border-amber-500/10 hover:border-amber-500/40", 
+                text: "text-amber-700 dark:text-amber-400",
+                iconBg: "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300"
+              },
             ].map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-3.5 p-4.5 rounded-xl bg-gradient-to-br ${item.color} border border-slate-200 dark:border-slate-800 hover:scale-[1.03] hover:-translate-y-0.5 transition-all duration-300 shadow-sm`}
+                className={`flex items-center gap-3.5 p-2 px-3 rounded-full bg-gradient-to-r ${item.bg} ${item.border} ${item.text} hover:scale-[1.03] hover:-translate-y-0.5 transition-all duration-300 shadow-sm border`}
               >
-                <i className={`fi ${item.icon} text-lg shrink-0`}></i>
+                <div className={`w-9 h-9 rounded-full ${item.iconBg} flex items-center justify-center shrink-0`}>
+                  <i className={`fi ${item.icon} text-xs`}></i>
+                </div>
                 <span className="text-xs font-bold">{item.label}</span>
               </Link>
             ))}
@@ -931,11 +945,11 @@ export default function ParentDashboard() {
                       : "Loading…",
                   },
                 ].map((card) => (
-                  <div key={card.label} className="bg-slate-50 dark:bg-slate-955/20 rounded-xl p-4.5 border border-slate-205 dark:border-slate-800 hover:scale-[1.01] transition-transform">
-                    <span className={`w-8 h-8 rounded-lg ${card.bg} border ${card.border} flex items-center justify-center mb-3`}>
+                  <div key={card.label} className="bg-slate-50 dark:bg-slate-955/20 rounded-xl px-6 py-5 border border-slate-205 dark:border-slate-800 hover:scale-[1.01] transition-transform">
+                    <div className={`w-10 h-10 rounded-full ${card.bg} border ${card.border} flex items-center justify-center mb-4`}>
                       <i className={`fi ${card.icon} ${card.color} text-xs`}></i>
-                    </span>
-                    <div className="text-xs font-bold text-slate-800 dark:text-slate-355 mb-1">{card.label}</div>
+                    </div>
+                    <div className="text-xs font-bold text-slate-880 dark:text-slate-355 mb-2">{card.label}</div>
                     <p className="text-xs text-slate-655 dark:text-slate-400 font-normal leading-relaxed">{card.desc}</p>
                   </div>
                 ))}

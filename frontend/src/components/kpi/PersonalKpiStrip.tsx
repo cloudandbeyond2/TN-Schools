@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { CalendarCheck, BookOpenCheck, GraduationCap, Layers } from "lucide-react";
 import KpiCard from "./KpiCard";
-import AcademicYearSelect from "./AcademicYearSelect";
-import { API_BASE, useAcademicYears } from "./useKpis";
+import { API_BASE } from "./useKpis";
 
 interface PersonalKpis {
   academicYear: string;
@@ -25,19 +23,20 @@ interface Props {
 }
 
 /**
- * Academic-year KPI row for a single student (student & parent panels).
- * Past years come from the promotion archive; the current year is live.
+ * Current-year KPI row for a single student (student & parent panels).
+ * Always shows live data for the student's most recent academic year — no year selector.
+ * The backend auto-detects the correct year from the student's own mark records.
  */
 export default function PersonalKpiStrip({ studentId, title = "My Academic KPIs", variant = "light" }: Props) {
-  const { years, selected: academicYear, setSelected: setAcademicYear } = useAcademicYears();
   const [data, setData] = useState<PersonalKpis | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!studentId || !academicYear) return;
+    if (!studentId) return;
     let cancelled = false;
     setLoading(true);
-    fetch(`${API_BASE}/api/analytics/student/${studentId}?academicYear=${academicYear}`)
+    // No academicYear param — backend auto-detects from student's latest marks
+    fetch(`${API_BASE}/api/analytics/student/${studentId}`)
       .then((r) => r.json())
       .then((json) => {
         if (!cancelled && json.success) setData(json.data);
@@ -46,10 +45,8 @@ export default function PersonalKpiStrip({ studentId, title = "My Academic KPIs"
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [studentId, academicYear]);
+    return () => { cancelled = true; };
+  }, [studentId]);
 
   if (!studentId) return null;
 
@@ -64,10 +61,9 @@ export default function PersonalKpiStrip({ studentId, title = "My Academic KPIs"
             <i className="fi fi-rr-chart-histogram text-emerald-500 mr-2"></i> {title}
           </h2>
           <p className="text-[11px] text-slate-500">
-            {data?.source === "snapshot" ? "Archived year — from your academic history" : "Live data for the selected academic year"}
+            Live data for academic year{data?.academicYear ? ` ${data.academicYear}` : ""}
           </p>
         </div>
-        <AcademicYearSelect years={years} value={academicYear} onChange={setAcademicYear} variant={variant} />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard
