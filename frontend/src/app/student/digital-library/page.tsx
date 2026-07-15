@@ -96,10 +96,10 @@ export default function DigitalLibraryPage() {
               <span className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold bg-white/20 dark:bg-white/10 backdrop-blur-md rounded-full border border-white/30 dark:border-white/20 text-white uppercase tracking-widest shadow-xl">
                 <img src="https://cdn-icons-png.flaticon.com/128/1666/1666579.png" className="w-4 h-4" alt="sparkles" /> Premium Knowledge Hub
               </span>
-              <h2 className="text-4xl md:text-5xl font-black tracking-tight font-sans leading-tight text-white">
+              <h2 className="text-4xl md:text-5xl font-black tracking-tight font-sans leading-tight !text-amber-300 drop-shadow-lg">
                 Limitless Learning, Anytime.
               </h2>
-              <p className="text-indigo-50 text-base md:text-lg leading-relaxed font-medium">
+              <p className="!text-white/90 text-base md:text-lg leading-relaxed font-medium drop-shadow">
                 Explore an extensive collection of E-books, Government materials, Video lectures, and Competitive exam prep. Your ultimate academic companion.
               </p>
             </div>
