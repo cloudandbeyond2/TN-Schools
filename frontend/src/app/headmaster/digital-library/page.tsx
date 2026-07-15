@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
-import { Upload, CheckCircle2, AlertCircle, Check, X, FileText, Clock, Library, Trash2 } from "lucide-react";
+import { Upload, CheckCircle2, AlertCircle, Check, X, FileText, Clock, Library, Trash2, Folder, ChevronRight } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 const CATEGORIES = [
@@ -34,6 +34,8 @@ export default function HeadmasterDigitalLibraryPage() {
   // All Resources State
   const [allResources, setAllResources] = useState<any[]>([]);
   const [allResourcesLoading, setAllResourcesLoading] = useState(true);
+  const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
 
   const fetchPending = async () => {
     if (!(session?.user as any)?.schoolId) return;
@@ -309,44 +311,94 @@ export default function HeadmasterDigitalLibraryPage() {
                 <p className="text-slate-500 mt-2">Your school's library is empty.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4">
-                {allResources.map((item) => (
-                  <div key={item.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6 overflow-hidden">
-                    <div className="flex-1 space-y-2 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold bg-sky-100 text-sky-700 rounded-lg">{item.type}</span>
-                        <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold bg-slate-100 text-slate-600 rounded-lg">Class {item.class}</span>
-                        <span className={`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded-lg ${item.approvalStatus === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : item.approvalStatus === 'REJECTED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
-                          {item.approvalStatus}
-                        </span>
-                        <span className="text-[10px] sm:text-xs text-slate-500 font-medium break-all">Uploaded by: {item.uploadedByRole}</span>
-                      </div>
-                      <h4 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white leading-tight">{item.title}</h4>
-                      <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{item.description}</p>
-                      <div className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">Subject: {item.subject}</div>
-                    </div>
-                    
-                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto flex-shrink-0">
+              <div className="space-y-6">
+                {/* Breadcrumbs */}
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                  <button onClick={() => { setSelectedGrade(null); setSelectedSubject(null); }} className="hover:text-sky-600 transition-colors">Resources</button>
+                  {selectedGrade && (
+                    <>
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                      <button onClick={() => setSelectedSubject(null)} className="hover:text-sky-600 transition-colors">Class {selectedGrade}</button>
+                    </>
+                  )}
+                  {selectedGrade && selectedSubject && (
+                    <>
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                      <span className="text-slate-800 dark:text-white">{selectedSubject}</span>
+                    </>
+                  )}
+                </div>
+
+                {!selectedGrade ? (
+                  /* Grade Folders */
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {Array.from(new Set(allResources.map(r => r.class))).sort((a, b) => Number(a) - Number(b)).map(grade => (
                       <button 
-                        onClick={() => {
-                          const url = item.fileUrl?.startsWith('/') 
-                            ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${item.fileUrl}` 
-                            : item.fileUrl;
-                          window.open(url, '_blank');
-                        }}
-                        className="w-full sm:w-auto flex items-center justify-center gap-1 sm:gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-sky-50 text-sky-600 hover:bg-sky-100 text-sm font-bold rounded-xl transition-all"
+                        key={grade} 
+                        onClick={() => setSelectedGrade(grade as string)}
+                        className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-sky-500 hover:shadow-md transition-all group"
                       >
-                        <img src="https://cdn-icons-png.flaticon.com/128/2983/2983155.png" className="w-4 h-4 sm:w-5 sm:h-5" alt="view" /> View
+                        <Folder className="w-12 h-12 text-sky-500 group-hover:scale-110 transition-transform mb-3" />
+                        <span className="font-bold text-slate-800 dark:text-white">Class {grade}</span>
+                        <span className="text-xs text-slate-500 mt-1">{allResources.filter(r => r.class === grade).length} resources</span>
                       </button>
-                      <button 
-                        onClick={() => handleDelete(item.id)}
-                        className="w-full sm:w-auto flex items-center justify-center gap-1 sm:gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-white border-2 border-rose-100 hover:border-rose-500 hover:bg-rose-50 text-rose-600 text-sm font-bold rounded-xl transition-all"
-                      >
-                        <img src="https://cdn-icons-png.flaticon.com/128/3096/3096673.png" className="w-4 h-4 sm:w-5 sm:h-5" alt="delete" /> Delete
-                      </button>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                ) : !selectedSubject ? (
+                  /* Subject Folders */
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {Array.from(new Set(allResources.filter(r => r.class === selectedGrade).map(r => r.subject))).sort().map(subject => (
+                      <button 
+                        key={subject as string} 
+                        onClick={() => setSelectedSubject(subject as string)}
+                        className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-emerald-500 hover:shadow-md transition-all group"
+                      >
+                        <Folder className="w-12 h-12 text-emerald-500 group-hover:scale-110 transition-transform mb-3" />
+                        <span className="font-bold text-slate-800 dark:text-white">{subject as string}</span>
+                        <span className="text-xs text-slate-500 mt-1">{allResources.filter(r => r.class === selectedGrade && r.subject === subject).length} items</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  /* Resources List */
+                  <div className="grid grid-cols-1 gap-4">
+                    {allResources.filter(item => item.class === selectedGrade && item.subject === selectedSubject).map((item) => (
+                      <div key={item.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6 overflow-hidden">
+                        <div className="flex-1 space-y-2 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold bg-sky-100 text-sky-700 rounded-lg">{item.type}</span>
+                            <span className={`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded-lg ${item.approvalStatus === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : item.approvalStatus === 'REJECTED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {item.approvalStatus}
+                            </span>
+                            <span className="text-[10px] sm:text-xs text-slate-500 font-medium break-all">Uploaded by: {item.uploadedByRole}</span>
+                          </div>
+                          <h4 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white leading-tight">{item.title}</h4>
+                          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{item.description}</p>
+                        </div>
+                        
+                        <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto flex-shrink-0">
+                          <button 
+                            onClick={() => {
+                              const url = item.fileUrl?.startsWith('/') 
+                                ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${item.fileUrl}` 
+                                : item.fileUrl;
+                              window.open(url, '_blank');
+                            }}
+                            className="w-full sm:w-auto flex items-center justify-center gap-1 sm:gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-sky-50 text-sky-600 hover:bg-sky-100 text-sm font-bold rounded-xl transition-all"
+                          >
+                            <img src="https://cdn-icons-png.flaticon.com/128/2983/2983155.png" className="w-4 h-4 sm:w-5 sm:h-5" alt="view" /> View
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(item.id)}
+                            className="w-full sm:w-auto flex items-center justify-center gap-1 sm:gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-white border-2 border-rose-100 hover:border-rose-500 hover:bg-rose-50 text-rose-600 text-sm font-bold rounded-xl transition-all"
+                          >
+                            <img src="https://cdn-icons-png.flaticon.com/128/3096/3096673.png" className="w-4 h-4 sm:w-5 sm:h-5" alt="delete" /> Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
