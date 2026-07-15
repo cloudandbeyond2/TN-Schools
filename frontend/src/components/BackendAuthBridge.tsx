@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { getSession, useSession } from "next-auth/react";
 import { API_URL } from "@/lib/api";
 
 // Transitional bridge: the app has ~180 pages that call the backend with raw
@@ -19,16 +19,23 @@ function patchFetch() {
   patched = true;
 
   const originalFetch = window.fetch.bind(window);
-  window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+  window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     try {
       const url =
         typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-      if (currentToken && url.startsWith(API_URL)) {
+      if (url.startsWith(API_URL)) {
+        let token = currentToken;
+        if (!token) {
+          const session = await getSession();
+          token = ((session?.user as any)?.backendToken as string) || null;
+          currentToken = token;
+        }
+
         const headers = new Headers(
           init?.headers || (input instanceof Request ? input.headers : undefined)
         );
-        if (!headers.has("Authorization")) {
-          headers.set("Authorization", `Bearer ${currentToken}`);
+        if (token && !headers.has("Authorization")) {
+          headers.set("Authorization", `Bearer ${token}`);
         }
         return originalFetch(input, { ...init, headers });
       }
