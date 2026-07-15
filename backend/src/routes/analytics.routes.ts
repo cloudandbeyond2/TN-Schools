@@ -126,7 +126,6 @@ router.get('/class', async (req: Request, res: Response) => {
 router.get('/student/:studentId', async (req: Request, res: Response) => {
   try {
     const studentId = req.params.studentId;
-    const year = resolveYear(req);
 
     const student = await prisma.student.findUnique({
       where: { id: studentId },
@@ -134,66 +133,107 @@ router.get('/student/:studentId', async (req: Request, res: Response) => {
     });
     if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
 
-    // Past year with a snapshot → serve the snapshot
-    const history = await prisma.studentAcademicHistory.findFirst({
-      where: { studentId, academicYear: { in: yearVariants(year) } },
-    });
-    if (history) {
-      return res.json({
-        success: true,
-        data: {
-          academicYear: year,
-          source: 'snapshot',
-          class: history.class,
-          section: history.section,
-          group: history.group,
-          result: history.result,
-          attendancePct: history.attendancePct,
-          averageMarksPct: history.averageMarksPct,
-          marksSummary: history.marksSummary,
-        },
-      });
-    }
-
-    // Live computation
+    // Attendance — all records
     let attendancePct: number | null = null;
-    const range = yearToDateRange(year);
-    if (range) {
-      const [present, total] = await Promise.all([
-        prisma.attendance.count({
-          where: { studentId, date: { gte: range[0], lte: range[1] }, status: { in: ['PRESENT', 'LATE'] } },
-        }),
-        prisma.attendance.count({ where: { studentId, date: { gte: range[0], lte: range[1] } } }),
-      ]);
-      if (total > 0) attendancePct = Math.round((present / total) * 1000) / 10;
-    }
+    const [present, total] = await Promise.all([
+      prisma.attendance.count({ where: { studentId, status: { in: ['PRESENT', 'LATE'] } } }),
+      prisma.attendance.count({ where: { studentId } }),
+    ]);
+    if (total > 0) attendancePct = Math.round((present / total) * 1000) / 10;
 
-    const marks = await prisma.mark.groupBy({
-      by: ['subject'],
-      where: { studentId, academicYear: { in: yearVariants(year) } },
-      _sum: { scored: true, maxMarks: true },
-      _count: { _all: true },
+    // Check if student has ModelExamResults
+    const modelExamResults = await prisma.modelExamResult.findMany({
+      where: {
+        studentId,
+        exam: { isLocked: true },
+      },
+      include: { exam: true },
     });
+
     let scoredSum = 0;
     let maxSum = 0;
-    const marksSummary = marks.map((m) => {
-      const scored = m._sum.scored || 0;
-      const max = m._sum.maxMarks || 0;
-      scoredSum += scored;
-      maxSum += max;
-      return {
-        subject: m.subject,
-        exams: m._count._all,
-        scored,
-        maxMarks: max,
-        pct: max > 0 ? Math.round((scored / max) * 1000) / 10 : null,
-      };
-    });
+    let marksSummary: any[] = [];
+
+    if (modelExamResults.length > 0) {
+      const subjectSums: Record<string, { scored: number; max: number; count: number }> = {};
+      for (const r of modelExamResults) {
+        if (r.tamil !== null) {
+          if (!subjectSums['Tamil']) subjectSums['Tamil'] = { scored: 0, max: 0, count: 0 };
+          subjectSums['Tamil'].scored += r.tamil;
+          subjectSums['Tamil'].max += 100;
+          subjectSums['Tamil'].count++;
+        }
+        if (r.english !== null) {
+          if (!subjectSums['English']) subjectSums['English'] = { scored: 0, max: 0, count: 0 };
+          subjectSums['English'].scored += r.english;
+          subjectSums['English'].max += 100;
+          subjectSums['English'].count++;
+        }
+        if (r.mathematics !== null) {
+          if (!subjectSums['Mathematics']) subjectSums['Mathematics'] = { scored: 0, max: 0, count: 0 };
+          subjectSums['Mathematics'].scored += r.mathematics;
+          subjectSums['Mathematics'].max += 100;
+          subjectSums['Mathematics'].count++;
+        }
+        if (r.science !== null) {
+          if (!subjectSums['Science']) subjectSums['Science'] = { scored: 0, max: 0, count: 0 };
+          subjectSums['Science'].scored += r.science;
+          subjectSums['Science'].max += 100;
+          subjectSums['Science'].count++;
+        }
+        if (r.socialScience !== null) {
+          if (!subjectSums['Social Science']) subjectSums['Social Science'] = { scored: 0, max: 0, count: 0 };
+          subjectSums['Social Science'].scored += r.socialScience;
+          subjectSums['Social Science'].max += 100;
+          subjectSums['Social Science'].count++;
+        }
+        if (r.extraSubject !== null && r.extraSubjectName) {
+          const extraName = r.extraSubjectName;
+          if (!subjectSums[extraName]) subjectSums[extraName] = { scored: 0, max: 0, count: 0 };
+          subjectSums[extraName].scored += r.extraSubject;
+          subjectSums[extraName].max += 100;
+          subjectSums[extraName].count++;
+        }
+      }
+
+      marksSummary = Object.entries(subjectSums).map(([subj, s]) => {
+        scoredSum += s.scored;
+        maxSum += s.max;
+        return {
+          subject: subj,
+          exams: s.count,
+          scored: s.scored,
+          maxMarks: s.max,
+          pct: s.max > 0 ? Math.round((s.scored / s.max) * 1000) / 10 : null,
+        };
+      });
+    } else {
+      // Fallback: Marks — all records, no year filter
+      const marks = await prisma.mark.groupBy({
+        by: ['subject'],
+        where: { studentId },
+        _sum: { scored: true, maxMarks: true },
+        _count: { _all: true },
+      });
+      marksSummary = marks.map((m) => {
+        const scored = m._sum.scored || 0;
+        const max = m._sum.maxMarks || 0;
+        scoredSum += scored;
+        maxSum += max;
+        return {
+          subject: m.subject,
+          exams: m._count._all,
+          scored,
+          maxMarks: max,
+          pct: max > 0 ? Math.round((scored / max) * 1000) / 10 : null,
+        };
+      });
+    }
 
     res.json({
       success: true,
       data: {
-        academicYear: year,
+        academicYear: student.academicYear || '',
         source: 'live',
         class: student.class,
         section: student.section,

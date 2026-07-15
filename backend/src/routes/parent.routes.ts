@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { currentAcademicYear, yearVariants } from '../services/kpi.service';
 import { callGemini } from './ai.routes';
 
 const router = Router();
@@ -91,19 +92,39 @@ router.get('/:parentId/child/:studentId/summary', async (req: Request, res: Resp
     });
     if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
 
-    // Overall academic year attendance
-    const attendanceRecords = await prisma.attendance.findMany({
-      where: { studentId },
-    });
+    // Attendance — all records for this student
+    const attendanceRecords = await prisma.attendance.findMany({ where: { studentId } });
     const totalDays = attendanceRecords.length;
     const presentDays = attendanceRecords.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length;
     const attendancePct = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
 
-    // Overall average mark (latest academic year)
-    const marks = await prisma.mark.findMany({ where: { studentId } });
-    const avgMark = marks.length > 0
-      ? Math.round(marks.reduce((sum, m) => sum + (m.scored / m.maxMarks) * 100, 0) / marks.length)
-      : 0;
+    // Check if student has ModelExamResults
+    const modelExamResults = await prisma.modelExamResult.findMany({
+      where: {
+        studentId,
+        exam: { isLocked: true },
+      },
+      include: { exam: true },
+    });
+
+    let avgMark = 0;
+
+    if (modelExamResults.length > 0) {
+      // Calculate overall average mark using ModelExamResult
+      let totalScored = 0;
+      let totalMax = 0;
+      for (const r of modelExamResults) {
+        totalScored += r.total || 0;
+        totalMax += r.maxTotal || 500;
+      }
+      avgMark = totalMax > 0 ? Math.round((totalScored / totalMax) * 100) : 0;
+    } else {
+      // Fallback: Marks — all records for this student
+      const marks = await prisma.mark.findMany({ where: { studentId } });
+      avgMark = marks.length > 0
+        ? Math.round(marks.reduce((sum, m) => sum + (m.scored / m.maxMarks) * 100, 0) / marks.length)
+        : 0;
+    }
 
     // Grade label
     const grade = avgMark >= 90 ? 'A+' : avgMark >= 75 ? 'A' : avgMark >= 60 ? 'B' : avgMark >= 50 ? 'C' : 'D';
@@ -115,22 +136,6 @@ router.get('/:parentId/child/:studentId/summary', async (req: Request, res: Resp
     });
     const submittedCount = allHomework.filter(h => h.submissions.some(s => s.status === 'submitted')).length;
     const homeworkRate = allHomework.length > 0 ? Math.round((submittedCount / allHomework.length) * 100) : 0;
-
-    // Class rank (by average mark across all students in same class)
-    const classmateIds = await prisma.student.findMany({
-      where: { schoolId: student.schoolId, class: student.class, section: student.section },
-      select: { id: true },
-    });
-
-    const classmateMarks = await Promise.all(
-      classmateIds.map(async (s) => {
-        const m = await prisma.mark.findMany({ where: { studentId: s.id } });
-        const avg = m.length > 0 ? m.reduce((sum, x) => sum + (x.scored / x.maxMarks) * 100, 0) / m.length : 0;
-        return { studentId: s.id, avg };
-      })
-    );
-    classmateMarks.sort((a, b) => b.avg - a.avg);
-    const rank = classmateMarks.findIndex(s => s.studentId === studentId) + 1;
 
     res.json({
       success: true,
@@ -144,7 +149,7 @@ router.get('/:parentId/child/:studentId/summary', async (req: Request, res: Resp
           attendance: { value: `${attendancePct}%`, raw: attendancePct, sub: 'Yearly average' },
           grade:      { value: grade, raw: avgMark, sub: 'Overall average' },
           homework:   { value: `${homeworkRate}%`, raw: homeworkRate, sub: 'Last 30 days' },
-          rank:       { value: rank > 0 ? `#${rank}` : 'N/A', raw: rank, sub: `Out of ${classmateIds.length}` },
+          rank:       { value: '—', raw: null, sub: 'Not updated' },
         },
       },
     });
@@ -156,37 +161,99 @@ router.get('/:parentId/child/:studentId/summary', async (req: Request, res: Resp
 
 // ─────────────────────────────────────────────────────────────────
 // GET /api/parent/:parentId/child/:studentId/performance
-// Subject-wise marks grouped by exam type
+// Subject-wise marks grouped by exam type — prioritizes ModelExamResult
 // ─────────────────────────────────────────────────────────────────
 router.get('/:parentId/child/:studentId/performance', async (req: Request, res: Response) => {
   try {
     const { studentId } = req.params;
-    const { academicYear } = req.query;
 
-    const marks = await prisma.mark.findMany({
+    // Check if there are any locked ModelExamResult records
+    const modelExamResults = await prisma.modelExamResult.findMany({
       where: {
         studentId,
-        ...(academicYear ? { academicYear: String(academicYear) } : {}),
+        exam: { isLocked: true },
       },
-      orderBy: [{ subject: 'asc' }, { examType: 'asc' }],
+      include: { exam: true },
     });
 
-    // Group by subject
-    const bySubject: Record<string, Record<string, number>> = {};
-    for (const m of marks) {
-      if (!bySubject[m.subject]) bySubject[m.subject] = {};
-      bySubject[m.subject][m.examType] = Math.round((m.scored / m.maxMarks) * 100);
+    let subjectData: any[] = [];
+    let years: string[] = [];
+    let rawMarks: any[] = [];
+
+    if (modelExamResults.length > 0) {
+      const bySubject: Record<string, Record<string, number>> = {};
+      
+      for (const r of modelExamResults) {
+        const examName = r.exam.examName;
+        
+        if (r.tamil !== null) {
+          if (!bySubject["Tamil"]) bySubject["Tamil"] = {};
+          bySubject["Tamil"][examName] = r.tamil;
+        }
+        if (r.english !== null) {
+          if (!bySubject["English"]) bySubject["English"] = {};
+          bySubject["English"][examName] = r.english;
+        }
+        if (r.mathematics !== null) {
+          if (!bySubject["Mathematics"]) bySubject["Mathematics"] = {};
+          bySubject["Mathematics"][examName] = r.mathematics;
+        }
+        if (r.science !== null) {
+          if (!bySubject["Science"]) bySubject["Science"] = {};
+          bySubject["Science"][examName] = r.science;
+        }
+        if (r.socialScience !== null) {
+          if (!bySubject["Social Science"]) bySubject["Social Science"] = {};
+          bySubject["Social Science"][examName] = r.socialScience;
+        }
+        if (r.extraSubject !== null && r.extraSubjectName) {
+          const extraName = r.extraSubjectName;
+          if (!bySubject[extraName]) bySubject[extraName] = {};
+          bySubject[extraName][examName] = r.extraSubject;
+        }
+      }
+
+      subjectData = Object.entries(bySubject).map(([subject, examScores]) => ({
+        subject,
+        ...examScores,
+      }));
+
+      years = [...new Set(modelExamResults.map(r => r.exam.academicYear))].sort();
+      rawMarks = modelExamResults.flatMap((r) => {
+        const list = [];
+        if (r.tamil !== null) list.push({ id: `${r.id}-tamil`, subject: 'Tamil', examType: r.exam.examName, scored: r.tamil, maxMarks: 100, academicYear: r.exam.academicYear });
+        if (r.english !== null) list.push({ id: `${r.id}-english`, subject: 'English', examType: r.exam.examName, scored: r.english, maxMarks: 100, academicYear: r.exam.academicYear });
+        if (r.mathematics !== null) list.push({ id: `${r.id}-math`, subject: 'Mathematics', examType: r.exam.examName, scored: r.mathematics, maxMarks: 100, academicYear: r.exam.academicYear });
+        if (r.science !== null) list.push({ id: `${r.id}-science`, subject: 'Science', examType: r.exam.examName, scored: r.science, maxMarks: 100, academicYear: r.exam.academicYear });
+        if (r.socialScience !== null) list.push({ id: `${r.id}-social`, subject: 'Social Science', examType: r.exam.examName, scored: r.socialScience, maxMarks: 100, academicYear: r.exam.academicYear });
+        if (r.extraSubject !== null && r.extraSubjectName) {
+          list.push({ id: `${r.id}-extra`, subject: r.extraSubjectName, examType: r.exam.examName, scored: r.extraSubject, maxMarks: 100, academicYear: r.exam.academicYear });
+        }
+        return list;
+      });
+    } else {
+      // Fallback: Fetch ALL marks for this student
+      const marks = await prisma.mark.findMany({
+        where: { studentId },
+        orderBy: [{ subject: 'asc' }, { examType: 'asc' }],
+      });
+
+      const bySubject: Record<string, Record<string, number>> = {};
+      for (const m of marks) {
+        if (!bySubject[m.subject]) bySubject[m.subject] = {};
+        bySubject[m.subject][m.examType] = Math.round((m.scored / m.maxMarks) * 100);
+      }
+
+      subjectData = Object.entries(bySubject).map(([subject, examScores]) => ({
+        subject,
+        ...examScores,
+      }));
+
+      years = [...new Set(marks.map(m => m.academicYear))].sort();
+      rawMarks = marks;
     }
 
-    const subjectData = Object.entries(bySubject).map(([subject, examScores]) => ({
-      subject,
-      ...examScores,
-    }));
-
-    // Academic years available
-    const years = [...new Set(marks.map(m => m.academicYear))].sort();
-
-    res.json({ success: true, data: { subjects: subjectData, availableYears: years, rawMarks: marks } });
+    res.json({ success: true, data: { subjects: subjectData, availableYears: years, rawMarks } });
   } catch (err) {
     console.error('Error fetching performance:', err);
     res.status(500).json({ success: false, error: String(err) });

@@ -927,7 +927,7 @@ export default function PortalLayout({
               <div className="ml-2 text-left hidden lg:block animate-in fade-in duration-300">
                 <h1 className="text-base lg:text-lg font-bold text-[var(--text-heading)] leading-tight">{resolvedTitle}</h1>
                 {resolvedSubtitle && (
-                  <p className="text-[11px] text-[var(--text-muted)] font-medium mt-0.5">{resolvedSubtitle}</p>
+                  <p className="text-[11px] text-[var(--text-muted)] font-medium mt-0.5 break-words whitespace-normal">{resolvedSubtitle}</p>
                 )}
               </div>
             ) : (
@@ -1130,7 +1130,7 @@ export default function PortalLayout({
             <div className="lg:hidden px-1 mb-5 text-left animate-in fade-in duration-300">
               <h1 className="text-xl font-black text-white leading-tight drop-shadow-sm">{resolvedTitle}</h1>
               {resolvedSubtitle && (
-                <p className="text-xs text-white/85 font-semibold mt-1">{resolvedSubtitle}</p>
+                <p className="text-xs text-white/85 font-semibold mt-1 break-words whitespace-normal">{resolvedSubtitle}</p>
               )}
             </div>
           )}
