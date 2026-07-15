@@ -694,7 +694,7 @@ export default function LessonPlannerPage() {
       <div className={`grid grid-cols-1 xl:grid-cols-4 min-h-[500px] transition-colors duration-300 relative`}>
 
         {/* Sidebar (Left) */}
-        <div className={`col-span-1 flex flex-col ${theme.bgCard} border-b xl:border-b-0 xl:border-r ${theme.border} overflow-y-auto`}>
+        <div className={`col-span-1 flex flex-col ${theme.bgCard} border-b xl:border-b-0 xl:border-r ${theme.border} overflow-y-auto xl:sticky xl:top-24 xl:h-[calc(100vh-120px)]`}>
           <div className="flex-1 p-5 space-y-6 scrollbar-thin">
 
             {/* Generate Form */}

@@ -94,7 +94,7 @@ export default function ClassesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState("");
   const [filterSubj, setFilterSubj] = useState("All");
-  const [filterClass, setFilterClass] = useState("");
+  const [filterClass, setFilterClass] = useState("All");
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
@@ -210,16 +210,7 @@ export default function ClassesPage() {
 
   useEffect(() => { fetchClasses(); }, [fetchClasses]);
 
-  // Auto-select first class from DB when data loads
-  useEffect(() => {
-    if (classes.length > 0 && !filterClass) {
-      const sorted = [...classes].sort((a, b) => {
-        const diff = parseInt(a.className) - parseInt(b.className);
-        return diff !== 0 ? diff : a.section.localeCompare(b.section);
-      });
-      setFilterClass(`${sorted[0].className}-${sorted[0].section}`);
-    }
-  }, [classes]);
+
 
   // Dynamic schedule autofill when creating class details
   useEffect(() => {
@@ -591,6 +582,7 @@ export default function ClassesPage() {
                 onChange={(e) => { setFilterClass(e.target.value); }}
                 className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-white focus:outline-none focus:border-amber-500 transition-colors min-w-[160px]"
               >
+                <option value="All">All Classes</option>
                 {classOptions.map((opt) => (
                   <option key={`${opt.className}-${opt.section}`} value={`${opt.className}-${opt.section}`}>
                     Class {opt.className} — {opt.section}

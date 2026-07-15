@@ -1,10 +1,10 @@
 "use client";
 import { Mailbox, Book } from "lucide-react";
 
-
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 
 interface Subject {
   id: string;
@@ -45,23 +45,86 @@ interface UnitCard {
   isApproved: boolean;
 }
 
-const CLASS_OPTIONS = ["6", "7", "8", "9", "10"];
-const SECTION_OPTIONS = ["A", "B", "C", "D", "E"];
+interface ClassRoom {
+  id: string;
+  className: string;
+  section: string;
+  subject: string;
+}
 
 export default function TeacherSyllabusBoardPage() {
-  const [selectedClass, setSelectedClass] = useState<string>("8");
-  const [selectedSection, setSelectedSection] = useState<string>("A");
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  const schoolId = user?.schoolId || "";
+  const teacherId = user?.id || "";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  // Teacher's assigned classes from DB
+  const [teacherClasses, setTeacherClasses] = useState<ClassRoom[]>([]);
+  const [loadingClasses, setLoadingClasses] = useState(true);
+
+  const [selectedClass, setSelectedClass] = useState<string>("");
+  const [selectedSection, setSelectedSection] = useState<string>("");
 
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loadingSubjects, setLoadingSubjects] = useState<boolean>(true);
+  const [loadingSubjects, setLoadingSubjects] = useState<boolean>(false);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
 
   const [unitCards, setUnitCards] = useState<UnitCard[]>([]);
   const [loadingUnits, setLoadingUnits] = useState<boolean>(false);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  // ── Fetch teacher's classes from DB ─────────────────────────
+  const fetchTeacherClasses = useCallback(async () => {
+    if (!schoolId || !teacherId) return;
+    setLoadingClasses(true);
+    try {
+      const res = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
+      const data = await res.json();
+      if (data.success) {
+        setTeacherClasses(data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching teacher classes:", err);
+    } finally {
+      setLoadingClasses(false);
+    }
+  }, [schoolId, teacherId, API_URL]);
 
+  useEffect(() => { fetchTeacherClasses(); }, [fetchTeacherClasses]);
+
+  // Derive unique class numbers and sections from teacher's real data
+  const classOptions = Array.from(
+    new Set(teacherClasses.map((c) => c.className))
+  ).sort((a, b) => parseInt(a) - parseInt(b));
+
+  const sectionOptions = Array.from(
+    new Set(
+      teacherClasses
+        .filter((c) => c.className === selectedClass)
+        .map((c) => c.section)
+    )
+  ).sort();
+
+  // Auto-select first class when teacher classes load
   useEffect(() => {
+    if (classOptions.length > 0 && !selectedClass) {
+      setSelectedClass(classOptions[0]);
+    }
+  }, [teacherClasses]);
+
+  // Auto-select first section when class changes
+  useEffect(() => {
+    if (sectionOptions.length > 0) {
+      if (!sectionOptions.includes(selectedSection)) {
+        setSelectedSection(sectionOptions[0]);
+      }
+    }
+  }, [selectedClass, teacherClasses]);
+
+  // ── Fetch subjects when class changes ───────────────────────
+  useEffect(() => {
+    if (!selectedClass) return;
+
     const fetchSubjects = async () => {
       setLoadingSubjects(true);
       setSubjects([]);
@@ -173,9 +236,9 @@ export default function TeacherSyllabusBoardPage() {
               onChange={(e) => setSelectedClass(e.target.value)}
               className="px-3 py-2 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 font-extrabold text-sm rounded-xl border border-amber-200/30 shadow-sm focus:outline-none"
             >
-              {CLASS_OPTIONS.map((c) => (
+              {classOptions.map((c) => (
                 <option key={c} value={c}>
-                  {c}th
+                  Class {c}
                 </option>
               ))}
             </select>
@@ -187,7 +250,7 @@ export default function TeacherSyllabusBoardPage() {
               onChange={(e) => setSelectedSection(e.target.value)}
               className="px-3 py-2 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 font-extrabold text-sm rounded-xl border border-amber-200/30 shadow-sm focus:outline-none"
             >
-              {SECTION_OPTIONS.map((s) => (
+              {sectionOptions.map((s) => (
                 <option key={s} value={s}>
                   {s}
                 </option>
