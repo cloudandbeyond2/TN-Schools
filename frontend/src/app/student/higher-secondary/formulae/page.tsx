@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import PortalLayout from "@/components/PortalLayout";
-import { 
-  BookOpen, 
-  Search, 
-  Play, 
+import {
+  BookOpen,
+  Search,
+  Play,
   Info,
   Clock,
   Sparkles,
@@ -220,7 +220,7 @@ export default function FormulaeHubPage() {
   const filteredFormulae = FORMULAE_DATA.filter((f) => {
     const matchesSubject = activeSubject === "All" || f.subject === activeSubject;
     const matchesStandard = activeStandard === "All" || f.standard === activeStandard;
-    const matchesSearch = 
+    const matchesSearch =
       f.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       f.formula.toLowerCase().includes(searchQuery.toLowerCase()) ||
       f.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -246,16 +246,16 @@ export default function FormulaeHubPage() {
   };
 
   return (
-    <PortalLayout 
-      title="HSC Formulae Simulations" 
+    <PortalLayout
+      title="HSC Formulae Simulations"
       subtitle="Interact with complex Higher Secondary formulas for Board Exams & NEET/JEE using live animations"
     >
       <div className="flex flex-col gap-6">
-        
+
         {/* Banner Card */}
         <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-r from-purple-950/40 via-slate-900 to-indigo-950/30 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
           <div className="absolute right-0 top-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-          
+
           <div className="flex-1 space-y-3 relative z-10 text-center md:text-left">
             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider text-purple-300 border border-purple-500/20 bg-purple-500/10 uppercase">
               <Sparkles className="w-3.5 h-3.5 text-purple-400" /> Interactive Animations
@@ -282,7 +282,7 @@ export default function FormulaeHubPage() {
           {/* Search Input */}
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-            <input 
+            <input
               type="text"
               placeholder="Search formulas or topics..."
               value={searchQuery}
@@ -298,11 +298,10 @@ export default function FormulaeHubPage() {
                 <button
                   key={std}
                   onClick={() => setActiveStandard(std)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                    activeStandard === std 
-                      ? "bg-indigo-600 text-white" 
-                      : "text-slate-400 hover:text-white"
-                  }`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeStandard === std
+                    ? "bg-indigo-600 text-white"
+                    : "text-slate-400 hover:text-white"
+                    }`}
                 >
                   {std === "All" ? "All Classes" : `Class ${std}`}
                 </button>
@@ -315,11 +314,10 @@ export default function FormulaeHubPage() {
                 <button
                   key={sub}
                   onClick={() => setActiveSubject(sub)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                    activeSubject === sub 
-                      ? "bg-purple-650 text-white shadow-md shadow-purple-600/10" 
-                      : "text-slate-400 hover:text-white"
-                  }`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeSubject === sub
+                    ? "bg-purple-650 text-white shadow-md shadow-purple-600/10"
+                    : "text-slate-400 hover:text-white"
+                    }`}
                 >
                   {sub}
                 </button>
@@ -331,24 +329,24 @@ export default function FormulaeHubPage() {
         {/* Formulae Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredFormulae.map((formula) => (
-            <div 
-              key={formula.id} 
+            <div
+              key={formula.id}
               className="group flex flex-col bg-slate-900/40 border border-slate-800 hover:border-purple-500/30 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl"
             >
               {/* Formula Render Box */}
               <div className={`relative h-36 bg-gradient-to-br ${formula.thumbnail} flex items-center justify-center p-6 text-center select-none`}>
                 <div className="absolute inset-0 bg-black/10"></div>
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.05),transparent)]"></div>
-                
-                <span className="font-mono text-xl md:text-2xl font-black text-white relative z-10 drop-shadow-md">
+
+                <p className="!text-white font-mono text-xl md:text-2xl font-black relative z-10 drop-shadow-md">
                   {formula.formula}
-                </span>
+                </p>
 
                 {/* subject & class indicator tabs */}
                 <div className="absolute top-3 left-3 flex gap-1">
-                  <div className="bg-black/35 backdrop-blur-md px-2 py-0.5 rounded-md text-[9px] font-bold text-white uppercase tracking-wider">
+                  <p className="bg-black/35 backdrop-blur-md px-2 py-0.5 rounded-md text-[9px] font-bold !text-white uppercase tracking-wider">
                     {formula.subject}
-                  </div>
+                  </p>
                   <div className="bg-white/15 backdrop-blur-md px-2 py-0.5 rounded-md text-[9px] font-bold text-purple-200 uppercase tracking-wider">
                     Class {formula.standard}
                   </div>
@@ -409,9 +407,9 @@ export default function FormulaeHubPage() {
         {selectedFormula && (
           <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
             <div className="bg-slate-900 border border-slate-800 w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl flex flex-col lg:flex-row relative animate-in zoom-in-95 duration-200">
-              
+
               {/* Close Button */}
-              <button 
+              <button
                 onClick={() => setSelectedFormula(null)}
                 className="absolute top-4 right-4 z-50 p-2 bg-slate-950/50 hover:bg-slate-950 text-slate-400 hover:text-white rounded-full transition-colors cursor-pointer"
                 title="Close"
@@ -466,7 +464,7 @@ export default function FormulaeHubPage() {
 function InteractiveSimulation({ formulaId }: { formulaId: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(true);
-  
+
   // Custom states for each equation parameters
   const [sliderVal, setSliderVal] = useState(0.5); // general purpose slider
   const [sliderVal2, setSliderVal2] = useState(0.5); // optional secondary slider
@@ -496,7 +494,7 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
 
       const W = canvas.width;
       const H = canvas.height;
-      
+
       // Clear
       ctx.fillStyle = "#020617"; // dark slate 950
       ctx.fillRect(0, 0, W, H);
@@ -524,14 +522,14 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           // sliderVal = right integration limit
           const a = W * 0.25;
           const limitB = a + (W * 0.5) * sliderVal;
-          
+
           // Draw function curve: f(x) = sin(x/40)*40 + 120
           ctx.beginPath();
           ctx.strokeStyle = "#8b5cf6"; // purple-500
           ctx.lineWidth = 3;
-          
+
           const f = (x: number) => H * 0.6 - Math.sin((x - a) * 0.015) * 80;
-          
+
           // Draw shaded integral area
           ctx.fillStyle = "rgba(139, 92, 246, 0.15)";
           ctx.beginPath();
@@ -594,7 +592,7 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           const cx = W / 2;
           const cy = H / 2;
           const r = Math.min(W, H) * 0.3;
-          
+
           // Draw unit circle
           ctx.beginPath();
           ctx.strokeStyle = "#475569";
@@ -718,7 +716,7 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           const cx = W / 2;
           const cy = H / 2;
           const chargeQ = (sliderVal2 - 0.5) * 40; // positive or negative
-          
+
           // Draw source charge
           ctx.beginPath();
           ctx.arc(cx, cy, 14, 0, Math.PI * 2);
@@ -786,19 +784,19 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           // Slider 1 = Index (n), Slider 2 = Curvature (R1, R2)
           const n = 1.1 + sliderVal * 0.9;
           const rCurvature = 50 + sliderVal2 * 120;
-          
+
           const cx = W / 2;
           const cy = H / 2;
-          
+
           // Draw thin double convex lens
           ctx.fillStyle = "rgba(96, 165, 250, 0.15)";
           ctx.strokeStyle = "#60a5fa";
           ctx.lineWidth = 2.5;
           ctx.beginPath();
           // First surface arc
-          ctx.arc(cx - rCurvature + 12, cy, rCurvature, -Math.PI/6, Math.PI/6, false);
+          ctx.arc(cx - rCurvature + 12, cy, rCurvature, -Math.PI / 6, Math.PI / 6, false);
           // Second surface arc
-          ctx.arc(cx + rCurvature - 12, cy, rCurvature, Math.PI - Math.PI/6, Math.PI + Math.PI/6, false);
+          ctx.arc(cx + rCurvature - 12, cy, rCurvature, Math.PI - Math.PI / 6, Math.PI + Math.PI / 6, false);
           ctx.closePath();
           ctx.fill();
           ctx.stroke();
@@ -818,7 +816,7 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           // Draw incoming parallel light rays and refract them to focal point
           ctx.strokeStyle = "#e11d48"; // rose color
           ctx.lineWidth = 1.5;
-          
+
           const rayHeights = [-35, -20, 20, 35];
           rayHeights.forEach((h) => {
             ctx.beginPath();
@@ -854,7 +852,7 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           // sliderVal = Light Frequency (Energy), sliderVal2 = Work Function
           const energy = sliderVal * 12; // Frequency energy
           const workFunction = 2 + sliderVal2 * 6; // Metal limit
-          
+
           const plateX = W * 0.5;
 
           // Metal plate base
@@ -884,7 +882,7 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           if (activeEjection) {
             // Ejected electron speed (kinetic energy)
             const speedFactor = (energy - workFunction) * 0.8;
-            
+
             // Draw electrons flying right
             const numElectrons = 4;
             ctx.fillStyle = "#60a5fa"; // blue glowing electron particles
@@ -892,7 +890,7 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
               const eY = H * 0.35 + e * 40;
               const travelOffset = (timeRef.current * speedFactor + e * 50) % (W * 0.4);
               const ex = plateX + 25 + travelOffset;
-              
+
               ctx.beginPath();
               ctx.arc(ex, eY, 5, 0, Math.PI * 2);
               ctx.fill();
@@ -927,7 +925,7 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           // sliderVal = Temperature, sliderVal2 = Volume (Box size)
           const temp = sliderVal * 10; // speeds up particles
           const widthBox = W * 0.3 + sliderVal2 * (W * 0.5);
-          
+
           const boxX1 = (W - widthBox) / 2;
           const boxX2 = boxX1 + widthBox;
           const boxY1 = H * 0.25;
@@ -941,13 +939,13 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           // Particle gas simulation
           const numParticles = 18;
           ctx.fillStyle = "#34d399"; // Green gas particles
-          
+
           // Seed-like math to draw bouncy particles
           for (let i = 0; i < numParticles; i++) {
             // Speed depends on temperature
             const speed = 1.5 + temp * 0.6;
             const angle = (i * 123.45) % (Math.PI * 2);
-            
+
             const dx = Math.cos(angle) * speed;
             const dy = Math.sin(angle) * speed;
 
@@ -1001,7 +999,7 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           for (let m = 0; m < moleculesCount; m++) {
             const timeOffset = (timeRef.current * speed + m * 80) % (W * 0.85);
             const mx = W * 0.1 + timeOffset;
-            
+
             // Map height to curves
             const progress = timeOffset / (W * 0.85); // 0 to 1
             const baseCurve = Math.sin(progress * Math.PI); // 0 to 1 back to 0
@@ -1010,7 +1008,7 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
             // Check if molecules have enough energy to cross
             // Higher speed makes them look energetic (red/green transition)
             const canCross = speed > 3.5;
-            
+
             ctx.beginPath();
             ctx.arc(mx, my, 7, 0, Math.PI * 2);
             ctx.fillStyle = canCross ? "#10b981" : "#f43f5e"; // green if reacted, red if not
@@ -1040,13 +1038,13 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           const deltaH = (sliderVal - 0.5) * 200; // -100 to +100
           const deltaS = (sliderVal2 - 0.5) * 2.0; // -1 to +1
           const temp = 298; // constant Room Temp
-          
+
           const deltaG = deltaH - temp * deltaS;
 
           // Draw balance board or scale representations
           const cx = W / 2;
           const cy = H * 0.6;
-          
+
           // Tilt depends on deltaG
           const tilt = Math.max(-0.25, Math.min(0.25, deltaG / 300));
 
@@ -1070,9 +1068,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           // Left weight: enthalpy ΔH
           ctx.fillStyle = deltaH >= 0 ? "#ef4444" : "#3b82f6"; // red represents hot/endothermic, blue represents cold/exothermic
           ctx.beginPath();
-          ctx.arc(ax1, ay1 + 20, 15 + Math.abs(deltaH)*0.15, 0, Math.PI*2);
+          ctx.arc(ax1, ay1 + 20, 15 + Math.abs(deltaH) * 0.15, 0, Math.PI * 2);
           ctx.fill();
-          
+
           ctx.font = "bold 12px sans-serif";
           ctx.fillStyle = "#fff";
           ctx.fillText(`ΔH: ${deltaH.toFixed(0)} kJ`, ax1 - 30, ay1 + 50);
@@ -1081,7 +1079,7 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           const tds = temp * deltaS;
           ctx.fillStyle = tds >= 0 ? "#10b981" : "#f59e0b"; // green for high entropy, orange for low
           ctx.beginPath();
-          ctx.arc(ax2, ay2 + 20, 15 + Math.abs(tds)*0.05, 0, Math.PI*2);
+          ctx.arc(ax2, ay2 + 20, 15 + Math.abs(tds) * 0.05, 0, Math.PI * 2);
           ctx.fill();
 
           ctx.fillText(`TΔS: ${tds.toFixed(0)} kJ`, ax2 - 35, ay2 + 50);
@@ -1127,9 +1125,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
               <span>Change upper limit (b)</span>
               <span className="text-purple-400 font-bold">{sliderVal.toFixed(2)}</span>
             </div>
-            <input 
-              type="range" min="0.1" max="1" step="0.01" 
-              value={sliderVal} 
+            <input
+              type="range" min="0.1" max="1" step="0.01"
+              value={sliderVal}
               onChange={(e) => setSliderVal(parseFloat(e.target.value))}
               className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
             />
@@ -1148,9 +1146,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
               <span>Slide Tangent Position (x)</span>
               <span className="text-purple-400 font-bold">{sliderVal.toFixed(2)}</span>
             </div>
-            <input 
-              type="range" min="0.05" max="0.95" step="0.01" 
-              value={sliderVal} 
+            <input
+              type="range" min="0.05" max="0.95" step="0.01"
+              value={sliderVal}
               onChange={(e) => setSliderVal(parseFloat(e.target.value))}
               className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
             />
@@ -1164,9 +1162,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
                 <span>Gaussian Surface Size</span>
                 <span className="text-amber-400 font-bold">{sliderVal.toFixed(2)}</span>
               </div>
-              <input 
-                type="range" min="0.1" max="1" step="0.01" 
-                value={sliderVal} 
+              <input
+                type="range" min="0.1" max="1" step="0.01"
+                value={sliderVal}
                 onChange={(e) => setSliderVal(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
               />
@@ -1176,9 +1174,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
                 <span>Core Charge Strength & Sign</span>
                 <span className="text-amber-400 font-bold">{(sliderVal2 - 0.5).toFixed(2)}</span>
               </div>
-              <input 
-                type="range" min="0.0" max="1.0" step="0.05" 
-                value={sliderVal2} 
+              <input
+                type="range" min="0.0" max="1.0" step="0.05"
+                value={sliderVal2}
                 onChange={(e) => setSliderVal2(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
               />
@@ -1193,9 +1191,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
                 <span>Refractive Index (n)</span>
                 <span className="text-rose-400 font-bold">{(1.1 + sliderVal * 0.9).toFixed(2)}</span>
               </div>
-              <input 
-                type="range" min="0.0" max="1.0" step="0.02" 
-                value={sliderVal} 
+              <input
+                type="range" min="0.0" max="1.0" step="0.02"
+                value={sliderVal}
                 onChange={(e) => setSliderVal(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-500"
               />
@@ -1205,9 +1203,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
                 <span>Lens Radius of Curvature (R)</span>
                 <span className="text-rose-400 font-bold">{Math.round(50 + sliderVal2 * 120)} mm</span>
               </div>
-              <input 
-                type="range" min="0.0" max="1.0" step="0.02" 
-                value={sliderVal2} 
+              <input
+                type="range" min="0.0" max="1.0" step="0.02"
+                value={sliderVal2}
                 onChange={(e) => setSliderVal2(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-500"
               />
@@ -1222,9 +1220,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
                 <span>Light Photon Frequency (Energy)</span>
                 <span className="text-pink-400 font-bold">{(sliderVal * 12).toFixed(1)} eV</span>
               </div>
-              <input 
-                type="range" min="0.1" max="1.0" step="0.02" 
-                value={sliderVal} 
+              <input
+                type="range" min="0.1" max="1.0" step="0.02"
+                value={sliderVal}
                 onChange={(e) => setSliderVal(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-pink-500"
               />
@@ -1234,9 +1232,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
                 <span>Metal Work Function (Φ Barrier)</span>
                 <span className="text-pink-400 font-bold">{(2 + sliderVal2 * 6).toFixed(1)} eV</span>
               </div>
-              <input 
-                type="range" min="0.0" max="1.0" step="0.05" 
-                value={sliderVal2} 
+              <input
+                type="range" min="0.0" max="1.0" step="0.05"
+                value={sliderVal2}
                 onChange={(e) => setSliderVal2(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-pink-500"
               />
@@ -1251,9 +1249,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
                 <span>Container Temperature (T)</span>
                 <span className="text-emerald-400 font-bold">{Math.round(200 + sliderVal * 250)} K</span>
               </div>
-              <input 
-                type="range" min="0.05" max="1.0" step="0.02" 
-                value={sliderVal} 
+              <input
+                type="range" min="0.05" max="1.0" step="0.02"
+                value={sliderVal}
                 onChange={(e) => setSliderVal(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
               />
@@ -1263,9 +1261,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
                 <span>Container Width (Volume)</span>
                 <span className="text-emerald-400 font-bold">{Math.round(30 + sliderVal2 * 70)} %</span>
               </div>
-              <input 
-                type="range" min="0.1" max="1.0" step="0.02" 
-                value={sliderVal2} 
+              <input
+                type="range" min="0.1" max="1.0" step="0.02"
+                value={sliderVal2}
                 onChange={(e) => setSliderVal2(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
               />
@@ -1280,9 +1278,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
                 <span>Reaction Temperature (T)</span>
                 <span className="text-teal-400 font-bold">{Math.round(273 + sliderVal * 150)} K</span>
               </div>
-              <input 
-                type="range" min="0.05" max="1.0" step="0.02" 
-                value={sliderVal} 
+              <input
+                type="range" min="0.05" max="1.0" step="0.02"
+                value={sliderVal}
                 onChange={(e) => setSliderVal(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-teal-500"
               />
@@ -1292,9 +1290,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
                 <span>Activation Energy Peak (Ea)</span>
                 <span className="text-teal-400 font-bold">{Math.round(sliderVal2 * 120)} kJ/mol</span>
               </div>
-              <input 
-                type="range" min="0.1" max="1.0" step="0.02" 
-                value={sliderVal2} 
+              <input
+                type="range" min="0.1" max="1.0" step="0.02"
+                value={sliderVal2}
                 onChange={(e) => setSliderVal2(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-teal-500"
               />
@@ -1309,9 +1307,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
                 <span>Enthalpy Change (ΔH)</span>
                 <span className="text-cyan-405 font-bold">{((sliderVal - 0.5) * 200).toFixed(0)} kJ</span>
               </div>
-              <input 
-                type="range" min="0.0" max="1.0" step="0.02" 
-                value={sliderVal} 
+              <input
+                type="range" min="0.0" max="1.0" step="0.02"
+                value={sliderVal}
                 onChange={(e) => setSliderVal(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
               />
@@ -1321,9 +1319,9 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
                 <span>Entropy Change (ΔS)</span>
                 <span className="text-cyan-405 font-bold">{((sliderVal2 - 0.5) * 2.0).toFixed(2)} kJ/K</span>
               </div>
-              <input 
-                type="range" min="0.0" max="1.0" step="0.02" 
-                value={sliderVal2} 
+              <input
+                type="range" min="0.0" max="1.0" step="0.02"
+                value={sliderVal2}
                 onChange={(e) => setSliderVal2(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
               />
@@ -1343,13 +1341,13 @@ function InteractiveSimulation({ formulaId }: { formulaId: string }) {
           <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" /> Live Simulation Model
         </span>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={() => setIsPlaying(!isPlaying)}
             className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-bold transition-all cursor-pointer"
           >
             {isPlaying ? "Pause model" : "Play model"}
           </button>
-          <button 
+          <button
             onClick={handleReset}
             className="p-1 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded transition-all cursor-pointer"
             title="Reset variables"

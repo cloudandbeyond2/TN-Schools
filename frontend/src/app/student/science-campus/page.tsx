@@ -99,7 +99,7 @@ export default function ScienceCampusPage() {
   // 1. Fetch studentId on session change
   useEffect(() => {
     if (!user?.id) return;
-    
+
     if (user.studentId) {
       setStudentId(user.studentId);
       return;
@@ -133,7 +133,7 @@ export default function ScienceCampusPage() {
   // 3. Keep group in sync with database portfolio stream
   useEffect(() => {
     if (!studentId || !isHigherSecondary) return;
-    
+
     fetch(`${API_BASE}/api/students/${studentId}/dashboard-summary`)
       .then((res) => res.json())
       .then((json) => {
@@ -194,15 +194,15 @@ export default function ScienceCampusPage() {
             <span className="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider mb-3">
               <Sparkles className="w-3.5 h-3.5" /> Class {studentClass} · Tamil & English
             </span>
-            <h2 className="text-3xl font-black text-white mb-2">
-  Welcome to your Science Campus
-</h2>
+            <p className="text-3xl font-black !text-white mb-2">
+              Welcome to your Science Campus
+            </p>
 
-<p className="text-white/90 text-sm font-medium leading-relaxed">
-  Every centre connects your Class {studentClass} textbooks to experiments, 3D models, research and quizzes.
-  {" "}
-  {liveCount} centers are open {isHigherSecondary ? `for the ${activeStream?.label} stream` : "for your class"}.
-</p>
+            <p className="!text-white/90 text-sm font-medium leading-relaxed">
+              Every centre connects your Class {studentClass} textbooks to experiments, 3D models, research and quizzes.
+              {" "}
+              {liveCount} centers are open {isHigherSecondary ? `for the ${activeStream?.label} stream` : "for your class"}.
+            </p>
           </div>
         </div>
 

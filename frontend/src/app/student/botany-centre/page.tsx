@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import { Leaf, Target, Sparkles, Newspaper, CheckCircle2, ChevronRight, X, Microscope } from "lucide-react";
+
 import { BOTANY_SYLLABUS, BOTANY_GRADES, resolveGrade, type BotanyUnit } from "@/data/botanySyllabus";
 
 const C: Record<string, { chip: string; ring: string; soft: string; text: string }> = {
@@ -72,8 +72,8 @@ export default function BotanyCentrePage() {
   }
 
   return (
-    <PortalLayout 
-      title={lang === "EN" ? "Botany Centre 🌿" : "தாவரவியல் மையம் 🌿"} 
+    <PortalLayout
+      title={lang === "EN" ? "Botany Centre 🌿" : "தாவரவியல் மையம் 🌿"}
       subtitle={lang === "EN" ? "The plant world — mapped to your class syllabus" : "தாவர உலகம் - உங்கள் வகுப்புப் பாடத்திட்டத்துடன் இணைக்கப்பட்டுள்ளது"}
     >
       <div className="flex flex-col gap-6 text-left">
@@ -96,15 +96,15 @@ export default function BotanyCentrePage() {
         </div>
 
         {/* grade lock */}
-        <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border-2 border-slate-100 dark:border-slate-700 flex items-center gap-3">
-          <div className="p-2.5 bg-lime-100 text-lime-600 rounded-2xl"><Leaf className="w-6 h-6" /></div>
-          <div>
+        <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border-2 border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="p-2.5 bg-lime-100 text-lime-600 rounded-2xl"><i className="fi fi-sr-leaf text-2xl"></i></div>
+          <div className="w-full">
             <p className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-              {detected 
-                ? (lang === "EN" ? "Your class" : "உங்களது வகுப்பு") 
+              {detected
+                ? (lang === "EN" ? "Your class" : "உங்களது வகுப்பு")
                 : (lang === "EN" ? "Choose your class" : "வகுப்பைத் தேர்ந்தெடுக்கவும்")}
             </p>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               {(detected ? [detected] : BOTANY_GRADES).map((g) => (
                 <button key={g} onClick={() => !detected && setGrade(g)} disabled={!!detected}
                   className={`px-3.5 py-1.5 rounded-xl text-sm font-black transition-all ${grade === g ? "bg-lime-500 text-white shadow" : "bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200"} ${detected ? "cursor-default" : ""}`}>
@@ -117,14 +117,14 @@ export default function BotanyCentrePage() {
         </div>
 
         {/* intro */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-lime-600 to-green-700 text-white p-7 shadow-lg">
-          <Leaf className="absolute right-6 top-1/2 -translate-y-1/2 w-40 h-40 opacity-10" />
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-lime-600 to-green-700 p-5 sm:p-7 shadow-lg">
+          <i className="fi fi-sr-leaf absolute right-6 top-1/2 -translate-y-1/2 text-[8rem] sm:text-[10rem] text-white opacity-10"></i>
           <div className="relative z-10 max-w-3xl">
-            <span className="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider mb-3">
-              <Sparkles className="w-3.5 h-3.5" /> {t(data.label)} · {data.medium === "Tamil" ? (lang === "EN" ? "Tamil" : "தமிழ்") : (lang === "EN" ? "English" : "ஆங்கிலம்")} {lang === "EN" ? "medium" : "வழி"}
+            <span className="inline-flex items-center gap-2 bg-white/20 text-white px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider mb-3">
+              <i className="fi fi-sr-sparkles text-sm"></i> {t(data.label)} · {data.medium === "Tamil" ? (lang === "EN" ? "Tamil" : "தமிழ்") : (lang === "EN" ? "English" : "ஆங்கிலம்")} {lang === "EN" ? "medium" : "வழி"}
             </span>
-            <h2 className="text-2xl font-black mb-2">{t(data.book)}</h2>
-            <p className="text-lime-50/90 text-sm font-medium leading-relaxed">{t(data.intro)}</p>
+            <h2 className="text-2xl text-white font-black mb-2">{t(data.book)}</h2>
+            <p className="text-white/90 text-sm font-medium leading-relaxed">{t(data.intro)}</p>
           </div>
         </div>
 
@@ -143,10 +143,10 @@ export default function BotanyCentrePage() {
                 <p className="text-xs font-medium text-slate-400 mt-2 line-clamp-2">{t(u.concepts[0]?.body)}</p>
                 <div className="mt-auto pt-4 flex items-center gap-3 text-[11px] font-bold text-slate-400">
                   <span className="flex items-center gap-1">
-                    <Target className="w-3.5 h-3.5" />
+                    <i className="fi fi-sr-bullseye text-sm"></i>
                     {lang === "EN" ? `${u.objectives.length} goals` : `${u.objectives.length} இலக்குகள்`}
                   </span>
-                  <ChevronRight className="w-4 h-4 ml-auto group-hover:translate-x-1 transition-transform" />
+                  <i className="fi fi-rr-angle-small-right text-base ml-auto group-hover:translate-x-1 transition-transform"></i>
                 </div>
               </button>
             );
@@ -178,27 +178,27 @@ function BotanyStudy({ lang, unit, onClose }: { lang: "EN" | "TA"; unit: BotanyU
 
   return (
     <div className="fixed inset-0 bg-black/60 z-[100] flex items-start justify-center p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-3xl my-6 shadow-2xl">
-        <div className={`sticky top-0 z-20 rounded-t-3xl px-7 py-5 ${s.soft} dark:bg-slate-900 border-b-2 border-slate-100 dark:border-slate-700 flex items-center justify-between`}>
+      <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-3xl my-2 sm:my-6 shadow-2xl">
+        <div className={`sticky top-0 z-20 rounded-t-3xl px-5 py-4 sm:px-7 sm:py-5 ${s.soft} dark:bg-slate-900 border-b-2 border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4`}>
           <div className="flex items-center gap-4">
             <span className="text-4xl">{unit.emoji}</span>
             <div>
-              <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 leading-tight">{t(unit.title)}</h3>
+              <h3 className="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100 leading-tight">{t(unit.title)}</h3>
               <p className="text-[11px] font-bold text-slate-400 mt-0.5">📘 {t(unit.textbookRef)}</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center bg-white dark:bg-slate-700 rounded-full text-slate-500 hover:text-slate-800 shadow-sm"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="absolute right-4 top-4 sm:static sm:w-9 sm:h-9 w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-700 rounded-full text-slate-500 hover:text-slate-800 shadow-sm"><i className="fi fi-rr-cross text-sm"></i></button>
         </div>
-        <div className="p-7 flex flex-col gap-6 text-left">
+        <div className="p-5 sm:p-7 flex flex-col gap-6 text-left">
           <section>
             <h4 className="flex items-center gap-2 text-sm font-black text-slate-800 dark:text-slate-100 mb-3">
-              <Target className={`w-4 h-4 ${s.text}`} /> 
+              <i className={`fi fi-sr-bullseye text-sm ${s.text}`}></i> 
               {lang === "EN" ? "What you'll be able to do" : "உங்களால் என்ன செய்ய முடியும் (கற்றல் விளைவுகள்)"}
             </h4>
             <ul className="space-y-2">
               {unit.objectives.map((o, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-350 font-medium">
-                  <CheckCircle2 className={`w-4 h-4 mt-0.5 shrink-0 ${s.text}`} />
+                  <i className={`fi fi-sr-check-circle text-sm mt-0.5 shrink-0 ${s.text}`}></i>
                   {t(o)}
                 </li>
               ))}
@@ -209,8 +209,8 @@ function BotanyStudy({ lang, unit, onClose }: { lang: "EN" | "TA"; unit: BotanyU
               {unit.figure.src
                 ? <img src={unit.figure.src} alt={t(unit.figure.caption)} className="w-full max-h-96 object-contain bg-white" />
                 : <div className="flex flex-col items-center justify-center py-10 text-slate-400">
-                    <Microscope className="w-10 h-10 mb-2" />
-                    <span className="text-xs font-bold">{lang === "EN" ? `Diagram in textbook ${unit.figure.page}` : `பாடப்புத்தகம் பக்கம் ${unit.figure.page}-ல் உள்ள வரைபடம்`}</span>
+                    <i className="fi fi-sr-microscope text-5xl mb-2"></i>
+                    <span className="text-xs font-bold text-center px-4">{lang === "EN" ? `Diagram in textbook ${unit.figure.page}` : `பாடப்புத்தகம் பக்கம் ${unit.figure.page}-ல் உள்ள வரைபடம்`}</span>
                   </div>}
               <figcaption className="px-4 py-2.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 border-t-2 border-slate-100 dark:border-slate-700">{t(unit.figure.caption)}</figcaption>
             </figure>
@@ -226,7 +226,7 @@ function BotanyStudy({ lang, unit, onClose }: { lang: "EN" | "TA"; unit: BotanyU
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <section className="bg-sky-50 dark:bg-slate-900 rounded-2xl p-4 border-2 border-sky-100 dark:border-slate-700">
               <h4 className="flex items-center gap-2 text-xs font-black text-sky-700 uppercase tracking-wider mb-3">
-                <Sparkles className="w-4 h-4" /> {lang === "EN" ? "Latest research" : "சமீபத்திய ஆராய்ச்சிகள்"}
+                <i className="fi fi-sr-sparkles text-sm"></i> {lang === "EN" ? "Latest research" : "சமீபத்திய ஆராய்ச்சிகள்"}
               </h4>
               {unit.research.map((r, i) => (
                 <p key={i} className="text-xs text-slate-600 dark:text-slate-300 mb-2 leading-relaxed">
@@ -236,7 +236,7 @@ function BotanyStudy({ lang, unit, onClose }: { lang: "EN" | "TA"; unit: BotanyU
             </section>
             <section className="bg-amber-50 dark:bg-slate-900 rounded-2xl p-4 border-2 border-amber-100 dark:border-slate-700">
               <h4 className="flex items-center gap-2 text-xs font-black text-amber-700 uppercase tracking-wider mb-3">
-                <Newspaper className="w-4 h-4" /> {lang === "EN" ? "In the news" : "செய்திகளில் இன்று"}
+                <i className="fi fi-sr-document text-sm"></i> {lang === "EN" ? "In the news" : "செய்திகளில் இன்று"}
               </h4>
               {unit.news.map((n, i) => (
                 <p key={i} className="text-xs text-slate-600 dark:text-slate-300 mb-2 leading-relaxed font-medium">
@@ -272,8 +272,8 @@ function BotanyStudy({ lang, unit, onClose }: { lang: "EN" | "TA"; unit: BotanyU
                         const correct = oi === quiz.answer;
                         const st = !answered ? "bg-white dark:bg-slate-800 text-slate-600 border-slate-200 hover:border-slate-400"
                           : correct ? "bg-emerald-500 text-white border-emerald-500"
-                          : oi === chosen ? "bg-rose-500 text-white border-rose-500"
-                          : "bg-white dark:bg-slate-800 text-slate-400 border-slate-200";
+                            : oi === chosen ? "bg-rose-500 text-white border-rose-500"
+                              : "bg-white dark:bg-slate-800 text-slate-400 border-slate-200";
                         return (
                           <button
                             key={oi}
@@ -288,7 +288,7 @@ function BotanyStudy({ lang, unit, onClose }: { lang: "EN" | "TA"; unit: BotanyU
                     </div>
                     {chosen != null && (
                       <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-2 flex items-start gap-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 text-emerald-500 shrink-0" />
+                        <i className="fi fi-sr-check-circle text-sm mt-0.5 text-emerald-500 shrink-0"></i>
                         {t(quiz.explain)}
                       </p>
                     )}

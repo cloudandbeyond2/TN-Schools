@@ -12,6 +12,8 @@ import path from 'path';
 import aiRoutes from './routes/ai.routes';
 import portfolioRoutes from './routes/portfolio.routes';
 import sportsRoutes from './routes/sports.routes';
+import petFitnessRoutes from './routes/petFitness.routes';
+import petInventoryRoutes from './routes/petInventory.routes';
 import wellnessRoutes from './routes/wellness.routes';
 import studentRoutes from './routes/student.routes';
 import activitiesRoutes from './routes/activities.routes';
@@ -165,6 +167,8 @@ app.get('/', async (req: Request, res: Response) => {
 app.use('/api/ai', aiRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/sports', sportsRoutes);
+app.use('/api/pet/fitness-records', petFitnessRoutes);
+app.use('/api/pet/inventory', petInventoryRoutes);
 app.use('/api/wellness', wellnessRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/activities', activitiesRoutes);

@@ -1,1634 +1,326 @@
-// "use client";
-
-// import PortalLayout from "@/components/PortalLayout";
-// import { useState } from "react";
-// import {
-//   Music2,
-//   Trophy,
-//   Sparkles as DanceSparkle,
-//   Cpu,
-//   Users2,
-//   Globe2,
-//   Loader2,
-//   RefreshCw,
-//   Newspaper,
-//   PlayCircle,
-//   BookOpen,
-//   ChevronRight,
-//   Sparkles,
-//   GraduationCap,
-//   type LucideIcon,
-// } from "lucide-react";
-
-// /* ------------------------------------------------------------------ */
-// /*  Types & level meta                                                */
-// /* ------------------------------------------------------------------ */
-
-// type Level = "middle" | "high" | "higher-secondary";
-// type LevelFilter = Level | "all";
-
-// type DeptId =
-//   | "music"
-//   | "sports"
-//   | "dance"
-//   | "ai-tech"
-//   | "non-tech"
-//   | "general"
-//   | "career-exams";
-
-// const LEVEL_META: Record<Level, { label: string; sub: string }> = {
-//   middle: { label: "Middle School", sub: "Classes 6th – 8th" },
-//   high: { label: "High School", sub: "Classes 9th – 10th" },
-//   "higher-secondary": { label: "Higher Secondary", sub: "Classes 11th – 12th" },
-// };
-
-// interface LevelContent {
-//   title: string;
-//   summary: string;
-//   resourceCount: number;
-//   resourceType: "Videos" | "Articles" | "Lessons" | "Workshops";
-//   videoId: string;
-// }
-
-// interface Department {
-//   id: DeptId;
-//   name: string;
-//   icon: LucideIcon;
-//   color: string;
-//   tagline: string;
-//   byLevel: Partial<Record<Level, LevelContent>>;
-// }
-
-// const DEPARTMENTS: Department[] = [
-//   {
-//     id: "music",
-//     name: "Music",
-//     icon: Music2,
-//     color: "#a78bfa",
-//     tagline: "Carnatic, Western, and instrument basics",
-//     byLevel: {
-//       middle: {
-//         title: "Sing-along basics & rhythm games",
-//         summary:
-//           "Fun intro to swaras, clapping rhythm games, and recognizing simple ragas by ear.",
-//         resourceCount: 12,
-//         resourceType: "Videos",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//       high: {
-//         title: "Carnatic vocal technique & notation",
-//         summary:
-//           "Reading basic notation, varnam practice, and the structure behind popular kritis.",
-//         resourceCount: 18,
-//         resourceType: "Lessons",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//       "higher-secondary": {
-//         title: "Music theory for composition & exams",
-//         summary:
-//           "Raga-thala theory in depth, composition basics, and prep for music certification exams.",
-//         resourceCount: 9,
-//         resourceType: "Workshops",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//     },
-//   },
-//   {
-//     id: "sports",
-//     name: "Sports & Athletics",
-//     icon: Trophy,
-//     color: "#fb923c",
-//     tagline: "Fitness, technique, and match strategy",
-//     byLevel: {
-//       middle: {
-//         title: "Movement games & basic fitness",
-//         summary:
-//           "Fun warm-ups, basic kabaddi and badminton rules, and why daily movement matters.",
-//         resourceCount: 15,
-//         resourceType: "Videos",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//       high: {
-//         title: "Technique drills for district trials",
-//         summary:
-//           "Position-specific drills, nutrition basics for young athletes, injury prevention.",
-//         resourceCount: 22,
-//         resourceType: "Lessons",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//       "higher-secondary": {
-//         title: "Sports science & performance analytics",
-//         summary:
-//           "Training periodization, sports psychology under pressure, and scholarship pathways.",
-//         resourceCount: 11,
-//         resourceType: "Articles",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//     },
-//   },
-//   {
-//     id: "dance",
-//     name: "Traditional Dance",
-//     icon: DanceSparkle,
-//     color: "#f472b6",
-//     tagline: "Bharatanatyam, folk forms & cultural roots",
-//     byLevel: {
-//       middle: {
-//         title: "Adavus & storytelling through dance",
-//         summary:
-//           "Basic adavus, hand gestures (mudras), and the stories behind popular folk dances.",
-//         resourceCount: 10,
-//         resourceType: "Videos",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//       high: {
-//         title: "Bharatanatyam technique & history",
-//         summary:
-//           "Margam structure, regional variations, and the history of Tamil temple dance traditions.",
-//         resourceCount: 14,
-//         resourceType: "Lessons",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//       "higher-secondary": {
-//         title: "Choreography & cultural curation",
-//         summary:
-//           "Choreographing original pieces, curating cultural programs, and dance as a career path.",
-//         resourceCount: 7,
-//         resourceType: "Workshops",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//     },
-//   },
-//   {
-//     id: "ai-tech",
-//     name: "AI & Technology",
-//     icon: Cpu,
-//     color: "#2dd4bf",
-//     tagline: "From block coding to real AI tools",
-//     byLevel: {
-//       middle: {
-//         title: "What is AI? Block-coding & robots",
-//         summary:
-//           "Scratch-style block coding, simple robot logic, and what makes AI different from a calculator.",
-//         resourceCount: 20,
-//         resourceType: "Videos",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//       high: {
-//         title: "Python basics & how AI models learn",
-//         summary:
-//           "Intro to Python, what training data means, and building a simple chatbot project.",
-//         resourceCount: 25,
-//         resourceType: "Lessons",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//       "higher-secondary": {
-//         title: "ML foundations & JEE-relevant CS",
-//         summary:
-//           "Neural network basics, real-world AI ethics cases, and CS fundamentals for JEE/NEET-adjacent tracks.",
-//         resourceCount: 16,
-//         resourceType: "Workshops",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//     },
-//   },
-//   {
-//     id: "non-tech",
-//     name: "Non-Tech & Soft Skills",
-//     icon: Users2,
-//     color: "#60a5fa",
-//     tagline: "Communication, leadership, money sense",
-//     byLevel: {
-//       middle: {
-//         title: "Speaking up & teamwork basics",
-//         summary:
-//           "Confidence-building exercises, simple public speaking, and working well in groups.",
-//         resourceCount: 9,
-//         resourceType: "Videos",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//       high: {
-//         title: "Debate, leadership & time management",
-//         summary:
-//           "Structured debate formats, student leadership roles, and exam-time scheduling skills.",
-//         resourceCount: 13,
-//         resourceType: "Lessons",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//       "higher-secondary": {
-//         title: "Interview skills & personal finance",
-//         summary:
-//           "Mock interviews, resume basics, budgeting, and understanding how scholarships work.",
-//         resourceCount: 12,
-//         resourceType: "Workshops",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//     },
-//   },
-//   {
-//     id: "general",
-//     name: "General Knowledge",
-//     icon: Globe2,
-//     color: "#facc15",
-//     tagline: "History, current affairs, civics & health",
-//     byLevel: {
-//       middle: {
-//         title: "Stories from history & how news works",
-//         summary:
-//           "Bite-sized history stories, basic geography, and a kid-safe intro to how news is reported.",
-//         resourceCount: 16,
-//         resourceType: "Articles",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//       high: {
-//         title: "Current affairs & civics for board exams",
-//         summary:
-//           "Weekly current affairs digest, Indian polity basics, and board-exam-relevant history topics.",
-//         resourceCount: 21,
-//         resourceType: "Articles",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//       "higher-secondary": {
-//         title: "Politics, policy & health literacy",
-//         summary:
-//           "In-depth political/economic context, public health awareness, and competitive-exam GK prep.",
-//         resourceCount: 19,
-//         resourceType: "Articles",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//     },
-//   },
-//   {
-//     id: "career-exams",
-//     name: "Career & Competitive Exams",
-//     icon: GraduationCap,
-//     color: "#34d399",
-//     tagline: "AI-matched streams, colleges & entrance prep",
-//     byLevel: {
-//       "higher-secondary": {
-//         title: "AI stream & college matching",
-//         summary:
-//           "AI-driven suggestions on streams (Science/Commerce/Arts), entrance exam timelines (NEET/JEE/CUET), and college shortlists based on your scores.",
-//         resourceCount: 14,
-//         resourceType: "Workshops",
-//         videoId: "2ePf9rue1Ao",
-//       },
-//     },
-//   },
-// ];
-
-// const LEVEL_DEPARTMENTS: Record<Level, DeptId[]> = {
-//   middle: ["music", "sports", "dance", "general"],
-//   high: ["sports", "ai-tech", "non-tech", "general"],
-//   "higher-secondary": ["ai-tech", "non-tech", "general", "career-exams"],
-// };
-
-// /* ------------------------------------------------------------------ */
-// /*  Mocked AI daily-brief generator                                   */
-// /* ------------------------------------------------------------------ */
-
-// const AI_BRIEFS: Record<DeptId, Partial<Record<Level, string>>> = {
-//   music: {
-//     middle:
-//       "Today's pick: try clapping the rhythm of 'Sa Re Ga Ma' three times fast, then slow — that's how musicians warm up their ears!",
-//     high:
-//       "Spotlight: this week's varnam practice focuses on Adi talam — a great one to record yourself singing and compare.",
-//     "higher-secondary":
-//       "Exam tip: music theory papers often ask you to identify a raga from notation alone — practice with 5 ragas a day.",
-//   },
-//   sports: {
-//     middle:
-//       "Fun fact for today: Tamil Nadu has produced national-level kabaddi champions from school teams just like yours!",
-//     high:
-//       "District trial dates were just announced for badminton and athletics — check the Sports & Athletics tab for your slot.",
-//     "higher-secondary":
-//       "Today's focus: recovery matters as much as training. A 10-minute stretch routine after practice cuts injury risk significantly.",
-//   },
-//   dance: {
-//     middle:
-//       "Did you know? The mudra for 'flower' in Bharatanatyam is also used to represent a lotus in temple sculptures across Tamil Nadu.",
-//     high:
-//       "This week: explore how Bharatanatyam's Alarippu (opening piece) trains your body for the entire performance ahead.",
-//     "higher-secondary":
-//       "Career note: several Tamil Nadu universities now offer dance as a full-time fine arts degree — worth exploring for the arts stream.",
-//   },
-//   "ai-tech": {
-//     middle:
-//       "Today in tech: AI chatbots like this one learn from huge amounts of text — kind of like reading a million storybooks!",
-//     high:
-//       "Quick build idea: try making a simple Python quiz game this week — it uses the same logic as bigger AI projects.",
-//     "higher-secondary":
-//       "Today's AI news: more Indian companies are hiring for 'AI prompt engineering' roles — a useful skill alongside core CS.",
-//   },
-//   "non-tech": {
-//     middle:
-//       "Try this today: introduce yourself to one new classmate using only three sentences — great practice for confidence.",
-//     high:
-//       "Debate topic of the week: 'Should homework be optional?' — pick a side and list 3 strong points before tomorrow.",
-//     "higher-secondary":
-//       "Interview tip: practice answering 'Tell me about yourself' in under 60 seconds — recruiters decide fast.",
-//   },
-//   general: {
-//     middle:
-//       "On this day in history: many freedom fighters from Tamil Nadu played key roles in India's independence movement — ask your teacher who from your district!",
-//     high:
-//       "Current affairs digest: this week's national news focused on education policy updates — check the General Knowledge tab for a simplified summary.",
-//     "higher-secondary":
-//       "Today's brief: a major policy discussion is underway on public health access — relevant background reading for competitive exam GK sections.",
-//   },
-//   "career-exams": {
-//     "higher-secondary":
-//       "AI insight: based on common score patterns this term, students strong in Biology + Chemistry are seeing the best fit with Medical-stream colleges — check your own AI match in this section.",
-//   },
-// };
-
-// /* Interesting "did-you-know" style points per department/level — shown in the info tab */
-// const AI_POINTS: Record<DeptId, Partial<Record<Level, string[]>>> = {
-//   music: {
-//     middle: [
-//       "Clapping in rhythm trains the same part of your brain used in maths!",
-//       "Carnatic music has 72 base ragas called 'melakarta' — like building blocks for songs.",
-//       "Tamil Nadu's December 'Margazhi' season is the world's biggest classical music festival.",
-//     ],
-//     high: [
-//       "Adi talam (8 beats) is the most common rhythm cycle in Carnatic music.",
-//       "Notating a song by ear is a skill professional musicians practice daily.",
-//       "Many film composers started by learning classical Carnatic technique first.",
-//     ],
-//     "higher-secondary": [
-//       "Music theory exams often test raga identification from written notation alone.",
-//       "Composition basics you learn now map directly to electronic/film scoring later.",
-//       "Several universities offer music as a full performance-arts degree pathway.",
-//     ],
-//   },
-//   sports: {
-//     middle: [
-//       "Just 20 minutes of daily movement measurably improves focus in class.",
-//       "Kabaddi is one of the few sports that began in rural Tamil Nadu and went international.",
-//       "Warm-up games build coordination just as much as 'serious' drills do.",
-//     ],
-//     high: [
-//       "District trial selections often look at consistency over single best performances.",
-//       "Proper hydration affects reaction time more than most athletes realize.",
-//       "Cross-training in a second sport reduces injury risk in your main sport.",
-//     ],
-//     "higher-secondary": [
-//       "Sports psychology — staying calm under pressure — is now studied like physical training.",
-//       "Several state universities offer direct sports quota admissions for state-rank athletes.",
-//       "Recovery (sleep + stretching) is statistically as important as practice hours.",
-//     ],
-//   },
-//   dance: {
-//     middle: [
-//       "Each Bharatanatyam mudra (hand gesture) tells a specific part of a story.",
-//       "Folk dances across Tamil Nadu districts each carry a unique local history.",
-//       "Dance technique training improves posture and discipline beyond the dance floor.",
-//     ],
-//     high: [
-//       "The 'Margam' is the traditional 7-part structure of a full Bharatanatyam performance.",
-//       "Temple dance traditions in Tamil Nadu date back over a thousand years.",
-//       "Regional variations of the same dance form often tell completely different stories.",
-//     ],
-//     "higher-secondary": [
-//       "Several Tamil Nadu universities now offer dance as a full fine-arts degree.",
-//       "Choreographing an original piece is treated like a capstone project in performing arts.",
-//       "Cultural program curation is a real career path in event and arts management.",
-//     ],
-//   },
-//   "ai-tech": {
-//     middle: [
-//       "AI doesn't 'think' — it finds patterns in huge amounts of example data.",
-//       "Block coding (like Scratch) uses the exact same logic as real programming languages.",
-//       "Simple robot logic (if-this-then-that) is the foundation of all automation.",
-//     ],
-//     high: [
-//       "Python is the most-used language for AI because it reads almost like English.",
-//       "'Training data' is just lots of examples — the more varied, the smarter the model.",
-//       "A simple chatbot project teaches the same core logic as large AI systems.",
-//     ],
-//     "higher-secondary": [
-//       "AI prompt engineering is now a real, growing job role in Indian tech companies.",
-//       "Neural networks are loosely inspired by how neurons connect in the human brain.",
-//       "AI ethics (bias, fairness) is now a required topic in most CS entrance exams.",
-//     ],
-//   },
-//   "non-tech": {
-//     middle: [
-//       "Speaking in just 3 confident sentences is a real public-speaking technique.",
-//       "Working well in a team is one of the most-requested skills by employers, ever.",
-//       "Active listening (not just talking) is half of good communication.",
-//     ],
-//     high: [
-//       "Structured debate format forces you to argue both sides — sharpens critical thinking.",
-//       "Time-blocking your study schedule reduces exam-week stress significantly.",
-//       "Student leadership roles look strong on college applications later.",
-//     ],
-//     "higher-secondary": [
-//       "Recruiters often decide their first impression within 60 seconds of an answer.",
-//       "A clear personal budget habit started now compounds hugely by your 20s.",
-//       "Scholarship applications often reward extracurricular leadership, not just marks.",
-//     ],
-//   },
-//   general: {
-//     middle: [
-//       "Many freedom fighters from Tamil Nadu played key roles in India's independence.",
-//       "News reporters double-check facts with multiple sources before publishing.",
-//       "Geography shapes culture — coastal vs. hill-district festivals look very different.",
-//     ],
-//     high: [
-//       "Indian polity basics (constitution, rights) show up in almost every board exam.",
-//       "Reading one current-affairs digest a week beats cramming before exams.",
-//       "Local district history often connects directly to national-level events.",
-//     ],
-//     "higher-secondary": [
-//       "Competitive exam GK sections reward consistent weekly reading over last-minute cramming.",
-//       "Public health policy literacy is increasingly tested in general studies papers.",
-//       "Understanding policy context (not just facts) is what separates top GK scorers.",
-//     ],
-//   },
-//   "career-exams": {
-//     "higher-secondary": [
-//       "AI-based stream matching looks at your subject strengths, not just overall percentage.",
-//       "NEET, JEE, and CUET timelines are now consolidated — missing one date can cost a year.",
-//       "College shortlists based on past cutoffs help you target realistic, not just dream, options.",
-//     ],
-//   },
-// };
-
-// /* ------------------------------------------------------------------ */
-// /*  Small UI atoms                                                    */
-// /* ------------------------------------------------------------------ */
-
-// function ResourceTypeIcon({ type }: { type: LevelContent["resourceType"] }) {
-//   if (type === "Videos") return <PlayCircle className="h-3.5 w-3.5" />;
-//   if (type === "Articles") return <Newspaper className="h-3.5 w-3.5" />;
-//   return <BookOpen className="h-3.5 w-3.5" />;
-// }
-
-// function DepartmentCard({
-//   dept,
-//   level,
-//   onExplore,
-// }: {
-//   dept: Department;
-//   level: Level;
-//   onExplore: () => void;
-// }) {
-//   const content = dept.byLevel[level];
-//   if (!content) return null;
-//   const Icon = dept.icon;
-
-//   return (
-//     <div className="group relative rounded-2xl border border-white/[0.06] bg-[#111a2c] p-5 transition-colors hover:border-white/[0.12] hover:bg-[#141f35]">
-//       <div className="flex items-start justify-between">
-//         <div
-//           className="flex h-10 w-10 items-center justify-center rounded-xl"
-//           style={{ backgroundColor: `${dept.color}1f`, color: dept.color }}
-//         >
-//           <Icon className="h-5 w-5" />
-//         </div>
-//         <span
-//           className="rounded-full px-2 py-0.5 text-[10.5px] font-semibold"
-//           style={{ backgroundColor: `${dept.color}1f`, color: dept.color }}
-//         >
-//           {LEVEL_META[level].label}
-//         </span>
-//       </div>
-
-//       <h3 className="mt-3 text-[15px] font-semibold text-slate-100">
-//         {dept.name}
-//       </h3>
-//       <p className="text-[12px] text-slate-500">{dept.tagline}</p>
-
-//       <div className="mt-3 rounded-xl border border-white/[0.06] bg-[#0d1626] p-3">
-//         <p className="text-[13px] font-medium text-slate-200">
-//           {content.title}
-//         </p>
-//         <p className="mt-1 text-[12.5px] leading-relaxed text-slate-400">
-//           {content.summary}
-//         </p>
-//       </div>
-
-//       <div className="mt-3 flex items-center justify-between">
-//         <span className="flex items-center gap-1.5 text-[12px] text-slate-500">
-//           <ResourceTypeIcon type={content.resourceType} />
-//           {content.resourceCount} {content.resourceType}
-//         </span>
-//         <button
-//           onClick={onExplore}
-//           className="flex items-center gap-1 text-[12.5px] font-semibold transition-colors"
-//           style={{ color: dept.color }}
-//         >
-//           Explore
-//           <ChevronRight className="h-3.5 w-3.5" />
-//         </button>
-//       </div>
-//     </div>
-//   );
-// }
-
-// /* ------------------------------------------------------------------ */
-// /*  Explore modal: Video / Key Points toggle                          */
-// /* ------------------------------------------------------------------ */
-
-// function ExploreModal({
-//   dept,
-//   level,
-//   onClose,
-// }: {
-//   dept: Department;
-//   level: Level;
-//   onClose: () => void;
-// }) {
-//   const [tab, setTab] = useState<"video" | "points">("points");
-//   const content = dept.byLevel[level];
-//   const points = AI_POINTS[dept.id]?.[level] ?? [];
-//   const Icon = dept.icon;
-
-//   if (!content) return null;
-
-//   return (
-//     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-//       <div className="relative w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-[#0c1322] p-5">
-//         <button
-//           onClick={onClose}
-//           className="absolute right-4 top-4 text-slate-400 hover:text-white"
-//         >
-//           ✕
-//         </button>
-
-//         <div className="flex items-center gap-3 pr-8">
-//           <div
-//             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-//             style={{ backgroundColor: `${dept.color}1f`, color: dept.color }}
-//           >
-//             <Icon className="h-5 w-5" />
-//           </div>
-//           <div>
-//             <p
-//               className="text-[12px] font-semibold"
-//               style={{ color: dept.color }}
-//             >
-//               {dept.name} · {LEVEL_META[level].label}
-//             </p>
-//             <h3 className="text-[16px] font-semibold text-slate-100">
-//               {content.title}
-//             </h3>
-//           </div>
-//         </div>
-
-//         {/* Toggle */}
-//         <div className="mt-4 flex gap-2">
-//           <button
-//             onClick={() => setTab("points")}
-//             className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors ${
-//               tab === "points"
-//                 ? "bg-teal-400/15 text-teal-300 ring-1 ring-inset ring-teal-400/30"
-//                 : "bg-white/[0.04] text-slate-400 hover:bg-white/[0.07]"
-//             }`}
-//           >
-//             Key Points
-//           </button>
-//           <button
-//             onClick={() => setTab("video")}
-//             className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors ${
-//               tab === "video"
-//                 ? "bg-teal-400/15 text-teal-300 ring-1 ring-inset ring-teal-400/30"
-//                 : "bg-white/[0.04] text-slate-400 hover:bg-white/[0.07]"
-//             }`}
-//           >
-//             Video
-//           </button>
-//         </div>
-
-//         <div className="mt-4">
-//           {tab === "points" ? (
-//             <div className="space-y-2.5">
-//               <p className="text-[12px] text-slate-500">
-//                 A few interesting things worth knowing today:
-//               </p>
-//               {points.length > 0 ? (
-//                 points.map((pt, i) => (
-//                   <div
-//                     key={i}
-//                     className="flex gap-3 rounded-xl border border-white/[0.06] bg-[#111a2c] p-3"
-//                   >
-//                     <span
-//                       className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
-//                       style={{
-//                         backgroundColor: `${dept.color}1f`,
-//                         color: dept.color,
-//                       }}
-//                     >
-//                       {i + 1}
-//                     </span>
-//                     <p className="text-[13px] leading-relaxed text-slate-300">
-//                       {pt}
-//                     </p>
-//                   </div>
-//                 ))
-//               ) : (
-//                 <p className="text-[13px] text-slate-500">
-//                   No points available for this section yet.
-//                 </p>
-//               )}
-//             </div>
-//           ) : (
-//             <div className="overflow-hidden rounded-xl border border-white/[0.06]">
-//               <iframe
-//                 width="100%"
-//                 height="360"
-//                 src={`https://www.youtube.com/embed/${content.videoId}`}
-//                 title={content.title}
-//                 allowFullScreen
-//               />
-//             </div>
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// /* ------------------------------------------------------------------ */
-// /*  AI Daily Brief panel                                              */
-// /* ------------------------------------------------------------------ */
-
-// function AiDailyBrief({
-//   deptId,
-//   setDeptId,
-//   level,
-//   availableDepts,
-// }: {
-//   deptId: DeptId;
-//   setDeptId: (id: DeptId) => void;
-//   level: Level;
-//   availableDepts: Department[];
-// }) {
-//   const [brief, setBrief] = useState<string | null>(
-//     AI_BRIEFS[deptId]?.[level] ?? null
-//   );
-//   const [loading, setLoading] = useState(false);
-
-//   const refresh = (nextDept?: DeptId) => {
-//     const target = nextDept ?? deptId;
-//     setLoading(true);
-//     setBrief(null);
-//     window.setTimeout(() => {
-//       setBrief(AI_BRIEFS[target]?.[level] ?? null);
-//       setLoading(false);
-//     }, 900);
-//   };
-
-//   return (
-//     <div className="rounded-2xl border border-violet-500/20 bg-gradient-to-b from-violet-500/[0.08] to-transparent p-5">
-//       <div className="flex items-center gap-3">
-//         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-500/15 text-violet-300">
-//           <Sparkles className="h-[18px] w-[18px]" />
-//         </div>
-//         <div>
-//           <h3 className="text-[14px] font-semibold text-slate-100">
-//             AI Daily Brief
-//           </h3>
-//           <p className="text-[12px] text-slate-400">
-//             A fresh nugget for {LEVEL_META[level].label.toLowerCase()}, picked
-//             per department.
-//           </p>
-//         </div>
-//       </div>
-
-//       <div className="mt-4 flex flex-wrap gap-1.5">
-//         {availableDepts.map((d) => {
-//           const Icon = d.icon;
-//           const active = d.id === deptId;
-//           return (
-//             <button
-//               key={d.id}
-//               onClick={() => {
-//                 setDeptId(d.id);
-//                 refresh(d.id);
-//               }}
-//               className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11.5px] font-medium ring-1 ring-inset transition-colors"
-//               style={
-//                 active
-//                   ? {
-//                       backgroundColor: `${d.color}1f`,
-//                       color: d.color,
-//                       boxShadow: `inset 0 0 0 1px ${d.color}4d`,
-//                     }
-//                   : {
-//                       backgroundColor: "rgba(255,255,255,0.04)",
-//                       color: "#94a3b8",
-//                       boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
-//                     }
-//               }
-//             >
-//               <Icon className="h-3 w-3" />
-//               {d.name}
-//             </button>
-//           );
-//         })}
-//       </div>
-
-//       <div className="mt-3 rounded-xl border border-white/[0.06] bg-[#0d1626] p-3.5">
-//         {loading ? (
-//           <div className="flex items-center gap-2 text-[13px] text-slate-400">
-//             <Loader2 className="h-4 w-4 animate-spin text-violet-300" />
-//             Pulling today's update…
-//           </div>
-//         ) : (
-//           <p className="text-[13px] leading-relaxed text-slate-300">
-//             {brief ?? "No update available for this section yet."}
-//           </p>
-//         )}
-//       </div>
-
-//       <button
-//         onClick={() => refresh()}
-//         disabled={loading}
-//         className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-violet-300 hover:text-violet-200 disabled:opacity-50"
-//       >
-//         <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-//         Get a new update
-//       </button>
-//     </div>
-//   );
-// }
-
-// /* ------------------------------------------------------------------ */
-// /*  Page                                                               */
-// /* ------------------------------------------------------------------ */
-
-// export default function LearningPlatform({ level }: { level: Level }) {
-//   const [briefDept, setBriefDept] = useState<DeptId>(LEVEL_DEPARTMENTS[level]?.[0] || "general");
-//   const [openDeptId, setOpenDeptId] = useState<DeptId | null>(null);
-
-//   const effectiveLevel: Level = level;
-
-//   const visibleDepartments = DEPARTMENTS.filter((dept) =>
-//     LEVEL_DEPARTMENTS[effectiveLevel].includes(dept.id)
-//   );
-
-//   const openDept = visibleDepartments.find((d) => d.id === openDeptId) ?? null;
-
-//   return (
-//     <PortalLayout
-//       title="Learning Platform"
-//       subtitle="One place for every department — music, sports, dance, tech, and the world around you."
-//       avatarLetter="A"
-//       avatarColor="#2dd4bf"
-//       themeClass="theme-student"
-//       accentColor="#2dd4bf"
-//     >
-//       <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
-//         {/* Department grid */}
-//         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-//           {visibleDepartments.map((dept) => (
-//             <DepartmentCard
-//               key={dept.id}
-//               dept={dept}
-//               level={effectiveLevel}
-//               onExplore={() => setOpenDeptId(dept.id)}
-//             />
-//           ))}
-//         </div>
-
-//         {/* AI Daily Brief, sticky on large screens */}
-//         <div className="lg:sticky lg:top-6 lg:self-start">
-//           <AiDailyBrief
-//             deptId={briefDept}
-//             setDeptId={setBriefDept}
-//             level={effectiveLevel}
-//             availableDepts={visibleDepartments}
-//           />
-//         </div>
-//       </div>
-
-//       {openDept && (
-//         <ExploreModal
-//           dept={openDept}
-//           level={effectiveLevel}
-//           onClose={() => setOpenDeptId(null)}
-//         />
-//       )}
-//     </PortalLayout>
-//   );
-// }
-
-
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
-import { useState } from "react";
-import {
-  Music2,
-  Trophy,
-  Sparkles as DanceSparkle,
-  Cpu,
-  Users2,
-  Globe2,
-  Loader2,
-  RefreshCw,
-  Newspaper,
-  PlayCircle,
-  BookOpen,
-  ChevronRight,
-  Sparkles,
-  GraduationCap,
-  type LucideIcon,
-} from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { apiFetch } from "@/lib/api";
 
-/* ------------------------------------------------------------------ */
-/*  Types & level meta                                                */
-/* ------------------------------------------------------------------ */
-
-type Level = "middle" | "high" | "higher-secondary";
-type LevelFilter = Level | "all";
-
-type DeptId =
-  | "music"
-  | "sports"
-  | "dance"
-  | "ai-tech"
-  | "non-tech"
-  | "general"
-  | "career-exams";
-
-const LEVEL_META: Record<Level, { label: string; sub: string }> = {
-  middle: { label: "Middle School", sub: "Classes 6th – 8th" },
-  high: { label: "High School", sub: "Classes 9th – 10th" },
-  "higher-secondary": { label: "Higher Secondary", sub: "Classes 11th – 12th" },
-};
-
-interface LevelContent {
+// Empty initial facts, will be fetched from API
+interface Fact {
+  id: number;
+  category: string;
+  categoryTa: string;
   title: string;
-  summary: string;
-  resourceCount: number;
-  resourceType: "Videos" | "Articles" | "Lessons" | "Workshops";
-  videoId: string;
-}
-
-interface Department {
-  id: DeptId;
-  name: string;
-  icon: LucideIcon;
+  titleTa: string;
+  fact: string;
+  factTa: string;
+  image: string;
   color: string;
-  tagline: string;
-  byLevel: Partial<Record<Level, LevelContent>>;
+  icon: string;
+  quiz: {
+    question: string;
+    questionTa: string;
+    options: string[];
+    optionsTa: string[];
+    answer: number;
+  }
 }
 
-const DEPARTMENTS: Department[] = [
-  {
-    id: "music",
-    name: "Music",
-    icon: Music2,
-    color: "#a78bfa",
-    tagline: "Carnatic, Western, and instrument basics",
-    byLevel: {
-      middle: {
-        title: "Sing-along basics & rhythm games",
-        summary:
-          "Fun intro to swaras, clapping rhythm games, and recognizing simple ragas by ear.",
-        resourceCount: 12,
-        resourceType: "Videos",
-        videoId: "2ePf9rue1Ao",
-      },
-      high: {
-        title: "Carnatic vocal technique & notation",
-        summary:
-          "Reading basic notation, varnam practice, and the structure behind popular kritis.",
-        resourceCount: 18,
-        resourceType: "Lessons",
-        videoId: "2ePf9rue1Ao",
-      },
-      "higher-secondary": {
-        title: "Music theory for composition & exams",
-        summary:
-          "Raga-thala theory in depth, composition basics, and prep for music certification exams.",
-        resourceCount: 9,
-        resourceType: "Workshops",
-        videoId: "2ePf9rue1Ao",
-      },
-    },
-  },
-  {
-    id: "sports",
-    name: "Sports & Athletics",
-    icon: Trophy,
-    color: "#fb923c",
-    tagline: "Fitness, technique, and match strategy",
-    byLevel: {
-      middle: {
-        title: "Movement games & basic fitness",
-        summary:
-          "Fun warm-ups, basic kabaddi and badminton rules, and why daily movement matters.",
-        resourceCount: 15,
-        resourceType: "Videos",
-        videoId: "2ePf9rue1Ao",
-      },
-      high: {
-        title: "Technique drills for district trials",
-        summary:
-          "Position-specific drills, nutrition basics for young athletes, injury prevention.",
-        resourceCount: 22,
-        resourceType: "Lessons",
-        videoId: "2ePf9rue1Ao",
-      },
-      "higher-secondary": {
-        title: "Sports science & performance analytics",
-        summary:
-          "Training periodization, sports psychology under pressure, and scholarship pathways.",
-        resourceCount: 11,
-        resourceType: "Articles",
-        videoId: "2ePf9rue1Ao",
-      },
-    },
-  },
-  {
-    id: "dance",
-    name: "Traditional Dance",
-    icon: DanceSparkle,
-    color: "#f472b6",
-    tagline: "Bharatanatyam, folk forms & cultural roots",
-    byLevel: {
-      middle: {
-        title: "Adavus & storytelling through dance",
-        summary:
-          "Basic adavus, hand gestures (mudras), and the stories behind popular folk dances.",
-        resourceCount: 10,
-        resourceType: "Videos",
-        videoId: "2ePf9rue1Ao",
-      },
-      high: {
-        title: "Bharatanatyam technique & history",
-        summary:
-          "Margam structure, regional variations, and the history of Tamil temple dance traditions.",
-        resourceCount: 14,
-        resourceType: "Lessons",
-        videoId: "2ePf9rue1Ao",
-      },
-      "higher-secondary": {
-        title: "Choreography & cultural curation",
-        summary:
-          "Choreographing original pieces, curating cultural programs, and dance as a career path.",
-        resourceCount: 7,
-        resourceType: "Workshops",
-        videoId: "2ePf9rue1Ao",
-      },
-    },
-  },
-  {
-    id: "ai-tech",
-    name: "AI & Technology",
-    icon: Cpu,
-    color: "#2dd4bf",
-    tagline: "From block coding to real AI tools",
-    byLevel: {
-      middle: {
-        title: "What is AI? Block-coding & robots",
-        summary:
-          "Scratch-style block coding, simple robot logic, and what makes AI different from a calculator.",
-        resourceCount: 20,
-        resourceType: "Videos",
-        videoId: "2ePf9rue1Ao",
-      },
-      high: {
-        title: "Python basics & how AI models learn",
-        summary:
-          "Intro to Python, what training data means, and building a simple chatbot project.",
-        resourceCount: 25,
-        resourceType: "Lessons",
-        videoId: "2ePf9rue1Ao",
-      },
-      "higher-secondary": {
-        title: "ML foundations & JEE-relevant CS",
-        summary:
-          "Neural network basics, real-world AI ethics cases, and CS fundamentals for JEE/NEET-adjacent tracks.",
-        resourceCount: 16,
-        resourceType: "Workshops",
-        videoId: "2ePf9rue1Ao",
-      },
-    },
-  },
-  {
-    id: "non-tech",
-    name: "Non-Tech & Soft Skills",
-    icon: Users2,
-    color: "#60a5fa",
-    tagline: "Communication, leadership, money sense",
-    byLevel: {
-      middle: {
-        title: "Speaking up & teamwork basics",
-        summary:
-          "Confidence-building exercises, simple public speaking, and working well in groups.",
-        resourceCount: 9,
-        resourceType: "Videos",
-        videoId: "2ePf9rue1Ao",
-      },
-      high: {
-        title: "Debate, leadership & time management",
-        summary:
-          "Structured debate formats, student leadership roles, and exam-time scheduling skills.",
-        resourceCount: 13,
-        resourceType: "Lessons",
-        videoId: "2ePf9rue1Ao",
-      },
-      "higher-secondary": {
-        title: "Interview skills & personal finance",
-        summary:
-          "Mock interviews, resume basics, budgeting, and understanding how scholarships work.",
-        resourceCount: 12,
-        resourceType: "Workshops",
-        videoId: "2ePf9rue1Ao",
-      },
-    },
-  },
-  {
-    id: "general",
-    name: "General Knowledge",
-    icon: Globe2,
-    color: "#facc15",
-    tagline: "History, current affairs, civics & health",
-    byLevel: {
-      middle: {
-        title: "Stories from history & how news works",
-        summary:
-          "Bite-sized history stories, basic geography, and a kid-safe intro to how news is reported.",
-        resourceCount: 16,
-        resourceType: "Articles",
-        videoId: "2ePf9rue1Ao",
-      },
-      high: {
-        title: "Current affairs & civics for board exams",
-        summary:
-          "Weekly current affairs digest, Indian polity basics, and board-exam-relevant history topics.",
-        resourceCount: 21,
-        resourceType: "Articles",
-        videoId: "2ePf9rue1Ao",
-      },
-      "higher-secondary": {
-        title: "Politics, policy & health literacy",
-        summary:
-          "In-depth political/economic context, public health awareness, and competitive-exam GK prep.",
-        resourceCount: 19,
-        resourceType: "Articles",
-        videoId: "2ePf9rue1Ao",
-      },
-    },
-  },
-  {
-    id: "career-exams",
-    name: "Career & Competitive Exams",
-    icon: GraduationCap,
-    color: "#34d399",
-    tagline: "AI-matched streams, colleges & entrance prep",
-    byLevel: {
-      "higher-secondary": {
-        title: "AI stream & college matching",
-        summary:
-          "AI-driven suggestions on streams (Science/Commerce/Arts), entrance exam timelines (NEET/JEE/CUET), and college shortlists based on your scores.",
-        resourceCount: 14,
-        resourceType: "Workshops",
-        videoId: "2ePf9rue1Ao",
-      },
-    },
-  },
-];
-
-const LEVEL_DEPARTMENTS: Record<Level, DeptId[]> = {
-  middle: ["music", "sports", "dance", "general"],
-  high: ["sports", "ai-tech", "non-tech", "general"],
-  "higher-secondary": ["ai-tech", "non-tech", "general", "career-exams"],
-};
-
-/* ------------------------------------------------------------------ */
-/*  Mocked AI daily-brief generator                                   */
-/* ------------------------------------------------------------------ */
-
-const AI_BRIEFS: Record<DeptId, Partial<Record<Level, string>>> = {
-  music: {
-    middle:
-      "Today's pick: try clapping the rhythm of 'Sa Re Ga Ma' three times fast, then slow — that's how musicians warm up their ears!",
-    high:
-      "Spotlight: this week's varnam practice focuses on Adi talam — a great one to record yourself singing and compare.",
-    "higher-secondary":
-      "Exam tip: music theory papers often ask you to identify a raga from notation alone — practice with 5 ragas a day.",
-  },
-  sports: {
-    middle:
-      "Fun fact for today: Tamil Nadu has produced national-level kabaddi champions from school teams just like yours!",
-    high:
-      "District trial dates were just announced for badminton and athletics — check the Sports & Athletics tab for your slot.",
-    "higher-secondary":
-      "Today's focus: recovery matters as much as training. A 10-minute stretch routine after practice cuts injury risk significantly.",
-  },
-  dance: {
-    middle:
-      "Did you know? The mudra for 'flower' in Bharatanatyam is also used to represent a lotus in temple sculptures across Tamil Nadu.",
-    high:
-      "This week: explore how Bharatanatyam's Alarippu (opening piece) trains your body for the entire performance ahead.",
-    "higher-secondary":
-      "Career note: several Tamil Nadu universities now offer dance as a full-time fine arts degree — worth exploring for the arts stream.",
-  },
-  "ai-tech": {
-    middle:
-      "Today in tech: AI chatbots like this one learn from huge amounts of text — kind of like reading a million storybooks!",
-    high:
-      "Quick build idea: try making a simple Python quiz game this week — it uses the same logic as bigger AI projects.",
-    "higher-secondary":
-      "Today's AI news: more Indian companies are hiring for 'AI prompt engineering' roles — a useful skill alongside core CS.",
-  },
-  "non-tech": {
-    middle:
-      "Try this today: introduce yourself to one new classmate using only three sentences — great practice for confidence.",
-    high:
-      "Debate topic of the week: 'Should homework be optional?' — pick a side and list 3 strong points before tomorrow.",
-    "higher-secondary":
-      "Interview tip: practice answering 'Tell me about yourself' in under 60 seconds — recruiters decide fast.",
-  },
-  general: {
-    middle:
-      "On this day in history: many freedom fighters from Tamil Nadu played key roles in India's independence movement — ask your teacher who from your district!",
-    high:
-      "Current affairs digest: this week's national news focused on education policy updates — check the General Knowledge tab for a simplified summary.",
-    "higher-secondary":
-      "Today's brief: a major policy discussion is underway on public health access — relevant background reading for competitive exam GK sections.",
-  },
-  "career-exams": {
-    "higher-secondary":
-      "AI insight: based on common score patterns this term, students strong in Biology + Chemistry are seeing the best fit with Medical-stream colleges — check your own AI match in this section.",
-  },
-};
-
-/* Interesting "did-you-know" style points per department/level — shown in the info tab */
-const AI_POINTS: Record<DeptId, Partial<Record<Level, string[]>>> = {
-  music: {
-    middle: [
-      "Clapping in rhythm trains the same part of your brain used in maths!",
-      "Carnatic music has 72 base ragas called 'melakarta' — like building blocks for songs.",
-      "Tamil Nadu's December 'Margazhi' season is the world's biggest classical music festival.",
-    ],
-    high: [
-      "Adi talam (8 beats) is the most common rhythm cycle in Carnatic music.",
-      "Notating a song by ear is a skill professional musicians practice daily.",
-      "Many film composers started by learning classical Carnatic technique first.",
-    ],
-    "higher-secondary": [
-      "Music theory exams often test raga identification from written notation alone.",
-      "Composition basics you learn now map directly to electronic/film scoring later.",
-      "Several universities offer music as a full performance-arts degree pathway.",
-    ],
-  },
-  sports: {
-    middle: [
-      "Just 20 minutes of daily movement measurably improves focus in class.",
-      "Kabaddi is one of the few sports that began in rural Tamil Nadu and went international.",
-      "Warm-up games build coordination just as much as 'serious' drills do.",
-    ],
-    high: [
-      "District trial selections often look at consistency over single best performances.",
-      "Proper hydration affects reaction time more than most athletes realize.",
-      "Cross-training in a second sport reduces injury risk in your main sport.",
-    ],
-    "higher-secondary": [
-      "Sports psychology — staying calm under pressure — is now studied like physical training.",
-      "Several state universities offer direct sports quota admissions for state-rank athletes.",
-      "Recovery (sleep + stretching) is statistically as important as practice hours.",
-    ],
-  },
-  dance: {
-    middle: [
-      "Each Bharatanatyam mudra (hand gesture) tells a specific part of a story.",
-      "Folk dances across Tamil Nadu districts each carry a unique local history.",
-      "Dance technique training improves posture and discipline beyond the dance floor.",
-    ],
-    high: [
-      "The 'Margam' is the traditional 7-part structure of a full Bharatanatyam performance.",
-      "Temple dance traditions in Tamil Nadu date back over a thousand years.",
-      "Regional variations of the same dance form often tell completely different stories.",
-    ],
-    "higher-secondary": [
-      "Several Tamil Nadu universities now offer dance as a full fine-arts degree.",
-      "Choreographing an original piece is treated like a capstone project in performing arts.",
-      "Cultural program curation is a real career path in event and arts management.",
-    ],
-  },
-  "ai-tech": {
-    middle: [
-      "AI doesn't 'think' — it finds patterns in huge amounts of example data.",
-      "Block coding (like Scratch) uses the exact same logic as real programming languages.",
-      "Simple robot logic (if-this-then-that) is the foundation of all automation.",
-    ],
-    high: [
-      "Python is the most-used language for AI because it reads almost like English.",
-      "'Training data' is just lots of examples — the more varied, the smarter the model.",
-      "A simple chatbot project teaches the same core logic as large AI systems.",
-    ],
-    "higher-secondary": [
-      "AI prompt engineering is now a real, growing job role in Indian tech companies.",
-      "Neural networks are loosely inspired by how neurons connect in the human brain.",
-      "AI ethics (bias, fairness) is now a required topic in most CS entrance exams.",
-    ],
-  },
-  "non-tech": {
-    middle: [
-      "Speaking in just 3 confident sentences is a real public-speaking technique.",
-      "Working well in a team is one of the most-requested skills by employers, ever.",
-      "Active listening (not just talking) is half of good communication.",
-    ],
-    high: [
-      "Structured debate format forces you to argue both sides — sharpens critical thinking.",
-      "Time-blocking your study schedule reduces exam-week stress significantly.",
-      "Student leadership roles look strong on college applications later.",
-    ],
-    "higher-secondary": [
-      "Recruiters often decide their first impression within 60 seconds of an answer.",
-      "A clear personal budget habit started now compounds hugely by your 20s.",
-      "Scholarship applications often reward extracurricular leadership, not just marks.",
-    ],
-  },
-  general: {
-    middle: [
-      "Many freedom fighters from Tamil Nadu played key roles in India's independence.",
-      "News reporters double-check facts with multiple sources before publishing.",
-      "Geography shapes culture — coastal vs. hill-district festivals look very different.",
-    ],
-    high: [
-      "Indian polity basics (constitution, rights) show up in almost every board exam.",
-      "Reading one current-affairs digest a week beats cramming before exams.",
-      "Local district history often connects directly to national-level events.",
-    ],
-    "higher-secondary": [
-      "Competitive exam GK sections reward consistent weekly reading over last-minute cramming.",
-      "Public health policy literacy is increasingly tested in general studies papers.",
-      "Understanding policy context (not just facts) is what separates top GK scorers.",
-    ],
-  },
-  "career-exams": {
-    "higher-secondary": [
-      "AI-based stream matching looks at your subject strengths, not just overall percentage.",
-      "NEET, JEE, and CUET timelines are now consolidated — missing one date can cost a year.",
-      "College shortlists based on past cutoffs help you target realistic, not just dream, options.",
-    ],
-  },
-};
-
-/* ------------------------------------------------------------------ */
-/*  Small UI atoms                                                    */
-/* ------------------------------------------------------------------ */
-
-function ResourceTypeIcon({ type }: { type: LevelContent["resourceType"] }) {
-  if (type === "Videos") return <PlayCircle className="h-3.5 w-3.5" />;
-  if (type === "Articles") return <Newspaper className="h-3.5 w-3.5" />;
-  return <BookOpen className="h-3.5 w-3.5" />;
-}
-
-function DepartmentCard({
-  dept,
-  level,
-  onExplore,
-}: {
-  dept: Department;
-  level: Level;
-  onExplore: () => void;
+function DiscoveryCard({ 
+  item, 
+  isActive, 
+  onComplete,
+  language
+}: { 
+  item: Fact; 
+  isActive: boolean;
+  onComplete: () => void;
+  language: 'en' | 'ta';
 }) {
-  const content = dept.byLevel[level];
-  if (!content) return null;
-  const Icon = dept.icon;
+  const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [quizState, setQuizState] = useState<"idle" | "correct" | "wrong">("idle");
+  const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
+
+  const handleQuiz = (idx: number) => {
+    if (quizState !== "idle") return;
+    setSelectedOpt(idx);
+    if (idx === item.quiz.answer) {
+      setQuizState("correct");
+      onComplete(); // Add XP / Streak
+    } else {
+      setQuizState("wrong");
+    }
+  };
+
+  const isTamil = language === 'ta';
+  const quizOptions = isTamil ? item.quiz.optionsTa : item.quiz.options;
 
   return (
-    <div className="group relative rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c] p-5 transition-colors hover:border-slate-300 dark:hover:border-white/[0.12] hover:bg-slate-50 dark:hover:bg-[#141f35]">
-      <div className="flex items-start justify-between">
-        <div
-          className="flex h-10 w-10 items-center justify-center rounded-xl"
-          style={{ backgroundColor: `${dept.color}1f`, color: dept.color }}
-        >
-          <Icon className="h-5 w-5" />
-        </div>
-        <span
-          className="rounded-full px-2 py-0.5 text-[10.5px] font-semibold"
-          style={{ backgroundColor: `${dept.color}1f`, color: dept.color }}
-        >
-          {LEVEL_META[level].label}
-        </span>
-      </div>
+    <div className="relative w-full h-full snap-start snap-always shrink-0 flex items-center justify-center bg-slate-900 overflow-hidden">
+      {/* Background Image & Gradient overlay */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 ease-out"
+        style={{ 
+          backgroundImage: `url(${item.image})`,
+          transform: isActive ? 'scale(1)' : 'scale(1.1)'
+        }}
+      />
+      <div className={`absolute inset-0 bg-gradient-to-t ${item.color} mix-blend-multiply dark:mix-blend-hard-light opacity-60 dark:opacity-80`} />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/70 to-slate-900/30 dark:from-slate-950 dark:via-slate-900/60 dark:to-transparent" />
 
-      <h3 className="mt-3 text-[15px] font-semibold text-black dark:text-slate-100">
-        {dept.name}
-      </h3>
-      <p className="text-[12px] text-black dark:text-slate-500">{dept.tagline}</p>
-
-      <div className="mt-3 rounded-xl border border-slate-200 dark:border-white/[0.06] bg-slate-50 dark:bg-[#0d1626] p-3">
-        <p className="text-[13px] font-medium text-black dark:text-slate-200">
-          {content.title}
-        </p>
-        <p className="mt-1 text-[12.5px] leading-relaxed text-black dark:text-slate-400">
-          {content.summary}
-        </p>
-      </div>
-
-      <div className="mt-3 flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-[12px] text-black dark:text-slate-500">
-          <ResourceTypeIcon type={content.resourceType} />
-          {content.resourceCount} {content.resourceType}
-        </span>
-        <button
-          onClick={onExplore}
-          className="flex items-center gap-1 text-[12.5px] font-semibold transition-colors"
-          style={{ color: dept.color }}
-        >
-          Explore
-          <ChevronRight className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Explore modal: Video / Key Points toggle                          */
-/* ------------------------------------------------------------------ */
-
-function ExploreModal({
-  dept,
-  level,
-  onClose,
-}: {
-  dept: Department;
-  level: Level;
-  onClose: () => void;
-}) {
-  const [tab, setTab] = useState<"video" | "points">("points");
-  const content = dept.byLevel[level];
-  const points = AI_POINTS[dept.id]?.[level] ?? [];
-  const Icon = dept.icon;
-
-  if (!content) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0c1322] p-5">
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 text-black dark:text-slate-400 hover:text-rose-600 dark:hover:text-white"
-        >
-          ✕
-        </button>
-
-        <div className="flex items-center gap-3 pr-8">
-          <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-            style={{ backgroundColor: `${dept.color}1f`, color: dept.color }}
-          >
-            <Icon className="h-5 w-5" />
+      {/* Content Container */}
+      <div className="relative z-10 w-full max-w-lg mx-auto h-full flex flex-col p-6 pr-20 pb-20 md:pb-12 text-white transition-opacity duration-300 overflow-y-auto hide-scrollbar" key={language}>
+        <div className="mt-auto flex flex-col pt-12">
+          {/* Category Badge */}
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 backdrop-blur-md shadow-inner shrink-0">
+              <i className={`${item.icon} text-sm !text-white`}></i>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider shadow-sm bg-white/10 px-3 py-1 rounded-full backdrop-blur-md border border-white/20 !text-white shrink-0">
+              {isTamil ? item.categoryTa : item.category}
+            </span>
           </div>
-          <div>
-            <p
-              className="text-[12px] font-semibold"
-              style={{ color: dept.color }}
-            >
-              {dept.name} · {LEVEL_META[level].label}
+
+          {/* Title */}
+          <h1 className="text-2xl md:text-3xl font-extrabold leading-tight mb-4 drop-shadow-xl !text-white break-words">
+            {isTamil ? item.titleTa : item.title}
+          </h1>
+
+          {/* Fact body */}
+          <p className="text-[14px] leading-relaxed mb-6 drop-shadow-md font-medium !text-white/95 break-words whitespace-pre-wrap">
+            {isTamil ? item.factTa : item.fact}
+          </p>
+
+          {/* Quiz Section */}
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-4 md:p-5 mb-2 shadow-2xl shrink-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-3 flex items-center gap-2 !text-white/90">
+              <i className="fi fi-sr-brain"></i> {isTamil ? "உங்கள் அறிவை சோதிக்கவும்" : "Test Your Brain"}
             </p>
-            <h3 className="text-[16px] font-semibold text-black dark:text-slate-100">
-              {content.title}
-            </h3>
+            <p className="text-[13px] font-semibold mb-4 leading-snug !text-white">{isTamil ? item.quiz.questionTa : item.quiz.question}</p>
+            <div className="space-y-2">
+              {quizOptions.map((opt, i) => {
+                const isSelected = selectedOpt === i;
+                const isCorrect = i === item.quiz.answer;
+                
+                let btnClass = "bg-white/10 hover:bg-white/20 border-transparent text-white";
+                if (quizState !== "idle") {
+                  if (isCorrect) {
+                    btnClass = "bg-emerald-500 border-emerald-400 text-white font-bold shadow-[0_0_15px_rgba(16,185,129,0.4)]";
+                  } else if (isSelected && !isCorrect) {
+                    btnClass = "bg-rose-500 border-rose-400 text-white font-bold";
+                  } else {
+                    btnClass = "bg-white/5 border-transparent text-white/40 opacity-50";
+                  }
+                }
+
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handleQuiz(i)}
+                    disabled={quizState !== "idle"}
+                    className={`w-full text-left px-4 py-3 rounded-xl border text-[12px] transition-all duration-300 flex items-center justify-between ${btnClass}`}
+                  >
+                    {opt}
+                    {quizState !== "idle" && isCorrect && <i className="fi fi-sr-check-circle text-lg text-white"></i>}
+                    {quizState !== "idle" && isSelected && !isCorrect && <i className="fi fi-sr-cross-circle text-lg text-white"></i>}
+                  </button>
+                );
+              })}
+            </div>
+            {quizState === "correct" && (
+              <div className="mt-4 text-center text-[11px] font-black text-emerald-400 animate-bounce drop-shadow-sm">
+                🔥 {isTamil ? "சரியான பதில்! +50 XP" : "Correct! +50 XP Earned"}
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Toggle */}
-        <div className="mt-4 flex gap-2">
-          <button
-            onClick={() => setTab("points")}
-            className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors ${
-              tab === "points"
-                ? "bg-teal-400/15 text-teal-600 dark:text-teal-300 ring-1 ring-inset ring-teal-400/30"
-                : "bg-slate-100 dark:bg-white/[0.04] text-black dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.07]"
-            }`}
-          >
-            Key Points
-          </button>
-          <button
-            onClick={() => setTab("video")}
-            className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors ${
-              tab === "video"
-                ? "bg-teal-400/15 text-teal-600 dark:text-teal-300 ring-1 ring-inset ring-teal-400/30"
-                : "bg-slate-100 dark:bg-white/[0.04] text-black dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.07]"
-            }`}
-          >
-            Video
-          </button>
-        </div>
-
-        <div className="mt-4">
-          {tab === "points" ? (
-            <div className="space-y-2.5">
-              <p className="text-[12px] text-black dark:text-slate-500">
-                A few interesting things worth knowing today:
-              </p>
-              {points.length > 0 ? (
-                points.map((pt, i) => (
-                  <div
-                    key={i}
-                    className="flex gap-3 rounded-xl border border-slate-200 dark:border-white/[0.06] bg-slate-50 dark:bg-[#111a2c] p-3"
-                  >
-                    <span
-                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
-                      style={{
-                        backgroundColor: `${dept.color}1f`,
-                        color: dept.color,
-                      }}
-                    >
-                      {i + 1}
-                    </span>
-                    <p className="text-[13px] leading-relaxed text-black dark:text-slate-300">
-                      {pt}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-[13px] text-black dark:text-slate-500">
-                  No points available for this section yet.
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-white/[0.06]">
-              <iframe
-                width="100%"
-                height="360"
-                src={`https://www.youtube.com/embed/${content.videoId}`}
-                title={content.title}
-                allowFullScreen
-              />
-            </div>
-          )}
-        </div>
       </div>
+
+      {/* Floating Action Bar (Right Side) */}
+      <div className="absolute right-4 bottom-24 md:bottom-16 flex flex-col items-center gap-5 z-20">
+        <button 
+          onClick={() => setLiked(!liked)}
+          className="flex flex-col items-center gap-1.5 group transform transition hover:scale-110"
+        >
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-md shadow-lg transition-all ${liked ? 'bg-rose-500' : 'bg-black/40 group-hover:bg-white/30 border border-white/10'}`}>
+            <i className={`fi ${liked ? 'fi-sr-heart' : 'fi-rr-heart'} text-xl mt-0.5 !text-white`}></i>
+          </div>
+          <span className="text-[11px] font-bold drop-shadow-md !text-white">{liked ? '12.4k' : '12.3k'}</span>
+        </button>
+
+        <button 
+          onClick={() => setSaved(!saved)}
+          className="flex flex-col items-center gap-1.5 group transform transition hover:scale-110"
+        >
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-md shadow-lg transition-all ${saved ? 'bg-amber-500' : 'bg-black/40 group-hover:bg-white/30 border border-white/10'}`}>
+            <i className={`fi ${saved ? 'fi-sr-bookmark' : 'fi-rr-bookmark'} text-xl mt-0.5 !text-white`}></i>
+          </div>
+          <span className="text-[11px] font-bold drop-shadow-md !text-white">Save</span>
+        </button>
+
+        <button className="flex flex-col items-center gap-1.5 group transform transition hover:scale-110">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md group-hover:bg-white/30 border border-white/10 shadow-lg transition-all">
+            <i className="fi fi-sr-share text-xl !text-white"></i>
+          </div>
+          <span className="text-[11px] font-bold drop-shadow-md !text-white">Share</span>
+        </button>
+      </div>
+
     </div>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  AI Daily Brief panel                                              */
-/* ------------------------------------------------------------------ */
+export default function LearningPlatform({ level }: { level?: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [language, setLanguage] = useState<'en' | 'ta'>('en');
+  const [facts, setFacts] = useState<Fact[]>([]);
+  const [loading, setLoading] = useState(true);
 
-function AiDailyBrief({
-  deptId,
-  setDeptId,
-  level,
-  availableDepts,
-}: {
-  deptId: DeptId;
-  setDeptId: (id: DeptId) => void;
-  level: Level;
-  availableDepts: Department[];
-}) {
-  const [brief, setBrief] = useState<string | null>(
-    AI_BRIEFS[deptId]?.[level] ?? null
-  );
-  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const fetchFacts = async () => {
+      try {
+        const res = await apiFetch('/api/ai/daily-discovery', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ level })
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          setFacts(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch discovery facts", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFacts();
+  }, []);
 
-  const refresh = (nextDept?: DeptId) => {
-    const target = nextDept ?? deptId;
-    setLoading(true);
-    setBrief(null);
-    window.setTimeout(() => {
-      setBrief(AI_BRIEFS[target]?.[level] ?? null);
-      setLoading(false);
-    }, 900);
+  // Handle scroll snapping logic to determine active card
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    const { scrollTop, clientHeight } = containerRef.current;
+    const index = Math.round(scrollTop / clientHeight);
+    if (index !== activeIndex) {
+      setActiveIndex(index);
+    }
   };
 
   return (
-    <div className="rounded-2xl border border-violet-500/20 bg-gradient-to-b from-violet-50 dark:from-violet-500/[0.08] to-white dark:to-transparent p-5">
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-500/15 text-violet-600 dark:text-violet-300">
-          <Sparkles className="h-[18px] w-[18px]" />
+    <PortalLayout>
+      <div className="relative w-full h-[calc(100vh-80px)] bg-[var(--bg-main)] overflow-hidden flex justify-center items-center">
+        
+        {/* Language Toggle for mobile (absolute top) */}
+        <div className="absolute top-4 right-4 z-50 lg:hidden">
+          <button 
+            onClick={() => setLanguage(l => l === 'en' ? 'ta' : 'en')}
+            className="flex items-center gap-2 bg-slate-800/80 backdrop-blur-xl border border-white/20 px-3 py-1.5 rounded-full text-white shadow-xl hover:bg-slate-700/80 transition"
+          >
+            <i className="fi fi-sr-language text-sm"></i>
+            <span className="text-xs font-bold">{language === 'en' ? 'தமிழ்' : 'English'}</span>
+          </button>
         </div>
-        <div>
-          <h3 className="text-[14px] font-semibold text-black dark:text-slate-100">
-            AI Daily Brief
-          </h3>
-          <p className="text-[12px] text-black dark:text-slate-400">
-            A fresh nugget for {LEVEL_META[level].label.toLowerCase()}, picked
-            per department.
-          </p>
-        </div>
-      </div>
 
-      <div className="mt-4 flex flex-wrap gap-1.5">
-        {availableDepts.map((d) => {
-          const Icon = d.icon;
-          const active = d.id === deptId;
-          return (
-            <button
-              key={d.id}
-              onClick={() => {
-                setDeptId(d.id);
-                refresh(d.id);
-              }}
-              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11.5px] font-medium ring-1 ring-inset transition-colors"
-              style={
-                active
-                  ? {
-                      backgroundColor: `${d.color}1f`,
-                      color: d.color,
-                      boxShadow: `inset 0 0 0 1px ${d.color}4d`,
-                    }
-                  : {
-                      backgroundColor: "rgba(0,0,0,0.04)",
-                      color: "#000000",
-                      boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.08)",
-                    }
-              }
-            >
-              <Icon className="h-3 w-3" />
-              {d.name}
-            </button>
-          );
-        })}
-      </div>
+        {/* Abstract Background pattern */}
+        <div className="absolute inset-0 opacity-40 dark:opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(100,116,139,0.3) 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+        <div className="absolute -left-[10%] top-[10%] w-[40vw] h-[40vw] rounded-full bg-violet-400/20 dark:bg-violet-600/10 blur-[100px] pointer-events-none"></div>
+        <div className="absolute right-[5%] bottom-[5%] w-[50vw] h-[50vw] rounded-full bg-emerald-400/20 dark:bg-emerald-600/10 blur-[120px] pointer-events-none"></div>
 
-      <div className="mt-3 rounded-xl border border-slate-200 dark:border-white/[0.06] bg-slate-50 dark:bg-[#0d1626] p-3.5">
-        {loading ? (
-          <div className="flex items-center gap-2 text-[13px] text-black dark:text-slate-400">
-            <Loader2 className="h-4 w-4 animate-spin text-violet-600 dark:text-violet-300" />
-            Pulling today's update…
+        {/* Loading State */}
+        {loading && (
+          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[var(--bg-main)]">
+            <div className="w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mb-4"></div>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
+              {language === 'en' ? 'Generating Daily Facts...' : 'புதிய தகவல்களைத் தயாரிக்கிறது...'}
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
+              {language === 'en' ? 'Gemini AI is finding mind-blowing concepts' : 'Gemini AI அற்புதமான கருத்துகளைத் தேடுகிறது'}
+            </p>
           </div>
-        ) : (
-          <p className="text-[13px] leading-relaxed text-black dark:text-slate-300">
-            {brief ?? "No update available for this section yet."}
-          </p>
         )}
-      </div>
 
-      <button
-        onClick={() => refresh()}
-        disabled={loading}
-        className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-violet-600 dark:text-violet-300 hover:text-violet-700 dark:hover:text-violet-200 disabled:opacity-50"
-      >
-        <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-        Get a new update
-      </button>
-    </div>
-  );
-}
+        {/* Feed Container (Phone Mockup style) */}
+        {!loading && facts.length > 0 && (
+          <div className="relative z-10 w-full max-w-[400px] h-[90vh] md:h-[800px] md:max-h-[85vh] bg-slate-50 dark:bg-black md:rounded-[40px] md:border-[8px] border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col ring-1 ring-slate-900/5 dark:ring-white/10">
+            
+            {/* Scrollable Area */}
+            <div 
+              ref={containerRef}
+              onScroll={handleScroll}
+              className="flex-1 w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth hide-scrollbar"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              <style dangerouslySetInnerHTML={{__html: `
+                .hide-scrollbar::-webkit-scrollbar { display: none; }
+              `}} />
+              {facts.map((item, idx) => (
+                <DiscoveryCard 
+                  key={item.id} 
+                  item={item} 
+                  isActive={idx === activeIndex}
+                  language={language}
+                  onComplete={() => {
+                    console.log(`Earned XP for fact ${item.id}`);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
-/* ------------------------------------------------------------------ */
-/*  Page                                                               */
-/* ------------------------------------------------------------------ */
-
-export default function LearningPlatform({ level }: { level: Level }) {
-  const [briefDept, setBriefDept] = useState<DeptId>(LEVEL_DEPARTMENTS[level]?.[0] || "general");
-  const [openDeptId, setOpenDeptId] = useState<DeptId | null>(null);
-
-  const effectiveLevel: Level = level;
-
-  const visibleDepartments = DEPARTMENTS.filter((dept) =>
-    LEVEL_DEPARTMENTS[effectiveLevel].includes(dept.id)
-  );
-
-  const openDept = visibleDepartments.find((d) => d.id === openDeptId) ?? null;
-
-  return (
-    <PortalLayout
-      title="Learning Platform"
-      subtitle="One place for every department — music, sports, dance, tech, and the world around you."
-      avatarLetter="A"
-      avatarColor="#2dd4bf"
-      themeClass="theme-student"
-      accentColor="#2dd4bf"
-    >
-      <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
-        {/* Department grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {visibleDepartments.map((dept) => (
-            <DepartmentCard
-              key={dept.id}
-              dept={dept}
-              level={effectiveLevel}
-              onExplore={() => setOpenDeptId(dept.id)}
-            />
-          ))}
+        {/* Desktop Sidebar hints */}
+        <div className="hidden lg:flex absolute left-12 xl:left-24 top-1/2 -translate-y-1/2 flex-col gap-5 w-80 z-10 pointer-events-none">
+          
+          <div className="pointer-events-auto">
+            <button 
+              onClick={() => setLanguage(l => l === 'en' ? 'ta' : 'en')}
+              className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 rounded-full text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all transform hover:scale-105 active:scale-95 border border-indigo-500"
+            >
+              <i className="fi fi-sr-language text-sm"></i>
+              <span className="text-[13px] font-extrabold tracking-wide">
+                {language === 'en' ? 'Switch to Tamil' : 'Switch to English'}
+              </span>
+            </button>
+          </div>
+          
+          <div className="text-violet-500 dark:text-violet-400 text-sm font-black tracking-widest uppercase mb-[-10px] mt-4">
+            {language === 'en' ? 'New Every Day' : 'தினம் ஒரு புதுமை'}
+          </div>
+          
+          <h2 className="text-4xl xl:text-5xl font-black text-slate-900 dark:text-white leading-tight">
+            {language === 'en' ? <><span className="text-emerald-500">Daily</span> <br/>Discovery Hub</> : <><span className="text-emerald-500">தினசரி</span> <br/>கண்டுபிடிப்பு மையம்</>}
+          </h2>
+          
+          <p className="text-slate-500 dark:text-slate-400 text-base font-medium leading-relaxed mt-2">
+            {language === 'en' 
+              ? 'Scroll through our TikTok-style feed of mind-blowing concepts. Answer quizzes to earn XP!' 
+              : 'எங்கள் டிக்-டாக் போன்ற சுவாரஸ்யமான கருத்துக்களைப் பாருங்கள். XP பெற வினாடி வினாக்களுக்கு பதிலளிக்கவும்!'}
+          </p>
+          
+          <div className="flex items-center gap-4 bg-white/60 dark:bg-slate-900/40 shadow-xl backdrop-blur-xl border border-white/40 dark:border-white/5 p-4 rounded-3xl text-slate-900 dark:text-white mt-4 w-max pointer-events-auto">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shrink-0 text-white shadow-lg shadow-emerald-500/30">
+              <i className="fi fi-sr-flame text-xl"></i>
+            </div>
+            <div className="pr-2">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wide">
+                {language === 'en' ? 'Learning Streak' : 'தொடர் கற்றல்'}
+              </p>
+              <p className="text-xl font-black">
+                {language === 'en' ? '12 Days' : '12 நாட்கள்'}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-sm font-semibold animate-bounce mt-8">
+            <i className="fi fi-sr-mouse"></i> {language === 'en' ? 'Scroll down to explore' : 'ஆராய கீழே ஸ்க்ரோல் செய்யவும்'}
+          </div>
         </div>
 
-        {/* AI Daily Brief, sticky on large screens */}
-        <div className="lg:sticky lg:top-6 lg:self-start">
-          <AiDailyBrief
-            deptId={briefDept}
-            setDeptId={setBriefDept}
-            level={effectiveLevel}
-            availableDepts={visibleDepartments}
-          />
-        </div>
       </div>
-
-      {openDept && (
-        <ExploreModal
-          dept={openDept}
-          level={effectiveLevel}
-          onClose={() => setOpenDeptId(null)}
-        />
-      )}
     </PortalLayout>
   );
 }
