@@ -572,7 +572,7 @@ export default function MiddleSchoolPortfolio() {
             ] : skillsList).map((s, i) => (
                <div key={i} className="group">
                   <div className="flex justify-between text-sm mb-2.5">
-                    <span className="text-black dark:text-slate-200 font-bold">{s.name.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '').trim()}</span>
+                    <span className="text-black dark:text-slate-200 font-bold">{s.name.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '').trim()}</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-black tracking-wider text-xs bg-emerald-400/10 px-2 py-0.5 rounded-md">{s.level} XP</span>
                   </div>
                   <div className="h-3.5 bg-slate-200 dark:bg-slate-800/80 rounded-full overflow-hidden border border-slate-300 dark:border-slate-700/50 shadow-inner">
