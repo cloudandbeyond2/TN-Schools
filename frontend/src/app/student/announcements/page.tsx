@@ -65,6 +65,7 @@ export default function AnnouncementsPage() {
   const schoolId = (session?.user as any)?.schoolId;
   const studentClass = (session?.user as any)?.class; // e.g. "10A"
   const section = (session?.user as any)?.section;  // ← add this line
+  const userId = (session?.user as any)?.id;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -74,27 +75,52 @@ export default function AnnouncementsPage() {
   const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
-  if (!schoolId || !studentClass) return;
+    if (!schoolId || !studentClass || !userId) return;
 
-  const fetchAnnouncements = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(
-        `${API_URL}/api/students/announcements?schoolId=${schoolId}&class=${studentClass}&section=${section || ''}`  // ← add &section=...
-      );
-      const result = await res.json();
-      if (result.success) {
-        setAnnouncements(result.data);
+    const fetchAllData = async () => {
+      try {
+        setLoading(true);
+        const [annRes, notifRes] = await Promise.all([
+          fetch(`${API_URL}/api/students/announcements?schoolId=${schoolId}&class=${studentClass}&section=${section || ''}`),
+          fetch(`${API_URL}/api/notifications?userId=${userId}`)
+        ]);
+        
+        const annResult = await annRes.json();
+        const notifResult = await notifRes.json();
+
+        let allItems: Announcement[] = [];
+        
+        if (annResult.success && Array.isArray(annResult.data)) {
+          allItems = [...annResult.data];
+        }
+
+        if (notifResult.success && Array.isArray(notifResult.data)) {
+          const mappedNotifs = notifResult.data.map((n: any) => ({
+            id: n.id,
+            title: n.title || "Personal Alert",
+            body: n.message || "",
+            target: "Personal",
+            date: n.createdAt ? new Date(n.createdAt).toLocaleDateString() : "",
+            sender: "System Automated",
+            pinned: false,
+            createdAt: n.createdAt || new Date().toISOString()
+          }));
+          allItems = [...allItems, ...mappedNotifs];
+        }
+
+        // Sort combined list by date descending
+        allItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        
+        setAnnouncements(allItems);
+      } catch (err) {
+        console.error("Error fetching announcements/notifications:", err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching announcements:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchAnnouncements();
-}, [schoolId, studentClass, section]);  // ← add section to dependency array
+    fetchAllData();
+  }, [schoolId, studentClass, section, userId]);
 
   const unreadCount = announcements.filter(a => !readIds.has(a.id)).length;
 
