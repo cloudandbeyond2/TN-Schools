@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
-import { 
-  BookOpen, 
-  Search, 
-  Book, 
-  Video, 
-  Sparkles, 
-  CheckCircle2, 
-  Layers, 
+import {
+  BookOpen,
+  Search,
+  Book,
+  Video,
+  Sparkles,
+  CheckCircle2,
+  Layers,
   Library,
   FileText,
   Building2,
@@ -52,7 +52,7 @@ export default function DigitalLibraryPage() {
         if ((session?.user as any)?.schoolId) {
           url += `?schoolId=${(session?.user as any)?.schoolId}`;
         }
-        
+
         const userClass = (session?.user as any)?.class;
         if (userClass) {
           url += url.includes('?') ? `&class=${userClass}` : `?class=${userClass}`;
@@ -72,8 +72,8 @@ export default function DigitalLibraryPage() {
   }, [session]);
 
   const filteredResources = resources.filter((res) => {
-    const matchesSearch = res.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          res.subject.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = res.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      res.subject.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "all" || res.type === CATEGORIES.find(c => c.id === selectedCategory)?.label;
     return matchesSearch && matchesCategory;
   });
@@ -83,22 +83,22 @@ export default function DigitalLibraryPage() {
   return (
     <PortalLayout title="Digital Library 📖" subtitle="Access a vast repository of premium learning materials" accentColor="#6366f1">
       <div className="space-y-8 text-left animate-in fade-in duration-500 pb-20">
-        
+
         {/* Premium Hero Banner */}
         <div className="relative overflow-hidden rounded-3xl bg-indigo-600 dark:bg-slate-900 p-6 sm:p-8 md:p-12 shadow-2xl border border-indigo-500/20 dark:border-white/10 group">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-600/40 dark:via-purple-600/40 dark:to-pink-600/40 opacity-90 dark:opacity-50 group-hover:opacity-100 dark:group-hover:opacity-70 transition-opacity duration-700" />
           <div className="absolute -right-16 -top-16 opacity-20 dark:opacity-10 transform rotate-12 scale-150 pointer-events-none transition-transform duration-1000 group-hover:scale-[1.6]">
             <img src="https://cdn-icons-png.flaticon.com/128/2232/2232688.png" className="w-96 h-96 grayscale invert" alt="library bg" />
           </div>
-          
+
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
             <div className="space-y-4 max-w-2xl">
-              <span className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold bg-white/20 dark:bg-white/10 backdrop-blur-md rounded-full border border-white/30 dark:border-white/20 text-white uppercase tracking-widest shadow-xl">
-                <img src="https://cdn-icons-png.flaticon.com/128/1666/1666579.png" className="w-4 h-4" alt="sparkles" /> Premium Knowledge Hub
-              </span>
-              <h2 className="text-4xl md:text-5xl font-black tracking-tight font-sans leading-tight !text-amber-300 drop-shadow-lg">
+              <p className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold !text-white/90 bg-white/20 dark:bg-white/10 backdrop-blur-md rounded-full border border-white/30 dark:border-white/20 uppercase tracking-widest shadow-xl">
+                <img src="https://cdn-icons-png.flaticon.com/128/1666/1666579.png" className="w-4 h-4 !text-white/90" alt="sparkles" /> Premium Knowledge Hub
+              </p>
+              <p className="!text-white/90 text-4xl md:text-5xl font-black tracking-tight font-sans leading-tight !text-amber-300 drop-shadow-lg">
                 Limitless Learning, Anytime.
-              </h2>
+              </p>
               <p className="!text-white/90 text-base md:text-lg leading-relaxed font-medium drop-shadow">
                 Explore an extensive collection of E-books, Government materials, Video lectures, and Competitive exam prep. Your ultimate academic companion.
               </p>
@@ -125,34 +125,32 @@ export default function DigitalLibraryPage() {
               <img src="https://cdn-icons-png.flaticon.com/128/6532/6532057.png" className="w-6 h-6" alt="layers" /> Browse by Category
             </h3>
           </div>
-          
+
           <div className="flex gap-4 overflow-x-auto pb-4 pt-2 px-2 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-indigo-200 dark:scrollbar-thumb-slate-700">
             {CATEGORIES.map((cat) => {
               const isActive = selectedCategory === cat.id;
-              
+
               return (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`snap-start shrink-0 relative overflow-hidden rounded-2xl p-4 md:p-5 text-left transition-all duration-300 w-40 sm:w-44 md:w-56 group border ${
-                    isActive 
-                      ? "border-transparent ring-2 ring-indigo-500 shadow-xl scale-105" 
-                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-lg"
-                  }`}
+                  className={`snap-start shrink-0 relative overflow-hidden rounded-2xl p-4 md:p-5 text-left transition-all duration-300 w-40 sm:w-44 md:w-56 group border ${isActive
+                    ? "border-transparent ring-2 ring-indigo-500 shadow-xl scale-105"
+                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-lg"
+                    }`}
                 >
                   {isActive && (
                     <div className={`absolute inset-0 bg-gradient-to-br ${cat.gradient} opacity-100 z-0`} />
                   )}
                   <div className="relative z-10 flex flex-col h-full gap-3 sm:gap-4">
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-colors ${
-                      isActive ? "bg-white/20" : `bg-gradient-to-br ${cat.gradient} shadow-md`
-                    }`}>
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-colors ${isActive ? "bg-white/20" : `bg-gradient-to-br ${cat.gradient} shadow-md`
+                      }`}>
                       <img src={cat.flaticon} className="w-5 h-5 sm:w-6 sm:h-6 brightness-0 invert opacity-90" alt={cat.label} />
                     </div>
                     <div>
-                      <h4 className={`font-bold leading-tight ${isActive ? "text-white" : "text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`}>
+                      <p className={`font-bold leading-tight ${isActive ? "!text-white/90" : "text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`}>
                         {cat.label}
-                      </h4>
+                      </p>
                       {!isActive && (
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">
                           Explore collection
@@ -175,8 +173,8 @@ export default function DigitalLibraryPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2">
               {resources.slice(0, 3).map((res) => (
                 <div key={`trend-${res.id}`} onClick={() => {
-                  const url = res.fileUrl?.startsWith('/') 
-                    ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${res.fileUrl}` 
+                  const url = res.fileUrl?.startsWith('/')
+                    ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${res.fileUrl}`
                     : res.fileUrl;
                   window.open(url, '_blank');
                 }} className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden transform hover:-translate-y-1">
@@ -219,7 +217,7 @@ export default function DigitalLibraryPage() {
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between px-2 gap-2 sm:gap-0">
             <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-              <img src="https://cdn-icons-png.flaticon.com/128/2232/2232688.png" className="w-6 h-6" alt="library" /> 
+              <img src="https://cdn-icons-png.flaticon.com/128/2232/2232688.png" className="w-6 h-6" alt="library" />
               {selectedCategory === "all" ? "All Library Resources" : CATEGORIES.find(c => c.id === selectedCategory)?.label}
             </h3>
             <span className="text-sm text-slate-500 font-medium bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full w-fit">
@@ -239,8 +237,8 @@ export default function DigitalLibraryPage() {
                 const isVideo = res.type.toLowerCase().includes('video');
                 return (
                   <div key={res.id} onClick={() => {
-                    const url = res.fileUrl?.startsWith('/') 
-                      ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${res.fileUrl}` 
+                    const url = res.fileUrl?.startsWith('/')
+                      ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${res.fileUrl}`
                       : res.fileUrl;
                     window.open(url, '_blank');
                   }} className="group flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer hover:border-indigo-400/50">
@@ -256,7 +254,7 @@ export default function DigitalLibraryPage() {
                           <img src="https://cdn-icons-png.flaticon.com/128/3389/3389081.png" className="w-16 h-16 opacity-30 group-hover:opacity-60 transition-opacity" alt="book thumbnail" />
                         </div>
                       )}
-                      
+
                       {/* Top Badges */}
                       <div className="absolute top-3 left-3 flex gap-2">
                         <span className="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider bg-white/90 dark:bg-black/80 backdrop-blur-sm text-slate-800 dark:text-white rounded-md shadow-sm border border-slate-200/50 dark:border-slate-700/50">
@@ -273,7 +271,7 @@ export default function DigitalLibraryPage() {
                           {res.title}
                         </h4>
                       </div>
-                      
+
                       <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1.5">
                           <img src="https://cdn-icons-png.flaticon.com/128/2983/2983155.png" className="w-3 h-3 grayscale opacity-60" alt="doc" /> {res.size || 'PDF'}
