@@ -65,75 +65,75 @@ function DiscoveryCard({
           transform: isActive ? 'scale(1)' : 'scale(1.1)'
         }}
       />
-      <div className={`absolute inset-0 bg-gradient-to-t ${item.color} mix-blend-hard-light opacity-80`} />
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent" />
+      <div className={`absolute inset-0 bg-gradient-to-t ${item.color} mix-blend-multiply dark:mix-blend-hard-light opacity-60 dark:opacity-80`} />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/70 to-slate-900/30 dark:from-slate-950 dark:via-slate-900/60 dark:to-transparent" />
 
       {/* Content Container */}
-      <div className="relative z-10 w-full max-w-lg mx-auto h-full flex flex-col justify-end p-6 pb-20 md:pb-12 text-white transition-opacity duration-300" key={language}>
-        
-        {/* Category Badge */}
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 backdrop-blur-md shadow-inner">
-            <i className={`${item.icon} text-sm !text-white`}></i>
-          </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider shadow-sm bg-white/10 px-3 py-1 rounded-full backdrop-blur-md border border-white/20 !text-white">
-            {isTamil ? item.categoryTa : item.category}
-          </span>
-        </div>
-
-        {/* Title */}
-        <h1 className="text-3xl md:text-4xl font-extrabold leading-tight mb-4 drop-shadow-xl !text-white">
-          {isTamil ? item.titleTa : item.title}
-        </h1>
-
-        {/* Fact body */}
-        <p className="text-[15px] leading-relaxed mb-6 drop-shadow-md max-w-[95%] font-medium !text-white/95">
-          {isTamil ? item.factTa : item.fact}
-        </p>
-
-        {/* Quiz Section */}
-        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-4 md:p-5 mb-2 shadow-2xl">
-          <p className="text-[10px] font-bold uppercase tracking-wider mb-3 flex items-center gap-2 !text-white/90">
-            <i className="fi fi-sr-brain"></i> {isTamil ? "உங்கள் அறிவை சோதிக்கவும்" : "Test Your Brain"}
-          </p>
-          <p className="text-[13px] font-semibold mb-4 leading-snug !text-white">{isTamil ? item.quiz.questionTa : item.quiz.question}</p>
-          <div className="space-y-2">
-            {quizOptions.map((opt, i) => {
-              const isSelected = selectedOpt === i;
-              const isCorrect = i === item.quiz.answer;
-              
-              let btnClass = "bg-white/10 hover:bg-white/20 border-transparent text-white";
-              if (quizState !== "idle") {
-                if (isCorrect) {
-                  btnClass = "bg-emerald-500/20 border-emerald-400 text-emerald-300";
-                } else if (isSelected && !isCorrect) {
-                  btnClass = "bg-rose-500/20 border-rose-400 text-rose-300";
-                } else {
-                  btnClass = "bg-white/5 border-transparent text-white/40 opacity-50";
-                }
-              }
-
-              return (
-                <button
-                  key={i}
-                  onClick={() => handleQuiz(i)}
-                  disabled={quizState !== "idle"}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl border text-[11px] font-medium transition-all duration-300 flex items-center justify-between ${btnClass} !text-white`}
-                >
-                  {opt}
-                  {quizState !== "idle" && isCorrect && <i className="fi fi-sr-check-circle text-lg !text-emerald-400"></i>}
-                  {quizState !== "idle" && isSelected && !isCorrect && <i className="fi fi-sr-cross-circle text-lg !text-rose-400"></i>}
-                </button>
-              );
-            })}
-          </div>
-          {quizState === "correct" && (
-            <div className="mt-4 text-center text-[11px] font-black text-emerald-400 animate-bounce drop-shadow-sm">
-              🔥 {isTamil ? "சரியான பதில்! +50 XP" : "Correct! +50 XP Earned"}
+      <div className="relative z-10 w-full max-w-lg mx-auto h-full flex flex-col p-6 pr-20 pb-20 md:pb-12 text-white transition-opacity duration-300 overflow-y-auto hide-scrollbar" key={language}>
+        <div className="mt-auto flex flex-col pt-12">
+          {/* Category Badge */}
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 backdrop-blur-md shadow-inner shrink-0">
+              <i className={`${item.icon} text-sm !text-white`}></i>
             </div>
-          )}
-        </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider shadow-sm bg-white/10 px-3 py-1 rounded-full backdrop-blur-md border border-white/20 !text-white shrink-0">
+              {isTamil ? item.categoryTa : item.category}
+            </span>
+          </div>
 
+          {/* Title */}
+          <h1 className="text-2xl md:text-3xl font-extrabold leading-tight mb-4 drop-shadow-xl !text-white break-words">
+            {isTamil ? item.titleTa : item.title}
+          </h1>
+
+          {/* Fact body */}
+          <p className="text-[14px] leading-relaxed mb-6 drop-shadow-md font-medium !text-white/95 break-words whitespace-pre-wrap">
+            {isTamil ? item.factTa : item.fact}
+          </p>
+
+          {/* Quiz Section */}
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-4 md:p-5 mb-2 shadow-2xl shrink-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-3 flex items-center gap-2 !text-white/90">
+              <i className="fi fi-sr-brain"></i> {isTamil ? "உங்கள் அறிவை சோதிக்கவும்" : "Test Your Brain"}
+            </p>
+            <p className="text-[13px] font-semibold mb-4 leading-snug !text-white">{isTamil ? item.quiz.questionTa : item.quiz.question}</p>
+            <div className="space-y-2">
+              {quizOptions.map((opt, i) => {
+                const isSelected = selectedOpt === i;
+                const isCorrect = i === item.quiz.answer;
+                
+                let btnClass = "bg-white/10 hover:bg-white/20 border-transparent text-white";
+                if (quizState !== "idle") {
+                  if (isCorrect) {
+                    btnClass = "bg-emerald-500 border-emerald-400 text-white font-bold shadow-[0_0_15px_rgba(16,185,129,0.4)]";
+                  } else if (isSelected && !isCorrect) {
+                    btnClass = "bg-rose-500 border-rose-400 text-white font-bold";
+                  } else {
+                    btnClass = "bg-white/5 border-transparent text-white/40 opacity-50";
+                  }
+                }
+
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handleQuiz(i)}
+                    disabled={quizState !== "idle"}
+                    className={`w-full text-left px-4 py-3 rounded-xl border text-[12px] transition-all duration-300 flex items-center justify-between ${btnClass}`}
+                  >
+                    {opt}
+                    {quizState !== "idle" && isCorrect && <i className="fi fi-sr-check-circle text-lg text-white"></i>}
+                    {quizState !== "idle" && isSelected && !isCorrect && <i className="fi fi-sr-cross-circle text-lg text-white"></i>}
+                  </button>
+                );
+              })}
+            </div>
+            {quizState === "correct" && (
+              <div className="mt-4 text-center text-[11px] font-black text-emerald-400 animate-bounce drop-shadow-sm">
+                🔥 {isTamil ? "சரியான பதில்! +50 XP" : "Correct! +50 XP Earned"}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Floating Action Bar (Right Side) */}
@@ -170,7 +170,7 @@ function DiscoveryCard({
   );
 }
 
-export default function LearningPlatform() {
+export default function LearningPlatform({ level }: { level?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [language, setLanguage] = useState<'en' | 'ta'>('en');
@@ -184,7 +184,8 @@ export default function LearningPlatform() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
-          }
+          },
+          body: JSON.stringify({ level })
         });
         const data = await res.json();
         if (data.success && data.data) {
@@ -244,14 +245,18 @@ export default function LearningPlatform() {
 
         {/* Feed Container (Phone Mockup style) */}
         {!loading && facts.length > 0 && (
-          <div className="relative z-10 w-full max-w-[400px] h-[90vh] md:h-[800px] md:max-h-[85vh] bg-black md:rounded-[40px] md:border-[8px] md:border-slate-800 dark:md:border-slate-800 shadow-2xl overflow-hidden flex flex-col">
+          <div className="relative z-10 w-full max-w-[400px] h-[90vh] md:h-[800px] md:max-h-[85vh] bg-slate-50 dark:bg-black md:rounded-[40px] md:border-[8px] border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col ring-1 ring-slate-900/5 dark:ring-white/10">
             
             {/* Scrollable Area */}
             <div 
               ref={containerRef}
               onScroll={handleScroll}
               className="flex-1 w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth hide-scrollbar"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
+              <style dangerouslySetInnerHTML={{__html: `
+                .hide-scrollbar::-webkit-scrollbar { display: none; }
+              `}} />
               {facts.map((item, idx) => (
                 <DiscoveryCard 
                   key={item.id} 
@@ -273,10 +278,10 @@ export default function LearningPlatform() {
           <div className="pointer-events-auto">
             <button 
               onClick={() => setLanguage(l => l === 'en' ? 'ta' : 'en')}
-              className="flex items-center gap-2 bg-slate-900 dark:bg-white/10 backdrop-blur-xl border border-slate-700 dark:border-white/20 px-4 py-2 rounded-full text-white shadow-xl hover:bg-slate-800 transition"
+              className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 rounded-full text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all transform hover:scale-105 active:scale-95 border border-indigo-500"
             >
-              <i className="fi fi-sr-language text-[13px]"></i>
-              <span className="text-[13px] font-bold tracking-wide">
+              <i className="fi fi-sr-language text-sm"></i>
+              <span className="text-[13px] font-extrabold tracking-wide">
                 {language === 'en' ? 'Switch to Tamil' : 'Switch to English'}
               </span>
             </button>

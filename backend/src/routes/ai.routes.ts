@@ -1372,7 +1372,8 @@ const DAILY_DISCOVERY_SCHEMA = {
 
 router.post('/daily-discovery', async (req: Request, res: Response) => {
   try {
-    const prompt = `Generate exactly 5 fascinating, mind-blowing educational facts suitable for a middle school student (TN State Board). 
+    const { level = 'middle' } = req.body;
+    const prompt = `Generate exactly 5 fascinating, mind-blowing educational facts suitable for a ${level} school student (TN State Board). 
 Cover diverse categories like Cosmos, Tech & AI, Nature, History, and Physics.
 Make the facts engaging and punchy.
 Rules:
