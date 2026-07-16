@@ -80,8 +80,6 @@ router.get("/announcements", async (req: Request, res: Response) => {
   try {
     const { schoolId, class: cls, section } = req.query;
 
-    console.log(req.query);
-
     if (!schoolId || !cls) {
       return res.status(400).json({
         success: false,
@@ -89,20 +87,27 @@ router.get("/announcements", async (req: Request, res: Response) => {
       });
     }
 
-    const classSection = section
-      ? `${cls}${section}`
-      : String(cls);
+    let parsedClass = String(cls).toUpperCase();
+    let parsedSection = section ? String(section).toUpperCase() : "";
 
-    const target = `Class ${classSection} Parents`;
+    if (parsedSection && parsedClass.endsWith(parsedSection)) {
+      parsedClass = parsedClass.slice(0, -parsedSection.length);
+    }
 
-    console.log("Searching target:", target);
+    const classSection = `${parsedClass}${parsedSection}`;
+    const targetParents = `Class ${classSection} Parents`;
+    const targetStudents = `Class ${classSection} Students`;
 
     const announcements = await prisma.announcement.findMany({
       where: {
         schoolId: String(schoolId),
         OR: [
-          { target },
+          { target: targetParents },
+          { target: targetStudents },
           { target: "All Parents taught by me" },
+          { target: "All Students" },
+          { target: "School Wide" },
+          { target: "Student Portal" }
         ],
       },
       orderBy: {
