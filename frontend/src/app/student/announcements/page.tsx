@@ -69,8 +69,9 @@ export default function AnnouncementsPage() {
 
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("All");
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
   if (!schoolId || !studentClass) return;
@@ -97,14 +98,13 @@ export default function AnnouncementsPage() {
 
   const unreadCount = announcements.filter(a => !readIds.has(a.id)).length;
 
-  const filteredAnnouncements = announcements.filter(a => {
-    const style = getAnnouncementStyle(a.sender, a.title);
-    const isUnread = !readIds.has(a.id);
-    if (filter === "All") return true;
-    if (filter === "Unread") return isUnread;
-    if (filter === "Pinned") return a.pinned;
-    return style.type === filter;
-  });
+  const filteredAnnouncements = announcements;
+  
+  const totalPages = Math.ceil(filteredAnnouncements.length / ITEMS_PER_PAGE);
+  const paginatedAnnouncements = filteredAnnouncements.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const markAllRead = () => {
     setReadIds(new Set(announcements.map(a => a.id)));
@@ -113,75 +113,36 @@ export default function AnnouncementsPage() {
   return (
     <PortalLayout
       title="School Announcements"
-      subtitle={`Showing announcements for Class ${studentClass || "..."}`}
+      subtitle={`Showing all announcements for Class ${studentClass || "..."}`}
       avatarLetter="A"
       avatarColor="#f59e0b"
       themeClass="theme-student"
       accentColor="#f59e0b"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
-        {/* Filters */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent">
-            <h3 className="font-bold text-black dark:text-white mb-4">Filter By</h3>
-            <div className="space-y-2">
-              {["All", "Unread", "Pinned", "Urgent", "Academic", "Event", "General"].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setFilter(cat)}
-                  className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-colors flex justify-between items-center ${
-                    filter === cat
-                      ? "bg-slate-100 dark:bg-slate-800 text-black dark:text-white border border-slate-300 dark:border-slate-600"
-                      : "text-black dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-amber-600 dark:hover:text-amber-400 border border-transparent"
-                  }`}
-                >
-                  <span>{cat}</span>
-                  {cat === "Unread" && unreadCount > 0 && (
-                    <span className="bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="glass rounded-3xl p-6 border border-amber-500/30 bg-gradient-to-b from-amber-50 to-white dark:from-amber-900/20 dark:to-transparent">
-            <h3 className="font-bold text-black dark:text-white mb-2 flex items-center gap-2">
-              <span>🔔</span> Push Notifications
-            </h3>
-            <p className="text-xs text-black dark:text-white mb-4">
-              Enable SMS or WhatsApp alerts for school closures and exam notices.
-            </p>
-            <button className="w-full py-2 bg-amber-600 hover:bg-amber-500 rounded-xl text-white text-sm font-bold shadow-lg shadow-amber-500/20 transition-all">
-              Manage Alerts
+      <div className="w-full">
+        {/* Announcement List */}
+        <div className="glass rounded-3xl p-6 md:p-8 border border-slate-200 dark:border-slate-700/50 min-h-[600px] bg-white dark:bg-transparent shadow-sm">
+          
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-5 border-b border-slate-200 dark:border-slate-800">
+            <h2 className="text-xl font-bold text-black dark:text-white flex items-center gap-2">
+              <span>📢</span>
+              Latest Notifications
+            </h2>
+            <button
+              onClick={markAllRead}
+              className="text-xs font-bold text-black dark:text-white hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1 bg-slate-100 dark:bg-slate-800/50 px-4 py-2 rounded-xl"
+            >
+              <span>✓</span> Mark All as Read
             </button>
           </div>
-        </div>
 
-        {/* Announcement List */}
-        <div className="lg:col-span-3">
-          <div className="glass rounded-3xl p-6 border border-slate-200 dark:border-slate-700/50 min-h-[600px] bg-white dark:bg-transparent">
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
-              <h2 className="text-xl font-bold text-black dark:text-white flex items-center gap-2">
-                <span>📢</span>
-                {filter === "All" ? "All Announcements" : `${filter} Announcements`}
-              </h2>
-              <button
-                onClick={markAllRead}
-                className="text-xs font-bold text-black dark:text-white hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1"
-              >
-                <span>✓</span> Mark All as Read
-              </button>
-            </div>
 
             {loading ? (
               <div className="text-center py-20 text-sm text-slate-500">Loading announcements...</div>
             ) : (
               <div className="space-y-4">
-                {filteredAnnouncements.map((ann) => {
+                {paginatedAnnouncements.map((ann) => {
                   const style = getAnnouncementStyle(ann.sender, ann.title);
                   const isUnread = !readIds.has(ann.id);
 
@@ -240,14 +201,37 @@ export default function AnnouncementsPage() {
                   <div className="text-center py-20">
                     <div className="text-5xl mb-4 opacity-50">📭</div>
                     <h3 className="text-lg text-black dark:text-white font-bold mb-1">You're all caught up!</h3>
-                    <p className="text-black dark:text-white text-sm">No {filter.toLowerCase()} announcements for Class {studentClass}.</p>
+                  </div>
+                )}
+                
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-6 mt-6 border-t border-slate-200 dark:border-slate-700/50">
+                    <span className="text-sm font-semibold text-slate-500">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 bg-slate-100 dark:bg-slate-800 disabled:opacity-50 text-black dark:text-white rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-4 py-2 bg-slate-100 dark:bg-slate-800 disabled:opacity-50 text-black dark:text-white rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                      >
+                        Next
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             )}
           </div>
         </div>
-      </div>
     </PortalLayout>
   );
 }

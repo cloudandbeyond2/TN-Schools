@@ -215,8 +215,14 @@ export default function MiddleSchoolPortfolio() {
   const [skillsList, setSkillsList] = useState<any[]>([]);
   const [bio, setBio] = useState<string>("I love science, stargazing and drawing!");
   const [portfolioLoading, setPortfolioLoading] = useState(true);
+  const [homeworkProjects, setHomeworkProjects] = useState<any[]>([]);
+  const [topMarksProjects, setTopMarksProjects] = useState<any[]>([]);
   const [teacherRemark, setTeacherRemark] = useState<string>("Is a fantastic learner! Keep up the great work.");
   const [teacherName, setTeacherName] = useState<string>("Mrs. Anjali (Class Teacher)");
+
+  // School press state
+  const [pressPublications, setPressPublications] = useState<any[]>([]);
+  const [pressLoading, setPressLoading] = useState(true);
 
   const fetchPortfolioDetails = (studentId: string) => {
     setPortfolioLoading(true);
@@ -269,13 +275,37 @@ export default function MiddleSchoolPortfolio() {
             .then(detailJson => {
               if (detailJson.success && detailJson.data) {
                 setStudent(detailJson.data);
+                
+                // Extract top marks as achievements for the portfolio
+                if (detailJson.data.marks && detailJson.data.marks.length > 0) {
+                  const sortedMarks = [...detailJson.data.marks].sort((a: any, b: any) => {
+                    const pctA = (a.scored / (a.maxMarks || 100)) * 100;
+                    const pctB = (b.scored / (b.maxMarks || 100)) * 100;
+                    return pctB - pctA;
+                  });
+                  
+                  // Take top 2 marks that are at least 80%
+                  const topMarks = sortedMarks
+                    .filter((m: any) => (m.scored / (m.maxMarks || 100)) * 100 >= 80)
+                    .slice(0, 2)
+                    .map((m: any) => ({
+                      title: `Top Score in ${m.subject}`,
+                      subject: m.examType || "Assessment",
+                      date: new Date(m.createdAt).toLocaleDateString(),
+                      type: "Academic Achievement",
+                      grade: `${m.scored}/${m.maxMarks || 100} (${m.grade})`,
+                      icon: "🏆",
+                      color: "#6366f1"
+                    }));
+                  setTopMarksProjects(topMarks);
+                }
               }
             }).catch(() => {});
 
           // Fetch dynamic portfolio data
           fetchPortfolioDetails(resolved.id);
 
-          // Fetch homework to find dynamic teacher remarks
+          // Fetch homework to find dynamic teacher remarks and outstanding submissions
           fetch(`${API_BASE}/api/students/${resolved.id}/homework`)
             .then(r => r.json())
             .then(hwJson => {
@@ -285,8 +315,36 @@ export default function MiddleSchoolPortfolio() {
                   setTeacherRemark(graded.feedback);
                   setTeacherName(`Mrs. Lakshmi (${graded.subject || 'Teacher'})`);
                 }
+
+                // Find top submissions for the portfolio
+                const topHw = hwJson.data
+                  .filter((h: any) => h.status === 'submitted' || h.status === 'late_submission')
+                  .slice(0, 2)
+                  .map((h: any) => ({
+                    title: h.title,
+                    subject: h.subject,
+                    date: h.submittedDate || h.postedLabel,
+                    type: "Homework",
+                    grade: h.score !== '—' ? `${h.score}` : "Excellent! ✨",
+                    icon: "📝",
+                    color: h.subjectColor || "#f59e0b"
+                  }));
+                setHomeworkProjects(topHw);
               }
             }).catch(() => {});
+
+          // Fetch school press publications for this student
+          const spUrl = `${API_BASE}/api/teacher/school-press?schoolId=${resolved.schoolId}&class=${resolved.class}&approvedOnly=true`;
+          fetch(spUrl)
+            .then(r => r.json())
+            .then(spJson => {
+              if (spJson.success) {
+                const myPubs = spJson.data.filter((pub: any) => pub.student?.id === resolved.id);
+                setPressPublications(myPubs);
+              }
+            })
+            .catch(() => {})
+            .finally(() => setPressLoading(false));
 
           // Fetch badges for this student
           const schoolId = (session?.user as any)?.schoolId;
@@ -498,9 +556,9 @@ export default function MiddleSchoolPortfolio() {
           </div>
           {portfolioLoading ? (
             <div className="text-center py-10 font-bold text-slate-500">Loading portfolio projects... ⏳</div>
-          ) : projectsList.length > 0 ? (
+          ) : [...projectsList, ...homeworkProjects, ...topMarksProjects].length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {projectsList.map((p, i) => (
+              {[...projectsList, ...homeworkProjects, ...topMarksProjects].map((p, i) => (
                 <div key={i} className="bg-slate-50 dark:bg-slate-900/60 border-2 border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 hover:border-emerald-500/50 transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer group flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-start mb-4">
@@ -596,6 +654,50 @@ export default function MiddleSchoolPortfolio() {
              </p>
              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-3 font-black tracking-wide relative z-10 uppercase">— {teacherName}</p>
           </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 mb-6">
+        {/* School Press Publications */}
+        <div className="glass rounded-3xl p-6 fade-in-5 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
+            <h2 className="text-xl font-black text-black dark:text-white flex items-center gap-3">
+              <i className="fi fi-sr-document-signed text-emerald-500"></i> School Press Publications
+            </h2>
+            <Link href="/student/school-press" className="text-sm font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/30 px-4 py-2 rounded-xl transition-colors border border-emerald-500/30">
+              Publish New
+            </Link>
+          </div>
+          {pressLoading ? (
+            <div className="text-center py-10 font-bold text-slate-500">Loading publications... ⏳</div>
+          ) : pressPublications.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {pressPublications.map((pub, i) => (
+                <div key={i} className="bg-slate-50 dark:bg-slate-900/60 border-2 border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 hover:border-emerald-500/50 transition-all hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between">
+                  <div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 font-bold mb-2 flex items-center gap-1">
+                      <i className="fi fi-sr-calendar text-emerald-400"></i> {new Date(pub.createdAt).toLocaleDateString()}
+                    </div>
+                    <p className="text-sm font-medium text-black dark:text-slate-300 mb-4 leading-relaxed">"{pub.description}"</p>
+                  </div>
+                  {pub.photos && pub.photos.length > 0 && (
+                    <div className="mt-3 flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                      {pub.photos.map((p: string, idx: number) => (
+                        <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
+                          <img src={p} alt="Activity" className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
+              <div className="text-4xl mb-3 opacity-50">📰</div>
+              <p className="text-sm text-slate-500">No publications yet! Head to School Press to share your moments.</p>
+            </div>
+          )}
         </div>
       </div>
     </PortalLayout>

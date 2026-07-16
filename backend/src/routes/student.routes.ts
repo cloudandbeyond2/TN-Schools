@@ -964,12 +964,7 @@ router.get('/:id/portfolio', async (req: Request, res: Response) => {
           bio: "I love science, stargazing and drawing!",
           stream: "General",
           projects: {
-            create: [
-              { title: "Solar System Model", category: "Science", date: "Last Week", image: "fi-sr-planet", tags: ["Craft"], description: "Super Star!" },
-              { title: "My Favorite Animal Essay", category: "English", date: "2 Weeks Ago", image: "fi-sr-dog", tags: ["Writing"], description: "Great Job!" },
-              { title: "Math Puzzle Challenge", category: "Mathematics", date: "Last Month", image: "fi-sr-puzzle-piece", tags: ["Game"], description: "Math Wizard!" },
-              { title: "History of Cholas", category: "Social Science", date: "Last Month", image: "fi-sr-crown", tags: ["Drawing"], description: "Creative!" }
-            ]
+            create: []
           },
           skills: {
             create: [
