@@ -3,6 +3,7 @@
 import PortalLayout from "@/components/PortalLayout";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface Announcement {
   id: string;
@@ -72,6 +73,8 @@ export default function AnnouncementsPage() {
   const [loading, setLoading] = useState(true);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
+  const [studentLevelPath, setStudentLevelPath] = useState("middle-school");
+  const router = useRouter();
   const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
@@ -132,8 +135,34 @@ export default function AnnouncementsPage() {
     currentPage * ITEMS_PER_PAGE
   );
 
+  useEffect(() => {
+    const level = localStorage.getItem("studentLevel");
+    if (level === "STUDENT_MIDDLE") setStudentLevelPath("middle-school");
+    else if (level === "STUDENT_HIGH") setStudentLevelPath("high-school");
+    else if (level === "STUDENT_HIGHER") setStudentLevelPath("higher-secondary");
+  }, []);
+
   const markAllRead = () => {
     setReadIds(new Set(announcements.map(a => a.id)));
+  };
+
+  const handleCardClick = (ann: Announcement) => {
+    setReadIds(prev => new Set([...prev, ann.id]));
+    
+    const text = (ann.title + " " + ann.body).toLowerCase();
+    
+    if (text.includes("homework") || text.includes("assignment")) {
+      router.push(`/student/homework`);
+    } else if (text.includes("exam") || text.includes("test") || text.includes("marks") || text.includes("grade")) {
+      router.push(`/student/exams`);
+    } else if (text.includes("badge") || text.includes("portfolio")) {
+      router.push(`/student/${studentLevelPath}/portfolio`);
+    } else if (text.includes("scholarship")) {
+      router.push(`/student/scholarships`);
+    } else if (text.includes("attendance") || text.includes("present")) {
+      router.push(`/student/academic-history`);
+    }
+    // For generic announcements without a specific destination, just mark as read
   };
 
   return (
@@ -175,7 +204,7 @@ export default function AnnouncementsPage() {
                   return (
                     <div
                       key={ann.id}
-                      onClick={() => setReadIds(prev => new Set([...prev, ann.id]))}
+                      onClick={() => handleCardClick(ann)}
                       className={`relative p-6 rounded-2xl border transition-all hover:-translate-y-1 cursor-pointer bg-slate-50 dark:bg-slate-900/60 ${
                         isUnread ? style.bg : "border-slate-200 dark:border-slate-700/50 hover:border-slate-400"
                       }`}
