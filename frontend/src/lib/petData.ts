@@ -52,21 +52,55 @@ export interface InventoryItem {
   id: string;
   item: string;
   category: StockCategory;
-  qty: number;
-  minQty: number; // low-stock threshold
+  qty: number; // total units owned
+  qtyIssued: number; // units currently issued out (in use)
+  qtyDamaged: number; // units damaged, awaiting repair or write-off
+  minQty: number; // low-stock threshold (on available units)
   condition: "New" | "Good" | "Fair" | "Needs Repair" | "Damaged";
   location: string;
   lastChecked: string; // ISO date
+  expiryDate?: string; // ISO date — first-aid consumables
   remarks?: string;
 }
 
 export const INVENTORY_KEY = "pet-inventory";
 
-export const DEFAULT_INVENTORY: InventoryItem[] = [
+// Units on the shelf right now.
+export function availableQty(item: InventoryItem): number {
+  return Math.max(0, item.qty - (item.qtyIssued || 0) - (item.qtyDamaged || 0));
+}
+
+export function isExpired(item: InventoryItem): boolean {
+  return !!item.expiryDate && item.expiryDate < new Date().toISOString().slice(0, 10);
+}
+
+export function expiresSoon(item: InventoryItem): boolean {
+  if (!item.expiryDate || isExpired(item)) return false;
+  const soon = new Date();
+  soon.setDate(soon.getDate() + 60);
+  return item.expiryDate <= soon.toISOString().slice(0, 10);
+}
+
+/** Fill availability fields missing from older localStorage snapshots. */
+export function normalizeInventoryItem(raw: Partial<InventoryItem> & { id: string; item: string }): InventoryItem {
+  return {
+    category: "Ball Games",
+    qty: 0,
+    minQty: 0,
+    condition: "Good",
+    location: "",
+    lastChecked: "",
+    ...raw,
+    qtyIssued: raw.qtyIssued ?? 0,
+    qtyDamaged: raw.qtyDamaged ?? 0,
+  } as InventoryItem;
+}
+
+const RAW_DEFAULT_INVENTORY: (Partial<InventoryItem> & { id: string; item: string })[] = [
   // Ball games
-  { id: "inv-1", item: "Football (Size 5)", category: "Ball Games", qty: 12, minQty: 6, condition: "Good", location: "Sports Room A", lastChecked: "2026-07-01" },
-  { id: "inv-2", item: "Volleyball", category: "Ball Games", qty: 10, minQty: 6, condition: "Good", location: "Sports Room A", lastChecked: "2026-07-01" },
-  { id: "inv-3", item: "Volleyball Net", category: "Ball Games", qty: 2, minQty: 2, condition: "Needs Repair", location: "Sports Room A", lastChecked: "2026-06-28", remarks: "One net frayed at edges" },
+  { id: "inv-1", item: "Football (Size 5)", category: "Ball Games", qty: 12, qtyIssued: 4, minQty: 6, condition: "Good", location: "Sports Room A", lastChecked: "2026-07-01", remarks: "4 issued to Inter-House League" },
+  { id: "inv-2", item: "Volleyball", category: "Ball Games", qty: 10, qtyIssued: 2, minQty: 6, condition: "Good", location: "Sports Room A", lastChecked: "2026-07-01" },
+  { id: "inv-3", item: "Volleyball Net", category: "Ball Games", qty: 2, qtyDamaged: 1, minQty: 2, condition: "Needs Repair", location: "Sports Room A", lastChecked: "2026-06-28", remarks: "One net frayed at edges" },
   { id: "inv-4", item: "Basketball", category: "Ball Games", qty: 8, minQty: 4, condition: "Good", location: "Sports Room A", lastChecked: "2026-07-01" },
   { id: "inv-5", item: "Throwball", category: "Ball Games", qty: 6, minQty: 4, condition: "Good", location: "Sports Room A", lastChecked: "2026-07-01" },
   { id: "inv-6", item: "Cricket Bat", category: "Ball Games", qty: 6, minQty: 4, condition: "Fair", location: "Sports Room B", lastChecked: "2026-06-25" },
@@ -90,7 +124,7 @@ export const DEFAULT_INVENTORY: InventoryItem[] = [
   // Indoor games
   { id: "inv-21", item: "Chess Board Set", category: "Indoor Games", qty: 12, minQty: 6, condition: "Good", location: "Indoor Hall", lastChecked: "2026-06-20" },
   { id: "inv-22", item: "Carrom Board", category: "Indoor Games", qty: 4, minQty: 2, condition: "Good", location: "Indoor Hall", lastChecked: "2026-06-20" },
-  { id: "inv-23", item: "Table Tennis Bat", category: "Indoor Games", qty: 8, minQty: 4, condition: "Fair", location: "Indoor Hall", lastChecked: "2026-06-20" },
+  { id: "inv-23", item: "Table Tennis Bat", category: "Indoor Games", qty: 8, qtyDamaged: 2, minQty: 4, condition: "Fair", location: "Indoor Hall", lastChecked: "2026-06-20", remarks: "2 bats with worn rubber — re-rubber or replace" },
   { id: "inv-24", item: "Table Tennis Ball", category: "Indoor Games", qty: 30, minQty: 12, condition: "New", location: "Indoor Hall", lastChecked: "2026-06-20" },
   { id: "inv-25", item: "Badminton Racket", category: "Indoor Games", qty: 10, minQty: 6, condition: "Good", location: "Indoor Hall", lastChecked: "2026-06-20" },
   { id: "inv-26", item: "Shuttlecock (Box of 10)", category: "Indoor Games", qty: 3, minQty: 2, condition: "New", location: "Indoor Hall", lastChecked: "2026-06-20" },
@@ -104,19 +138,69 @@ export const DEFAULT_INVENTORY: InventoryItem[] = [
   { id: "inv-32", item: "Tug of War Rope", category: "Fitness & Training", qty: 1, minQty: 1, condition: "Good", location: "Ground Shed", lastChecked: "2026-06-15" },
 
   // First aid
-  { id: "inv-33", item: "First Aid Kit (Complete Box)", category: "First Aid", qty: 3, minQty: 2, condition: "Good", location: "PET Office", lastChecked: "2026-07-05" },
-  { id: "inv-34", item: "Bandages & Gauze (Packs)", category: "First Aid", qty: 40, minQty: 20, condition: "New", location: "PET Office", lastChecked: "2026-07-05" },
-  { id: "inv-35", item: "Antiseptic Liquid (Bottles)", category: "First Aid", qty: 2, minQty: 3, condition: "Good", location: "PET Office", lastChecked: "2026-07-05", remarks: "Low stock — reorder" },
-  { id: "inv-36", item: "Crepe Bandage", category: "First Aid", qty: 8, minQty: 5, condition: "New", location: "PET Office", lastChecked: "2026-07-05" },
-  { id: "inv-37", item: "Ice Pack / Cold Spray", category: "First Aid", qty: 4, minQty: 3, condition: "Good", location: "PET Office", lastChecked: "2026-07-05" },
+  { id: "inv-33", item: "First Aid Kit (Complete Box)", category: "First Aid", qty: 3, minQty: 2, condition: "Good", location: "PET Office", lastChecked: "2026-07-05", remarks: "One kit each: PET office, ground shed, indoor hall" },
+  { id: "inv-34", item: "Bandages & Gauze (Packs)", category: "First Aid", qty: 40, minQty: 20, condition: "New", location: "PET Office", lastChecked: "2026-07-05", expiryDate: "2028-03-31" },
+  { id: "inv-35", item: "Antiseptic Liquid (Bottles)", category: "First Aid", qty: 2, minQty: 3, condition: "Good", location: "PET Office", lastChecked: "2026-07-05", expiryDate: "2026-08-15", remarks: "Low stock — reorder" },
+  { id: "inv-36", item: "Crepe Bandage", category: "First Aid", qty: 8, minQty: 5, condition: "New", location: "PET Office", lastChecked: "2026-07-05", expiryDate: "2027-12-31" },
+  { id: "inv-37", item: "Ice Pack / Cold Spray", category: "First Aid", qty: 4, minQty: 3, condition: "Good", location: "PET Office", lastChecked: "2026-07-05", expiryDate: "2026-06-30", remarks: "Spray cans past expiry — replace" },
   { id: "inv-38", item: "Stretcher", category: "First Aid", qty: 1, minQty: 1, condition: "Good", location: "Indoor Hall", lastChecked: "2026-07-05" },
 ];
 
+export const DEFAULT_INVENTORY: InventoryItem[] = RAW_DEFAULT_INVENTORY.map(normalizeInventoryItem);
+
 export function stockStatus(item: InventoryItem): "ok" | "warning" | "critical" {
-  if (item.condition === "Damaged" || item.qty === 0) return "critical";
-  if (item.qty < item.minQty || item.condition === "Needs Repair") return "warning";
+  const avail = availableQty(item);
+  if (item.condition === "Damaged" || avail === 0 || isExpired(item)) return "critical";
+  if (avail < item.minQty || item.condition === "Needs Repair" || (item.qtyDamaged || 0) > 0 || expiresSoon(item)) {
+    return "warning";
+  }
   return "ok";
 }
+
+// ---------------------------------------------------------------------------
+// Equipment requests — issue existing stock or purchase new equipment
+// ---------------------------------------------------------------------------
+
+export type RequestType = "Issue" | "Purchase";
+export type RequestStatus = "Pending" | "Approved" | "Issued" | "Returned" | "Received" | "Rejected";
+
+export interface EquipmentRequest {
+  id: string;
+  type: RequestType;
+  item: string; // free text for purchases; equipment name for issues
+  itemId?: string; // linked inventory item (Issue requests)
+  qty: number;
+  requestedBy: string; // teacher / class / house / team
+  purpose: string;
+  date: string; // ISO date requested
+  neededBy?: string; // ISO date
+  status: RequestStatus;
+  notes?: string;
+}
+
+export const REQUESTS_KEY = "pet-equipment-requests";
+
+// Statuses a request can move to next, per type.
+export function nextRequestStatuses(req: EquipmentRequest): RequestStatus[] {
+  switch (req.status) {
+    case "Pending":
+      return ["Approved", "Rejected"];
+    case "Approved":
+      return req.type === "Issue" ? ["Issued", "Rejected"] : ["Received", "Rejected"];
+    case "Issued":
+      return ["Returned"];
+    default:
+      return [];
+  }
+}
+
+export const DEFAULT_REQUESTS: EquipmentRequest[] = [
+  { id: "rq-1", type: "Issue", item: "Football (Size 5)", itemId: "inv-1", qty: 4, requestedBy: "Inter-House League — Red House", purpose: "League practice sessions", date: "2026-07-08", neededBy: "2026-07-10", status: "Issued" },
+  { id: "rq-2", type: "Issue", item: "Cones / Markers", itemId: "inv-28", qty: 10, requestedBy: "Class 9A (Kabaddi squad)", purpose: "Agility drills", date: "2026-07-12", status: "Pending" },
+  { id: "rq-3", type: "Purchase", item: "Hockey Sticks (Junior)", qty: 12, requestedBy: "PET Staff", purpose: "New hockey coaching unit from August", date: "2026-07-05", status: "Approved", notes: "Quotation requested from 2 vendors" },
+  { id: "rq-4", type: "Issue", item: "Volleyball", itemId: "inv-2", qty: 2, requestedBy: "U-19 Volleyball Team", purpose: "State-level practice", date: "2026-07-01", status: "Issued" },
+  { id: "rq-5", type: "Purchase", item: "Antiseptic Liquid (Bottles)", qty: 6, requestedBy: "PET Staff", purpose: "First-aid restock — current stock expiring", date: "2026-07-10", status: "Pending" },
+];
 
 // ---------------------------------------------------------------------------
 // Sports events & competitions — default TN school games calendar
@@ -236,13 +320,35 @@ export const DEFAULT_MAINTENANCE: MaintenanceLog[] = [
 // Student fitness & health records
 // ---------------------------------------------------------------------------
 
+export type ActivityLevel = "Sedentary" | "Light" | "Moderate" | "Active" | "Very Active";
+
+export interface FitnessAssessment {
+  endurance: number; // 0-100 (e.g. 600m run / beep test)
+  strength: number; // 0-100 (e.g. sit-ups / push-ups)
+  flexibility: number; // 0-100 (e.g. sit-and-reach)
+  speed: number; // 0-100 (e.g. 50m dash)
+  lastAssessed?: string; // ISO date of last assessment
+}
+
+export interface HealthIndicators {
+  restingHeartRate: number; // bpm, 0 = not recorded
+  bloodGroup: string; // "" = unknown
+  vision: "Normal" | "Glasses" | "Needs Check";
+  lastCheckup?: string; // ISO date of last health checkup
+  notes?: string; // allergies, conditions, doctor advice
+}
+
 export interface FitnessRecord {
   id: string;
   name: string;
   class: string;
   heightCm: number;
   weightKg: number;
-  fitnessScore: number; // 0-100
+  fitnessScore: number; // 0-100 overall (avg of assessment components)
+  assessment: FitnessAssessment;
+  activityLevel: ActivityLevel;
+  weeklyActivityHrs: number; // hours of physical activity per week
+  health: HealthIndicators;
   mentalHealth: "Excellent" | "Good" | "Average" | "Stressed";
   sport: string;
   status: string;
@@ -264,16 +370,125 @@ export function bmiCategory(bmi: number): { label: string; tone: "green" | "ambe
   return { label: "Obese", tone: "red" };
 }
 
+export function overallFitness(a: FitnessAssessment): number {
+  return Math.round((a.endurance + a.strength + a.flexibility + a.speed) / 4);
+}
+
+export function fitnessGrade(score: number): { label: string; tone: "green" | "blue" | "amber" | "red" } {
+  if (score >= 85) return { label: "Excellent", tone: "green" };
+  if (score >= 70) return { label: "Good", tone: "blue" };
+  if (score >= 50) return { label: "Fair", tone: "amber" };
+  return { label: "Needs Improvement", tone: "red" };
+}
+
+export function heartRateStatus(bpm: number): { label: string; tone: "green" | "blue" | "amber" | "red" } {
+  if (!bpm) return { label: "Not recorded", tone: "amber" };
+  if (bpm < 60) return { label: "Athletic", tone: "blue" };
+  if (bpm <= 90) return { label: "Normal", tone: "green" };
+  if (bpm <= 100) return { label: "Elevated", tone: "amber" };
+  return { label: "High — refer", tone: "red" };
+}
+
+export const ACTIVITY_LEVELS: ActivityLevel[] = ["Sedentary", "Light", "Moderate", "Active", "Very Active"];
+
+// WHO recommends ~1 hr/day of moderate-vigorous activity for 5–17 year olds.
+export function activityStatus(level: ActivityLevel, weeklyHrs: number): { label: string; tone: "green" | "amber" | "red" } {
+  if (level === "Sedentary" || weeklyHrs < 3) return { label: "Below target", tone: "red" };
+  if (level === "Light" || weeklyHrs < 7) return { label: "Near target", tone: "amber" };
+  return { label: "On target", tone: "green" };
+}
+
+/**
+ * Fill any missing new-schema fields on records loaded from older
+ * localStorage snapshots so every module can rely on the full shape.
+ */
+export function normalizeFitnessRecord(raw: Partial<FitnessRecord> & { id: string; name: string }): FitnessRecord {
+  const fitnessScore = raw.fitnessScore ?? 70;
+  return {
+    class: "",
+    heightCm: 0,
+    weightKg: 0,
+    mentalHealth: "Good",
+    sport: "",
+    status: "",
+    ...raw,
+    fitnessScore,
+    assessment: raw.assessment ?? {
+      endurance: fitnessScore,
+      strength: fitnessScore,
+      flexibility: fitnessScore,
+      speed: fitnessScore,
+    },
+    activityLevel: raw.activityLevel ?? "Moderate",
+    weeklyActivityHrs: raw.weeklyActivityHrs ?? 5,
+    health: raw.health ?? { restingHeartRate: 0, bloodGroup: "", vision: "Normal" },
+  } as FitnessRecord;
+}
+
 export const DEFAULT_RECORDS: FitnessRecord[] = [
-  { id: "fr-1", name: "Arjun K.", class: "10A", heightCm: 168, weightKg: 60, fitnessScore: 85, mentalHealth: "Good", sport: "Athletics (Sprint)", status: "Fit for Nationals" },
-  { id: "fr-2", name: "Priya S.", class: "9B", heightCm: 158, weightKg: 49, fitnessScore: 78, mentalHealth: "Stressed", sport: "Long Jump", status: "Monitor workload" },
-  { id: "fr-3", name: "Rahul M.", class: "12C", heightCm: 175, weightKg: 71, fitnessScore: 92, mentalHealth: "Excellent", sport: "Chess / Volleyball", status: "Team Captain" },
-  { id: "fr-4", name: "Karthik V.", class: "8A", heightCm: 150, weightKg: 42, fitnessScore: 60, mentalHealth: "Good", sport: "Relay", status: "Needs training" },
-  { id: "fr-5", name: "Divya R.", class: "11A", heightCm: 162, weightKg: 58, fitnessScore: 88, mentalHealth: "Good", sport: "Shot Put", status: "District squad" },
-  { id: "fr-6", name: "Meena L.", class: "10B", heightCm: 156, weightKg: 47, fitnessScore: 81, mentalHealth: "Good", sport: "Sprint", status: "Zonal medalist" },
-  { id: "fr-7", name: "Sanjay P.", class: "9A", heightCm: 160, weightKg: 55, fitnessScore: 74, mentalHealth: "Average", sport: "Kabaddi", status: "Regular practice" },
-  { id: "fr-8", name: "Lakshmi N.", class: "7B", heightCm: 145, weightKg: 38, fitnessScore: 66, mentalHealth: "Good", sport: "Kho-Kho", status: "Junior squad" },
-  { id: "fr-9", name: "Teenu", class: "10A", heightCm: 145, weightKg: 40, fitnessScore: 78, mentalHealth: "Good", sport: "Athletics", status: "Healthy — Fit" },
+  {
+    id: "fr-1", name: "Arjun K.", class: "10A", heightCm: 168, weightKg: 60, fitnessScore: 85,
+    assessment: { endurance: 88, strength: 82, flexibility: 78, speed: 92, lastAssessed: "2026-06-20" },
+    activityLevel: "Very Active", weeklyActivityHrs: 12,
+    health: { restingHeartRate: 58, bloodGroup: "B+", vision: "Normal", lastCheckup: "2026-06-10" },
+    mentalHealth: "Good", sport: "Athletics (Sprint)", status: "Fit for Nationals",
+  },
+  {
+    id: "fr-2", name: "Priya S.", class: "9B", heightCm: 158, weightKg: 49, fitnessScore: 78,
+    assessment: { endurance: 75, strength: 70, flexibility: 90, speed: 77, lastAssessed: "2026-06-20" },
+    activityLevel: "Active", weeklyActivityHrs: 9,
+    health: { restingHeartRate: 72, bloodGroup: "O+", vision: "Normal", lastCheckup: "2026-06-10", notes: "Monitor training load — exam term" },
+    mentalHealth: "Stressed", sport: "Long Jump", status: "Monitor workload",
+  },
+  {
+    id: "fr-3", name: "Rahul M.", class: "12C", heightCm: 175, weightKg: 71, fitnessScore: 92,
+    assessment: { endurance: 94, strength: 90, flexibility: 85, speed: 97, lastAssessed: "2026-06-22" },
+    activityLevel: "Very Active", weeklyActivityHrs: 14,
+    health: { restingHeartRate: 55, bloodGroup: "A+", vision: "Normal", lastCheckup: "2026-06-10" },
+    mentalHealth: "Excellent", sport: "Chess / Volleyball", status: "Team Captain",
+  },
+  {
+    id: "fr-4", name: "Karthik V.", class: "8A", heightCm: 150, weightKg: 42, fitnessScore: 60,
+    assessment: { endurance: 55, strength: 58, flexibility: 65, speed: 62, lastAssessed: "2026-06-18" },
+    activityLevel: "Light", weeklyActivityHrs: 4,
+    health: { restingHeartRate: 84, bloodGroup: "AB+", vision: "Glasses", lastCheckup: "2026-05-28" },
+    mentalHealth: "Good", sport: "Relay", status: "Needs training",
+  },
+  {
+    id: "fr-5", name: "Divya R.", class: "11A", heightCm: 162, weightKg: 58, fitnessScore: 88,
+    assessment: { endurance: 84, strength: 95, flexibility: 82, speed: 91, lastAssessed: "2026-06-22" },
+    activityLevel: "Very Active", weeklyActivityHrs: 11,
+    health: { restingHeartRate: 62, bloodGroup: "O-", vision: "Normal", lastCheckup: "2026-06-10" },
+    mentalHealth: "Good", sport: "Shot Put", status: "District squad",
+  },
+  {
+    id: "fr-6", name: "Meena L.", class: "10B", heightCm: 156, weightKg: 47, fitnessScore: 81,
+    assessment: { endurance: 80, strength: 74, flexibility: 86, speed: 84, lastAssessed: "2026-06-20" },
+    activityLevel: "Active", weeklyActivityHrs: 8,
+    health: { restingHeartRate: 68, bloodGroup: "B+", vision: "Normal", lastCheckup: "2026-06-10" },
+    mentalHealth: "Good", sport: "Sprint", status: "Zonal medalist",
+  },
+  {
+    id: "fr-7", name: "Sanjay P.", class: "9A", heightCm: 160, weightKg: 55, fitnessScore: 74,
+    assessment: { endurance: 78, strength: 80, flexibility: 62, speed: 76, lastAssessed: "2026-06-18" },
+    activityLevel: "Moderate", weeklyActivityHrs: 6,
+    health: { restingHeartRate: 76, bloodGroup: "A-", vision: "Normal", lastCheckup: "2026-05-28" },
+    mentalHealth: "Average", sport: "Kabaddi", status: "Regular practice",
+  },
+  {
+    id: "fr-8", name: "Lakshmi N.", class: "7B", heightCm: 145, weightKg: 38, fitnessScore: 66,
+    assessment: { endurance: 64, strength: 60, flexibility: 78, speed: 62, lastAssessed: "2026-06-18" },
+    activityLevel: "Moderate", weeklyActivityHrs: 5,
+    health: { restingHeartRate: 82, bloodGroup: "", vision: "Needs Check", lastCheckup: "2026-01-15", notes: "Vision screening due" },
+    mentalHealth: "Good", sport: "Kho-Kho", status: "Junior squad",
+  },
+  {
+    id: "fr-9", name: "Teenu", class: "10A", heightCm: 145, weightKg: 40, fitnessScore: 78,
+    assessment: { endurance: 76, strength: 72, flexibility: 84, speed: 80, lastAssessed: "2026-06-20" },
+    activityLevel: "Active", weeklyActivityHrs: 8,
+    health: { restingHeartRate: 70, bloodGroup: "O+", vision: "Normal", lastCheckup: "2026-06-10" },
+    mentalHealth: "Good", sport: "Athletics", status: "Healthy — Fit",
+  },
 ];
 
 // ---------------------------------------------------------------------------

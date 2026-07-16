@@ -209,8 +209,8 @@ export default function ZoologyCentrePage() {
                 <span className="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider mb-3">
                   <Sparkles className="w-3.5 h-3.5" /> {gradeData.label} · {gradeData.medium} medium
                 </span>
-                <h2 className="text-2xl font-black mb-2">{gradeData.book}</h2>
-                <p className="text-emerald-50/90 text-sm font-medium leading-relaxed">{gradeData.intro}</p>
+                <p className="text-2xl font-black mb-2" style={{ color: "#fff" }}>{gradeData.book}</p>
+                <p className="!text-white/85 text-sm font-medium leading-relaxed">{gradeData.intro}</p>
               </div>
             </div>
 

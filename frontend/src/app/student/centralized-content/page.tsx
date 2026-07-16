@@ -4,15 +4,15 @@ import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { 
-  Calculator, 
-  Atom, 
-  Globe, 
-  Laptop, 
-  BookOpen, 
-  Scroll, 
-  Orbit, 
-  Beaker, 
+import {
+  Calculator,
+  Atom,
+  Globe,
+  Laptop,
+  BookOpen,
+  Scroll,
+  Orbit,
+  Beaker,
   Dna,
   Book,
   PenTool,
@@ -113,7 +113,7 @@ const getSubjectTheme = (name: string): SubjectTheme => {
   if (SUBJECT_THEMES[normalized]) {
     return SUBJECT_THEMES[normalized];
   }
-  
+
   for (const [key, val] of Object.entries(SUBJECT_THEMES)) {
     if (normalized.includes(key) || key.includes(normalized)) {
       return val;
@@ -168,32 +168,32 @@ interface Content {
 
 export default function CentralizedContentPage() {
   const { data: session, status } = useSession();
-  
+
   // States
   const [selectedClass, setSelectedClass] = useState<string>("");
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState<boolean>(true);
-  
+
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
   const [loadingUnits, setLoadingUnits] = useState<boolean>(false);
-  
+
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [contents, setContents] = useState<Content[]>([]);
   const [loadingContents, setLoadingContents] = useState<boolean>(false);
-  
+
   const [activeTab, setActiveTab] = useState<"materials" | "summary" | "notes" | "mcq" | "ai" | "infographic" | "presentation">("materials");
-  
+
   // MCQ state
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [showMCQFeedback, setShowMCQFeedback] = useState<Record<number, boolean>>({});
-  
+
   // AI Chat state
   const [aiMessages, setAiMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
   const [aiInput, setAiInput] = useState<string>("");
   const [isAiTyping, setIsAiTyping] = useState<boolean>(false);
   const [aiLanguage, setAiLanguage] = useState<"bilingual" | "tamil" | "english">("bilingual");
-  
+
   // AI Infographic State
   const [infographicData, setInfographicData] = useState<any>(null);
   const [loadingInfographic, setLoadingInfographic] = useState<boolean>(false);
@@ -266,11 +266,11 @@ export default function CentralizedContentPage() {
       setSelectedTopic(null);
       setUnits([]);
       setContents([]);
-      
+
       try {
         const studentId = (session?.user as any)?.studentId || "";
         const cleanClass = selectedClass.match(/\d+/)?.[0] || selectedClass;
-        const url = studentId 
+        const url = studentId
           ? `${API_URL}/api/centralized-content/subjects?class=${cleanClass}&studentId=${studentId}`
           : `${API_URL}/api/centralized-content/subjects?class=${cleanClass}`;
         const res = await fetch(url);
@@ -284,7 +284,7 @@ export default function CentralizedContentPage() {
         setLoadingSubjects(false);
       }
     };
-    
+
     fetchSubjects();
   }, [selectedClass, session]);
 
@@ -295,7 +295,7 @@ export default function CentralizedContentPage() {
     setContents([]);
     setUnits([]);
     setLoadingUnits(true);
-    
+
     try {
       const res = await fetch(`${API_URL}/api/centralized-content/subjects/${sub.id}/units`);
       const json = await res.json();
@@ -319,7 +319,7 @@ export default function CentralizedContentPage() {
     setInfographicData(null);
     setFlippedCards({});
     setActiveTab("materials");
-    
+
     // Set initial welcome AI message focused on this topic
     setAiMessages([
       {
@@ -375,7 +375,7 @@ export default function CentralizedContentPage() {
 
     try {
       const chatHistory = aiMessages.map(m => ({ role: m.role, content: m.content }));
-      
+
       const res = await fetch(`${API_URL}/api/ai/chat-tutor`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -396,7 +396,7 @@ export default function CentralizedContentPage() {
     } catch (err) {
       console.error("AI error", err);
       setAiMessages(prev => [
-        ...prev, 
+        ...prev,
         { role: "assistant", content: "மன்னிக்கவும், AI உடன் இணைப்பதில் சிக்கல் ஏற்பட்டது. (Sorry, there was a problem connecting with the AI companion.)" }
       ]);
     } finally {
@@ -421,7 +421,7 @@ export default function CentralizedContentPage() {
       themeClass="theme-student"
       accentColor="#6366f1"
     >
-      
+
       {/* 1. Header Filter Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
         <div>
@@ -432,7 +432,7 @@ export default function CentralizedContentPage() {
             Bilingual educational materials tailored for your grade.
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2.5">
           <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Grade:</span>
           <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm">
@@ -443,7 +443,7 @@ export default function CentralizedContentPage() {
 
       {/* Main Grid: Subjects list or workspace */}
       {!selectedSubject ? (
-        
+
         /* 2. Subjects Grid View */
         <div>
           {loadingSubjects ? (
@@ -469,14 +469,14 @@ export default function CentralizedContentPage() {
                     className="glass rounded-2xl p-5 border border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-650 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col justify-between h-44 bg-white/70 dark:bg-slate-900/35 shadow-sm hover:shadow-md"
                   >
                     {/* Dynamic Glow Backdrops */}
-                    <div 
+                    <div
                       className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-all duration-500"
                       style={{ background: theme.gradient }}
                     ></div>
-                    
+
                     {/* Subject Icon & Class Tag in Row */}
                     <div className="flex justify-between items-start w-full relative z-10">
-                      <div 
+                      <div
                         className="w-11 h-11 rounded-xl flex items-center justify-center shadow-md transition-all duration-500 group-hover:scale-105 group-hover:rotate-3 text-white"
                         style={{ background: theme.gradient }}
                       >
@@ -502,13 +502,13 @@ export default function CentralizedContentPage() {
           )}
         </div>
       ) : (
-        
+
         /* 3. Subject Workspace (Side Accordion & Content Panel) */
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-in fade-in duration-300">
-          
+
           {/* Workspace Sidebar (Units & Subunits) */}
           <div className="lg:col-span-1 space-y-4">
-            
+
             {/* Back Button */}
             <button
               onClick={() => setSelectedSubject(null)}
@@ -523,7 +523,7 @@ export default function CentralizedContentPage() {
               const SubjectIcon = theme.icon;
               return (
                 <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-850 bg-white/90 dark:bg-slate-900/50 backdrop-blur-md flex items-center gap-4 shadow-sm">
-                  <div 
+                  <div
                     className="w-12 h-12 rounded-xl flex items-center justify-center shadow-md text-white"
                     style={{ background: theme.gradient }}
                   >
@@ -542,7 +542,7 @@ export default function CentralizedContentPage() {
             {/* Units Accordion */}
             <div className="glass rounded-3xl p-4 border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900/20 max-h-[calc(100vh-320px)] overflow-y-auto">
               <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-4 px-1">Syllabus Index</h4>
-              
+
               {loadingUnits ? (
                 <div className="flex flex-col items-center justify-center py-10">
                   <div className="w-6 h-6 rounded-full border-2 border-indigo-200 border-t-indigo-600 animate-spin mb-2" />
@@ -556,17 +556,16 @@ export default function CentralizedContentPage() {
                     <div key={unit.id} className="space-y-1.5 border-b border-slate-100 dark:border-slate-800/80 pb-3 last:border-b-0">
                       <span className="text-[10px] font-bold text-indigo-500 uppercase block">Unit {unit.unitNumber}</span>
                       <h5 className="font-semibold text-xs text-slate-700 dark:text-slate-300 leading-snug px-0.5">{unit.name}</h5>
-                      
+
                       <div className="flex flex-col gap-1 mt-2 pl-2 border-l border-slate-200 dark:border-slate-800">
                         {unit.topics.map((topic) => (
                           <button
                             key={topic.id}
                             onClick={() => handleSelectTopic(topic)}
-                            className={`text-left text-xs px-2.5 py-1.5 rounded-lg transition-all font-medium leading-snug ${
-                              selectedTopic?.id === topic.id 
-                                ? "bg-indigo-600 text-white" 
+                            className={`text-left text-xs px-2.5 py-1.5 rounded-lg transition-all font-medium leading-snug ${selectedTopic?.id === topic.id
+                                ? "bg-indigo-600 text-white"
                                 : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-black dark:hover:text-white"
-                            }`}
+                              }`}
                           >
                             {topic.topicNumber}. {topic.name}
                           </button>
@@ -583,7 +582,7 @@ export default function CentralizedContentPage() {
           {/* Workspace Right Side Content View */}
           <div className="lg:col-span-3">
             {!selectedTopic ? (
-              
+
               /* Default subunit selection prompt */
               <div className="flex flex-col items-center justify-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/10 min-h-[450px]">
                 <span className="text-6xl block mb-4 animate-bounce" style={{ animationDuration: '3s' }}>📖</span>
@@ -593,10 +592,10 @@ export default function CentralizedContentPage() {
                 </p>
               </div>
             ) : (
-              
+
               /* Full Syllabus Content Workspace Panel */
               <div className="glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 overflow-hidden min-h-[500px] flex flex-col">
-                
+
                 {/* Subunit Header details */}
                 <div className="px-6 py-4 bg-slate-50/50 dark:bg-slate-950/20 border-b border-slate-250/20 dark:border-slate-800/80 flex items-center justify-between">
                   <div>
@@ -626,11 +625,10 @@ export default function CentralizedContentPage() {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                          activeTab === tab.id
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === tab.id
                             ? "bg-slate-900 text-white dark:bg-slate-800 dark:text-white shadow-sm"
                             : "text-slate-500 hover:text-black dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/30"
-                        }`}
+                          }`}
                       >
                         {tab.label}
                       </button>
@@ -647,12 +645,12 @@ export default function CentralizedContentPage() {
                     </div>
                   ) : (
                     <div className="flex-1 flex flex-col">
-                      
+
                       {/* T1: Study Materials */}
                       {activeTab === "materials" && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                           <h4 className="text-xs font-black uppercase text-slate-450 dark:text-slate-400 tracking-wider">Book Extracts & Presentations</h4>
-                          
+
                           {(() => {
                             const mats = contents.filter(c => c.contentType === "PDF" || c.contentType === "PPT" || c.contentType.toLowerCase().includes("textbook") || c.contentType.toLowerCase().includes("reference") || c.contentType.toLowerCase().includes("diagram"));
                             if (mats.length === 0) {
@@ -743,7 +741,7 @@ export default function CentralizedContentPage() {
                                 <h5 className="text-[11px] font-black uppercase text-slate-450 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
                                   <span>🗺️</span> Conceptual Step-by-Step Flow
                                 </h5>
-                                
+
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                   {infographicData.visualFlow?.map((step: any, idx: number) => (
                                     <div key={idx} className="relative flex flex-col p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/20 shadow-xs hover:border-indigo-400 dark:hover:border-indigo-800 transition-colors">
@@ -816,15 +814,14 @@ export default function CentralizedContentPage() {
                                   {infographicData.flashcards?.map((card: any, idx: number) => {
                                     const isFlipped = !!flippedCards[idx];
                                     return (
-                                      <div 
+                                      <div
                                         key={idx}
                                         onClick={() => toggleFlipCard(idx)}
                                         className="h-32 [perspective:800px] cursor-pointer group"
                                       >
-                                        <div 
-                                          className={`relative w-full h-full duration-500 [transform-style:preserve-3d] transition-transform ${
-                                            isFlipped ? '[transform:rotateY(180deg)]' : ''
-                                          }`}
+                                        <div
+                                          className={`relative w-full h-full duration-500 [transform-style:preserve-3d] transition-transform ${isFlipped ? '[transform:rotateY(180deg)]' : ''
+                                            }`}
                                         >
                                           {/* Front face */}
                                           <div className="absolute inset-0 w-full h-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col justify-between [backface-visibility:hidden] shadow-xs group-hover:border-indigo-400 dark:group-hover:border-indigo-850 transition-colors">
@@ -871,12 +868,12 @@ export default function CentralizedContentPage() {
                               {(() => {
                                 const currentSlide = presentationData.slides?.[currentSlideIndex];
                                 if (!currentSlide) return <p className="text-slate-500 text-center py-10">Slide not found.</p>;
-                                
+
                                 return (
                                   <div className="flex-1 flex flex-col gap-5">
                                     {/* Slide Content Layout */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 flex-1">
-                                      
+
                                       {/* Left: Text bullets content */}
                                       <div className="p-6 rounded-2xl bg-slate-50/50 dark:bg-slate-900/40 border border-slate-205 dark:border-slate-800/80 flex flex-col justify-between shadow-xs">
                                         <div className="space-y-4">
@@ -886,7 +883,7 @@ export default function CentralizedContentPage() {
                                           <h4 className="text-base md:text-lg font-black text-black dark:text-white leading-tight">
                                             {currentSlide.title}
                                           </h4>
-                                          
+
                                           <ul className="space-y-3.5 pt-2">
                                             {currentSlide.bulletPoints?.map((bp: string, bpi: number) => (
                                               <li key={bpi} className="text-xs md:text-sm text-slate-700 dark:text-slate-200 flex items-start gap-2.5 leading-relaxed font-medium">
@@ -902,7 +899,7 @@ export default function CentralizedContentPage() {
                                       <div className="p-6 rounded-2xl border border-teal-500/20 dark:border-teal-500/15 bg-teal-500/5 relative overflow-hidden flex flex-col justify-between group">
                                         {/* Blueprint background grid effect */}
                                         <div className="absolute inset-0 bg-[linear-gradient(to_right,#0ea5e912_1px,transparent_1px),linear-gradient(to_bottom,#0ea5e912_1px,transparent_1px)] bg-[size:14px_24px] pointer-events-none opacity-40"></div>
-                                        
+
                                         <div className="relative z-10 space-y-3">
                                           <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-200/20 dark:border-teal-500/20 rounded-md">
                                             📐 Visual Illustration Blueprint
@@ -912,7 +909,7 @@ export default function CentralizedContentPage() {
                                             {currentSlide.visualLayoutDescription}
                                           </p>
                                         </div>
-                                        
+
                                         <div className="relative z-10 mt-4 text-[10px] text-teal-600 dark:text-teal-400 font-bold flex items-center gap-1 bg-teal-950/20 dark:bg-teal-950/30 p-2 rounded-lg border border-teal-500/10">
                                           <span>🎨</span>
                                           <span>Visual layout reference for conceptual modeling.</span>
@@ -952,12 +949,11 @@ export default function CentralizedContentPage() {
 
                                       <div className="flex items-center gap-1.5">
                                         {presentationData.slides?.map((_: any, idx: number) => (
-                                          <span 
-                                            key={idx} 
+                                          <span
+                                            key={idx}
                                             onClick={() => setCurrentSlideIndex(idx)}
-                                            className={`w-2 h-2 rounded-full cursor-pointer transition-all ${
-                                              currentSlideIndex === idx ? "bg-indigo-650 dark:bg-indigo-500 w-4" : "bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600"
-                                            }`}
+                                            className={`w-2 h-2 rounded-full cursor-pointer transition-all ${currentSlideIndex === idx ? "bg-indigo-650 dark:bg-indigo-500 w-4" : "bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600"
+                                              }`}
                                           />
                                         ))}
                                       </div>
@@ -1039,7 +1035,7 @@ export default function CentralizedContentPage() {
                                           {item.options.map((opt) => {
                                             const isSelected = userAns === opt;
                                             const isCorrectOption = opt === item.answer;
-                                            
+
                                             let optionClass = "border-slate-200 dark:border-slate-800 hover:border-slate-400 hover:bg-slate-100/30 dark:hover:bg-slate-800/10";
                                             if (isSelected) {
                                               optionClass = "border-indigo-500 bg-indigo-500/5 dark:bg-indigo-500/10 text-indigo-650 dark:text-indigo-300 font-bold";
@@ -1078,11 +1074,10 @@ export default function CentralizedContentPage() {
                                             <button
                                               disabled={!userAns}
                                               onClick={() => handleSubmitMCQAnswer(qIdx)}
-                                              className={`py-2 px-4 rounded-xl text-xs font-bold transition-all ${
-                                                userAns 
-                                                  ? "bg-slate-900 text-white dark:bg-slate-800 hover:opacity-90 cursor-pointer" 
+                                              className={`py-2 px-4 rounded-xl text-xs font-bold transition-all ${userAns
+                                                  ? "bg-slate-900 text-white dark:bg-slate-800 hover:opacity-90 cursor-pointer"
                                                   : "bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
-                                              }`}
+                                                }`}
                                             >
                                               Check Answer
                                             </button>
@@ -1109,7 +1104,7 @@ export default function CentralizedContentPage() {
                       {/* T5: AI Study Companion Chat */}
                       {activeTab === "ai" && (
                         <div className="flex-1 flex flex-col min-h-[380px] animate-in fade-in duration-200">
-                          
+
                           {/* Chat Messages */}
                           <div className="flex-1 overflow-y-auto max-h-[300px] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 bg-slate-50/30 dark:bg-slate-950/10 space-y-4 mb-4">
                             {aiMessages.map((msg, i) => (
@@ -1120,11 +1115,10 @@ export default function CentralizedContentPage() {
                                   </div>
                                 )}
                                 <div
-                                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-xs md:text-sm leading-relaxed ${
-                                    msg.role === "user"
+                                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-xs md:text-sm leading-relaxed ${msg.role === "user"
                                       ? "bg-indigo-600 text-white rounded-tr-none shadow-sm"
                                       : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-tl-none border border-slate-200 dark:border-slate-800 shadow-sm"
-                                  }`}
+                                    }`}
                                   style={{ whiteSpace: "pre-line" }}
                                 >
                                   {msg.content}
@@ -1183,7 +1177,7 @@ export default function CentralizedContentPage() {
                                 className="w-full bg-transparent border-0 text-xs md:text-sm text-black dark:text-white placeholder-slate-400 focus:outline-none focus:ring-0"
                               />
                             </div>
-                            
+
                             {/* Language selection dropdown */}
                             <select
                               value={aiLanguage}
@@ -1198,11 +1192,10 @@ export default function CentralizedContentPage() {
                             <button
                               onClick={() => handleSendAiMessage()}
                               disabled={isAiTyping || !aiInput.trim()}
-                              className={`px-4 py-2.5 rounded-xl text-xs font-bold text-white transition-all active:scale-95 ${
-                                aiInput.trim() && !isAiTyping 
-                                  ? "bg-indigo-650 hover:bg-indigo-700 hover:shadow-md cursor-pointer" 
+                              className={`px-4 py-2.5 rounded-xl text-xs font-bold text-white transition-all active:scale-95 ${aiInput.trim() && !isAiTyping
+                                  ? "bg-indigo-650 hover:bg-indigo-700 hover:shadow-md cursor-pointer"
                                   : "bg-slate-350 dark:bg-slate-800 text-slate-500 cursor-not-allowed"
-                              }`}
+                                }`}
                             >
                               Ask AI
                             </button>

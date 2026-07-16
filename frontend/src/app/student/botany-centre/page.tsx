@@ -72,8 +72,8 @@ export default function BotanyCentrePage() {
   }
 
   return (
-    <PortalLayout 
-      title={lang === "EN" ? "Botany Centre 🌿" : "தாவரவியல் மையம் 🌿"} 
+    <PortalLayout
+      title={lang === "EN" ? "Botany Centre 🌿" : "தாவரவியல் மையம் 🌿"}
       subtitle={lang === "EN" ? "The plant world — mapped to your class syllabus" : "தாவர உலகம் - உங்கள் வகுப்புப் பாடத்திட்டத்துடன் இணைக்கப்பட்டுள்ளது"}
     >
       <div className="flex flex-col gap-6 text-left">
@@ -100,8 +100,8 @@ export default function BotanyCentrePage() {
           <div className="p-2.5 bg-lime-100 text-lime-600 rounded-2xl"><i className="fi fi-sr-leaf text-2xl"></i></div>
           <div className="w-full">
             <p className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-              {detected 
-                ? (lang === "EN" ? "Your class" : "உங்களது வகுப்பு") 
+              {detected
+                ? (lang === "EN" ? "Your class" : "உங்களது வகுப்பு")
                 : (lang === "EN" ? "Choose your class" : "வகுப்பைத் தேர்ந்தெடுக்கவும்")}
             </p>
             <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -272,8 +272,8 @@ function BotanyStudy({ lang, unit, onClose }: { lang: "EN" | "TA"; unit: BotanyU
                         const correct = oi === quiz.answer;
                         const st = !answered ? "bg-white dark:bg-slate-800 text-slate-600 border-slate-200 hover:border-slate-400"
                           : correct ? "bg-emerald-500 text-white border-emerald-500"
-                          : oi === chosen ? "bg-rose-500 text-white border-rose-500"
-                          : "bg-white dark:bg-slate-800 text-slate-400 border-slate-200";
+                            : oi === chosen ? "bg-rose-500 text-white border-rose-500"
+                              : "bg-white dark:bg-slate-800 text-slate-400 border-slate-200";
                         return (
                           <button
                             key={oi}

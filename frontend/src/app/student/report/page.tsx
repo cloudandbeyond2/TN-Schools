@@ -199,9 +199,9 @@ const reportCategories = [
 
 const severityConfig: Record<string, { label: { en: string; ta: string }; badge: string; bg: string; border: string; iconColor: string; grad: string }> = {
   critical: { label: { en: "CRITICAL", ta: "மிக முக்கியம்" }, badge: "bg-red-500 text-white shadow-sm shadow-red-500/20", bg: "bg-red-50 dark:bg-red-900/20", border: "border-red-400 dark:border-red-600", iconColor: "text-red-500", grad: "from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20" },
-  high:     { label: { en: "HIGH", ta: "முக்கியம்" },     badge: "bg-orange-500 text-white shadow-sm shadow-orange-500/20", bg: "bg-orange-50 dark:bg-orange-900/20", border: "border-orange-400 dark:border-orange-600", iconColor: "text-orange-500", grad: "from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20" },
-  medium:   { label: { en: "MEDIUM", ta: "சராசரி" },   badge: "bg-amber-400 text-amber-950 shadow-sm shadow-amber-400/20", bg: "bg-amber-50 dark:bg-amber-900/20", border: "border-amber-400 dark:border-amber-600", iconColor: "text-amber-500", grad: "from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20" },
-  low:      { label: { en: "LOW", ta: "குறைவு" },      badge: "bg-slate-400 text-white shadow-sm shadow-slate-400/20", bg: "bg-slate-50 dark:bg-slate-900/30", border: "border-slate-300 dark:border-slate-700", iconColor: "text-slate-500", grad: "from-slate-50 to-gray-50 dark:from-slate-900/30 dark:to-gray-900/30" },
+  high: { label: { en: "HIGH", ta: "முக்கியம்" }, badge: "bg-orange-500 text-white shadow-sm shadow-orange-500/20", bg: "bg-orange-50 dark:bg-orange-900/20", border: "border-orange-400 dark:border-orange-600", iconColor: "text-orange-500", grad: "from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20" },
+  medium: { label: { en: "MEDIUM", ta: "சராசரி" }, badge: "bg-amber-400 text-amber-950 shadow-sm shadow-amber-400/20", bg: "bg-amber-50 dark:bg-amber-900/20", border: "border-amber-400 dark:border-amber-600", iconColor: "text-amber-500", grad: "from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20" },
+  low: { label: { en: "LOW", ta: "குறைவு" }, badge: "bg-slate-400 text-white shadow-sm shadow-slate-400/20", bg: "bg-slate-50 dark:bg-slate-900/30", border: "border-slate-300 dark:border-slate-700", iconColor: "text-slate-500", grad: "from-slate-50 to-gray-50 dark:from-slate-900/30 dark:to-gray-900/30" },
 };
 
 const monitoringChain = [
@@ -293,27 +293,27 @@ export default function ReportPage() {
         </div>
         <div className="relative z-10 text-white">
           <div className="flex items-center gap-4 mb-4">
-             <div className="w-16 h-16 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 backdrop-blur-sm shadow-md">
-                <ShieldCheck size={32} className="text-white" />
-             </div>
-             <div>
-                <h1 className="text-2xl font-black mb-1 leading-tight text-white">{L.heroTitle}</h1>
-                <p className="text-xs max-w-md leading-relaxed opacity-90">
-                  {L.heroDesc}
-                  <strong className="text-white">{L.heroDescBold}</strong>
-                  {L.heroDescEnd}
-                </p>
-             </div>
+            <div className="w-16 h-16 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 backdrop-blur-sm shadow-md">
+              <ShieldCheck size={32} className="text-white" />
+            </div>
+            <div>
+              <p className="text-2xl font-black mb-1 leading-tight !text-white">{L.heroTitle}</p>
+              <p className=" !text-white text-xs max-w-md leading-relaxed opacity-90">
+                {L.heroDesc}
+                <strong className="!text-white">{L.heroDescBold}</strong>
+                {L.heroDescEnd}
+              </p>
+            </div>
           </div>
           <div className="flex flex-wrap gap-3 mt-4">
-            <span className="text-[10px] bg-white/15 border border-white/20 rounded-full px-3 py-1.5 font-bold uppercase tracking-wide flex items-center gap-1.5 backdrop-blur-sm text-white">
-                <Shield size={12} /> {L.anonOption}
+            <span className="text-[10px] bg-white/15 border border-white/20 rounded-full px-3 py-1.5 font-bold uppercase tracking-wide flex items-center gap-1.5 backdrop-blur-sm !text-white">
+              <Shield size={12} className="!text-white" /> {L.anonOption}
             </span>
-            <span className="text-[10px] bg-white/15 border border-white/20 rounded-full px-3 py-1.5 font-bold uppercase tracking-wide flex items-center gap-1.5 backdrop-blur-sm text-white">
-                <Zap size={12} /> {L.escalationOption}
+            <span className="text-[10px] bg-white/15 border border-white/20 rounded-full px-3 py-1.5 font-bold uppercase tracking-wide flex items-center gap-1.5 backdrop-blur-sm !text-white">
+              <Zap size={12} className="!text-white" /> {L.escalationOption}
             </span>
-            <span className="text-[10px] bg-white/15 border border-white/20 rounded-full px-3 py-1.5 font-bold uppercase tracking-wide flex items-center gap-1.5 backdrop-blur-sm text-white">
-                <Eye size={12} /> {L.monitoredOption}
+            <span className="text-[10px] bg-white/15 border border-white/20 rounded-full px-3 py-1.5 font-bold uppercase tracking-wide flex items-center gap-1.5 backdrop-blur-sm !text-white">
+              <Eye size={12} className="!text-white" /> {L.monitoredOption}
             </span>
           </div>
         </div>
@@ -325,11 +325,11 @@ export default function ReportPage() {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
-                 <Hash size={16} className="text-indigo-600 dark:text-indigo-400" />
+                <Hash size={16} className="text-indigo-600 dark:text-indigo-400" />
               </div>
               <h2 className="text-base font-black text-black dark:text-white">{L.selectCategoryTitle}</h2>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {reportCategories.map((cat) => {
                 const sc = severityConfig[cat.severity];
@@ -341,7 +341,7 @@ export default function ReportPage() {
                     className={`flex items-start gap-4 p-5 rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-lg group bg-gradient-to-br ${sc.grad} ${sc.border}`}
                   >
                     <div className={`w-12 h-12 rounded-xl bg-white dark:bg-slate-900 border ${sc.border} flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform`}>
-                        <Icon size={24} className={sc.iconColor} />
+                      <Icon size={24} className={sc.iconColor} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -367,48 +367,50 @@ export default function ReportPage() {
                 {monitoringChain.map((m) => {
                   const MIcon = m.icon;
                   return (
-                  <div key={m.level} className="flex gap-4 items-start relative z-10">
-                    <div className="w-7 h-7 rounded-full bg-white dark:bg-slate-900 border-2 border-indigo-200 dark:border-indigo-800 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                      <MIcon size={12} className="text-indigo-500" />
+                    <div key={m.level} className="flex gap-4 items-start relative z-10">
+                      <div className="w-7 h-7 rounded-full bg-white dark:bg-slate-900 border-2 border-indigo-200 dark:border-indigo-800 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                        <MIcon size={12} className="text-indigo-500" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-black dark:text-white mb-0.5">{m.title[lang]}</div>
+                        <div className="text-[10px] text-slate-500 leading-tight">{m.desc[lang]}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-xs font-bold text-black dark:text-white mb-0.5">{m.title[lang]}</div>
-                      <div className="text-[10px] text-slate-500 leading-tight">{m.desc[lang]}</div>
-                    </div>
-                  </div>
-                )})}
+                  )
+                })}
               </div>
             </div>
 
             <div className="rounded-2xl p-5 border-2 border-red-200 dark:border-red-800 bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/10 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
-                 <AlertTriangle size={16} className="text-red-500" />
-                 <h3 className="text-xs font-black text-red-700 dark:text-red-400 uppercase tracking-wide">{L.emergencyTitle}</h3>
+                <AlertTriangle size={16} className="text-red-500" />
+                <h3 className="text-xs font-black text-red-700 dark:text-red-400 uppercase tracking-wide">{L.emergencyTitle}</h3>
               </div>
               <div className="space-y-2">
                 {[
                   { num: "1098", label: lang === "en" ? "Child Helpline" : "குழந்தை உதவி எண்", icon: Hash },
-                  { num: "181",  label: lang === "en" ? "Women Helpline" : "பெண்கள் உதவி எண்", icon: Shield },
-                  { num: "100",  label: lang === "en" ? "Police" : "காவல்துறை",         icon: ShieldCheck },
+                  { num: "181", label: lang === "en" ? "Women Helpline" : "பெண்கள் உதவி எண்", icon: Shield },
+                  { num: "100", label: lang === "en" ? "Police" : "காவல்துறை", icon: ShieldCheck },
                 ].map((h) => {
                   const HIcon = h.icon;
                   return (
-                  <a key={h.num} href={`tel:${h.num}`} className="flex items-center gap-3 p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-red-100 dark:border-red-800/50 text-xs font-bold text-red-600 dark:text-red-400 hover:shadow-md transition-all group">
-                    <div className="w-6 h-6 rounded-md bg-red-50 dark:bg-red-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <a key={h.num} href={`tel:${h.num}`} className="flex items-center gap-3 p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-red-100 dark:border-red-800/50 text-xs font-bold text-red-600 dark:text-red-400 hover:shadow-md transition-all group">
+                      <div className="w-6 h-6 rounded-md bg-red-50 dark:bg-red-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <HIcon size={12} />
-                    </div>
-                    {h.num} <span className="text-slate-400 dark:text-slate-500 font-medium ml-1">– {h.label}</span>
-                  </a>
-                )})}
+                      </div>
+                      {h.num} <span className="text-slate-400 dark:text-slate-500 font-medium ml-1">– {h.label}</span>
+                    </a>
+                  )
+                })}
               </div>
             </div>
 
             <div className="rounded-2xl p-4 border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex gap-3 items-start">
-               <ShieldCheck size={20} className="text-indigo-500 mt-0.5" />
-               <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed">
-                 <strong className="text-black dark:text-white block mb-1">{L.protectionTitle}</strong>
-                 {L.protectionDesc} <strong>RTE Act</strong> {lang === "en" ? "and" : "மற்றும்"} <strong>POCSO</strong>.
-               </p>
+              <ShieldCheck size={20} className="text-indigo-500 mt-0.5" />
+              <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                <strong className="text-black dark:text-white block mb-1">{L.protectionTitle}</strong>
+                {L.protectionDesc} <strong>RTE Act</strong> {lang === "en" ? "and" : "மற்றும்"} <strong>POCSO</strong>.
+              </p>
             </div>
           </div>
         </div>
@@ -419,7 +421,7 @@ export default function ReportPage() {
         <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
           <div className={`rounded-3xl p-6 border-2 flex items-center gap-5 shadow-sm bg-gradient-to-br ${sevConfig.grad} ${sevConfig.border}`}>
             <div className={`w-14 h-14 rounded-2xl bg-white dark:bg-slate-900 border ${sevConfig.border} flex items-center justify-center shrink-0 shadow-sm`}>
-                <selectedCategory.icon size={28} className={sevConfig.iconColor} />
+              <selectedCategory.icon size={28} className={sevConfig.iconColor} />
             </div>
             <div>
               <div className="flex items-center gap-3 mb-1.5">
@@ -432,8 +434,8 @@ export default function ReportPage() {
 
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
             <div className="flex items-center gap-3 mb-2 border-b border-slate-100 dark:border-slate-800 pb-4">
-               <Hash size={20} className="text-indigo-500" />
-               <h3 className="text-base font-black text-black dark:text-white">{L.incidentDetails}</h3>
+              <Hash size={20} className="text-indigo-500" />
+              <h3 className="text-base font-black text-black dark:text-white">{L.incidentDetails}</h3>
             </div>
 
             <div>
@@ -451,158 +453,155 @@ export default function ReportPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
+              <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-                    {L.staffName}
-                    <span className="font-normal text-slate-400 ml-1">{L.optional}</span>
+                  {L.staffName}
+                  <span className="font-normal text-slate-400 ml-1">{L.optional}</span>
                 </label>
                 <div className="relative">
-                    <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                        type="text"
-                        value={staffName}
-                        onChange={(e) => setStaffName(e.target.value)}
-                        placeholder={L.staffPlaceholder}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-black dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900/40 transition-all"
-                    />
+                  <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={staffName}
+                    onChange={(e) => setStaffName(e.target.value)}
+                    placeholder={L.staffPlaceholder}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-black dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900/40 transition-all"
+                  />
                 </div>
-                </div>
+              </div>
 
-                <div>
+              <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-                    {L.whereHappened}
+                  {L.whereHappened}
                 </label>
                 <div className="relative">
-                    <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                        type="text"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        placeholder={L.wherePlaceholder}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-black dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900/40 transition-all"
-                    />
+                  <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder={L.wherePlaceholder}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-black dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900/40 transition-all"
+                  />
                 </div>
-                </div>
+              </div>
 
-                <div>
+              <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-                    {L.whenHappened}
+                  {L.whenHappened}
                 </label>
                 <div className="relative">
-                    <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
-                    <input
-                        type="date"
-                        value={dateOfIncident}
-                        onChange={(e) => setDateOfIncident(e.target.value)}
-                        max={new Date().toISOString().split("T")[0]}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900/40 transition-all"
-                    />
+                  <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+                  <input
+                    type="date"
+                    value={dateOfIncident}
+                    onChange={(e) => setDateOfIncident(e.target.value)}
+                    max={new Date().toISOString().split("T")[0]}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900/40 transition-all"
+                  />
                 </div>
-                </div>
+              </div>
 
-                <div>
+              <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-                    {L.witnesses}
+                  {L.witnesses}
                 </label>
                 <div className="relative">
-                    <Eye size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                        type="text"
-                        value={witnessDetails}
-                        onChange={(e) => setWitnessDetails(e.target.value)}
-                        placeholder={L.witnessPlaceholder}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-black dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900/40 transition-all"
-                    />
+                  <Eye size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={witnessDetails}
+                    onChange={(e) => setWitnessDetails(e.target.value)}
+                    placeholder={L.witnessPlaceholder}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-black dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900/40 transition-all"
+                  />
                 </div>
-                </div>
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-4">
                 <Clock size={20} className="text-indigo-500" />
                 <h3 className="text-sm font-black text-black dark:text-white">{L.urgencyTitle}</h3>
-                </div>
-                <div className="space-y-3">
+              </div>
+              <div className="space-y-3">
                 {[
-                    { val: "normal", icon: Clock, label: L.urgencyNormal, desc: L.urgencyNormalDesc },
-                    { val: "urgent", icon: AlertTriangle, label: L.urgencyUrgent, desc: L.urgencyUrgentDesc },
+                  { val: "normal", icon: Clock, label: L.urgencyNormal, desc: L.urgencyNormalDesc },
+                  { val: "urgent", icon: AlertTriangle, label: L.urgencyUrgent, desc: L.urgencyUrgentDesc },
                 ].map((u) => {
-                    const UIcon = u.icon;
-                    return (
+                  const UIcon = u.icon;
+                  return (
                     <button
-                    key={u.val}
-                    type="button"
-                    onClick={() => setUrgency(u.val as "normal" | "urgent")}
-                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-200 ${
-                        urgency === u.val
+                      key={u.val}
+                      type="button"
+                      onClick={() => setUrgency(u.val as "normal" | "urgent")}
+                      className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-200 ${urgency === u.val
                         ? u.val === "urgent"
-                            ? "border-red-400 bg-red-50 dark:bg-red-900/20 shadow-sm"
-                            : "border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 shadow-sm"
+                          ? "border-red-400 bg-red-50 dark:bg-red-900/20 shadow-sm"
+                          : "border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 shadow-sm"
                         : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                    }`}
+                        }`}
                     >
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        urgency === u.val 
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${urgency === u.val
                         ? u.val === "urgent" ? "bg-red-100 dark:bg-red-900/40" : "bg-indigo-100 dark:bg-indigo-900/40"
                         : "bg-slate-100 dark:bg-slate-800"
-                    }`}>
-                        <UIcon size={18} className={`${
-                            urgency === u.val 
-                            ? u.val === "urgent" ? "text-red-500" : "text-indigo-500"
-                            : "text-slate-400"
-                        }`} />
-                    </div>
-                    <div>
+                        }`}>
+                        <UIcon size={18} className={`${urgency === u.val
+                          ? u.val === "urgent" ? "text-red-500" : "text-indigo-500"
+                          : "text-slate-400"
+                          }`} />
+                      </div>
+                      <div>
                         <div className="text-xs font-black text-black dark:text-white">{u.label}</div>
                         <div className="text-[10px] text-slate-500 mt-0.5 leading-tight">{u.desc}</div>
-                    </div>
+                      </div>
                     </button>
-                )})}
-                </div>
+                  )
+                })}
+              </div>
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-4">
                 <UserX size={20} className="text-indigo-500" />
                 <h3 className="text-sm font-black text-black dark:text-white">{L.identityTitle}</h3>
-                </div>
-                <div className="space-y-3">
+              </div>
+              <div className="space-y-3">
                 {[
-                    { val: true, icon: UserX, label: L.anonReport, desc: L.anonDesc },
-                    { val: false, icon: User, label: L.idReport, desc: L.idDesc },
+                  { val: true, icon: UserX, label: L.anonReport, desc: L.anonDesc },
+                  { val: false, icon: User, label: L.idReport, desc: L.idDesc },
                 ].map((opt) => {
-                    const OptIcon = opt.icon;
-                    return (
+                  const OptIcon = opt.icon;
+                  return (
                     <button
-                    key={String(opt.val)}
-                    type="button"
-                    onClick={() => setIsAnonymous(opt.val)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-200 ${
-                        isAnonymous === opt.val
+                      key={String(opt.val)}
+                      type="button"
+                      onClick={() => setIsAnonymous(opt.val)}
+                      className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-200 ${isAnonymous === opt.val
                         ? "border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 shadow-sm"
                         : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                    }`}
+                        }`}
                     >
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        isAnonymous === opt.val ? "bg-indigo-100 dark:bg-indigo-900/40" : "bg-slate-100 dark:bg-slate-800"
-                    }`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isAnonymous === opt.val ? "bg-indigo-100 dark:bg-indigo-900/40" : "bg-slate-100 dark:bg-slate-800"
+                        }`}>
                         <OptIcon size={18} className={`${isAnonymous === opt.val ? "text-indigo-500" : "text-slate-400"}`} />
-                    </div>
-                    <div>
+                      </div>
+                      <div>
                         <div className="text-xs font-black text-black dark:text-white">{opt.label}</div>
                         <div className="text-[10px] text-slate-500 mt-0.5 leading-tight">{opt.desc}</div>
-                    </div>
+                      </div>
                     </button>
-                )})}
-                </div>
-                {!isAnonymous && session?.user?.name && (
+                  )
+                })}
+              </div>
+              {!isAnonymous && session?.user?.name && (
                 <div className="mt-4 text-[10px] text-slate-500 bg-slate-50 dark:bg-slate-950 rounded-xl p-3 border border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                    <Info size={14} className="text-indigo-400" />
-                    <span>{L.reportingAs} <strong className="text-black dark:text-white">{session.user.name}</strong></span>
+                  <Info size={14} className="text-indigo-400" />
+                  <span>{L.reportingAs} <strong className="text-black dark:text-white">{session.user.name}</strong></span>
                 </div>
-                )}
+              )}
             </div>
           </div>
 
@@ -625,13 +624,13 @@ export default function ReportPage() {
         <div className="max-w-xl mx-auto">
           <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/10 rounded-3xl p-8 md:p-12 border border-emerald-200 dark:border-emerald-800 text-center shadow-lg">
             <div className="w-24 h-24 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mx-auto mb-6 shadow-inner">
-                <CheckCircle size={48} className="text-emerald-500" />
+              <CheckCircle size={48} className="text-emerald-500" />
             </div>
             <h3 className="text-2xl font-black text-emerald-700 dark:text-emerald-400 mb-2">{L.successTitle}</h3>
             <p className="text-sm text-emerald-600 dark:text-emerald-500 mb-8 max-w-md mx-auto">
               {L.successDesc}
             </p>
-            
+
             <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 mb-8 text-left space-y-4 shadow-sm border border-emerald-100 dark:border-emerald-800/50">
               <div className="flex justify-between items-center text-xs pb-3 border-b border-slate-100 dark:border-slate-800">
                 <span className="text-slate-500 flex items-center gap-2"><Hash size={14} /> {L.refNumber}</span>
@@ -663,11 +662,11 @@ export default function ReportPage() {
                 <p>{L.criticalAlert}</p>
               </div>
             )}
-            
+
             <p className="text-xs text-slate-500 mb-8 max-w-sm mx-auto">
               {L.successFooter}
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button onClick={() => { setStep("select"); setSelectedCategory(null); setDescription(""); }} className="px-6 py-3 border-2 border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-700 dark:text-emerald-400 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all flex items-center justify-center gap-2">
                 <Hash size={16} /> {L.fileAnother}
@@ -680,7 +679,7 @@ export default function ReportPage() {
 
           <div className="mt-6 rounded-3xl p-5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm flex items-start gap-4">
             <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                <Info size={16} className="text-slate-500" />
+              <Info size={16} className="text-slate-500" />
             </div>
             <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed mt-1">
               {L.emergencyFooter}

@@ -46,9 +46,9 @@ export default function CompetitivePrepPage() {
           <span className="inline-flex items-center gap-2 bg-white/15 border border-white/25 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: "#fff" }}>
             🎯 Class {studentClass || "11-12"} · {HS_GROUP_LABELS[studentGroup]}
           </span>
-          <h2 className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#fff" }}>
+          <p className="!text-white text-2xl md:text-3xl font-black mb-1">
             Competitive Examination Preparation
-          </h2>
+          </p>
           <p className="text-sm max-w-2xl mb-4" style={{ color: "rgba(255,255,255,0.9)" }}>
             Dedicated preparation modules picked for your group — with AI study plans, mock
             examinations, question banks, performance analysis, rank prediction and weak-topic analysis.
@@ -73,9 +73,8 @@ export default function CompetitivePrepPage() {
               <button
                 key={id}
                 onClick={() => setActiveId(id)}
-                className={`px-4 sm:px-5 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${
-                  active ? "text-white shadow-lg" : "text-black dark:text-white hover:opacity-70"
-                }`}
+                className={`px-4 sm:px-5 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${active ? "text-white shadow-lg" : "text-black dark:text-white hover:opacity-70"
+                  }`}
                 style={active ? { backgroundColor: m.color } : undefined}
               >
                 {m.icon} {m.name}
