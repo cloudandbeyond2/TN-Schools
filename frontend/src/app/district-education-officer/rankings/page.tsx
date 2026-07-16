@@ -1,26 +1,41 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 
 interface School { rank: number; name: string; block: string; students: number; pass10: number; pass12: number; composite: number; }
 
-const initialSchools: School[] = [
-  { rank: 1, name: "GHS Coimbatore", block: "CBE South", students: 1247, pass10: 94, pass12: 89, composite: 91.5 },
-  { rank: 2, name: "GHSS Ganapathy", block: "CBE South", students: 1120, pass10: 91, pass12: 86, composite: 88.5 },
-  { rank: 3, name: "GHS Singanallur", block: "CBE North", students: 980, pass10: 88, pass12: 83, composite: 85.5 },
-  { rank: 4, name: "GHSS Peelamedu", block: "CBE North", students: 1050, pass10: 86, pass12: 80, composite: 83.0 },
-  { rank: 5, name: "GHS RS Puram", block: "CBE South", students: 876, pass10: 83, pass12: 77, composite: 80.0 },
-  { rank: 6, name: "GHS Pollachi", block: "Pollachi", students: 940, pass10: 81, pass12: 75, composite: 78.0 },
-  { rank: 7, name: "GHS Mettupalayam", block: "Mettupalayam", students: 820, pass10: 78, pass12: 72, composite: 75.0 },
-  { rank: 8, name: "GHS Annur", block: "Annur", students: 710, pass10: 74, pass12: 68, composite: 71.0 },
-];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function SchoolRankingsPage() {
-  const [schools, setSchools] = useState<School[]>(initialSchools);
+  const { data: session } = useSession();
+  const district = (session?.user as any)?.district || "Coimbatore";
+
+  const [schools, setSchools] = useState<School[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState({ name: "", block: "", students: "500", pass10: "80", pass12: "75" });
+
+  const fetchRankings = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/deo/rankings?district=${encodeURIComponent(district)}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setSchools(json.data);
+      }
+    } catch (e) {
+      console.error("Error loading rankings:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRankings();
+  }, [session, district]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,17 +90,32 @@ export default function SchoolRankingsPage() {
         <table className="data-table">
           <thead><tr><th>Rank</th><th>School</th><th>Block</th><th>Students</th><th>10th %</th><th>12th %</th><th>Composite</th></tr></thead>
           <tbody>
-            {schools.map(s => (
-              <tr key={s.name}>
-                <td><span className={`badge ${s.rank === 1 ? "badge-green" : s.rank <= 3 ? "badge-blue" : s.rank <= 5 ? "badge-yellow" : "badge-red"}`}>#{s.rank}</span></td>
-                <td className="font-bold text-white text-xs">{s.name}</td>
-                <td className="text-slate-400 text-xs">{s.block}</td>
-                <td>{s.students.toLocaleString()}</td>
-                <td className="text-slate-300">{s.pass10}%</td>
-                <td className="text-slate-300">{s.pass12}%</td>
-                <td><span className={`font-bold text-sm ${s.composite >= 88 ? "text-emerald-400" : s.composite >= 80 ? "text-amber-400" : "text-red-400"}`}>{s.composite}%</span></td>
+            {loading ? (
+              <tr>
+                <td colSpan={7} className="text-center py-8">
+                  <div className="w-6 h-6 border-2 border-pink-500/20 border-t-pink-500 rounded-full animate-spin mx-auto mb-2" />
+                  <span className="text-xs text-slate-500">Loading rankings...</span>
+                </td>
               </tr>
-            ))}
+            ) : schools.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="text-center py-8 text-xs text-slate-500">
+                  No schools registered in this district rankings index.
+                </td>
+              </tr>
+            ) : (
+              schools.map(s => (
+                <tr key={s.name}>
+                  <td><span className={`badge ${s.rank === 1 ? "badge-green" : s.rank <= 3 ? "badge-blue" : s.rank <= 5 ? "badge-yellow" : "badge-red"}`}>#{s.rank}</span></td>
+                  <td className="font-bold text-white text-xs">{s.name}</td>
+                  <td className="text-slate-400 text-xs">{s.block}</td>
+                  <td>{s.students.toLocaleString()}</td>
+                  <td className="text-slate-300">{s.pass10}%</td>
+                  <td className="text-slate-300">{s.pass12}%</td>
+                  <td><span className={`font-bold text-sm ${s.composite >= 88 ? "text-emerald-400" : s.composite >= 80 ? "text-amber-400" : "text-red-400"}`}>{s.composite}%</span></td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

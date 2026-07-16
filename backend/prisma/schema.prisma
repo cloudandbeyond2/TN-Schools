@@ -874,6 +874,85 @@ model SportsHealthLog {
   @@index([sportsProfileId])
 }
 
+// PET portal — student fitness record (body measurements, fitness
+// assessment, physical activity and health indicators). Kept independent of
+// SportsProfile: PET staff also track students without a linked Student row
+// (manual entries), so studentId is optional.
+model PetFitnessRecord {
+  id                String   @id @default(uuid())
+  schoolId          String?
+  studentId         String?
+  name              String
+  class             String   @default("")
+  sport             String   @default("")
+  status            String   @default("")
+  heightCm          Float    @default(0)
+  weightKg          Float    @default(0)
+  endurance         Int      @default(70)
+  strength          Int      @default(70)
+  flexibility       Int      @default(70)
+  speed             Int      @default(70)
+  lastAssessed      String   @default("")
+  activityLevel     String   @default("Moderate")
+  weeklyActivityHrs Float    @default(5)
+  restingHeartRate  Int      @default(0)
+  bloodGroup        String   @default("")
+  vision            String   @default("Normal")
+  lastCheckup       String   @default("")
+  healthNotes       String   @default("")
+  mentalHealth      String   @default("Good")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([studentId])
+}
+
+// PET portal — school sports equipment stock. Availability is derived:
+// available = qty - qtyIssued - qtyDamaged.
+model PetInventoryItem {
+  id          String   @id @default(uuid())
+  schoolId    String?
+  item        String
+  category    String   @default("Ball Games")
+  qty         Int      @default(0)
+  qtyIssued   Int      @default(0)
+  qtyDamaged  Int      @default(0)
+  minQty      Int      @default(0)
+  condition   String   @default("Good")
+  location    String   @default("")
+  lastChecked String   @default("")
+  expiryDate  String   @default("")
+  remarks     String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([schoolId])
+}
+
+// PET portal — equipment issue/purchase requests with an approval workflow:
+// Pending -> Approved -> Issued -> Returned (Issue) / Received (Purchase),
+// Rejected from Pending/Approved.
+model PetEquipmentRequest {
+  id          String   @id @default(uuid())
+  schoolId    String?
+  type        String   @default("Issue")
+  item        String
+  itemId      String?
+  qty         Int      @default(1)
+  requestedBy String   @default("")
+  purpose     String   @default("")
+  date        String   @default("")
+  neededBy    String   @default("")
+  status      String   @default("Pending")
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([itemId])
+}
+
 model InjuryReport {
   id          String   @id @default(uuid())
   studentId   String
@@ -1215,6 +1294,33 @@ model MinisterScheme {
   createdAt     DateTime @default(now())
   updatedAt     DateTime
 }
+
+model ScholarshipScheme {
+  id                 String   @id // e.g. "tn-pudhumai-penn", "nmms"
+  name               String
+  nameTA             String?
+  category           String   // e.g. "SC/ST Welfare", "BC/MBC Welfare", "Central Government"
+  categoryTA         String?
+  standards          String[] // ["6", "7", "8", "9", "10", "11", "12"]
+  standardText       String
+  gender             String   // "Male" | "Female" | "All"
+  community          String[] // ["BC", "MBC", "DNC", "SC", "ST", "All"]
+  communityText      String
+  incomeLimit        Float?
+  incomeLimitText    String
+  amount             Float
+  amountText         String
+  amountTA           String?
+  description        String
+  descriptionTA      String?
+  eligibilityDetails String[]
+  documentsRequired  String[]
+  deadline           String
+  contactDetails     String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
 
 model SocialActivity {
   id           String   @id @default(uuid())

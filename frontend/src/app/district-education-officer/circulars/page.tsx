@@ -1,47 +1,151 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 
-interface Circular { id: number; title: string; issuedBy: string; date: string; priority: string; category: string; acknowledged: number; total: number; }
+interface Circular { id: string; title: string; issuedBy: string; date: string; priority: string; category: string; acknowledged: number; total: number; }
 
-const initialCirculars: Circular[] = [
-  { id: 1, title: "SSLC Board Exam 2025 Schedule", issuedBy: "State Board", date: "2024-11-01", priority: "High", category: "Exam", acknowledged: 89, total: 93 },
-  { id: 2, title: "Mid-Day Meal Scheme Q4 Guidelines", issuedBy: "TNMGR Dept.", date: "2024-10-20", priority: "Medium", category: "Nutrition", acknowledged: 93, total: 93 },
-  { id: 3, title: "Annual Sports Day Planning", issuedBy: "DEO Office", date: "2024-10-15", priority: "Low", category: "Events", acknowledged: 75, total: 93 },
-  { id: 4, title: "Teacher Increment Processing", issuedBy: "Finance Dept.", date: "2024-10-05", priority: "High", category: "Finance", acknowledged: 91, total: 93 },
-  { id: 5, title: "RTE Compliance Audit 2024", issuedBy: "State Education Dept.", date: "2024-09-28", priority: "High", category: "Compliance", acknowledged: 93, total: 93 },
-];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function DEOCircularsPage() {
-  const [circulars, setCirculars] = useState<Circular[]>(initialCirculars);
+  const { data: session } = useSession();
+  const district = (session?.user as any)?.district || "Coimbatore";
+
+  const [circulars, setCirculars] = useState<Circular[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState({ title: "", issuedBy: "", date: "", priority: "Medium", category: "General" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchCirculars = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/deo/circulars`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const formatted = json.data.map((c: any) => {
+          const parts = c.body.split(" | details: ");
+          const issuedBy = parts[0] || "DEO Office";
+          
+          let acknowledged = 45;
+          let total = 93;
+          if (c.readReceipts) {
+            const matches = c.readReceipts.match(/(\d+)\/(\d+)\s+read/);
+            if (matches) {
+              acknowledged = parseInt(matches[1]);
+              total = parseInt(matches[2]);
+            }
+          }
+
+          return {
+            id: c.id,
+            title: c.title,
+            issuedBy,
+            date: c.date || "Today",
+            priority: c.pinned ? "High" : "Medium",
+            category: c.target || "General",
+            acknowledged,
+            total
+          };
+        });
+        setCirculars(formatted);
+      }
+    } catch (e) {
+      console.error("Error loading circulars:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCirculars();
+  }, [session]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setCirculars(p => [...p, { ...form, id: p.length + 1, acknowledged: 0, total: 93 }]);
-    setIsModalOpen(false);
-    setToast(`📢 Circular '${form.title}' issued to all 93 schools.`);
-    setTimeout(() => setToast(null), 4000);
+    try {
+      const bodyText = `${form.issuedBy || "DEO Office"} | details: Circular announcement detail`;
+      const res = await fetch(`${API_URL}/api/deo/circulars`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title,
+          body: bodyText,
+          target: form.category,
+          date: form.date || new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+        })
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const newCircular = {
+          id: json.data.id,
+          title: json.data.title,
+          issuedBy: form.issuedBy || "DEO Office",
+          date: json.data.date,
+          priority: "Medium",
+          category: json.data.target,
+          acknowledged: 0,
+          total: 93
+        };
+        setCirculars(p => [newCircular, ...p]);
+        setIsModalOpen(false);
+        setToast(`📢 Circular '${form.title}' issued to all 93 schools.`);
+        setTimeout(() => setToast(null), 4000);
+      }
+    } catch (err) {
+      console.error("Error issuing circular:", err);
+    }
   };
 
   const simulateExcel = () => {
     setIsUploading(true);
-    setTimeout(() => {
-      setCirculars(p => [...p,
-        { id: p.length + 1, title: "New Health Policy 2025", issuedBy: "Health Dept.", date: "2024-11-10", priority: "Medium", category: "Health", acknowledged: 0, total: 93 },
-      ]);
-      setIsUploading(false);
-      setIsModalOpen(false);
-      setToast("📊 Circular list imported! 1 new circular added.");
-      setTimeout(() => setToast(null), 4000);
+    setTimeout(async () => {
+      try {
+        const mockUpload = {
+          title: "New Health Policy 2025",
+          issuedBy: "Health Dept.",
+          category: "Health",
+          date: "2024-11-10"
+        };
+        const bodyText = `${mockUpload.issuedBy} | details: Excel imported announcement`;
+        const res = await fetch(`${API_URL}/api/deo/circulars`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: mockUpload.title,
+            body: bodyText,
+            target: mockUpload.category,
+            date: mockUpload.date
+          })
+        });
+        const json = await res.json();
+        if (json.success && json.data) {
+          const newCircular = {
+            id: json.data.id,
+            title: json.data.title,
+            issuedBy: mockUpload.issuedBy,
+            date: json.data.date,
+            priority: "Medium",
+            category: json.data.target,
+            acknowledged: 0,
+            total: 93
+          };
+          setCirculars(p => [newCircular, ...p]);
+          setToast("📊 Circular list imported! 1 new circular added.");
+          setTimeout(() => setToast(null), 4000);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsUploading(false);
+        setIsModalOpen(false);
+      }
     }, 1500);
   };
 
   return (
-    <PortalLayout title="Circulars" subtitle="DEO Officer · Coimbatore District" avatarLetter="D" avatarColor="#ec4899" themeClass="theme-deo" accentColor="#ec4899">
+    <PortalLayout title="Circulars" subtitle={`DEO Officer · ${district} District`} avatarLetter="D" avatarColor="#ec4899" themeClass="theme-deo" accentColor="#ec4899">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Circulars", value: circulars.length.toString(), icon: "📢", color: "text-pink-400" },
@@ -64,26 +168,37 @@ export default function DEOCircularsPage() {
           <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold rounded-xl">+ Issue Circular</button>
         </div>
         <div className="space-y-3">
-          {circulars.map(c => (
-            <div key={c.id} className="flex items-start justify-between p-4 bg-slate-900/60 rounded-xl border border-slate-800 hover:border-pink-500/30 transition-all">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`badge text-[9px] ${c.priority === "High" ? "badge-red" : c.priority === "Medium" ? "badge-yellow" : "badge-green"}`}>{c.priority}</span>
-                  <span className="badge badge-blue text-[9px]">{c.category}</span>
-                  <span className="text-[10px] text-slate-500">{c.date}</span>
-                </div>
-                <div className="text-xs font-bold text-white mb-1">{c.title}</div>
-                <div className="text-[10px] text-slate-500">Issued by: {c.issuedBy}</div>
-              </div>
-              <div className="text-right ml-4">
-                <div className="text-[10px] text-slate-400 mb-1">Acknowledged</div>
-                <div className={`text-sm font-bold ${c.acknowledged === c.total ? "text-emerald-400" : "text-amber-400"}`}>{c.acknowledged}/{c.total}</div>
-                <div className="h-1 bg-slate-800 rounded-full mt-1 w-16">
-                  <div className="h-1 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500" style={{ width: `${(c.acknowledged / c.total) * 100}%` }} />
-                </div>
-              </div>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="w-6 h-6 border-2 border-pink-500/20 border-t-pink-500 rounded-full animate-spin mx-auto mb-2" />
+              <span className="text-xs text-slate-500">Loading circulars...</span>
             </div>
-          ))}
+          ) : circulars.length === 0 ? (
+            <div className="text-center py-8 text-xs text-slate-500">
+              No circulars posted for this district.
+            </div>
+          ) : (
+            circulars.map(c => (
+              <div key={c.id} className="flex items-start justify-between p-4 bg-slate-900/60 rounded-xl border border-slate-800 hover:border-pink-500/30 transition-all">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`badge text-[9px] ${c.priority === "High" ? "badge-red" : c.priority === "Medium" ? "badge-yellow" : "badge-green"}`}>{c.priority}</span>
+                    <span className="badge badge-blue text-[9px]">{c.category}</span>
+                    <span className="text-[10px] text-slate-500">{c.date}</span>
+                  </div>
+                  <div className="text-xs font-bold text-white mb-1">{c.title}</div>
+                  <div className="text-[10px] text-slate-500">Issued by: {c.issuedBy}</div>
+                </div>
+                <div className="text-right ml-4">
+                  <div className="text-[10px] text-slate-400 mb-1">Acknowledged</div>
+                  <div className={`text-sm font-bold ${c.acknowledged === c.total ? "text-emerald-400" : "text-amber-400"}`}>{c.acknowledged}/{c.total}</div>
+                  <div className="h-1 bg-slate-800 rounded-full mt-1 w-16">
+                    <div className="h-1 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500" style={{ width: `${(c.acknowledged / c.total) * 100}%` }} />
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

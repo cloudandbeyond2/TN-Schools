@@ -1,23 +1,60 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 
-const blocks = [
-  { name: "Coimbatore South", schools: 24, students: 22450, teachers: 312, attendance: 91, pass10: 93, pass12: 88 },
-  { name: "Coimbatore North", schools: 21, students: 19800, teachers: 278, attendance: 89, pass10: 88, pass12: 82 },
-  { name: "Pollachi", schools: 18, students: 16200, teachers: 241, attendance: 87, pass10: 85, pass12: 78 },
-  { name: "Mettupalayam", schools: 16, students: 14100, teachers: 210, attendance: 85, pass10: 81, pass12: 74 },
-  { name: "Annur", schools: 14, students: 11800, teachers: 185, attendance: 83, pass10: 77, pass12: 70 },
-];
+interface BlockDetail { name: string; schools: number; students: number; teachers: number; attendance: number; pass10: number; pass12: number; }
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function DEOOverviewPage() {
+  const { data: session } = useSession();
+  const district = (session?.user as any)?.district || "Coimbatore";
+
+  const [blocks, setBlocks] = useState<BlockDetail[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
+
+  const fetchOverview = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/deo/performance?district=${encodeURIComponent(district)}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const formatted = json.data.map((b: any) => ({
+          name: b.name,
+          schools: b.schools,
+          students: b.students,
+          teachers: b.teachers,
+          attendance: b.attendance,
+          pass10: b.pass10,
+          pass12: b.pass12
+        }));
+        setBlocks(formatted);
+      }
+    } catch (e) {
+      console.error("Error loading overview data:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOverview();
+  }, [session, district]);
+
   const sel = blocks.find(b => b.name === selected);
+
+  // Compute District Stats
+  const totalSchools = blocks.reduce((sum, b) => sum + b.schools, 0);
+  const totalStudents = blocks.reduce((sum, b) => sum + b.students, 0);
+  const totalTeachers = blocks.reduce((sum, b) => sum + b.teachers, 0);
+  const avgGpa = blocks.length > 0 ? (blocks.reduce((sum, b) => sum + (b.pass10 + b.pass12) / 2, 0) / blocks.length).toFixed(1) : "87.1";
 
   return (
     <PortalLayout
       title="District Overview"
-      subtitle="DEO Officer · Coimbatore District"
+      subtitle={`DEO Officer · ${district} District`}
       avatarLetter="D"
       avatarColor="#ec4899"
       themeClass="theme-deo"
@@ -25,11 +62,11 @@ export default function DEOOverviewPage() {
     >
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6 fade-in">
         {[
-          { label: "Total Blocks", value: "5", icon: "🗺️", color: "text-pink-400" },
-          { label: "Total Schools", value: "93", icon: "🏫", color: "text-violet-400" },
-          { label: "Total Students", value: "84,350", icon: "👨‍🎓", color: "text-emerald-400" },
-          { label: "Total Teachers", value: "1,226", icon: "👩‍🏫", color: "text-amber-400" },
-          { label: "District GPA", value: "87.1%", icon: "📊", color: "text-cyan-400" },
+          { label: "Total Blocks", value: blocks.length.toString(), icon: "🗺️", color: "text-pink-400" },
+          { label: "Total Schools", value: totalSchools.toString(), icon: "🏫", color: "text-violet-400" },
+          { label: "Total Students", value: totalStudents.toLocaleString(), icon: "👨‍🎓", color: "text-emerald-400" },
+          { label: "Total Teachers", value: totalTeachers.toLocaleString(), icon: "👩‍🏫", color: "text-amber-400" },
+          { label: "District GPA", value: `${avgGpa}%`, icon: "📊", color: "text-cyan-400" },
         ].map(k => (
           <div key={k.label} className="kpi-card">
             <div className="text-2xl mb-2">{k.icon}</div>
@@ -50,18 +87,33 @@ export default function DEOOverviewPage() {
               </tr>
             </thead>
             <tbody>
-              {blocks.map(b => (
-                <tr key={b.name} className={selected === b.name ? "bg-pink-500/10" : ""}>
-                  <td className="font-bold text-white text-xs">{b.name}</td>
-                  <td>{b.schools}</td>
-                  <td>{b.students.toLocaleString()}</td>
-                  <td>{b.teachers}</td>
-                  <td><span className={`badge ${b.attendance >= 90 ? "badge-green" : b.attendance >= 85 ? "badge-yellow" : "badge-red"}`}>{b.attendance}%</span></td>
-                  <td className="text-slate-300">{b.pass10}%</td>
-                  <td className="text-pink-400 font-semibold">{b.pass12}%</td>
-                  <td><button onClick={() => setSelected(selected === b.name ? null : b.name)} className="text-xs text-pink-400 hover:text-pink-300 font-bold">View →</button></td>
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-8">
+                    <div className="w-6 h-6 border-2 border-pink-500/20 border-t-pink-500 rounded-full animate-spin mx-auto mb-2" />
+                    <span className="text-xs text-slate-500">Loading overview...</span>
+                  </td>
                 </tr>
-              ))}
+              ) : blocks.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-8 text-xs text-slate-500">
+                    No block aggregates registered.
+                  </td>
+                </tr>
+              ) : (
+                blocks.map(b => (
+                  <tr key={b.name} className={selected === b.name ? "bg-pink-500/10" : ""}>
+                    <td className="font-bold text-white text-xs">{b.name} Block</td>
+                    <td>{b.schools}</td>
+                    <td>{b.students.toLocaleString()}</td>
+                    <td>{b.teachers}</td>
+                    <td><span className={`badge ${b.attendance >= 90 ? "badge-green" : b.attendance >= 85 ? "badge-yellow" : "badge-red"}`}>{b.attendance}%</span></td>
+                    <td className="text-slate-300">{b.pass10}%</td>
+                    <td className="text-pink-400 font-semibold">{b.pass12}%</td>
+                    <td><button onClick={() => setSelected(selected === b.name ? null : b.name)} className="text-xs text-pink-400 hover:text-pink-300 font-bold">View →</button></td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

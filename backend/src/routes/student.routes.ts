@@ -964,12 +964,7 @@ router.get('/:id/portfolio', async (req: Request, res: Response) => {
           bio: "I love science, stargazing and drawing!",
           stream: "General",
           projects: {
-            create: [
-              { title: "Solar System Model", category: "Science", date: "Last Week", image: "🪐", tags: ["Craft"], description: "Super Star! ⭐" },
-              { title: "My Favorite Animal Essay", category: "English", date: "2 Weeks Ago", image: "🐶", tags: ["Writing"], description: "Great Job! 👍" },
-              { title: "Math Puzzle Challenge", category: "Mathematics", date: "Last Month", image: "🧩", tags: ["Game"], description: "Math Wizard! 🧙‍♂️" },
-              { title: "History of Cholas", category: "Social Science", date: "Last Month", image: "👑", tags: ["Drawing"], description: "Creative! 🎨" }
-            ]
+            create: []
           },
           skills: {
             create: [
@@ -981,7 +976,7 @@ router.get('/:id/portfolio', async (req: Request, res: Response) => {
           },
           achievements: {
             create: [
-              { title: "Spelling Bee Champion", year: "2024", icon: "🐝", color: "amber", bg: "bg-amber-500/20" }
+              { title: "Spelling Bee Champion", year: "2024", icon: "fi-sr-bee", color: "amber", bg: "bg-amber-500/20" }
             ]
           }
         },

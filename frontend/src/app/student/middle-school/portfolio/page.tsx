@@ -174,10 +174,34 @@ const getApiBase = () => {
 const API_BASE = getApiBase();
 
 const BADGE_META: Record<string, { icon: string; color: string }> = {
-  "🔬 Star Scientist":  { icon: "🔬", color: "from-blue-400 to-indigo-500" },
-  "📝 Homework Pro":   { icon: "📝", color: "from-amber-400 to-orange-500" },
-  "💬 Active Speaker": { icon: "💬", color: "from-emerald-400 to-teal-500" },
-  "🌟 Mentor Star":    { icon: "🌟", color: "from-purple-400 to-fuchsia-500" },
+  "🔬 Star Scientist":  { icon: "fi-sr-microscope", color: "from-blue-400 to-indigo-500" },
+  "📝 Homework Pro":   { icon: "fi-sr-document-signed", color: "from-amber-400 to-orange-500" },
+  "💬 Active Speaker": { icon: "fi-sr-comment-alt", color: "from-emerald-400 to-teal-500" },
+  "🌟 Mentor Star":    { icon: "fi-sr-star", color: "from-purple-400 to-fuchsia-500" },
+};
+
+const renderIcon = (iconStr: string) => {
+  if (!iconStr) return <i className="fi fi-sr-document"></i>;
+  if (iconStr.startsWith("fi-")) {
+    return <i className={`fi ${iconStr}`}></i>;
+  }
+  const map: Record<string, string> = {
+    "🪐": "fi-sr-planet",
+    "🐶": "fi-sr-dog",
+    "🧩": "fi-sr-puzzle-piece",
+    "👑": "fi-sr-crown",
+    "📁": "fi-sr-folder",
+    "📖": "fi-sr-book-alt",
+    "🥷": "fi-sr-user-ninja",
+    "⭐": "fi-sr-star",
+    "🔬": "fi-sr-microscope",
+    "📝": "fi-sr-document-signed",
+    "💬": "fi-sr-comment",
+    "🌟": "fi-sr-star",
+    "🐝": "fi-sr-bug"
+  };
+  const mapped = map[iconStr] || "fi-sr-sparkles";
+  return <i className={`fi ${mapped}`}></i>;
 };
 
 export default function MiddleSchoolPortfolio() {
@@ -191,8 +215,14 @@ export default function MiddleSchoolPortfolio() {
   const [skillsList, setSkillsList] = useState<any[]>([]);
   const [bio, setBio] = useState<string>("I love science, stargazing and drawing!");
   const [portfolioLoading, setPortfolioLoading] = useState(true);
+  const [homeworkProjects, setHomeworkProjects] = useState<any[]>([]);
+  const [topMarksProjects, setTopMarksProjects] = useState<any[]>([]);
   const [teacherRemark, setTeacherRemark] = useState<string>("Is a fantastic learner! Keep up the great work.");
   const [teacherName, setTeacherName] = useState<string>("Mrs. Anjali (Class Teacher)");
+
+  // School press state
+  const [pressPublications, setPressPublications] = useState<any[]>([]);
+  const [pressLoading, setPressLoading] = useState(true);
 
   const fetchPortfolioDetails = (studentId: string) => {
     setPortfolioLoading(true);
@@ -239,10 +269,43 @@ export default function MiddleSchoolPortfolio() {
           const resolved = myStudent || json.data[0];
           setStudent(resolved);
 
+          // Fetch detailed student data (marks, attendance)
+          fetch(`${API_BASE}/api/students/${resolved.id}`)
+            .then(res => res.json())
+            .then(detailJson => {
+              if (detailJson.success && detailJson.data) {
+                setStudent(detailJson.data);
+                
+                // Extract top marks as achievements for the portfolio
+                if (detailJson.data.marks && detailJson.data.marks.length > 0) {
+                  const sortedMarks = [...detailJson.data.marks].sort((a: any, b: any) => {
+                    const pctA = (a.scored / (a.maxMarks || 100)) * 100;
+                    const pctB = (b.scored / (b.maxMarks || 100)) * 100;
+                    return pctB - pctA;
+                  });
+                  
+                  // Take top 2 marks that are at least 80%
+                  const topMarks = sortedMarks
+                    .filter((m: any) => (m.scored / (m.maxMarks || 100)) * 100 >= 80)
+                    .slice(0, 2)
+                    .map((m: any) => ({
+                      title: `Top Score in ${m.subject}`,
+                      subject: m.examType || "Assessment",
+                      date: new Date(m.createdAt).toLocaleDateString(),
+                      type: "Academic Achievement",
+                      grade: `${m.scored}/${m.maxMarks || 100} (${m.grade})`,
+                      icon: "🏆",
+                      color: "#6366f1"
+                    }));
+                  setTopMarksProjects(topMarks);
+                }
+              }
+            }).catch(() => {});
+
           // Fetch dynamic portfolio data
           fetchPortfolioDetails(resolved.id);
 
-          // Fetch homework to find dynamic teacher remarks
+          // Fetch homework to find dynamic teacher remarks and outstanding submissions
           fetch(`${API_BASE}/api/students/${resolved.id}/homework`)
             .then(r => r.json())
             .then(hwJson => {
@@ -252,8 +315,36 @@ export default function MiddleSchoolPortfolio() {
                   setTeacherRemark(graded.feedback);
                   setTeacherName(`Mrs. Lakshmi (${graded.subject || 'Teacher'})`);
                 }
+
+                // Find top submissions for the portfolio
+                const topHw = hwJson.data
+                  .filter((h: any) => h.status === 'submitted' || h.status === 'late_submission')
+                  .slice(0, 2)
+                  .map((h: any) => ({
+                    title: h.title,
+                    subject: h.subject,
+                    date: h.submittedDate || h.postedLabel,
+                    type: "Homework",
+                    grade: h.score !== '—' ? `${h.score}` : "Excellent! ✨",
+                    icon: "📝",
+                    color: h.subjectColor || "#f59e0b"
+                  }));
+                setHomeworkProjects(topHw);
               }
             }).catch(() => {});
+
+          // Fetch school press publications for this student
+          const spUrl = `${API_BASE}/api/teacher/school-press?schoolId=${resolved.schoolId}&class=${resolved.class}&approvedOnly=true`;
+          fetch(spUrl)
+            .then(r => r.json())
+            .then(spJson => {
+              if (spJson.success) {
+                const myPubs = spJson.data.filter((pub: any) => pub.student?.id === resolved.id);
+                setPressPublications(myPubs);
+              }
+            })
+            .catch(() => {})
+            .finally(() => setPressLoading(false));
 
           // Fetch badges for this student
           const schoolId = (session?.user as any)?.schoolId;
@@ -269,10 +360,10 @@ export default function MiddleSchoolPortfolio() {
                   ? bJson.data.filter((b: any) => b.studentId === resolved.id)
                   : bJson.data;
                 const shaped = filtered.map((b: any) => {
-                  const meta = BADGE_META[b.badge] || { icon: "🏅", color: "from-slate-400 to-slate-600" };
+                  const meta = BADGE_META[b.badge] || { icon: "fi-sr-medal", color: "from-slate-400 to-slate-600" };
                   return {
                     id: b.id,
-                    name: b.badge,
+                    name: b.badge.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '').trim(),
                     icon: meta.icon,
                     color: meta.color,
                     description: b.remark || "Awarded by your teacher",
@@ -380,6 +471,7 @@ export default function MiddleSchoolPortfolio() {
       subtitle={`Look at all the awesome things you have done, ${firstName}!`}
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="flex flex-col gap-6">
         {/* Profile Summary */}
         <div className="glass rounded-3xl p-6 fade-in flex flex-col items-center text-center border-2 border-emerald-500/20 bg-emerald-50 dark:bg-emerald-900/10 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
           <div className="relative">
@@ -388,7 +480,7 @@ export default function MiddleSchoolPortfolio() {
                {userInitial}
              </div>
              <div className="absolute -bottom-2 -right-2 text-4xl animate-bounce" style={{ animationDuration: '3s' }}>
-                🌟
+                <i className="fi fi-sr-star text-yellow-400 drop-shadow-md"></i>
              </div>
           </div>
           <h2 className="text-2xl font-black text-black dark:text-white mb-1 tracking-wide">{userName}</h2>
@@ -397,37 +489,63 @@ export default function MiddleSchoolPortfolio() {
           </p>
           <div className="flex flex-wrap justify-center gap-2 mb-6">
             {student?.group && (
-              <span className="px-4 py-1.5 bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-full text-xs font-bold border-2 border-amber-500/30 shadow-sm">
-                🚀 {student.group}
+              <span className="px-4 py-1.5 bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-full text-xs font-bold border-2 border-amber-500/30 shadow-sm flex items-center gap-1.5">
+                <i className="fi fi-sr-rocket"></i> {student.group}
               </span>
             )}
-            <span className="px-4 py-1.5 bg-purple-500/20 text-purple-700 dark:text-purple-300 rounded-full text-xs font-bold border-2 border-purple-500/30 shadow-sm">
-              🎒 Middle Schooler
+            <span className="px-4 py-1.5 bg-purple-500/20 text-purple-700 dark:text-purple-300 rounded-full text-xs font-bold border-2 border-purple-500/30 shadow-sm flex items-center gap-1.5">
+              <i className="fi fi-sr-backpack"></i> Middle Schooler
             </span>
           </div>
           <div className="w-full bg-white dark:bg-slate-900/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700/50">
-             <div className="flex justify-between items-center mb-3">
-                <span className="text-sm font-semibold text-black dark:text-slate-300 flex items-center gap-2"><span>📂</span> Awesome Projects</span>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-sm font-semibold text-black dark:text-slate-300 flex items-center gap-2"><i className="fi fi-sr-folder text-emerald-500"></i> Awesome Projects</span>
                 <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
                   {portfolioLoading ? "…" : projectsList.length}
                 </span>
              </div>
              <div className="flex justify-between items-center mb-3">
-                <span className="text-sm font-semibold text-black dark:text-slate-300 flex items-center gap-2"><span>🏅</span> Badges Collected</span>
+                <span className="text-sm font-semibold text-black dark:text-slate-300 flex items-center gap-2"><i className="fi fi-sr-medal text-amber-500"></i> Badges Collected</span>
                 <span className="text-base font-black text-amber-600 dark:text-amber-400">{badgesLoading ? "…" : earnedBadges.length}</span>
              </div>
              <div className="flex justify-between items-center">
-                <span className="text-sm font-semibold text-black dark:text-slate-300 flex items-center gap-2"><span>🏆</span> Current Level</span>
+                <span className="text-sm font-semibold text-black dark:text-slate-300 flex items-center gap-2"><i className="fi fi-sr-trophy text-purple-500"></i> Current Level</span>
                 <span className="text-base font-black text-purple-600 dark:text-purple-400">Lvl {calculatedLevel}</span>
              </div>
           </div>
         </div>
 
+        {/* Academic Details */}
+        <div className="glass rounded-3xl p-6 fade-in border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left shadow-[0_0_20px_rgba(0,0,0,0.02)] dark:shadow-[0_0_20px_rgba(0,0,0,0.2)]">
+          <h2 className="text-lg font-black text-black dark:text-white mb-4 flex items-center gap-2">
+            <i className="fi fi-sr-graduation-cap text-indigo-500"></i> Academic Stats
+          </h2>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+              <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Avg. Score</span>
+              <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">
+                {student?.marks && student.marks.length > 0 
+                  ? Math.round(student.marks.reduce((a: any, b: any) => a + ((b.scored/(b.maxMarks||100))*100), 0) / student.marks.length) + "%" 
+                  : "85%"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+              <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Attendance</span>
+              <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+                {student?.attendance && student.attendance.length > 0
+                  ? Math.round((student.attendance.filter((a: any) => a.status === 'Present').length / student.attendance.length) * 100) + "%"
+                  : "92%"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
         {/* Featured Projects */}
         <div className="lg:col-span-2 glass rounded-3xl p-6 fade-in-2 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
             <h2 className="text-xl font-black text-black dark:text-white flex items-center gap-3">
-              <span className="text-3xl">✨</span> Your Best Work
+              <i className="fi fi-sr-sparkles text-amber-400"></i> Your Best Work
             </h2>
             <button 
               onClick={handleAddProject}
@@ -438,13 +556,13 @@ export default function MiddleSchoolPortfolio() {
           </div>
           {portfolioLoading ? (
             <div className="text-center py-10 font-bold text-slate-500">Loading portfolio projects... ⏳</div>
-          ) : projectsList.length > 0 ? (
+          ) : [...projectsList, ...homeworkProjects, ...topMarksProjects].length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {projectsList.map((p, i) => (
+              {[...projectsList, ...homeworkProjects, ...topMarksProjects].map((p, i) => (
                 <div key={i} className="bg-slate-50 dark:bg-slate-900/60 border-2 border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 hover:border-emerald-500/50 transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer group flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-start mb-4">
-                      <div className="text-4xl bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl group-hover:scale-110 transition-transform">{p.icon}</div>
+                      <div className="text-4xl bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl group-hover:scale-110 transition-transform flex items-center justify-center w-16 h-16">{renderIcon(p.icon)}</div>
                       <span className="text-xs font-black px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-black dark:text-slate-300 group-hover:bg-emerald-500/20 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors border border-transparent group-hover:border-emerald-500/30">{p.grade}</span>
                     </div>
                     <h3 className="text-base font-bold text-black dark:text-white mb-1.5">{p.title}</h3>
@@ -470,7 +588,7 @@ export default function MiddleSchoolPortfolio() {
         <div className="glass rounded-3xl p-6 fade-in-3 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
              <h2 className="text-xl font-black text-black dark:text-white flex items-center gap-3">
-               <span className="text-3xl">🏅</span> Badge Collection
+               <i className="fi fi-sr-medal text-amber-500"></i> Badge Collection
              </h2>
              <Link href="/student/middle-school/badges" className="text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors bg-amber-400/10 px-4 py-2 rounded-xl">See All Badges →</Link>
           </div>
@@ -480,8 +598,8 @@ export default function MiddleSchoolPortfolio() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {earnedBadges.slice(0, 4).map((b) => (
                 <div key={b.id} className="flex flex-col items-center text-center gap-3 bg-slate-50 dark:bg-slate-900/40 p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700/30 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:border-amber-500/30 transition-colors cursor-default">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl bg-gradient-to-br ${b.color} shadow-lg shrink-0 transform hover:rotate-12 transition-transform`}>
-                    {b.icon}
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl bg-gradient-to-br ${b.color} shadow-lg shrink-0 transform hover:rotate-12 transition-transform text-white`}>
+                    {renderIcon(b.icon)}
                   </div>
                   <div>
                     <h3 className="text-sm font-black text-black dark:text-white mb-1">{b.name}</h3>
@@ -492,7 +610,7 @@ export default function MiddleSchoolPortfolio() {
             </div>
           ) : (
             <div className="text-center py-10">
-              <div className="text-4xl mb-3">🎖️</div>
+              <div className="text-4xl mb-3"><i className="fi fi-sr-badge text-slate-300"></i></div>
               <p className="text-sm text-slate-500 dark:text-slate-400">No badges yet! Keep up the great work.</p>
             </div>
           )}
@@ -501,7 +619,7 @@ export default function MiddleSchoolPortfolio() {
         {/* Skills Radar / Progress */}
         <div className="glass rounded-3xl p-6 fade-in-4 flex flex-col border border-slate-200 dark:border-slate-700/50 bg-gradient-to-br from-white to-emerald-50/50 dark:from-transparent dark:to-emerald-900/5 text-left">
           <h2 className="text-xl font-black text-black dark:text-white mb-6 flex items-center gap-3">
-             <span className="text-3xl">🎯</span> Super Skills
+             <i className="fi fi-sr-bullseye text-emerald-500"></i> Super Skills
           </h2>
           <div className="space-y-6 flex-1">
             {(portfolioLoading ? [
@@ -512,7 +630,7 @@ export default function MiddleSchoolPortfolio() {
             ] : skillsList).map((s, i) => (
                <div key={i} className="group">
                   <div className="flex justify-between text-sm mb-2.5">
-                    <span className="text-black dark:text-slate-200 font-bold">{s.name}</span>
+                    <span className="text-black dark:text-slate-200 font-bold">{s.name.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '').trim()}</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-black tracking-wider text-xs bg-emerald-400/10 px-2 py-0.5 rounded-md">{s.level} XP</span>
                   </div>
                   <div className="h-3.5 bg-slate-200 dark:bg-slate-800/80 rounded-full overflow-hidden border border-slate-300 dark:border-slate-700/50 shadow-inner">
@@ -530,12 +648,56 @@ export default function MiddleSchoolPortfolio() {
             ))}
           </div>
           <div className="mt-8 bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-500/20 rounded-2xl p-5 text-center shadow-lg relative overflow-hidden">
-             <div className="absolute -right-4 -bottom-4 text-6xl opacity-10">👩‍🏫</div>
+             <div className="absolute -right-4 -bottom-4 text-6xl opacity-10"><i className="fi fi-sr-chalkboard-user"></i></div>
              <p className="text-sm text-emerald-800 dark:text-emerald-200 font-medium relative z-10 leading-relaxed">
                 "{teacherRemark}"
              </p>
              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-3 font-black tracking-wide relative z-10 uppercase">— {teacherName}</p>
           </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 mb-6">
+        {/* School Press Publications */}
+        <div className="glass rounded-3xl p-6 fade-in-5 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
+            <h2 className="text-xl font-black text-black dark:text-white flex items-center gap-3">
+              <i className="fi fi-sr-document-signed text-emerald-500"></i> School Press Publications
+            </h2>
+            <Link href="/student/school-press" className="text-sm font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/30 px-4 py-2 rounded-xl transition-colors border border-emerald-500/30">
+              Publish New
+            </Link>
+          </div>
+          {pressLoading ? (
+            <div className="text-center py-10 font-bold text-slate-500">Loading publications... ⏳</div>
+          ) : pressPublications.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {pressPublications.map((pub, i) => (
+                <div key={i} className="bg-slate-50 dark:bg-slate-900/60 border-2 border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 hover:border-emerald-500/50 transition-all hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between">
+                  <div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 font-bold mb-2 flex items-center gap-1">
+                      <i className="fi fi-sr-calendar text-emerald-400"></i> {new Date(pub.createdAt).toLocaleDateString()}
+                    </div>
+                    <p className="text-sm font-medium text-black dark:text-slate-300 mb-4 leading-relaxed">"{pub.description}"</p>
+                  </div>
+                  {pub.photos && pub.photos.length > 0 && (
+                    <div className="mt-3 flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                      {pub.photos.map((p: string, idx: number) => (
+                        <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
+                          <img src={p} alt="Activity" className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
+              <div className="text-4xl mb-3 opacity-50">📰</div>
+              <p className="text-sm text-slate-500">No publications yet! Head to School Press to share your moments.</p>
+            </div>
+          )}
         </div>
       </div>
     </PortalLayout>
