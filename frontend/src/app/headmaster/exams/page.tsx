@@ -3,13 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import { 
-  Plus, Search, Calendar, MapPin, Edit3, Trash2, 
-  Play, Check, RotateCcw, FileText, CheckCircle2, 
-  Clock, AlertCircle, Filter, X, Tag,
-  UserCheck, Send, Eye, EyeOff, CheckSquare,
-  BookOpen, FlaskConical, Layers2, Timer, Award
-} from "lucide-react";
+
 
 type ExamType = "Unit Test" | "Quarterly" | "Half-Yearly" | "Annual" | "Model" | "Public";
 type ExamMode = "Theory" | "Practical" | "Both";
@@ -225,6 +219,7 @@ export default function HeadmasterExamsPage() {
 
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
   const [editingExam, setEditingExam] = useState<ExamCalendar | null>(null);
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
@@ -767,9 +762,9 @@ export default function HeadmasterExamsPage() {
 
   const getModeIcon = (mode: ExamMode) => {
     switch (mode) {
-      case "Theory":    return <BookOpen className="w-3 h-3" />;
-      case "Practical": return <FlaskConical className="w-3 h-3" />;
-      case "Both":      return <Layers2 className="w-3 h-3" />;
+      case "Theory":    return <i className="fi flex items-center justify-center fi-rr-book-open w-3 h-3"></i>;
+      case "Practical": return <i className="fi flex items-center justify-center fi-rr-flask w-3 h-3"></i>;
+      case "Both":      return <i className="fi flex items-center justify-center fi-rr-layer-group w-3 h-3"></i>;
     }
   };
 
@@ -789,7 +784,9 @@ export default function HeadmasterExamsPage() {
   const showPractical = formData.examMode === "Practical" || formData.examMode === "Both";
 
   return (
-    <PortalLayout
+    <>
+      <link rel="stylesheet" href="https://cdn-icons-png.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css" />
+      <PortalLayout
       title="Exam Scheduling & Seating"
       subtitle={`${session?.user?.name || "Headmaster"} · ${(session?.user as any)?.schoolName || "Holy Cross Higher Secondary School"} · DISE: ${(session?.user as any)?.schoolDise || "50001"}`}
       avatarLetter={(session?.user?.name || "Headmaster").charAt(0)}
@@ -806,9 +803,9 @@ export default function HeadmasterExamsPage() {
             ? "bg-rose-500/10 border-rose-500/30 text-rose-300"
             : "bg-blue-500/10 border-blue-500/30 text-blue-300"
         }`}>
-          {toast.type === "success" && <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
-          {toast.type === "error" && <AlertCircle className="w-5 h-5 text-rose-400" />}
-          {toast.type === "info" && <Clock className="w-5 h-5 text-blue-400" />}
+          {toast.type === "success" && <i className="fi flex items-center justify-center fi-rr-check-circle text-lg w-5 h-5 text-emerald-400"></i>}
+          {toast.type === "error" && <i className="fi flex items-center justify-center fi-rr-info text-lg w-5 h-5 text-rose-400"></i>}
+          {toast.type === "info" && <i className="fi flex items-center justify-center fi-rr-clock text-lg w-5 h-5 text-blue-400"></i>}
           <span className="text-xs font-semibold">{toast.message}</span>
         </div>
       )}
@@ -825,7 +822,7 @@ export default function HeadmasterExamsPage() {
 
               {/* Animated checkmark circle */}
               <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/10 border-2 border-emerald-500/40 shadow-[0_0_30px_#10b98140]">
-                <CheckCircle2 className="w-10 h-10 text-emerald-400 drop-shadow-[0_0_8px_#10b981]" />
+                <i className="fi flex items-center justify-center fi-rr-check-circle w-10 h-10 text-emerald-400 drop-shadow-[0_0_8px_#10b981]"></i>
                 {/* Pulsing ring */}
                 <span className="absolute inset-0 rounded-full border-2 border-emerald-400/30 animate-ping" />
               </div>
@@ -845,7 +842,7 @@ export default function HeadmasterExamsPage() {
               <div className="w-full grid grid-cols-2 gap-2 mt-1">
                 {/* Classes */}
                 <div className="col-span-2 bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-2.5 flex items-start gap-2">
-                  <Tag className="w-3.5 h-3.5 text-blue-400 mt-0.5 shrink-0" />
+                  <i className="fi flex items-center justify-center fi-rr-tag w-3.5 h-3.5 text-blue-400 mt-0.5 shrink-0"></i>
                   <div className="text-left">
                     <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Classes</p>
                     <p className="text-xs text-white font-semibold mt-0.5">
@@ -864,7 +861,7 @@ export default function HeadmasterExamsPage() {
 
                 {/* Date */}
                 <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl px-3 py-2.5 flex items-start gap-2">
-                  <Calendar className="w-3.5 h-3.5 text-violet-400 mt-0.5 shrink-0" />
+                  <i className="fi flex items-center justify-center fi-rr-calendar w-3.5 h-3.5 text-violet-400 mt-0.5 shrink-0"></i>
                   <div className="text-left">
                     <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Date</p>
                     <p className="text-xs text-white font-semibold mt-0.5">
@@ -875,7 +872,7 @@ export default function HeadmasterExamsPage() {
 
                 {/* Duration */}
                 <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl px-3 py-2.5 flex items-start gap-2">
-                  <Timer className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />
+                  <i className="fi flex items-center justify-center fi-rr-time-fast w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0"></i>
                   <div className="text-left">
                     <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Duration</p>
                     <p className="text-xs text-white font-semibold mt-0.5">{successModal.duration}</p>
@@ -884,7 +881,7 @@ export default function HeadmasterExamsPage() {
 
                 {/* Time Slot */}
                 <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl px-3 py-2.5 flex items-start gap-2">
-                  <Clock className="w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0" />
+                  <i className="fi flex items-center justify-center fi-rr-clock w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0"></i>
                   <div className="text-left">
                     <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Time Slot</p>
                     <p className="text-xs text-white font-semibold mt-0.5">{successModal.timeSlot}</p>
@@ -893,7 +890,7 @@ export default function HeadmasterExamsPage() {
 
                 {/* Total Marks */}
                 <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl px-3 py-2.5 flex items-start gap-2">
-                  <Award className="w-3.5 h-3.5 text-rose-400 mt-0.5 shrink-0" />
+                  <i className="fi flex items-center justify-center fi-rr-award w-3.5 h-3.5 text-rose-400 mt-0.5 shrink-0"></i>
                   <div className="text-left">
                     <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Total Marks</p>
                     <p className="text-xs text-white font-semibold mt-0.5">{successModal.totalMarks}</p>
@@ -906,7 +903,7 @@ export default function HeadmasterExamsPage() {
                 onClick={() => setSuccessModal(null)}
                 className="w-full mt-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-sm transition-all shadow-[0_0_20px_#10b98140] flex items-center justify-center gap-2"
               >
-                <CheckCircle2 className="w-4 h-4" />
+                <i className="fi flex items-center justify-center fi-rr-check-circle text-base w-4 h-4"></i>
                 Done
               </button>
             </div>
@@ -916,9 +913,9 @@ export default function HeadmasterExamsPage() {
 
       {/* Stats Counter Section */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <div className="glass rounded-2xl p-4 flex items-center gap-3 transition-all">
-          <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl">
-            <FileText className="w-5 h-5" />
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 flex items-center gap-4 transition-all duration-300 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.15)] hover:-translate-y-1 border border-slate-100 dark:border-slate-800">
+          <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 border border-blue-100 dark:border-blue-800 text-blue-600 dark:text-blue-400 rounded-2xl shadow-inner">
+            <i className="fi flex items-center justify-center fi-rr-document text-lg w-5 h-5"></i>
           </div>
           <div>
             <div className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Total Exams</div>
@@ -926,9 +923,9 @@ export default function HeadmasterExamsPage() {
           </div>
         </div>
 
-        <div className="glass rounded-2xl p-4 flex items-center gap-3 transition-all">
-          <div className="p-2.5 bg-sky-500/10 border border-sky-500/20 text-sky-400 rounded-xl">
-            <Clock className="w-5 h-5" />
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 flex items-center gap-4 transition-all duration-300 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.15)] hover:-translate-y-1 border border-slate-100 dark:border-slate-800">
+          <div className="p-3 bg-gradient-to-br from-sky-50 to-sky-100/50 dark:from-sky-900/20 dark:to-sky-800/10 border border-sky-100 dark:border-sky-800 text-sky-600 dark:text-sky-400 rounded-2xl shadow-inner">
+            <i className="fi flex items-center justify-center fi-rr-clock text-lg w-5 h-5"></i>
           </div>
           <div>
             <div className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Scheduled</div>
@@ -936,9 +933,9 @@ export default function HeadmasterExamsPage() {
           </div>
         </div>
 
-        <div className="glass rounded-2xl p-4 flex items-center gap-3 transition-all">
-          <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl relative">
-            <Play className="w-5 h-5" />
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 flex items-center gap-4 transition-all duration-300 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.15)] hover:-translate-y-1 border border-slate-100 dark:border-slate-800">
+          <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/10 border border-amber-100 dark:border-amber-800 text-amber-600 dark:text-amber-400 rounded-2xl shadow-inner relative">
+            <i className="fi flex items-center justify-center fi-rr-play text-lg w-5 h-5"></i>
             {inProgressCount > 0 && (
               <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-amber-500 rounded-full animate-ping" />
             )}
@@ -949,9 +946,9 @@ export default function HeadmasterExamsPage() {
           </div>
         </div>
 
-        <div className="glass rounded-2xl p-4 flex items-center gap-3 transition-all">
-          <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl">
-            <CheckCircle2 className="w-5 h-5" />
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 flex items-center gap-4 transition-all duration-300 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.15)] hover:-translate-y-1 border border-slate-100 dark:border-slate-800">
+          <div className="p-3 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-800/10 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 rounded-2xl shadow-inner">
+            <i className="fi flex items-center justify-center fi-rr-check-circle text-lg w-5 h-5"></i>
           </div>
           <div>
             <div className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Completed</div>
@@ -960,8 +957,8 @@ export default function HeadmasterExamsPage() {
         </div>
 
         <div className="glass rounded-2xl p-4 col-span-2 lg:col-span-1 flex items-center gap-3 transition-all">
-          <div className="p-2.5 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl">
-            <Send className="w-5 h-5" />
+          <div className="p-3 bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10 border border-purple-100 dark:border-purple-800 text-purple-600 dark:text-purple-400 rounded-2xl shadow-inner">
+            <i className="fi flex items-center justify-center fi-rr-paper-plane text-lg w-5 h-5"></i>
           </div>
           <div>
             <div className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Published</div>
@@ -971,29 +968,29 @@ export default function HeadmasterExamsPage() {
       </div>
 
       {/* Toolbar / Search & Filter Panel */}
-      <div className="glass rounded-2xl p-4 mb-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 mb-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4 shadow-sm border border-slate-100 dark:border-slate-800">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+          <i className="fi flex items-center justify-center fi-rr-search text-base w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 transform -translate-y-1/2"></i>
           <input
             type="text"
             placeholder="Search exam name or subject..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-950/60 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:bg-slate-950 transition-all"
+            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Status Filter Tab Group */}
-          <div className="flex items-center bg-slate-950/50 border border-slate-800 p-1 rounded-xl">
+          <div className="flex flex-wrap items-center bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl shadow-inner">
             {(["All", "Scheduled", "In Progress", "Completed"] as const).map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
                 className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
                   statusFilter === status
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
                 }`}
               >
                 {status}
@@ -1002,12 +999,12 @@ export default function HeadmasterExamsPage() {
           </div>
 
           {/* Type Filter Dropdown */}
-          <div className="flex items-center gap-1.5 bg-slate-950/50 border border-slate-800 px-3 py-1.5 rounded-xl">
-            <Tag className="w-3.5 h-3.5 text-slate-400" />
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-xl shadow-sm hover:border-blue-300 transition-colors">
+            <i className="fi flex items-center justify-center fi-rr-tag w-3.5 h-3.5 text-slate-400"></i>
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="bg-transparent text-[11px] font-bold text-slate-300 focus:outline-none cursor-pointer"
+              className="bg-transparent text-[11px] font-bold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer w-full"
             >
               <option value="All">All Types</option>
               {EXAM_TYPES.map((t) => (
@@ -1017,12 +1014,12 @@ export default function HeadmasterExamsPage() {
           </div>
 
           {/* Class Filter Dropdown */}
-          <div className="flex items-center gap-1.5 bg-slate-950/50 border border-slate-800 px-3 py-1.5 rounded-xl">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-xl shadow-sm hover:border-blue-300 transition-colors">
+            <i className="fi flex items-center justify-center fi-rr-filter w-3.5 h-3.5 text-slate-400"></i>
             <select
               value={classFilter}
               onChange={(e) => setClassFilter(e.target.value)}
-              className="bg-transparent text-[11px] font-bold text-slate-300 focus:outline-none cursor-pointer"
+              className="bg-transparent text-[11px] font-bold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer w-full"
             >
               <option value="All">All Classes</option>
               {classSections.filter(c => c !== "All").map((c) => (
@@ -1033,13 +1030,13 @@ export default function HeadmasterExamsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="mb-6">
         {/* Exam schedules list */}
-        <div className="lg:col-span-2 glass rounded-2xl p-6 flex flex-col min-h-[400px]">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 flex flex-col min-h-[400px] shadow-sm border border-slate-100 dark:border-slate-800">
           <div className="flex justify-between items-center mb-5 flex-wrap gap-3">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-blue-400" />
+              <h2 className="text-base font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+                <i className="fi flex items-center justify-center fi-rr-calendar text-lg w-5 h-5 text-blue-400"></i>
                 Upcoming Examination Calendar
               </h2>
               <span className="bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black px-2 py-0.5 rounded-md">
@@ -1048,13 +1045,21 @@ export default function HeadmasterExamsPage() {
             </div>
             
             <div className="flex items-center gap-2">
+              
+              <button 
+                onClick={() => setIsInfoModalOpen(true)}
+                className="px-3.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+              >
+                <i className="fi flex items-center justify-center fi-rr-info text-base w-3.5 h-3.5"></i>
+                Guidelines
+              </button>
               <button 
                 onClick={handleClearAll}
                 disabled={exams.length === 0}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center gap-1 ${
                   exams.length > 0 
-                    ? "bg-rose-950/20 hover:bg-rose-900/30 text-rose-400 border-rose-500/10 cursor-pointer"
-                    : "bg-slate-850 text-slate-600 border-slate-800 cursor-not-allowed"
+                    ? "bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900 shadow-sm cursor-pointer"
+                    : "bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-600 border-slate-100 dark:border-slate-800 cursor-not-allowed"
                 }`}
               >
                 Clear All
@@ -1065,19 +1070,19 @@ export default function HeadmasterExamsPage() {
                 disabled={exams.length === 0}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 ${
                   exams.length > 0
-                    ? "bg-slate-800 hover:bg-slate-700 text-white border-slate-700 cursor-pointer"
-                    : "bg-slate-850 text-slate-600 border-slate-800 cursor-not-allowed"
+                    ? "bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white border-slate-200 dark:border-slate-700 shadow-sm cursor-pointer"
+                    : "bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-600 border-slate-100 dark:border-slate-800 cursor-not-allowed"
                 }`}
               >
-                <Send className="w-3.5 h-3.5" />
+                <i className="fi flex items-center justify-center fi-rr-paper-plane w-3.5 h-3.5"></i>
                 Publish All
               </button>
               
               <button 
                 onClick={handleOpenCreate}
-                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-md hover:shadow-blue-500/10 flex items-center gap-1.5"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-2"
               >
-                <Plus className="w-4 h-4" />
+                <i className="fi flex items-center justify-center fi-rr-plus text-base w-4 h-4"></i>
                 Schedule Exam
               </button>
             </div>
@@ -1091,7 +1096,7 @@ export default function HeadmasterExamsPage() {
           ) : filteredExams.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-slate-800 rounded-xl bg-slate-900/10">
               <div className="p-4 bg-slate-900/40 rounded-full text-slate-500 border border-slate-800 mb-3">
-                <AlertCircle className="w-8 h-8" />
+                <i className="fi flex items-center justify-center fi-rr-info w-8 h-8"></i>
               </div>
               <h3 className="text-sm font-bold text-white mb-1">No examinations scheduled</h3>
               <p className="text-xs text-slate-500 max-w-sm">
@@ -1099,28 +1104,28 @@ export default function HeadmasterExamsPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto w-full rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <table className="w-full text-left border-collapse">
+            <div className="overflow-x-auto w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+              <table className="w-full text-left border-collapse min-w-full">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-black uppercase tracking-wider">
-                    <th className="p-4 align-middle">Standard & Mode</th>
-                    <th className="p-4 align-middle">Exam Details</th>
-                    <th className="p-4 align-middle">Date & Time</th>
-                    <th className="p-4 align-middle">Room & Staff</th>
-                    <th className="p-4 align-middle">Status & Visibility</th>
+                  <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-wider">
+                    <th className="p-4 align-middle whitespace-nowrap">Standard & Mode</th>
+                    <th className="p-4 align-middle whitespace-nowrap">Exam Details</th>
+                    <th className="p-4 align-middle whitespace-nowrap">Date & Time</th>
+                    <th className="p-4 align-middle whitespace-nowrap">Room & Staff</th>
+                    <th className="p-4 align-middle whitespace-nowrap">Status & Visibility</th>
                     <th className="p-4 align-middle text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
                   {filteredExams.map((ex) => (
                     <tr 
                       key={ex.id}
-                      className="hover:bg-slate-50/50 transition-colors text-xs text-slate-800 font-medium border-b border-slate-100 last:border-b-0"
+                      className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors text-xs text-slate-800 dark:text-slate-300 font-medium border-b border-slate-100 dark:border-slate-800/50 last:border-b-0"
                     >
                       {/* Standard & Mode */}
                       <td className="p-4 align-middle">
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md w-max">
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 rounded-md w-max">
                             {ex.classSection}
                           </span>
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-md w-max flex items-center gap-0.5 ${getModeBadgeStyle(ex.examMode || "Theory")}`}>
@@ -1133,7 +1138,7 @@ export default function HeadmasterExamsPage() {
                       {/* Exam Details (Subject + Name + Type Tag) */}
                       <td className="p-4 align-middle">
                         <div className="space-y-1">
-                          <div className="text-slate-900 font-extrabold text-sm leading-tight">{ex.subject}</div>
+                          <div className="text-slate-900 dark:text-white font-extrabold text-sm leading-tight">{ex.subject}</div>
                           <div className="flex items-center gap-2 flex-wrap text-slate-500 text-xs font-semibold">
                             <span>{ex.name}</span>
                             <span className={`text-[8px] font-extrabold px-1.5 py-0.5 border rounded uppercase ${getTypeBadgeStyle(ex.type)}`}>
@@ -1146,13 +1151,13 @@ export default function HeadmasterExamsPage() {
                       {/* Date & Time */}
                       <td className="p-4 align-middle whitespace-nowrap">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1.5 text-slate-750 font-bold text-[13px]">
-                            <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                          <div className="flex items-center gap-1.5 text-slate-750 dark:text-slate-200 font-bold text-[13px]">
+                            <i className="fi flex items-center justify-center fi-rr-calendar w-3.5 h-3.5 text-indigo-500"></i>
                             <span>{formatStudentFriendlyDate(ex.date)}</span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-slate-550 text-[11px] font-semibold">
-                            <Clock className="w-3.5 h-3.5 text-amber-500" />
-                            <span>{ex.timeSlot} <span className="text-slate-450">({ex.duration || "3 Hours"})</span></span>
+                          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-[11px] font-semibold">
+                            <i className="fi flex items-center justify-center fi-rr-clock w-3.5 h-3.5 text-amber-500"></i>
+                            <span>{ex.timeSlot} <span className="text-slate-400 dark:text-slate-500">({ex.duration || "3 Hours"})</span></span>
                           </div>
                         </div>
                       </td>
@@ -1160,12 +1165,12 @@ export default function HeadmasterExamsPage() {
                       {/* Room & Staff */}
                       <td className="p-4 align-middle">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1.5 text-purple-700 font-bold">
-                            <MapPin className="w-3.5 h-3.5 text-purple-500" />
+                          <div className="flex items-center gap-1.5 text-purple-700 dark:text-purple-400 font-bold">
+                            <i className="fi flex items-center justify-center fi-rr-marker w-3.5 h-3.5 text-purple-500"></i>
                             <span>{ex.hall.split(" (")[0]}</span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
-                            <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-semibold">
+                            <i className="fi flex items-center justify-center fi-rr-user-check w-3.5 h-3.5 text-emerald-600"></i>
                             <span>{ex.invigilator}</span>
                           </div>
                         </div>
@@ -1195,9 +1200,9 @@ export default function HeadmasterExamsPage() {
                             }`}
                           >
                             {ex.published ? (
-                              <><Eye className="w-2.5 h-2.5 text-emerald-600" /> Published</>
+                              <><i className="fi flex items-center justify-center fi-rr-eye w-2.5 h-2.5 text-emerald-600"></i> Published</>
                             ) : (
-                              <><EyeOff className="w-2.5 h-2.5 text-slate-400" /> Draft</>
+                              <><i className="fi flex items-center justify-center fi-rr-eye-crossed w-2.5 h-2.5 text-slate-400"></i> Draft</>
                             )}
                           </button>
                         </div>
@@ -1211,7 +1216,7 @@ export default function HeadmasterExamsPage() {
                               onClick={() => handleStartExam(ex.id)}
                               className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition-all shadow-sm flex items-center gap-1 cursor-pointer"
                             >
-                              <Play className="w-2.5 h-2.5 fill-current" />
+                              <i className="fi flex items-center justify-center fi-rr-play w-2.5 h-2.5 fill-current"></i>
                               Start
                             </button>
                           )}
@@ -1221,7 +1226,7 @@ export default function HeadmasterExamsPage() {
                               onClick={() => handleCompleteExam(ex.id)}
                               className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition-all shadow-sm flex items-center gap-1 cursor-pointer"
                             >
-                              <Check className="w-2.5 h-2.5 stroke-[3]" />
+                              <i className="fi flex items-center justify-center fi-rr-check w-2.5 h-2.5 stroke-[3]"></i>
                               Complete
                             </button>
                           )}
@@ -1232,7 +1237,7 @@ export default function HeadmasterExamsPage() {
                               title="Revert status"
                               className="p-2 text-slate-400 hover:text-blue-600 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-xl transition-all cursor-pointer"
                             >
-                              <RotateCcw className="w-3.5 h-3.5" />
+                              <i className="fi flex items-center justify-center fi-rr-refresh w-3.5 h-3.5"></i>
                             </button>
                           )}
 
@@ -1241,7 +1246,7 @@ export default function HeadmasterExamsPage() {
                             title="Edit details"
                             className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-xl transition-all cursor-pointer"
                           >
-                            <Edit3 className="w-3.5 h-3.5" />
+                            <i className="fi flex items-center justify-center fi-rr-edit w-3.5 h-3.5"></i>
                           </button>
 
                           <button
@@ -1249,7 +1254,7 @@ export default function HeadmasterExamsPage() {
                             title="Delete schedule"
                             className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 rounded-xl transition-all cursor-pointer"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <i className="fi flex items-center justify-center fi-rr-trash w-3.5 h-3.5"></i>
                           </button>
                         </div>
                       </td>
@@ -1261,11 +1266,32 @@ export default function HeadmasterExamsPage() {
           )}
         </div>
 
-        {/* Sidebar Guidelines */}
+        
+      </div>
+
+      
+      {/* ─── Info Modal ─────────────────────────────────────── */}
+      {isInfoModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl animate-scaleUp">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/40">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <i className="fi flex items-center justify-center fi-rr-info text-base w-4 h-4 text-blue-500"></i>
+                Guidelines & Marks Pattern
+              </h3>
+              <button 
+                onClick={() => setIsInfoModalOpen(false)}
+                className="p-1 hover:bg-slate-200 dark:hover:bg-slate-900 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-all"
+              >
+                <i className="fi flex items-center justify-center fi-rr-cross text-base w-4 h-4"></i>
+              </button>
+            </div>
+            <div className="p-6 max-h-[80vh] overflow-y-auto">
+              {/* Sidebar Guidelines */}
         <div className="space-y-6">
-          <div className="glass rounded-2xl p-6">
-            <h2 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-              <CheckSquare className="w-5 h-5 text-blue-400" />
+          <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
+            <h2 className="text-base font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
+              <i className="fi flex items-center justify-center fi-rr-square-check text-lg w-5 h-5 text-blue-400"></i>
               Scheduling Conflict Checker
             </h2>
             <p className="text-xs text-slate-500 leading-relaxed mb-4">
@@ -1288,9 +1314,9 @@ export default function HeadmasterExamsPage() {
           </div>
 
           {/* Marks Legend */}
-          <div className="glass rounded-2xl p-5">
-            <h3 className="text-xs font-bold text-white mb-3 flex items-center gap-1.5">
-              <Award className="w-4 h-4 text-amber-400" />
+          <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+            <h3 className="text-xs font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-1.5">
+              <i className="fi flex items-center justify-center fi-rr-award text-base w-4 h-4 text-amber-400"></i>
               TN Govt. Marks Pattern
             </h3>
             <ul className="space-y-2 text-[10px] text-slate-400 font-semibold">
@@ -1309,7 +1335,10 @@ export default function HeadmasterExamsPage() {
             </ul>
           </div>
         </div>
-      </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ─── Create / Edit Exam Modal ─────────────────────────────────────── */}
       {isModalOpen && (
@@ -1319,14 +1348,14 @@ export default function HeadmasterExamsPage() {
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/40">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-blue-400" />
+                <i className="fi flex items-center justify-center fi-rr-calendar text-base w-4 h-4 text-blue-400"></i>
                 {editingExam ? "Edit Examination Details" : "Schedule New Examination"}
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
                 className="p-1 hover:bg-slate-900 rounded-lg text-slate-400 hover:text-white transition-all"
               >
-                <X className="w-4 h-4" />
+                <i className="fi flex items-center justify-center fi-rr-cross text-base w-4 h-4"></i>
               </button>
             </div>
 
@@ -1488,12 +1517,12 @@ export default function HeadmasterExamsPage() {
 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider flex items-center gap-1">
-                    <Timer className="w-3 h-3" />
+                    <i className="fi flex items-center justify-center fi-rr-time-fast w-3 h-3"></i>
                     Duration
                   </label>
                   {/* Auto-calculated from Time Slot — read-only */}
                   <div className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-bold text-emerald-400 flex items-center gap-1.5 cursor-not-allowed select-none">
-                    <Timer className="w-3.5 h-3.5 text-emerald-500" />
+                    <i className="fi flex items-center justify-center fi-rr-time-fast w-3.5 h-3.5 text-emerald-500"></i>
                     {calcDurationFromSlot(formData.timeSlot)}
                     <span className="ml-auto text-[9px] text-slate-500 font-normal italic">auto</span>
                   </div>
@@ -1537,9 +1566,9 @@ export default function HeadmasterExamsPage() {
                             : "bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600"
                         }`}
                       >
-                        {mode === "Theory" && <BookOpen className="w-4 h-4" />}
-                        {mode === "Practical" && <FlaskConical className="w-4 h-4" />}
-                        {mode === "Both" && <Layers2 className="w-4 h-4" />}
+                        {mode === "Theory" && <i className="fi flex items-center justify-center fi-rr-book-open text-base w-4 h-4"></i>}
+                        {mode === "Practical" && <i className="fi flex items-center justify-center fi-rr-flask text-base w-4 h-4"></i>}
+                        {mode === "Both" && <i className="fi flex items-center justify-center fi-rr-layer-group text-base w-4 h-4"></i>}
                         {mode}
                       </button>
                     );
@@ -1552,7 +1581,7 @@ export default function HeadmasterExamsPage() {
                 {showTheory && (
                   <div>
                     <label className="block text-[11px] font-bold text-blue-400/80 mb-1.5 uppercase tracking-wider flex items-center gap-1">
-                      <BookOpen className="w-3 h-3" />
+                      <i className="fi flex items-center justify-center fi-rr-book-open w-3 h-3"></i>
                       Theory Max Marks <span className="text-rose-400">*</span>
                     </label>
                     <input
@@ -1568,7 +1597,7 @@ export default function HeadmasterExamsPage() {
                 {showPractical && (
                   <div>
                     <label className="block text-[11px] font-bold text-violet-400/80 mb-1.5 uppercase tracking-wider flex items-center gap-1">
-                      <FlaskConical className="w-3 h-3" />
+                      <i className="fi flex items-center justify-center fi-rr-flask w-3 h-3"></i>
                       Practical Max Marks <span className="text-rose-400">*</span>
                     </label>
                     <input
@@ -1590,7 +1619,7 @@ export default function HeadmasterExamsPage() {
                   ? "bg-violet-500/10 border-violet-500/20 text-violet-300"
                   : "bg-blue-500/10 border-blue-500/20 text-blue-300"
               }`}>
-                <Award className="w-4 h-4" />
+                <i className="fi flex items-center justify-center fi-rr-award text-base w-4 h-4"></i>
                 <span>
                   Total Marks:&nbsp;
                   <strong>
@@ -1666,7 +1695,7 @@ export default function HeadmasterExamsPage() {
                   id="published"
                   checked={formData.published}
                   onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
-                  className="rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                  className="rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500 text-base w-4 h-4 cursor-pointer"
                 />
                 <label htmlFor="published" className="text-xs font-bold text-slate-300 cursor-pointer select-none">
                   Publish immediately (Makes it visible to teachers and students)
@@ -1686,7 +1715,7 @@ export default function HeadmasterExamsPage() {
                   type="submit"
                   className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-blue-500/10 flex items-center gap-2"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
+                  <i className="fi flex items-center justify-center fi-rr-check-circle text-base w-4 h-4"></i>
                   {editingExam ? "Save Changes" : "Schedule Exam"}
                 </button>
               </div>
@@ -1702,14 +1731,14 @@ export default function HeadmasterExamsPage() {
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/40">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-500" />
+                <i className="fi flex items-center justify-center fi-rr-info text-base w-4 h-4 text-rose-500"></i>
                 Clear All Exam Schedules
               </h3>
               <button 
                 onClick={() => setIsClearConfirmOpen(false)}
                 className="p-1 hover:bg-slate-900 rounded-lg text-slate-400 hover:text-white transition-all"
               >
-                <X className="w-4 h-4" />
+                <i className="fi flex items-center justify-center fi-rr-cross text-base w-4 h-4"></i>
               </button>
             </div>
 
@@ -1741,5 +1770,6 @@ export default function HeadmasterExamsPage() {
         </div>
       )}
     </PortalLayout>
+    </>
   );
 }

@@ -461,33 +461,8 @@ export default function NotificationsPage() {
       {/* Main Container expanded to match other portal modules */}
       <div className="w-full py-2 space-y-6 md:space-y-8">
         
-        {/* ── Welcome Header with Live Sync ────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-2.5">
-              <span className="relative flex h-8 w-8 items-center justify-center">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-20"></span>
-                <Bell className="h-6 w-6 text-amber-500 animate-swing" />
-              </span>
-              Notifications Board
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-xs mt-1 font-medium max-w-xl">
-              Real-time notifications regarding attendance, academic scores, homework prompts, and PTA announcements.
-            </p>
-          </div>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing || loading}
-            className="self-start sm:self-center px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-405 hover:text-emerald-500 dark:hover:text-emerald-400 hover:border-emerald-500/35 disabled:opacity-50 transition-all flex items-center gap-2 shadow-sm font-bold text-xs"
-            title="Sync Notifications"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
-            <span>{refreshing ? "Syncing..." : "Sync Status"}</span>
-          </button>
-        </div>
-
         {/* ── Stats Overview Row ──────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* KPI: Total Alerts */}
           <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/80 p-6 rounded-2xl flex items-center gap-5 shadow-sm transition-all hover:shadow-md">
             <span className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
@@ -505,7 +480,7 @@ export default function NotificationsPage() {
             className={`p-6 rounded-2xl border flex items-center gap-5 text-left transition-all ${
               filterStatus === "UNREAD"
                 ? "bg-amber-500/5 dark:bg-amber-500/5 border-amber-500/40 ring-1 ring-amber-500/20"
-                : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border-slate-200/60 dark:border-slate-800/80 hover:border-slate-350 dark:hover:border-slate-700"
+                : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border-slate-200/60 dark:border-slate-800/80 hover:border-slate-355 dark:hover:border-slate-700"
             }`}
           >
             <span className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
@@ -536,11 +511,28 @@ export default function NotificationsPage() {
               </div>
             </div>
           </button>
+
+          {/* KPI: Sync Control */}
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing || loading}
+            className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/80 hover:border-blue-500/30 p-6 rounded-2xl flex items-center gap-5 shadow-sm transition-all disabled:opacity-50 group text-left w-full"
+          >
+            <span className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:rotate-180 transition-transform duration-500">
+              <RefreshCw className={`w-5.5 h-5.5 ${refreshing ? "animate-spin" : ""}`} />
+            </span>
+            <div className="ml-1">
+              <div className="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">Sync Control</div>
+              <div className="text-sm font-black text-blue-600 dark:text-blue-400 mt-1 flex items-center gap-1">
+                {refreshing ? "Syncing..." : "Sync Live Data ⟳"}
+              </div>
+            </div>
+          </button>
         </div>
 
         {/* ── Advanced Filters Card & Search Panel ────────────────── */}
         <div className="bg-white/75 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/80 rounded-3xl p-6 md:p-8 shadow-sm backdrop-blur-md">
-          <div className="flex flex-col lg:flex-row gap-6 justify-between items-stretch lg:items-center">
+          <div className="flex flex-col xl:flex-row gap-6 justify-between items-stretch xl:items-center">
             {/* Search bar */}
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -562,7 +554,7 @@ export default function NotificationsPage() {
             </div>
 
             {/* Filtering Dropdowns & Sorting Row */}
-            <div className="flex flex-wrap sm:flex-nowrap gap-5 items-center">
+            <div className="flex flex-wrap gap-4 items-center w-full xl:w-auto justify-start sm:justify-end">
 
 
               {/* Date Range Selector Dropdown */}

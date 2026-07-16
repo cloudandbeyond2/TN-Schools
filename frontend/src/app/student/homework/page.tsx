@@ -869,8 +869,32 @@ export default function HomeworkPage() {
         />
       ) : (
         <div>
-          <div className="flex justify-end">
-            <div className="glass mt-1 w-56 rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-transparent p-3">
+          {/* filters and completed progress on the same line */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2">
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  ["all", `All (${total})`],
+                  ["pending", `Pending (${assignments.filter((a) => a.status === "not_submitted").length})`],
+                  ["submitted", `Submitted (${completed})`],
+                  ["history", `Performance History`],
+                ] as [Filter, string][]
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setFilter(key)}
+                  className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors ${
+                    filter === key
+                      ? "bg-teal-400/15 text-teal-600 dark:text-teal-300 ring-1 ring-inset ring-teal-400/30"
+                      : "bg-slate-100 dark:bg-white/[0.04] text-black dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.07] hover:text-teal-600 dark:hover:text-slate-300"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="glass w-56 shrink-0 rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-transparent p-3">
               <div className="flex items-center justify-between text-[11.5px]">
                 <span className="text-black dark:text-white">Completed</span>
                 <span className="font-semibold text-black dark:text-slate-200">
@@ -879,35 +903,11 @@ export default function HomeworkPage() {
               </div>
               <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-white/[0.06]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-teal-400 to-emerald-400 transition-all"
-                  style={{ width: `${pct}%` }}
+                  className="h-full rounded-full transition-all bg-teal-450"
+                  style={{ width: `${pct}%`, background: 'linear-gradient(to right, #2dd4bf, #10b981)' }}
                 />
               </div>
             </div>
-          </div>
-
-          {/* filters */}
-          <div className="mt-5 flex gap-2">
-            {(
-              [
-                ["all", `All (${total})`],
-                ["pending", `Pending (${assignments.filter((a) => a.status === "not_submitted").length})`],
-                ["submitted", `Submitted (${completed})`],
-                ["history", `Performance History`],
-              ] as [Filter, string][]
-            ).map(([key, label]) => (
-              <button
-                key={key}
-                onClick={() => setFilter(key)}
-                className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors ${
-                  filter === key
-                    ? "bg-teal-400/15 text-teal-600 dark:text-teal-300 ring-1 ring-inset ring-teal-400/30"
-                    : "bg-slate-100 dark:bg-white/[0.04] text-black dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.07] hover:text-teal-600 dark:hover:text-slate-300"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
           </div>
 
           {filter === "history" ? (
