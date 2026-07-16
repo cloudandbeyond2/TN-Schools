@@ -3,6 +3,101 @@ import { prisma } from '../config/prisma';
 
 const router = Router();
 
+// Helper to notify staff, students, and parents when an exam is scheduled
+async function notifyExamScheduled(
+  schoolId: string,
+  cls: string,
+  section: string,
+  subject: string,
+  invigilatorName: string | null,
+  examDate: Date,
+  startTime: string
+) {
+  try {
+    const formattedDate = examDate.toISOString().split('T')[0];
+    const message = `An exam for ${subject} is scheduled on ${formattedDate} at ${startTime}.`;
+    
+    // 1. Notify Students in the class
+    const students = await prisma.student.findMany({
+      where: { schoolId, class: cls, section: section !== 'All' ? section : undefined }
+    });
+    
+    const studentUserIds = students.map(s => s.userId).filter(Boolean);
+    if (studentUserIds.length > 0) {
+      await prisma.notification.createMany({
+        data: studentUserIds.map(userId => ({
+          userId,
+          message,
+        }))
+      });
+    }
+
+    // 2. Notify Parents
+    const studentIds = students.map(s => s.id);
+    if (studentIds.length > 0) {
+      const parentLinks = await prisma.parentStudentLink.findMany({
+        where: { studentId: { in: studentIds } },
+        include: { parent: true }
+      });
+      
+      const parentUserIds = parentLinks.map(pl => pl.parent.userId).filter(Boolean);
+      if (parentUserIds.length > 0) {
+        await prisma.notification.createMany({
+          data: parentUserIds.map(userId => ({
+            userId: userId as string,
+            message,
+          })),
+          skipDuplicates: true
+        });
+      }
+      
+      // Also add to ParentNotification table
+      const parentNotifications = parentLinks.map(pl => ({
+        parentId: pl.parentId,
+        studentId: pl.studentId,
+        type: 'Exam Schedule',
+        title: 'New Exam Scheduled',
+        message,
+      }));
+      if (parentNotifications.length > 0) {
+        await prisma.parentNotification.createMany({
+          data: parentNotifications,
+          skipDuplicates: true
+        });
+      }
+    }
+
+    // 3. Notify Invigilator (Staff)
+    if (invigilatorName) {
+      const staffUser = await prisma.user.findFirst({
+        where: { schoolId, name: invigilatorName, role: 'TEACHER' }
+      });
+      if (staffUser) {
+        await prisma.notification.create({
+          data: {
+            userId: staffUser.id,
+            message: `You are assigned as invigilator for ${subject} exam on ${formattedDate} at ${startTime}.`,
+          }
+        });
+      } else {
+        const headmasterStaff = await prisma.headmasterStaff.findFirst({
+          where: { schoolId, name: invigilatorName }
+        });
+        if (headmasterStaff && headmasterStaff.userId) {
+          await prisma.notification.create({
+            data: {
+              userId: headmasterStaff.userId,
+              message: `You are assigned as invigilator for ${subject} exam on ${formattedDate} at ${startTime}.`,
+            }
+          });
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[notifyExamScheduled Error]', err);
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/exam-schedule
 // Query params: schoolId (required), class?, section?, examType?, academicYear?,
@@ -107,6 +202,17 @@ router.post('/', async (req: Request, res: Response) => {
       },
     });
 
+    // Notify users
+    await notifyExamScheduled(
+      schoolId,
+      String(cls),
+      section ? String(section) : 'All',
+      String(subject),
+      invigilator ? String(invigilator) : null,
+      new Date(examDate),
+      String(startTime)
+    );
+
     return res.status(201).json({ success: true, data: schedule });
   } catch (err) {
     console.error('[ExamSchedule POST /]', err);
@@ -151,6 +257,19 @@ router.post('/bulk', async (req: Request, res: Response) => {
     }));
 
     const result = await prisma.examSchedule.createMany({ data, skipDuplicates: true });
+
+    // Notify users for all scheduled exams
+    for (const s of data) {
+      await notifyExamScheduled(
+        s.schoolId,
+        s.class,
+        s.section,
+        s.subject,
+        s.invigilator,
+        s.examDate,
+        s.startTime
+      );
+    }
 
     return res.status(201).json({ success: true, created: result.count });
   } catch (err) {

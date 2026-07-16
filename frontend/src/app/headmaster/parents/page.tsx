@@ -64,6 +64,11 @@ interface PTAMeeting {
   rsvps?: any;
 }
 
+// Helper: a meeting is "expired" if its date is in the past but still marked Upcoming
+const isExpiredMeeting = (m: PTAMeeting): boolean => {
+  return m.status === "Upcoming" && new Date(m.meetingDate) < new Date();
+};
+
 interface ParsedPreviewPTAMember {
   id: number;
   name: string;
@@ -468,8 +473,42 @@ export default function ParentsPage() {
     }
   };
 
-  const nextUpcomingMeeting = ptaMeetings.find(m => m.status === "Upcoming") || ptaMeetings[0];
+  // Only show truly future meetings in "Next Meeting" banner
+  const nextUpcomingMeeting = ptaMeetings.find(m => m.status === "Upcoming" && !isExpiredMeeting(m)) || null;
   const fmtDate = (d: string) => new Date(d).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+
+  // ── Mark meeting as Completed ────────────────────────────────
+  const handleMarkCompleted = async (meetingId: string, meetingTitle: string) => {
+    const result = await Swal.fire({
+      title: "Mark as Completed?",
+      html: `<p style="font-size:13px;color:#475569">This will mark <strong style="color:#1e293b">${meetingTitle}</strong> as <strong style="color:#3b82f6">Completed</strong>.<br/>Parents will see it in their Completed tab.</p>`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Mark Completed",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#3b82f6",
+    });
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/headmaster/pta-meetings/${meetingId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "Completed" }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast("✅ Meeting marked as Completed.");
+        setPtaMeetings(prev =>
+          prev.map(m => m.id === meetingId ? { ...m, status: "Completed" } : m)
+        );
+      } else {
+        showToast("❌ Failed to update meeting status.", "error");
+      }
+    } catch {
+      showToast("🔴 Network error.", "error");
+    }
+  };
 
   const showDeclineReasons = (m: PTAMeeting) => {
     const rsvps = m.rsvps || {};
@@ -529,6 +568,14 @@ export default function ParentsPage() {
           <div className="text-sm font-bold text-amber-400 mt-1">
             {nextUpcomingMeeting ? fmtDate(nextUpcomingMeeting.meetingDate) : "None Scheduled"}
           </div>
+          {ptaMeetings.some(isExpiredMeeting) && (
+            <div className="mt-1.5 flex items-center gap-1 justify-end">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+              <span className="text-[10px] font-bold text-amber-400">
+                {ptaMeetings.filter(isExpiredMeeting).length} expired — needs action
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -617,63 +664,98 @@ export default function ParentsPage() {
                 No PTA meetings scheduled.
               </div>
             ) : (
-              ptaMeetings.map((m) => (
-                <div key={m.id} className="p-4 border border-slate-200 rounded-xl bg-white/95 hover:bg-white text-slate-800 shadow-md transition-all duration-200">
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className={`px-2 py-0.5 self-start text-[8px] font-black uppercase tracking-wider rounded border ${
-                        m.status === "Upcoming"
-                          ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                          : "bg-slate-100 text-slate-600 border-slate-200"
-                      }`}>
-                        {m.status}
-                      </span>
-                      <div className="font-extrabold text-slate-900 text-xs sm:text-sm mt-2 truncate">{m.title}</div>
-                      <div className="text-[10px] text-slate-500 font-bold mt-1">
-                        📅 {fmtDate(m.meetingDate)}
-                      </div>
-                      <div className="text-[10px] text-blue-650 font-bold mt-0.5">
-                        📍 {m.venue}
-                      </div>
-                      
-                      {/* RSVP Summary counts */}
-                      <div className="flex items-center gap-2 text-[9px] font-bold text-slate-650 mt-2 bg-slate-100/80 p-2 rounded-xl w-full max-w-max border border-slate-200/50">
-                        <span className="text-emerald-700 flex items-center gap-0.5">✅ Accepted: <strong className="font-black">{m.acceptCount || 0}</strong></span>
-                        <span className="text-slate-400">|</span>
-                        <span className="text-rose-700 flex items-center gap-0.5">
-                          ❌ Declined: <strong className="font-black">{m.declineCount || 0}</strong>
-                          {(m.declineCount || 0) > 0 && (
-                            <button
-                              onClick={() => showDeclineReasons(m)}
-                              className="text-[9px] text-blue-600 hover:text-blue-800 font-bold underline ml-1.5 cursor-pointer"
-                            >
-                              (View Reasons)
-                            </button>
+              ptaMeetings.map((m) => {
+                const expired = isExpiredMeeting(m);
+                return (
+                  <div key={m.id} className={`p-4 border rounded-xl text-slate-800 shadow-md transition-all duration-200 ${
+                    expired
+                      ? "border-amber-300 bg-amber-50/80 hover:bg-amber-50"
+                      : m.status === "Completed"
+                      ? "border-blue-200 bg-blue-50/60 hover:bg-blue-50"
+                      : "border-slate-200 bg-white/95 hover:bg-white"
+                  }`}>
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex flex-col min-w-0 flex-1">
+
+                        {/* Status badges */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-wider rounded border ${
+                            expired
+                              ? "bg-amber-100 text-amber-700 border-amber-300"
+                              : m.status === "Upcoming"
+                              ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                              : m.status === "Completed"
+                              ? "bg-blue-50 text-blue-600 border-blue-200"
+                              : "bg-slate-100 text-slate-600 border-slate-200"
+                          }`}>
+                            {expired ? "⏰ Expired" : m.status === "Upcoming" ? "📅 Upcoming" : m.status === "Completed" ? "✅ Completed" : "🚫 Cancelled"}
+                          </span>
+                          {expired && (
+                            <span className="text-[8px] font-bold text-amber-600 bg-amber-100/80 border border-amber-200 px-2 py-0.5 rounded">
+                              Meeting date has passed — mark as completed
+                            </span>
                           )}
-                        </span>
-                      </div>
-                      {m.description && (
-                        <p className="text-[11px] text-slate-600 mt-2 italic leading-relaxed break-words">{m.description}</p>
-                      )}
-                      {m.agenda && m.agenda.length > 0 && (
-                        <div className="mt-2.5 pt-2 border-t border-slate-200/50">
-                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Agenda:</span>
-                          <p className="text-[10px] text-slate-500 font-semibold">{m.agenda.join(" · ")}</p>
                         </div>
-                      )}
+
+                        <div className="font-extrabold text-slate-900 text-xs sm:text-sm mt-2 truncate">{m.title}</div>
+                        <div className="text-[10px] text-slate-500 font-bold mt-1">📅 {fmtDate(m.meetingDate)}</div>
+                        <div className="text-[10px] text-blue-650 font-bold mt-0.5">📍 {m.venue}</div>
+
+                        {/* RSVP Summary */}
+                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-650 mt-2 bg-slate-100/80 p-2 rounded-xl w-full max-w-max border border-slate-200/50">
+                          <span className="text-emerald-700 flex items-center gap-0.5">✅ Accepted: <strong className="font-black">{m.acceptCount || 0}</strong></span>
+                          <span className="text-slate-400">|</span>
+                          <span className="text-rose-700 flex items-center gap-0.5">
+                            ❌ Declined: <strong className="font-black">{m.declineCount || 0}</strong>
+                            {(m.declineCount || 0) > 0 && (
+                              <button
+                                onClick={() => showDeclineReasons(m)}
+                                className="text-[9px] text-blue-600 hover:text-blue-800 font-bold underline ml-1.5 cursor-pointer"
+                              >
+                                (View Reasons)
+                              </button>
+                            )}
+                          </span>
+                        </div>
+
+                        {m.description && (
+                          <p className="text-[11px] text-slate-600 mt-2 italic leading-relaxed break-words">{m.description}</p>
+                        )}
+                        {m.agenda && m.agenda.length > 0 && (
+                          <div className="mt-2.5 pt-2 border-t border-slate-200/50">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Agenda:</span>
+                            <p className="text-[10px] text-slate-500 font-semibold">{m.agenda.join(" · ")}</p>
+                          </div>
+                        )}
+
+                        {/* Mark as Completed — only for expired meetings */}
+                        {expired && (
+                          <button
+                            onClick={() => handleMarkCompleted(m.id, m.title)}
+                            className="mt-3 self-start px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Mark as Completed
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Delete button */}
+                      <button
+                        onClick={() => setMeetingToDelete(m)}
+                        className="shrink-0 text-[9px] text-red-650 hover:text-red-800 font-bold border border-red-200 hover:border-red-300 px-2 py-1 rounded-lg bg-red-50 transition-colors shadow-sm flex items-center gap-1 cursor-pointer"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setMeetingToDelete(m)}
-                      className="shrink-0 text-[9px] text-red-650 hover:text-red-800 font-bold border border-red-200 hover:border-red-300 px-2 py-1 rounded-lg bg-red-50 transition-colors shadow-sm flex items-center gap-1 cursor-pointer"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Delete
-                    </button>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

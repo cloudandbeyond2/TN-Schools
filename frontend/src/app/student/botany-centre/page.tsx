@@ -24,6 +24,7 @@ export default function BotanyCentrePage() {
   const [detected, setDetected] = useState<number | null>(null);
   const [open, setOpen] = useState<BotanyUnit | null>(null);
   const [lang, setLang] = useState<"EN" | "TA">("EN");
+  const [isLoading, setIsLoading] = useState(true);
 
   const t = (bilingualText: string) => {
     if (!bilingualText) return "";
@@ -41,7 +42,10 @@ export default function BotanyCentrePage() {
   useEffect(() => {
     (async () => {
       try {
-        if (!session?.user) return;
+        if (!session?.user) {
+          setIsLoading(false);
+          return;
+        }
         const res = await fetch(`${API_URL}/api/students`);
         const json = await res.json();
         const list = json?.data || json;
@@ -49,11 +53,23 @@ export default function BotanyCentrePage() {
           const me = list.find((s: any) => s.userId === (session.user as any).id);
           if (me?.class != null) { const g = resolveGrade(me.class); setDetected(g); setGrade(g); }
         }
-      } catch { /* ignore */ }
+      } catch { /* ignore */ } finally {
+        setIsLoading(false);
+      }
     })();
   }, [session, API_URL]);
 
   const data = BOTANY_SYLLABUS[grade];
+
+  if (isLoading) {
+    return (
+      <PortalLayout title="Botany Centre 🌿" subtitle="Loading...">
+        <div className="flex items-center justify-center py-32">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-500"></div>
+        </div>
+      </PortalLayout>
+    );
+  }
 
   return (
     <PortalLayout 
