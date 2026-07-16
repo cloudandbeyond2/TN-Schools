@@ -305,7 +305,7 @@ export default function MiddleSchoolPortfolio() {
                   const meta = BADGE_META[b.badge] || { icon: "fi-sr-medal", color: "from-slate-400 to-slate-600" };
                   return {
                     id: b.id,
-                    name: b.badge.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '').trim(),
+                    name: b.badge.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '').trim(),
                     icon: meta.icon,
                     color: meta.color,
                     description: b.remark || "Awarded by your teacher",
