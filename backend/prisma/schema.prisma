@@ -1216,6 +1216,33 @@ model MinisterScheme {
   updatedAt     DateTime
 }
 
+model ScholarshipScheme {
+  id                 String   @id // e.g. "tn-pudhumai-penn", "nmms"
+  name               String
+  nameTA             String?
+  category           String   // e.g. "SC/ST Welfare", "BC/MBC Welfare", "Central Government"
+  categoryTA         String?
+  standards          String[] // ["6", "7", "8", "9", "10", "11", "12"]
+  standardText       String
+  gender             String   // "Male" | "Female" | "All"
+  community          String[] // ["BC", "MBC", "DNC", "SC", "ST", "All"]
+  communityText      String
+  incomeLimit        Float?
+  incomeLimitText    String
+  amount             Float
+  amountText         String
+  amountTA           String?
+  description        String
+  descriptionTA      String?
+  eligibilityDetails String[]
+  documentsRequired  String[]
+  deadline           String
+  contactDetails     String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+
 model SocialActivity {
   id           String   @id @default(uuid())
   studentId    String

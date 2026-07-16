@@ -1282,4 +1282,19 @@ router.put('/pta-appointments/:id/status', async (req: Request, res: Response) =
   }
 });
 
+// ─── GET /api/parent/scholarship-schemes ──────────────────────────
+// Retrieve all scholarship schemes for parent portal
+// ─────────────────────────────────────────────────────────────────
+router.get('/scholarship-schemes', async (req: Request, res: Response) => {
+  try {
+    const schemes = await prisma.scholarshipScheme.findMany({
+      orderBy: { name: 'asc' },
+    });
+    res.json({ success: true, data: schemes });
+  } catch (err) {
+    console.error('Error fetching scholarship schemes:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;

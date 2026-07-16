@@ -2,7 +2,30 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useParentChildren, getApiBase, Child } from "@/lib/useParentChildren";
-import { TAMIL_NADU_SCHEMES, Scheme } from "./schemesData";
+
+interface Scheme {
+  id: string;
+  name: string;
+  nameTA?: string | null;
+  category: string;
+  categoryTA?: string | null;
+  standards: string[];
+  standardText: string;
+  gender: string;
+  community: string[];
+  communityText: string;
+  incomeLimit: number | null;
+  incomeLimitText: string;
+  amount: number;
+  amountText: string;
+  amountTA?: string | null;
+  description: string;
+  descriptionTA?: string | null;
+  eligibilityDetails: string[];
+  documentsRequired: string[];
+  deadline: string;
+  contactDetails: string;
+}
 
 interface ScholarshipApplication {
   id: string;
@@ -75,6 +98,29 @@ export default function ScholarshipPage() {
 
   // Drawer modal state
   const [selectedScheme, setSelectedScheme] = useState<Scheme | null>(null);
+
+  // DB Schemes State
+  const [schemes, setSchemes] = useState<Scheme[]>([]);
+  const [schemesLoading, setSchemesLoading] = useState(true);
+
+  const fetchSchemes = useCallback(async () => {
+    setSchemesLoading(true);
+    try {
+      const res = await fetch(`${getApiBase()}/api/parent/scholarship-schemes`);
+      const json = await res.json();
+      if (json.success) {
+        setSchemes(json.data);
+      }
+    } catch (e) {
+      console.error("Error loading schemes:", e);
+    } finally {
+      setSchemesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSchemes();
+  }, [fetchSchemes]);
 
   const itemsPerPage = 5;
 
@@ -172,7 +218,7 @@ export default function ScholarshipPage() {
 
   // Filtered Scheme Directory
   const filteredSchemes = useMemo(() => {
-    return TAMIL_NADU_SCHEMES.filter(scheme => {
+    return schemes.filter(scheme => {
       const matchesSearch = scheme.name.toLowerCase().includes(dirSearch.toLowerCase()) ||
         scheme.description.toLowerCase().includes(dirSearch.toLowerCase());
       
@@ -228,8 +274,8 @@ export default function ScholarshipPage() {
 
   const eligibleSchemesCount = useMemo(() => {
     if (!activeChild) return 0;
-    return TAMIL_NADU_SCHEMES.filter(scheme => getEligibility(activeChild, scheme).isEligible).length;
-  }, [activeChild, getEligibility]);
+    return schemes.filter(scheme => getEligibility(activeChild, scheme).isEligible).length;
+  }, [activeChild, getEligibility, schemes]);
 
   return (
     <PortalLayout>
@@ -295,7 +341,7 @@ export default function ScholarshipPage() {
               : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-800"
           }`}
         >
-          <i className="fi fi-rr-search"></i> Explore Welfare Schemes ({TAMIL_NADU_SCHEMES.length})
+          <i className="fi fi-rr-search"></i> Explore Welfare Schemes ({schemes.length})
         </button>
         <button
           onClick={() => setActiveTab("eligibility")}
@@ -708,7 +754,7 @@ export default function ScholarshipPage() {
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-[460px] overflow-y-auto custom-scrollbar pr-1">
-                    {TAMIL_NADU_SCHEMES.map(scheme => {
+                    {schemes.map(scheme => {
                       const eligibility = getEligibility(activeChild, scheme);
                       if (!eligibility.isEligible) return null;
 
