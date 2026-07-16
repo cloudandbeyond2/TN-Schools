@@ -1073,7 +1073,7 @@ export default function LessonPlannerPage() {
                             <i className="fi fi-sr-clock leading-none" /> {currentPlan.duration}
                           </span>
                         </div>
-                        <h1 className="font-black text-2xl xl:text-4xl leading-tight tracking-tight break-words" style={{ color: "#fff" }}>{currentPlan.topic}</h1>
+                        <p className="font-black text-2xl xl:text-4xl leading-tight tracking-tight break-words" style={{ color: "#fff" }}>{currentPlan.topic}</p>
                         <p className="text-xs mt-2 font-medium" style={{ color: "rgba(255,255,255,0.8)" }}>{currentPlan.syllabus}</p>
                       </div>
                     </div>

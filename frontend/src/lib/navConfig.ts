@@ -445,7 +445,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Scholarship Details", href: "/teacher/scholarships", icon: "GraduationCap" },
       { label: "Student Analytics", href: "/teacher/analytics", icon: "Activity" },
       { label: "Risk Alerts", href: "/teacher/risk-alerts", icon: "ShieldAlert" },
-      { label: "Parent Management", href: "/teacher/parents", icon: "Users" },
+      // { label: "Parent Management", href: "/teacher/parents", icon: "Users" },
       { label: "Sports & Athletics", href: "/teacher/sports", icon: "Trophy" },
 
       // Resources & Admin
