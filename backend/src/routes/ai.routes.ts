@@ -1331,4 +1331,77 @@ Return a JSON object matching the provided schema exactly.`;
   }
 });
 
+// ===========================================================================
+// POST /api/ai/daily-discovery — lazy: 5 mind-blowing facts for TikTok-style feed
+// ===========================================================================
+const DAILY_DISCOVERY_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    facts: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          category: { type: 'STRING' },
+          categoryTa: { type: 'STRING' },
+          title: { type: 'STRING' },
+          titleTa: { type: 'STRING' },
+          fact: { type: 'STRING' },
+          factTa: { type: 'STRING' },
+          imageSearchTerm: { type: 'STRING', description: 'One english keyword like "space" or "laser"' },
+          color: { type: 'STRING', description: 'Tailwind gradient classes e.g., "from-emerald-600/90 to-slate-900/95"' },
+          icon: { type: 'STRING', description: 'Flaticon class e.g., "fi fi-sr-rocket"' },
+          quiz: {
+            type: 'OBJECT',
+            properties: {
+              question: { type: 'STRING' },
+              questionTa: { type: 'STRING' },
+              options: { type: 'ARRAY', items: { type: 'STRING' } },
+              optionsTa: { type: 'ARRAY', items: { type: 'STRING' } },
+              answer: { type: 'NUMBER', description: 'Index of correct option (0-2)' }
+            },
+            required: ['question', 'questionTa', 'options', 'optionsTa', 'answer']
+          }
+        },
+        required: ['category', 'categoryTa', 'title', 'titleTa', 'fact', 'factTa', 'imageSearchTerm', 'color', 'icon', 'quiz']
+      }
+    }
+  },
+  required: ['facts']
+};
+
+router.post('/daily-discovery', async (req: Request, res: Response) => {
+  try {
+    const prompt = `Generate exactly 5 fascinating, mind-blowing educational facts suitable for a middle school student (TN State Board). 
+Cover diverse categories like Cosmos, Tech & AI, Nature, History, and Physics.
+Make the facts engaging and punchy.
+Rules:
+- facts: array of exactly 5 items.
+- title: A big engaging question in English.
+- titleTa: Natural Tamil translation of the title.
+- fact: A 2-3 sentence punchy explanation.
+- factTa: Natural Tamil translation of the fact.
+- imageSearchTerm: A single, highly visual English keyword (e.g. "galaxy", "robot", "forest").
+- color: Pick a Tailwind gradient (e.g. "from-blue-600/90 to-slate-900/95", "from-purple-600/90 to-slate-900/95"). Use a variety.
+- icon: Pick a relevant Flaticon class (e.g. "fi fi-sr-rocket", "fi fi-sr-brain", "fi fi-sr-microchip").
+- quiz.options & quiz.optionsTa: exactly 3 options.
+- quiz.answer: the 0-based index of the correct option.`;
+
+    const result = await callGemini(prompt, true, DAILY_DISCOVERY_SCHEMA, 12000, 60000);
+    
+    // Map imageSearchTerm to an unsplash URL
+    if (result && Array.isArray(result.facts)) {
+      result.facts = result.facts.map((f: any, idx: number) => {
+        f.id = Date.now() + idx;
+        f.image = `https://source.unsplash.com/1200x800/?${encodeURIComponent(f.imageSearchTerm || 'education')}`;
+        return f;
+      });
+    }
+
+    res.json({ success: true, data: result?.facts || [] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
