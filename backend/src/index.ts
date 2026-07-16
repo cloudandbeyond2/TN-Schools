@@ -53,6 +53,7 @@ import ministerRoutes from './routes/minister.routes';
 import commissionerRoutes from './routes/commissioner.routes';
 import sslcPrepRoutes from './routes/sslcPrep.routes';
 import scholarshipRoutes from './routes/scholarship.routes';
+import deoRoutes from './routes/deo.routes';
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
 
@@ -208,6 +209,7 @@ app.use('/api/minister', ministerRoutes);
 app.use('/api/commissioner', commissionerRoutes);
 app.use('/api/sslc-prep', sslcPrepRoutes);
 app.use('/api/scholarships', scholarshipRoutes);
+app.use('/api/deo', deoRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {

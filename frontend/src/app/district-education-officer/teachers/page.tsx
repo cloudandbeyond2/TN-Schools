@@ -1,27 +1,54 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 
-interface Teacher { id: number; name: string; subject: string; school: string; block: string; experience: number; status: string; }
+interface Teacher { id: string; name: string; subject: string; school: string; block: string; experience: number; status: string; }
 
-const initialTeachers: Teacher[] = [
-  { id: 1, name: "Mrs. Sumathi Devi", subject: "Mathematics", school: "GHS Coimbatore", block: "CBE South", experience: 12, status: "Active" },
-  { id: 2, name: "Mr. Rajan K.", subject: "Science", school: "GHS Singanallur", block: "CBE North", experience: 8, status: "Active" },
-  { id: 3, name: "Mrs. Kavitha P.", subject: "Tamil", school: "GHS Pollachi", block: "Pollachi", experience: 15, status: "On Leave" },
-  { id: 4, name: "Mr. Venkat S.", subject: "English", school: "GHS Annur", block: "Annur", experience: 5, status: "Active" },
-  { id: 5, name: "Mrs. Meena R.", subject: "History", school: "GHS Mettupalayam", block: "Mettupalayam", experience: 10, status: "Transfer Pending" },
-];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function TeacherAnalyticsPage() {
-  const [teachers, setTeachers] = useState<Teacher[]>(initialTeachers);
+  const { data: session } = useSession();
+  const district = (session?.user as any)?.district || "Coimbatore";
+
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState({ name: "", subject: "", school: "", block: "", experience: "5", status: "Active" });
 
+  const fetchTeachers = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/deo/teachers?district=${encodeURIComponent(district)}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setTeachers(json.data);
+      }
+    } catch (e) {
+      console.error("Error loading teachers:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeachers();
+  }, [session, district]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setTeachers(p => [...p, { ...form, id: p.length + 1, experience: Number(form.experience) }]);
+    // Since Teacher is linked to users, we simulate local roster additions for DEO's display
+    setTeachers(p => [...p, {
+      id: `teacher-${Math.random()}`,
+      name: form.name,
+      subject: form.subject,
+      school: form.school,
+      block: form.block,
+      experience: Number(form.experience),
+      status: form.status
+    }]);
     setIsModalOpen(false);
     setToast(`👩‍🏫 Teacher '${form.name}' added to district roster.`);
     setTimeout(() => setToast(null), 4000);
@@ -31,8 +58,8 @@ export default function TeacherAnalyticsPage() {
     setIsUploading(true);
     setTimeout(() => {
       setTeachers(p => [...p,
-        { id: p.length + 1, name: "Mr. Arumugam T.", subject: "Physics", school: "GHSS Ganapathy", block: "CBE South", experience: 7, status: "Active" },
-        { id: p.length + 2, name: "Mrs. Selvi M.", subject: "Chemistry", school: "GHS RS Puram", block: "CBE South", experience: 9, status: "Active" },
+        { id: `teacher-${Math.random()}`, name: "Mr. Arumugam T.", subject: "Physics", school: "GHSS Ganapathy", block: "CBE South", experience: 7, status: "Active" },
+        { id: `teacher-${Math.random()}`, name: "Mrs. Selvi M.", subject: "Chemistry", school: "GHS RS Puram", block: "CBE South", experience: 9, status: "Active" },
       ]);
       setIsUploading(false);
       setIsModalOpen(false);
@@ -48,7 +75,7 @@ export default function TeacherAnalyticsPage() {
   ];
 
   return (
-    <PortalLayout title="Teacher Analytics" subtitle="DEO Officer · Coimbatore District" avatarLetter="D" avatarColor="#ec4899" themeClass="theme-deo" accentColor="#ec4899">
+    <PortalLayout title="Teacher Analytics" subtitle={`DEO Officer · ${district} District`} avatarLetter="D" avatarColor="#ec4899" themeClass="theme-deo" accentColor="#ec4899">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Teachers", value: teachers.length.toString(), icon: "👩‍🏫", color: "text-pink-400" },
@@ -74,16 +101,31 @@ export default function TeacherAnalyticsPage() {
           <table className="data-table">
             <thead><tr><th>Name</th><th>Subject</th><th>School</th><th>Block</th><th>Exp (Yrs)</th><th>Status</th></tr></thead>
             <tbody>
-              {teachers.map(t => (
-                <tr key={t.id}>
-                  <td className="font-bold text-white text-xs">{t.name}</td>
-                  <td className="text-xs text-pink-400">{t.subject}</td>
-                  <td className="text-xs text-slate-400">{t.school}</td>
-                  <td className="text-xs">{t.block}</td>
-                  <td>{t.experience} yrs</td>
-                  <td><span className={`badge ${t.status === "Active" ? "badge-green" : t.status === "On Leave" ? "badge-yellow" : "badge-blue"}`}>{t.status}</span></td>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8">
+                    <div className="w-6 h-6 border-2 border-pink-500/20 border-t-pink-500 rounded-full animate-spin mx-auto mb-2" />
+                    <span className="text-xs text-slate-500">Loading roster...</span>
+                  </td>
                 </tr>
-              ))}
+              ) : teachers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8 text-xs text-slate-500">
+                    No teachers registered in this district.
+                  </td>
+                </tr>
+              ) : (
+                teachers.map(t => (
+                  <tr key={t.id}>
+                    <td className="font-bold text-white text-xs">{t.name}</td>
+                    <td className="text-xs text-pink-400">{t.subject}</td>
+                    <td className="text-xs text-slate-400">{t.school}</td>
+                    <td className="text-xs">{t.block}</td>
+                    <td>{t.experience} yrs</td>
+                    <td><span className={`badge ${t.status === "Active" ? "badge-green" : t.status === "On Leave" ? "badge-yellow" : "badge-blue"}`}>{t.status}</span></td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

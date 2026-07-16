@@ -1,59 +1,173 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 
-interface Grievance { id: number; petitioner: string; school: string; block: string; category: string; filed: string; status: string; }
+interface Grievance { id: string; petitioner: string; school: string; block: string; category: string; filed: string; status: string; }
 
-const initialGrievances: Grievance[] = [
-  { id: 1, petitioner: "Mr. Suresh P. (Parent)", school: "GHS Coimbatore", block: "CBE South", category: "Scholarship Delay", filed: "2024-10-02", status: "Resolved" },
-  { id: 2, petitioner: "Mrs. Lakshmi K. (Teacher)", school: "GHS Annur", block: "Annur", category: "Transfer Issue", filed: "2024-10-15", status: "Under Review" },
-  { id: 3, petitioner: "Mr. Rajan M. (Parent)", school: "GHS Mettupalayam", block: "Mettupalayam", category: "Infrastructure Complaint", filed: "2024-10-22", status: "Pending" },
-  { id: 4, petitioner: "Mrs. Kavitha S. (Student)", school: "GHSS Ganapathy", block: "CBE South", category: "Exam Results Issue", filed: "2024-11-01", status: "Resolved" },
-  { id: 5, petitioner: "Mr. Murugan T. (Parent)", school: "GHS Pollachi", block: "Pollachi", category: "Fee Irregularity", filed: "2024-11-05", status: "Pending" },
-];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+const parsePetitioner = (str: string) => {
+  const match = str.match(/^(.*?)\s*\((.*?),\s*(.*?)\)$/);
+  if (match) {
+    return { name: match[1], school: match[2], block: match[3] };
+  }
+  return { name: str, school: "District School", block: "District Block" };
+};
 
 export default function DEOGrievancesPage() {
-  const [grievances, setGrievances] = useState<Grievance[]>(initialGrievances);
+  const { data: session } = useSession();
+  const district = (session?.user as any)?.district || "Coimbatore";
+
+  const [grievances, setGrievances] = useState<Grievance[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState({ petitioner: "", school: "", block: "", category: "Scholarship Delay", filed: "", status: "Pending" });
 
-  const handleResolve = (id: number) => {
-    setGrievances(p => p.map(g => g.id === id ? { ...g, status: "Resolved" } : g));
-    setToast("✅ Grievance marked as resolved.");
-    setTimeout(() => setToast(null), 3000);
+  const fetchGrievances = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/deo/grievances?district=${encodeURIComponent(district)}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const formatted = json.data.map((g: any) => {
+          const parsed = parsePetitioner(g.petitioner);
+          return {
+            id: g.id,
+            petitioner: parsed.name,
+            school: parsed.school,
+            block: parsed.block,
+            category: g.category,
+            filed: g.filed,
+            status: g.status
+          };
+        });
+        setGrievances(formatted);
+      }
+    } catch (e) {
+      console.error("Error loading grievances:", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchGrievances();
+  }, [session, district]);
+
+  const handleResolve = async (id: string) => {
+    try {
+      // Simulate resolving via API update
+      const res = await fetch(`${API_URL}/api/deo/grievances`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Simple update trigger: we reuse POST but pass status resolved to update state
+        body: JSON.stringify({ petitioner: "Update", district, id, status: "Resolved" })
+      });
+      setGrievances(p => p.map(g => g.id === id ? { ...g, status: "Resolved" } : g));
+      setToast("✅ Grievance marked as resolved.");
+      setTimeout(() => setToast(null), 3000);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setGrievances(p => [...p, { ...form, id: p.length + 1 }]);
-    setIsModalOpen(false);
-    setToast(`⚖️ Grievance from '${form.petitioner}' logged for review.`);
-    setTimeout(() => setToast(null), 4000);
+    try {
+      const dbPetitioner = `${form.petitioner} (${form.school || "District School"}, ${form.block || "District Block"})`;
+      const res = await fetch(`${API_URL}/api/deo/grievances`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          petitioner: dbPetitioner,
+          district,
+          category: form.category,
+          filed: form.filed || new Date().toISOString().split("T")[0],
+          status: "Pending"
+        })
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const parsed = parsePetitioner(json.data.petitioner);
+        const newGrievance = {
+          id: json.data.id,
+          petitioner: parsed.name,
+          school: parsed.school,
+          block: parsed.block,
+          category: json.data.category,
+          filed: json.data.filed,
+          status: json.data.status
+        };
+        setGrievances(p => [newGrievance, ...p]);
+        setIsModalOpen(false);
+        setToast(`⚖️ Grievance from '${form.petitioner}' logged for review.`);
+        setTimeout(() => setToast(null), 4000);
+      }
+    } catch (err) {
+      console.error("Error creating grievance:", err);
+    }
   };
 
   const simulateExcel = () => {
     setIsUploading(true);
-    setTimeout(() => {
-      setGrievances(p => [...p,
-        { id: p.length + 1, petitioner: "Mr. Arjun V. (Parent)", school: "GHS Singanallur", block: "CBE North", category: "Mid-Day Meal Complaint", filed: "2024-11-08", status: "Pending" },
-      ]);
-      setIsUploading(false);
-      setIsModalOpen(false);
-      setToast("📊 Grievance register imported! 1 new record added.");
-      setTimeout(() => setToast(null), 4000);
+    setTimeout(async () => {
+      try {
+        const mockUpload = {
+          petitioner: "Mr. Arjun V. (Parent)",
+          school: "GHS Singanallur",
+          block: "CBE North",
+          category: "Mid-Day Meal Complaint",
+          filed: "2024-11-08",
+          status: "Pending"
+        };
+        const dbPetitioner = `${mockUpload.petitioner} (${mockUpload.school}, ${mockUpload.block})`;
+        const res = await fetch(`${API_URL}/api/deo/grievances`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            petitioner: dbPetitioner,
+            district,
+            category: mockUpload.category,
+            filed: mockUpload.filed,
+            status: mockUpload.status
+          })
+        });
+        const json = await res.json();
+        if (json.success && json.data) {
+          const parsed = parsePetitioner(json.data.petitioner);
+          const newGrievance = {
+            id: json.data.id,
+            petitioner: parsed.name,
+            school: parsed.school,
+            block: parsed.block,
+            category: json.data.category,
+            filed: json.data.filed,
+            status: json.data.status
+          };
+          setGrievances(p => [newGrievance, ...p]);
+          setToast("📊 Grievance register imported! 1 new record added.");
+          setTimeout(() => setToast(null), 4000);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsUploading(false);
+        setIsModalOpen(false);
+      }
     }, 1500);
   };
 
   return (
-    <PortalLayout title="Grievances" subtitle="DEO Officer · Coimbatore District" avatarLetter="D" avatarColor="#ec4899" themeClass="theme-deo" accentColor="#ec4899">
+    <PortalLayout title="Grievances" subtitle={`DEO Officer · ${district} District`} avatarLetter="D" avatarColor="#ec4899" themeClass="theme-deo" accentColor="#ec4899">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Grievances", value: grievances.length.toString(), icon: "⚖️", color: "text-pink-400" },
           { label: "Resolved", value: grievances.filter(g => g.status === "Resolved").length.toString(), icon: "✅", color: "text-emerald-400" },
-          { label: "Pending", value: grievances.filter(g => g.status === "Pending").length.toString(), icon: "⏳", color: "text-red-400" },
-          { label: "Under Review", value: grievances.filter(g => g.status === "Under Review").length.toString(), icon: "🔍", color: "text-amber-400" },
+          { label: "Pending", value: grievances.filter(g => g.status === "Pending" || g.status === "Intervention Pending").length.toString(), icon: "⏳", color: "text-red-400" },
+          { label: "Under Review", value: grievances.filter(g => g.status === "Under Review" || g.status === "Counselled").length.toString(), icon: "🔍", color: "text-amber-400" },
         ].map(k => (
           <div key={k.label} className="kpi-card">
             <div className="text-2xl mb-2">{k.icon}</div>
@@ -72,21 +186,36 @@ export default function DEOGrievancesPage() {
         <table className="data-table">
           <thead><tr><th>Petitioner</th><th>School</th><th>Block</th><th>Category</th><th>Filed</th><th>Status</th><th>Action</th></tr></thead>
           <tbody>
-            {grievances.map(g => (
-              <tr key={g.id}>
-                <td className="font-bold text-white text-xs">{g.petitioner}</td>
-                <td className="text-xs text-slate-400">{g.school}</td>
-                <td className="text-xs">{g.block}</td>
-                <td className="text-xs text-pink-400">{g.category}</td>
-                <td className="text-xs text-slate-500">{g.filed}</td>
-                <td><span className={`badge ${g.status === "Resolved" ? "badge-green" : g.status === "Pending" ? "badge-red" : "badge-yellow"}`}>{g.status}</span></td>
-                <td>
-                  {g.status !== "Resolved" && (
-                    <button onClick={() => handleResolve(g.id)} className="text-xs text-emerald-400 hover:text-emerald-300 font-bold">Resolve</button>
-                  )}
+            {loading ? (
+              <tr>
+                <td colSpan={7} className="text-center py-8">
+                  <div className="w-6 h-6 border-2 border-pink-500/20 border-t-pink-500 rounded-full animate-spin mx-auto mb-2" />
+                  <span className="text-xs text-slate-500">Loading grievances...</span>
                 </td>
               </tr>
-            ))}
+            ) : grievances.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="text-center py-8 text-xs text-slate-500">
+                  No grievances logged for this district.
+                </td>
+              </tr>
+            ) : (
+              grievances.map(g => (
+                <tr key={g.id}>
+                  <td className="font-bold text-white text-xs">{g.petitioner}</td>
+                  <td className="text-xs text-slate-400">{g.school}</td>
+                  <td className="text-xs">{g.block}</td>
+                  <td className="text-xs text-pink-400">{g.category}</td>
+                  <td className="text-xs text-slate-500">{g.filed}</td>
+                  <td><span className={`badge ${g.status === "Resolved" ? "badge-green" : g.status === "Pending" || g.status === "Intervention Pending" ? "badge-red" : "badge-yellow"}`}>{g.status}</span></td>
+                  <td>
+                    {g.status !== "Resolved" && (
+                      <button onClick={() => handleResolve(g.id)} className="text-xs text-emerald-400 hover:text-emerald-300 font-bold">Resolve</button>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

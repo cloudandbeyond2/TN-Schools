@@ -1,27 +1,53 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 
-interface ScholarshipRecord { id: number; studentName: string; school: string; block: string; scheme: string; amount: string; status: string; }
+interface ScholarshipRecord { id: string; studentName: string; school: string; block: string; scheme: string; amount: string; status: string; }
 
-const initialRecords: ScholarshipRecord[] = [
-  { id: 1, studentName: "Priya R.", school: "GHS Coimbatore", block: "CBE South", scheme: "SC/ST Pre-Matric", amount: "₹6,000", status: "Disbursed" },
-  { id: 2, studentName: "Deepa M.", school: "GHS Singanallur", block: "CBE North", scheme: "OBC Post-Matric", amount: "₹12,000", status: "Pending" },
-  { id: 3, studentName: "Arun K.", school: "GHS Pollachi", block: "Pollachi", scheme: "Merit Scholarship", amount: "₹15,000", status: "Disbursed" },
-  { id: 4, studentName: "Meena S.", school: "GHS Annur", block: "Annur", scheme: "First Generation", amount: "₹8,000", status: "Under Review" },
-  { id: 5, studentName: "Kumar P.", school: "GHS Mettupalayam", block: "Mettupalayam", scheme: "SC/ST Pre-Matric", amount: "₹6,000", status: "Disbursed" },
-];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function ScholarshipTrackingPage() {
-  const [records, setRecords] = useState<ScholarshipRecord[]>(initialRecords);
+  const { data: session } = useSession();
+  const district = (session?.user as any)?.district || "Coimbatore";
+
+  const [records, setRecords] = useState<ScholarshipRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState({ studentName: "", school: "", block: "", scheme: "SC/ST Pre-Matric", amount: "₹6,000", status: "Pending" });
 
+  const fetchScholarships = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/deo/scholarships?district=${encodeURIComponent(district)}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setRecords(json.data);
+      }
+    } catch (e) {
+      console.error("Error loading scholarships:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchScholarships();
+  }, [session, district]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setRecords(p => [...p, { ...form, id: p.length + 1 }]);
+    setRecords(p => [{
+      id: `schol-${Math.random()}`,
+      studentName: form.studentName,
+      school: form.school,
+      block: form.block,
+      scheme: form.scheme,
+      amount: form.amount,
+      status: form.status
+    }, ...p]);
     setIsModalOpen(false);
     setToast(`🎓 Scholarship record for '${form.studentName}' added to district tracker.`);
     setTimeout(() => setToast(null), 4000);
@@ -30,9 +56,10 @@ export default function ScholarshipTrackingPage() {
   const simulateExcel = () => {
     setIsUploading(true);
     setTimeout(() => {
-      setRecords(p => [...p,
-        { id: p.length + 1, studentName: "Divya K.", school: "GHSS Ganapathy", block: "CBE South", scheme: "OBC Post-Matric", amount: "₹12,000", status: "Pending" },
-        { id: p.length + 2, studentName: "Siva T.", school: "GHS RS Puram", block: "CBE South", scheme: "Merit Scholarship", amount: "₹15,000", status: "Disbursed" },
+      setRecords(p => [
+        { id: `schol-${Math.random()}`, studentName: "Divya K.", school: "GHSS Ganapathy", block: "CBE South", scheme: "OBC Post-Matric", amount: "₹12,000", status: "Pending" },
+        { id: `schol-${Math.random()}`, studentName: "Siva T.", school: "GHS RS Puram", block: "CBE South", scheme: "Merit Scholarship", amount: "₹15,000", status: "Disbursed" },
+        ...p
       ]);
       setIsUploading(false);
       setIsModalOpen(false);
@@ -42,13 +69,13 @@ export default function ScholarshipTrackingPage() {
   };
 
   return (
-    <PortalLayout title="Scholarship Tracking" subtitle="DEO Officer · Coimbatore District" avatarLetter="D" avatarColor="#ec4899" themeClass="theme-deo" accentColor="#ec4899">
+    <PortalLayout title="Scholarship Tracking" subtitle={`DEO Officer · ${district} District`} avatarLetter="D" avatarColor="#ec4899" themeClass="theme-deo" accentColor="#ec4899">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Scholarships", value: records.length.toString(), icon: "🎓", color: "text-pink-400" },
-          { label: "Disbursed", value: records.filter(r => r.status === "Disbursed").length.toString(), icon: "✅", color: "text-emerald-400" },
-          { label: "Pending", value: records.filter(r => r.status === "Pending").length.toString(), icon: "⏳", color: "text-amber-400" },
-          { label: "Under Review", value: records.filter(r => r.status === "Under Review").length.toString(), icon: "🔍", color: "text-blue-400" },
+          { label: "Disbursed", value: records.filter(r => r.status === "Disbursed" || r.status === "Re-enrolled").length.toString(), icon: "✅", color: "text-emerald-400" },
+          { label: "Pending", value: records.filter(r => r.status === "Pending" || r.status === "Intervention Pending").length.toString(), icon: "⏳", color: "text-amber-400" },
+          { label: "Under Review", value: records.filter(r => r.status === "Under Review" || r.status === "Counselled").length.toString(), icon: "🔍", color: "text-blue-400" },
         ].map(k => (
           <div key={k.label} className="kpi-card">
             <div className="text-2xl mb-2">{k.icon}</div>
@@ -67,16 +94,31 @@ export default function ScholarshipTrackingPage() {
         <table className="data-table">
           <thead><tr><th>Student</th><th>School</th><th>Block</th><th>Scheme</th><th>Amount</th><th>Status</th></tr></thead>
           <tbody>
-            {records.map(r => (
-              <tr key={r.id}>
-                <td className="font-bold text-white text-xs">{r.studentName}</td>
-                <td className="text-xs text-slate-400">{r.school}</td>
-                <td className="text-xs">{r.block}</td>
-                <td className="text-xs text-pink-400">{r.scheme}</td>
-                <td className="text-emerald-400 font-bold text-xs">{r.amount}</td>
-                <td><span className={`badge ${r.status === "Disbursed" ? "badge-green" : r.status === "Pending" ? "badge-yellow" : "badge-blue"}`}>{r.status}</span></td>
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8">
+                  <div className="w-6 h-6 border-2 border-pink-500/20 border-t-pink-500 rounded-full animate-spin mx-auto mb-2" />
+                  <span className="text-xs text-slate-500">Loading scholarships...</span>
+                </td>
               </tr>
-            ))}
+            ) : records.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8 text-xs text-slate-500">
+                  No scholarship transactions registered in this district.
+                </td>
+              </tr>
+            ) : (
+              records.map(r => (
+                <tr key={r.id}>
+                  <td className="font-bold text-white text-xs">{r.studentName}</td>
+                  <td className="text-xs text-slate-400">{r.school}</td>
+                  <td className="text-xs">{r.block}</td>
+                  <td className="text-xs text-pink-400">{r.scheme}</td>
+                  <td className="text-emerald-400 font-bold text-xs">{r.amount}</td>
+                  <td><span className={`badge ${r.status === "Disbursed" || r.status === "Re-enrolled" ? "badge-green" : r.status === "Pending" || r.status === "Intervention Pending" ? "badge-yellow" : "badge-blue"}`}>{r.status}</span></td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

@@ -1,47 +1,127 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 
-interface InfraItem { id: number; school: string; block: string; type: string; status: string; priority: string; budget: string; year: string; }
+interface InfraItem { id: string; school: string; block: string; type: string; status: string; priority: string; budget: string; year: string; }
 
-const initialItems: InfraItem[] = [
-  { id: 1, school: "GHS Annur", block: "Annur", type: "Toilet Block Repair", status: "In Progress", priority: "High", budget: "₹4.5L", year: "2024" },
-  { id: 2, school: "GHS Mettupalayam", block: "Mettupalayam", type: "Classroom Addition (2 rooms)", status: "Tendered", priority: "High", budget: "₹12L", year: "2024" },
-  { id: 3, school: "GHS Pollachi", block: "Pollachi", type: "Library Renovation", status: "Completed", priority: "Medium", budget: "₹6L", year: "2023" },
-  { id: 4, school: "GHSS Ganapathy", block: "CBE South", type: "Solar Panel Install", status: "Planned", priority: "Low", budget: "₹8L", year: "2025" },
-  { id: 5, school: "GHS Singanallur", block: "CBE North", type: "Boundary Wall", status: "Completed", priority: "Medium", budget: "₹5L", year: "2023" },
-];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function DEOInfrastructurePage() {
-  const [items, setItems] = useState<InfraItem[]>(initialItems);
+  const { data: session } = useSession();
+  const district = (session?.user as any)?.district || "Coimbatore";
+
+  const [items, setItems] = useState<InfraItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState({ school: "", block: "", type: "", status: "Planned", priority: "Medium", budget: "₹5L", year: "2025" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchProjects = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/deo/infrastructure?district=${encodeURIComponent(district)}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const formatted = json.data.map((p: any) => ({
+          id: p.id,
+          school: p.name,
+          block: p.block || "Coimbatore Block",
+          type: p.type,
+          status: p.status,
+          priority: p.priority || "Medium",
+          budget: p.budget,
+          year: p.deadline
+        }));
+        setItems(formatted);
+      }
+    } catch (e) {
+      console.error("Error loading infrastructure projects:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, [session, district]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setItems(p => [...p, { ...form, id: p.length + 1 }]);
-    setIsModalOpen(false);
-    setToast(`🏗️ Infrastructure project for '${form.school}' logged.`);
-    setTimeout(() => setToast(null), 4000);
+    try {
+      const res = await fetch(`${API_URL}/api/deo/infrastructure`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, district })
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const newProj = {
+          id: json.data.id,
+          school: json.data.name,
+          block: json.data.block || form.block || "Coimbatore Block",
+          type: json.data.type,
+          status: json.data.status,
+          priority: json.data.priority || form.priority,
+          budget: json.data.budget,
+          year: json.data.deadline
+        };
+        setItems(p => [newProj, ...p]);
+        setIsModalOpen(false);
+        setToast(`🏗️ Infrastructure project for '${form.school}' logged successfully.`);
+        setTimeout(() => setToast(null), 4000);
+      }
+    } catch (err) {
+      console.error("Error creating project:", err);
+    }
   };
 
   const simulateExcel = () => {
     setIsUploading(true);
-    setTimeout(() => {
-      setItems(p => [...p,
-        { id: p.length + 1, school: "GHS Vadavalli", block: "CBE South", type: "Lab Renovation", status: "Tendered", priority: "Medium", budget: "₹7L", year: "2025" },
-      ]);
-      setIsUploading(false);
-      setIsModalOpen(false);
-      setToast("📊 Infrastructure project list imported! 1 new project added.");
-      setTimeout(() => setToast(null), 4000);
+    setTimeout(async () => {
+      try {
+        const mockUpload = {
+          school: "GHS Vadavalli",
+          block: "CBE South",
+          type: "Lab Renovation",
+          status: "Tendered",
+          priority: "Medium",
+          budget: "₹7L",
+          deadline: "2025"
+        };
+        const res = await fetch(`${API_URL}/api/deo/infrastructure`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...mockUpload, district })
+        });
+        const json = await res.json();
+        if (json.success && json.data) {
+          const newProj = {
+            id: json.data.id,
+            school: json.data.name,
+            block: json.data.block || mockUpload.block,
+            type: json.data.type,
+            status: json.data.status,
+            priority: json.data.priority || mockUpload.priority,
+            budget: json.data.budget,
+            year: json.data.deadline
+          };
+          setItems(p => [newProj, ...p]);
+          setToast("📊 Infrastructure project list imported! 1 new project added.");
+          setTimeout(() => setToast(null), 4000);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsUploading(false);
+        setIsModalOpen(false);
+      }
     }, 1500);
   };
 
   return (
-    <PortalLayout title="Infrastructure" subtitle="DEO Officer · Coimbatore District" avatarLetter="D" avatarColor="#ec4899" themeClass="theme-deo" accentColor="#ec4899">
+    <PortalLayout title="Infrastructure" subtitle={`DEO Officer · ${district} District`} avatarLetter="D" avatarColor="#ec4899" themeClass="theme-deo" accentColor="#ec4899">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Projects", value: items.length.toString(), icon: "🏗️", color: "text-pink-400" },
@@ -66,16 +146,31 @@ export default function DEOInfrastructurePage() {
         <table className="data-table">
           <thead><tr><th>School</th><th>Block</th><th>Project Type</th><th>Budget</th><th>Priority</th><th>Status</th></tr></thead>
           <tbody>
-            {items.map(i => (
-              <tr key={i.id}>
-                <td className="font-bold text-white text-xs">{i.school}</td>
-                <td className="text-xs text-slate-400">{i.block}</td>
-                <td className="text-xs text-pink-400">{i.type}</td>
-                <td className="text-emerald-400 font-bold text-xs">{i.budget}</td>
-                <td><span className={`badge ${i.priority === "High" ? "badge-red" : i.priority === "Medium" ? "badge-yellow" : "badge-green"}`}>{i.priority}</span></td>
-                <td><span className={`badge ${i.status === "Completed" ? "badge-green" : i.status === "In Progress" ? "badge-blue" : i.status === "Tendered" ? "badge-yellow" : "badge-red"}`}>{i.status}</span></td>
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8">
+                  <div className="w-6 h-6 border-2 border-pink-500/20 border-t-pink-500 rounded-full animate-spin mx-auto mb-2" />
+                  <span className="text-xs text-slate-500">Loading projects...</span>
+                </td>
               </tr>
-            ))}
+            ) : items.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8 text-xs text-slate-500">
+                  No infrastructure projects logged for this district.
+                </td>
+              </tr>
+            ) : (
+              items.map(i => (
+                <tr key={i.id}>
+                  <td className="font-bold text-white text-xs">{i.school}</td>
+                  <td className="text-xs text-slate-400">{i.block}</td>
+                  <td className="text-xs text-pink-400">{i.type}</td>
+                  <td className="text-emerald-400 font-bold text-xs">{i.budget}</td>
+                  <td><span className={`badge ${i.priority === "High" ? "badge-red" : i.priority === "Medium" ? "badge-yellow" : "badge-green"}`}>{i.priority}</span></td>
+                  <td><span className={`badge ${i.status === "Completed" ? "badge-green" : i.status === "In Progress" ? "badge-blue" : i.status === "Tendered" ? "badge-yellow" : "badge-red"}`}>{i.status}</span></td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
