@@ -1012,27 +1012,38 @@ router.get('/teachers', async (req: Request, res: Response) => {
     if (!schoolId) {
       return res.status(400).json({ success: false, error: 'schoolId is required' });
     }
-    const ptStaff = await prisma.headmasterStaff.findMany({
-      where: {
-        schoolId: String(schoolId),
-        OR: [
-          { subject: { contains: 'Physical', mode: 'insensitive' } },
-          { subject: { contains: 'PT', mode: 'insensitive' } },
-          { subject: { contains: 'PE', mode: 'insensitive' } },
-          { subject: { contains: 'Sports', mode: 'insensitive' } }
-        ]
-      }
+
+    // 1. Fetch subject teachers
+    const schoolTeachers = await prisma.teacher.findMany({
+      where: { schoolId: String(schoolId) },
+      include: { user: { select: { name: true, email: true } } }
     });
 
-    const mappedStaff = ptStaff.map(s => ({
-      id: s.id,
+    // 2. Fetch staff members
+    const staff = await prisma.headmasterStaff.findMany({
+      where: { schoolId: String(schoolId) }
+    });
+
+    const mappedTeachers = schoolTeachers.map(t => ({
+      id: t.id,
       user: {
-        name: s.name,
-        email: s.email
+        name: t.user?.name || 'Unknown Teacher',
+        email: t.user?.email || null,
+        subject: t.subjects && t.subjects.length > 0 ? t.subjects.join(', ') : 'Subject Teacher'
       }
     }));
 
-    res.json({ success: true, data: mappedStaff });
+    const mappedStaff = staff.map(s => ({
+      id: s.id,
+      user: {
+        name: s.name,
+        email: s.email,
+        subject: s.subject || 'Staff Member'
+      }
+    }));
+
+    const allTeachers = [...mappedTeachers, ...mappedStaff];
+    res.json({ success: true, data: allTeachers });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
