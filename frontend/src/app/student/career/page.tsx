@@ -435,8 +435,8 @@ export default function CareerGuidancePage() {
     studentClass >= 11
       ? lang === "EN" ? `Class ${studentClass} — Higher Secondary Stream Subjects` : `${studentClass}ஆம் வகுப்பு — மேல்நிலைப் பாடங்கள்`
       : studentClass >= 9
-      ? lang === "EN" ? `Class ${studentClass} — SSLC Subjects` : `${studentClass}ஆம் வகுப்பு — SSLC பாடங்கள்`
-      : lang === "EN" ? `Class ${studentClass} — Core Subjects` : `${studentClass}ஆம் வகுப்பு — அடிப்படைப் பாடங்கள்`;
+        ? lang === "EN" ? `Class ${studentClass} — SSLC Subjects` : `${studentClass}ஆம் வகுப்பு — SSLC பாடங்கள்`
+        : lang === "EN" ? `Class ${studentClass} — Core Subjects` : `${studentClass}ஆம் வகுப்பு — அடிப்படைப் பாடங்கள்`;
 
 
   // ── Assessment state ───────────────────────────────────────────────────────
@@ -543,8 +543,8 @@ export default function CareerGuidancePage() {
   // Match score color
   const scoreColor = (s: number) =>
     s >= 90 ? "from-emerald-500 to-green-600" :
-    s >= 75 ? "from-blue-500 to-indigo-600" :
-    "from-amber-500 to-orange-500";
+      s >= 75 ? "from-blue-500 to-indigo-600" :
+        "from-amber-500 to-orange-500";
 
   return (
     <PortalLayout
@@ -579,19 +579,19 @@ export default function CareerGuidancePage() {
             <span className="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider mb-3">
               🎯 {lang === "EN" ? `Class ${studentClass} Career Guidance` : `${studentClass}ஆம் வகுப்பு தொழில் வழிகாட்டி`}
             </span>
-            <h2 className="text-3xl font-black text-white mb-2">
+            <p className="text-3xl font-black !text-white mb-2">
               {lang === "EN"
                 ? `Hello ${studentName}! What will you become?`
                 : `வணக்கம் ${studentName}! நீங்கள் என்னவாக விரும்புகிறீர்கள்?`}
-            </h2>
-            <p className="text-white/85 text-sm font-medium leading-relaxed">
+            </p>
+            <p className="!text-white/85 text-sm font-medium leading-relaxed">
               {lang === "EN"
                 ? "Explore careers, take our AI Aptitude Assessment, browse entrance exams and top Tamil Nadu colleges."
                 : "பல்வேறு தொழில்களை ஆராயுங்கள், AI திறன் மதிப்பீட்டை மேற்கொள்ளுங்கள், நுழைவுத் தேர்வுகள் மற்றும் சிறந்த கல்லூரிகளைப் பாருங்கள்."}
             </p>
             <div className="flex flex-wrap gap-2 mt-4">
               {["🩺 Medical | மருத்துவம்", "⚙️ Engineering | பொறியியல்", "💻 Technology | தொழில்நுட்பம்", "🏛️ Civil Services | குடிமைப்பணி", "⚖️ Law | சட்டம்"].map(tag => (
-                <span key={tag} className="bg-white/15 text-white text-[11px] font-bold px-3 py-1 rounded-full">{t(tag)}</span>
+                <p key={tag} className="bg-white/15 !text-white text-[11px] font-bold px-3 py-1 rounded-full">{t(tag)}</p>
               ))}
             </div>
           </div>

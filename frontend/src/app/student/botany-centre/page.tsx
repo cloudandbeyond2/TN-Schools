@@ -72,8 +72,8 @@ export default function BotanyCentrePage() {
   }
 
   return (
-    <PortalLayout 
-      title={lang === "EN" ? "Botany Centre 🌿" : "தாவரவியல் மையம் 🌿"} 
+    <PortalLayout
+      title={lang === "EN" ? "Botany Centre 🌿" : "தாவரவியல் மையம் 🌿"}
       subtitle={lang === "EN" ? "The plant world — mapped to your class syllabus" : "தாவர உலகம் - உங்கள் வகுப்புப் பாடத்திட்டத்துடன் இணைக்கப்பட்டுள்ளது"}
     >
       <div className="flex flex-col gap-6 text-left">
@@ -100,8 +100,8 @@ export default function BotanyCentrePage() {
           <div className="p-2.5 bg-lime-100 text-lime-600 rounded-2xl"><Leaf className="w-6 h-6" /></div>
           <div>
             <p className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-              {detected 
-                ? (lang === "EN" ? "Your class" : "உங்களது வகுப்பு") 
+              {detected
+                ? (lang === "EN" ? "Your class" : "உங்களது வகுப்பு")
                 : (lang === "EN" ? "Choose your class" : "வகுப்பைத் தேர்ந்தெடுக்கவும்")}
             </p>
             <div className="flex items-center gap-2 mt-1">
@@ -123,8 +123,8 @@ export default function BotanyCentrePage() {
             <span className="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider mb-3">
               <Sparkles className="w-3.5 h-3.5" /> {t(data.label)} · {data.medium === "Tamil" ? (lang === "EN" ? "Tamil" : "தமிழ்") : (lang === "EN" ? "English" : "ஆங்கிலம்")} {lang === "EN" ? "medium" : "வழி"}
             </span>
-            <h2 className="text-2xl font-black mb-2">{t(data.book)}</h2>
-            <p className="text-lime-50/90 text-sm font-medium leading-relaxed">{t(data.intro)}</p>
+            <p className="text-2xl font-black mb-2" style={{ color: "#fff" }}>{t(data.book)}</p>
+            <p className="!text-lime-50/90 text-sm font-medium leading-relaxed">{t(data.intro)}</p>
           </div>
         </div>
 
@@ -192,7 +192,7 @@ function BotanyStudy({ lang, unit, onClose }: { lang: "EN" | "TA"; unit: BotanyU
         <div className="p-7 flex flex-col gap-6 text-left">
           <section>
             <h4 className="flex items-center gap-2 text-sm font-black text-slate-800 dark:text-slate-100 mb-3">
-              <Target className={`w-4 h-4 ${s.text}`} /> 
+              <Target className={`w-4 h-4 ${s.text}`} />
               {lang === "EN" ? "What you'll be able to do" : "உங்களால் என்ன செய்ய முடியும் (கற்றல் விளைவுகள்)"}
             </h4>
             <ul className="space-y-2">
@@ -209,9 +209,9 @@ function BotanyStudy({ lang, unit, onClose }: { lang: "EN" | "TA"; unit: BotanyU
               {unit.figure.src
                 ? <img src={unit.figure.src} alt={t(unit.figure.caption)} className="w-full max-h-96 object-contain bg-white" />
                 : <div className="flex flex-col items-center justify-center py-10 text-slate-400">
-                    <Microscope className="w-10 h-10 mb-2" />
-                    <span className="text-xs font-bold">{lang === "EN" ? `Diagram in textbook ${unit.figure.page}` : `பாடப்புத்தகம் பக்கம் ${unit.figure.page}-ல் உள்ள வரைபடம்`}</span>
-                  </div>}
+                  <Microscope className="w-10 h-10 mb-2" />
+                  <span className="text-xs font-bold">{lang === "EN" ? `Diagram in textbook ${unit.figure.page}` : `பாடப்புத்தகம் பக்கம் ${unit.figure.page}-ல் உள்ள வரைபடம்`}</span>
+                </div>}
               <figcaption className="px-4 py-2.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 border-t-2 border-slate-100 dark:border-slate-700">{t(unit.figure.caption)}</figcaption>
             </figure>
           )}
@@ -272,8 +272,8 @@ function BotanyStudy({ lang, unit, onClose }: { lang: "EN" | "TA"; unit: BotanyU
                         const correct = oi === quiz.answer;
                         const st = !answered ? "bg-white dark:bg-slate-800 text-slate-600 border-slate-200 hover:border-slate-400"
                           : correct ? "bg-emerald-500 text-white border-emerald-500"
-                          : oi === chosen ? "bg-rose-500 text-white border-rose-500"
-                          : "bg-white dark:bg-slate-800 text-slate-400 border-slate-200";
+                            : oi === chosen ? "bg-rose-500 text-white border-rose-500"
+                              : "bg-white dark:bg-slate-800 text-slate-400 border-slate-200";
                         return (
                           <button
                             key={oi}

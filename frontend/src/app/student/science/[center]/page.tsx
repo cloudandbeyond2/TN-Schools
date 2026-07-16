@@ -330,8 +330,10 @@ export default function ScienceCenterPage() {
               <span className="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider mb-2">
                 <Sparkles className="w-3.5 h-3.5" /> {lang === "EN" ? `Class ${studentClass} · ${totalItems} tabs` : `${studentClass}ஆம் வகுப்பு · ${totalItems} தலைப்புகள்`}
               </span>
-              <h2 className="text-2xl md:text-3xl font-black mb-1">{lang === "EN" ? center.title : (center.titleTa || center.title)}</h2>
-              <p className="text-white/85 text-sm font-medium max-w-2xl">
+              <p className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#fff" }}>
+                {lang === "EN" ? center.title : (center.titleTa || center.title)}
+              </p>
+              <p className="!text-white/85 text-sm font-medium max-w-2xl">
                 {lang === "EN" ? center.tagline : (slug === "space" ? "சூரிய குடும்பம் முதல் விண்மீன் திரள்கள் மற்றும் இஸ்ரோ திட்டங்கள் வரை." : center.tagline)}
               </p>
             </div>
