@@ -7,7 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Bell, Calendar, BarChart2, FileText, Users, GraduationCap, Megaphone, 
   RefreshCw, RotateCcw, X, Search, ChevronDown, Check, Trash2, 
-  ArrowUpDown, SlidersHorizontal, Sliders, CheckSquare, Clock, Filter, Eye, AlertCircle
+  ArrowUpDown, SlidersHorizontal, Sliders, CheckSquare, Clock, Filter, Eye, AlertCircle,
+  Trophy
 } from "lucide-react";
 
 interface Child {
@@ -41,6 +42,7 @@ const CATEGORIES = [
   { id: "homework", label: "Homework", icon: FileText, color: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/20" },
   { id: "pta", label: "PTA Meetings", icon: Users, color: "text-rose-500", bg: "bg-rose-500/10", border: "border-rose-500/20" },
   { id: "scholarship", label: "Welfare", icon: GraduationCap, color: "text-purple-500", bg: "bg-purple-500/10", border: "border-purple-500/20" },
+  { id: "sports", label: "Sports & Games", icon: Trophy, color: "text-amber-600", bg: "bg-amber-600/10", border: "border-amber-600/20" },
   { id: "general", label: "Announcements", icon: Megaphone, color: "text-sky-500", bg: "bg-sky-500/10", border: "border-sky-500/20" }
 ];
 
@@ -354,6 +356,7 @@ export default function NotificationsPage() {
     if (f === "HOMEWORK") return t.includes("HOMEWORK");
     if (f === "PTA") return t.includes("PTA");
     if (f === "ATTENDANCE") return t.includes("ATTENDANCE");
+    if (f === "SPORTS") return t.includes("SPORT");
     return t === f;
   }, []);
 
@@ -374,6 +377,9 @@ export default function NotificationsPage() {
     }
     if (t.includes("SCHOLARSHIP") || t.includes("WELFARE") || t.includes("BENEFIT")) {
       return { icon: GraduationCap, color: "text-purple-500", bg: "bg-purple-500/10", border: "border-purple-500/20", label: "Welfare" };
+    }
+    if (t.includes("SPORT")) {
+      return { icon: Trophy, color: "text-amber-600", bg: "bg-amber-600/10", border: "border-amber-600/20", label: "Sports" };
     }
     return { icon: Megaphone, color: "text-slate-500", bg: "bg-slate-500/10", border: "border-slate-500/20", label: "Announcement" };
   };

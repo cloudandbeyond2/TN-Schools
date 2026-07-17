@@ -378,4 +378,52 @@ router.get('/rankings', async (req: Request, res: Response) => {
   }
 });
 
+// ─── 8. DROPOUTS ENDPOINTS ────────────────────────────────────────────
+
+// GET /api/deo/dropouts - Retrieve dropout records
+router.get('/dropouts', async (req: Request, res: Response) => {
+  try {
+    const { district } = req.query;
+    const where: any = {};
+    if (district) {
+      where.district = String(district);
+    }
+    const dropouts = await prisma.dropoutRecord.findMany({
+      where,
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ success: true, data: dropouts });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/deo/dropouts - Log a new dropout record
+router.post('/dropouts', async (req: Request, res: Response) => {
+  try {
+    const { studentName, school, block, class: className, reason, date, status, district } = req.body;
+    if (!studentName || !school || !district) {
+      return res.status(400).json({ success: false, error: 'Student name, school, and district are required.' });
+    }
+
+    const newRecord = await prisma.dropoutRecord.create({
+      data: {
+        studentName,
+        school,
+        block: block || 'Coimbatore Block',
+        class: className || '8th',
+        reason: reason || 'Economic',
+        date: date || new Date().toISOString().split('T')[0],
+        status: status || 'Intervention Pending',
+        district,
+      }
+    });
+
+    res.status(201).json({ success: true, data: newRecord });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
+

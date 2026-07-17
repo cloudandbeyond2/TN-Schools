@@ -61,6 +61,18 @@ export default function DEODashboard() {
           }
         }
 
+        // Fetch actual database dropouts for this district
+        let dropoutRecords: any[] = [];
+        try {
+          const dropRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/deo/dropouts?district=${encodeURIComponent(finalDistrict)}`);
+          const dropJson = await dropRes.json();
+          if (dropJson.success && dropJson.data) {
+            dropoutRecords = dropJson.data;
+          }
+        } catch (e) {
+          console.error("Error loading dropouts on homepage:", e);
+        }
+
         // Group schools into blocks
         const blockNames = Array.from(new Set(schools.map((s: any) => s.block).filter(Boolean))) as string[];
         
@@ -74,7 +86,10 @@ export default function DEODashboard() {
             hash = bname.charCodeAt(i) + ((hash << 5) - hash);
           }
           const attendance = 85 + Math.abs(hash % 11); // 85% to 95%
-          const dropouts = 5 + Math.abs(hash % 21);   // 5 to 25
+          
+          // Seed baseline plus dynamic counts
+          const dbCount = dropoutRecords.filter((r: any) => r.block.toLowerCase().trim() === bname.toLowerCase().trim()).length;
+          const dropouts = 5 + Math.abs(hash % 21) + dbCount;
           
           return {
             block: bname,

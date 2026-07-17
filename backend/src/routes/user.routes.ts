@@ -57,6 +57,11 @@ router.post('/', requireMinRole('BEO'), async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'Invalid role value' });
     }
 
+    // Only a superadmin can create another superadmin
+    if (role === 'SUPERADMIN' && req.user?.role !== 'SUPERADMIN') {
+      return res.status(403).json({ success: false, error: 'Only a superadmin can create superadmin accounts' });
+    }
+
     // Check if email already exists
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -100,6 +105,11 @@ router.put('/:id', requireMinRole('BEO'), async (req: Request, res: Response) =>
     const existingUser = await prisma.user.findUnique({ where: { id } });
     if (!existingUser) {
       return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Only a superadmin can modify a superadmin account
+    if (existingUser.role === 'SUPERADMIN' && req.user?.role !== 'SUPERADMIN') {
+      return res.status(403).json({ success: false, error: 'Only a superadmin can modify superadmin accounts' });
     }
 
     // Check email uniqueness if email is changed
@@ -148,6 +158,11 @@ router.delete('/:id', requireMinRole('BEO'), async (req: Request, res: Response)
     const existingUser = await prisma.user.findUnique({ where: { id } });
     if (!existingUser) {
       return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Only a superadmin can delete a superadmin account
+    if (existingUser.role === 'SUPERADMIN' && req.user?.role !== 'SUPERADMIN') {
+      return res.status(403).json({ success: false, error: 'Only a superadmin can delete superadmin accounts' });
     }
 
     // If the user is a STUDENT, clean up all student-linked records first

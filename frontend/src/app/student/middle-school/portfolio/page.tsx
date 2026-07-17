@@ -223,6 +223,8 @@ export default function MiddleSchoolPortfolio() {
   // School press state
   const [pressPublications, setPressPublications] = useState<any[]>([]);
   const [pressLoading, setPressLoading] = useState(true);
+  const [detailedStudentLoading, setDetailedStudentLoading] = useState(true);
+  const [homeworkLoading, setHomeworkLoading] = useState(true);
 
   const fetchPortfolioDetails = (studentId: string) => {
     setPortfolioLoading(true);
@@ -300,7 +302,7 @@ export default function MiddleSchoolPortfolio() {
                   setTopMarksProjects(topMarks);
                 }
               }
-            }).catch(() => {});
+            }).catch(() => {}).finally(() => setDetailedStudentLoading(false));
 
           // Fetch dynamic portfolio data
           fetchPortfolioDetails(resolved.id);
@@ -331,7 +333,7 @@ export default function MiddleSchoolPortfolio() {
                   }));
                 setHomeworkProjects(topHw);
               }
-            }).catch(() => {});
+            }).catch(() => {}).finally(() => setHomeworkLoading(false));
 
           // Fetch school press publications for this student
           const spUrl = `${API_BASE}/api/teacher/school-press?schoolId=${resolved.schoolId}&class=${resolved.class}&approvedOnly=true`;
@@ -464,6 +466,22 @@ export default function MiddleSchoolPortfolio() {
 
   const totalXP = skillsList.reduce((sum, s) => sum + s.level, 0);
   const calculatedLevel = totalXP > 0 ? Math.floor(totalXP / 30) + 1 : 1;
+
+  const isPageLoading = !student || portfolioLoading || badgesLoading || pressLoading || detailedStudentLoading || homeworkLoading;
+
+  if (isPageLoading) {
+    return (
+      <PortalLayout
+        title="My Fun Portfolio 🎨"
+        subtitle="Loading your awesome work..."
+      >
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <div className="w-16 h-16 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-emerald-600 dark:text-emerald-400 font-bold animate-pulse">Loading portfolio data...</p>
+        </div>
+      </PortalLayout>
+    );
+  }
 
   return (
     <PortalLayout

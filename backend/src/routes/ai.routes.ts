@@ -2,13 +2,12 @@ import { Router, Request, Response } from 'express';
 import { AIChat, Portfolio, LearningPath, Wellness, LibraryCompanion } from '../models/mongo';
 import https from 'https';
 import { authenticate } from '../middleware/auth.middleware';
+import { getGeminiApiKey } from '../services/aiConfig.service';
 
 const router = Router();
 
 // Every AI endpoint proxies to the paid Gemini API — logged-in users only.
 router.use(authenticate);
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // ===========================================================================
 // POST /api/wellness-ai/chat
@@ -165,8 +164,10 @@ function robustParseJSON(text: string): any {
 // Gemini API helper
 // ---------------------------------------------------------------------------
 export async function callGemini(prompt: string, jsonMode: boolean = false, schema?: any, maxTokens: number = 8192, timeoutMs: number = 90000): Promise<any> {
+  // Superadmin-configured key (AI Integration Setup) wins; env var is the fallback.
+  const GEMINI_API_KEY = await getGeminiApiKey();
   if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === '') {
-    throw new Error('GEMINI_API_KEY is missing. Please add it to backend/.env');
+    throw new Error('Gemini API key is missing. Configure it in AI Integration Setup or backend/.env');
   }
 
   // API key goes in a header, not the query string, so it never lands in URL logs

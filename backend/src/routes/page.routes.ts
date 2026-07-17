@@ -1,10 +1,15 @@
 import { Router, Request, Response } from 'express';
 import { ManagedPage } from '../models/mongo';
+import { requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
 
+// GET / stays public (PortalLayout fetches it pre-render); all mutations
+// are superadmin-only.
+const superadminOnly = requireRole(['SUPERADMIN']);
+
 // POST /api/pages/sync — Upsert all portal pages from catalog
-router.post('/sync', async (req: Request, res: Response) => {
+router.post('/sync', superadminOnly, async (req: Request, res: Response) => {
   try {
     const { pages } = req.body;
     if (!Array.isArray(pages) || pages.length === 0) {
@@ -48,7 +53,7 @@ router.post('/sync', async (req: Request, res: Response) => {
 });
 
 // PUT /api/pages/bulk — Bulk enable/disable by portal or ids
-router.put('/bulk', async (req: Request, res: Response) => {
+router.put('/bulk', superadminOnly, async (req: Request, res: Response) => {
   try {
     const { portal, ids, isEnabled } = req.body;
     if (typeof isEnabled !== 'boolean') {
@@ -85,7 +90,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // POST /api/pages — Create dynamic page
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', superadminOnly, async (req: Request, res: Response) => {
   try {
     const { title, route, icon, roles, portal, isEnabled, description } = req.body;
     if (!title || !route || !icon) {
@@ -114,7 +119,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // PUT /api/pages/:id — Update dynamic page
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', superadminOnly, async (req: Request, res: Response) => {
   try {
     const { title, route, icon, roles, portal, isEnabled, description } = req.body;
 
@@ -139,7 +144,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 });
 
 // DELETE /api/pages/:id — Delete dynamic page
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', superadminOnly, async (req: Request, res: Response) => {
   try {
     const page = await ManagedPage.findByIdAndDelete(req.params.id);
     if (!page) {

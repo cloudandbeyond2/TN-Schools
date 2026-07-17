@@ -953,6 +953,27 @@ model PetEquipmentRequest {
   @@index([itemId])
 }
 
+model PetSportsEvent {
+  id           String   @id @default(uuid())
+  schoolId     String?
+  name         String
+  kind         String   @default("Competition")
+  sport        String
+  level        String
+  date         String
+  venue        String
+  participants Int      @default(0)
+  status        String   @default("Upcoming")
+  result        String   @default("")
+  notes         String   @default("")
+  targetClasses String   @default("All Classes")
+  ageGroup      String   @default("Open")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([schoolId])
+}
+
 model InjuryReport {
   id          String   @id @default(uuid())
   studentId   String
@@ -2000,3 +2021,16 @@ model DigitalLibraryUpload {
   @@index([uploadedById])
 }
 
+model DropoutRecord {
+  id          String   @id @default(uuid())
+  studentName String
+  school      String
+  block       String
+  class       String
+  reason      String
+  date        String
+  status      String   @default("Intervention Pending")
+  district    String   @default("Coimbatore")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
