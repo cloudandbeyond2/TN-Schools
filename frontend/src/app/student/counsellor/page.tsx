@@ -220,6 +220,71 @@ export default function CounsellorPage() {
 
   const currentMoodData = moods.find((m) => m.label.en === selectedMood || m.label.ta === selectedMood);
 
+  const [isSubmittingMsg, setIsSubmittingMsg] = useState(false);
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
+
+  const handleSubmitMessage = async () => {
+    if (!feedbackText.trim()) return;
+    setIsSubmittingMsg(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      // Using generic student ID for prototype (same as language coaching)
+      const studentId = "95acafcf-990f-49aa-8c21-68a164a57a2e";
+      
+      const res = await fetch(`${apiUrl}/api/counsellor/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId,
+          mood: selectedMood || "Okay",
+          topic: selectedTopic || "General",
+          feedbackText,
+          isAnonymous
+        })
+      });
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        alert("Failed to send message. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error.");
+    } finally {
+      setIsSubmittingMsg(false);
+    }
+  };
+
+  const handleSubmitBooking = async () => {
+    if (!selectedSlot) return;
+    setIsSubmittingBooking(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const studentId = "95acafcf-990f-49aa-8c21-68a164a57a2e";
+      
+      const res = await fetch(`${apiUrl}/api/counsellor/booking`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId,
+          slot: selectedSlot,
+          topic: "General Session",
+          isAnonymous: false // For sessions, we generally need their identity
+        })
+      });
+      if (res.ok) {
+        setSessionSubmitted(true);
+      } else {
+        alert("Failed to book session. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error.");
+    } finally {
+      setIsSubmittingBooking(false);
+    }
+  };
+
   return (
     <PortalLayout
       title={L.pageTitle}
@@ -438,12 +503,12 @@ export default function CounsellorPage() {
                 </div>
 
                 <button
-                  onClick={() => feedbackText.trim() && setSubmitted(true)}
-                  disabled={!feedbackText.trim()}
+                  onClick={handleSubmitMessage}
+                  disabled={!feedbackText.trim() || isSubmittingMsg}
                   className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white text-sm font-black rounded-2xl shadow-lg hover:shadow-indigo-400/30 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
                 >
                   <MessageSquare size={16} />
-                  {L.sendToCounsellor}
+                  {isSubmittingMsg ? "Sending..." : L.sendToCounsellor}
                 </button>
               </div>
             ) : (

@@ -605,3 +605,25 @@ const LibraryProgressSchema = new Schema<ILibraryProgress>({
 LibraryProgressSchema.index({ studentId: 1, resourceId: 1 }, { unique: true });
 
 export const LibraryProgress = mongoose.models.LibraryProgress || mongoose.model<ILibraryProgress>('LibraryProgress', LibraryProgressSchema);
+
+// ─── Counsellor Session Booking ──────────────────────────────────────────────
+
+export interface ICounsellorBooking extends Document {
+  studentId: string;
+  slot: string;
+  topic?: string;
+  isAnonymous: boolean;
+  status: 'booked' | 'completed' | 'cancelled';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const CounsellorBookingSchema = new Schema<ICounsellorBooking>({
+  studentId:   { type: String, required: true, index: true },
+  slot:        { type: String, required: true },
+  topic:       { type: String },
+  isAnonymous: { type: Boolean, default: false },
+  status:      { type: String, enum: ['booked', 'completed', 'cancelled'], default: 'booked' }
+}, { timestamps: true });
+
+export const CounsellorBooking = mongoose.models.CounsellorBooking || mongoose.model<ICounsellorBooking>('CounsellorBooking', CounsellorBookingSchema);
