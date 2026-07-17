@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { getPortalPagesCatalog, PORTAL_LABELS } from "@/lib/portalPagesCatalog";
 import { LucideIcon } from "@/components/LucideIcon";
@@ -18,6 +19,12 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const PORTAL_ORDER = Object.keys(PORTAL_LABELS);
 
 export default function PageManagement() {
+  const { data: session } = useSession();
+  const token = (session as any)?.backendToken;
+  const authHeaders = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
   const [pages, setPages] = useState<ManagedPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -42,7 +49,7 @@ export default function PageManagement() {
       const catalog = getPortalPagesCatalog();
       const syncRes = await fetch(`${API_URL}/api/pages/sync`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({ pages: catalog }),
       });
       const syncData = await syncRes.json();
@@ -60,6 +67,7 @@ export default function PageManagement() {
   };
 
   useEffect(() => {
+    if (!token) return; // sync requires the superadmin token
     let cancelled = false;
 
     (async () => {
@@ -85,13 +93,14 @@ export default function PageManagement() {
     return () => {
       cancelled = true;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const togglePage = async (id: string, isEnabled: boolean) => {
     try {
       const res = await fetch(`${API_URL}/api/pages/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({ isEnabled: !isEnabled }),
       });
       const data = await res.json();
@@ -107,7 +116,7 @@ export default function PageManagement() {
     try {
       const res = await fetch(`${API_URL}/api/pages/bulk`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({ portal, isEnabled: enable }),
       });
       const data = await res.json();

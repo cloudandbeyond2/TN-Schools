@@ -82,6 +82,10 @@ export default function TeacherTimetablePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [pendingSlots, setPendingSlots] = useState<any[]>([]);
 
+  // Edit Modal States
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingSlot, setEditingSlot] = useState<TimetableSlot | null>(null);
+
   // Date and Day Selectors
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
@@ -235,6 +239,144 @@ export default function TeacherTimetablePage() {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteSlot = async (id: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/timetable/${id}`, {
+        method: "DELETE"
+      });
+      const data = await res.json();
+      if (data.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Deleted",
+          text: "Class schedule removed successfully.",
+          timer: 1500,
+          showConfirmButton: false
+        });
+        fetchData();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: data.error || "Could not delete slot.",
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Network error deleting schedule.",
+      });
+    }
+  };
+
+  const handleEditSlotSubmit = async () => {
+    if (!editingSlot || !selectedClassId || !user?.schoolId) return;
+
+    const selectedCls = teacherClasses.find(c => c.id === selectedClassId);
+    if (!selectedCls) return;
+
+    setIsSaving(true);
+    try {
+      const res = await fetch(`${API_URL}/api/timetable/${editingSlot.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          schoolId: user.schoolId,
+          class: selectedCls.className,
+          section: selectedCls.section,
+          subject: selectedCls.subject,
+          teacherId: teacherId,
+          dayOfWeek: editingSlot.dayOfWeek,
+          period: editingSlot.period,
+          startTime: editingSlot.startTime,
+          endTime: editingSlot.endTime,
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Updated",
+          text: "Schedule updated successfully.",
+          timer: 1500,
+          showConfirmButton: false
+        });
+        setShowEditModal(false);
+        fetchData();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: data.error || "Could not update slot.",
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Network error updating schedule.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSlotClick = (slot: any, isPending: boolean) => {
+    if (isPending) {
+      Swal.fire({
+        title: "Remove Pending Class?",
+        text: `Do you want to remove ${slot.subject} from this period?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Remove",
+        cancelButtonText: "Keep",
+        confirmButtonColor: "#ef4444"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setPendingSlots(prev => prev.filter(s => !(s.dayOfWeek === slot.dayOfWeek && s.period === slot.period)));
+        }
+      });
+    } else {
+      Swal.fire({
+        title: "Manage Scheduled Class",
+        text: `What would you like to do with ${slot.subject} for Class ${slot.class}${slot.section}?`,
+        icon: "info",
+        showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonText: "Edit",
+        denyButtonText: "Delete",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#3b82f6",
+        denyButtonColor: "#ef4444"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Edit
+          setEditingSlot(slot);
+          const matchedClass = teacherClasses.find(c => c.className === slot.class && c.section === slot.section && c.subject === slot.subject);
+          setSelectedClassId(matchedClass ? matchedClass.id : "");
+          setShowEditModal(true);
+        } else if (result.isDenied) {
+          // Delete
+          Swal.fire({
+            title: "Are you sure?",
+            text: "This will remove the class from your schedule.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it!",
+            confirmButtonColor: "#ef4444"
+          }).then((delResult) => {
+            if (delResult.isConfirmed) {
+              handleDeleteSlot(slot.id);
+            }
+          });
+        }
+      });
     }
   };
 
@@ -523,7 +665,10 @@ export default function TeacherTimetablePage() {
                         return (
                           <td key={`${day.value}-${periodNumber}`} className="p-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 align-top h-24">
                             {slot ? (
-                              <div className={`border p-2 rounded-lg h-full flex flex-col justify-between transition-colors relative ${pendingSlot ? 'bg-sky-50 dark:bg-sky-900/20 border-sky-300 border-dashed dark:border-sky-700' : 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20 hover:border-amber-400 dark:hover:border-amber-500/50'}`}>
+                              <div 
+                                onClick={() => handleSlotClick(slot, !!pendingSlot)}
+                                className={`border p-2 rounded-lg h-full flex flex-col justify-between transition-colors relative cursor-pointer hover:shadow-md ${pendingSlot ? 'bg-sky-50 dark:bg-sky-900/20 border-sky-300 border-dashed dark:border-sky-700 hover:border-sky-400' : 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20 hover:border-amber-400 dark:hover:border-amber-500/50'}`}
+                              >
                                 {pendingSlot && (
                                   <span className="absolute -top-2 -right-2 bg-sky-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider">Unsaved</span>
                                 )}
@@ -802,6 +947,74 @@ export default function TeacherTimetablePage() {
           </div>
         </div>
       )}
+
+      {showEditModal && editingSlot && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-blue-500" />
+                Edit Class for Period {editingSlot.period}
+              </h3>
+              <button 
+                onClick={() => setShowEditModal(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 block mb-1.5">
+                  Day: {DAYS_OF_WEEK.find(d => d.value === editingSlot.dayOfWeek)?.label}
+                </label>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 block mb-1.5">
+                  Select New Class
+                </label>
+                <select
+                  value={selectedClassId}
+                  onChange={(e) => setSelectedClassId(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
+                >
+                  <option value="">-- Choose a Class --</option>
+                  {teacherClasses.map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      Class {cls.className}{cls.section} - {cls.subject}
+                    </option>
+                  ))}
+                </select>
+                {teacherClasses.length === 0 && (
+                  <p className="text-[10px] text-amber-500 mt-1">
+                    You have no assigned classes.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 flex justify-end gap-2">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                disabled={isSaving}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEditSlotSubmit}
+                disabled={!selectedClassId || isSaving}
+                className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl transition-colors flex items-center gap-2 shadow-sm"
+              >
+                Update Class
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PortalLayout>
   );
 }
+

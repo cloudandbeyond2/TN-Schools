@@ -30,6 +30,26 @@ async function createSafeNotification(userId: string, message: string) {
 // 1. Study Materials
 // =========================================================================
 
+// GET /api/teacher/subjects/:userId
+router.get('/subjects/:userId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const teacher = await prisma.teacher.findUnique({
+      where: { userId }
+    });
+    
+    if (!teacher) {
+      // Fallback: If no teacher record found, just return an empty array or defaults
+      return res.json({ success: true, data: [] });
+    }
+    
+    res.json({ success: true, data: teacher.subjects || [] });
+  } catch (err: any) {
+    console.error('Error fetching teacher subjects:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // GET /api/teacher/materials
 router.get('/materials', async (req: Request, res: Response) => {
   try {
@@ -915,6 +935,42 @@ router.put('/scholarships/:id', async (req: Request, res: Response) => {
     });
     res.json({ success: true, data: updated });
   } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+// POST /api/teacher/scholarships
+router.post('/scholarships', async (req: Request, res: Response) => {
+  try {
+    const { studentId, scheme, amount } = req.body;
+    const newScholarship = await prisma.scholarship.create({
+      data: {
+        studentId,
+        scheme,
+        amount: Number(amount),
+        status: 'PENDING'
+      },
+      include: {
+        student: {
+          include: { user: { select: { name: true } } }
+        }
+      }
+    });
+    res.json({ success: true, data: newScholarship });
+  } catch (err) {
+    console.error('Error creating scholarship:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/teacher/scholarships/:id
+router.delete('/scholarships/:id', async (req: Request, res: Response) => {
+  try {
+    const deleted = await prisma.scholarship.delete({
+      where: { id: req.params.id },
+    });
+    res.json({ success: true, data: deleted });
+  } catch (err) {
+    console.error('Error deleting scholarship:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });

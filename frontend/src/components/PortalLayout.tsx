@@ -319,6 +319,7 @@ export default function PortalLayout({
   const [studentGroup, setStudentGroup] = useState<StudentGroup>("Science");
   const [studentGroupCode, setStudentGroupCode] = useState<string>("");
   const [disabledRoutes, setDisabledRoutes] = useState<Set<string>>(new Set());
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
   const { data: session, status } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -488,14 +489,17 @@ export default function PortalLayout({
 
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-    fetch(`${apiUrl}/api/pages`)
+    // Union of disabled ManagedPages and disabled feature modules, computed
+    // server-side. Fail-open on purpose: a config-DB outage must never lock
+    // out every portal.
+    fetch(`${apiUrl}/api/features/effective`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && Array.isArray(data.data)) {
-          const disabled = new Set<string>(
-            data.data.filter((p: { isEnabled: boolean; route: string }) => !p.isEnabled).map((p: { route: string }) => p.route)
-          );
-          setDisabledRoutes(disabled);
+        if (data.success && data.data) {
+          if (Array.isArray(data.data.disabledRoutes)) {
+            setDisabledRoutes(new Set<string>(data.data.disabledRoutes));
+          }
+          setMaintenanceMode(data.data.maintenanceMode === true);
         }
       })
       .catch(() => {});
@@ -759,6 +763,31 @@ export default function PortalLayout({
       </div>
     );
   }
+
+  // Superadmin-controlled gating (maintenance mode + disabled features).
+  // SUPERADMIN is always exempt so the control panel can never lock itself out.
+  if (maintenanceMode && userRole !== "SUPERADMIN") {
+    return (
+      <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center p-6 text-center">
+        <div className="w-full max-w-md bg-[var(--bg-card)] border border-[var(--border)] p-8 rounded-3xl space-y-5 flex flex-col items-center shadow-lg">
+          <span className="text-4xl">🛠️</span>
+          <h2 className="text-[var(--text-heading)] text-lg font-bold">Under Maintenance</h2>
+          <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+            The portal is temporarily unavailable while we perform scheduled maintenance.
+            Please check back shortly.
+          </p>
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="w-full py-2.5 rounded-xl border border-[var(--border-light)] text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)] transition-all flex items-center justify-center gap-2"
+          >
+            <i className="fi fi-rr-exit text-sm shrink-0" /> Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const isRouteDisabled = userRole !== "SUPERADMIN" && disabledRoutes.has(pathname);
 
   const t = translations[currentLanguage];
   let roleKey: "TEACHER" | "STUDENT" | "PARENT" | "DEFAULT" = "DEFAULT";
@@ -1149,7 +1178,20 @@ export default function PortalLayout({
               )}
             </div>
           )}
-          {children}
+          {isRouteDisabled ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="w-full max-w-md bg-[var(--bg-card)] border border-[var(--border)] p-8 rounded-3xl space-y-4 flex flex-col items-center text-center shadow-lg">
+                <span className="text-4xl">🚫</span>
+                <h2 className="text-[var(--text-heading)] text-lg font-bold">Feature Disabled</h2>
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                  This feature has been disabled by the administrator. Please contact your
+                  school administration if you believe this is a mistake.
+                </p>
+              </div>
+            </div>
+          ) : (
+            children
+          )}
         </main>
       </div>
     </div>

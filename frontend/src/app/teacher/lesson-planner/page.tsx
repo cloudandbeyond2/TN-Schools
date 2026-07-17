@@ -856,9 +856,9 @@ export default function LessonPlannerPage() {
                 <button
                   type="submit"
                   disabled={isGenerating}
-                  className="w-full py-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 disabled:opacity-50 text-slate-900 text-xs font-black uppercase tracking-wider transition-all transform hover:scale-[1.02] shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
+                  className="!text-white w-full py-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 disabled:opacity-50 text-slate-900 text-xs font-black uppercase tracking-wider transition-all transform hover:scale-[1.02] shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
                 >
-                  <i className="fi fi-sr-brain leading-none" />
+                  <i className="fi fi-sr-brain leading-none !text-white" />
                   {isGenerating ? "Synthesizing..." : "Generate Lesson"}
                 </button>
               </form>

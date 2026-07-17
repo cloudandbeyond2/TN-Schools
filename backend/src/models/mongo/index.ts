@@ -647,3 +647,94 @@ const CounsellorSlotSchema = new Schema<ICounsellorSlot>({
 }, { timestamps: true });
 
 export const CounsellorSlot = mongoose.models.CounsellorSlot || mongoose.model<ICounsellorSlot>('CounsellorSlot', CounsellorSlotSchema);
+
+// ─── Super Admin Feature / Module Toggles ─────────────────────
+// A "feature" is a module with 0–1 routes; enforcement unions this
+// with ManagedPage at read time (GET /api/features/effective).
+
+export interface IFeatureModule extends Document {
+  key: string;
+  name: string;
+  icon?: string;
+  description?: string;
+  category?: string;
+  kind: 'FEATURE' | 'MODULE';
+  routes: string[];
+  portals: Map<string, boolean>;
+  isEnabled: boolean;
+  updatedBy?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const FeatureModuleSchema = new Schema<IFeatureModule>({
+  key:         { type: String, required: true, unique: true },
+  name:        { type: String, required: true },
+  icon:        { type: String },
+  description: { type: String },
+  category:    { type: String },
+  kind:        { type: String, enum: ['FEATURE', 'MODULE'], default: 'MODULE' },
+  routes:      { type: [String], default: [] },
+  portals:     { type: Map, of: Boolean, default: {} },
+  isEnabled:   { type: Boolean, default: true },
+  updatedBy:   { type: String },
+}, { timestamps: true });
+
+export const FeatureModule = mongoose.models.FeatureModule || mongoose.model<IFeatureModule>('FeatureModule', FeatureModuleSchema);
+
+// ─── Super Admin Integration Configs (storage / AI secrets) ───
+// secrets values are AES-256-GCM blobs ("v1:iv:tag:ct") — see utils/secretVault.ts.
+
+export interface IIntegrationConfig extends Document {
+  type: 'STORAGE' | 'AI';
+  key: string;
+  provider: string;
+  isEnabled: boolean;
+  config: Record<string, unknown>;
+  secrets: Map<string, string>;
+  updatedBy?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const IntegrationConfigSchema = new Schema<IIntegrationConfig>({
+  type:      { type: String, enum: ['STORAGE', 'AI'], required: true },
+  key:       { type: String, required: true, unique: true },
+  provider:  { type: String, required: true },
+  isEnabled: { type: Boolean, default: false },
+  config:    { type: Schema.Types.Mixed, default: {} },
+  secrets:   { type: Map, of: String, default: {} },
+  updatedBy: { type: String },
+}, { timestamps: true });
+
+export const IntegrationConfig = mongoose.models.IntegrationConfig || mongoose.model<IIntegrationConfig>('IntegrationConfig', IntegrationConfigSchema);
+
+// ─── Super Admin Platform Settings (single doc, key 'global') ─
+
+export interface IPlatformSetting extends Document {
+  key: string;
+  maintenanceMode: boolean;
+  allowDemoLogin: boolean;
+  enableAiFeatures: boolean;
+  enableNotifications: boolean;
+  sessionTimeout: string;
+  maxUploadSize: string;
+  defaultLanguage: string;
+  updatedBy?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const PlatformSettingSchema = new Schema<IPlatformSetting>({
+  key:                 { type: String, required: true, unique: true, default: 'global' },
+  maintenanceMode:     { type: Boolean, default: false },
+  allowDemoLogin:      { type: Boolean, default: true },
+  enableAiFeatures:    { type: Boolean, default: true },
+  enableNotifications: { type: Boolean, default: true },
+  sessionTimeout:      { type: String, default: '30' },
+  maxUploadSize:       { type: String, default: '10' },
+  defaultLanguage:     { type: String, default: 'English' },
+  updatedBy:           { type: String },
+}, { timestamps: true });
+
+export const PlatformSetting = mongoose.models.PlatformSetting || mongoose.model<IPlatformSetting>('PlatformSetting', PlatformSettingSchema);

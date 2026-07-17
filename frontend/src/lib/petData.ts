@@ -206,7 +206,7 @@ export const DEFAULT_REQUESTS: EquipmentRequest[] = [
 // Sports events & competitions — default TN school games calendar
 // ---------------------------------------------------------------------------
 
-export type EventLevel = "School" | "Zonal" | "District" | "Division" | "State" | "National";
+export type EventLevel = "Intra-School" | "Inter-School" | "District" | "State" | "National";
 export type EventKind = "Event" | "Competition";
 export type EventStatus = "Upcoming" | "Ongoing" | "Completed" | "Cancelled";
 
@@ -222,23 +222,25 @@ export interface SportsEvent {
   status: EventStatus;
   result?: string; // e.g. "Winners — District Champions", "2 Gold, 1 Silver"
   notes?: string;
+  targetClasses?: string;
+  ageGroup?: string;
 }
 
 export const EVENTS_KEY = "pet-sports-events";
 
 export const DEFAULT_EVENTS: SportsEvent[] = [
-  { id: "ev-1", name: "School Annual Sports Day", kind: "Event", sport: "Athletics & All Games", level: "School", date: "2026-08-15", venue: "School Main Ground", participants: 450, status: "Upcoming", notes: "March past, track & field, prize distribution" },
-  { id: "ev-2", name: "Zonal Athletics Meet", kind: "Competition", sport: "Athletics", level: "Zonal", date: "2026-06-15", venue: "Nehru Stadium, Coimbatore", participants: 24, status: "Completed", result: "3 Gold, 2 Silver, 4 Bronze" },
-  { id: "ev-3", name: "District Kabaddi Championship (U-17)", kind: "Competition", sport: "Kabaddi", level: "District", date: "2026-07-18", venue: "GHSS Sulur Ground", participants: 12, status: "Upcoming" },
-  { id: "ev-4", name: "District Kho-Kho Tournament (U-14)", kind: "Competition", sport: "Kho-Kho", level: "District", date: "2026-07-25", venue: "Corporation Ground, Coimbatore", participants: 12, status: "Upcoming" },
-  { id: "ev-5", name: "District Chess Championship", kind: "Competition", sport: "Chess", level: "District", date: "2026-06-28", venue: "St. Joseph's MHSS", participants: 5, status: "Completed", result: "Runner-up — R. Rahul (Class 12C)" },
-  { id: "ev-6", name: "State Level Volleyball (U-19)", kind: "Competition", sport: "Volleyball", level: "State", date: "2026-07-20", venue: "Jawaharlal Nehru Stadium, Chennai", participants: 12, status: "Upcoming", notes: "School team qualified from district round" },
-  { id: "ev-7", name: "Inter-House Football League", kind: "Event", sport: "Football", level: "School", date: "2026-07-10", venue: "School Main Ground", participants: 88, status: "Ongoing", notes: "4 houses, round-robin format" },
-  { id: "ev-8", name: "Divisional Table Tennis Meet", kind: "Competition", sport: "Table Tennis", level: "Division", date: "2026-08-10", venue: "PSG College Indoor Stadium", participants: 6, status: "Upcoming" },
-  { id: "ev-9", name: "Independence Day March Past & Drill", kind: "Event", sport: "Drill / Parade", level: "School", date: "2026-08-15", venue: "School Assembly Ground", participants: 200, status: "Upcoming" },
-  { id: "ev-10", name: "SGFI State Athletics Selection Trials", kind: "Competition", sport: "Athletics", level: "State", date: "2026-09-05", venue: "SDAT Track, Chennai", participants: 6, status: "Upcoming", notes: "School Games Federation of India selections" },
-  { id: "ev-11", name: "Yoga Day Mass Demonstration", kind: "Event", sport: "Yoga", level: "School", date: "2026-06-21", venue: "School Assembly Ground", participants: 350, status: "Completed", result: "All classes participated" },
-  { id: "ev-12", name: "District Ball Badminton Tournament", kind: "Competition", sport: "Ball Badminton", level: "District", date: "2026-09-12", venue: "GHSS Pollachi", participants: 8, status: "Upcoming" },
+  { id: "ev-1", name: "School Annual Sports Day", kind: "Event", sport: "Athletics & All Games", level: "Intra-School", date: "2026-08-15", venue: "School Main Ground", participants: 450, status: "Upcoming", notes: "March past, track & field, prize distribution", targetClasses: "All Classes", ageGroup: "Open" },
+  { id: "ev-2", name: "Zonal Athletics Meet", kind: "Competition", sport: "Athletics", level: "Inter-School", date: "2026-06-15", venue: "Nehru Stadium, Coimbatore", participants: 24, status: "Completed", result: "3 Gold, 2 Silver, 4 Bronze", targetClasses: "Class 9-10", ageGroup: "Under-17" },
+  { id: "ev-3", name: "District Kabaddi Championship (U-17)", kind: "Competition", sport: "Kabaddi", level: "District", date: "2026-07-18", venue: "GHSS Sulur Ground", participants: 12, status: "Upcoming", targetClasses: "Class 9-10", ageGroup: "Under-17" },
+  { id: "ev-4", name: "District Kho-Kho Tournament (U-14)", kind: "Competition", sport: "Kho-Kho", level: "District", date: "2026-07-25", venue: "Corporation Ground, Coimbatore", participants: 12, status: "Upcoming", targetClasses: "Class 6-8", ageGroup: "Under-14" },
+  { id: "ev-5", name: "District Chess Championship", kind: "Competition", sport: "Chess", level: "District", date: "2026-06-28", venue: "St. Joseph's MHSS", participants: 5, status: "Completed", result: "Runner-up — R. Rahul (Class 12C)", targetClasses: "All Classes", ageGroup: "Open" },
+  { id: "ev-6", name: "State Level Volleyball (U-19)", kind: "Competition", sport: "Volleyball", level: "State", date: "2026-07-20", venue: "Jawaharlal Nehru Stadium, Chennai", participants: 12, status: "Upcoming", notes: "School team qualified from district round", targetClasses: "Class 11-12", ageGroup: "Under-19" },
+  { id: "ev-7", name: "Inter-House Football League", kind: "Event", sport: "Football", level: "Intra-School", date: "2026-07-10", venue: "School Main Ground", participants: 88, status: "Ongoing", notes: "4 houses, round-robin format", targetClasses: "Class 9-12", ageGroup: "Open" },
+  { id: "ev-8", name: "Divisional Table Tennis Meet", kind: "Competition", sport: "Table Tennis", level: "Inter-School", date: "2026-08-10", venue: "PSG College Indoor Stadium", participants: 6, status: "Upcoming", targetClasses: "Class 6-8", ageGroup: "Under-14" },
+  { id: "ev-9", name: "Independence Day March Past & Drill", kind: "Event", sport: "Drill / Parade", level: "Intra-School", date: "2026-08-15", venue: "School Assembly Ground", participants: 200, status: "Upcoming", targetClasses: "All Classes", ageGroup: "Open" },
+  { id: "ev-10", name: "SGFI State Athletics Selection Trials", kind: "Competition", sport: "Athletics", level: "State", date: "2026-09-05", venue: "SDAT Track, Chennai", participants: 6, status: "Upcoming", notes: "School Games Federation of India selections", targetClasses: "Class 11-12", ageGroup: "Under-19" },
+  { id: "ev-11", name: "Yoga Day Mass Demonstration", kind: "Event", sport: "Yoga", level: "Intra-School", date: "2026-06-21", venue: "School Assembly Ground", participants: 350, status: "Completed", result: "All classes participated", targetClasses: "All Classes", ageGroup: "Open" },
+  { id: "ev-12", name: "District Ball Badminton Tournament", kind: "Competition", sport: "Ball Badminton", level: "District", date: "2026-09-12", venue: "GHSS Pollachi", participants: 8, status: "Upcoming", targetClasses: "Class 11-12", ageGroup: "Under-19" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -262,12 +264,12 @@ export interface AwardRecord {
 export const AWARDS_KEY = "pet-awards";
 
 export const DEFAULT_AWARDS: AwardRecord[] = [
-  { id: "aw-1", student: "Arjun K.", class: "10A", sport: "Athletics — 100m Sprint", event: "Zonal Athletics Meet", level: "Zonal", medal: "Gold", date: "2026-06-15", certificateIssued: true },
-  { id: "aw-2", student: "Priya S.", class: "9B", sport: "Athletics — Long Jump", event: "Zonal Athletics Meet", level: "Zonal", medal: "Gold", date: "2026-06-15", certificateIssued: true },
+  { id: "aw-1", student: "Arjun K.", class: "10A", sport: "Athletics — 100m Sprint", event: "Zonal Athletics Meet", level: "Inter-School", medal: "Gold", date: "2026-06-15", certificateIssued: true },
+  { id: "aw-2", student: "Priya S.", class: "9B", sport: "Athletics — Long Jump", event: "Zonal Athletics Meet", level: "Inter-School", medal: "Gold", date: "2026-06-15", certificateIssued: true },
   { id: "aw-3", student: "Rahul M.", class: "12C", sport: "Chess", event: "District Chess Championship", level: "District", medal: "Silver", date: "2026-06-28", certificateIssued: true },
-  { id: "aw-4", student: "Divya R.", class: "11A", sport: "Athletics — Shot Put", event: "Zonal Athletics Meet", level: "Zonal", medal: "Gold", date: "2026-06-15", certificateIssued: false },
-  { id: "aw-5", student: "Karthik V.", class: "8A", sport: "Athletics — 400m Relay", event: "Zonal Athletics Meet", level: "Zonal", medal: "Silver", date: "2026-06-15", certificateIssued: false },
-  { id: "aw-6", student: "Meena L.", class: "10B", sport: "Athletics — 200m Sprint", event: "Zonal Athletics Meet", level: "Zonal", medal: "Bronze", date: "2026-06-15", certificateIssued: true },
+  { id: "aw-4", student: "Divya R.", class: "11A", sport: "Athletics — Shot Put", event: "Zonal Athletics Meet", level: "Inter-School", medal: "Gold", date: "2026-06-15", certificateIssued: false },
+  { id: "aw-5", student: "Karthik V.", class: "8A", sport: "Athletics — 400m Relay", event: "Zonal Athletics Meet", level: "Inter-School", medal: "Silver", date: "2026-06-15", certificateIssued: false },
+  { id: "aw-6", student: "Meena L.", class: "10B", sport: "Athletics — 200m Sprint", event: "Zonal Athletics Meet", level: "Inter-School", medal: "Bronze", date: "2026-06-15", certificateIssued: true },
   { id: "aw-7", student: "School Volleyball Team", class: "U-19", sport: "Volleyball", event: "District Volleyball Championship", level: "District", medal: "Trophy", date: "2026-02-10", certificateIssued: true },
   { id: "aw-8", student: "Sanjay P.", class: "9A", sport: "Kabaddi", event: "District Kabaddi Championship", level: "District", medal: "Certificate", date: "2026-01-22", certificateIssued: true },
 ];

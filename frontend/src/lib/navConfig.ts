@@ -664,6 +664,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "System & AI", href: "#", icon: "" },
       { label: "Feature Toggles", href: "/super-admin/features", icon: "🔧" },
       { label: "AI Integration Setup", href: "/super-admin/ai-config", icon: "Bot" },
+      { label: "External Storage", href: "/super-admin/storage", icon: "Database" },
       { label: "Data Flow Monitor", href: "/super-admin/data-flow", icon: "RefreshCw" },
 
       { label: "Governance", href: "#", icon: "" },

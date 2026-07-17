@@ -129,6 +129,7 @@ export default function NEETPrepPage() {
   const [longCount, setLongCount] = useState(1);
   const [generatingAi, setGeneratingAi] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
+  const [teacherSubjects, setTeacherSubjects] = useState<string[]>([]);
 
   const fetchSyllabus = useCallback(async () => {
     try {
@@ -202,11 +203,31 @@ export default function NEETPrepPage() {
     }
   }, [schoolId, teacherId]);
 
+  const fetchTeacherSubjects = useCallback(async () => {
+    try {
+      if (teacherId) {
+        const res = await fetch(`${API}/api/teacher/subjects/${teacherId}`);
+        const data = await res.json();
+        if (data.success && data.data && data.data.length > 0) {
+          setTeacherSubjects(data.data);
+          if (!chapterForm.subject || chapterForm.subject === "Biology") {
+            setChapterForm(prev => ({ ...prev, subject: data.data[0] }));
+          }
+        } else {
+          setTeacherSubjects(["Biology", "Chemistry", "Physics"]); // Fallback
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      setTeacherSubjects(["Biology", "Chemistry", "Physics"]); // Fallback
+    }
+  }, [teacherId, chapterForm.subject]);
+
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    await Promise.all([fetchSyllabus(), fetchTests(), fetchStudentReports()]);
+    await Promise.all([fetchSyllabus(), fetchTests(), fetchStudentReports(), fetchTeacherSubjects()]);
     setLoading(false);
-  }, [fetchSyllabus, fetchTests, fetchStudentReports]);
+  }, [fetchSyllabus, fetchTests, fetchStudentReports, fetchTeacherSubjects]);
 
   useEffect(() => {
     fetchAll();
@@ -1010,9 +1031,17 @@ export default function NEETPrepPage() {
               <div>
                 <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Subject *</label>
                 <select value={chapterForm.subject} onChange={(e) => setChapterForm({ ...chapterForm, subject: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-red-500">
-                  <option>Biology</option>
-                  <option>Chemistry</option>
-                  <option>Physics</option>
+                  {teacherSubjects.length > 0 ? (
+                    teacherSubjects.map((sub) => (
+                      <option key={sub} value={sub}>{sub}</option>
+                    ))
+                  ) : (
+                    <>
+                      <option>Biology</option>
+                      <option>Chemistry</option>
+                      <option>Physics</option>
+                    </>
+                  )}
                 </select>
               </div>
               <div>

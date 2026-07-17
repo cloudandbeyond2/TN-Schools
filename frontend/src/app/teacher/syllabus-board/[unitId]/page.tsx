@@ -497,11 +497,11 @@ export default function TeacherUnitDetailPage() {
                         ? "Ready lesson pacing for a ~45 minute period"
                         : "~45 நிமிட வகுப்புக்கான தயாரான பாட திட்டம்"}
                     </p>
-                    <div className="flex flex-col md:flex-row gap-3 overflow-x-auto pb-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 pt-2">
                       {activeLang.teachingFlow.map((step, i) => (
                         <div
                           key={i}
-                          className="flex-1 min-w-[180px] rounded-2xl border p-4 relative"
+                          className="rounded-2xl border p-4 relative flex flex-col h-full"
                           style={{ borderColor: `${accent}33`, background: `${accent}08` }}
                         >
                           <span
@@ -533,7 +533,7 @@ export default function TeacherUnitDetailPage() {
                             value={step.description}
                             onChange={(e) => updateFlowStep(i, "description", e.target.value)}
                             rows={3}
-                            className="w-full text-[11px] text-slate-600 dark:text-slate-300 bg-transparent border-0 resize-none focus:outline-none leading-relaxed"
+                            className="w-full flex-grow text-[11px] text-slate-600 dark:text-slate-300 bg-transparent border-0 resize-none focus:outline-none leading-relaxed"
                           />
                         </div>
                       ))}
