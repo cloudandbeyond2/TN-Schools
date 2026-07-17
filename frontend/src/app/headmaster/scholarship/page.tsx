@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
+import Swal from "sweetalert2";
 
 interface ScholarshipApp {
   id: string;
@@ -29,6 +30,7 @@ export default function ScholarshipPage() {
   const schoolId: string = (session?.user as any)?.schoolId || "";
 
   const [applications, setApplications] = useState<ScholarshipApp[]>([]);
+  const [students, setStudents] = useState<{ id: string; name: string; class: string; emisNumber: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<"All" | "Disbursed" | "Approved" | "Pending Verification">("All");
   const [currentPage, setCurrentPage] = useState(1);
@@ -56,8 +58,20 @@ export default function ScholarshipPage() {
         }));
         setApplications(mapped);
       }
+
+      // Fetch students for the create modal
+      const studentRes = await fetch(`${API_BASE}/api/headmaster/students?schoolId=${schoolId}`);
+      const studentJson = await studentRes.json();
+      if (studentJson.success) {
+        setStudents(studentJson.data.map((s: any) => ({
+          id: s.id,
+          name: s.user?.name || "Unknown",
+          class: `${s.class}-${s.section}`,
+          emisNumber: s.emisNumber || "N/A"
+        })));
+      }
     } catch (err) {
-      console.error("Error fetching scholarships:", err);
+      console.error("Error fetching data:", err);
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +95,10 @@ export default function ScholarshipPage() {
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAppId) return;
+    if (!verificationCode.trim()) {
+      Swal.fire("Validation Error", "Please enter the EMIS Verification Key.", "error");
+      return;
+    }
     const matchedApp = applications.find(a => a.id === selectedAppId);
     if (!matchedApp) return;
 
@@ -92,18 +110,112 @@ export default function ScholarshipPage() {
       });
       const json = await res.json();
       if (json.success) {
-        setVerifyToast(`✓ Application for ${matchedApp.studentName} verified and state treasury release approved!`);
+        Swal.fire({
+          title: "Verified & Approved!",
+          text: `Application for ${matchedApp.studentName} verified and state treasury release approved!`,
+          icon: "success"
+        });
         setSelectedAppId(""); // Reset to let effect pick the next pending application
+        setVerificationCode(""); // Clear the input
         fetchApplications(); // Refresh list
-        setTimeout(() => setVerifyToast(null), 4000);
       } else {
-        alert("Failed to verify scholarship: " + (json.error || "Unknown error"));
+        Swal.fire("Error", "Failed to verify scholarship: " + (json.error || "Unknown error"), "error");
       }
     } catch (err) {
       console.error("Error verifying scholarship:", err);
-      alert("Server error occurred during verification.");
+      Swal.fire("Error", "Server error occurred during verification.", "error");
     }
   };
+
+  const handleCreate = async () => {
+    if (students.length === 0) {
+      Swal.fire("Error", "No students found to assign a scholarship to.", "error");
+      return;
+    }
+
+    const studentOptions = students.map(s => `<option value="${s.id}">${s.name} (${s.class}) - EMIS: ${s.emisNumber}</option>`).join('');
+
+    const { value: formValues } = await Swal.fire({
+      title: 'Allocate New Scholarship',
+      html:
+        `<div class="text-left">
+          <label class="block text-xs text-slate-500 mb-1 font-bold">Select Student</label>
+          <select id="swal-student" class="w-full p-2 mb-3 border rounded text-sm text-slate-800 bg-white">
+            ${studentOptions}
+          </select>
+          <label class="block text-xs text-slate-500 mb-1 font-bold">Scholarship Scheme Name</label>
+          <input id="swal-scheme" class="w-full p-2 mb-3 border rounded text-sm text-slate-800 bg-white" placeholder="e.g. Merit Cum Means">
+          <label class="block text-xs text-slate-500 mb-1 font-bold">Amount (₹)</label>
+          <input id="swal-amount" type="number" class="w-full p-2 border rounded text-sm text-slate-800 bg-white" placeholder="e.g. 5000">
+        </div>`,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Create Allocation',
+      confirmButtonColor: '#3b82f6',
+      preConfirm: () => {
+        const studentId = (document.getElementById('swal-student') as HTMLSelectElement).value;
+        const scheme = (document.getElementById('swal-scheme') as HTMLInputElement).value;
+        const amount = (document.getElementById('swal-amount') as HTMLInputElement).value;
+        
+        if (!studentId || !scheme || !amount) {
+          Swal.showValidationMessage('All fields are required');
+          return false;
+        }
+        return { studentId, scheme, amount: Number(amount) };
+      }
+    });
+
+    if (formValues) {
+      try {
+        const res = await fetch(`${API_BASE}/api/teacher/scholarships`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formValues)
+        });
+        const json = await res.json();
+        if (json.success) {
+          Swal.fire("Created!", "Scholarship allocation created successfully.", "success");
+          fetchApplications();
+        } else {
+          Swal.fire("Error", "Failed to create scholarship: " + json.error, "error");
+        }
+      } catch (err) {
+        console.error("Error creating scholarship:", err);
+        Swal.fire("Error", "Server error occurred while creating.", "error");
+      }
+    }
+  };
+
+  const handleDelete = async (id: string, studentName: string) => {
+    const result = await Swal.fire({
+      title: 'Delete Allocation?',
+      text: `Are you sure you want to delete the scholarship for ${studentName}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`${API_BASE}/api/teacher/scholarships/${id}`, {
+          method: "DELETE"
+        });
+        const json = await res.json();
+        if (json.success) {
+          Swal.fire("Deleted!", "The scholarship has been removed.", "success");
+          fetchApplications();
+        } else {
+          Swal.fire("Error", "Failed to delete: " + json.error, "error");
+        }
+      } catch (err) {
+        console.error("Error deleting:", err);
+        Swal.fire("Error", "Server error occurred while deleting.", "error");
+      }
+    }
+  };
+
 
   const totalDisbursed = applications
     .filter((a) => a.status === "Disbursed")
@@ -197,7 +309,15 @@ export default function ScholarshipPage() {
               <h2 className="text-base font-semibold text-white flex items-center gap-2">
                 <i className="fi fi-rr-graduation-cap text-blue-400" /> Community Scholarship Register
               </h2>
-              <p className="text-xs text-slate-500 leading-relaxed">Applicants flagged for social welfare bursary allocations.</p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <p className="text-xs text-slate-500 leading-relaxed">Applicants flagged for social welfare bursary allocations.</p>
+                <button
+                  onClick={handleCreate}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-[10px] transition-colors flex items-center gap-1.5 w-fit"
+                >
+                  <i className="fi fi-rr-plus" /> Create Allocation
+                </button>
+              </div>
             </div>
 
             {/* Filter buttons */}
@@ -242,7 +362,7 @@ export default function ScholarshipPage() {
                     </div>
                   </div>
 
-                  <div>
+                  <div className="flex items-center gap-3">
                     <span className={`badge ${
                       app.status === "Disbursed"
                         ? "badge-green"
@@ -252,6 +372,13 @@ export default function ScholarshipPage() {
                     }`}>
                       {app.status}
                     </span>
+                    <button
+                      onClick={() => handleDelete(app.id, app.studentName)}
+                      className="w-8 h-8 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors border border-red-500/20"
+                      title="Delete Allocation"
+                    >
+                      <i className="fi fi-rr-trash" />
+                    </button>
                   </div>
                 </div>
               ))}

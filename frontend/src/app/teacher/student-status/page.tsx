@@ -211,7 +211,6 @@ export default function StudentStatusPage() {
                     <tr>
                       <th>Student</th>
                       <th>Class</th>
-                      <th>Engagement</th>
                       <th>Badges Awarded</th>
                     </tr>
                   </thead>
@@ -220,19 +219,6 @@ export default function StudentStatusPage() {
                       <tr key={student.id}>
                         <td className="font-medium text-[var(--text-heading)]">{student.name}</td>
                         <td>{student.class}</td>
-                        <td>
-                          <span
-                            className={`badge ${
-                              student.engagement === "High"
-                                ? "badge-green"
-                                : student.engagement === "Medium"
-                                ? "badge-blue"
-                                : "badge-red"
-                            }`}
-                          >
-                            {student.engagement} Engagement
-                          </span>
-                        </td>
                         <td>
                           <div className="flex flex-wrap gap-1.5 max-w-[250px]">
                             {student.badges.length > 0 ? (
@@ -264,17 +250,6 @@ export default function StudentStatusPage() {
                         <div className="font-semibold text-[var(--text-heading)] text-sm">{student.name}</div>
                         <div className="text-[10px] text-[var(--text-muted)] mt-0.5">Class: {student.class}</div>
                       </div>
-                      <span
-                        className={`badge shrink-0 ${
-                          student.engagement === "High"
-                            ? "badge-green"
-                            : student.engagement === "Medium"
-                            ? "badge-blue"
-                            : "badge-red"
-                        }`}
-                      >
-                        {student.engagement}
-                      </span>
                     </div>
                     <div>
                       <span className="text-[9px] uppercase tracking-wider font-bold text-[var(--text-muted)] block mb-1.5">Badges Awarded</span>

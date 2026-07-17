@@ -19,7 +19,7 @@ const CLASSES = ["6", "7", "8", "9", "10", "11", "12"];
 export default function TeacherDigitalLibraryPage() {
   const { data: session } = useSession();
   const [formData, setFormData] = useState({
-    title: "", type: "E-books", subject: "", class: "10", description: "", fileUrl: ""
+    title: "", type: "", subject: "", class: "", description: "", fileUrl: ""
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -83,21 +83,7 @@ export default function TeacherDigitalLibraryPage() {
             setClassrooms(json.data);
             setClassroomsLoaded(true);
             if (!editingId && json.data.length > 0) {
-              const defaultClass = json.data[0].className;
-              const defaultSubjects = Array.from(
-                new Set(
-                  json.data
-                    .filter((c: any) => c.className === defaultClass)
-                    .map((c: any) => c.subject)
-                    .filter(Boolean)
-                )
-              ).sort() as string[];
-              const defaultSubject = defaultSubjects[0] || "";
-              setFormData((prev) => ({
-                ...prev,
-                class: defaultClass,
-                subject: defaultSubject
-              }));
+              // Placeholders will be shown until the user explicitly selects a class/subject
             } else {
               setClassroomsLoaded(true);
             }
@@ -264,22 +250,11 @@ export default function TeacherDigitalLibraryPage() {
 
   const openCreateModal = () => {
     setEditingId(null);
-    const defaultClass = classrooms.length > 0 ? classrooms[0].className : "";
-    const defaultSubjects = Array.from(
-      new Set(
-        classrooms
-          .filter((c: any) => c.className === defaultClass)
-          .map((c: any) => c.subject)
-          .filter(Boolean)
-      )
-    ).sort() as string[];
-    const defaultSubject = defaultSubjects[0] || "";
-
     setFormData({
       title: "",
-      type: "E-books",
-      subject: defaultSubject,
-      class: defaultClass,
+      type: "",
+      subject: "",
+      class: "",
       description: "",
       fileUrl: ""
     });
@@ -506,21 +481,24 @@ export default function TeacherDigitalLibraryPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-705 dark:text-slate-300">Title *</label>
-                  <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white" />
+                  <input type="text" required placeholder="Enter resource title..." value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-705 dark:text-slate-300">Category *</label>
-                  <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white">
+                  <select required value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white">
+                    <option value="" disabled>Select Category</option>
                     {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-705 dark:text-slate-300">Class Level *</label>
                   <select
+                    required
                     value={formData.class}
                     onChange={(e) => handleClassChange(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white"
                   >
+                    <option value="" disabled>Select Class Level</option>
                     {finalClasses.map((cls) => (
                       <option key={cls} value={cls}>
                         Class {cls}
@@ -531,10 +509,12 @@ export default function TeacherDigitalLibraryPage() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-705 dark:text-slate-300">Subject *</label>
                   <select
+                    required
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white"
                   >
+                    <option value="" disabled>Select Subject</option>
                     {finalSubjects.map((subj) => (
                       <option key={subj} value={subj}>
                         {subj}
