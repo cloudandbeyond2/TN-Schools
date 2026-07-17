@@ -15,7 +15,7 @@ import {
 } from "@/lib/petData";
 
 const MEDALS: MedalType[] = ["Gold", "Silver", "Bronze", "Trophy", "Certificate"];
-const LEVELS: EventLevel[] = ["School", "Zonal", "District", "Division", "State", "National"];
+const LEVELS: EventLevel[] = ["Intra-School", "Inter-School", "District", "State", "National"];
 
 export default function AwardsPage() {
   const [awards, setAwards] = useState<AwardRecord[]>([]);
@@ -215,7 +215,7 @@ function AddAwardModal({
   const [cls, setCls] = useState("");
   const [sport, setSport] = useState("");
   const [event, setEvent] = useState("");
-  const [level, setLevel] = useState<EventLevel>("School");
+  const [level, setLevel] = useState<EventLevel>("Intra-School");
   const [medal, setMedal] = useState<MedalType>("Gold");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [certificateIssued, setCertificateIssued] = useState(false);

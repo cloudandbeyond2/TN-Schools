@@ -953,6 +953,27 @@ model PetEquipmentRequest {
   @@index([itemId])
 }
 
+model PetSportsEvent {
+  id           String   @id @default(uuid())
+  schoolId     String?
+  name         String
+  kind         String   @default("Competition")
+  sport        String
+  level        String
+  date         String
+  venue        String
+  participants Int      @default(0)
+  status        String   @default("Upcoming")
+  result        String   @default("")
+  notes         String   @default("")
+  targetClasses String   @default("All Classes")
+  ageGroup      String   @default("Open")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([schoolId])
+}
+
 model InjuryReport {
   id          String   @id @default(uuid())
   studentId   String
