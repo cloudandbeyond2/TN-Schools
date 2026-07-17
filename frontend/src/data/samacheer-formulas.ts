@@ -1,9 +1,12 @@
 export interface SamacheerFormula {
-  id: string | number;
+  id: number;
   standard: string;
   term: string;
   category: string;
-  categoryName: string;
+  categoryName: {
+    en: string;
+    ta: string;
+  };
   title: {
     en: string;
     ta: string;
