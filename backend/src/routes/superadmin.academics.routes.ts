@@ -1,39 +1,32 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
 import { authenticate, requireMinRole } from "../middleware/auth.middleware";
 import { UPLOAD_LIMITS, documentFileFilter } from "../utils/uploads";
+import { uploadBuffer } from "../services/storage.service";
 
 const router = Router();
 const prisma = new PrismaClient();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, "../../uploads");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // basename() strips any client-supplied directory components (path traversal)
-    const safeName = path.basename(file.originalname).replace(/[^a-zA-Z0-9._-]/g, "_");
-    cb(null, `${Date.now()}-${safeName}`);
-  }
-});
-const upload = multer({ storage, limits: UPLOAD_LIMITS, fileFilter: documentFileFilter });
+// Files buffer in memory and go through the storage service, which routes to
+// the superadmin-configured provider (local disk / S3 / custom server).
+const upload = multer({ storage: multer.memoryStorage(), limits: UPLOAD_LIMITS, fileFilter: documentFileFilter });
 
 // Reads require any logged-in user; content management requires headmaster and above.
 router.use(authenticate);
 
-router.post("/upload", requireMinRole("HEADMASTER"), upload.single("file"), (req: Request, res: Response) => {
+router.post("/upload", requireMinRole("HEADMASTER"), upload.single("file"), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
-    res.json({ url: `/uploads/${req.file.filename}` });
+    const { url } = await uploadBuffer({
+      buffer: req.file.buffer,
+      originalName: req.file.originalname,
+      mimeType: req.file.mimetype,
+      folder: "academics",
+    });
+    res.json({ url });
   } catch (error: any) {
     console.error("Upload error:", error);
     res.status(500).json({ error: "Internal Server Error", details: error.message });

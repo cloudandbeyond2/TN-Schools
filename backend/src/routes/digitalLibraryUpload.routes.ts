@@ -1,27 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import os from 'os';
 import { UPLOAD_LIMITS, documentFileFilter } from '../utils/uploads';
+import { uploadBuffer } from '../services/storage.service';
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // For demo purposes on cloud servers (Vercel/Render), use the OS temp directory
-    // since the local filesystem is usually read-only.
-    const dir = path.join(os.tmpdir(), 'uploads');
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  },
-});
-const upload = multer({ storage, limits: UPLOAD_LIMITS, fileFilter: documentFileFilter });
+// Files buffer in memory and go through the storage service, which routes to
+// the superadmin-configured provider (local disk / S3 / custom server).
+const upload = multer({ storage: multer.memoryStorage(), limits: UPLOAD_LIMITS, fileFilter: documentFileFilter });
 
 const router = Router();
 
@@ -118,7 +103,13 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
     let { fileUrl } = req.body;
 
     if (req.file) {
-      fileUrl = `/uploads/${req.file.filename}`;
+      const uploaded = await uploadBuffer({
+        buffer: req.file.buffer,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        folder: 'digital-library',
+      });
+      fileUrl = uploaded.url;
     }
 
     if (!title || !type || !subject || !cls || !role || !userId) {
@@ -227,7 +218,13 @@ router.put('/:id', upload.single('file'), async (req: Request, res: Response) =>
     let { fileUrl } = req.body;
 
     if (req.file) {
-      fileUrl = `/uploads/${req.file.filename}`;
+      const uploaded = await uploadBuffer({
+        buffer: req.file.buffer,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        folder: 'digital-library',
+      });
+      fileUrl = uploaded.url;
     }
 
     const updatedData: any = {};
