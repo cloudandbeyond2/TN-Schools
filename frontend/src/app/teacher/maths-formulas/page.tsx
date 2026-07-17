@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
-import { Calculator, Search, Sigma, Pi, DivideSquare, BookOpen, Copy, Star, Check, Zap, Gamepad2, BrainCircuit, Joystick, GraduationCap, X } from "lucide-react";
+import { Calculator, Search, Sigma, Pi, DivideSquare, BookOpen, Copy, Star, Check, Zap, Gamepad2, BrainCircuit, Joystick, GraduationCap, X, Plus, Edit2, Trash2 } from "lucide-react";
+import Swal from "sweetalert2";
 
-import { samacheerFormulas, SamacheerFormula } from "@/data/samacheer-formulas";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const getCategoryIcon = (catId: string) => {
   if (catId === "measurements" || catId === "geometry") return <DivideSquare />;
@@ -40,6 +41,30 @@ export default function MathsFormulasPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedFormula, setSelectedFormula] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"playground" | "memory">("playground");
+
+  // Database Formulas State
+  const [formulas, setFormulas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchFormulas = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/teacher/maths-formulas`);
+      const data = await res.json();
+      if (data.success) {
+        // console.log("PostgreSQL Fetched Formulas:", data.data);
+        setFormulas(data.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching formulas:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFormulas();
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -82,8 +107,113 @@ export default function MathsFormulasPage() {
     });
   };
 
+  // Form State
+  const [formOpen, setFormOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [fTitleEn, setFTitleEn] = useState("");
+  const [fTitleTa, setFTitleTa] = useState("");
+  const [fFormula, setFFormula] = useState("");
+  const [fCategory, setFCategory] = useState("");
+  const [fCategoryNameEn, setFCategoryNameEn] = useState("");
+  const [fCategoryNameTa, setFCategoryNameTa] = useState("");
+  const [fStandard, setFStandard] = useState("");
+  const [fTerm, setFTerm] = useState("");
+  const [fMnemonicText, setFMnemonicText] = useState("");
+  const [fMnemonicPrompt, setFMnemonicPrompt] = useState("");
+
+  const resetForm = () => {
+    setEditId(null);
+    setFTitleEn("");
+    setFTitleTa("");
+    setFFormula("");
+    setFCategory("");
+    setFCategoryNameEn("");
+    setFCategoryNameTa("");
+    setFStandard("");
+    setFTerm("");
+    setFMnemonicText("");
+    setFMnemonicPrompt("");
+  };
+
+  const handleEditClick = (formula: any) => {
+    setEditId(formula.id);
+    setFTitleEn(formula.titleEn);
+    setFTitleTa(formula.titleTa);
+    setFFormula(formula.formula);
+    setFCategory(formula.category);
+    setFCategoryNameEn(formula.categoryNameEn);
+    setFCategoryNameTa(formula.categoryNameTa);
+    setFStandard(formula.standard);
+    setFTerm(formula.term || "3");
+    setFMnemonicText(formula.mnemonicText || "");
+    setFMnemonicPrompt(formula.mnemonicPrompt || "");
+    setFormOpen(true);
+  };
+
+  const handleDeleteClick = async (id: string) => {
+    const result = await Swal.fire({
+      title: "Delete Formula?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete",
+      confirmButtonColor: "#ef4444"
+    });
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/teacher/maths-formulas/${id}`, { method: "DELETE" });
+      if (res.ok) fetchFormulas();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = {
+      titleEn: fTitleEn,
+      titleTa: fTitleTa,
+      formula: fFormula,
+      category: fCategory,
+      categoryNameEn: fCategoryNameEn,
+      categoryNameTa: fCategoryNameTa,
+      standard: fStandard,
+      term: fTerm,
+      mnemonicText: fMnemonicText,
+      mnemonicPrompt: fMnemonicPrompt,
+      popular: false,
+      bg: "from-blue-400 to-indigo-500" // default
+    };
+
+    try {
+      let res;
+      if (editId) {
+        res = await fetch(`${API_URL}/api/teacher/maths-formulas/${editId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        res = await fetch(`${API_URL}/api/teacher/maths-formulas`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      }
+      if (res.ok) {
+        setFormOpen(false);
+        resetForm();
+        fetchFormulas();
+        showToast("Formula saved successfully!");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // Filter logic
-  let filteredFormulas = samacheerFormulas.filter(f => f.standard === activeStandard);
+  let filteredFormulas = formulas.filter(f => f.standard === activeStandard);
   if (activeTerm !== "all") {
     filteredFormulas = filteredFormulas.filter(f => f.term === activeTerm);
   }
@@ -94,7 +224,7 @@ export default function MathsFormulasPage() {
     if (!dynamicCategoriesMap.has(f.category)) {
       dynamicCategoriesMap.set(f.category, {
         id: f.category,
-        name: f.categoryName,
+        name: { en: f.categoryNameEn, ta: f.categoryNameTa },
         icon: getCategoryIcon(f.category),
         color: getCategoryColor(f.category),
         count: 0
@@ -109,8 +239,8 @@ export default function MathsFormulasPage() {
   }
   if (searchQuery.trim() !== "") {
     filteredFormulas = filteredFormulas.filter(f =>
-      f.title.en.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      f.title.ta.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      f.titleEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      f.titleTa.toLowerCase().includes(searchQuery.toLowerCase()) ||
       f.formula.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }
@@ -195,6 +325,13 @@ export default function MathsFormulasPage() {
               title="Toggle Game Mode"
             >
               <Gamepad2 className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => { resetForm(); setFormOpen(true); }}
+              className="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-md flex items-center gap-1 text-sm flex-shrink-0"
+              title="Add Formula"
+            >
+              <Plus className="w-4 h-4" /> Add
             </button>
           </div>
 
@@ -294,13 +431,27 @@ export default function MathsFormulasPage() {
                     </div>
                   </div>
 
-                  <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 mb-5 leading-tight">{formula.title[lang]}</h3>
+                  <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 mb-5 leading-tight">{lang === "en" ? formula.titleEn : formula.titleTa}</h3>
 
                   <div className="flex gap-2 mt-auto">
                     <button
                       onClick={() => openSandbox(formula, cat)}
                       className="flex-1 py-3 rounded-2xl text-xs font-black text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-all active:scale-95 border-2 border-indigo-200 flex items-center justify-center gap-2">
                       <Joystick className="w-4 h-4" /> Interactive Sandbox
+                    </button>
+                    <button
+                      onClick={() => handleEditClick(formula)}
+                      className="p-3 rounded-2xl text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all active:scale-95"
+                      title="Edit Formula"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(formula.id)}
+                      className="p-3 rounded-2xl text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-all active:scale-95"
+                      title="Delete Formula"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -347,7 +498,7 @@ export default function MathsFormulasPage() {
             </div>
             <div className="p-6 flex flex-col flex-1">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">{selectedFormula.title[lang]}</h3>
+                <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">{lang === "en" ? selectedFormula.titleEn : selectedFormula.titleTa}</h3>
                 <div className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border-2 bg-white ${selectedFormula.cat?.color}`}>
                   {selectedFormula.cat?.name[lang]}
                 </div>
@@ -374,7 +525,7 @@ export default function MathsFormulasPage() {
               <div className="flex-1 min-h-[250px]">
                 {activeTab === "playground" && (
                   <div className="h-full flex flex-col justify-center">
-                    <FormulaSandboxLoader formulaId={selectedFormula.id} />
+                    <FormulaSandboxLoader formula={selectedFormula} />
                   </div>
                 )}
 
@@ -400,6 +551,93 @@ export default function MathsFormulasPage() {
               </div>
 
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* CRUD Form Modal */}
+      {formOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative animate-in zoom-in-95">
+            <button onClick={() => setFormOpen(false)} className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500">
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-xl font-bold mb-4">{editId ? "Edit Formula" : "Add New Formula"}</h2>
+
+            <form onSubmit={handleFormSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Title (English)</label>
+                  <input required value={fTitleEn} onChange={e => setFTitleEn(e.target.value)} className="w-full px-3 py-2 rounded-xl border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Title (Tamil)</label>
+                  <input required value={fTitleTa} onChange={e => setFTitleTa(e.target.value)} className="w-full px-3 py-2 rounded-xl border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold mb-1">Formula</label>
+                <input required value={fFormula} onChange={e => setFFormula(e.target.value)} placeholder="e.g. A = l × w" className="w-full px-3 py-2 rounded-xl border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 font-mono text-sm" />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Category Code</label>
+                  <input required value={fCategory} onChange={e => setFCategory(e.target.value)} placeholder="e.g. measurements" className="w-full px-3 py-2 rounded-xl border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Category (En)</label>
+                  <input required value={fCategoryNameEn} onChange={e => setFCategoryNameEn(e.target.value)} className="w-full px-3 py-2 rounded-xl border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Category (Ta)</label>
+                  <input required value={fCategoryNameTa} onChange={e => setFCategoryNameTa(e.target.value)} className="w-full px-3 py-2 rounded-xl border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Standard</label>
+                  <select required value={fStandard} onChange={e => setFStandard(e.target.value)} className="w-full px-3 py-2 rounded-xl border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm">
+                    <option value="" disabled>Select Standard</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Term</label>
+                  <select required value={fTerm} onChange={e => setFTerm(e.target.value)} className="w-full px-3 py-2 rounded-xl border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm">
+                    <option value="" disabled>Select Term</option>
+                    <option value="1">Term I</option>
+                    <option value="2">Term II</option>
+                    <option value="3">Term III</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold mb-1">Mnemonic Text (Memory Trick)</label>
+                <textarea value={fMnemonicText} onChange={e => setFMnemonicText(e.target.value)} className="w-full px-3 py-2 rounded-xl border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm h-20 resize-none" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold mb-1">Mnemonic Image Prompt (For AI Generation)</label>
+                <textarea value={fMnemonicPrompt} onChange={e => setFMnemonicPrompt(e.target.value)} className="w-full px-3 py-2 rounded-xl border bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm h-20 resize-none" />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <button type="button" onClick={() => setFormOpen(false)} className="px-5 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all">Cancel</button>
+                <button type="submit" className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-md">
+                  {editId ? "Update Formula" : "Save Formula"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

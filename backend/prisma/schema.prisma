@@ -2049,3 +2049,21 @@ model StudentRiskAlert {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 }
+
+model MathsFormula {
+  id              String   @id @default(uuid())
+  titleEn         String
+  titleTa         String
+  formula         String
+  category        String
+  categoryNameEn  String
+  categoryNameTa  String
+  standard        String
+  term            String?
+  popular         Boolean  @default(false)
+  bg              String
+  mnemonicPrompt  String
+  mnemonicText    String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

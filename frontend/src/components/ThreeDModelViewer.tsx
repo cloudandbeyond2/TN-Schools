@@ -29,6 +29,7 @@ interface ThreeDModelViewerProps {
   description?: string;
   colorTheme?: string;
   autoRotate?: boolean;
+  theme?: "light" | "dark";
 }
 
 // Helper: lighten hex color for 3D highlights
@@ -71,6 +72,7 @@ export default function ThreeDModelViewer({
   description = "",
   colorTheme = "indigo",
   autoRotate: initialAutoRotate = true,
+  theme = "dark",
 }: ThreeDModelViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -147,6 +149,15 @@ export default function ThreeDModelViewer({
     setAngleY((prev) => prev + dx * 0.008);
     setAngleX((prev) => Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, prev + dy * 0.008)));
     setDragStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    // Zoom in when scrolling up (negative deltaY), out when scrolling down (positive)
+    if (e.deltaY < 0) {
+      setZoom((z) => Math.min(2.5, z + 0.15));
+    } else {
+      setZoom((z) => Math.max(0.4, z - 0.15));
+    }
   };
 
   const handleTouchEnd = () => {
@@ -259,9 +270,8 @@ export default function ThreeDModelViewer({
     const items: RenderItem[] = [];
 
     // 1. Grid lines / environment lines
-    // We can draw a subtle coordinate base grid at y = -80 in the XZ plane
     const gridY = -80;
-    const gridColor = "rgba(99, 102, 241, 0.12)";
+    const gridColor = theme === "light" ? "rgba(99, 102, 241, 0.15)" : "rgba(99, 102, 241, 0.12)";
     for (let i = -100; i <= 100; i += 25) {
       // Lines parallel to Z axis (from x = i, z = -100 to x = i, z = 100)
       items.push({
@@ -599,8 +609,13 @@ export default function ThreeDModelViewer({
 
             // Background
             const isSelected = selectedShape && (selectedShape.label === textContent || selectedShape.text === textContent);
-            ctx.fillStyle = isSelected ? "rgba(79, 70, 229, 0.95)" : "rgba(15, 23, 42, 0.9)";
-            ctx.strokeStyle = isSelected ? "#ffffff" : color;
+            ctx.fillStyle = isSelected 
+              ? (theme === "light" ? "rgba(59, 130, 246, 0.95)" : "rgba(79, 70, 229, 0.95)")
+              : (theme === "light" ? "rgba(255, 255, 255, 0.9)" : "rgba(15, 23, 42, 0.9)");
+            
+            ctx.strokeStyle = isSelected 
+              ? (theme === "light" ? "#ffffff" : "#ffffff") 
+              : color;
             ctx.lineWidth = isSelected ? 2 : 1.5;
             
             // Round rect path
@@ -610,7 +625,9 @@ export default function ThreeDModelViewer({
             ctx.stroke();
 
             // Text
-            ctx.fillStyle = "#f8fafc";
+            ctx.fillStyle = isSelected 
+              ? "#ffffff" 
+              : (theme === "light" ? "#1e293b" : "#f8fafc");
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText(textContent, pText.sx, pText.sy + 1);
@@ -693,9 +710,9 @@ export default function ThreeDModelViewer({
     >
       {/* Title / Info overlay */}
       <div className="hidden lg:block absolute top-24 left-6 z-30 max-w-xs pointer-events-none">
-        <h4 className="text-lg font-black text-white drop-shadow-md mb-1">{name}</h4>
+        <h4 className={`text-lg font-black drop-shadow-md mb-1 ${theme === "light" ? "text-slate-800" : "text-white"}`}>{name}</h4>
         {description && !selectedShape && (
-          <p className="text-xs text-slate-300 drop-shadow-md leading-relaxed line-clamp-3">
+          <p className={`text-xs drop-shadow-md leading-relaxed line-clamp-3 ${theme === "light" ? "text-slate-600" : "text-slate-300"}`}>
             {description}
           </p>
         )}
@@ -703,51 +720,51 @@ export default function ThreeDModelViewer({
 
       {/* Selected Shape / Click-to-Explain HUD popup */}
       {selectedShape && (
-        <div className="absolute bottom-20 lg:bottom-auto lg:top-24 left-4 right-4 lg:right-auto lg:left-6 z-40 max-w-sm lg:max-w-xs bg-slate-950/95 backdrop-blur-md border-2 border-indigo-500/70 p-4 lg:p-5 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-left-4 duration-300">
+        <div className={`absolute bottom-20 lg:bottom-auto lg:top-24 left-4 right-4 lg:right-auto lg:left-6 z-40 max-w-sm lg:max-w-xs backdrop-blur-md border p-4 lg:p-5 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-left-4 duration-300 ${theme === "light" ? "bg-white/95 border-blue-200" : "bg-slate-950/95 border-indigo-500/70"}`}>
           <button
             onClick={() => setSelectedShape(null)}
-            className="absolute top-3 right-3 text-slate-400 hover:text-white transition-colors"
+            className="absolute top-3 right-3 text-slate-400 hover:text-blue-500 transition-colors"
             title="Close Description"
           >
             <X className="w-4 h-4" />
           </button>
           <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
-            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Part Explanation</span>
+            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+            <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Part Explanation</span>
           </div>
-          <h5 className="text-base font-black text-white mb-2">{selectedShape.label}</h5>
-          <p className="text-xs text-slate-300 leading-relaxed">
+          <h5 className={`text-base font-black mb-2 ${theme === "light" ? "text-slate-800" : "text-white"}`}>{selectedShape.label}</h5>
+          <p className={`text-xs leading-relaxed ${theme === "light" ? "text-slate-600" : "text-slate-300"}`}>
             {selectedShape.description || "Interactive structural detail of this model."}
           </p>
         </div>
       )}
 
       {/* Floating control buttons */}
-      <div className="absolute bottom-6 right-6 z-30 flex items-center gap-2 bg-slate-900/90 backdrop-blur-md px-3 py-2 rounded-2xl border border-white/10 shadow-lg">
+      <div className={`absolute bottom-6 right-6 z-30 flex items-center gap-2 backdrop-blur-md px-3 py-2 rounded-2xl border shadow-lg ${theme === "light" ? "bg-white/90 border-slate-200" : "bg-slate-900/90 border-white/10"}`}>
         <button
           onClick={() => setIsPlaying(!isPlaying)}
-          className={`p-2 rounded-xl transition-all ${isPlaying ? "bg-indigo-500 text-white" : "hover:bg-white/10 text-slate-400"}`}
+          className={`p-2 rounded-xl transition-all ${isPlaying ? "bg-blue-500 text-white" : (theme === "light" ? "hover:bg-slate-100 text-slate-500" : "hover:bg-white/10 text-slate-400")}`}
           title={isPlaying ? "Pause Spin" : "Auto Spin"}
         >
           {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
         </button>
         <button
           onClick={() => setZoom((z) => Math.min(2.5, z + 0.15))}
-          className="p-2 rounded-xl hover:bg-white/10 text-slate-400 active:scale-95 transition-all"
+          className={`p-2 rounded-xl active:scale-95 transition-all ${theme === "light" ? "hover:bg-slate-100 text-slate-500" : "hover:bg-white/10 text-slate-400"}`}
           title="Zoom In"
         >
           <ZoomIn className="w-4 h-4" />
         </button>
         <button
           onClick={() => setZoom((z) => Math.max(0.4, z - 0.15))}
-          className="p-2 rounded-xl hover:bg-white/10 text-slate-400 active:scale-95 transition-all"
+          className={`p-2 rounded-xl active:scale-95 transition-all ${theme === "light" ? "hover:bg-slate-100 text-slate-500" : "hover:bg-white/10 text-slate-400"}`}
           title="Zoom Out"
         >
           <ZoomOut className="w-4 h-4" />
         </button>
         <button
           onClick={handleReset}
-          className="p-2 rounded-xl hover:bg-white/10 text-slate-400 active:scale-95 transition-all border-l border-white/10 pl-3"
+          className={`p-2 rounded-xl active:scale-95 transition-all border-l pl-3 ${theme === "light" ? "hover:bg-slate-100 text-slate-500 border-slate-200" : "hover:bg-white/10 text-slate-400 border-white/10"}`}
           title="Reset View"
         >
           <RotateCcw className="w-4 h-4" />
@@ -763,15 +780,16 @@ export default function ThreeDModelViewer({
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onWheel={handleWheel}
         className="w-full h-full select-none"
         style={{ cursor: cursorStyle }}
       />
 
       {/* Detail HUD Overlay on Hover */}
       {hoveredLabel && !selectedShape && (
-        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-slate-950/90 text-indigo-300 font-bold border-2 border-indigo-500/50 px-4 py-2 rounded-xl text-xs z-30 pointer-events-none animate-bounce shadow-xl flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
-          Click to explain: <span className="text-white font-black">{hoveredLabel}</span>
+        <div className={`absolute bottom-24 left-1/2 -translate-x-1/2 font-bold border px-4 py-2 rounded-xl text-xs z-30 pointer-events-none animate-bounce shadow-xl flex items-center gap-2 ${theme === "light" ? "bg-white/95 text-blue-600 border-blue-200" : "bg-slate-950/90 text-indigo-300 border-indigo-500/50"}`}>
+          <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
+          Click to explain: <span className={`font-black ${theme === "light" ? "text-slate-800" : "text-white"}`}>{hoveredLabel}</span>
         </div>
       )}
     </div>

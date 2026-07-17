@@ -1465,4 +1465,73 @@ router.delete('/risk-alerts/:id', async (req: Request, res: Response) => {
   }
 });
 
+// =========================================================================
+// Maths Formulas
+// =========================================================================
+
+// GET /api/teacher/maths-formulas
+router.get('/maths-formulas', async (req: Request, res: Response) => {
+  try {
+    const formulas = await (prisma as any).mathsFormula.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ success: true, data: formulas });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/teacher/maths-formulas
+router.post('/maths-formulas', async (req: Request, res: Response) => {
+  try {
+    const { titleEn, titleTa, formula, category, categoryNameEn, categoryNameTa, standard, term, popular, bg, mnemonicPrompt, mnemonicText } = req.body;
+    const newFormula = await (prisma as any).mathsFormula.create({
+      data: {
+        titleEn,
+        titleTa,
+        formula,
+        category,
+        categoryNameEn,
+        categoryNameTa,
+        standard,
+        term,
+        popular: popular || false,
+        bg: bg || "from-blue-400 to-indigo-500",
+        mnemonicPrompt,
+        mnemonicText
+      }
+    });
+    res.status(201).json({ success: true, data: newFormula });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// PUT /api/teacher/maths-formulas/:id
+router.put('/maths-formulas/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updated = await (prisma as any).mathsFormula.update({
+      where: { id },
+      data: req.body
+    });
+    res.json({ success: true, data: updated });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/teacher/maths-formulas/:id
+router.delete('/maths-formulas/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await (prisma as any).mathsFormula.delete({
+      where: { id }
+    });
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 export default router;
