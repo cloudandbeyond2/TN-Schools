@@ -659,6 +659,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Material Library", href: "/super-admin/materials", icon: "Box" },
       { label: "Digital Library", href: "/super-admin/digital-library", icon: "Library" },
       { label: "Department Modules", href: "/super-admin/modules", icon: "Calendar" },
+      { label: "Competitive Exams", href: "/super-admin/competitive-exams", icon: "Trophy" },
 
       { label: "System & AI", href: "#", icon: "" },
       { label: "Feature Toggles", href: "/super-admin/features", icon: "🔧" },
