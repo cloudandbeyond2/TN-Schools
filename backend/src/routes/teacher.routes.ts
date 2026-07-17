@@ -1382,5 +1382,87 @@ router.delete('/school-press/:id', async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: String(err) });
   }
 });
+// =========================================================================
+// Risk Alerts
+// =========================================================================
+
+// GET /api/teacher/risk-alerts
+router.get('/risk-alerts', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required' });
+    }
+    const alerts = await (prisma as any).studentRiskAlert.findMany({
+      where: { schoolId: String(schoolId) },
+      include: {
+        student: {
+          include: { user: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ success: true, data: alerts });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/teacher/risk-alerts
+router.post('/risk-alerts', async (req: Request, res: Response) => {
+  try {
+    const { studentId, schoolId, riskLevel, issue, attendance, lastScore } = req.body;
+    const alert = await (prisma as any).studentRiskAlert.create({
+      data: {
+        studentId,
+        schoolId,
+        riskLevel,
+        issue,
+        attendance: Number(attendance) || 0,
+        lastScore: Number(lastScore) || 0,
+      }
+    });
+    res.json({ success: true, data: alert });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// PUT /api/teacher/risk-alerts/:id
+router.put('/risk-alerts/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { riskLevel, issue, attendance, lastScore, notified, notificationMessage } = req.body;
+    
+    const data: any = {};
+    if (riskLevel !== undefined) data.riskLevel = riskLevel;
+    if (issue !== undefined) data.issue = issue;
+    if (attendance !== undefined) data.attendance = Number(attendance) || 0;
+    if (lastScore !== undefined) data.lastScore = Number(lastScore) || 0;
+    if (notified !== undefined) data.notified = notified;
+    if (notificationMessage !== undefined) data.notificationMessage = notificationMessage;
+
+    const alert = await (prisma as any).studentRiskAlert.update({
+      where: { id },
+      data
+    });
+    res.json({ success: true, data: alert });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/teacher/risk-alerts/:id
+router.delete('/risk-alerts/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await (prisma as any).studentRiskAlert.delete({
+      where: { id }
+    });
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 export default router;

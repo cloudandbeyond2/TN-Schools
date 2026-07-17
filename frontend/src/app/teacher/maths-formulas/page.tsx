@@ -189,8 +189,8 @@ export default function MathsFormulasPage() {
             <button
               onClick={toggleGameMode}
               className={`p-2 rounded-xl border transition-all flex-shrink-0 ${gameMode
-                  ? "bg-amber-100 border-amber-300 text-amber-600 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-400"
-                  : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+                ? "bg-amber-100 border-amber-300 text-amber-600 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-400"
+                : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
                 }`}
               title="Toggle Game Mode"
             >
@@ -202,8 +202,8 @@ export default function MathsFormulasPage() {
             <button
               onClick={() => setActiveCat("all")}
               className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeCat === "all"
-                  ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm"
-                  : "bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
+                ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm"
+                : "bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
                 }`}
             >
               <BookOpen className="w-4 h-4" />
@@ -214,8 +214,8 @@ export default function MathsFormulasPage() {
                 key={cat.id}
                 onClick={() => setActiveCat(cat.id)}
                 className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${activeCat === cat.id
-                    ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm"
-                    : "bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
+                  ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm"
+                  : "bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
                   }`}
               >
                 {React.cloneElement(cat.icon as React.ReactElement, { className: "w-4 h-4" })}
@@ -237,8 +237,8 @@ export default function MathsFormulasPage() {
                   <div
                     onClick={() => toggleReveal(formula.id)}
                     className={`w-full h-36 rounded-t-[2rem] rounded-b-2xl flex flex-col items-center justify-center p-6 cursor-pointer transition-all duration-300 ${revealed.has(formula.id)
-                        ? `bg-gradient-to-br ${formula.bg}`
-                        : "bg-slate-800 dark:bg-slate-900 border-2 border-dashed border-slate-600 hover:bg-slate-700"
+                      ? `bg-gradient-to-br ${formula.bg}`
+                      : "bg-slate-800 dark:bg-slate-900 border-2 border-dashed border-slate-600 hover:bg-slate-700"
                       }`}
                   >
                     {revealed.has(formula.id) ? (
@@ -387,8 +387,8 @@ export default function MathsFormulasPage() {
                         className="w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
-                        <span className="text-white text-[10px] font-bold uppercase tracking-widest opacity-80 flex items-center gap-1">
-                          <BrainCircuit className="w-3 h-3" /> AI Generated Mnemonic
+                        <span className="!text-white text-[10px] font-bold uppercase tracking-widest opacity-80 flex items-center gap-1">
+                          <BrainCircuit className="w-3 h-3 !text-white" /> AI Generated Mnemonic
                         </span>
                       </div>
                     </div>
