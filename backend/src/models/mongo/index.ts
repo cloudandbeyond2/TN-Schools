@@ -627,3 +627,23 @@ const CounsellorBookingSchema = new Schema<ICounsellorBooking>({
 }, { timestamps: true });
 
 export const CounsellorBooking = mongoose.models.CounsellorBooking || mongoose.model<ICounsellorBooking>('CounsellorBooking', CounsellorBookingSchema);
+
+export interface ICounsellorSlot extends Document {
+  schoolId: string; // To associate slots with a specific school's counsellor
+  dayEn: string; // e.g., "Monday"
+  dayTa: string; // e.g., "திங்கள்"
+  time: string; // e.g., "10:00 AM"
+  isBooked: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const CounsellorSlotSchema = new Schema<ICounsellorSlot>({
+  schoolId: { type: String, required: true, index: true },
+  dayEn:    { type: String, required: true },
+  dayTa:    { type: String, required: true },
+  time:     { type: String, required: true },
+  isBooked: { type: Boolean, default: false },
+}, { timestamps: true });
+
+export const CounsellorSlot = mongoose.models.CounsellorSlot || mongoose.model<ICounsellorSlot>('CounsellorSlot', CounsellorSlotSchema);
