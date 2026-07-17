@@ -613,6 +613,10 @@ export default function PortalLayout({
             return false;
           }
           
+          if (item.label === "AI Study Planner") {
+            return false;
+          }
+          
           return true;
         });
 
