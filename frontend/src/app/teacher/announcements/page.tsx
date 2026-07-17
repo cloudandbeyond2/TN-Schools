@@ -35,28 +35,24 @@ export default function AnnouncementsPage() {
   const [sendSMS, setSendSMS] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
+  const userId = (session?.user as any)?.id;
+
   // Fetch teacher classes on mount
   useEffect(() => {
     const fetchTeacherClasses = async () => {
-      if (!schoolId || !session?.user) return;
-      const teacherId = (session.user as any).id;
+      if (!schoolId || !userId) return;
       try {
-        const res = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
+        const res = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${userId}`);
         const data = await res.json();
         if (data.success && Array.isArray(data.data)) {
           setTeacherClasses(data.data);
-          if (data.data.length > 0) {
-            setTarget(`Class ${data.data[0].className}${data.data[0].section} Parents`);
-          } else {
-            setTarget("All Parents taught by me");
-          }
         }
       } catch (err) {
         console.error("Error fetching teacher classes:", err);
       }
     };
     fetchTeacherClasses();
-  }, [schoolId, session, API_URL]);
+  }, [schoolId, userId]);
 
   const fetchAnnouncements = async () => {
     if (!schoolId || teacherClasses.length === 0) {
@@ -209,10 +205,12 @@ export default function AnnouncementsPage() {
             <div>
               <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Target Audience</label>
               <select
+                required
                 value={target}
                 onChange={(e) => setTarget(e.target.value)}
                 className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors"
               >
+                <option value="" disabled>-- Select Audience --</option>
                 {teacherClasses.length > 0 && teacherClasses.map((cls) => (
                   <option key={cls.id} value={`Class ${cls.className}${cls.section} Parents`}>
                     Class {cls.className}{cls.section} Parents
