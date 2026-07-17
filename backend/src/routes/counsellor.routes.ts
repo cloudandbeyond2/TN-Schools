@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { Wellness, CounsellorBooking } from '../models/mongo';
+import { Wellness, CounsellorBooking, CounsellorSlot } from '../models/mongo';
 
 const router = Router();
 
@@ -37,18 +37,49 @@ router.post('/message', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/counsellor/slots — Retrieve available counsellor slots
+router.get('/slots', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    const query: any = {};
+    if (schoolId) query.schoolId = schoolId;
+    
+    // In a real app we might filter for future dates only
+    const slots = await CounsellorSlot.find(query).sort({ createdAt: 1 });
+    res.json({ success: true, data: slots });
+  } catch (err) {
+    console.error("COUNSELLOR SLOTS ERROR:", err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // POST /api/counsellor/booking — Book a counsellor session
 router.post('/booking', async (req: Request, res: Response) => {
   try {
-    const { studentId, slot, topic, isAnonymous } = req.body;
+    const { studentId, slotId, slot, topic, isAnonymous } = req.body;
 
-    if (!studentId || !slot) {
-      return res.status(400).json({ success: false, error: 'studentId and slot are required' });
+    if (!studentId || (!slotId && !slot)) {
+      return res.status(400).json({ success: false, error: 'studentId and slotId are required' });
+    }
+
+    let slotText = slot;
+
+    // If a specific slot document ID was passed, mark it as booked
+    if (slotId) {
+      const counsellorSlot = await CounsellorSlot.findById(slotId);
+      if (counsellorSlot) {
+        if (counsellorSlot.isBooked) {
+          return res.status(400).json({ success: false, error: 'Slot is already booked' });
+        }
+        counsellorSlot.isBooked = true;
+        await counsellorSlot.save();
+        slotText = `${counsellorSlot.dayEn} ${counsellorSlot.time}`;
+      }
     }
 
     const booking = await CounsellorBooking.create({
       studentId: isAnonymous ? 'ANONYMOUS_' + studentId : studentId,
-      slot,
+      slot: slotText || 'Unknown Slot',
       topic,
       isAnonymous,
       status: 'booked'

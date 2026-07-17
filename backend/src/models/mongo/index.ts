@@ -628,6 +628,26 @@ const CounsellorBookingSchema = new Schema<ICounsellorBooking>({
 
 export const CounsellorBooking = mongoose.models.CounsellorBooking || mongoose.model<ICounsellorBooking>('CounsellorBooking', CounsellorBookingSchema);
 
+export interface ICounsellorSlot extends Document {
+  schoolId: string; // To associate slots with a specific school's counsellor
+  dayEn: string; // e.g., "Monday"
+  dayTa: string; // e.g., "திங்கள்"
+  time: string; // e.g., "10:00 AM"
+  isBooked: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const CounsellorSlotSchema = new Schema<ICounsellorSlot>({
+  schoolId: { type: String, required: true, index: true },
+  dayEn:    { type: String, required: true },
+  dayTa:    { type: String, required: true },
+  time:     { type: String, required: true },
+  isBooked: { type: Boolean, default: false },
+}, { timestamps: true });
+
+export const CounsellorSlot = mongoose.models.CounsellorSlot || mongoose.model<ICounsellorSlot>('CounsellorSlot', CounsellorSlotSchema);
+
 // ─── Super Admin Feature / Module Toggles ─────────────────────
 // A "feature" is a module with 0–1 routes; enforcement unions this
 // with ManagedPage at read time (GET /api/features/effective).
