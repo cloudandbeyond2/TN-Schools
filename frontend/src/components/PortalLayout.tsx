@@ -602,6 +602,17 @@ export default function PortalLayout({
             return classNum === "6";
           }
           
+          if (item.label === "Botany Centre") {
+            const classNum = String(userClass).match(/\d+/)?.[0];
+            if (classNum === "6" || classNum === "7") {
+              return false;
+            }
+          }
+
+          if (userRole.includes("STUDENT") && (item.label === "Chemistry Lab" || item.label === "Science Lab Support")) {
+            return false;
+          }
+          
           return true;
         });
 
