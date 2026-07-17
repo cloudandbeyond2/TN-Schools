@@ -738,3 +738,29 @@ const PlatformSettingSchema = new Schema<IPlatformSetting>({
 }, { timestamps: true });
 
 export const PlatformSetting = mongoose.models.PlatformSetting || mongoose.model<IPlatformSetting>('PlatformSetting', PlatformSettingSchema);
+
+// ─── Saved 3D Model ─
+
+export interface ISaved3DModel extends Document {
+  userId: string;
+  name: string;
+  subject: string;
+  color?: string;
+  sketchfabUid?: string;
+  shapes?: any;
+  description?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const Saved3DModelSchema = new Schema<ISaved3DModel>({
+  userId: { type: String, required: true, index: true },
+  name: { type: String, required: true },
+  subject: { type: String, required: true },
+  color: { type: String },
+  sketchfabUid: { type: String },
+  shapes: { type: Schema.Types.Mixed },
+  description: { type: String }
+}, { timestamps: true });
+
+export const Saved3DModel = mongoose.models.Saved3DModel || mongoose.model<ISaved3DModel>('Saved3DModel', Saved3DModelSchema);
