@@ -86,35 +86,17 @@ export default function SportsConductedPage() {
 
   const [editing, setEditing] = useState<SportsEvent | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
       const srvEvents = await fetchSportsEvents();
-      
-      // Auto-sync custom local events created while offline
-      const localEvents = petLoad(EVENTS_KEY, DEFAULT_EVENTS);
-      const unsynced = localEvents.filter(le => 
-        !srvEvents.some(se => se.name === le.name && se.date === le.date) &&
-        !le.id.startsWith("ev-")
-      );
-
-      let finalEvents = srvEvents;
-      if (unsynced.length > 0) {
-        console.log("Uploading unsynced offline events to database:", unsynced);
-        try {
-          const synced = await createSportsEventsBulk(unsynced.map(({ id, ...rest }) => rest));
-          finalEvents = [...synced, ...srvEvents];
-        } catch (syncErr) {
-          console.error("Failed to sync offline events to database:", syncErr);
-        }
-      }
-
-      setEvents(finalEvents);
-      petSave(EVENTS_KEY, finalEvents);
+      setEvents(srvEvents);
+      petSave(EVENTS_KEY, srvEvents);
       setSource("server");
     } catch (err) {
       console.warn("Falling back to local storage:", err);
-      setEvents(petLoad(EVENTS_KEY, DEFAULT_EVENTS));
+      setEvents(petLoad(EVENTS_KEY, []));
       setSource("local");
     } finally {
       setLoaded(true);
@@ -162,7 +144,6 @@ export default function SportsConductedPage() {
   };
 
   const removeEvent = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this event from the log?")) return;
     setLoadingAction(true);
     try {
       if (source === "server") {
@@ -171,6 +152,7 @@ export default function SportsConductedPage() {
       const next = events.filter((e) => e.id !== id);
       setEvents(next);
       petSave(EVENTS_KEY, next);
+      setDeletingId(null);
     } catch (err) {
       alert(`Could not delete the event from the database: ${err instanceof Error ? err.message : "request failed"}.`);
     } finally {
@@ -480,7 +462,7 @@ export default function SportsConductedPage() {
                       <Pencil size={14} />
                     </button>
                     <button 
-                      onClick={() => removeEvent(ev.id)} 
+                      onClick={() => setDeletingId(ev.id)} 
                       disabled={loadingAction}
                       className="p-2 rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/25 border border-[var(--border)] transition-colors disabled:opacity-50" 
                       title="Delete"
@@ -554,10 +536,45 @@ export default function SportsConductedPage() {
 
       </div>
 
+      {/* Delete Confirmation Modal */}
+      {deletingId && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 text-center space-y-4">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                <AlertTriangle size={32} />
+              </div>
+              <h3 className="text-lg font-black text-[var(--text-heading)]">Delete Event Log</h3>
+              <p className="text-sm font-semibold text-[var(--text-muted)] leading-relaxed">
+                Are you sure you want to delete this event from the log? This action cannot be undone.
+              </p>
+            </div>
+            <div className="p-4 bg-slate-50/50 dark:bg-slate-800/50 border-t border-[var(--border)] flex items-center gap-3">
+              <button
+                onClick={() => setDeletingId(null)}
+                disabled={loadingAction}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold border border-[var(--border)] hover:bg-slate-100 dark:hover:bg-slate-700 text-[var(--text-heading)] transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => removeEvent(deletingId)}
+                disabled={loadingAction}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {loadingAction ? <RefreshCw size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Log/Edit Event Modal */}
       {(showAdd || editing) && (
         <EventModal
           initial={editing}
+          isLoading={loadingAction}
           onClose={() => {
             setShowAdd(false);
             setEditing(null);
@@ -571,10 +588,12 @@ export default function SportsConductedPage() {
 
 function EventModal({
   initial,
+  isLoading,
   onClose,
   onSave,
 }: {
   initial: SportsEvent | null;
+  isLoading?: boolean;
   onClose: () => void;
   onSave: (ev: SportsEvent, studentIds?: string[]) => void;
 }) {
@@ -875,8 +894,12 @@ function EventModal({
           <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} className={inputCls} />
         </Field>
 
-        <button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 transition-colors">
-          {initial ? "Save Changes" : "Add to Event Log"}
+        <button type="submit" disabled={isLoading} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+          {isLoading ? (
+            <><RefreshCw size={16} className="animate-spin" /> Saving...</>
+          ) : (
+            initial ? "Save Changes" : "Add to Event Log"
+          )}
         </button>
       </form>
     </ModalShell>

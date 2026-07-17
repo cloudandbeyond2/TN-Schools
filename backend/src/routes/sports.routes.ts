@@ -179,6 +179,26 @@ router.get('/:studentId', async (req: Request, res: Response) => {
       orderBy: { createdAt: 'desc' }
     });
 
+    // Dynamically fetch from PET tables
+    const petFitness = await prisma.petFitnessRecord.findFirst({
+      where: { studentId },
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    const petEvents = await prisma.petSportsEvent.findMany({
+      orderBy: { date: 'desc' }
+    });
+
+    const awards = await prisma.portfolioAchievement.findMany({
+      where: { portfolio: { studentId } },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const clubs = await prisma.clubMember.findMany({
+      where: { studentId },
+      include: { club: true }
+    });
+
     const formattedData = {
       studentId: profile.studentId,
       studentName: profile.student.user.name,
@@ -188,7 +208,11 @@ router.get('/:studentId', async (req: Request, res: Response) => {
       stats: profile.stats,
       events: profile.events,
       logs: profile.logs,
-      injuries
+      injuries,
+      petFitness,
+      petEvents,
+      awards,
+      clubs
     };
 
     res.json({ success: true, data: formattedData });
