@@ -864,24 +864,35 @@ Requirements:
 router.post('/chat-tutor', async (req: Request, res: Response) => {
   try {
     const { subject, grade, messages, currentMessage, language } = req.body;
-    const isTamil = language === 'tamil';
-
     const historyText = (messages || [])
       .map((m: any) => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.content}`)
       .join('\n');
 
-    const prompt = isTamil
-      ? `நீங்கள் தமிழ்நாடு மாணவர்களுக்கான இரண்டு மொழி AI ஆசிரியர்.
+    let prompt = '';
+    if (language === 'tamil') {
+      prompt = `நீங்கள் தமிழ்நாடு மாணவர்களுக்கான AI ஆசிரியர்.
 மாணவர் படிக்கும் பாடம்: ${subject}, வகுப்பு: ${grade}.
-முதன்மை மொழி: தமிழ் (Tamil). கடினமான தொழில்நுட்ப சொற்கள் மட்டும் ஆங்கிலத்தில் கொடுக்கலாம்.
+முழுக்க முழுக்க தமிழில் மட்டுமே பதில் அளிக்கவும் (Only answer in Tamil). கடினமான தொழில்நுட்ப சொற்கள் மட்டும் ஆங்கிலத்தில் கொடுக்கலாம்.
 
 உரையாடல் வரலாறு:
 ${historyText}
 மாணவர்: ${currentMessage}
 
 தெளிவான bullet points, bold text, numbered lists பயன்படுத்தி பதில் அளிக்கவும்.
-தொனி ஊக்கமளிக்கும் வகையில், வகுப்பறை தமிழில் இயற்கையாக பேசவும்.`
-      : `You are a helpful, bilingual AI Tutor for Tamil Nadu school students.
+தொனி ஊக்கமளிக்கும் வகையில், வகுப்பறை தமிழில் இயற்கையாக பேசவும்.`;
+    } else if (language === 'english') {
+      prompt = `You are a helpful AI Tutor for Tamil Nadu school students.
+The student is studying: Subject = ${subject}, Grade = ${grade}.
+Language mode: STRICTLY ENGLISH ONLY. Do not use any Tamil words or sentences.
+
+Conversation history:
+${historyText}
+Student: ${currentMessage}
+
+Answer clearly with bullet points, bold text, and numbered lists where helpful.
+Keep the tone encouraging and pedagogical.`;
+    } else {
+      prompt = `You are a helpful, bilingual AI Tutor for Tamil Nadu school students.
 You speak both Tamil (தமிழ்) and English (Tanglish is also allowed).
 The student is studying: Subject = ${subject}, Grade = ${grade}.
 Language mode: bilingual — mix English explanation with Tamil reinforcement.
@@ -892,6 +903,7 @@ Student: ${currentMessage}
 
 Answer clearly with bullet points, bold text, and numbered lists where helpful.
 Keep the tone encouraging and pedagogical. Alternate English/Tamil sentences.`;
+    }
 
     const result = await callGemini(prompt, false);
     res.json({ success: true, text: result });
