@@ -1567,6 +1567,7 @@ model CompetitiveExam {
   applicableGroups     String[] @default([])
   studentsEnrolled     Int      @default(0)
   studentsCleared      Int      @default(0)
+  syllabus             Json?
   schoolId             String?
   teacherId            String?
   createdAt            DateTime @default(now())

@@ -160,7 +160,7 @@ router.post('/', async (req: Request, res: Response) => {
     const {
       examName, category, conductedBy, registrationDeadline, examDate,
       status, eligibility, website, studentsEnrolled, studentsCleared,
-      schoolId, teacherId,
+      schoolId, teacherId, syllabus
     } = req.body;
 
     if (!examName || !category || !conductedBy || !registrationDeadline || !examDate) {
@@ -170,27 +170,27 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
-    const id  = randomUUID();
-    const now = new Date();
-
-    const rows: any[] = await prisma.$queryRaw`
-      INSERT INTO "CompetitiveExam"
-        (id, "examName", category, "conductedBy", "registrationDeadline", "examDate",
-         status, eligibility, website, "studentsEnrolled", "studentsCleared",
-         "schoolId", "teacherId", "createdAt", "updatedAt")
-      VALUES
-        (${id}, ${examName}, ${category}, ${conductedBy},
-         ${registrationDeadline}, ${examDate},
-         ${status || 'Upcoming'}, ${eligibility || 'N/A'},
-         ${website || null}, ${Number(studentsEnrolled) || 0},
-         ${Number(studentsCleared) || 0}, ${schoolId || null}, ${teacherId || null},
-         ${now}, ${now})
-      RETURNING *
-    `;
+    const created = await prisma.competitiveExam.create({
+      data: {
+        examName,
+        category,
+        conductedBy,
+        registrationDeadline,
+        examDate,
+        status: status || 'Upcoming',
+        eligibility: eligibility || 'N/A',
+        website: website || null,
+        studentsEnrolled: Number(studentsEnrolled) || 0,
+        studentsCleared: Number(studentsCleared) || 0,
+        schoolId: schoolId || null,
+        teacherId: teacherId || null,
+        syllabus: syllabus || null
+      }
+    });
 
     return res.status(201).json({
       success: true,
-      data: rows[0],
+      data: created,
       message: `"${examName}" added to Competitive Exams`,
     });
   } catch (err: any) {
@@ -207,30 +207,27 @@ router.put('/:id', async (req: Request, res: Response) => {
 
     const {
       examName, category, conductedBy, registrationDeadline, examDate,
-      status, eligibility, website, studentsEnrolled, studentsCleared,
+      status, eligibility, website, studentsEnrolled, studentsCleared, syllabus
     } = req.body;
 
-    const now = new Date();
+    const updated = await prisma.competitiveExam.update({
+      where: { id: req.params.id },
+      data: {
+        examName: examName !== undefined ? examName : undefined,
+        category: category !== undefined ? category : undefined,
+        conductedBy: conductedBy !== undefined ? conductedBy : undefined,
+        registrationDeadline: registrationDeadline !== undefined ? registrationDeadline : undefined,
+        examDate: examDate !== undefined ? examDate : undefined,
+        status: status !== undefined ? status : undefined,
+        eligibility: eligibility !== undefined ? eligibility : undefined,
+        website: website !== undefined ? website : undefined,
+        studentsEnrolled: studentsEnrolled !== undefined ? Number(studentsEnrolled) : undefined,
+        studentsCleared: studentsCleared !== undefined ? Number(studentsCleared) : undefined,
+        syllabus: syllabus !== undefined ? syllabus : undefined
+      }
+    });
 
-    const rows: any[] = await prisma.$queryRaw`
-      UPDATE "CompetitiveExam"
-      SET
-        "examName"             = ${examName             ?? existing.examName},
-        category               = ${category             ?? existing.category},
-        "conductedBy"          = ${conductedBy          ?? existing.conductedBy},
-        "registrationDeadline" = ${registrationDeadline ?? existing.registrationDeadline},
-        "examDate"             = ${examDate             ?? existing.examDate},
-        status                 = ${status               ?? existing.status},
-        eligibility            = ${eligibility          ?? existing.eligibility},
-        website                = ${website              ?? existing.website},
-        "studentsEnrolled"     = ${studentsEnrolled  !== undefined ? Number(studentsEnrolled)  : existing.studentsEnrolled},
-        "studentsCleared"      = ${studentsCleared   !== undefined ? Number(studentsCleared)   : existing.studentsCleared},
-        "updatedAt"            = ${now}
-      WHERE id = ${req.params.id}
-      RETURNING *
-    `;
-
-    return res.json({ success: true, data: rows[0], message: `"${existing.examName}" updated` });
+    return res.json({ success: true, data: updated, message: `"${existing.examName}" updated` });
   } catch (err: any) {
     console.error('[PUT /api/competitive-exams/:id]', err.message);
     return res.status(500).json({ success: false, error: 'Failed to update exam' });
