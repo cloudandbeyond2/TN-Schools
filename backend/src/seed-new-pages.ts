@@ -244,6 +244,42 @@ async function main() {
         studentsCleared: 12,
         schoolId,
         teacherId,
+        syllabus: [
+          {
+            name: "Biology",
+            icon: "🧬",
+            color: "text-pink-500 bg-pink-500/10",
+            chapters: [
+              { id: "b1", name: "Genetics & Molecular Basis", concepts: ["Mendelian Monohybrid/Dihybrid Crosses", "DNA Double Helix Structure", "Replication Fork & Semi-conservative model", "mRNA Transcription Mechanism", "Ribosomal Translation & Codons Map", "Lac Operon Model", "DNA Fingerprinting technique"] },
+              { id: "b2", name: "Human Physiology Systems", concepts: ["Breathing mechanics & Alveolar exchange", "Cardiac cycle & Double circulation", "Nephron Filtration & Urine formation", "Neuron action potential & Synapse transmission", "Endocrine Hormonal Feedback loops"] },
+              { id: "b3", name: "Plant Physiology & Metabolism", concepts: ["Photosynthesis Light & Dark reactions", "C3 and C4 pathway comparative cycles", "Glycolysis & Krebs cellular respiration", "Plant hormones (Auxins, Gibberellins, ABA)"] },
+              { id: "b4", name: "Cell Structure & Divisions", concepts: ["Prokaryotic vs Eukaryotic cellular matrix", "Cell cycle check points (G1, S, G2)", "Mitosis phases and Spindle assembly", "Meiosis I and II reductional divisions"] },
+              { id: "b5", name: "Reproduction & Health", concepts: ["Spermatogenesis & Oogenesis steps", "Menstrual hormonal flow cycles", "In-Vitro Fertilization & Assisted reproduction", "Contraception mechanisms & STDs overview"] },
+              { id: "b6", name: "Ecology & Environmental Biology", concepts: ["Food chains & trophic level dynamics", "Ecological pyramids of biomass & energy", "Biodiversity hot-spots and conservation", "Greenhouse effect and global warming parameters"] }
+            ]
+          },
+          {
+            name: "Chemistry",
+            icon: "🧪",
+            color: "text-emerald-500 bg-emerald-500/10",
+            chapters: [
+              { id: "c1", name: "Organic Reaction Mechanisms", concepts: ["Inductive, Electromeric & Resonance effects", "SN1 and SN2 nucleophilic substitutions", "Electrophilic aromatic substitutions", "Aldol condensation & Cannizzaro reactions", "Hoffmann bromamide degradation"] },
+              { id: "c2", name: "Chemical Bonding & Atoms", concepts: ["Bohr atomic orbit model limitations", "Quantum numbers & configuration rules", "VSEPR molecular geometry layout", "Hybridization theory (sp, sp2, sp3, dsp2)", "Molecular Orbital configuration of O2 and N2"] },
+              { id: "c3", name: "Physical Solutions & Kinetics", concepts: ["Raoult's law of ideal mixtures", "Colligative properties (Elevation/Depression)", "First-order kinetics & Half-life metrics", "Arrhenius equation & activation barrier"] },
+              { id: "c4", name: "Coordination Chemistry", concepts: ["Werner's coordination hypothesis", "Unidentate & Polydentate ligand properties", "Crystal Field Splitting (Octahedral/Tetrahedral)", "d-block magnetic moment calculations"] }
+            ]
+          },
+          {
+            name: "Physics",
+            icon: "⚛️",
+            color: "text-blue-500 bg-blue-500/10",
+            chapters: [
+              { id: "p1", name: "Classical Mechanics", concepts: ["Kinematic equations of motion", "Newton's laws & Free-body diagrams", "Friction models (Static/Kinetic)", "Work-Energy theorem and conservative forces", "Rotational moment of inertia equations"] },
+              { id: "p2", name: "Electrostatics & Circuits", concepts: ["Coulomb's electrostatic law", "Gauss flux theorem applications", "Capacitor energy storage formulas", "Ohm's law & drift velocity parameters", "Kirchhoff current/voltage junction loops", "Wheatstone bridge balanced criteria"] },
+              { id: "p3", name: "Optics & Modern Physics", concepts: ["Reflection, Refraction & Lens makers formula", "Young's double slit interference", "Photoelectric threshold & Einstein equation", "Bohr Hydrogen spectrum lines", "PN Junction diode forward/reverse bias"] }
+            ]
+          }
+        ]
       },
       {
         examName: "JEE Main 2026",
@@ -258,6 +294,25 @@ async function main() {
         studentsCleared: 8,
         schoolId,
         teacherId,
+        syllabus: [
+          {
+            name: "Mathematics",
+            icon: "📐",
+            color: "text-purple-500 bg-purple-500/10",
+            chapters: [
+              { id: "jm1", name: "Calculus", concepts: ["Limits, Continuity & Differentiability", "Integral Calculus", "Differential Equations"] },
+              { id: "jm2", name: "Algebra", concepts: ["Matrices & Determinants", "Quadratic Equations", "Probability", "Complex Numbers"] }
+            ]
+          },
+          {
+            name: "Physics",
+            icon: "⚛️",
+            color: "text-blue-500 bg-blue-500/10",
+            chapters: [
+              { id: "jp1", name: "Mechanics", concepts: ["Kinematics", "Laws of Motion & Work", "Rotational Dynamics"] }
+            ]
+          }
+        ]
       },
       {
         examName: "TNPSC Group IV",
