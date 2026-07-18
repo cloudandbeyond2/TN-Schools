@@ -71,24 +71,16 @@ export default function BlockSchoolsPage() {
 
     try {
       setLoading(true);
-      if (beoUserId) {
-        // Fetch only schools belonging to this logged-in BEO's block
-        const res = await fetch(`${API_URL}/api/hierarchy/beo/${beoUserId}`);
-        const data = await res.json();
-        if (data.success && data.data) {
-          setSchools(data.data.schools || []);
-        } else {
-          setToast({ message: `Error loading schools: ${data.error || "Failed"}`, type: "error" });
-        }
+      
+      // Fetch all schools from the database directly as requested to show old data
+      let url = `${API_URL}/api/schools`;
+      const res = await fetch(url);
+      const data = await res.json();
+      
+      if (data.success) {
+        setSchools(data.data || []);
       } else {
-        // Fallback for guest view
-        const res = await fetch(`${API_URL}/api/schools`);
-        const data = await res.json();
-        if (data.success) {
-          setSchools(data.data);
-        } else {
-          setToast({ message: `Error loading schools: ${data.error}`, type: "error" });
-        }
+        setToast({ message: `Error loading schools: ${data.error || "Failed"}`, type: "error" });
       }
     } catch (err) {
       console.error("Fetch schools error:", err);
@@ -191,6 +183,7 @@ export default function BlockSchoolsPage() {
       pincode: pincode.trim() || null,
       schoolType,
       mediumOfInstruction: "Tamil, English", // default instruction medium
+      beoId: (session?.user as any)?.role === 'BEO' ? (session?.user as any)?.id : undefined,
     };
 
     const endpoint = editingId ? `${API_URL}/api/schools/${editingId}` : `${API_URL}/api/schools`;
@@ -284,6 +277,7 @@ export default function BlockSchoolsPage() {
 
         const beoBlock = (session?.user as any)?.block || "";
         const beoDistrict = (session?.user as any)?.district || "";
+        const beoUserId = (session?.user as any)?.role === 'BEO' ? (session?.user as any)?.id : undefined;
 
         const records = rawData.map((row: any) => ({
           dise: String(row["DISE Code"] || row["School ID"] || row["dise"] || row["schoolId"] || "").trim(),
@@ -295,6 +289,7 @@ export default function BlockSchoolsPage() {
           pincode: String(row["Pincode"] || row["pincode"] || "").trim() || null,
           schoolType: String(row["School Type"] || row["schoolType"] || "Government").trim(),
           mediumOfInstruction: "Tamil, English",
+          beoId: beoUserId,
         })).filter(r => r.dise && r.name);
 
         if (records.length === 0) {
@@ -540,6 +535,52 @@ export default function BlockSchoolsPage() {
                 ))}
               </tbody>
             </table>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between border-t border-slate-200 dark:border-slate-800 px-4 py-3 gap-3">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                  Showing {(safePage - 1) * PAGE_SIZE + 1} to {Math.min(safePage * PAGE_SIZE, filteredSchools.length)} of {filteredSchools.length} entries
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={safePage === 1}
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(p => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
+                    .map((page, idx, arr) => (
+                      <React.Fragment key={page}>
+                        {idx > 0 && arr[idx - 1] !== page - 1 && (
+                          <span className="px-1 text-slate-400">...</span>
+                        )}
+                        <button
+                          onClick={() => setCurrentPage(page)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            safePage === page
+                              ? "bg-violet-600 text-white shadow-sm"
+                              : "border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      </React.Fragment>
+                    ))}
+                    
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={safePage === totalPages}
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

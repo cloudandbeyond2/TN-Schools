@@ -147,6 +147,7 @@ router.post('/bulk', async (req: Request, res: Response) => {
           pincode: record.pincode || null,
           schoolType: record.schoolType || 'Government',
           mediumOfInstruction: record.mediumOfInstruction || 'Tamil',
+          beoId: record.beoId || undefined,
         },
         create: {
           dise: String(record.dise),
@@ -157,6 +158,7 @@ router.post('/bulk', async (req: Request, res: Response) => {
           pincode: record.pincode || null,
           schoolType: record.schoolType || 'Government',
           mediumOfInstruction: record.mediumOfInstruction || 'Tamil',
+          beoId: record.beoId || null,
         },
       });
       // Ensure every imported/updated school has a default portal (idempotent).
