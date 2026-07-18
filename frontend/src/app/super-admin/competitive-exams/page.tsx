@@ -407,33 +407,33 @@ export default function SuperAdminCompetitiveExams() {
   };
 
   // Helper to update both React state and the database
-  const updateExamSyllabusStateAndDb = (examId: string, updater: (syllabus: SyllabusSubject[]) => SyllabusSubject[]) => {
+  const updateExamSyllabusStateAndDb = (examId: string, updater: (syllabus: SyllabusSubject[]) => any) => {
     console.log("updateExamSyllabusStateAndDb execution started for examId:", examId);
     const exam = db[examId];
     if (!exam) {
-      console.warn("updateExamSyllabusStateAndDb aborted: exam not found in db state for id:", examId, "Available db keys:", Object.keys(db));
+      console.warn("updateExamSyllabusStateAndDb aborted: exam not found in db state for id:", examId);
       return;
     }
 
     const newSyllabus = updater(exam.syllabus);
-    console.log("Syllabus updater completed. Subject count:", newSyllabus.length);
-    newSyllabus.forEach((sub, sIdx) => {
-      console.log(`Subject[${sub.name}] chapter count: Old = ${exam.syllabus[sIdx]?.chapters.length}, New = ${sub.chapters.length}`);
-    });
+    if (Array.isArray(newSyllabus)) {
+      console.log("Syllabus updater completed. Subject count:", newSyllabus.length);
+      newSyllabus.forEach((sub, sIdx) => {
+        console.log(`Subject[${sub?.name}] chapter count: Old = ${exam.syllabus?.[sIdx]?.chapters?.length}, New = ${sub?.chapters?.length}`);
+      });
+    } else {
+      console.log("Syllabus updater completed. Custom syllabus object:", newSyllabus);
+    }
 
     const updatedExam = { ...exam, syllabus: newSyllabus };
 
     // Update frontend state
-    setDb(prev => {
-      console.log("setDb executing. Updating key:", examId);
-      return {
-        ...prev,
-        [examId]: updatedExam
-      };
-    });
+    setDb(prev => ({
+      ...prev,
+      [examId]: updatedExam
+    }));
 
     // Trigger async database sync
-    console.log("Calling syncExamToDb...");
     syncExamToDb(examId, updatedExam);
   };
 
@@ -604,57 +604,51 @@ export default function SuperAdminCompetitiveExams() {
   };
 
   // PDF Uploader simulator engine
-  const handlePdfUploadSimulate = (file: File) => {
+  // PDF Uploader engine
+  const handlePdfUpload = async (file: File) => {
     setUploadedFile(file);
     setIsParsingPdf(true);
-    setPdfParseStep(0);
-    setPdfParseLogs([`[SYSTEM] Selected file "${file.name}"`]);
+    setPdfParseStep(1);
+    setPdfParseLogs([`[SYSTEM] Selected file "${file.name}"`, `[SYSTEM] Uploading PDF to TN Schools server...`]);
 
-    setTimeout(() => {
-      setPdfParseStep(1);
-      setPdfParseLogs(prev => [...prev, `[SYSTEM] Analyzing document layout structures and extracting headers...`]);
-    }, 1000);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
 
-    setTimeout(() => {
       setPdfParseStep(2);
-      setPdfParseLogs(prev => [...prev, `[SYSTEM] Segregating subjects. Detected: Biology, Chemistry, Physics.`]);
-    }, 2000);
+      setPdfParseLogs(prev => [...prev, `[SYSTEM] Storing document on server and generating access links...`]);
 
-    setTimeout(() => {
-      setPdfParseStep(3);
-      setPdfParseLogs(prev => [...prev, `[SUCCESS] Extracted 5 New Chapters & 19 Concepts from official mapping streams.`]);
+      const res = await fetch(`${API_URL}/api/competitive-exams/upload-syllabus-pdf`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success && data.url) {
+        setPdfParseStep(3);
+        setPdfParseLogs(prev => [...prev, `[SUCCESS] Upload complete! Linking document to syllabus reader...`]);
+
+        // Link PDF object to syllabus
+        updateExamSyllabusStateAndDb(selectedExamId, () => ({
+          type: "pdf",
+          url: data.url,
+          name: data.name || file.name
+        }));
+
+        setTimeout(() => {
+          showToast("Syllabus PDF linked successfully");
+          setShowPdfUploader(false);
+          setUploadedFile(null);
+        }, 1000);
+      } else {
+        throw new Error(data.error || "Upload failed");
+      }
+    } catch (e: any) {
+      console.error(e);
+      setPdfParseLogs(prev => [...prev, `[ERROR] Upload failed: ${e.message}`]);
+    } finally {
       setIsParsingPdf(false);
-      
-      // Select mock data
-      setParsedSyllabusResult([
-        {
-          name: "Biology",
-          icon: "🧬",
-          color: "text-pink-500 bg-pink-500/10",
-          chapters: [
-            { id: "pdf_b1", name: "Structural Organisation in Plants (PDF Extracted)", concepts: ["Meristematic Tissues", "Inflorescence types", "Stem modifications", "Root zones", "Secondary growth anatomy"] },
-            { id: "pdf_b2", name: "Biomolecules & Cell Cycle Dynamics (PDF Extracted)", concepts: ["Proteins structures", "Enzyme activation energy", "Mitosis vs Meiosis key differences"] }
-          ]
-        },
-        {
-          name: "Chemistry",
-          icon: "🧪",
-          color: "text-emerald-500 bg-emerald-500/10",
-          chapters: [
-            { id: "pdf_c1", name: "Thermodynamics & Equilibrium Status (PDF Extracted)", concepts: ["First & Second laws of thermodynamics", "Gibbs Free Energy equilibrium status", "Le Chatelier's principle shifts"] },
-            { id: "pdf_c2", name: "Haloalkanes & Haloarenes Reactions (PDF Extracted)", concepts: ["Reacting mechanisms", "Grignard reagent synthesis steps", "Optical isomerism chiral centers"] }
-          ]
-        },
-        {
-          name: "Physics",
-          icon: "⚛️",
-          color: "text-blue-500 bg-blue-500/10",
-          chapters: [
-            { id: "pdf_p1", name: "Rotational Dynamics & Gravity Fields (PDF Extracted)", concepts: ["Torque & angular momentum conservation", "Parallel & Perpendicular axis theorems", "Kepler's laws of planetary motion"] }
-          ]
-        }
-      ]);
-    }, 3000);
+    }
   };
 
   // Render Category SVGs
@@ -688,6 +682,9 @@ export default function SuperAdminCompetitiveExams() {
 
   // Get active exam data
   const currentExam = useMemo(() => db[selectedExamId] || EXAMS_DATABASE["neet-ug"], [db, selectedExamId]);
+  const isPdfSyllabus = useMemo(() => {
+    return !!(currentExam && currentExam.syllabus && !Array.isArray(currentExam.syllabus) && (currentExam.syllabus as any).type === "pdf");
+  }, [currentExam]);
 
   // Exams matching selected category
   const filteredExams = useMemo(() => {
@@ -882,8 +879,8 @@ export default function SuperAdminCompetitiveExams() {
       title: "Clear All Syllabus?",
       text: "This will wipe out all chapters and concepts for this exam. You can then upload a fresh syllabus PDF or build it manually.",
       onConfirm: () => {
-        updateExamSyllabusStateAndDb(selectedExamId, (syllabus) => 
-          syllabus.map(subj => ({
+        updateExamSyllabusStateAndDb(selectedExamId, (syllabus: SyllabusSubject[]) => 
+          syllabus.map((subj: SyllabusSubject) => ({
             ...subj,
             chapters: []
           }))
@@ -1342,117 +1339,168 @@ export default function SuperAdminCompetitiveExams() {
               {/* SubTab 2: Syllabus Tree with PDF uploader and manual editing */}
               {activeNEETSubTab === "syllabus" && (
                 <div className="space-y-4 w-full animate-in fade-in duration-200">
-                  <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 flex items-center justify-between flex-wrap gap-3">
-                    <div>
-                      <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider">NEET Core Syllabus Node Trees</h4>
-                      <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Explore chapters or upload official NTA/state board syllabus guidelines directly.</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setShowPdfUploader(true)}
-                        className="bg-pink-600 hover:bg-pink-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-lg active:scale-95"
-                      >
-                        <FileText className="w-3.5 h-3.5" /> Upload Syllabus PDF
-                      </button>
-                      <button
-                        onClick={() => setShowAddChapter(true)}
-                        className="bg-amber-500 hover:bg-amber-450 text-slate-900 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1 transition shadow-md"
-                      >
-                        <Plus className="w-3.5 h-3.5" /> Add Chapter
-                      </button>
-                      <button
-                        onClick={handleClearAllSyllabus}
-                        className="bg-[var(--bg-main)] border border-red-500/20 text-red-500 hover:bg-red-500/5 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1 transition shadow-sm"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Clear All
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {currentExam.syllabus.map((subject) => (
-                      <div key={subject.name} className="glass rounded-3xl p-5 bg-[var(--bg-card)] border border-[var(--border)] shadow-sm flex flex-col justify-between text-left">
-                        <div>
-                          <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[var(--border)]">
-                            <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0 ${subject.color}`}>
-                              {subject.icon}
-                            </span>
-                            <div>
-                              <h4 className="font-bold text-[var(--text-heading)]">{subject.name}</h4>
-                              <p className="text-[10px] text-[var(--text-muted)]">{subject.chapters.length} Chapters</p>
-                            </div>
+                  {isPdfSyllabus ? (
+                    <div className="glass rounded-3xl p-5 bg-[var(--bg-card)] border border-[var(--border)] shadow-sm w-full h-[600px] flex flex-col text-left">
+                      <div className="flex justify-between items-center pb-3 border-b border-[var(--border)] mb-4">
+                        <div className="flex items-center gap-2">
+                          <span className="p-2 bg-pink-500/10 text-pink-500 rounded-xl">
+                            <FileText className="w-4 h-4" />
+                          </span>
+                          <div>
+                            <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider">
+                              Official Syllabus Document
+                            </h4>
+                            <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                              {(currentExam.syllabus as any).name || "syllabus.pdf"}
+                            </p>
                           </div>
-                          
-                          {subject.chapters.length === 0 ? (
-                            <div className="text-center py-8 text-[var(--text-muted)] text-[10px] font-bold">
-                              No chapters registered.
-                            </div>
-                          ) : (
-                            <div className="space-y-3">
-                              {subject.chapters.map((chapter) => (
-                                <div key={chapter.id} className="bg-[var(--bg-main)] border border-[var(--border)] rounded-xl p-3 relative group/chapter">
-                                  
-                                  {/* Chapter Header Row with Inline Modifiers */}
-                                  <div className="flex justify-between items-center mb-2 pb-1 border-b border-[var(--border)]">
-                                    <h5 
-                                      onClick={() => handleEditChapterName(subject.name, chapter.id, chapter.name)}
-                                      className="text-[11px] font-black text-[var(--text-heading)] hover:underline cursor-pointer truncate max-w-[120px]"
-                                      title="Click to rename chapter"
-                                    >
-                                      {chapter.name}
-                                    </h5>
-                                    <div className="flex items-center gap-1.5">
-                                      <button
-                                        onClick={() => handleAddConceptToChapter(subject.name, chapter.id)}
-                                        className="text-pink-500 hover:text-pink-400 p-0.5 rounded transition"
-                                        title="Add Concept"
-                                      >
-                                        <Plus className="w-3 h-3" />
-                                      </button>
-                                      <button
-                                        onClick={() => handleDeleteChapter(subject.name, chapter.id)}
-                                        className="text-red-500 hover:text-red-400 p-0.5 rounded transition"
-                                        title="Delete Chapter"
-                                      >
-                                        <X className="w-3 h-3" />
-                                      </button>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex flex-wrap gap-1">
-                                    {chapter.concepts.map((concept, cIdx) => (
-                                      <span 
-                                        key={cIdx} 
-                                        className="group/concept text-[9px] bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border)] pl-2 pr-1.5 py-0.5 rounded-full inline-flex items-center gap-1 hover:border-pink-500 transition"
-                                      >
-                                        <span 
-                                          onClick={() => handleEditConcept(subject.name, chapter.id, cIdx, concept)}
-                                          className="cursor-pointer hover:underline font-bold"
-                                          title="Click to rename concept"
-                                        >
-                                          {concept}
-                                        </span>
-                                        <button
-                                          onClick={() => handleDeleteConcept(subject.name, chapter.id, cIdx)}
-                                          className="text-[var(--text-muted)] hover:text-red-500 p-0.5 rounded transition opacity-60 hover:opacity-100"
-                                          title="Delete Concept"
-                                        >
-                                          <X className="w-2.5 h-2.5" />
-                                        </button>
-                                      </span>
-                                    ))}
-                                    {chapter.concepts.length === 0 && (
-                                      <span className="text-[8px] text-[var(--text-muted)] italic">No concepts added.</span>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setShowPdfUploader(true)}
+                            className="bg-pink-600 hover:bg-pink-550 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-lg active:scale-95 animate-pulse"
+                          >
+                            <FileText className="w-3.5 h-3.5" /> Change PDF
+                          </button>
+                          <button
+                            onClick={() => {
+                              setCustomConfirmModal({
+                                title: "Remove Syllabus PDF?",
+                                text: "This will remove the syllabus PDF document link.",
+                                onConfirm: () => {
+                                  updateExamSyllabusStateAndDb(selectedExamId, () => []);
+                                }
+                              });
+                            }}
+                            className="bg-[var(--bg-main)] border border-red-500/20 text-red-500 hover:bg-red-500/5 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1 transition shadow-sm"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Remove PDF
+                          </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="flex-1 rounded-2xl border border-[var(--border)] overflow-hidden bg-slate-900/50">
+                        <iframe
+                          src={`${API_URL}${(currentExam.syllabus as any).url}`}
+                          className="w-full h-full border-none"
+                          title="Syllabus PDF Viewer"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 flex items-center justify-between flex-wrap gap-3">
+                        <div>
+                          <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider">NEET Core Syllabus Node Trees</h4>
+                          <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Explore chapters or upload official NTA/state board syllabus guidelines directly.</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setShowPdfUploader(true)}
+                            className="bg-pink-600 hover:bg-pink-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-lg active:scale-95"
+                          >
+                            <FileText className="w-3.5 h-3.5" /> Upload Syllabus PDF
+                          </button>
+                          <button
+                            onClick={() => setShowAddChapter(true)}
+                            className="bg-amber-500 hover:bg-amber-450 text-slate-900 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1 transition shadow-md"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Add Chapter
+                          </button>
+                          <button
+                            onClick={handleClearAllSyllabus}
+                            className="bg-[var(--bg-main)] border border-red-500/20 text-red-500 hover:bg-red-500/5 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1 transition shadow-sm"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Clear All
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {currentExam.syllabus.map((subject: any) => (
+                          <div key={subject.name} className="glass rounded-3xl p-5 bg-[var(--bg-card)] border border-[var(--border)] shadow-sm flex flex-col justify-between text-left">
+                            <div>
+                              <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[var(--border)]">
+                                <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0 ${subject.color}`}>
+                                  {subject.icon}
+                                </span>
+                                <div>
+                                  <h4 className="font-bold text-[var(--text-heading)]">{subject.name}</h4>
+                                  <p className="text-[10px] text-[var(--text-muted)]">{subject.chapters.length} Chapters</p>
+                                </div>
+                              </div>
+                              
+                              {subject.chapters.length === 0 ? (
+                                <div className="text-center py-8 text-[var(--text-muted)] text-[10px] font-bold">
+                                  No chapters registered.
+                                </div>
+                              ) : (
+                                <div className="space-y-3">
+                                  {subject.chapters.map((chapter: any) => (
+                                    <div key={chapter.id} className="bg-[var(--bg-main)] border border-[var(--border)] rounded-xl p-3 relative group/chapter">
+                                      
+                                      {/* Chapter Header Row with Inline Modifiers */}
+                                      <div className="flex justify-between items-center mb-2 pb-1 border-b border-[var(--border)]">
+                                        <h5 
+                                          onClick={() => handleEditChapterName(subject.name, chapter.id, chapter.name)}
+                                          className="text-[11px] font-black text-[var(--text-heading)] hover:underline cursor-pointer truncate max-w-[120px]"
+                                          title="Click to rename chapter"
+                                        >
+                                          {chapter.name}
+                                        </h5>
+                                        <div className="flex items-center gap-1.5">
+                                          <button
+                                            onClick={() => handleAddConceptToChapter(subject.name, chapter.id)}
+                                            className="text-pink-500 hover:text-pink-400 p-0.5 rounded transition"
+                                            title="Add Concept"
+                                          >
+                                            <Plus className="w-3 h-3" />
+                                          </button>
+                                          <button
+                                            onClick={() => handleDeleteChapter(subject.name, chapter.id)}
+                                            className="text-red-500 hover:text-red-400 p-0.5 rounded transition"
+                                            title="Delete Chapter"
+                                          >
+                                            <X className="w-3 h-3" />
+                                          </button>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex flex-wrap gap-1">
+                                        {chapter.concepts.map((concept: any, cIdx: number) => (
+                                          <span 
+                                            key={cIdx} 
+                                            className="group/concept text-[9px] bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border)] pl-2 pr-1.5 py-0.5 rounded-full inline-flex items-center gap-1 hover:border-pink-500 transition"
+                                          >
+                                            <span 
+                                              onClick={() => handleEditConcept(subject.name, chapter.id, cIdx, concept)}
+                                              className="cursor-pointer hover:underline font-bold"
+                                              title="Click to rename concept"
+                                            >
+                                              {concept}
+                                            </span>
+                                            <button
+                                              onClick={() => handleDeleteConcept(subject.name, chapter.id, cIdx)}
+                                              className="text-[var(--text-muted)] hover:text-red-500 p-0.5 rounded transition opacity-60 hover:opacity-100"
+                                              title="Delete Concept"
+                                            >
+                                              <X className="w-2.5 h-2.5" />
+                                            </button>
+                                          </span>
+                                        ))}
+                                        {chapter.concepts.length === 0 && (
+                                          <span className="text-[8px] text-[var(--text-muted)] italic">No concepts added.</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -1593,104 +1641,155 @@ export default function SuperAdminCompetitiveExams() {
               {/* Syllabus Tab */}
               {activeTab === "syllabus" && (
                 <div className="space-y-4 w-full text-left">
-                  <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 flex items-center justify-between flex-wrap gap-3">
-                    <div>
-                      <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider">Exam Syllabus Node Trees</h4>
-                      <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Chapters and active concepts list.</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setShowPdfUploader(true)}
-                        className="bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-lg active:scale-95"
-                      >
-                        <FileText className="w-3.5 h-3.5" /> Upload Syllabus PDF
-                      </button>
-                      <button
-                        onClick={() => setShowAddChapter(true)}
-                        className="bg-amber-500 hover:bg-amber-450 text-slate-900 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1 transition shadow-md"
-                      >
-                        <Plus className="w-3.5 h-3.5" /> Add Chapter
-                      </button>
-                      <button
-                        onClick={handleClearAllSyllabus}
-                        className="bg-[var(--bg-main)] border border-red-500/20 text-red-500 hover:bg-red-500/5 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1 transition shadow-sm"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Clear All
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {currentExam.syllabus.map((subject) => (
-                      <div key={subject.name} className="glass rounded-3xl p-5 bg-[var(--bg-card)] border border-[var(--border)] shadow-sm">
-                        <h4 className="font-bold text-[var(--text-heading)] mb-3 pb-2 border-b border-[var(--border)]">{subject.name}</h4>
-                        
-                        {subject.chapters.length === 0 ? (
-                          <div className="text-center py-8 text-[var(--text-muted)] text-[10px] font-bold">
-                            No chapters registered.
+                  {isPdfSyllabus ? (
+                    <div className="glass rounded-3xl p-5 bg-[var(--bg-card)] border border-[var(--border)] shadow-sm w-full h-[600px] flex flex-col">
+                      <div className="flex justify-between items-center pb-3 border-b border-[var(--border)] mb-4">
+                        <div className="flex items-center gap-2">
+                          <span className="p-2 bg-pink-500/10 text-pink-500 rounded-xl">
+                            <FileText className="w-4 h-4" />
+                          </span>
+                          <div>
+                            <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider">
+                              Official Syllabus Document
+                            </h4>
+                            <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                              {(currentExam.syllabus as any).name || "syllabus.pdf"}
+                            </p>
                           </div>
-                        ) : (
-                          <div className="space-y-3">
-                            {subject.chapters.map((chapter) => (
-                              <div key={chapter.id} className="bg-[var(--bg-main)] p-3 rounded-xl border border-[var(--border)] relative group/chapter">
-                                
-                                {/* Chapter Title Row for other exams */}
-                                <div className="flex justify-between items-center mb-1.5 pb-1 border-b border-[var(--border)]">
-                                  <h5 
-                                    onClick={() => handleEditChapterName(subject.name, chapter.id, chapter.name)}
-                                    className="text-[11px] font-black text-[var(--text-heading)] hover:underline cursor-pointer truncate max-w-[120px]"
-                                  >
-                                    {chapter.name}
-                                  </h5>
-                                  <div className="flex items-center gap-1.5">
-                                    <button
-                                      onClick={() => handleAddConceptToChapter(subject.name, chapter.id)}
-                                      className="text-violet-650 hover:text-violet-500 p-0.5 rounded transition"
-                                      title="Add Concept"
-                                    >
-                                      <Plus className="w-3 h-3" />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteChapter(subject.name, chapter.id)}
-                                      className="text-red-500 hover:text-red-400 p-0.5 rounded transition"
-                                      title="Delete Chapter"
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </button>
-                                  </div>
-                                </div>
-
-                                <div className="flex flex-wrap gap-1">
-                                  {chapter.concepts.map((c, cIdx) => (
-                                    <span 
-                                      key={cIdx} 
-                                      className="group/concept text-[9px] bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-main)] pl-2 pr-1.5 py-0.5 rounded-full inline-flex items-center gap-1 hover:border-violet-500 transition"
-                                    >
-                                      <span
-                                        onClick={() => handleEditConcept(subject.name, chapter.id, cIdx, c)}
-                                        className="cursor-pointer hover:underline font-bold"
-                                      >
-                                        {c}
-                                      </span>
-                                      <button
-                                        onClick={() => handleDeleteConcept(subject.name, chapter.id, cIdx)}
-                                        className="text-[var(--text-muted)] hover:text-red-500 p-0.5 rounded transition opacity-60 hover:opacity-100"
-                                      >
-                                        <X className="w-2.5 h-2.5" />
-                                      </button>
-                                    </span>
-                                  ))}
-                                  {chapter.concepts.length === 0 && (
-                                    <span className="text-[8px] text-[var(--text-muted)] italic">No concepts added.</span>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setShowPdfUploader(true)}
+                            className="bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-lg active:scale-95 animate-pulse"
+                          >
+                            <FileText className="w-3.5 h-3.5" /> Change PDF
+                          </button>
+                          <button
+                            onClick={() => {
+                              setCustomConfirmModal({
+                                title: "Remove Syllabus PDF?",
+                                text: "This will remove the syllabus PDF document link.",
+                                onConfirm: () => {
+                                  updateExamSyllabusStateAndDb(selectedExamId, () => []);
+                                }
+                              });
+                            }}
+                            className="bg-[var(--bg-main)] border border-red-500/20 text-red-500 hover:bg-red-500/5 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1 transition shadow-sm"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Remove PDF
+                          </button>
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="flex-1 rounded-2xl border border-[var(--border)] overflow-hidden bg-slate-900/50">
+                        <iframe
+                          src={`${API_URL}${(currentExam.syllabus as any).url}`}
+                          className="w-full h-full border-none"
+                          title="Syllabus PDF Viewer"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 flex items-center justify-between flex-wrap gap-3">
+                        <div>
+                          <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider">Exam Syllabus Node Trees</h4>
+                          <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Chapters and active concepts list.</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setShowPdfUploader(true)}
+                            className="bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-lg active:scale-95"
+                          >
+                            <FileText className="w-3.5 h-3.5" /> Upload Syllabus PDF
+                          </button>
+                          <button
+                            onClick={() => setShowAddChapter(true)}
+                            className="bg-amber-500 hover:bg-amber-450 text-slate-900 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1 transition shadow-md"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Add Chapter
+                          </button>
+                          <button
+                            onClick={handleClearAllSyllabus}
+                            className="bg-[var(--bg-main)] border border-red-500/20 text-red-500 hover:bg-red-500/5 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1 transition shadow-sm"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Clear All
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {currentExam.syllabus.map((subject: any) => (
+                          <div key={subject.name} className="glass rounded-3xl p-5 bg-[var(--bg-card)] border border-[var(--border)] shadow-sm">
+                            <h4 className="font-bold text-[var(--text-heading)] mb-3 pb-2 border-b border-[var(--border)]">{subject.name}</h4>
+                            
+                            {subject.chapters.length === 0 ? (
+                              <div className="text-center py-8 text-[var(--text-muted)] text-[10px] font-bold">
+                                No chapters registered.
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                {subject.chapters.map((chapter: any) => (
+                                  <div key={chapter.id} className="bg-[var(--bg-main)] p-3 rounded-xl border border-[var(--border)] relative group/chapter">
+                                    
+                                    {/* Chapter Title Row for other exams */}
+                                    <div className="flex justify-between items-center mb-1.5 pb-1 border-b border-[var(--border)]">
+                                      <h5 
+                                        onClick={() => handleEditChapterName(subject.name, chapter.id, chapter.name)}
+                                        className="text-[11px] font-black text-[var(--text-heading)] hover:underline cursor-pointer truncate max-w-[120px]"
+                                      >
+                                        {chapter.name}
+                                      </h5>
+                                      <div className="flex items-center gap-1.5">
+                                        <button
+                                          onClick={() => handleAddConceptToChapter(subject.name, chapter.id)}
+                                          className="text-violet-650 hover:text-violet-500 p-0.5 rounded transition"
+                                          title="Add Concept"
+                                        >
+                                          <Plus className="w-3 h-3" />
+                                        </button>
+                                        <button
+                                          onClick={() => handleDeleteChapter(subject.name, chapter.id)}
+                                          className="text-red-500 hover:text-red-400 p-0.5 rounded transition"
+                                          title="Delete Chapter"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-1">
+                                      {chapter.concepts.map((c: any, cIdx: number) => (
+                                        <span 
+                                          key={cIdx} 
+                                          className="group/concept text-[9px] bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-main)] pl-2 pr-1.5 py-0.5 rounded-full inline-flex items-center gap-1 hover:border-violet-500 transition"
+                                        >
+                                          <span
+                                            onClick={() => handleEditConcept(subject.name, chapter.id, cIdx, c)}
+                                            className="cursor-pointer hover:underline font-bold"
+                                          >
+                                            {c}
+                                          </span>
+                                          <button
+                                            onClick={() => handleDeleteConcept(subject.name, chapter.id, cIdx)}
+                                            className="text-[var(--text-muted)] hover:text-red-500 p-0.5 rounded transition opacity-60 hover:opacity-100"
+                                          >
+                                            <X className="w-2.5 h-2.5" />
+                                          </button>
+                                        </span>
+                                      ))}
+                                      {chapter.concepts.length === 0 && (
+                                        <span className="text-[8px] text-[var(--text-muted)] italic">No concepts added.</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -2507,10 +2606,10 @@ export default function SuperAdminCompetitiveExams() {
         </div>
       )}
 
-      {/* ── MODAL: PDF Syllabus Auto-Detector & Segregator ────────────── */}
+      {/* ── MODAL: PDF Syllabus Document Uploader ─────────────────────── */}
       {showPdfUploader && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 text-left flex flex-col max-h-[90vh]">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 text-left flex flex-col max-h-[90vh]">
             
             {/* Header */}
             <div className="p-6 bg-[var(--bg-main)] border-b border-[var(--border)] flex items-center justify-between">
@@ -2520,10 +2619,10 @@ export default function SuperAdminCompetitiveExams() {
                 </span>
                 <div>
                   <h3 className="text-sm font-black text-[var(--text-heading)] uppercase tracking-wider">
-                    PDF Syllabus Parser & Segregator
+                    Syllabus PDF Document Uploader
                   </h3>
                   <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
-                    Upload any official competitive syllabus PDF to automatically extract subjects, chapters, and concept trees.
+                    Upload any official competitive syllabus PDF to show it directly inside the exam's syllabus reader.
                   </p>
                 </div>
               </div>
@@ -2532,7 +2631,6 @@ export default function SuperAdminCompetitiveExams() {
                   setShowPdfUploader(false);
                   setUploadedFile(null);
                   setIsParsingPdf(false);
-                  setParsedSyllabusResult(null);
                 }} 
                 className="text-[var(--text-muted)] hover:text-[var(--text-heading)]"
               >
@@ -2560,7 +2658,7 @@ export default function SuperAdminCompetitiveExams() {
                     onChange={(e) => {
                       const files = e.target.files;
                       if (files && files.length > 0) {
-                        handlePdfUploadSimulate(files[0]);
+                        handlePdfUpload(files[0]);
                       }
                     }}
                   />
@@ -2568,13 +2666,13 @@ export default function SuperAdminCompetitiveExams() {
                     <FileText className="w-6 h-6 text-[var(--text-muted)] group-hover:text-pink-500" />
                   </div>
                   <h4 className="text-xs font-bold text-[var(--text-heading)]">Drag & Drop Syllabus PDF here</h4>
-                  <p className="text-[10px] text-[var(--text-muted)] mt-1">Supports official NTA, JEE, or state board curriculum files up to 10MB</p>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1">Supports official NTA, JEE, or state board curriculum files up to 15MB</p>
                   <span className="inline-block mt-4 bg-pink-500 text-white font-extrabold text-[10px] px-3.5 py-1.5 rounded-lg transition active:scale-95 shadow-md">
                     Browse File
                   </span>
                 </div>
               ) : (
-                // Step 2: Processing OR Result Display
+                // Step 2: Processing OR Details
                 <div className="space-y-6">
                   {/* Selected File Details */}
                   <div className="bg-[var(--bg-main)] border border-[var(--border)] p-4 rounded-xl flex items-center justify-between">
@@ -2584,7 +2682,7 @@ export default function SuperAdminCompetitiveExams() {
                       </div>
                       <div className="text-left">
                         <div className="text-xs font-bold text-[var(--text-heading)] truncate max-w-xs">{uploadedFile.name}</div>
-                        <div className="text-[10px] text-[var(--text-muted)] font-medium">{(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB · Official Document</div>
+                        <div className="text-[10px] text-[var(--text-muted)] font-medium">{(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB · Syllabus PDF</div>
                       </div>
                     </div>
                     
@@ -2592,7 +2690,6 @@ export default function SuperAdminCompetitiveExams() {
                       <button
                         onClick={() => {
                           setUploadedFile(null);
-                          setParsedSyllabusResult(null);
                         }}
                         className="text-xs font-bold text-red-500 hover:underline"
                       >
@@ -2601,13 +2698,13 @@ export default function SuperAdminCompetitiveExams() {
                     )}
                   </div>
 
-                  {isParsingPdf ? (
+                  {isParsingPdf && (
                     // Processing Console
                     <div className="space-y-4 text-left">
                       <div className="flex justify-between items-center text-xs font-bold text-[var(--text-heading)]">
                         <span className="flex items-center gap-1.5 animate-pulse text-pink-500">
                           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                          Parsing and segregating syllabus streams...
+                          Uploading syllabus PDF file...
                         </span>
                         <span>{pdfParseStep * 33}%</span>
                       </div>
@@ -2621,7 +2718,7 @@ export default function SuperAdminCompetitiveExams() {
                       {/* Log Console */}
                       <div 
                         style={{ backgroundColor: "#090f1d" }}
-                        className="border border-slate-800 rounded-xl p-4 font-mono text-[10px] text-slate-300 space-y-1.5 h-36 overflow-y-auto"
+                        className="border border-slate-800 rounded-xl p-4 font-mono text-[10px] text-slate-300 space-y-1.5 h-28 overflow-y-auto"
                       >
                         {pdfParseLogs.map((log, index) => (
                           <div key={index} className={log.includes("[SUCCESS]") ? "text-emerald-400 font-bold" : "text-slate-300"}>
@@ -2630,46 +2727,6 @@ export default function SuperAdminCompetitiveExams() {
                         ))}
                       </div>
                     </div>
-                  ) : (
-                    // Segregated Results Preview Pane
-                    parsedSyllabusResult && (
-                      <div className="space-y-4 text-left animate-in fade-in duration-300">
-                        <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-2">
-                          <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
-                          <div className="text-xs font-bold text-emerald-600">
-                            Syllabus segregation complete! Preview parsed curriculum mapping below:
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {parsedSyllabusResult.map((subject, sIdx) => (
-                            <div key={sIdx} className="bg-[var(--bg-main)] border border-[var(--border)] rounded-2xl p-4 space-y-3">
-                              <div className="flex items-center gap-2 pb-2 border-b border-[var(--border)] font-bold text-[var(--text-heading)]">
-                                <span>{subject.icon}</span>
-                                <h4>{subject.name}</h4>
-                              </div>
-                              <div className="space-y-2">
-                                {subject.chapters.map((ch, cIdx) => (
-                                  <div key={cIdx} className="bg-[var(--bg-card)] border border-[var(--border)] p-2.5 rounded-lg text-left">
-                                    <div className="text-[10px] font-extrabold text-[var(--text-heading)] mb-1 truncate">{ch.name}</div>
-                                    <div className="flex flex-wrap gap-1">
-                                      {ch.concepts.slice(0, 3).map((co, coIdx) => (
-                                        <span key={coIdx} className="text-[8px] bg-[var(--bg-main)] text-[var(--text-muted)] border border-[var(--border)] px-1 py-0.5 rounded">
-                                          {co}
-                                        </span>
-                                      ))}
-                                      {ch.concepts.length > 3 && (
-                                        <span className="text-[8px] text-pink-500 font-bold">+{ch.concepts.length - 3} more</span>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )
                   )}
 
                 </div>
@@ -2685,39 +2742,11 @@ export default function SuperAdminCompetitiveExams() {
                   setShowPdfUploader(false);
                   setUploadedFile(null);
                   setIsParsingPdf(false);
-                  setParsedSyllabusResult(null);
                 }}
                 className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-xl font-bold transition"
               >
                 Cancel
               </button>
-              {parsedSyllabusResult && !isParsingPdf && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    updateExamSyllabusStateAndDb(selectedExamId, (currentSyllabus) => {
-                      const merged = [...currentSyllabus];
-                      parsedSyllabusResult.forEach(parsedSub => {
-                        const existingSub = merged.find(s => s.name.toLowerCase().includes(parsedSub.name.split(" ")[0].toLowerCase()));
-                        if (existingSub) {
-                          existingSub.chapters = [...existingSub.chapters, ...parsedSub.chapters];
-                        } else {
-                          merged.push(parsedSub);
-                        }
-                      });
-                      return merged;
-                    });
-
-                    showToast("Syllabus imported successfully");
-                    setShowPdfUploader(false);
-                    setUploadedFile(null);
-                    setParsedSyllabusResult(null);
-                  }}
-                  className="bg-pink-600 hover:bg-pink-500 text-white px-5 py-2.5 rounded-xl font-black transition active:scale-95 shadow-md"
-                >
-                  Confirm & Import to Syllabus Tree
-                </button>
-              )}
             </div>
 
           </div>
