@@ -150,7 +150,6 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
-      { label: "Fun Quizzes", href: "/student/middle-school/quizzes", icon: "Gamepad2" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
       { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
