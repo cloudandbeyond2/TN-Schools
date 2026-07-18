@@ -257,12 +257,12 @@ export default function ReportPage() {
       <div className="mb-6 flex items-center justify-between">
         <button
           onClick={() => step === "form" ? setStep("select") : undefined}
-          className="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-2 transition-colors w-fit group"
+          className="text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1 md:gap-2 transition-colors w-fit group"
         >
           {step === "form" ? (
             <><ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> {L.backToCategories}</>
           ) : (
-            <Link href="/student/counsellor" className="flex items-center gap-2 group">
+            <Link href="/student/counsellor" className="flex items-center gap-1 md:gap-2 group">
               <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> {L.backToCounsellor}
             </Link>
           )}
@@ -285,34 +285,34 @@ export default function ReportPage() {
       </div>
 
       {/* ── Hero ── */}
-      <div className="relative rounded-3xl overflow-hidden mb-8 bg-red-600 bg-gradient-to-br from-red-600 via-rose-600 to-pink-700 p-8 shadow-xl">
+      <div className="relative rounded-3xl overflow-hidden mb-6 md:mb-8 bg-red-600 bg-gradient-to-br from-red-600 via-rose-600 to-pink-700 p-5 md:p-8 shadow-xl">
         <div className="absolute inset-0 overflow-hidden">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="absolute rounded-full bg-white/5" style={{ width: `${50 + i * 30}px`, height: `${50 + i * 30}px`, top: `${(i * 41) % 75}%`, left: `${(i * 31) % 80}%` }} />
           ))}
         </div>
         <div className="relative z-10 text-white">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 backdrop-blur-sm shadow-md">
-              <ShieldCheck size={32} className="text-white" />
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 backdrop-blur-sm shadow-md">
+              <ShieldCheck className="text-white w-6 h-6 md:w-8 md:h-8" />
             </div>
             <div>
-              <p className="text-2xl font-black mb-1 leading-tight !text-white">{L.heroTitle}</p>
-              <p className=" !text-white text-xs max-w-md leading-relaxed opacity-90">
+              <p className="text-xl md:text-2xl font-black mb-1.5 md:mb-1 leading-tight !text-white">{L.heroTitle}</p>
+              <p className=" !text-white text-[10px] md:text-xs max-w-md leading-relaxed opacity-90">
                 {L.heroDesc}
                 <strong className="!text-white">{L.heroDescBold}</strong>
                 {L.heroDescEnd}
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3 mt-4">
-            <span className="text-[10px] bg-white/15 border border-white/20 rounded-full px-3 py-1.5 font-bold uppercase tracking-wide flex items-center gap-1.5 backdrop-blur-sm !text-white">
+          <div className="flex flex-wrap gap-2 md:gap-3 mt-4 md:mt-4">
+            <span className="text-[9px] md:text-[10px] bg-white/15 border border-white/20 rounded-full px-2.5 md:px-3 py-1 md:py-1.5 font-bold uppercase tracking-wide flex items-center gap-1.5 backdrop-blur-sm !text-white">
               <Shield size={12} className="!text-white" /> {L.anonOption}
             </span>
-            <span className="text-[10px] bg-white/15 border border-white/20 rounded-full px-3 py-1.5 font-bold uppercase tracking-wide flex items-center gap-1.5 backdrop-blur-sm !text-white">
+            <span className="text-[9px] md:text-[10px] bg-white/15 border border-white/20 rounded-full px-2.5 md:px-3 py-1 md:py-1.5 font-bold uppercase tracking-wide flex items-center gap-1.5 backdrop-blur-sm !text-white">
               <Zap size={12} className="!text-white" /> {L.escalationOption}
             </span>
-            <span className="text-[10px] bg-white/15 border border-white/20 rounded-full px-3 py-1.5 font-bold uppercase tracking-wide flex items-center gap-1.5 backdrop-blur-sm !text-white">
+            <span className="text-[9px] md:text-[10px] bg-white/15 border border-white/20 rounded-full px-2.5 md:px-3 py-1 md:py-1.5 font-bold uppercase tracking-wide flex items-center gap-1.5 backdrop-blur-sm !text-white">
               <Eye size={12} className="!text-white" /> {L.monitoredOption}
             </span>
           </div>
