@@ -30,6 +30,26 @@ async function createSafeNotification(userId: string, message: string) {
 // 1. Study Materials
 // =========================================================================
 
+// GET /api/teacher/subjects/:userId
+router.get('/subjects/:userId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const teacher = await prisma.teacher.findUnique({
+      where: { userId }
+    });
+    
+    if (!teacher) {
+      // Fallback: If no teacher record found, just return an empty array or defaults
+      return res.json({ success: true, data: [] });
+    }
+    
+    res.json({ success: true, data: teacher.subjects || [] });
+  } catch (err: any) {
+    console.error('Error fetching teacher subjects:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // GET /api/teacher/materials
 router.get('/materials', async (req: Request, res: Response) => {
   try {
@@ -918,6 +938,42 @@ router.put('/scholarships/:id', async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: String(err) });
   }
 });
+// POST /api/teacher/scholarships
+router.post('/scholarships', async (req: Request, res: Response) => {
+  try {
+    const { studentId, scheme, amount } = req.body;
+    const newScholarship = await prisma.scholarship.create({
+      data: {
+        studentId,
+        scheme,
+        amount: Number(amount),
+        status: 'PENDING'
+      },
+      include: {
+        student: {
+          include: { user: { select: { name: true } } }
+        }
+      }
+    });
+    res.json({ success: true, data: newScholarship });
+  } catch (err) {
+    console.error('Error creating scholarship:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/teacher/scholarships/:id
+router.delete('/scholarships/:id', async (req: Request, res: Response) => {
+  try {
+    const deleted = await prisma.scholarship.delete({
+      where: { id: req.params.id },
+    });
+    res.json({ success: true, data: deleted });
+  } catch (err) {
+    console.error('Error deleting scholarship:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
 
 // =========================================================================
 // 11. Parent-Teacher Messages (persisted to DB via Message model)
@@ -1324,6 +1380,157 @@ router.delete('/school-press/:id', async (req: Request, res: Response) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
+  }
+});
+// =========================================================================
+// Risk Alerts
+// =========================================================================
+
+// GET /api/teacher/risk-alerts
+router.get('/risk-alerts', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: 'schoolId is required' });
+    }
+    const alerts = await (prisma as any).studentRiskAlert.findMany({
+      where: { schoolId: String(schoolId) },
+      include: {
+        student: {
+          include: { user: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ success: true, data: alerts });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/teacher/risk-alerts
+router.post('/risk-alerts', async (req: Request, res: Response) => {
+  try {
+    const { studentId, schoolId, riskLevel, issue, attendance, lastScore } = req.body;
+    const alert = await (prisma as any).studentRiskAlert.create({
+      data: {
+        studentId,
+        schoolId,
+        riskLevel,
+        issue,
+        attendance: Number(attendance) || 0,
+        lastScore: Number(lastScore) || 0,
+      }
+    });
+    res.json({ success: true, data: alert });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// PUT /api/teacher/risk-alerts/:id
+router.put('/risk-alerts/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { riskLevel, issue, attendance, lastScore, notified, notificationMessage } = req.body;
+    
+    const data: any = {};
+    if (riskLevel !== undefined) data.riskLevel = riskLevel;
+    if (issue !== undefined) data.issue = issue;
+    if (attendance !== undefined) data.attendance = Number(attendance) || 0;
+    if (lastScore !== undefined) data.lastScore = Number(lastScore) || 0;
+    if (notified !== undefined) data.notified = notified;
+    if (notificationMessage !== undefined) data.notificationMessage = notificationMessage;
+
+    const alert = await (prisma as any).studentRiskAlert.update({
+      where: { id },
+      data
+    });
+    res.json({ success: true, data: alert });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/teacher/risk-alerts/:id
+router.delete('/risk-alerts/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await (prisma as any).studentRiskAlert.delete({
+      where: { id }
+    });
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// =========================================================================
+// Maths Formulas
+// =========================================================================
+
+// GET /api/teacher/maths-formulas
+router.get('/maths-formulas', async (req: Request, res: Response) => {
+  try {
+    const formulas = await (prisma as any).mathsFormula.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ success: true, data: formulas });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/teacher/maths-formulas
+router.post('/maths-formulas', async (req: Request, res: Response) => {
+  try {
+    const { titleEn, titleTa, formula, category, categoryNameEn, categoryNameTa, standard, term, popular, bg, mnemonicPrompt, mnemonicText } = req.body;
+    const newFormula = await (prisma as any).mathsFormula.create({
+      data: {
+        titleEn,
+        titleTa,
+        formula,
+        category,
+        categoryNameEn,
+        categoryNameTa,
+        standard,
+        term,
+        popular: popular || false,
+        bg: bg || "from-blue-400 to-indigo-500",
+        mnemonicPrompt,
+        mnemonicText
+      }
+    });
+    res.status(201).json({ success: true, data: newFormula });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// PUT /api/teacher/maths-formulas/:id
+router.put('/maths-formulas/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updated = await (prisma as any).mathsFormula.update({
+      where: { id },
+      data: req.body
+    });
+    res.json({ success: true, data: updated });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/teacher/maths-formulas/:id
+router.delete('/maths-formulas/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await (prisma as any).mathsFormula.delete({
+      where: { id }
+    });
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

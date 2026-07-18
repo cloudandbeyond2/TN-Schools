@@ -12,6 +12,7 @@ import path from 'path';
 import aiRoutes from './routes/ai.routes';
 import portfolioRoutes from './routes/portfolio.routes';
 import sportsRoutes from './routes/sports.routes';
+import petSportsRoutes from './routes/petSports.routes';
 import petFitnessRoutes from './routes/petFitness.routes';
 import petInventoryRoutes from './routes/petInventory.routes';
 import wellnessRoutes from './routes/wellness.routes';
@@ -23,6 +24,10 @@ import schoolPortalRoutes from './routes/schoolPortal.routes';
 import headmasterRoutes from './routes/headmaster.routes';
 import schoolHistoryRoutes from './routes/schoolHistory.routes';
 import pageRoutes from './routes/page.routes';
+import featureRoutes from './routes/feature.routes';
+import superadminSettingsRoutes from './routes/superadmin.settings.routes';
+import integrationRoutes from './routes/integration.routes';
+import superadminAdminsRoutes from './routes/superadmin.admins.routes';
 import userRoutes from './routes/user.routes';
 import teacherRoutes from './routes/teacher.routes';
 import notificationRoutes from './routes/notification.routes';
@@ -54,6 +59,7 @@ import commissionerRoutes from './routes/commissioner.routes';
 import sslcPrepRoutes from './routes/sslcPrep.routes';
 import scholarshipRoutes from './routes/scholarship.routes';
 import deoRoutes from './routes/deo.routes';
+import counsellorRoutes from './routes/counsellor.routes';
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
 
@@ -170,6 +176,7 @@ app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/sports', sportsRoutes);
 app.use('/api/pet/fitness-records', petFitnessRoutes);
 app.use('/api/pet/inventory', petInventoryRoutes);
+app.use('/api/pet/sports-conducted', petSportsRoutes);
 app.use('/api/wellness', wellnessRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/activities', activitiesRoutes);
@@ -179,6 +186,10 @@ app.use('/api/school-portal', schoolPortalRoutes);
 app.use('/api/headmaster/history', schoolHistoryRoutes);
 app.use('/api/headmaster', headmasterRoutes);
 app.use('/api/pages', pageRoutes);
+app.use('/api/features', featureRoutes);
+app.use('/api/superadmin/settings', superadminSettingsRoutes);
+app.use('/api/superadmin/integrations', integrationRoutes);
+app.use('/api/superadmin/admins', superadminAdminsRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/parent', parentRoutes);
@@ -210,6 +221,7 @@ app.use('/api/commissioner', commissionerRoutes);
 app.use('/api/sslc-prep', sslcPrepRoutes);
 app.use('/api/scholarships', scholarshipRoutes);
 app.use('/api/deo', deoRoutes);
+app.use('/api/counsellor', counsellorRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {

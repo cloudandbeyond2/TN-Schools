@@ -435,39 +435,43 @@ const FractionSandbox = () => {
 // EXPORT LOADER
 // ==========================================
 
-export const FormulaSandboxLoader = ({ formulaId }: { formulaId: number }) => {
+export const FormulaSandboxLoader = ({ formula }: { formula: any }) => {
+  if (!formula) return null;
+  const title = (formula.titleEn || formula.title?.en || "").toLowerCase();
+  const fStr = (formula.formula || "").replace(/\s+/g, "").toLowerCase();
+
   // Rectangle
-  if (formulaId === 101) return <RectangleSandbox mode="area" />;
-  if (formulaId === 102) return <RectangleSandbox mode="perimeter" />;
+  if (title.includes("area of a rectangle") || fStr.includes("a=l×w")) return <RectangleSandbox mode="area" />;
+  if (title.includes("perimeter of a rectangle") || fStr.includes("p=2(l+w)")) return <RectangleSandbox mode="perimeter" />;
   
   // Square
-  if (formulaId === 103) return <SquareSandbox mode="area" />;
-  if (formulaId === 104) return <SquareSandbox mode="perimeter" />;
+  if (title.includes("area of a square") || fStr.includes("a=a×a")) return <SquareSandbox mode="area" />;
+  if (title.includes("perimeter of a square") || fStr.includes("p=4a")) return <SquareSandbox mode="perimeter" />;
   
   // Right Triangle
-  if (formulaId === 114) return <RightTriangleSandbox mode="perimeter" />;
-  if (formulaId === 115) return <RightTriangleSandbox mode="area" />;
+  if (title.includes("perimeter") && title.includes("triangle") || fStr.includes("p=a+b+c")) return <RightTriangleSandbox mode="perimeter" />;
+  if (title.includes("area") && title.includes("triangle") || fStr.includes("½") || fStr.includes("1/2")) return <RightTriangleSandbox mode="area" />;
   
   // Profit & Loss
-  if (formulaId === 105) return <CommercialSandbox mode="profit-loss" />;
-  if (formulaId === 106) return <CommercialSandbox mode="profit-loss" />; // Same UI handles both
+  if (title === "profit" || fStr === "profit=sp-cp") return <CommercialSandbox mode="profit-loss" />;
+  if (title === "loss" || fStr === "loss=cp-sp") return <CommercialSandbox mode="profit-loss" />; 
   
   // Discount
-  if (formulaId === 107) return <CommercialSandbox mode="discount" />;
-  if (formulaId === 108) return <CommercialSandbox mode="discount" />;
+  if (title.includes("discount") && !title.includes("selling price")) return <CommercialSandbox mode="discount" />;
+  if (title.includes("selling price") && title.includes("discount")) return <CommercialSandbox mode="discount" />;
   
-  // Metric
-  if (formulaId === 109) return <MetricSandbox />;
+  // Metric (example: standard metrics or conversions)
+  if (title.includes("metric") || fStr.includes("km=1000m")) return <MetricSandbox />;
   
   // BIDMAS
-  if (formulaId === 110) return <BidmasSandbox />;
+  if (title.includes("bidmas") || title.includes("bodmas")) return <BidmasSandbox />;
   
   // Ratio
-  if (formulaId === 111) return <RatioSandbox />;
-  if (formulaId === 112) return <RatioSandbox isProportion={true} />;
+  if (title === "ratio" || fStr.includes("a:b")) return <RatioSandbox />;
+  if (title === "proportion" || fStr.includes("a:b::c:d")) return <RatioSandbox isProportion={true} />;
   
   // Fractions
-  if (formulaId === 113) return <FractionSandbox />;
+  if (title.includes("fraction") || fStr.includes("numerator/denominator")) return <FractionSandbox />;
 
   // Default Fallback
   return (

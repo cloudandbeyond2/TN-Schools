@@ -1,14 +1,13 @@
 import { Router, Request, Response } from 'express';
-import { AIChat, Portfolio, LearningPath, Wellness, LibraryCompanion } from '../models/mongo';
+import { AIChat, Portfolio, LearningPath, Wellness, LibraryCompanion, Saved3DModel } from '../models/mongo';
 import https from 'https';
 import { authenticate } from '../middleware/auth.middleware';
+import { getGeminiApiKey } from '../services/aiConfig.service';
 
 const router = Router();
 
 // Every AI endpoint proxies to the paid Gemini API — logged-in users only.
 router.use(authenticate);
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // ===========================================================================
 // POST /api/wellness-ai/chat
@@ -164,16 +163,28 @@ function robustParseJSON(text: string): any {
 // ---------------------------------------------------------------------------
 // Gemini API helper
 // ---------------------------------------------------------------------------
-export async function callGemini(prompt: string, jsonMode: boolean = false, schema?: any, maxTokens: number = 8192, timeoutMs: number = 90000): Promise<any> {
+export async function callGemini(prompt: string, jsonMode: boolean = false, schema?: any, maxTokens: number = 8192, timeoutMs: number = 90000, base64Image?: string, mimeType?: string): Promise<any> {
+  // Superadmin-configured key (AI Integration Setup) wins; env var is the fallback.
+  const GEMINI_API_KEY = await getGeminiApiKey();
   if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === '') {
-    throw new Error('GEMINI_API_KEY is missing. Please add it to backend/.env');
+    throw new Error('Gemini API key is missing. Configure it in AI Integration Setup or backend/.env');
   }
 
   // API key goes in a header, not the query string, so it never lands in URL logs
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
 
+  const parts: any[] = [{ text: prompt }];
+  if (base64Image && mimeType) {
+    parts.push({
+      inlineData: {
+        mimeType: mimeType,
+        data: base64Image
+      }
+    });
+  }
+
   const payload: any = {
-    contents: [{ parts: [{ text: prompt }] }],
+    contents: [{ parts }],
     generationConfig: { maxOutputTokens: maxTokens },
     safetySettings: [
       { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
@@ -1401,6 +1412,150 @@ Rules:
 
     res.json({ success: true, data: result?.facts || [] });
   } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+// ===========================================================================
+// POST /api/ai/generate-3d — Generate 3D schematic models using Gemini
+// ===========================================================================
+const GENERATE_3D_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    name: { type: 'STRING', description: 'Title of the 3D model' },
+    subject: { type: 'STRING', description: 'Subject area, e.g., Biology, Physics, Tech' },
+    description: { type: 'STRING', description: 'A short description of what this model demonstrates' },
+    color: { type: 'STRING', description: 'One of: rose, indigo, emerald, amber, sky, purple' },
+    shapes: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          type: { type: 'STRING', description: 'One of: sphere, cylinder, box, ring, line, particle_cloud, text' },
+          color: { type: 'STRING', description: 'Hex color code' },
+          label: { type: 'STRING' },
+          description: { type: 'STRING' },
+          x: { type: 'NUMBER' },
+          y: { type: 'NUMBER' },
+          z: { type: 'NUMBER' },
+          radius: { type: 'NUMBER' },
+          x1: { type: 'NUMBER' },
+          y1: { type: 'NUMBER' },
+          z1: { type: 'NUMBER' },
+          x2: { type: 'NUMBER' },
+          y2: { type: 'NUMBER' },
+          z2: { type: 'NUMBER' },
+          w: { type: 'NUMBER' },
+          h: { type: 'NUMBER' },
+          d: { type: 'NUMBER' },
+          plane: { type: 'STRING', description: 'xy, xz, yz (only for ring)' },
+          thickness: { type: 'NUMBER' },
+          text: { type: 'STRING' },
+          fontSize: { type: 'NUMBER' },
+          xLink: { type: 'NUMBER' },
+          yLink: { type: 'NUMBER' },
+          zLink: { type: 'NUMBER' }
+        },
+        required: ['type', 'color']
+      }
+    }
+  },
+  required: ['name', 'subject', 'description', 'color', 'shapes']
+};
+
+router.post('/generate-3d', async (req: Request, res: Response) => {
+  try {
+    const { topic, subject = "Science", imageBase64, imageMimeType } = req.body;
+    
+    if (!topic && !imageBase64) {
+      return res.status(400).json({ success: false, error: 'Topic or image is required' });
+    }
+
+    let prompt = `You are a 3D structural designer. Generate a schematic 3D model representing the topic: "${topic || 'Unknown'}" in the subject area of "${subject}".\n`;
+    if (imageBase64) {
+      prompt += `I have provided an image for reference. Analyze the image and generate a 3D layout that matches the structures, components, or layout shown in the image.\n`;
+    }
+    prompt += `The model should be composed of 5 to 15 primitive shapes (sphere, cylinder, box, ring, line, text).
+Each shape can have a label and description for educational purposes.
+Use appropriate hex colors. Keep coordinates (x,y,z) roughly within a -100 to 100 range.
+Add descriptive text nodes with pointers (xLink, yLink, zLink) to explain parts of the model.
+Return the layout adhering strictly to the JSON schema.`;
+
+    const result = await callGemini(prompt, true, GENERATE_3D_SCHEMA, 8000, 60000, imageBase64, imageMimeType);
+    
+    try {
+      if (topic) {
+        // Search by relevance rather than likeCount to avoid keyword-stuffed irrelevant models
+        const sketchfabUrl = `https://api.sketchfab.com/v3/search?type=models&q=${encodeURIComponent(topic)}`;
+        const sketchRes = await fetch(sketchfabUrl);
+        if (sketchRes.ok) {
+          const sketchData = await sketchRes.json();
+          if (sketchData.results && sketchData.results.length > 0) {
+            result.sketchfabUid = sketchData.results[0].uid;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to fetch from Sketchfab', e);
+    }
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (err) {
+    console.error('[POST /api/ai/generate-3d]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// POST /api/ai/saved-3d-models - Save a 3D model
+// ===========================================================================
+router.post('/saved-3d-models', async (req: Request, res: Response) => {
+  try {
+    const { name, subject, color, sketchfabUid, shapes, description } = req.body;
+    const model = new Saved3DModel({
+      userId: req.user!.id,
+      name,
+      subject,
+      color,
+      sketchfabUid,
+      shapes,
+      description
+    });
+    await model.save();
+    res.json({ success: true, data: model });
+  } catch (err) {
+    console.error('[POST /api/ai/saved-3d-models]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// GET /api/ai/saved-3d-models - Get all saved 3D models for user
+// ===========================================================================
+router.get('/saved-3d-models', async (req: Request, res: Response) => {
+  try {
+    const models = await Saved3DModel.find({ userId: req.user!.id }).sort({ createdAt: -1 });
+    res.json({ success: true, data: models });
+  } catch (err) {
+    console.error('[GET /api/ai/saved-3d-models]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ===========================================================================
+// DELETE /api/ai/saved-3d-models/:id - Delete a saved 3D model
+// ===========================================================================
+router.delete('/saved-3d-models/:id', async (req: Request, res: Response) => {
+  try {
+    const model = await Saved3DModel.findOneAndDelete({ _id: req.params.id, userId: req.user!.id });
+    if (!model) {
+      return res.status(404).json({ success: false, error: 'Model not found or not authorized' });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[DELETE /api/ai/saved-3d-models/:id]', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });

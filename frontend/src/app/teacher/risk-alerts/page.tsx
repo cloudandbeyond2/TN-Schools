@@ -102,25 +102,28 @@ export default function RiskAlertsPage() {
       }
 
       // 3. Fetch current watchlist/risk alerts
-      const res = await fetch(`${API_URL}/api/headmaster/students${schoolId ? `?schoolId=${schoolId}` : ""}`);
+      const res = await fetch(`${API_URL}/api/teacher/risk-alerts${schoolId ? `?schoolId=${schoolId}` : ""}`);
       const data = await res.json();
       if (data.success && data.data) {
         // Map backend structure to page structure
-        let mapped: AtRiskStudent[] = data.data.map((st: any) => ({
-          id: st.id,
-          name: st.name,
-          className: st.class,
-          rollNumber: st.rollNumber,
-          phone: st.phone,
-          parentName: st.parentName,
-          riskLevel: st.risk?.toLowerCase() === "high" ? "high" : "medium",
-          issue: st.issue || "High absenteeism + decline in test scores",
-          attendance: st.attendance !== null && st.attendance !== undefined ? st.attendance : 78,
-          lastScore: st.lastScore !== null && st.lastScore !== undefined ? st.lastScore : 45,
-          notified: st.notified || false,
-          notificationMessage: st.notificationMessage || "",
-          studentId: st.studentId
-        }));
+        let mapped: AtRiskStudent[] = data.data.map((alert: any) => {
+          const st = alert.student || {};
+          return {
+            id: alert.id, // ID of the risk alert
+            name: st.user?.name || "Unknown",
+            className: st.class || "",
+            rollNumber: st.rollNumber || "",
+            phone: st.parentMobile || "",
+            parentName: st.parentName || "",
+            riskLevel: alert.riskLevel?.toLowerCase() === "high" ? "high" : "medium",
+            issue: alert.issue || "",
+            attendance: alert.attendance || 0,
+            lastScore: alert.lastScore || 0,
+            notified: alert.notified || false,
+            notificationMessage: alert.notificationMessage || "",
+            studentId: alert.studentId
+          };
+        });
 
         // Filter alerts by teacher classes
         if (tClasses.length > 0) {
@@ -158,27 +161,16 @@ export default function RiskAlertsPage() {
     fetchData();
   }, [schoolId, session, API_URL]);
 
-  // Handle auto-fill student details on form select
-  useEffect(() => {
-    if (formStudentId && !editingAlert) {
-      const selected = allStudents.find(s => s.id === formStudentId);
-      if (selected) {
-        // Find default warning based on scores or random default
-        setFormIssue(commonIssues[Math.floor(Math.random() * commonIssues.length)]);
-        setFormAttendance(String(Math.floor(Math.random() * 25) + 65));
-        setFormLastScore(String(Math.floor(Math.random() * 30) + 30));
-      }
-    }
-  }, [formStudentId]);
+  // Form data is no longer auto-filled with random values when a student is selected
 
   // Open modal for Adding Alert
   const handleOpenAdd = () => {
     setEditingAlert(null);
-    setFormStudentId(allStudents[0]?.id || "");
+    setFormStudentId("");
     setFormRiskLevel("medium");
-    setFormIssue(commonIssues[0]);
-    setFormAttendance("80");
-    setFormLastScore("50");
+    setFormIssue("");
+    setFormAttendance("");
+    setFormLastScore("");
     setIsFormOpen(true);
   };
 
@@ -197,7 +189,7 @@ export default function RiskAlertsPage() {
   const handleSaveAlert = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formStudentId) {
+    if (!formStudentId && !editingAlert) {
       Swal.fire("Error", "Please select a student", "error");
       return;
     }
@@ -206,12 +198,8 @@ export default function RiskAlertsPage() {
     
     // Construct body
     const body = {
-      name: selectedSt ? selectedSt.user?.name : editingAlert?.name,
-      rollNumber: selectedSt ? selectedSt.rollNumber : editingAlert?.rollNumber,
-      class: selectedSt ? `${selectedSt.class}${selectedSt.section}` : editingAlert?.className,
-      phone: selectedSt ? selectedSt.parentMobile : editingAlert?.phone,
-      parentName: selectedSt ? selectedSt.parentName : editingAlert?.parentName,
-      risk: formRiskLevel === "high" ? "High" : "Medium",
+      studentId: editingAlert ? editingAlert.studentId : formStudentId,
+      riskLevel: formRiskLevel === "high" ? "high" : "medium",
       issue: formIssue,
       attendance: parseFloat(formAttendance) || 0,
       lastScore: parseFloat(formLastScore) || 0,
@@ -222,14 +210,14 @@ export default function RiskAlertsPage() {
       let res;
       if (editingAlert) {
         // PUT request
-        res = await fetch(`${API_URL}/api/headmaster/students/${editingAlert.id}`, {
+        res = await fetch(`${API_URL}/api/teacher/risk-alerts/${editingAlert.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body)
         });
       } else {
         // POST request
-        res = await fetch(`${API_URL}/api/headmaster/students`, {
+        res = await fetch(`${API_URL}/api/teacher/risk-alerts`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body)
@@ -255,6 +243,36 @@ export default function RiskAlertsPage() {
     } catch (err) {
       console.error("Save Alert Error:", err);
       Swal.fire("Error", "An unexpected error occurred while saving.", "error");
+    }
+  };
+  const handleDeleteAlert = async () => {
+    if (!editingAlert) return;
+    
+    const confirm = await Swal.fire({
+      title: "Remove from Watchlist?",
+      text: "This will permanently delete this risk alert.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!"
+    });
+
+    if (confirm.isConfirmed) {
+      try {
+        const res = await fetch(`${API_URL}/api/teacher/risk-alerts/${editingAlert.id}`, {
+          method: "DELETE"
+        });
+        const data = await res.json();
+        if (data.success) {
+          setIsFormOpen(false);
+          Swal.fire("Deleted!", "The alert has been removed.", "success");
+          fetchData();
+        } else {
+          Swal.fire("Error", data.error || "Failed to delete alert", "error");
+        }
+      } catch (err) {
+        Swal.fire("Error", "An unexpected error occurred.", "error");
+      }
     }
   };
 
@@ -342,7 +360,7 @@ export default function RiskAlertsPage() {
     if (!result.isConfirmed) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/headmaster/students/${id}`, {
+      const res = await fetch(`${API_URL}/api/teacher/risk-alerts/${id}`, {
         method: "DELETE"
       });
       const data = await res.json();
@@ -746,6 +764,7 @@ export default function RiskAlertsPage() {
                     onChange={(e) => setFormStudentId(e.target.value)}
                     className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                   >
+                    <option value="" disabled>Select a student...</option>
                     {allStudents.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.user?.name} (Class {s.class}{s.section} · Roll: {s.rollNumber})
@@ -821,10 +840,17 @@ export default function RiskAlertsPage() {
               <div>
                 <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-bold uppercase tracking-wider">Warning Indicator / Issue</label>
                 <select
-                  onChange={(e) => setFormIssue(e.target.value)}
-                  value={commonIssues.includes(formIssue) ? formIssue : "custom"}
+                  onChange={(e) => {
+                    if (e.target.value === "custom") {
+                      setFormIssue("");
+                    } else {
+                      setFormIssue(e.target.value);
+                    }
+                  }}
+                  value={commonIssues.includes(formIssue) && formIssue !== "" ? formIssue : "custom"}
                   className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] mb-2.5 focus:outline-none focus:border-[var(--primary)]"
                 >
+                  <option value="" disabled className="hidden">Select an indicator...</option>
                   {commonIssues.map((issue, idx) => (
                     <option key={idx} value={issue}>
                       {issue}
@@ -833,18 +859,29 @@ export default function RiskAlertsPage() {
                   <option value="custom">-- Custom indicator text --</option>
                 </select>
                 
-                <textarea
-                  value={formIssue}
-                  onChange={(e) => setFormIssue(e.target.value)}
-                  rows={3}
-                  className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] resize-none leading-relaxed"
-                  placeholder="Enter details about why this student is flagged..."
-                  required
-                />
+                {(!commonIssues.includes(formIssue) || formIssue === "") && (
+                  <textarea
+                    value={formIssue}
+                    onChange={(e) => setFormIssue(e.target.value)}
+                    rows={3}
+                    className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] resize-none leading-relaxed mt-2"
+                    placeholder="Enter details about this risk flag..."
+                    required
+                  />
+                )}
               </div>
 
               {/* Modal Actions */}
               <div className="flex gap-3 justify-end pt-3 border-t border-[var(--border)]/60">
+                {editingAlert && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteAlert}
+                    className="px-4 py-2 border border-red-500/20 text-red-500 hover:bg-red-500/10 rounded-xl text-xs font-semibold transition-all mr-auto"
+                  >
+                    Delete Alert
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(false)}

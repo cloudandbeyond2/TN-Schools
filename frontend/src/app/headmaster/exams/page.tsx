@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import Swal from "sweetalert2";
+import { BookOpen, FlaskConical, Layers } from "lucide-react";
 
 
 type ExamType = "Unit Test" | "Quarterly" | "Half-Yearly" | "Annual" | "Model" | "Public";
@@ -389,7 +391,7 @@ export default function HeadmasterExamsPage() {
       ex.invigilator === teacher && 
       ex.date === date && 
       ex.timeSlot === timeSlot && 
-      ex.id !== currentId
+      String(ex.id) !== String(currentId)
     );
   };
 
@@ -564,7 +566,19 @@ export default function HeadmasterExamsPage() {
 
   const handleDeleteExam = async (id: number | string) => {
     const examToDelete = exams.find(ex => ex.id === id);
-    if (examToDelete && confirm(`Are you sure you want to delete "${examToDelete.name}"?`)) {
+    if (!examToDelete) return;
+
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: `Do you really want to delete "${examToDelete.name}"?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#334155",
+      confirmButtonText: "Yes, delete it!"
+    });
+
+    if (result.isConfirmed) {
       try {
         const res = await fetch(`${API_URL}/api/exam-schedule/${id}`, {
           method: "DELETE",
@@ -754,7 +768,7 @@ export default function HeadmasterExamsPage() {
 
   const getModeBadgeStyle = (mode: ExamMode) => {
     switch (mode) {
-      case "Theory":    return "bg-blue-500/10 border-blue-500/20 text-blue-300";
+      case "Theory":    return "bg-slate-500/10 border-slate-500/20 text-slate-300";
       case "Practical": return "bg-violet-500/10 border-violet-500/20 text-violet-300";
       case "Both":      return "bg-amber-500/10 border-amber-500/20 text-amber-300";
     }
@@ -785,9 +799,8 @@ export default function HeadmasterExamsPage() {
 
   return (
     <>
-      <link rel="stylesheet" href="https://cdn-icons-png.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css" />
       <PortalLayout
-      title="Exam Scheduling & Seating"
+        title="Exam Scheduling & Seating"
       subtitle={`${session?.user?.name || "Headmaster"} · ${(session?.user as any)?.schoolName || "Holy Cross Higher Secondary School"} · DISE: ${(session?.user as any)?.schoolDise || "50001"}`}
       avatarLetter={(session?.user?.name || "Headmaster").charAt(0)}
       avatarColor="#3b82f6"
@@ -813,7 +826,7 @@ export default function HeadmasterExamsPage() {
       {/* ── Success Modal ─────────────────────────────────────────────── */}
       {successModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="relative w-full max-w-md bg-[#0f1117] border border-emerald-500/30 rounded-2xl shadow-2xl overflow-hidden animate-scaleIn">
+          <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden animate-scaleIn">
 
             {/* Green glow top bar */}
             <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500" />
@@ -821,37 +834,37 @@ export default function HeadmasterExamsPage() {
             <div className="p-6 flex flex-col items-center text-center gap-4">
 
               {/* Animated checkmark circle */}
-              <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/10 border-2 border-emerald-500/40 shadow-[0_0_30px_#10b98140]">
-                <i className="fi flex items-center justify-center fi-rr-check-circle w-10 h-10 text-emerald-400 drop-shadow-[0_0_8px_#10b981]"></i>
+              <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-emerald-50 border-2 border-emerald-100 shadow-sm">
+                <i className="fi flex items-center justify-center fi-rr-check-circle w-10 h-10 text-emerald-500"></i>
                 {/* Pulsing ring */}
                 <span className="absolute inset-0 rounded-full border-2 border-emerald-400/30 animate-ping" />
               </div>
 
               {/* Title */}
               <div>
-                <p className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest mb-1">
+                <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-widest mb-1">
                   {successModal.isEdit ? "Exam Updated" : "Exam Scheduled"}
                 </p>
-                <h2 className="text-lg font-extrabold text-white leading-tight">
+                <h2 className="text-lg font-extrabold text-slate-900 leading-tight">
                   {successModal.examName}
                 </h2>
-                <p className="text-xs text-slate-400 mt-1">{successModal.subject}</p>
+                <p className="text-xs text-slate-500 mt-1">{successModal.subject}</p>
               </div>
 
               {/* Details grid */}
-              <div className="w-full grid grid-cols-2 gap-2 mt-1">
+              <div className="w-full grid grid-cols-2 gap-3 mt-2">
                 {/* Classes */}
-                <div className="col-span-2 bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-2.5 flex items-start gap-2">
-                  <i className="fi flex items-center justify-center fi-rr-tag w-3.5 h-3.5 text-blue-400 mt-0.5 shrink-0"></i>
+                <div className="col-span-2 bg-white rounded-xl px-4 py-3 flex items-start gap-3 shadow-[0_8px_16px_rgba(0,0,0,0.2)]">
+                  <i className="fi flex items-center justify-center fi-rr-tag w-4 h-4 text-blue-500 mt-0.5 shrink-0"></i>
                   <div className="text-left">
-                    <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Classes</p>
-                    <p className="text-xs text-white font-semibold mt-0.5">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold mb-0.5">Classes</p>
+                    <p className="text-sm text-slate-900 font-bold">
                       {successModal.classes.length === 1
                         ? successModal.classes[0]
                         : `${successModal.classes.length} classes scheduled`}
                     </p>
                     {successModal.classes.length > 1 && (
-                      <p className="text-[10px] text-slate-400 mt-0.5">
+                      <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
                         {successModal.classes.slice(0, 3).join(", ")}
                         {successModal.classes.length > 3 ? ` +${successModal.classes.length - 3} more` : ""}
                       </p>
@@ -860,40 +873,40 @@ export default function HeadmasterExamsPage() {
                 </div>
 
                 {/* Date */}
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl px-3 py-2.5 flex items-start gap-2">
-                  <i className="fi flex items-center justify-center fi-rr-calendar w-3.5 h-3.5 text-violet-400 mt-0.5 shrink-0"></i>
+                <div className="bg-white rounded-xl px-3 py-3 flex items-start gap-3 shadow-[0_8px_16px_rgba(0,0,0,0.2)]">
+                  <i className="fi flex items-center justify-center fi-rr-calendar w-4 h-4 text-violet-500 mt-0.5 shrink-0"></i>
                   <div className="text-left">
-                    <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Date</p>
-                    <p className="text-xs text-white font-semibold mt-0.5">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold mb-0.5">Date</p>
+                    <p className="text-sm text-slate-900 font-bold">
                       {new Date(successModal.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                     </p>
                   </div>
                 </div>
 
                 {/* Duration */}
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl px-3 py-2.5 flex items-start gap-2">
-                  <i className="fi flex items-center justify-center fi-rr-time-fast w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0"></i>
+                <div className="bg-white rounded-xl px-3 py-3 flex items-start gap-3 shadow-[0_8px_16px_rgba(0,0,0,0.2)]">
+                  <i className="fi flex items-center justify-center fi-rr-time-fast w-4 h-4 text-amber-500 mt-0.5 shrink-0"></i>
                   <div className="text-left">
-                    <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Duration</p>
-                    <p className="text-xs text-white font-semibold mt-0.5">{successModal.duration}</p>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold mb-0.5">Duration</p>
+                    <p className="text-sm text-slate-900 font-bold">{successModal.duration}</p>
                   </div>
                 </div>
 
                 {/* Time Slot */}
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl px-3 py-2.5 flex items-start gap-2">
-                  <i className="fi flex items-center justify-center fi-rr-clock w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0"></i>
+                <div className="bg-white rounded-xl px-3 py-3 flex items-start gap-3 shadow-[0_8px_16px_rgba(0,0,0,0.2)]">
+                  <i className="fi flex items-center justify-center fi-rr-clock w-4 h-4 text-cyan-500 mt-0.5 shrink-0"></i>
                   <div className="text-left">
-                    <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Time Slot</p>
-                    <p className="text-xs text-white font-semibold mt-0.5">{successModal.timeSlot}</p>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold mb-0.5">Time Slot</p>
+                    <p className="text-sm text-slate-900 font-bold">{successModal.timeSlot}</p>
                   </div>
                 </div>
 
                 {/* Total Marks */}
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl px-3 py-2.5 flex items-start gap-2">
-                  <i className="fi flex items-center justify-center fi-rr-award w-3.5 h-3.5 text-rose-400 mt-0.5 shrink-0"></i>
+                <div className="bg-white rounded-xl px-3 py-3 flex items-start gap-3 shadow-[0_8px_16px_rgba(0,0,0,0.2)]">
+                  <i className="fi flex items-center justify-center fi-rr-award w-4 h-4 text-rose-500 mt-0.5 shrink-0"></i>
                   <div className="text-left">
-                    <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Total Marks</p>
-                    <p className="text-xs text-white font-semibold mt-0.5">{successModal.totalMarks}</p>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold mb-0.5">Total Marks</p>
+                    <p className="text-sm text-slate-900 font-bold">{successModal.totalMarks}</p>
                   </div>
                 </div>
               </div>
@@ -1559,16 +1572,16 @@ export default function HeadmasterExamsPage() {
                         className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-[10px] font-bold transition-all ${
                           formData.examMode === mode
                             ? mode === "Theory"
-                              ? "bg-blue-600/20 border-blue-500/50 text-blue-300"
+                              ? "bg-slate-500 border-slate-600 text-white shadow-sm"
                               : mode === "Practical"
                               ? "bg-violet-600/20 border-violet-500/50 text-violet-300"
                               : "bg-amber-600/20 border-amber-500/50 text-amber-300"
                             : "bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600"
                         }`}
                       >
-                        {mode === "Theory" && <i className="fi flex items-center justify-center fi-rr-book-open text-base w-4 h-4"></i>}
-                        {mode === "Practical" && <i className="fi flex items-center justify-center fi-rr-flask text-base w-4 h-4"></i>}
-                        {mode === "Both" && <i className="fi flex items-center justify-center fi-rr-layer-group text-base w-4 h-4"></i>}
+                        {mode === "Theory" && <BookOpen className="w-4 h-4" />}
+                        {mode === "Practical" && <FlaskConical className="w-4 h-4" />}
+                        {mode === "Both" && <Layers className="w-4 h-4" />}
                         {mode}
                       </button>
                     );

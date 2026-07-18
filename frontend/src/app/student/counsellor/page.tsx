@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import {
@@ -187,14 +187,7 @@ const tipsByTopic: Record<string, { icon: React.ElementType; tip: { en: string; 
   ],
 };
 
-const sessionSlots = [
-  { day: { en: "Monday", ta: "திங்கள்" }, time: "10:00 AM", available: true },
-  { day: { en: "Monday", ta: "திங்கள்" }, time: "2:00 PM", available: true },
-  { day: { en: "Wednesday", ta: "புதன்" }, time: "11:00 AM", available: false },
-  { day: { en: "Wednesday", ta: "புதன்" }, time: "3:00 PM", available: true },
-  { day: { en: "Friday", ta: "வெள்ளி" }, time: "10:30 AM", available: true },
-  { day: { en: "Friday", ta: "வெள்ளி" }, time: "1:30 PM", available: true },
-];
+// sessionSlots removed - now dynamically fetched from backend
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
@@ -219,6 +212,94 @@ export default function CounsellorPage() {
     : tipsByTopic.default;
 
   const currentMoodData = moods.find((m) => m.label.en === selectedMood || m.label.ta === selectedMood);
+
+  const [sessionSlots, setSessionSlots] = useState<any[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(true);
+
+  useEffect(() => {
+    const fetchSlots = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const res = await fetch(`${apiUrl}/api/counsellor/slots?schoolId=default`);
+        const data = await res.json();
+        if (data.success) {
+          setSessionSlots(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching slots", err);
+      } finally {
+        setIsLoadingSlots(false);
+      }
+    };
+    fetchSlots();
+  }, []);
+
+  const [isSubmittingMsg, setIsSubmittingMsg] = useState(false);
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
+
+  const handleSubmitMessage = async () => {
+    if (!feedbackText.trim()) return;
+    setIsSubmittingMsg(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      // Using generic student ID for prototype (same as language coaching)
+      const studentId = "95acafcf-990f-49aa-8c21-68a164a57a2e";
+      
+      const res = await fetch(`${apiUrl}/api/counsellor/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId,
+          mood: selectedMood || "Okay",
+          topic: selectedTopic || "General",
+          feedbackText,
+          isAnonymous
+        })
+      });
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        alert("Failed to send message. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error.");
+    } finally {
+      setIsSubmittingMsg(false);
+    }
+  };
+
+  const handleSubmitBooking = async () => {
+    if (!selectedSlot) return; // selectedSlot is now the _id
+    setIsSubmittingBooking(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const studentId = "95acafcf-990f-49aa-8c21-68a164a57a2e";
+      
+      const res = await fetch(`${apiUrl}/api/counsellor/booking`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId,
+          slotId: selectedSlot,
+          topic: "General Session",
+          isAnonymous: false // For sessions, we generally need their identity
+        })
+      });
+      if (res.ok) {
+        setSessionSubmitted(true);
+        // Optimistically update the UI to mark as booked
+        setSessionSlots(prev => prev.map(s => s._id === selectedSlot ? { ...s, isBooked: true } : s));
+      } else {
+        alert("Failed to book session. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error.");
+    } finally {
+      setIsSubmittingBooking(false);
+    }
+  };
 
   return (
     <PortalLayout
@@ -438,12 +519,12 @@ export default function CounsellorPage() {
                 </div>
 
                 <button
-                  onClick={() => feedbackText.trim() && setSubmitted(true)}
-                  disabled={!feedbackText.trim()}
+                  onClick={handleSubmitMessage}
+                  disabled={!feedbackText.trim() || isSubmittingMsg}
                   className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white text-sm font-black rounded-2xl shadow-lg hover:shadow-indigo-400/30 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
                 >
                   <MessageSquare size={16} />
-                  {L.sendToCounsellor}
+                  {isSubmittingMsg ? "Sending..." : L.sendToCounsellor}
                 </button>
               </div>
             ) : (
@@ -552,31 +633,40 @@ export default function CounsellorPage() {
               <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                 <Clock size={14} /> {L.availableSlots}
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-                {sessionSlots.map((slot, idx) => {
-                  const key = `${slot.day.en} ${slot.time}`;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => slot.available && setSelectedSlot(key)}
-                      disabled={!slot.available}
-                      className={`relative p-4 rounded-2xl border-2 text-center transition-all duration-200 ${!slot.available
-                        ? "border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 opacity-50 cursor-not-allowed"
-                        : selectedSlot === key
-                          ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 shadow-md ring-2 ring-indigo-200 dark:ring-indigo-800"
-                          : "border-slate-200 dark:border-slate-700 hover:border-indigo-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                        }`}
-                    >
-                      {!slot.available && (
-                        <span className="absolute top-1 right-2 text-[9px] font-bold text-slate-400">{L.booked}</span>
-                      )}
-                      <div className={`text-[10px] font-black uppercase tracking-wide mb-1 ${selectedSlot === key ? "text-indigo-600 dark:text-indigo-400" : "text-slate-500"}`}>{slot.day[lang]}</div>
-                      <div className={`text-sm font-black ${selectedSlot === key ? "text-indigo-700 dark:text-indigo-300" : "text-black dark:text-white"}`}>{slot.time}</div>
-                      {selectedSlot === key && <Check size={12} className="text-indigo-500 mt-1 mx-auto" />}
-                    </button>
-                  );
-                })}
-              </div>
+              {isLoadingSlots ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+                  {sessionSlots.map((slot) => {
+                    const key = slot._id;
+                    const isAvailable = !slot.isBooked;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => isAvailable && setSelectedSlot(key)}
+                        disabled={!isAvailable}
+                        className={`relative p-4 rounded-2xl border-2 text-center transition-all duration-200 ${!isAvailable
+                          ? "border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 opacity-50 cursor-not-allowed"
+                          : selectedSlot === key
+                            ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 shadow-md ring-2 ring-indigo-200 dark:ring-indigo-800"
+                            : "border-slate-200 dark:border-slate-700 hover:border-indigo-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                          }`}
+                      >
+                        {!isAvailable && (
+                          <span className="absolute top-1 right-2 text-[9px] font-bold text-slate-400">{L.booked}</span>
+                        )}
+                        <div className={`text-[10px] font-black uppercase tracking-wide mb-1 ${selectedSlot === key ? "text-indigo-600 dark:text-indigo-400" : "text-slate-500"}`}>
+                          {lang === 'en' ? slot.dayEn : slot.dayTa}
+                        </div>
+                        <div className={`text-sm font-black ${selectedSlot === key ? "text-indigo-700 dark:text-indigo-300" : "text-black dark:text-white"}`}>{slot.time}</div>
+                        {selectedSlot === key && <Check size={12} className="text-indigo-500 mt-1 mx-auto" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               <div className="mb-6">
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center">

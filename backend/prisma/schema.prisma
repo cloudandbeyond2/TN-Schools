@@ -61,6 +61,7 @@ model School {
   proxyAssignments    ProxyAssignment[]
   SchoolResource      SchoolResource[]
   ResourceReport      ResourceReport[]
+  StudentRiskAlert    StudentRiskAlert[]
 
   @@index([beoId])
   @@index([deoId])
@@ -150,6 +151,7 @@ model Student {
   readingProgress       ReadingTracker[]
   projectSubmissions    ProjectSubmission[]
   academicHistory       StudentAcademicHistory[]
+  riskAlerts            StudentRiskAlert[]
   school                School                     @relation(fields: [schoolId], references: [id])
 
   @@index([classRoomId])
@@ -299,8 +301,8 @@ model Reward {
   schoolId  String
   title     String
   recipient String
-  category  String   // "School Award", "Student Medal", "Teacher Recognition"
-  date      String   // Year, e.g. "2026"
+  category  String // "School Award", "Student Medal", "Teacher Recognition"
+  date      String // Year, e.g. "2026"
   citation  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -458,15 +460,13 @@ model PTAMeeting {
   @@index([createdByUserId])
 }
 
-
-
 model PTAAppointment {
   id          String   @id @default(uuid())
   parentId    String
   teacherId   String
   studentId   String
-  meetingDate String   // Stored as date string "YYYY-MM-DD"
-  timeSlot    String   // e.g. "10:00 AM - 10:30 AM"
+  meetingDate String // Stored as date string "YYYY-MM-DD"
+  timeSlot    String // e.g. "10:00 AM - 10:30 AM"
   status      String   @default("Pending") // Pending, Approved, Rejected, Completed
   reason      String
   notes       String?
@@ -482,8 +482,8 @@ model PTAAppointment {
 model TeacherMeetingSlot {
   id          String   @id @default(uuid())
   teacherId   String
-  dayOfWeek   String   // e.g. "Monday", "Tuesday", "Wednesday", etc.
-  timeSlot    String   // e.g. "10:00 AM - 10:30 AM"
+  dayOfWeek   String // e.g. "Monday", "Tuesday", "Wednesday", etc.
+  timeSlot    String // e.g. "10:00 AM - 10:30 AM"
   isAvailable Boolean  @default(true)
   schoolId    String?
   createdAt   DateTime @default(now())
@@ -953,6 +953,27 @@ model PetEquipmentRequest {
   @@index([itemId])
 }
 
+model PetSportsEvent {
+  id            String   @id @default(uuid())
+  schoolId      String?
+  name          String
+  kind          String   @default("Competition")
+  sport         String
+  level         String
+  date          String
+  venue         String
+  participants  Int      @default(0)
+  status        String   @default("Upcoming")
+  result        String   @default("")
+  notes         String   @default("")
+  targetClasses String   @default("All Classes")
+  ageGroup      String   @default("Open")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([schoolId])
+}
+
 model InjuryReport {
   id          String   @id @default(uuid())
   studentId   String
@@ -1299,11 +1320,11 @@ model ScholarshipScheme {
   id                 String   @id // e.g. "tn-pudhumai-penn", "nmms"
   name               String
   nameTA             String?
-  category           String   // e.g. "SC/ST Welfare", "BC/MBC Welfare", "Central Government"
+  category           String // e.g. "SC/ST Welfare", "BC/MBC Welfare", "Central Government"
   categoryTA         String?
   standards          String[] // ["6", "7", "8", "9", "10", "11", "12"]
   standardText       String
-  gender             String   // "Male" | "Female" | "All"
+  gender             String // "Male" | "Female" | "All"
   community          String[] // ["BC", "MBC", "DNC", "SC", "ST", "All"]
   communityText      String
   incomeLimit        Float?
@@ -1320,7 +1341,6 @@ model ScholarshipScheme {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
-
 
 model SocialActivity {
   id           String   @id @default(uuid())
@@ -1977,27 +1997,74 @@ model ResourceReport {
 
 // ─── Digital Library Upload Workflow ─────────────────────────────────────────────
 model DigitalLibraryUpload {
-  id             String   @id @default(uuid())
-  title          String
-  type           String
-  subject        String
-  class          String
-  size           String   @default("N/A")
-  description    String?
-  tags           String[]
-  fileUrl        String?
-  
-  approvalStatus String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  uploadedByRole String?                      // SUPER_ADMIN, HEADMASTER, TEACHER
+  id          String   @id @default(uuid())
+  title       String
+  type        String
+  subject     String
+  class       String
+  size        String   @default("N/A")
+  description String?
+  tags        String[]
+  fileUrl     String?
+
+  approvalStatus String  @default("PENDING") // PENDING, APPROVED, REJECTED
+  uploadedByRole String? // SUPER_ADMIN, HEADMASTER, TEACHER
   uploadedById   String?
   schoolId       String?
-  
-  uploadDate     DateTime @default(now())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+
+  uploadDate DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([schoolId])
   @@index([approvalStatus])
   @@index([uploadedById])
 }
 
+model DropoutRecord {
+  id          String   @id @default(uuid())
+  studentName String
+  school      String
+  block       String
+  class       String
+  reason      String
+  date        String
+  status      String   @default("Intervention Pending")
+  district    String   @default("Coimbatore")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model StudentRiskAlert {
+  id                  String   @id @default(uuid())
+  studentId           String
+  student             Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  schoolId            String
+  school              School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  riskLevel           String // "high", "medium"
+  issue               String
+  attendance          Float
+  lastScore           Float
+  notified            Boolean  @default(false)
+  notificationMessage String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model MathsFormula {
+  id              String   @id @default(uuid())
+  titleEn         String
+  titleTa         String
+  formula         String
+  category        String
+  categoryNameEn  String
+  categoryNameTa  String
+  standard        String
+  term            String?
+  popular         Boolean  @default(false)
+  bg              String
+  mnemonicPrompt  String
+  mnemonicText    String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

@@ -1,62 +1,120 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 
-interface DropoutRecord { id: number; studentName: string; school: string; block: string; class: string; reason: string; date: string; status: string; }
+interface DropoutRecord { id: string; studentName: string; school: string; block: string; class: string; reason: string; date: string; status: string; district: string; }
 
-const initialRecords: DropoutRecord[] = [
-  { id: 1, studentName: "Muthu K.", school: "GHS Annur", block: "Annur", class: "8th", reason: "Economic", date: "2024-08-15", status: "Intervention Pending" },
-  { id: 2, studentName: "Selvi R.", school: "GHS Mettupalayam", block: "Mettupalayam", class: "9th", reason: "Migration", date: "2024-09-02", status: "Dropped" },
-  { id: 3, studentName: "Arumugam S.", school: "GHS Pollachi", block: "Pollachi", class: "10th", reason: "Marriage", date: "2024-09-18", status: "Counselled" },
-  { id: 4, studentName: "Kavitha P.", school: "GHS Annur", block: "Annur", class: "7th", reason: "Economic", date: "2024-10-05", status: "Re-enrolled" },
-  { id: 5, studentName: "Dinesh M.", school: "GHS Mettupalayam", block: "Mettupalayam", class: "8th", reason: "Child Labor", date: "2024-10-20", status: "Intervention Pending" },
-];
-
-const blockRisk = [
-  { name: "Annur", count: 58, risk: "HIGH" },
-  { name: "Mettupalayam", count: 42, risk: "HIGH" },
-  { name: "Pollachi", count: 31, risk: "MEDIUM" },
-  { name: "Coimbatore North", count: 23, risk: "MEDIUM" },
-  { name: "Coimbatore South", count: 17, risk: "LOW" },
-];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function DropoutHeatmapPage() {
-  const [records, setRecords] = useState<DropoutRecord[]>(initialRecords);
+  const { data: session } = useSession();
+  const district = (session?.user as any)?.district || "Coimbatore";
+
+  const [records, setRecords] = useState<DropoutRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState({ studentName: "", school: "", block: "", class: "8th", reason: "Economic", date: "", status: "Intervention Pending" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchDropouts = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/deo/dropouts?district=${encodeURIComponent(district)}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setRecords(json.data);
+      }
+    } catch (e) {
+      console.error("Error loading dropouts:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDropouts();
+  }, [session, district]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setRecords(p => [...p, { ...form, id: p.length + 1 }]);
-    setIsModalOpen(false);
-    setToast(`⚠️ Dropout record for '${form.studentName}' logged. Intervention team notified.`);
-    setTimeout(() => setToast(null), 4000);
+    try {
+      const res = await fetch(`${API_URL}/api/deo/dropouts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, district })
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setRecords(p => [json.data, ...p]);
+        setIsModalOpen(false);
+        setToast(`⚠️ Dropout record for '${form.studentName}' logged. Intervention team notified.`);
+        setTimeout(() => setToast(null), 4000);
+      }
+    } catch (err) {
+      console.error("Error logging dropout:", err);
+    }
   };
 
   const simulateExcel = () => {
     setIsUploading(true);
-    setTimeout(() => {
-      setRecords(p => [...p,
-        { id: p.length + 1, studentName: "Rajan A.", school: "GHS Annur", block: "Annur", class: "9th", reason: "Economic", date: "2024-11-10", status: "Intervention Pending" },
-        { id: p.length + 2, studentName: "Meena S.", school: "GHS Pollachi", block: "Pollachi", class: "7th", reason: "Migration", date: "2024-11-12", status: "Dropped" },
-      ]);
-      setIsUploading(false);
-      setIsModalOpen(false);
-      setToast("📋 Dropout register spreadsheet imported! 2 new cases logged.");
-      setTimeout(() => setToast(null), 4000);
+    setTimeout(async () => {
+      try {
+        const mockUploads = [
+          { studentName: "Rajan A.", school: "GHS Annur", block: "Annur", class: "9th", reason: "Economic", date: "2024-11-10", status: "Intervention Pending" },
+          { studentName: "Meena S.", school: "GHS Pollachi", block: "Pollachi", class: "7th", reason: "Migration", date: "2024-11-12", status: "Dropped" },
+        ];
+
+        const added: DropoutRecord[] = [];
+        for (const item of mockUploads) {
+          const res = await fetch(`${API_URL}/api/deo/dropouts`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...item, district })
+          });
+          const json = await res.json();
+          if (json.success && json.data) {
+            added.push(json.data);
+          }
+        }
+
+        if (added.length > 0) {
+          setRecords(p => [...added, ...p]);
+          setToast(`📋 Dropout register spreadsheet imported! ${added.length} new cases logged.`);
+          setTimeout(() => setToast(null), 4000);
+        }
+      } catch (e) {
+        console.error("Excel simulation error:", e);
+      } finally {
+        setIsUploading(false);
+        setIsModalOpen(false);
+      }
     }, 1500);
   };
 
+  const dbBlocks = Array.from(new Set(records.map(r => r.block).filter(Boolean)));
+  const defaultBlocks = district === "Coimbatore" ? ["Annur", "Mettupalayam", "Pollachi", "Coimbatore North", "Coimbatore South"] : [];
+  const allBlockNames = Array.from(new Set([...defaultBlocks, ...dbBlocks]));
+
+  const blockRisk = allBlockNames.map(bName => {
+    const dbCount = records.filter(r => r.block.toLowerCase().trim() === bName.toLowerCase().trim()).length;
+    const baseline = bName === "Annur" ? 55 : bName === "Mettupalayam" ? 40 : bName === "Pollachi" ? 30 : bName === "Coimbatore North" ? 22 : bName === "Coimbatore South" ? 15 : 0;
+    const totalCount = baseline + dbCount;
+    const risk = totalCount > 45 ? "HIGH" : totalCount > 25 ? "MEDIUM" : "LOW";
+    return { name: bName, count: totalCount, risk };
+  });
+
+  blockRisk.sort((a, b) => b.count - a.count);
+
   return (
-    <PortalLayout title="Dropout Heatmap" subtitle="DEO Officer · Coimbatore District" avatarLetter="D" avatarColor="#ec4899" themeClass="theme-deo" accentColor="#ec4899">
+    <PortalLayout title="Dropout Heatmap" subtitle={`DEO Officer · ${district} District`} avatarLetter="D" avatarColor="#ec4899" themeClass="theme-deo" accentColor="#ec4899">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Dropouts", value: records.length.toString(), icon: "📉", color: "text-red-400" },
-          { label: "Pending Intervention", value: records.filter(r => r.status === "Intervention Pending").length.toString(), icon: "⚠️", color: "text-amber-400" },
-          { label: "Re-enrolled", value: records.filter(r => r.status === "Re-enrolled").length.toString(), icon: "✅", color: "text-emerald-400" },
-          { label: "High Risk Blocks", value: "2", icon: "🔴", color: "text-red-400" },
+          { label: "Total Dropouts", value: loading ? "..." : records.length.toString(), icon: "📉", color: "text-red-400" },
+          { label: "Pending Intervention", value: loading ? "..." : records.filter(r => r.status === "Intervention Pending").length.toString(), icon: "⚠️", color: "text-amber-400" },
+          { label: "Re-enrolled", value: loading ? "..." : records.filter(r => r.status === "Re-enrolled").length.toString(), icon: "✅", color: "text-emerald-400" },
+          { label: "High Risk Blocks", value: loading ? "..." : blockRisk.filter(b => b.risk === "HIGH").length.toString(), icon: "🔴", color: "text-red-400" },
         ].map(k => (
           <div key={k.label} className="kpi-card">
             <div className="text-2xl mb-2">{k.icon}</div>
@@ -90,21 +148,38 @@ export default function DropoutHeatmapPage() {
             <h2 className="text-base font-semibold text-white">📋 Dropout Register</h2>
             <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold rounded-xl">+ Log Dropout</button>
           </div>
-          <table className="data-table">
-            <thead><tr><th>Student</th><th>School</th><th>Block</th><th>Class</th><th>Reason</th><th>Status</th></tr></thead>
-            <tbody>
-              {records.map(r => (
-                <tr key={r.id}>
-                  <td className="font-bold text-white text-xs">{r.studentName}</td>
-                  <td className="text-slate-400 text-xs">{r.school}</td>
-                  <td className="text-xs">{r.block}</td>
-                  <td className="text-xs">{r.class}</td>
-                  <td className="text-xs text-amber-400">{r.reason}</td>
-                  <td><span className={`badge ${r.status === "Re-enrolled" ? "badge-green" : r.status === "Dropped" ? "badge-red" : "badge-yellow"}`}>{r.status}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="data-table">
+              <thead><tr><th>Student</th><th>School</th><th>Block</th><th>Class</th><th>Reason</th><th>Status</th></tr></thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-8">
+                      <div className="w-6 h-6 border-2 border-pink-500/20 border-t-pink-500 rounded-full animate-spin mx-auto mb-2" />
+                      <span className="text-xs text-slate-500">Loading records...</span>
+                    </td>
+                  </tr>
+                ) : records.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-8 text-xs text-slate-500">
+                      No dropout records logged for this district.
+                    </td>
+                  </tr>
+                ) : (
+                  records.map(r => (
+                    <tr key={r.id}>
+                      <td className="font-bold text-white text-xs">{r.studentName}</td>
+                      <td className="text-slate-400 text-xs">{r.school}</td>
+                      <td className="text-xs">{r.block}</td>
+                      <td className="text-xs">{r.class || "8th"}</td>
+                      <td className="text-xs text-amber-400">{r.reason}</td>
+                      <td><span className={`badge ${r.status === "Re-enrolled" ? "badge-green" : r.status === "Dropped" ? "badge-red" : "badge-yellow"}`}>{r.status}</span></td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
