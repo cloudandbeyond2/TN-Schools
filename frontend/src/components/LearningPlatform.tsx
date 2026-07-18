@@ -295,11 +295,11 @@ export default function LearningPlatform({ level }: { level?: string }) {
             {language === 'en' ? <><span className="text-emerald-500">Daily</span> <br/>Discovery Hub</> : <><span className="text-emerald-500">தினசரி</span> <br/>கண்டுபிடிப்பு மையம்</>}
           </h2>
           
-          <p className="text-slate-500 dark:text-slate-400 text-base font-medium leading-relaxed mt-2">
+          {/* <p className="text-slate-500 dark:text-slate-400 text-base font-medium leading-relaxed mt-2">
             {language === 'en' 
               ? 'Scroll through our TikTok-style feed of mind-blowing concepts. Answer quizzes to earn XP!' 
               : 'எங்கள் டிக்-டாக் போன்ற சுவாரஸ்யமான கருத்துக்களைப் பாருங்கள். XP பெற வினாடி வினாக்களுக்கு பதிலளிக்கவும்!'}
-          </p>
+          </p> */}
           
           <div className="flex items-center gap-4 bg-white/60 dark:bg-slate-900/40 shadow-xl backdrop-blur-xl border border-white/40 dark:border-white/5 p-4 rounded-3xl text-slate-900 dark:text-white mt-4 w-max pointer-events-auto">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shrink-0 text-white shadow-lg shadow-emerald-500/30">
