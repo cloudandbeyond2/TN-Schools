@@ -81,6 +81,20 @@ const renderClubIcon = (iconStr: string, colorClass: string) => {
   return <i className={`fi fi-rr-users ${colorClass} text-3xl`} />;
 };
 
+const getClubEligibility = (clubName: string) => {
+  const name = clubName.toLowerCase();
+  if (name.includes("service scheme") || name.includes("nss") || name.includes("ribbon") || name.includes("rrc")) {
+    return { label: "Class 11 - 12", minClass: 11, maxClass: 12, levels: ["higher"] };
+  }
+  if (name.includes("cadet corps") || name.includes("ncc") || name.includes("safety patrol") || name.includes("rsp")) {
+    return { label: "Class 9 - 12", minClass: 9, maxClass: 12, levels: ["high", "higher"] };
+  }
+  if (name.includes("red cross") || name.includes("jrc") || name.includes("scouts") || name.includes("guides") || name.includes("green corps") || name.includes("eco club")) {
+    return { label: "Class 6 - 10", minClass: 6, maxClass: 10, levels: ["middle", "high"] };
+  }
+  return { label: "Class 6 - 12", minClass: 6, maxClass: 12, levels: ["middle", "high", "higher"] };
+};
+
 export default function ClubsDirectoryPage() {
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId || "";
@@ -90,6 +104,8 @@ export default function ClubsDirectoryPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+  const [selectedStandard, setSelectedStandard] = useState<string>("all");
+  const [studentProfile, setStudentProfile] = useState<any>(null);
 
   const fetchClubs = useCallback(async () => {
     if (!schoolId) return;
@@ -99,6 +115,26 @@ export default function ClubsDirectoryPage() {
       if (json.success) {
         const discoverClubs = json.data.discoverClubs || [];
         setClubs(discoverClubs);
+
+        // Fetch logged-in student's profile to determine default standard filter and class
+        if (session?.user) {
+          const studentRes = await fetch(`${API_BASE}/api/students?schoolId=${schoolId}`);
+          const studentJson = await studentRes.json();
+          if (studentJson.success) {
+            const myStudent = studentJson.data.find((s: any) => s.userId === (session.user as any).id);
+            if (myStudent) {
+              setStudentProfile(myStudent);
+              const studentClassNum = parseInt(myStudent.class || "0", 10);
+              if (studentClassNum >= 11) {
+                setSelectedStandard("higher");
+              } else if (studentClassNum >= 9) {
+                setSelectedStandard("high");
+              } else if (studentClassNum >= 6) {
+                setSelectedStandard("middle");
+              }
+            }
+          }
+        }
 
         // Fetch members list for counts in background
         discoverClubs.forEach(async (c: Club) => {
@@ -118,19 +154,48 @@ export default function ClubsDirectoryPage() {
     } finally {
       setLoading(false);
     }
-  }, [schoolId]);
+  }, [session, schoolId]);
 
   useEffect(() => {
     fetchClubs();
   }, [fetchClubs]);
 
+  const targetStandard = useMemo(() => {
+    if (!studentProfile) return selectedStandard;
+    const studentClassNum = parseInt(studentProfile.class || "0", 10);
+    if (studentClassNum >= 11) return "higher";
+    if (studentClassNum >= 9) return "high";
+    return "middle";
+  }, [studentProfile, selectedStandard]);
+
   const filteredClubs = useMemo(() => {
     return clubs.filter(club => {
+      const eligibility = getClubEligibility(club.name);
+      const matchesStandard = targetStandard === "all" || eligibility.levels.includes(targetStandard);
       const matchesSearch = club.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = activeCategory === "all" || club.category.toLowerCase() === activeCategory.toLowerCase();
-      return matchesSearch && matchesCategory;
+      return matchesStandard && matchesSearch && matchesCategory;
     });
-  }, [clubs, searchTerm, activeCategory]);
+  }, [clubs, targetStandard, searchTerm, activeCategory]);
+
+  const availableCategories = useMemo(() => {
+    const cats = new Set<string>();
+    cats.add("all");
+    clubs.forEach(club => {
+      const eligibility = getClubEligibility(club.name);
+      const matchesStandard = targetStandard === "all" || eligibility.levels.includes(targetStandard);
+      if (matchesStandard && club.category) {
+        cats.add(club.category.toLowerCase());
+      }
+    });
+    return Array.from(cats);
+  }, [clubs, targetStandard]);
+
+  useEffect(() => {
+    if (activeCategory !== "all" && !availableCategories.includes(activeCategory)) {
+      setActiveCategory("all");
+    }
+  }, [availableCategories, activeCategory]);
 
   return (
     <PortalLayout
@@ -148,6 +213,35 @@ export default function ClubsDirectoryPage() {
       </div>
 
       <div className="glass rounded-3xl p-4 sm:p-6 border border-slate-700/50 min-h-screen text-left">
+        {/* Standard Selector Tab - Only shown for Admins/Staff to browse dynamically */}
+        {!studentProfile && (
+          <div className="mb-6 bg-slate-900/30 p-4 rounded-2xl border border-slate-800/65 text-left">
+            <div className="text-[10px] font-black uppercase text-slate-450 mb-3 tracking-widest flex items-center gap-1.5">
+              <i className="fi fi-rr-settings text-purple-500" /> Dynamic Standard-wise Selection
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: "all", label: "All Classes (6-12)", icon: "🏫" },
+                { value: "middle", label: "Middle (Class 6-8)", icon: "🎒" },
+                { value: "high", label: "High School (Class 9-10)", icon: "🎯" },
+                { value: "higher", label: "Higher Sec (Class 11-12)", icon: "🚀" }
+              ].map((std) => (
+                <button 
+                  key={std.value}
+                  onClick={() => setSelectedStandard(std.value)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                    selectedStandard === std.value 
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-600/10' 
+                      : 'bg-slate-800 text-slate-450 hover:border-slate-400 hover:text-white border-slate-700'
+                  }`}
+                >
+                  <span>{std.icon}</span> {std.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Search and Filter */}
         <div className="flex flex-col lg:flex-row gap-4 mb-8 items-center justify-between">
           <div className="relative w-full lg:w-96">
@@ -164,7 +258,7 @@ export default function ClubsDirectoryPage() {
           </div>
 
           <div className="flex overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 gap-2 hide-scrollbar">
-            {['all', 'academics', 'arts', 'environment', 'literature', 'science', 'sports'].map((tab) => (
+            {availableCategories.map((tab) => (
               <button 
                 key={tab}
                 onClick={() => setActiveCategory(tab)}
@@ -190,15 +284,22 @@ export default function ClubsDirectoryPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredClubs.map((club) => {
               const theme = getCategoryThemeClass(club.category);
+              const eligibility = getClubEligibility(club.name);
+
               return (
                 <div key={club.id} className={`rounded-2xl p-6 border ${theme.bg} transition-all hover:-translate-y-2 cursor-pointer group flex flex-col h-full bg-slate-900/20`}>
                   <div className="flex justify-between items-start mb-6">
                     <div className="bg-slate-900/50 w-20 h-20 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 group-hover:rotate-6 transition-all">
                       {renderClubIcon(club.icon, theme.color)}
                     </div>
-                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md ${theme.tagBg} ${theme.color}`}>
-                      {club.category}
-                    </span>
+                    <div className="flex flex-col items-end gap-1.5">
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md ${theme.tagBg} ${theme.color}`}>
+                        {club.category}
+                      </span>
+                      <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-450 border border-slate-700">
+                        {eligibility.label}
+                      </span>
+                    </div>
                   </div>
                   
                   <div className="mt-auto">

@@ -219,6 +219,7 @@ export default function MiddleSchoolPortfolio() {
   const [topMarksProjects, setTopMarksProjects] = useState<any[]>([]);
   const [teacherRemark, setTeacherRemark] = useState<string>("Is a fantastic learner! Keep up the great work.");
   const [teacherName, setTeacherName] = useState<string>("Mrs. Anjali (Class Teacher)");
+  const [joinedClubs, setJoinedClubs] = useState<any[]>([]);
 
   // School press state
   const [pressPublications, setPressPublications] = useState<any[]>([]);
@@ -303,6 +304,32 @@ export default function MiddleSchoolPortfolio() {
                 }
               }
             }).catch(() => {}).finally(() => setDetailedStudentLoading(false));
+
+          // Fetch joined clubs
+          fetch(`${API_BASE}/api/activities/student/${resolved.id}`)
+            .then(res => res.json())
+            .then(clubsJson => {
+              if (clubsJson.success && clubsJson.data?.myClubs) {
+                const eligible = clubsJson.data.myClubs.filter((c: any) => {
+                  const studentClassNum = parseInt(resolved.class || "0", 10);
+                  const userLevel = studentClassNum >= 11 ? "higher" : studentClassNum >= 9 ? "high" : "middle";
+                  
+                  const name = c.name.toLowerCase();
+                  let levels = ["middle", "high", "higher"];
+                  if (name.includes("service scheme") || name.includes("nss") || name.includes("ribbon") || name.includes("rrc")) {
+                    levels = ["higher"];
+                  } else if (name.includes("cadet corps") || name.includes("ncc") || name.includes("safety patrol") || name.includes("rsp")) {
+                    levels = ["high", "higher"];
+                  } else if (name.includes("red cross") || name.includes("jrc") || name.includes("scouts") || name.includes("guides") || name.includes("green corps") || name.includes("eco club")) {
+                    levels = ["middle", "high"];
+                  }
+                  
+                  return levels.includes(userLevel);
+                });
+                setJoinedClubs(eligible);
+              }
+            })
+            .catch(err => console.error(err));
 
           // Fetch dynamic portfolio data
           fetchPortfolioDetails(resolved.id);
@@ -672,6 +699,38 @@ export default function MiddleSchoolPortfolio() {
              </p>
              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-3 font-black tracking-wide relative z-10 uppercase">— {teacherName}</p>
           </div>
+        </div>
+      </div>
+
+      {/* Club Membership Section */}
+      <div className="grid grid-cols-1 gap-6 mb-6">
+        <div className="glass rounded-3xl p-6 fade-in border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left shadow-[0_0_20px_rgba(0,0,0,0.02)]">
+          <h2 className="text-xl font-black text-black dark:text-white mb-6 flex items-center gap-3">
+            <span className="text-2xl">🤝</span> Active Club Memberships
+          </h2>
+          {joinedClubs.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {joinedClubs.map((club, idx) => (
+                <div key={idx} className="bg-slate-50 dark:bg-slate-900/60 border-2 border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 hover:border-emerald-500/50 transition-all hover:-translate-y-1 hover:shadow-lg flex items-start gap-4">
+                  <div className="text-4xl bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl flex items-center justify-center w-16 h-16 shrink-0">
+                    {club.icon === "🌱" || club.icon.includes("leaf") ? "🌱" :
+                     club.icon === "🎭" || club.icon.includes("palette") ? "🎭" :
+                     club.icon === "🔬" || club.icon.includes("flask") ? "🔬" :
+                     club.icon === "🏆" || club.icon.includes("trophy") ? "🏆" : "👥"}
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">{club.category}</span>
+                    <h3 className="font-bold text-black dark:text-white text-base mt-1.5">{club.name}</h3>
+                    <p className="text-xs text-slate-550 dark:text-slate-400 mt-1">Role: <span className="text-emerald-600 dark:text-emerald-400 font-bold">{club.role}</span></p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
+              <p className="text-sm text-slate-500">Not registered in any clubs yet.</p>
+            </div>
+          )}
         </div>
       </div>
 
