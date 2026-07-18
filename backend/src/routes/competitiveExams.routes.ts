@@ -210,6 +210,75 @@ router.put('/:id', async (req: Request, res: Response) => {
       status, eligibility, website, studentsEnrolled, studentsCleared, syllabus
     } = req.body;
 
+    // Handle NEET Prep alignment if this is a NEET exam
+    const isNeet = existing.examName.toLowerCase().includes('neet') || (examName && examName.toLowerCase().includes('neet'));
+    
+    if (isNeet && syllabus !== undefined) {
+      try {
+        const oldSyllabus = (existing.syllabus as any) || [];
+        const newSyllabus = (syllabus as any) || [];
+
+        // Flatten chapters for easier lookup: map id -> { subject, name }
+        const oldChaptersMap = new Map<string, { subject: string; name: string }>();
+        if (Array.isArray(oldSyllabus)) {
+          for (const subject of oldSyllabus) {
+            if (subject && typeof subject === 'object' && Array.isArray(subject.chapters)) {
+              for (const ch of subject.chapters) {
+                if (ch && typeof ch === 'object' && ch.id && ch.name) {
+                  oldChaptersMap.set(String(ch.id), { subject: String(subject.name), name: String(ch.name) });
+                }
+              }
+            }
+          }
+        }
+
+        const newChaptersMap = new Map<string, { subject: string; name: string }>();
+        if (Array.isArray(newSyllabus)) {
+          for (const subject of newSyllabus) {
+            if (subject && typeof subject === 'object' && Array.isArray(subject.chapters)) {
+              for (const ch of subject.chapters) {
+                if (ch && typeof ch === 'object' && ch.id && ch.name) {
+                  newChaptersMap.set(String(ch.id), { subject: String(subject.name), name: String(ch.name) });
+                }
+              }
+            }
+          }
+        }
+
+        // 1. Identify deleted chapters: present in old, missing in new
+        for (const [id, oldCh] of oldChaptersMap.entries()) {
+          if (!newChaptersMap.has(id)) {
+            console.log(`[NEET Syllabus Sync] Deleting chapter from NEETChapter table: ${oldCh.subject} - ${oldCh.name}`);
+            await prisma.nEETChapter.deleteMany({
+              where: {
+                subject: oldCh.subject,
+                chapter: oldCh.name
+              }
+            });
+          }
+        }
+
+        // 2. Identify renamed chapters: present in both, but name is different
+        for (const [id, newCh] of newChaptersMap.entries()) {
+          const oldCh = oldChaptersMap.get(id);
+          if (oldCh && oldCh.name !== newCh.name) {
+            console.log(`[NEET Syllabus Sync] Renaming chapter in NEETChapter table: ${oldCh.name} -> ${newCh.name}`);
+            await prisma.nEETChapter.updateMany({
+              where: {
+                subject: oldCh.subject,
+                chapter: oldCh.name
+              },
+              data: {
+                chapter: newCh.name
+              }
+            });
+          }
+        }
+      } catch (syncErr: any) {
+        console.error('[NEET Syllabus Sync Error]', syncErr.message);
+      }
+    }
+
     const updated = await prisma.competitiveExam.update({
       where: { id: req.params.id },
       data: {
