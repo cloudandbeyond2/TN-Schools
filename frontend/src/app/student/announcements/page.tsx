@@ -176,16 +176,16 @@ export default function AnnouncementsPage() {
     >
       <div className="w-full">
         {/* Announcement List */}
-        <div className="glass rounded-3xl p-6 md:p-8 border border-slate-200 dark:border-slate-700/50 min-h-[600px] bg-white dark:bg-transparent shadow-sm">
+        <div className="glass rounded-3xl p-4 md:p-8 border border-slate-200 dark:border-slate-700/50 min-h-[600px] bg-white dark:bg-transparent shadow-sm">
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-5 border-b border-slate-200 dark:border-slate-800">
-            <h2 className="text-xl font-bold text-black dark:text-white flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 md:mb-8 pb-4 md:pb-5 border-b border-slate-200 dark:border-slate-800">
+            <h2 className="text-lg md:text-xl font-bold text-black dark:text-white flex items-center gap-2">
               <span>📢</span>
               Latest Notifications
             </h2>
             <button
               onClick={markAllRead}
-              className="text-xs font-bold text-black dark:text-white hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1 bg-slate-100 dark:bg-slate-800/50 px-4 py-2 rounded-xl"
+              className="w-full sm:w-auto justify-center text-xs font-bold text-black dark:text-white hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1 bg-slate-100 dark:bg-slate-800/50 px-4 py-2 rounded-xl"
             >
               <span>✓</span> Mark All as Read
             </button>
@@ -205,12 +205,12 @@ export default function AnnouncementsPage() {
                     <div
                       key={ann.id}
                       onClick={() => handleCardClick(ann)}
-                      className={`relative p-6 rounded-2xl border transition-all hover:-translate-y-1 cursor-pointer bg-slate-50 dark:bg-slate-900/60 ${
+                      className={`relative p-4 md:p-6 rounded-2xl border transition-all hover:-translate-y-1 cursor-pointer bg-slate-50 dark:bg-slate-900/60 ${
                         isUnread ? style.bg : "border-slate-200 dark:border-slate-700/50 hover:border-slate-400"
                       }`}
                     >
                       {ann.pinned && (
-                        <span className="absolute top-3 right-3 text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-full font-bold">
+                        <span className="absolute top-3 right-3 text-[9px] md:text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-full font-bold">
                           📌 Pinned
                         </span>
                       )}
@@ -218,33 +218,33 @@ export default function AnnouncementsPage() {
                         <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
                       )}
 
-                      <div className="flex items-start gap-4">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 bg-slate-100 dark:bg-slate-800 border ${
+                      <div className="flex flex-col sm:flex-row items-start gap-4">
+                        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center text-xl md:text-2xl shrink-0 bg-slate-100 dark:bg-slate-800 border ${
                           isUnread ? `${style.color} border-current` : "text-black dark:text-white border-slate-200 dark:border-slate-700"
                         }`}>
                           {style.icon}
                         </div>
 
-                        <div className="flex-1">
+                        <div className="flex-1 w-full">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className={`text-[10px] uppercase font-black tracking-widest px-2 py-0.5 rounded border ${
+                              <span className={`text-[9px] md:text-[10px] uppercase font-black tracking-widest px-2 py-0.5 rounded border ${
                                 isUnread ? `${style.color} border-current` : "text-black dark:text-white border-slate-300 dark:border-slate-600"
                               }`}>
                                 {style.type}
                               </span>
-                              <h3 className="text-lg font-bold text-black dark:text-white">{ann.title}</h3>
+                              <h3 className="text-base md:text-lg font-bold text-black dark:text-white">{ann.title}</h3>
                             </div>
                             <span className="text-[10px] font-bold text-black dark:text-white uppercase tracking-wider whitespace-nowrap">
                               {ann.date || new Date(ann.createdAt).toLocaleDateString()}
                             </span>
                           </div>
 
-                          <p className="text-sm text-black dark:text-white leading-relaxed mb-3">{ann.body}</p>
+                          <p className="text-xs md:text-sm text-black dark:text-white leading-relaxed mb-3">{ann.body}</p>
 
-                          <div className="flex items-center gap-2 text-xs font-bold text-black dark:text-white">
-                            <span>✍️ Posted by:</span>
-                            <span>{ann.sender}</span>
+                          <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs font-bold text-black dark:text-white">
+                            <span className="whitespace-nowrap">✍️ Posted by:</span>
+                            <span className="whitespace-nowrap text-slate-600 dark:text-slate-400">{ann.sender}</span>
                           </div>
                         </div>
                       </div>
