@@ -106,6 +106,7 @@ export default function ClubsDirectoryPage() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedStandard, setSelectedStandard] = useState<string>("all");
   const [studentProfile, setStudentProfile] = useState<any>(null);
+  const [joinedClubs, setJoinedClubs] = useState<any[]>([]);
 
   const fetchClubs = useCallback(async () => {
     if (!schoolId) return;
@@ -125,12 +126,17 @@ export default function ClubsDirectoryPage() {
             if (myStudent) {
               setStudentProfile(myStudent);
               const studentClassNum = parseInt(myStudent.class || "0", 10);
-              if (studentClassNum >= 11) {
-                setSelectedStandard("higher");
-              } else if (studentClassNum >= 9) {
-                setSelectedStandard("high");
-              } else if (studentClassNum >= 6) {
-                setSelectedStandard("middle");
+              const defaultStd = studentClassNum >= 11 ? "higher" : studentClassNum >= 9 ? "high" : "middle";
+              setSelectedStandard(defaultStd);
+
+              try {
+                const myClubsRes = await fetch(`${API_BASE}/api/activities/student/${myStudent.id}`);
+                const myClubsJson = await myClubsRes.json();
+                if (myClubsJson.success && myClubsJson.data?.myClubs) {
+                  setJoinedClubs(myClubsJson.data.myClubs);
+                }
+              } catch (err) {
+                console.error("Failed to fetch student's clubs", err);
               }
             }
           }
@@ -160,13 +166,7 @@ export default function ClubsDirectoryPage() {
     fetchClubs();
   }, [fetchClubs]);
 
-  const targetStandard = useMemo(() => {
-    if (!studentProfile) return selectedStandard;
-    const studentClassNum = parseInt(studentProfile.class || "0", 10);
-    if (studentClassNum >= 11) return "higher";
-    if (studentClassNum >= 9) return "high";
-    return "middle";
-  }, [studentProfile, selectedStandard]);
+  const targetStandard = selectedStandard;
 
   const filteredClubs = useMemo(() => {
     return clubs.filter(club => {
@@ -213,34 +213,32 @@ export default function ClubsDirectoryPage() {
       </div>
 
       <div className="glass rounded-3xl p-4 sm:p-6 border border-slate-700/50 min-h-screen text-left">
-        {/* Standard Selector Tab - Only shown for Admins/Staff to browse dynamically */}
-        {!studentProfile && (
-          <div className="mb-6 bg-slate-900/30 p-4 rounded-2xl border border-slate-800/65 text-left">
-            <div className="text-[10px] font-black uppercase text-slate-450 mb-3 tracking-widest flex items-center gap-1.5">
-              <i className="fi fi-rr-settings text-purple-500" /> Dynamic Standard-wise Selection
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { value: "all", label: "All Classes (6-12)", icon: "🏫" },
-                { value: "middle", label: "Middle (Class 6-8)", icon: "🎒" },
-                { value: "high", label: "High School (Class 9-10)", icon: "🎯" },
-                { value: "higher", label: "Higher Sec (Class 11-12)", icon: "🚀" }
-              ].map((std) => (
-                <button 
-                  key={std.value}
-                  onClick={() => setSelectedStandard(std.value)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
-                    selectedStandard === std.value 
-                      ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-600/10' 
-                      : 'bg-slate-800 text-slate-450 hover:border-slate-400 hover:text-white border-slate-700'
-                  }`}
-                >
-                  <span>{std.icon}</span> {std.label}
-                </button>
-              ))}
-            </div>
+        {/* Standard Selector Tab */}
+        <div className="mb-6 bg-slate-900/30 p-4 rounded-2xl border border-slate-800/65 text-left animate-in fade-in duration-300">
+          <div className="text-[10px] font-black uppercase text-slate-450 mb-3 tracking-widest flex items-center gap-1.5">
+            <i className="fi fi-rr-settings text-purple-500" /> Standard-wise Selection
           </div>
-        )}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { value: "all", label: "All Classes (6-12)", icon: "🏫" },
+              { value: "middle", label: "Middle (Class 6-8)", icon: "🎒" },
+              { value: "high", label: "High School (Class 9-10)", icon: "🎯" },
+              { value: "higher", label: "Higher Sec (Class 11-12)", icon: "🚀" }
+            ].map((std) => (
+              <button 
+                key={std.value}
+                onClick={() => setSelectedStandard(std.value)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                  selectedStandard === std.value 
+                    ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-600/10' 
+                    : 'bg-slate-800 text-slate-450 hover:border-slate-400 hover:text-white border-slate-700'
+                }`}
+              >
+                <span>{std.icon}</span> {std.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Search and Filter */}
         <div className="flex flex-col lg:flex-row gap-4 mb-8 items-center justify-between">
@@ -286,6 +284,11 @@ export default function ClubsDirectoryPage() {
               const theme = getCategoryThemeClass(club.category);
               const eligibility = getClubEligibility(club.name);
 
+              const isMember = joinedClubs.some(c => c.name === club.name);
+              const studentClassNum = studentProfile ? parseInt(studentProfile.class || "0", 10) : 0;
+              const studentLevel = studentClassNum >= 11 ? "higher" : studentClassNum >= 9 ? "high" : "middle";
+              const isEligible = !studentProfile || eligibility.levels.includes(studentLevel);
+
               return (
                 <div key={club.id} className={`rounded-2xl p-6 border ${theme.bg} transition-all hover:-translate-y-2 cursor-pointer group flex flex-col h-full bg-slate-900/20`}>
                   <div className="flex justify-between items-start mb-6">
@@ -314,12 +317,28 @@ export default function ClubsDirectoryPage() {
                         {memberCounts[club.id] ?? 0} Members
                       </p>
                     </div>
-                    <Link 
-                      href={`/student/activities`}
-                      className={`block text-center w-full py-3 rounded-xl text-xs font-bold bg-slate-950 hover:bg-slate-800 border border-slate-700/50 transition-colors ${theme.color}`}
-                    >
-                      View Club Details →
-                    </Link>
+                    {isMember ? (
+                      <button 
+                        disabled
+                        className="block text-center w-full py-3 rounded-xl text-xs font-bold border bg-emerald-50/10 text-emerald-400 border-emerald-500/20 cursor-default"
+                      >
+                        ✓ Joined Member
+                      </button>
+                    ) : !isEligible && studentProfile ? (
+                      <button 
+                        disabled
+                        className="block text-center w-full py-3 rounded-xl text-xs font-bold bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed"
+                      >
+                        Restricted Standard
+                      </button>
+                    ) : (
+                      <Link 
+                        href="/student/activities"
+                        className={`block text-center w-full py-3 rounded-xl text-xs font-bold bg-slate-950 hover:bg-slate-800 border border-slate-700/50 transition-colors ${theme.color}`}
+                      >
+                        Learn More & Join
+                      </Link>
+                    )}
                   </div>
                 </div>
               );

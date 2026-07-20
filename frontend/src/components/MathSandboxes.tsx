@@ -432,8 +432,244 @@ const FractionSandbox = () => {
 
 
 // ==========================================
+// NEW GEOMETRY SANDBOXES
+// ==========================================
+
+const CircleSandbox = ({ mode }: { mode: "area" | "circumference" }) => {
+  const [r, setR] = useState(5);
+  return (
+    <div className="flex flex-col items-center w-full animate-in fade-in duration-500">
+       <svg width="100%" height="160" viewBox="0 0 160 160" className="overflow-visible mb-2">
+         <circle cx="80" cy="80" r={r*10} fill={mode === "area" ? "#f43f5e40" : "transparent"} stroke="#e11d48" strokeWidth="3" strokeDasharray={mode === "circumference" ? "6 4" : ""} />
+         <line x1="80" y1="80" x2={80 + r*10} y2="80" stroke="#881337" strokeWidth="2" />
+         <text x={80 + (r*10)/2} y="75" className="text-[10px] font-black fill-slate-500" textAnchor="middle">r = {r}</text>
+       </svg>
+       
+       <div className="flex w-full gap-4 px-4 bg-slate-50 p-4 rounded-2xl border-2 border-slate-100 mb-4">
+         <div className="flex-1 flex flex-col">
+           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Radius: {r}</label>
+           <input type="range" min="2" max="8" value={r} onChange={(e) => setR(Number(e.target.value))} className="w-full accent-rose-500" />
+         </div>
+       </div>
+
+       <div className="w-full bg-slate-800 text-white p-4 rounded-2xl text-center shadow-inner flex flex-col items-center justify-center border-4 border-slate-700">
+         <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
+           {mode === "area" ? "Area (π × r²)" : "Circumference (2 × π × r)"}
+         </div>
+         <div className="text-3xl font-black font-mono text-rose-400 drop-shadow-md">
+           {mode === "area" ? (Math.PI * r * r).toFixed(2) : (2 * Math.PI * r).toFixed(2)} <span className="text-lg opacity-50">units{mode === "area" ? "²" : ""}</span>
+         </div>
+       </div>
+    </div>
+  );
+};
+
+const ParallelogramSandbox = () => {
+  const [b, setB] = useState(8);
+  const [h, setH] = useState(5);
+  const skew = 20; 
+  return (
+    <div className="flex flex-col items-center w-full animate-in fade-in duration-500">
+       <svg width="100%" height="160" viewBox="0 0 160 160" className="overflow-visible mb-2">
+         <polygon points={`${80 - (b*10)/2 + skew},${80 - (h*10)/2} ${80 + (b*10)/2 + skew},${80 - (h*10)/2} ${80 + (b*10)/2 - skew},${80 + (h*10)/2} ${80 - (b*10)/2 - skew},${80 + (h*10)/2}`} fill="#a78bfa40" stroke="#7c3aed" strokeWidth="3" />
+         <line x1={80 - (b*10)/2 - skew + 10} y1={80 - (h*10)/2} x2={80 - (b*10)/2 - skew + 10} y2={80 + (h*10)/2} stroke="#7c3aed" strokeWidth="2" strokeDasharray="4" />
+         <text x="80" y={80 + (h*10)/2 + 15} className="text-[10px] font-black fill-slate-500" textAnchor="middle">Base = {b}</text>
+         <text x={80 - (b*10)/2 - skew} y="80" className="text-[10px] font-black fill-slate-500" textAnchor="end">Height = {h}</text>
+       </svg>
+       
+       <div className="flex w-full gap-4 px-4 bg-slate-50 p-4 rounded-2xl border-2 border-slate-100 mb-4">
+         <div className="flex-1 flex flex-col">
+           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Base: {b}</label>
+           <input type="range" min="4" max="12" value={b} onChange={(e) => setB(Number(e.target.value))} className="w-full accent-purple-500" />
+         </div>
+         <div className="flex-1 flex flex-col">
+           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Height: {h}</label>
+           <input type="range" min="3" max="8" value={h} onChange={(e) => setH(Number(e.target.value))} className="w-full accent-purple-500" />
+         </div>
+       </div>
+
+       <div className="w-full bg-slate-800 text-white p-4 rounded-2xl text-center shadow-inner flex flex-col items-center justify-center border-4 border-slate-700">
+         <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Area (b × h)</div>
+         <div className="text-3xl font-black font-mono text-purple-400 drop-shadow-md">
+           {b * h} <span className="text-lg opacity-50">units²</span>
+         </div>
+       </div>
+    </div>
+  );
+};
+
+const RhombusSandbox = () => {
+  const [d1, setD1] = useState(10);
+  const [d2, setD2] = useState(6);
+  return (
+    <div className="flex flex-col items-center w-full animate-in fade-in duration-500">
+       <svg width="100%" height="160" viewBox="0 0 160 160" className="overflow-visible mb-2">
+         <polygon points={`80,${80 - (d2*10)/2} ${80 + (d1*10)/2},80 80,${80 + (d2*10)/2} ${80 - (d1*10)/2},80`} fill="#c084fc40" stroke="#9333ea" strokeWidth="3" />
+         <line x1={80 - (d1*10)/2} y1="80" x2={80 + (d1*10)/2} y2="80" stroke="#9333ea" strokeWidth="2" strokeDasharray="4" />
+         <line x1="80" y1={80 - (d2*10)/2} x2="80" y2={80 + (d2*10)/2} stroke="#9333ea" strokeWidth="2" strokeDasharray="4" />
+         <text x="80" y={80 - (d2*10)/2 - 5} className="text-[10px] font-black fill-slate-500" textAnchor="middle">d₂ = {d2}</text>
+         <text x={80 + (d1*10)/2 + 5} y="80" className="text-[10px] font-black fill-slate-500" textAnchor="start">d₁ = {d1}</text>
+       </svg>
+       
+       <div className="flex w-full gap-4 px-4 bg-slate-50 p-4 rounded-2xl border-2 border-slate-100 mb-4">
+         <div className="flex-1 flex flex-col">
+           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Diag 1: {d1}</label>
+           <input type="range" min="4" max="14" value={d1} onChange={(e) => setD1(Number(e.target.value))} className="w-full accent-fuchsia-500" />
+         </div>
+         <div className="flex-1 flex flex-col">
+           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Diag 2: {d2}</label>
+           <input type="range" min="4" max="14" value={d2} onChange={(e) => setD2(Number(e.target.value))} className="w-full accent-fuchsia-500" />
+         </div>
+       </div>
+
+       <div className="w-full bg-slate-800 text-white p-4 rounded-2xl text-center shadow-inner flex flex-col items-center justify-center border-4 border-slate-700">
+         <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Area (½ × d₁ × d₂)</div>
+         <div className="text-3xl font-black font-mono text-fuchsia-400 drop-shadow-md">
+           {0.5 * d1 * d2} <span className="text-lg opacity-50">units²</span>
+         </div>
+       </div>
+    </div>
+  );
+};
+
+const CubeSandbox = () => {
+  const [a, setA] = useState(4);
+  return (
+    <div className="flex flex-col items-center w-full animate-in fade-in duration-500">
+       <div className="h-40 flex items-center justify-center perspective-1000">
+         <div className="relative preserve-3d animate-[spin_10s_linear_infinite]" style={{ width: a*10, height: a*10 }}>
+           <div className="absolute inset-0 bg-cyan-400/40 border-2 border-cyan-500" style={{ transform: `translateZ(${(a*10)/2}px)` }}></div>
+           <div className="absolute inset-0 bg-cyan-400/40 border-2 border-cyan-500" style={{ transform: `rotateY(180deg) translateZ(${(a*10)/2}px)` }}></div>
+           <div className="absolute inset-0 bg-cyan-400/40 border-2 border-cyan-500" style={{ transform: `rotateY(90deg) translateZ(${(a*10)/2}px)` }}></div>
+           <div className="absolute inset-0 bg-cyan-400/40 border-2 border-cyan-500" style={{ transform: `rotateY(-90deg) translateZ(${(a*10)/2}px)` }}></div>
+           <div className="absolute inset-0 bg-cyan-400/40 border-2 border-cyan-500" style={{ transform: `rotateX(90deg) translateZ(${(a*10)/2}px)` }}></div>
+           <div className="absolute inset-0 bg-cyan-400/40 border-2 border-cyan-500" style={{ transform: `rotateX(-90deg) translateZ(${(a*10)/2}px)` }}></div>
+         </div>
+       </div>
+       
+       <div className="flex w-full gap-4 px-4 bg-slate-50 p-4 rounded-2xl border-2 border-slate-100 mb-4">
+         <div className="flex-1 flex flex-col">
+           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Side Length (a): {a}</label>
+           <input type="range" min="2" max="10" value={a} onChange={(e) => setA(Number(e.target.value))} className="w-full accent-cyan-500" />
+         </div>
+       </div>
+
+       <div className="w-full bg-slate-800 text-white p-4 rounded-2xl text-center shadow-inner flex flex-col items-center justify-center border-4 border-slate-700">
+         <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Volume (a³)</div>
+         <div className="text-3xl font-black font-mono text-cyan-400 drop-shadow-md">
+           {a * a * a} <span className="text-lg opacity-50">units³</span>
+         </div>
+       </div>
+    </div>
+  );
+};
+
+const SimpleInterestSandbox = () => {
+  const [p, setP] = useState(1000);
+  const [n, setN] = useState(2);
+  const [r, setR] = useState(5);
+  return (
+    <div className="flex flex-col items-center w-full animate-in fade-in duration-500">
+       <div className="flex w-full gap-4 px-4 bg-slate-50 p-4 rounded-2xl border-2 border-slate-100 mb-4 mt-6">
+         <div className="flex-1 flex flex-col">
+           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Principal (P): ₹{p}</label>
+           <input type="range" min="100" max="5000" step="100" value={p} onChange={(e) => setP(Number(e.target.value))} className="w-full accent-amber-500" />
+         </div>
+         <div className="flex-1 flex flex-col">
+           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Years (N): {n}</label>
+           <input type="range" min="1" max="10" value={n} onChange={(e) => setN(Number(e.target.value))} className="w-full accent-amber-500" />
+         </div>
+         <div className="flex-1 flex flex-col">
+           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Rate (R): {r}%</label>
+           <input type="range" min="1" max="15" value={r} onChange={(e) => setR(Number(e.target.value))} className="w-full accent-amber-500" />
+         </div>
+       </div>
+
+       <div className="w-full bg-slate-800 text-white p-4 rounded-2xl text-center shadow-inner flex flex-col items-center justify-center border-4 border-slate-700">
+         <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Simple Interest (P × N × R) / 100</div>
+         <div className="text-3xl font-black font-mono text-amber-400 drop-shadow-md">
+           ₹{((p * n * r) / 100).toFixed(2)}
+         </div>
+       </div>
+    </div>
+  );
+};
+
+const AlgebraSandbox = ({ mode }: { mode: "sum" | "diff" }) => {
+  const [a, setA] = useState(3);
+  const [b, setB] = useState(2);
+  
+  if (mode === "sum") {
+    return (
+      <div className="flex flex-col items-center w-full animate-in fade-in duration-500">
+         <div className="flex gap-4 mb-4 mt-6">
+           <div className="flex items-center gap-2"><div className="w-4 h-4 bg-orange-400"></div> a²</div>
+           <div className="flex items-center gap-2"><div className="w-4 h-4 bg-orange-300"></div> ab</div>
+           <div className="flex items-center gap-2"><div className="w-4 h-4 bg-orange-200"></div> b²</div>
+         </div>
+         <svg width="160" height="160" viewBox="0 0 160 160" className="overflow-visible mb-4 border-2 border-slate-200">
+           {/* a^2 */}
+           <rect x="0" y="0" width={a*20} height={a*20} fill="#fb923c" stroke="#ea580c" strokeWidth="2" />
+           {/* ab */}
+           <rect x={a*20} y="0" width={b*20} height={a*20} fill="#fdba74" stroke="#ea580c" strokeWidth="2" />
+           {/* ab */}
+           <rect x="0" y={a*20} width={a*20} height={b*20} fill="#fdba74" stroke="#ea580c" strokeWidth="2" />
+           {/* b^2 */}
+           <rect x={a*20} y={a*20} width={b*20} height={b*20} fill="#fed7aa" stroke="#ea580c" strokeWidth="2" />
+           <text x={(a*20)/2} y={(a*20)/2} className="font-bold fill-white" textAnchor="middle" alignmentBaseline="middle">a²</text>
+           <text x={a*20 + (b*20)/2} y={(a*20)/2} className="font-bold fill-orange-800" textAnchor="middle" alignmentBaseline="middle">ab</text>
+           <text x={(a*20)/2} y={a*20 + (b*20)/2} className="font-bold fill-orange-800" textAnchor="middle" alignmentBaseline="middle">ab</text>
+           <text x={a*20 + (b*20)/2} y={a*20 + (b*20)/2} className="font-bold fill-orange-800" textAnchor="middle" alignmentBaseline="middle">b²</text>
+         </svg>
+         
+         <div className="flex w-full gap-4 px-4 bg-slate-50 p-4 rounded-2xl border-2 border-slate-100 mb-4">
+           <div className="flex-1 flex flex-col">
+             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">a: {a}</label>
+             <input type="range" min="1" max="6" value={a} onChange={(e) => setA(Number(e.target.value))} className="w-full accent-orange-500" />
+           </div>
+           <div className="flex-1 flex flex-col">
+             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">b: {b}</label>
+             <input type="range" min="1" max="6" value={b} onChange={(e) => setB(Number(e.target.value))} className="w-full accent-orange-500" />
+           </div>
+         </div>
+
+         <div className="w-full bg-slate-800 text-white p-4 rounded-2xl text-center shadow-inner flex flex-col items-center justify-center border-4 border-slate-700">
+           <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">(a + b)² = a² + 2ab + b²</div>
+           <div className="text-3xl font-black font-mono text-orange-400 drop-shadow-md">
+             {Math.pow(a+b, 2)} = {a*a} + {2*a*b} + {b*b}
+           </div>
+         </div>
+      </div>
+    );
+  }
+  
+  return (
+      <div className="flex flex-col items-center w-full animate-in fade-in duration-500">
+         <div className="flex w-full gap-4 px-4 bg-slate-50 p-4 rounded-2xl border-2 border-slate-100 mb-4 mt-6">
+           <div className="flex-1 flex flex-col">
+             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">a: {a}</label>
+             <input type="range" min="2" max="8" value={a} onChange={(e) => setA(Number(e.target.value))} className="w-full accent-red-500" />
+           </div>
+           <div className="flex-1 flex flex-col">
+             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">b: {b}</label>
+             <input type="range" min="1" max={a-1} value={b} onChange={(e) => setB(Number(e.target.value))} className="w-full accent-red-500" />
+           </div>
+         </div>
+
+         <div className="w-full bg-slate-800 text-white p-4 rounded-2xl text-center shadow-inner flex flex-col items-center justify-center border-4 border-slate-700">
+           <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">(a - b)² = a² - 2ab + b²</div>
+           <div className="text-3xl font-black font-mono text-red-400 drop-shadow-md">
+             {Math.pow(a-b, 2)} = {a*a} - {2*a*b} + {b*b}
+           </div>
+         </div>
+      </div>
+  );
+};
+
+// ==========================================
 // EXPORT LOADER
 // ==========================================
+
 
 export const FormulaSandboxLoader = ({ formula }: { formula: any }) => {
   if (!formula) return null;
@@ -472,6 +708,16 @@ export const FormulaSandboxLoader = ({ formula }: { formula: any }) => {
   
   // Fractions
   if (title.includes("fraction") || fStr.includes("numerator/denominator")) return <FractionSandbox />;
+
+  // New Sandboxes added
+  if (title.includes("parallelogram") || fStr.includes("b×h")) return <ParallelogramSandbox />;
+  if (title.includes("rhombus") || fStr.includes("d₁×d₂")) return <RhombusSandbox />;
+  if (title.includes("circle") && title.includes("area")) return <CircleSandbox mode="area" />;
+  if (title.includes("circle") && title.includes("circumference")) return <CircleSandbox mode="circumference" />;
+  if (title.includes("cube") || fStr.includes("a³")) return <CubeSandbox />;
+  if (title.includes("simple interest") || fStr.includes("p×n×r")) return <SimpleInterestSandbox />;
+  if (title.includes("identity 1") || fStr.includes("(a+b)²")) return <AlgebraSandbox mode="sum" />;
+  if (title.includes("identity 2") || fStr.includes("(a-b)²")) return <AlgebraSandbox mode="diff" />;
 
   // Default Fallback
   return (

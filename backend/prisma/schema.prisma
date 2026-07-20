@@ -1343,16 +1343,26 @@ model ScholarshipScheme {
 }
 
 model SocialActivity {
-  id           String   @id @default(uuid())
-  studentId    String
-  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  activityType String
-  description  String?
-  date         DateTime @default(now())
-  points       Int      @default(0)
-  status       String   @default("Pending Review")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime
+  id                 String   @id @default(uuid())
+  studentId          String
+  student            Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  activityType       String   // Category e.g., Environmental, Community Service, Swachh Bharat
+  activityName       String   @default("Community Activity")
+  description        String?
+  date               DateTime @default(now())
+  hours              Int      @default(1)
+  points             Int      @default(0)
+  status             String   @default("Pending") // Pending, Approved, Rejected
+  location           String?
+  photoUrl           String?
+  certificateUrl     String?
+  aiReflection       String?  // JSON string containing AI reflection analysis (empathy, teamwork, etc.)
+  rating             Int?     // 1-5 stars given by teacher
+  teacherRemarks     String?
+  teacherInChargeId  String?  // Optional Teacher in-charge
+  verifiedBy         String?  // ID of verifying teacher
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @default(now()) @updatedAt
 
   @@index([studentId])
 }

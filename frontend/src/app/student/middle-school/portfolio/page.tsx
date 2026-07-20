@@ -220,6 +220,7 @@ export default function MiddleSchoolPortfolio() {
   const [teacherRemark, setTeacherRemark] = useState<string>("Is a fantastic learner! Keep up the great work.");
   const [teacherName, setTeacherName] = useState<string>("Mrs. Anjali (Class Teacher)");
   const [joinedClubs, setJoinedClubs] = useState<any[]>([]);
+  const [socialActivities, setSocialActivities] = useState<any[]>([]);
 
   // School press state
   const [pressPublications, setPressPublications] = useState<any[]>([]);
@@ -330,6 +331,18 @@ export default function MiddleSchoolPortfolio() {
               }
             })
             .catch(err => console.error(err));
+
+          // Fetch social activities
+          if (resolved.userId) {
+            fetch(`${API_BASE}/api/social-activities/${resolved.userId}`)
+              .then(res => res.json())
+              .then(socJson => {
+                if (socJson.success) {
+                  setSocialActivities(socJson.data || []);
+                }
+              })
+              .catch(() => {});
+          }
 
           // Fetch dynamic portfolio data
           fetchPortfolioDetails(resolved.id);
@@ -773,6 +786,71 @@ export default function MiddleSchoolPortfolio() {
             <div className="text-center py-10 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
               <div className="text-4xl mb-3 opacity-50">📰</div>
               <p className="text-sm text-slate-500">No publications yet! Head to School Press to share your moments.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Community Service & Social Responsibility */}
+      <div className="grid grid-cols-1 gap-6 mb-6">
+        <div className="glass rounded-3xl p-6 fade-in border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left shadow-[0_0_20px_rgba(0,0,0,0.02)]">
+          <h2 className="text-xl font-black text-black dark:text-white mb-6 flex items-center gap-3">
+            <span className="text-2xl">🌱</span> Verified Community Service Timeline
+          </h2>
+          {socialActivities.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {socialActivities.map((act, idx) => (
+                <div key={idx} className="bg-slate-50 dark:bg-slate-900/60 border-2 border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 hover:border-emerald-500/50 transition-all flex flex-col justify-between">
+                  <div>
+                    <span className="text-[10px] uppercase font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">{act.activityType}</span>
+                    <h3 className="font-bold text-black dark:text-white text-base mt-2">{act.activityName}</h3>
+                    <p className="text-xs text-slate-655 dark:text-slate-400 mt-2 leading-relaxed">{act.description}</p>
+                    
+                    <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-500 font-semibold mt-3.5 border-t border-slate-200 dark:border-slate-800 pt-2.5">
+                      <span>📅 {new Date(act.date).toLocaleDateString()}</span>
+                      {act.location && <span>📍 {act.location}</span>}
+                      <span>⏱️ {act.hours} hrs</span>
+                    </div>
+
+                    {act.teacherRemarks && (
+                      <div className="mt-3 p-3 bg-slate-100 dark:bg-slate-955/45 border border-slate-200 dark:border-slate-800 rounded-lg text-[11px] text-slate-750 dark:text-slate-350 italic">
+                        <span className="font-bold text-slate-500 not-italic block mb-0.5">Teacher Feedback:</span>
+                        "{act.teacherRemarks}"
+                        {act.rating && (
+                          <div className="flex items-center gap-0.5 mt-1.5">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <span key={i} className={`text-xs ${act.rating > i ? "text-amber-500" : "text-slate-300 dark:text-slate-750"}`}>★</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 mt-3.5">
+                      {act.photoUrl && (
+                        <a href={act.photoUrl} target="_blank" rel="noreferrer" className="text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-500 bg-slate-150/50 dark:bg-slate-800/60 px-2 py-1 rounded border border-slate-200 dark:border-slate-700/60">
+                          📷 Activity Photo
+                        </a>
+                      )}
+                      {act.certificateUrl && (
+                        <a href={act.certificateUrl} target="_blank" rel="noreferrer" className="text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-500 bg-slate-150/50 dark:bg-slate-800/60 px-2 py-1 rounded border border-slate-200 dark:border-slate-700/60">
+                          📄 Certificate
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <div className="border-t border-slate-200 dark:border-slate-800 mt-4 pt-3 flex justify-between items-center text-xs">
+                    <span className="font-black text-emerald-500">+{act.points} Pts</span>
+                    <span className={`px-2 py-0.5 text-[9px] font-black uppercase rounded ${
+                      act.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+                    }`}>{act.status}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
+              <p className="text-sm text-slate-500">No verified community service hours logged yet.</p>
             </div>
           )}
         </div>
