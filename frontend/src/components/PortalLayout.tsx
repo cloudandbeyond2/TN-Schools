@@ -660,12 +660,11 @@ export default function PortalLayout({
       .replace("Minister", s.name)
       .replace("System Management", s.name);
 
-    if (s.schoolName && s.schoolDise) {
+    if (s.schoolName) {
       if (userRole === "TEACHER") {
-        const subject = s.subject || "General";
-        resolvedSubtitle = `${s.name} · ${subject}`;
+        resolvedSubtitle = s.schoolName;
       } else {
-        resolvedSubtitle = `${s.name} · ${s.schoolName} · DISE: ${s.schoolDise}`;
+        resolvedSubtitle = `${s.name} · ${s.schoolName}${s.schoolDise ? ` · DISE: ${s.schoolDise}` : ""}`;
       }
     } else if (userRole === "TEACHER") {
       // Fallback if no school info
