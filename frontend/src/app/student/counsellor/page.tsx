@@ -3,13 +3,46 @@
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
-import {
-  Smile, User, ArrowLeft, HeartPulse, GraduationCap, Users, Home,
-  Heart, Building, ShieldCheck, Smartphone, Rocket, BookOpen, Clock,
-  Star, MessageCircle, Shield, Megaphone, Target, Phone, Scale, PenTool,
-  Sun, Calendar, MessageSquare, AlertTriangle, Lock, Eye, CalendarCheck,
-  CheckCircle, RefreshCw, Edit3, ArrowRight, Check, Globe, UserX
-} from "lucide-react";
+const Icon = (name: string) => ({ size = 24, className = "" }: { size?: number; className?: string }) => (
+  <i className={`fi ${name} ${className}`} style={{ fontSize: size, lineHeight: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} />
+);
+
+const Smile = Icon("fi-rr-smile");
+const User = Icon("fi-rr-user");
+const ArrowLeft = Icon("fi-rr-arrow-left");
+const HeartPulse = Icon("fi-rr-heart");
+const GraduationCap = Icon("fi-rr-graduation-cap");
+const Users = Icon("fi-rr-users");
+const Home = Icon("fi-rr-home");
+const Heart = Icon("fi-rr-heart");
+const Building = Icon("fi-rr-building");
+const ShieldCheck = Icon("fi-rr-shield-check");
+const Smartphone = Icon("fi-rr-smartphone");
+const Rocket = Icon("fi-rr-rocket");
+const BookOpen = Icon("fi-rr-book-alt");
+const Clock = Icon("fi-rr-clock");
+const Star = Icon("fi-rr-star");
+const MessageCircle = Icon("fi-rr-comment");
+const Shield = Icon("fi-rr-shield");
+const Megaphone = Icon("fi-rr-megaphone");
+const Target = Icon("fi-rr-target");
+const Phone = Icon("fi-rr-phone-call");
+const Scale = Icon("fi-rr-scale");
+const PenTool = Icon("fi-rr-pen-nib");
+const Sun = Icon("fi-rr-sun");
+const Calendar = Icon("fi-rr-calendar");
+const MessageSquare = Icon("fi-rr-comment-alt");
+const AlertTriangle = Icon("fi-rr-triangle-warning");
+const Lock = Icon("fi-rr-lock");
+const Eye = Icon("fi-rr-eye");
+const CalendarCheck = Icon("fi-rr-calendar-check");
+const CheckCircle = Icon("fi-rr-check-circle");
+const RefreshCw = Icon("fi-rr-refresh");
+const Edit3 = Icon("fi-rr-edit");
+const ArrowRight = Icon("fi-rr-arrow-right");
+const Check = Icon("fi-rr-check");
+const Globe = Icon("fi-rr-globe");
+const UserX = Icon("fi-rr-lock");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Translations
@@ -521,7 +554,7 @@ export default function CounsellorPage() {
                 <button
                   onClick={handleSubmitMessage}
                   disabled={!feedbackText.trim() || isSubmittingMsg}
-                  className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white text-sm font-black rounded-2xl shadow-lg hover:shadow-indigo-400/30 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+                  className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-black rounded-2xl shadow-lg hover:shadow-teal-400/30 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
                 >
                   <MessageSquare size={16} />
                   {isSubmittingMsg ? "Sending..." : L.sendToCounsellor}
@@ -604,7 +637,7 @@ export default function CounsellorPage() {
               <p className="text-xs text-amber-700/80 dark:text-amber-400/70 mb-4 leading-relaxed">
                 {L.haveComplaintDesc}
               </p>
-              <Link href="/student/report" className="flex items-center justify-center gap-2 w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-95">
+              <Link href="/student/report" className="flex items-center justify-center gap-2 w-full py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-black rounded-xl transition-all shadow-md shadow-rose-400/30 active:scale-95">
                 <Edit3 size={14} />
                 {L.fileReport}
               </Link>
@@ -689,7 +722,7 @@ export default function CounsellorPage() {
                 <button
                   onClick={() => selectedSlot && setSessionSubmitted(true)}
                   disabled={!selectedSlot}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white text-xs font-black rounded-xl shadow-lg active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="flex items-center gap-2 px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white text-xs font-black rounded-xl shadow-lg hover:shadow-teal-400/30 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                 >
                   <Check size={14} />
                   {L.confirmBooking}
@@ -761,7 +794,7 @@ export default function CounsellorPage() {
                     )
                   })}
                 </div>
-                <a href="tel:1098" className="mt-5 flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white text-xs font-black rounded-2xl transition-all shadow-lg active:scale-95">
+                <a href="tel:1098" className="mt-5 flex items-center justify-center gap-2 w-full py-3.5 bg-red-500 hover:bg-red-600 text-white text-xs font-black rounded-2xl transition-all shadow-lg hover:shadow-red-500/30 active:scale-95">
                   <Phone size={14} /> Call 1098 Now — It&apos;s Free
                 </a>
               </div>
@@ -791,7 +824,7 @@ export default function CounsellorPage() {
                     )
                   })}
                 </div>
-                <a href="tel:1098" className="mt-5 flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white text-xs font-black rounded-2xl transition-all shadow-lg active:scale-95">
+                <a href="tel:1098" className="mt-5 flex items-center justify-center gap-2 w-full py-3.5 bg-red-500 hover:bg-red-600 text-white text-xs font-black rounded-2xl transition-all shadow-lg hover:shadow-red-500/30 active:scale-95">
                   <Phone size={14} /> 1098 — இப்போதே அழைக்கவும்
                 </a>
               </div>
