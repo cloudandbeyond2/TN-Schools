@@ -412,7 +412,7 @@ export default function HomeworkPage() {
               <select 
                 value={sortBy} 
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-slate-955 border border-slate-805 text-slate-350 text-xs font-bold rounded-xl px-3 py-2 outline-none focus:border-emerald-600 transition-all cursor-pointer"
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-350 text-xs font-bold rounded-xl px-3 py-2 outline-none focus:border-emerald-600 transition-all cursor-pointer"
               >
                 <option value="due-asc">Due Date: Nearest First</option>
                 <option value="due-desc">Due Date: Furthest First</option>

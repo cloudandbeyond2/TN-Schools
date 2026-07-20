@@ -19,11 +19,17 @@ const quickActions = [
   { label: "Role & Permissions", href: "/super-admin/roles", icon: <i className="fi fi-rr-lock"></i>, desc: "Permission matrix for all roles", color: "from-blue-600 to-indigo-700", badge: "9 roles" },
   { label: "School Management", href: "/super-admin/schools", icon: <i className="fi fi-rr-building"></i>, desc: "Add, edit & manage all schools", color: "from-emerald-600 to-teal-700", badge: "37,404 schools" },
   { label: "Headmaster Mgmt", href: "/super-admin/headmasters", icon: <i className="fi fi-rr-user"></i>, desc: "Assign & transfer headmasters", color: "from-cyan-600 to-sky-700", badge: "37K+ HMs" },
+  { label: "DEO Management", href: "/super-admin/deos", icon: <i className="fi fi-rr-map"></i>, desc: "Manage District Education Officers", color: "from-pink-650 to-rose-700", badge: "38 DEOs" },
+  { label: "Academics Hub", href: "/super-admin/academics", icon: <i className="fi fi-rr-graduation-cap"></i>, desc: "Configure class subjects, syllabus & resources", color: "from-indigo-600 to-purple-650", badge: "Curriculum" },
   { label: "Learning Hub Admin", href: "/super-admin/learning-hub", icon: <i className="fi fi-rr-book-alt"></i>, desc: "Manage central learning content, materials & AI", color: "from-indigo-650 to-indigo-850", badge: "Active" },
+  { label: "PDF Syllabus Upload", href: "/super-admin/syllabus-upload", icon: <i className="fi fi-rr-upload"></i>, desc: "Extract syllabus structure from textbook PDFs", color: "from-violet-650 to-indigo-800", badge: "AI Extract" },
   { label: "Syllabus Manager", href: "/super-admin/syllabus", icon: <i className="fi fi-rr-book-open-cover"></i>, desc: "Class/subject/chapter management", color: "from-amber-600 to-orange-700", badge: "Class 6–12" },
   { label: "Material Library", href: "/super-admin/materials", icon: <i className="fi fi-rr-box"></i>, desc: "Upload & manage learning content", color: "from-pink-600 to-rose-700", badge: "2.8K items" },
+  { label: "Digital Library", href: "/super-admin/digital-library", icon: <i className="fi fi-rr-book"></i>, desc: "Distribute global study resources to schools", color: "from-blue-650 to-cyan-750", badge: "Library" },
   { label: "Department Modules", href: "/super-admin/modules", icon: <i className="fi fi-rr-calendar"></i>, desc: "Enable/disable portal modules", color: "from-fuchsia-600 to-violet-700", badge: "48 modules" },
+  { label: "Competitive Exams", href: "/super-admin/competitive-exams", icon: <i className="fi fi-rr-trophy"></i>, desc: "Manage NEET/JEE & board preparation guides", color: "from-amber-600 to-yellow-750", badge: "Exam Prep" },
   { label: "AI Integration", href: "/super-admin/ai-config", icon: <i className="fi fi-rr-robot"></i>, desc: "API keys, models & token limits", color: "from-slate-600 to-slate-800", badge: "3 APIs" },
+  { label: "External Storage", href: "/super-admin/storage", icon: <i className="fi fi-rr-database"></i>, desc: "Configure local/cloud storage providers", color: "from-emerald-600 to-teal-700", badge: "S3/Disk" },
   { label: "Data Flow Monitor", href: "/super-admin/data-flow", icon: <i className="fi fi-rr-refresh"></i>, desc: "Pipeline health & sync status", color: "from-green-600 to-emerald-800", badge: "Live" },
   { label: "Feature Toggles", href: "/super-admin/features", icon: <i className="fi fi-rr-settings"></i>, desc: "Global feature flag control", color: "from-orange-600 to-red-700", badge: "42 on / 6 off" },
   { label: "Announcements", href: "/super-admin/announcements", icon: <i className="fi fi-rr-megaphone"></i>, desc: "Broadcast to all portals", color: "from-yellow-600 to-amber-700", badge: "Push now" },
@@ -61,9 +67,9 @@ export default function SuperAdminDashboard() {
 
   const filterMap: Record<string, string[]> = {
     all: quickActions.map((q) => q.href),
-    people: ["/super-admin/users", "/super-admin/roles", "/super-admin/schools", "/super-admin/headmasters"],
-    academics: ["/super-admin/learning-hub", "/super-admin/syllabus", "/super-admin/materials", "/super-admin/modules"],
-    system: ["/super-admin/features", "/super-admin/ai-config", "/super-admin/data-flow"],
+    people: ["/super-admin/users", "/super-admin/roles", "/super-admin/schools", "/super-admin/headmasters", "/super-admin/deos"],
+    academics: ["/super-admin/academics", "/super-admin/learning-hub", "/super-admin/syllabus-upload", "/super-admin/syllabus", "/super-admin/materials", "/super-admin/digital-library", "/super-admin/modules", "/super-admin/competitive-exams"],
+    system: ["/super-admin/features", "/super-admin/ai-config", "/super-admin/storage", "/super-admin/data-flow"],
     governance: ["/super-admin/ministers", "/super-admin/pages", "/super-admin/announcements", "/super-admin/logs", "/super-admin/settings"],
   };
 

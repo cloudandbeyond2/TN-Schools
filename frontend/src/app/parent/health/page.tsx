@@ -408,7 +408,7 @@ export default function ParentHealthReportPage() {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {sportsData.teams.map((team: any, index: number) => (
-                  <div key={index} className="bg-slate-50 dark:bg-slate-955/30 border border-slate-100 dark:border-slate-855 p-4 rounded-2xl flex items-center gap-4 hover:border-slate-300 dark:hover:border-slate-800 transition-all shadow-sm">
+                  <div key={index} className="bg-slate-50 dark:bg-slate-950/30 border border-slate-100 dark:border-slate-855 p-4 rounded-2xl flex items-center gap-4 hover:border-slate-300 dark:hover:border-slate-800 transition-all shadow-sm">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${team.color}15`, color: team.color, border: `1px solid ${team.color}30` }}>
                       <Shield className="w-5 h-5" />
                     </div>

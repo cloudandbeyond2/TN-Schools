@@ -1071,7 +1071,7 @@ export default function NEETPrepPage() {
                 </div>
                 <div>
                   <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Correct</label>
-                  <input value={chapterForm.correct} onChange={(e) => setChapterForm({ ...chapterForm, correct: e.target.value })} type="number" className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none" />
+                  <input value={chapterForm.correct} onChange={(e) => setChapterForm({ ...chapterForm, correct: e.target.value })} type="number" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none" />
                 </div>
               </div>
               <div>

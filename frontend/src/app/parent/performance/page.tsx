@@ -555,7 +555,7 @@ export default function PerformancePage() {
                 {/* Timeline node */}
                 <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-2 border-emerald-500 group-hover:scale-125 transition-all" />
                 
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-955/60 border border-slate-200 dark:border-slate-800/50 hover:border-slate-300 dark:hover:border-slate-800 transition-all">
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/50 hover:border-slate-300 dark:hover:border-slate-800 transition-all">
                   <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                     <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                       {f.source}

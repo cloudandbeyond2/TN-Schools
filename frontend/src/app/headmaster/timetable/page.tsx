@@ -954,7 +954,7 @@ export default function HeadmasterTimetablePage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-150 dark:border-slate-900 flex justify-between items-center bg-slate-50/50 dark:bg-slate-955">
+            <div className="px-6 py-4 border-b border-slate-150 dark:border-slate-900 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950">
               <div>
                 <h3 className="text-sm font-bold text-slate-850 dark:text-white">
                   {editingSlot ? "✏️ Edit Timetable Slot" : "➕ Add Weekly Class Slot"}
