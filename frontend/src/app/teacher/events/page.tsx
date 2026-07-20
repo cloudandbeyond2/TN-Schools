@@ -8,6 +8,15 @@ import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+const renderEventIcon = (iconStr: string) => {
+  const s = iconStr || "";
+  if (s.startsWith("fi ") || s.startsWith("fi-")) {
+    const cls = s.startsWith("fi ") ? s : `fi ${s}`;
+    return <i className={`${cls} text-sm`} />;
+  }
+  return <span className="text-sm">{s}</span>;
+};
+
 interface Club {
   id: string;
   name: string;
@@ -189,30 +198,51 @@ export default function TeacherEventsPage() {
                   event.type === "Competition" ? (lang === "தமிழ்" ? "போட்டி" : "Competition") :
                   event.type === "Showcase" ? (lang === "தமிழ்" ? "காட்சிப்படுத்துதல்" : "Showcase") :
                   event.type === "Workshop" ? (lang === "தமிழ்" ? "பயிலரங்கம்" : "Workshop") : event.type;
+                
+                // Color configuration based on event type
+                const colorConfig = 
+                  event.type === "Competition" ? { bg: "bg-rose-500/10 dark:bg-rose-950/30", text: "text-rose-600 dark:text-rose-450", border: "border-rose-500/25 dark:border-rose-900/50", glow: "shadow-rose-500/20" } :
+                  event.type === "Showcase" ? { bg: "bg-emerald-500/10 dark:bg-emerald-950/30", text: "text-emerald-600 dark:text-emerald-450", border: "border-emerald-500/25 dark:border-emerald-900/50", glow: "shadow-emerald-500/20" } :
+                  event.type === "Workshop" ? { bg: "bg-purple-500/10 dark:bg-purple-950/30", text: "text-purple-600 dark:text-purple-400", border: "border-purple-500/25 dark:border-purple-900/50", glow: "shadow-purple-500/20" } :
+                  { bg: "bg-amber-500/10 dark:bg-amber-950/30", text: "text-amber-600 dark:text-amber-400", border: "border-amber-500/25 dark:border-amber-900/50", glow: "shadow-amber-500/20" };
+
                 return (
-                <div key={event.id || idx} className="relative flex gap-4 pb-4">
-                  {idx !== events.length - 1 && (
-                    <div className="absolute left-[15px] top-8 bottom-0 w-[2px] bg-slate-200 dark:bg-slate-800"></div>
-                  )}
-                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 z-10 text-sm">
-                    {event.icon}
-                  </div>
-                  <div className="pt-1.5 bg-slate-50 dark:bg-slate-800/50 flex-1 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                    <h4 className="text-sm font-bold text-black dark:text-white leading-tight mb-1">{event.title}</h4>
-                    <p className="text-xs text-slate-500 flex items-center gap-2 mb-2">
-                      <span>{new Date(event.eventDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                      <span className="w-1 h-1 rounded-full bg-slate-400"></span>
-                      <span className="font-semibold text-amber-600 dark:text-amber-400">{typeTranslated}</span>
-                    </p>
-                    {club && (
-                       <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-white dark:bg-slate-700 text-[10px] font-bold border border-slate-200 dark:border-slate-600">
-                         <span>{club.icon}</span> {club.name}
-                       </div>
+                  <div key={event.id || idx} className="relative flex gap-5 pb-5 group">
+                    {/* Timeline line */}
+                    {idx !== events.length - 1 && (
+                      <div className="absolute left-[17px] top-9 bottom-0 w-[3px] bg-gradient-to-b from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900"></div>
                     )}
+                    
+                    {/* Glowing Icon Circle */}
+                    <div className={`w-9 h-9 rounded-full bg-slate-50 dark:bg-slate-950 border-2 ${colorConfig.border} flex items-center justify-center shrink-0 z-10 shadow-sm group-hover:scale-110 transition-transform duration-300 ${colorConfig.text} ${colorConfig.glow}`}>
+                      {renderEventIcon(event.icon)}
+                    </div>
+                    
+                    {/* Event Details Card */}
+                    <div className="flex-1 p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-900/40 border border-slate-150/40 dark:border-slate-800/80 hover:bg-white dark:hover:bg-slate-850 hover:shadow-lg hover:shadow-slate-500/5 dark:hover:shadow-black/20 hover:-translate-y-0.5 transition-all duration-300 text-left">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                        <h4 className="text-sm font-bold text-slate-850 dark:text-slate-100 group-hover:text-amber-500 transition-colors leading-snug">{event.title}</h4>
+                        <span className={`inline-flex self-start sm:self-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${colorConfig.bg} ${colorConfig.text} ${colorConfig.border}`}>
+                          {typeTranslated}
+                        </span>
+                      </div>
+                      
+                      <p className="text-[11px] text-slate-550 dark:text-slate-400 font-semibold mb-3 flex items-center gap-2">
+                        <i className="fi fi-rr-calendar text-[12px] opacity-75" />
+                        <span>{new Date(event.eventDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      </p>
+                      
+                      {club && (
+                         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 text-[10px] font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                           <span className="text-xs">{club.icon}</span> 
+                           <span>{club.name}</span>
+                         </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )})}
-              {events.length === 0 && <p className="text-sm text-slate-500 text-center py-8">{lang === "தமிழ்" ? "வரவிருக்கும் நிகழ்வுகள் எதுவும் திட்டமிடப்படவில்லை." : "No upcoming events scheduled."}</p>}
+                );
+              })}
+              {events.length === 0 && <p className="text-sm text-slate-550 text-center py-8">{lang === "தமிழ்" ? "வரவிருக்கும் நிகழ்வுகள் எதுவும் திட்டமிடப்படவில்லை." : "No upcoming events scheduled."}</p>}
             </div>
           )}
         </div>
