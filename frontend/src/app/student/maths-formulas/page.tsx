@@ -72,26 +72,26 @@ const FormulaQuizSection = ({ formulas }: { formulas: SamacheerFormula[] }) => {
   if (!currentQuiz) return null;
 
   return (
-    <div className="mt-12 bg-indigo-900 rounded-[2.5rem] p-8 border-4 border-indigo-700 shadow-2xl relative overflow-hidden">
+    <div className="mt-8 md:mt-12 bg-indigo-900 rounded-3xl md:rounded-[2.5rem] p-5 md:p-8 border-4 border-indigo-700 shadow-2xl relative overflow-hidden">
        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl"></div>
-       <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
+       <div className="relative z-10 flex flex-col md:flex-row gap-5 md:gap-8 items-center">
          <div className="flex-1 text-white">
-           <div className="flex items-center gap-2 text-indigo-300 font-black tracking-widest text-sm uppercase mb-2">
-             <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+           <div className="flex items-center gap-2 text-indigo-300 font-black tracking-widest text-xs md:text-sm uppercase mb-2">
+             <Zap className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-yellow-400" />
              Fill in the Blanks
            </div>
-           <h2 className="text-3xl font-black mb-4 leading-tight">{currentQuiz.formulaObj.title.en}</h2>
-           <div className="bg-white/10 border-2 border-white/20 p-6 rounded-2xl text-center backdrop-blur-md">
-             <span className="font-mono text-4xl font-black text-yellow-300 drop-shadow-md">
+           <h2 className="text-xl md:text-3xl font-black mb-3 md:mb-4 leading-tight">{currentQuiz.formulaObj.title.en}</h2>
+           <div className="bg-white/10 border-2 border-white/20 p-4 md:p-6 rounded-xl md:rounded-2xl text-center backdrop-blur-md">
+             <span className="font-mono text-2xl md:text-4xl font-black text-yellow-300 drop-shadow-md">
                {currentQuiz.questionStr}
              </span>
            </div>
-           {feedback === "correct" && <div className="text-emerald-400 font-black mt-4 animate-bounce">Great Job! +10 Points 🌟</div>}
-           {feedback === "wrong" && <div className="text-rose-400 font-black mt-4 animate-pulse">Oops! Try again! 🤔</div>}
+           {feedback === "correct" && <div className="text-emerald-400 font-black mt-3 md:mt-4 text-sm md:text-base animate-bounce">Great Job! +10 Points 🌟</div>}
+           {feedback === "wrong" && <div className="text-rose-400 font-black mt-3 md:mt-4 text-sm md:text-base animate-pulse">Oops! Try again! 🤔</div>}
          </div>
          <div className="flex-1 w-full flex flex-col gap-3">
-           <div className="text-right text-indigo-300 font-black mb-2">Score: <span className="text-white text-xl">{score}</span></div>
-           <div className="grid grid-cols-2 gap-3">
+           <div className="text-right text-indigo-300 font-black mb-2 text-sm md:text-base">Score: <span className="text-white text-lg md:text-xl">{score}</span></div>
+           <div className="grid grid-cols-2 gap-2 md:gap-3">
              {currentQuiz.options.map((opt: string, i: number) => (
                <button 
                  key={i} 
@@ -105,7 +105,7 @@ const FormulaQuizSection = ({ formulas }: { formulas: SamacheerFormula[] }) => {
                    }
                  }}
                  disabled={feedback === "correct"}
-                 className="p-4 bg-white hover:bg-indigo-50 text-indigo-900 font-mono font-black text-xl rounded-2xl shadow-lg border-b-4 border-indigo-200 active:border-b-0 active:translate-y-1 transition-all"
+                 className="p-3 md:p-4 bg-white hover:bg-indigo-50 text-indigo-900 font-mono font-black text-lg md:text-xl rounded-xl md:rounded-2xl shadow-lg border-b-4 border-indigo-200 active:border-b-0 active:translate-y-1 transition-all"
                >
                  {opt}
                </button>
@@ -243,12 +243,12 @@ export default function MathsFormulasPage() {
       <div className="flex flex-col gap-8">
 
         {/* Playful Search and Categories Header */}
-        <div className="bg-white dark:bg-slate-800 p-6 flex flex-col md:flex-row gap-6 justify-between items-center rounded-[2rem] border-4 border-indigo-100 dark:border-slate-700 shadow-xl shadow-indigo-500/10 relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 p-6 flex flex-col xl:flex-row gap-6 justify-between items-center rounded-[2rem] border-4 border-indigo-100 dark:border-slate-700 shadow-xl shadow-indigo-500/10 relative overflow-hidden">
 
           <div className="absolute right-0 top-0 w-64 h-64 bg-yellow-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
 
-          <div className="w-full md:w-1/2 flex items-center gap-3">
-            <div className="relative flex-1">
+          <div className="w-full xl:w-2/3 flex flex-wrap lg:flex-nowrap items-center gap-3">
+            <div className="relative w-full sm:flex-1 min-w-[200px]">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 font-bold" />
               <input
                 type="text"
@@ -260,7 +260,7 @@ export default function MathsFormulasPage() {
             </div>
 
             {/* Standard & Term Selector */}
-            <div className="relative flex gap-2">
+            <div className="relative flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto justify-between sm:justify-start">
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500">
                   <GraduationCap className="w-5 h-5" />
@@ -296,24 +296,26 @@ export default function MathsFormulasPage() {
             </div>
 
             {/* Language Toggle */}
-            <button
-              onClick={() => setLang(l => l === "en" ? "ta" : "en")}
-              className="p-3 px-4 rounded-2xl border-4 bg-fuchsia-50 border-fuchsia-200 text-fuchsia-700 font-bold hover:bg-fuchsia-100 transition-all shadow-sm flex items-center gap-2"
-              title="Toggle Language"
-            >
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end sm:justify-start">
+              <button
+                onClick={() => setLang(l => l === "en" ? "ta" : "en")}
+                className="p-3 px-4 rounded-2xl border-4 bg-fuchsia-50 border-fuchsia-200 text-fuchsia-700 font-bold hover:bg-fuchsia-100 transition-all shadow-sm flex items-center gap-2 flex-1 sm:flex-none justify-center"
+                title="Toggle Language"
+              >
               {lang === "en" ? "English" : "தமிழ்"}
             </button>
 
-            <button
-              onClick={toggleGameMode}
-              className={`p-3 rounded-2xl border-4 transition-all flex-shrink-0 ${gameMode
-                  ? "bg-amber-400 border-amber-500 text-amber-900 shadow-lg shadow-amber-500/40 scale-110 rotate-3 animate-pulse"
-                  : "bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 hover:bg-slate-200"
-                }`}
-              title="Toggle Game Mode"
-            >
-              <Gamepad2 className="w-6 h-6" />
-            </button>
+              <button
+                onClick={toggleGameMode}
+                className={`p-3 rounded-2xl border-4 transition-all flex-shrink-0 flex-1 sm:flex-none flex items-center justify-center ${gameMode
+                    ? "bg-amber-400 border-amber-500 text-amber-900 shadow-lg shadow-amber-500/40 scale-110 rotate-3 animate-pulse"
+                    : "bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 hover:bg-slate-200"
+                  }`}
+                title="Toggle Game Mode"
+              >
+                <Gamepad2 className="w-6 h-6" />
+              </button>
+            </div>
           </div>
 
           <div className="flex gap-3 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
