@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import { TrendingUp, Award, Microscope, ClipboardEdit, MessageSquare, Star, Trophy } from "lucide-react";
@@ -24,6 +25,7 @@ interface StudentBadge {
 }
 
 export default function StudentStatusPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -193,15 +195,18 @@ export default function StudentStatusPage() {
   );
 
   return (
-    <PortalLayout title="Student Status & Engagement" subtitle="Award virtual badges and monitor student classroom participation metrics.">
+    <PortalLayout
+      title={lang === "தமிழ்" ? "மாணவர் நிலை & ஈடுபாடு" : "Student Status & Engagement"}
+      subtitle={lang === "தமிழ்" ? "ஆர்ஜிதமான பேச்சுகள் வழங்கி மாணவர் வகுப்பறைப் பங்கேற்பு அளவீடுகளைக் கண்காணியுங்கள்." : "Award virtual badges and monitor student classroom participation metrics."}
+    >
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
         {/* Engagement status board */}
         <div className="xl:col-span-2 theme-card p-6 border border-[var(--border)]">
-          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-5 flex items-center"><TrendingUp className="w-5 h-5 mr-2 text-[var(--primary)]" /> Student Engagement & Badges Roster</h2>
+          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-5 flex items-center"><TrendingUp className="w-5 h-5 mr-2 text-[var(--primary)]" /> {lang === "தமிழ்" ? "மாணவர் ஈடுபாடு & பேச்சுகள் பட்டியல்" : "Student Engagement & Badges Roster"}</h2>
           {loading ? (
-            <div className="text-center py-12 text-xs text-[var(--text-muted)]">Loading student status roster...</div>
+            <div className="text-center py-12 text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "மாணவர் நிலை பட்டியலை ஏற்றுகிறது..." : "Loading student status roster..."}</div>
           ) : students.length === 0 ? (
-            <div className="text-center py-12 text-xs text-[var(--text-muted)]">No students found.</div>
+            <div className="text-center py-12 text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "மாணவர்கள் ஏதுவும் காணப்படவில்லை." : "No students found."}</div>
           ) : (
             <>
               {/* Table view for Large Desktops */}
@@ -209,9 +214,9 @@ export default function StudentStatusPage() {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Student</th>
-                      <th>Class</th>
-                      <th>Badges Awarded</th>
+                      <th>{lang === "தமிழ்" ? "மாணவர்" : "Student"}</th>
+                      <th>{lang === "தமிழ்" ? "வகுப்பு" : "Class"}</th>
+                      <th>{lang === "தமிழ்" ? "வழங்கப்பட்ட பேச்சுகள்" : "Badges Awarded"}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -231,7 +236,7 @@ export default function StudentStatusPage() {
                                 </span>
                               ))
                             ) : (
-                              <span className="text-[10px] text-[var(--text-muted)] italic">No badges awarded</span>
+                              <span className="text-[10px] text-[var(--text-muted)] italic">{lang === "தமிழ்" ? "பேச்சுகள் எதுவும் இல்லை" : "No badges awarded"}</span>
                             )}
                           </div>
                         </td>
@@ -248,11 +253,11 @@ export default function StudentStatusPage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="font-semibold text-[var(--text-heading)] text-sm">{student.name}</div>
-                        <div className="text-[10px] text-[var(--text-muted)] mt-0.5">Class: {student.class}</div>
+                        <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{lang === "தமிழ்" ? `வகுப்பு: ${student.class}` : `Class: ${student.class}`}</div>
                       </div>
                     </div>
                     <div>
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-[var(--text-muted)] block mb-1.5">Badges Awarded</span>
+                      <span className="text-[9px] uppercase tracking-wider font-bold text-[var(--text-muted)] block mb-1.5">{lang === "தமிழ்" ? "வழங்கப்பட்ட பேச்சுகள்" : "Badges Awarded"}</span>
                       <div className="flex flex-wrap gap-1.5">
                         {student.badges.length > 0 ? (
                           student.badges.map((badge, idx) => (
@@ -264,7 +269,7 @@ export default function StudentStatusPage() {
                             </span>
                           ))
                         ) : (
-                          <span className="text-[10px] text-[var(--text-muted)] italic">No badges awarded yet</span>
+                          <span className="text-[10px] text-[var(--text-muted)] italic">{lang === "தமிழ்" ? "பேச்சுகள் இன்னும் இல்லை" : "No badges awarded yet"}</span>
                         )}
                       </div>
                     </div>
@@ -306,13 +311,13 @@ export default function StudentStatusPage() {
         {/* Badge dispatch workspace */}
         <div className="theme-card p-6 border border-[var(--border)] space-y-5">
           <div>
-            <h2 className="text-base font-semibold text-[var(--text-heading)] mb-1 flex items-center"><Award className="w-5 h-5 mr-2 text-amber-500" /> Award Virtual Badges</h2>
-            <p className="text-xs text-[var(--text-muted)]">Reward student achievements. Awarded badges appear directly on the student portal.</p>
+            <h2 className="text-base font-semibold text-[var(--text-heading)] mb-1 flex items-center"><Award className="w-5 h-5 mr-2 text-amber-500" /> {lang === "தமிழ்" ? "ஆர்ஜித பேச்சுகள் வழங்கு" : "Award Virtual Badges"}</h2>
+            <p className="text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "மாணவர் சாதனைகளைப் பரிசிதுக் கோள்க. வழங்கப்பட்ட பேச்சுகள் மாணவர் போர்டலில் நேரடியாகக் காணப்படும்." : "Reward student achievements. Awarded badges appear directly on the student portal."}</p>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Select Student</label>
+              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "மாணவரைத் தேர்வு செய்க" : "Select Student"}</label>
               <select
                 value={targetStudentId}
                 onChange={(e) => setTargetStudentId(e.target.value)}
@@ -327,7 +332,7 @@ export default function StudentStatusPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Select Badge</label>
+              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "பேச்சைத் தேர்வு செய்க" : "Select Badge"}</label>
               <select
                 value={selectedBadge}
                 onChange={(e) => setSelectedBadge(e.target.value)}
@@ -342,13 +347,13 @@ export default function StudentStatusPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Custom Remark</label>
+              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "தனிப்பட்ட கருத்துரை" : "Custom Remark"}</label>
               <textarea
                 value={customComment}
                 onChange={(e) => setCustomComment(e.target.value)}
                 rows={2}
                 className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors resize-none"
-                placeholder="Write a warm note..."
+                placeholder={lang === "தமிழ்" ? "ஒரு பரிசு஬ண்மையான குறிப்பை எழுதுக..." : "Write a warm note..."}
               />
             </div>
 
@@ -356,7 +361,7 @@ export default function StudentStatusPage() {
               onClick={handleAwardBadge}
               className="w-full py-2.5 bg-[var(--primary)] hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
             >
-               Award & Dispatch Badge
+               {lang === "தமிழ்" ? "பேச்சை வழங்கி அனுப்பு" : "Award & Dispatch Badge"}
             </button>
           </div>
 
@@ -376,7 +381,7 @@ export default function StudentStatusPage() {
 
       {/* Badge descriptions registry */}
       <div className="theme-card p-6 border border-[var(--border)]">
-        <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4"><Trophy className="w-4 h-4 inline mr-1 text-amber-500" /> Badge Directory definitions</h2>
+        <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4"><Trophy className="w-4 h-4 inline mr-1 text-amber-500" /> {lang === "தமிழ்" ? "பேச்சு அகரக் கோஷ்" : "Badge Directory definitions"}</h2>
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
           {availableBadges.map((b, idx) => (
             <div key={idx} className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] border border-[var(--border)] rounded-xl">

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import InteractiveInfographic from "@/components/InteractiveInfographic";
 import SlideVisual from "@/components/SlideVisual";
 import Swal from "sweetalert2";
@@ -33,6 +34,7 @@ const slideTypeIcon: Record<string, string> = {
 const bulletIcons = ["fi-sr-badge-check", "fi-sr-bulb", "fi-sr-diagram-project", "fi-sr-chart-histogram", "fi-sr-globe", "fi-sr-book-alt"];
 
 function StudioViewContent() {
+  const { lang } = usePortalLanguage();
   const searchParams = useSearchParams();
   const planId = searchParams.get("planId");
   const tool = searchParams.get("tool") || "";
@@ -226,7 +228,7 @@ function StudioViewContent() {
     return (
       <div className={`min-h-screen ${theme.bg} flex flex-col items-center justify-center text-center p-6`}>
         <div className="w-16 h-16 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin mb-6" />
-        <h3 className={`${theme.text} font-semibold text-lg`}>Loading Intelligence Studio...</h3>
+        <h3 className={`${theme.text} font-semibold text-lg`}>{lang === "தமிழ்" ? "ஏ்டு தொழிலகம் ஏற்றுகிறது..." : "Loading Intelligence Studio..."}</h3>
       </div>
     );
   }
@@ -234,8 +236,8 @@ function StudioViewContent() {
   if (!currentPlan) {
     return (
       <div className={`min-h-screen ${theme.bg} flex flex-col items-center justify-center text-center p-6`}>
-        <h1 className="text-2xl font-bold text-red-500 mb-4">Plan Not Found</h1>
-        <button onClick={() => window.close()} className={`px-6 py-2 ${theme.bgCard} ${theme.text} hover:scale-105 border ${theme.border} transition-all rounded-xl font-bold`}>Close Window</button>
+        <h1 className="text-2xl font-bold text-red-500 mb-4">{lang === "தமிழ்" ? "திட்டம் காணப்படவில்லை" : "Plan Not Found"}</h1>
+        <button onClick={() => window.close()} className={`px-6 py-2 ${theme.bgCard} ${theme.text} hover:scale-105 border ${theme.border} transition-all rounded-xl font-bold`}>{lang === "தமிழ்" ? "சாளர் மூடுக" : "Close Window"}</button>
       </div>
     );
   }
@@ -252,7 +254,7 @@ function StudioViewContent() {
             onClick={() => window.close()}
             className={`px-4 py-2 rounded-xl border ${theme.border} ${theme.bgCard} hover:scale-105 transition-transform text-sm font-bold flex items-center gap-2 shadow-sm`}
           >
-            <i className="fi fi-sr-cross-small leading-none" /> Close
+            <i className="fi fi-sr-cross-small leading-none" /> {lang === "தமிழ்" ? "மூடுக" : "Close"}
           </button>
           <div className="hidden sm:flex items-center gap-3">
             <span className={`inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br ${meta.chip} text-white text-lg shadow-md`}>
@@ -293,8 +295,8 @@ function StudioViewContent() {
               </div>
             </div>
             <div>
-              <h3 className="text-xl font-black text-slate-800 dark:text-white mb-1">Generating {LAZY[tool].label}…</h3>
-              <p className="text-sm text-slate-500">AI is building this for “{currentPlan.topic}”. This takes ~20–40 seconds.</p>
+              <h3 className="text-xl font-black text-slate-800 dark:text-white mb-1">{lang === "தமிழ்" ? `${LAZY[tool].label} உருவாக்குகிறது…` : `Generating ${LAZY[tool].label}…`}</h3>
+              <p className="text-sm text-slate-500">{lang === "தமிழ்" ? `AI "இதை" விஷயத்திற்காக உருவாக்குகிறது. இது ~20–40 விநாடிகள் ஆகலாம்.` : `AI is building this for “${currentPlan.topic}”. This takes ~20–40 seconds.`}</p>
             </div>
           </div>
         )}

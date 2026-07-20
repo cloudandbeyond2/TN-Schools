@@ -5,6 +5,7 @@ import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface Subject {
   id: string;
@@ -53,6 +54,7 @@ interface ClassRoom {
 }
 
 export default function TeacherSyllabusBoardPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const user = session?.user as any;
   const schoolId = user?.schoolId || "";
@@ -203,8 +205,8 @@ export default function TeacherSyllabusBoardPage() {
 
   return (
     <PortalLayout
-      title="Class Syllabus Board"
-      subtitle="Unit-wise visual reference to plan your lessons, at a glance."
+      title={lang === "தமிழ்" ? "வகுப்பு பாடத்திட்ட பலகை" : "Class Syllabus Board"}
+      subtitle={lang === "தமிழ்" ? "பாடத்திட்டம் மேலோட்டமாக ஒவ்வோரு பிரிவிற்கும் காட்சி உலகம்." : "Unit-wise visual reference to plan your lessons, at a glance."}
       avatarLetter="S"
       avatarColor="#f59e0b"
       themeClass="theme-teacher"
@@ -214,10 +216,10 @@ export default function TeacherSyllabusBoardPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
         <div>
           <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1">
-            Plan by Unit
+            {lang === "தமிழ்" ? "பிரிவு் மூலம் திட்டமிடு" : "Plan by Unit"}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Pick your class &amp; section, then browse each unit&apos;s visual summary before planning a lesson.
+            {lang === "தமிழ்" ? "உங்கள் வகுப்பு & பிரிவைத் தேர்வு செய்து, பாடத்திட்டம் திட்டமிடும் முன் ஒவ்வோரு பிரிவிற் காட்சி சுருக்கத்தைப் பாருங்கள்." : "Pick your class & section, then browse each unit's visual summary before planning a lesson."}
           </p>
         </div>
 
@@ -225,36 +227,22 @@ export default function TeacherSyllabusBoardPage() {
           {/* Published count chip */}
           {unitCards.length > 0 && (
             <span className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs rounded-xl border border-emerald-200/30 shadow-sm">
-              {publishedCount}/{unitCards.length} published
+              {publishedCount}/{unitCards.length} {lang === "தமிழ்" ? "பொதுப்படுத்தப்பட்டது" : "published"}
             </span>
           )}
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Class</span>
-            <select
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
-              className="px-3 py-2 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 font-extrabold text-sm rounded-xl border border-amber-200/30 shadow-sm focus:outline-none"
-            >
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{lang === "தமிழ்" ? "வகுப்பு" : "Class"}</span>
+            <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className="px-3 py-2 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 font-extrabold text-sm rounded-xl border border-amber-200/30 shadow-sm focus:outline-none">
               {classOptions.map((c) => (
-                <option key={c} value={c}>
-                  Class {c}
-                </option>
+                <option key={c} value={c}>{lang === "தமிழ்" ? `வகுப்பு ${c}` : `Class ${c}`}</option>
               ))}
             </select>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Section</span>
-            <select
-              value={selectedSection}
-              onChange={(e) => setSelectedSection(e.target.value)}
-              className="px-3 py-2 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 font-extrabold text-sm rounded-xl border border-amber-200/30 shadow-sm focus:outline-none"
-            >
-              {sectionOptions.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{lang === "தமிழ்" ? "பிரிவு" : "Section"}</span>
+            <select value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)} className="px-3 py-2 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 font-extrabold text-sm rounded-xl border border-amber-200/30 shadow-sm focus:outline-none">
+              {sectionOptions.map((s) => (<option key={s} value={s}>{s}</option>))}
             </select>
           </div>
         </div>
@@ -264,13 +252,13 @@ export default function TeacherSyllabusBoardPage() {
       {loadingSubjects ? (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="w-10 h-10 rounded-full border-4 border-amber-200 border-t-amber-600 animate-spin mb-3" />
-          <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider animate-pulse">Loading subjects...</p>
+          <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider animate-pulse">{lang === "தமிழ்" ? "பாடங்கள் ஏற்றுகிறது..." : "Loading subjects..."}</p>
         </div>
       ) : subjects.length === 0 ? (
         <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
           <span className="text-5xl block mb-4"><Mailbox className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
-          <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No syllabus content yet for Class {selectedClass}</p>
-          <p className="text-xs text-slate-500 mt-2">Try Class 8, which has the full Math &amp; Science unit board.</p>
+          <p className="text-lg font-bold text-slate-700 dark:text-slate-300">{lang === "தமிழ்" ? `வகுப்பு ${selectedClass} க்கு ஊள்ளடக்கம் இதுவரை இல்லை` : `No syllabus content yet for Class ${selectedClass}`}</p>
+          <p className="text-xs text-slate-500 mt-2">{lang === "தமிழ்" ? "வகுப்பு 8 உங்களுக்கு முழு கணிதம் & அரிவியல் பிரிவு பலகையுடன் உள்ளது." : "Try Class 8, which has the full Math & Science unit board."}</p>
         </div>
       ) : (
         <>
@@ -299,12 +287,12 @@ export default function TeacherSyllabusBoardPage() {
           {loadingUnits ? (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="w-10 h-10 rounded-full border-4 border-amber-200 border-t-amber-600 animate-spin mb-3" />
-              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider animate-pulse">Loading units...</p>
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider animate-pulse">{lang === "தமிழ்" ? "பிரிவுகள் ஏற்றுகிறது..." : "Loading units..."}</p>
             </div>
           ) : unitCards.length === 0 ? (
             <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
               <span className="text-5xl block mb-4"><Book className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
-              <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No units found for this subject yet.</p>
+              <p className="text-lg font-bold text-slate-700 dark:text-slate-300">{lang === "தமிழ்" ? "இது பாடத்திற்கு எநத பிரிவும் காணப்படவில்லை." : "No units found for this subject yet."}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -318,14 +306,14 @@ export default function TeacherSyllabusBoardPage() {
                   {/* Published badge */}
                   {card.isApproved && (
                     <span className="absolute top-2.5 right-2.5 z-10 text-[9px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-emerald-600 text-white shadow-sm">
-                      Published
+                      {lang === "தமிழ்" ? "பொதுப்படுத்தப்பட்டது" : "Published"}
                     </span>
                   )}
 
                   {/* Hover overlay */}
                   <div className="absolute inset-0 z-[5] bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4">
                     <span className="text-white text-xs font-bold">
-                      Open lesson insights →
+                      {lang === "தமிழ்" ? "பாடத்திட்ட விளக்கம் திறக்கு →" : "Open lesson insights →"}
                     </span>
                   </div>
 
@@ -333,14 +321,14 @@ export default function TeacherSyllabusBoardPage() {
                     <img src={card.imageUrl} alt={card.altText || card.unitName} className="w-full h-auto block group-hover:scale-[1.02] transition-transform duration-300" />
                   ) : (
                     <div className="h-40 flex items-center justify-center text-slate-400 text-xs font-semibold">
-                      No visual available for Unit {card.unitNumber}
+                      {lang === "தமிழ்" ? `பிரிவு ${card.unitNumber} க்கு காட்சி இல்லை` : `No visual available for Unit ${card.unitNumber}`}
                     </div>
                   )}
 
                   {/* Card footer */}
                   <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
                     <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">
-                      Unit {card.unitNumber}: {card.unitName}
+                      {lang === "தமிழ்" ? `பிரிவு ${card.unitNumber}: ${card.unitName}` : `Unit ${card.unitNumber}: ${card.unitName}`}
                     </p>
                     <span
                       className="w-2 h-2 rounded-full flex-shrink-0"
