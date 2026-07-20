@@ -28,11 +28,13 @@ const suggestedQuestions = [
   "How do I write a formal essay?",
 ];
 
-const subjects = ["Mathematics", "Science", "Tamil", "English", "Social Science", "Physics", "Chemistry", "Biology"];
+const allSubjects = ["Mathematics", "Science", "Tamil", "English", "Social Science", "Physics", "Chemistry", "Biology"];
 
 export default function AITutorPage() {
   const { data: session } = useSession();
   const studentClass = (session?.user as any)?.class || "10";
+  const parsedClass = parseInt(String(studentClass).match(/\d+/)?.[0] || "10", 10);
+  const displaySubjects = parsedClass >= 11 ? allSubjects : ["Tamil", "English", "Mathematics", "Science", "Social Science"];
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const [studentId, setStudentId] = useState<string | null>(null);
@@ -67,7 +69,7 @@ export default function AITutorPage() {
       const questionParam = params.get("question");
 
       if (subjectParam) {
-        const matched = subjects.find(
+        const matched = allSubjects.find(
           (s) => s.toLowerCase() === subjectParam.toLowerCase()
         );
         if (matched) {
@@ -213,7 +215,7 @@ export default function AITutorPage() {
       title="AI Tutor"
       subtitle="Your personal bilingual learning assistant"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[520px] sm:h-[600px] lg:h-[calc(100vh-210px)] relative overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-120px)] sm:h-[calc(100vh-160px)] lg:h-[calc(100vh-210px)] relative overflow-hidden">
         {/* Mobile Sidebar Overlay Backdrop */}
         {showSidebar && (
           <div
@@ -240,7 +242,7 @@ export default function AITutorPage() {
           <div className="glass rounded-2xl p-4 fade-in">
             <div className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">Subject</div>
             <div className="flex flex-wrap gap-1">
-              {subjects.map((s) => (
+              {displaySubjects.map((s) => (
                 <button
                   key={s}
                   id={`ai-tutor-subject-${s.toLowerCase().replace(/\s+/g, "-")}`}
@@ -358,44 +360,43 @@ export default function AITutorPage() {
 
           {/* Messages */}
           {(() => {
-            const parseBoldText = (text: string) => {
+            const parseBoldText = (text: string, role?: string) => {
               if (!text) return "";
               const parts = text.split(/(\*\*[^*]+\*\*)/g);
               return parts.map((part, idx) => {
                 if (part.startsWith("**") && part.endsWith("**")) {
-                  return <strong key={idx} className="font-extrabold text-white dark:text-slate-100">{part.slice(2, -2)}</strong>;
+                  const colorClass = role === "user" ? "!text-white" : "text-[var(--text-heading)] dark:text-slate-100";
+                  return <strong key={idx} className={`font-extrabold ${colorClass}`}>{part.slice(2, -2)}</strong>;
                 }
                 return part;
               });
             };
 
-            const renderMarkdownMessage = (content: string) => {
+            const renderMarkdownMessage = (content: string, role?: string) => {
               if (!content) return null;
               const lines = content.split("\n");
               return lines.map((line, lineIdx) => {
-                // Heading check (## Heading or ### Heading)
                 if (line.startsWith("## ") || line.startsWith("### ")) {
                   const headingText = line.replace(/^#{2,3}\s+/, "");
+                  const colorClass = role === "user" ? "!text-white" : "text-[var(--text-heading)] dark:text-slate-100";
                   return (
-                    <h4 key={lineIdx} className="font-extrabold text-sm sm:text-base mt-3 mb-1 text-white dark:text-slate-100">
-                      {parseBoldText(headingText)}
+                    <h4 key={lineIdx} className={`font-extrabold text-sm sm:text-base mt-3 mb-1 ${colorClass}`}>
+                      {parseBoldText(headingText, role)}
                     </h4>
                   );
                 }
-                // Bullet list check (* item or - item)
                 if (line.trim().startsWith("* ") || line.trim().startsWith("- ")) {
                   const listText = line.replace(/^\s*[\*\-]\s+/, "");
                   return (
-                    <div key={lineIdx} className="flex items-start gap-1.5 ml-2 my-1">
+                    <div key={lineIdx} className={`flex items-start gap-1.5 ml-2 my-1 ${role === "user" ? "!text-white" : ""}`}>
                       <span className="text-slate-400 mt-1.5 shrink-0 select-none text-[8px]">•</span>
-                      <span className="flex-1">{parseBoldText(listText)}</span>
+                      <span className="flex-1">{parseBoldText(listText, role)}</span>
                     </div>
                   );
                 }
-                // Regular paragraph
                 return (
-                  <p key={lineIdx} className="my-1.5 leading-relaxed break-words">
-                    {parseBoldText(line)}
+                  <p key={lineIdx} className={`my-1.5 leading-relaxed break-words ${role === "user" ? "!text-white" : "text-[var(--text-main)] dark:text-slate-200"}`}>
+                    {parseBoldText(line, role)}
                   </p>
                 );
               });
@@ -413,11 +414,11 @@ export default function AITutorPage() {
                     <div
                       className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm leading-relaxed ${
                         msg.role === "user"
-                          ? "bg-indigo-600 text-white rounded-tr-sm"
-                          : "bg-slate-800 text-slate-200 rounded-tl-sm border border-slate-700"
+                          ? "bg-indigo-600 !text-white rounded-tr-sm"
+                          : "bg-slate-800 text-[var(--text-main)] dark:text-slate-200 rounded-tl-sm border border-slate-700"
                       }`}
                     >
-                      {renderMarkdownMessage(msg.content)}
+                      {renderMarkdownMessage(msg.content, msg.role)}
                     </div>
                     {msg.role === "user" && (
                       <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-xs sm:text-sm font-bold text-white flex-shrink-0 mt-0.5">
@@ -510,41 +511,45 @@ export default function AITutorPage() {
 
             {/* Modal Message Stream */}
             {(() => {
-              const parseBoldText = (text: string) => {
+              const parseBoldText = (text: string, role?: string) => {
                 if (!text) return "";
                 const parts = text.split(/(\*\*[^*]+\*\*)/g);
                 return parts.map((part, idx) => {
                   if (part.startsWith("**") && part.endsWith("**")) {
-                    return <strong key={idx} className="font-extrabold text-white">{part.slice(2, -2)}</strong>;
+                    const colorClass = role === "user" ? "!text-white" : "text-white";
+                    return <strong key={idx} className={`font-extrabold ${colorClass}`}>{part.slice(2, -2)}</strong>;
                   }
                   return part;
                 });
               };
 
-              const renderMarkdownMessage = (content: string) => {
+              const renderMarkdownMessage = (content: string, role?: string) => {
                 if (!content) return null;
                 const lines = content.split("\n");
                 return lines.map((line, lineIdx) => {
                   if (line.startsWith("## ") || line.startsWith("### ")) {
                     const headingText = line.replace(/^#{2,3}\s+/, "");
+                    const colorClass = role === "user" ? "!text-white" : "text-white";
                     return (
-                      <h4 key={lineIdx} className="font-extrabold text-base sm:text-lg mt-4 mb-2 text-white">
-                        {parseBoldText(headingText)}
+                      <h4 key={lineIdx} className={`font-extrabold text-base sm:text-lg mt-4 mb-2 ${colorClass}`}>
+                        {parseBoldText(headingText, role)}
                       </h4>
                     );
                   }
                   if (line.trim().startsWith("* ") || line.trim().startsWith("- ")) {
                     const listText = line.replace(/^\s*[\*\-]\s+/, "");
+                    const textClass = role === "user" ? "!text-white" : "text-slate-300";
                     return (
-                      <div key={lineIdx} className="flex items-start gap-2 ml-3 my-1.5 text-slate-300">
+                      <div key={lineIdx} className={`flex items-start gap-2 ml-3 my-1.5 ${textClass}`}>
                         <span className="text-slate-500 mt-2 shrink-0 select-none text-[8px]">•</span>
-                        <span className="flex-1 text-sm sm:text-base">{parseBoldText(listText)}</span>
+                        <span className="flex-1 text-sm sm:text-base">{parseBoldText(listText, role)}</span>
                       </div>
                     );
                   }
+                  const textClass = role === "user" ? "!text-white" : "text-slate-300";
                   return (
-                    <p key={lineIdx} className="my-2 leading-relaxed break-words text-slate-300 text-sm sm:text-base">
-                      {parseBoldText(line)}
+                    <p key={lineIdx} className={`my-2 leading-relaxed break-words text-sm sm:text-base ${textClass}`}>
+                      {parseBoldText(line, role)}
                     </p>
                   );
                 });
@@ -562,11 +567,11 @@ export default function AITutorPage() {
                       <div
                         className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-5 py-3.5 shadow-md ${
                           msg.role === "user"
-                            ? "bg-indigo-600 text-white rounded-tr-sm"
+                            ? "bg-indigo-600 !text-white rounded-tr-sm"
                             : "bg-slate-800 text-slate-200 rounded-tl-sm border border-slate-700"
                         }`}
                       >
-                        {renderMarkdownMessage(msg.content)}
+                        {renderMarkdownMessage(msg.content, msg.role)}
                       </div>
                     </div>
                   ))}
