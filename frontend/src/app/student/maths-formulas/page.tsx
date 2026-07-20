@@ -38,12 +38,92 @@ const getCategoryColor = (catId: string) => {
 
 import { FormulaSandboxLoader } from "@/components/MathSandboxes";
 
+const FormulaQuizSection = ({ formulas }: { formulas: SamacheerFormula[] }) => {
+  const [currentQuiz, setCurrentQuiz] = useState<any>(null);
+  const [score, setScore] = useState(0);
+  const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
+
+  const generateQuiz = React.useCallback(() => {
+    if (!formulas || formulas.length === 0) return;
+    const formulaObj = formulas[Math.floor(Math.random() * formulas.length)];
+    
+    const tokens = formulaObj.formula.split(/\s+/).filter((t: string) => !['=', '×', '+', '-', '/', ':', '::', '(', ')'].includes(t.trim()));
+    let answer = tokens[Math.floor(Math.random() * tokens.length)] || formulaObj.formula;
+    
+    const questionStr = formulaObj.formula.replace(answer, "_____");
+    
+    const allTokens = formulas.flatMap((f: any) => f.formula.split(/\s+/).filter((t: string) => !['=', '×', '+', '-', '/', ':', '::', '(', ')'].includes(t.trim())));
+    const uniqueTokens = Array.from(new Set(allTokens)).filter(t => t !== answer);
+    
+    uniqueTokens.sort(() => Math.random() - 0.5);
+    const distractors = uniqueTokens.slice(0, 3);
+    while(distractors.length < 3) distractors.push(String(Math.floor(Math.random()*10)));
+    
+    const options = [answer, ...distractors].sort(() => Math.random() - 0.5);
+    
+    setCurrentQuiz({ formulaObj, questionStr, answer, options });
+    setFeedback(null);
+  }, [formulas]);
+
+  useEffect(() => {
+    generateQuiz();
+  }, [generateQuiz]);
+
+  if (!currentQuiz) return null;
+
+  return (
+    <div className="mt-12 bg-indigo-900 rounded-[2.5rem] p-8 border-4 border-indigo-700 shadow-2xl relative overflow-hidden">
+       <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl"></div>
+       <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
+         <div className="flex-1 text-white">
+           <div className="flex items-center gap-2 text-indigo-300 font-black tracking-widest text-sm uppercase mb-2">
+             <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+             Fill in the Blanks
+           </div>
+           <h2 className="text-3xl font-black mb-4 leading-tight">{currentQuiz.formulaObj.title.en}</h2>
+           <div className="bg-white/10 border-2 border-white/20 p-6 rounded-2xl text-center backdrop-blur-md">
+             <span className="font-mono text-4xl font-black text-yellow-300 drop-shadow-md">
+               {currentQuiz.questionStr}
+             </span>
+           </div>
+           {feedback === "correct" && <div className="text-emerald-400 font-black mt-4 animate-bounce">Great Job! +10 Points 🌟</div>}
+           {feedback === "wrong" && <div className="text-rose-400 font-black mt-4 animate-pulse">Oops! Try again! 🤔</div>}
+         </div>
+         <div className="flex-1 w-full flex flex-col gap-3">
+           <div className="text-right text-indigo-300 font-black mb-2">Score: <span className="text-white text-xl">{score}</span></div>
+           <div className="grid grid-cols-2 gap-3">
+             {currentQuiz.options.map((opt: string, i: number) => (
+               <button 
+                 key={i} 
+                 onClick={() => {
+                   if (opt === currentQuiz.answer) {
+                     setFeedback("correct");
+                     setScore(s => s + 10);
+                     setTimeout(generateQuiz, 1500);
+                   } else {
+                     setFeedback("wrong");
+                   }
+                 }}
+                 disabled={feedback === "correct"}
+                 className="p-4 bg-white hover:bg-indigo-50 text-indigo-900 font-mono font-black text-xl rounded-2xl shadow-lg border-b-4 border-indigo-200 active:border-b-0 active:translate-y-1 transition-all"
+               >
+                 {opt}
+               </button>
+             ))}
+           </div>
+           <button onClick={generateQuiz} className="mt-4 text-indigo-300 hover:text-white font-bold text-sm underline text-right">Skip Question</button>
+         </div>
+       </div>
+    </div>
+  );
+};
+
 
 export default function MathsFormulasPage() {
   const { data: session } = useSession();
   const [activeCat, setActiveCat] = useState("all");
   const [activeStandard, setActiveStandard] = useState("6");
-  const [activeTerm, setActiveTerm] = useState("3");
+  const [activeTerm, setActiveTerm] = useState("all");
   const [lang, setLang] = useState<"en" | "ta">("en");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -195,6 +275,8 @@ export default function MathsFormulasPage() {
                   className="appearance-none bg-white dark:bg-slate-900 border-4 border-indigo-100 dark:border-slate-700 text-indigo-900 dark:text-indigo-100 rounded-2xl py-3 pl-10 pr-8 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all shadow-sm cursor-pointer"
                 >
                   <option value="6">Standard 6</option>
+                  <option value="7">Standard 7</option>
+                  <option value="8">Standard 8</option>
                 </select>
               </div>
 
@@ -352,6 +434,11 @@ export default function MathsFormulasPage() {
             </div>
           )}
         </div>
+
+        {/* Fill in the Blanks Section */}
+        {filteredFormulas.length > 0 && (
+          <FormulaQuizSection formulas={filteredFormulas} />
+        )}
 
       </div>
 
