@@ -45,6 +45,10 @@ export default function HomeworkPage() {
   const [loadingSubs, setLoadingSubs] = useState(false);
   const [teacherClasses, setTeacherClasses] = useState<any[]>([]);
 
+  // Filtering state for Class and Section
+  const [activeClass, setActiveClass] = useState<string>("All");
+  const [activeSection, setActiveSection] = useState<string>("All");
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -354,8 +358,30 @@ export default function HomeworkPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const activeAssignments = assignments.filter((a) => a.status === activeTab);
-  const selectedHw = assignments.find((a) => a.id === selectedHwId) || assignments[0];
+  const activeAssignments = assignments.filter((a) => {
+    if (a.status !== activeTab) return false;
+
+    if (activeClass !== "All") {
+      const matchedClass = teacherClasses.find(tc => {
+        const fullClass = `${tc.className}${tc.section} - ${tc.subject}`;
+        const baseClass = `${tc.className}${tc.section}`;
+        return a.className === fullClass || a.className === baseClass;
+      });
+
+      if (!matchedClass) return false;
+      if (matchedClass.className !== activeClass) return false;
+      if (activeSection !== "All" && matchedClass.section !== activeSection) return false;
+    }
+
+    return true;
+  });
+
+  const selectedHw = activeAssignments.find((a) => a.id === selectedHwId) || activeAssignments[0];
+
+  const uniqueClasses = ["All", ...Array.from(new Set(teacherClasses.map(c => c.className)))];
+  const uniqueSections = activeClass === "All" 
+    ? [] 
+    : ["All", ...Array.from(new Set(teacherClasses.filter(c => c.className === activeClass).map(c => c.section)))];
 
   return (
     <PortalLayout
@@ -396,6 +422,54 @@ export default function HomeworkPage() {
             <Plus className="w-4 h-4 inline-block mr-1 text-inherit" /> Create Assignment
           </button>
         </div>
+
+        {/* Class and Section Tabs */}
+        {teacherClasses.length > 0 && (
+          <div className="flex flex-col gap-3 bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border)]">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-semibold text-[var(--text-muted)] w-16">Class:</span>
+              <div className="flex flex-wrap gap-2">
+                {uniqueClasses.map((cls) => (
+                  <button
+                    key={cls}
+                    onClick={() => {
+                      setActiveClass(cls);
+                      setActiveSection("All");
+                    }}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      activeClass === cls 
+                        ? "bg-[var(--primary)] text-white shadow-sm font-bold" 
+                        : "bg-[var(--bg-main)] text-[var(--text-muted)] hover:text-[var(--text-heading)] border border-[var(--border)]"
+                    }`}
+                  >
+                    {cls === "All" ? "All Classes" : `Class ${cls}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {activeClass !== "All" && uniqueSections.length > 1 && (
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-semibold text-[var(--text-muted)] w-16">Section:</span>
+                <div className="flex flex-wrap gap-2">
+                  {uniqueSections.map((sec) => (
+                    <button
+                      key={sec}
+                      onClick={() => setActiveSection(sec)}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        activeSection === sec 
+                          ? "bg-slate-700 text-white shadow-sm font-bold" 
+                          : "bg-[var(--bg-main)] text-[var(--text-muted)] hover:text-[var(--text-heading)] border border-[var(--border)]"
+                      }`}
+                    >
+                      {sec === "All" ? "All Sections" : `Section ${sec}`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {loading ? (
           <div className="text-center py-12 text-xs text-[var(--text-muted)]">Loading homework dashboard...</div>
