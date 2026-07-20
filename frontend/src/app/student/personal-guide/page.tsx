@@ -525,7 +525,7 @@ export default function StudentPersonalGuidePage() {
                 <div className="space-y-4">
                   {currentTasks.map((task) => {
                     const statusCfg = getStatusConfig(lang);
-                    const cfg = statusCfg[task.status] || statusCfg.pending;
+                    const cfg = statusCfg[task.status as keyof typeof statusCfg] || statusCfg.pending;
                     const isExp = expandedId === task._id;
                     const hasRes = !!task.response;
 
