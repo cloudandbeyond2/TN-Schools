@@ -1,5 +1,5 @@
 "use client";
-import { CheckCircle, Plus, Zap, Edit, Bell, Clipboard, X } from "lucide-react";
+import { CheckCircle, Plus, Zap, Edit, Bell, Clipboard, X, Trash } from "lucide-react";
 
 
 import React, { useState, useEffect } from "react";
@@ -198,6 +198,42 @@ export default function HomeworkPage() {
       });
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleDeleteHomework = async (id: string, title: string) => {
+    const { isConfirmed } = await Swal.fire({
+      title: 'Are you sure?',
+      text: `Do you really want to delete "${title}"? This action cannot be undone and will remove it for students too.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (isConfirmed) {
+      try {
+        const res = await fetch(`${API_URL}/api/teacher/homework/${id}`, {
+          method: 'DELETE',
+        });
+        const result = await res.json();
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'The assignment has been deleted.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          fetchHomework();
+        } else {
+          Swal.fire('Error', result.error || 'Failed to delete homework.', 'error');
+        }
+      } catch (err) {
+        console.error('Error deleting homework:', err);
+        Swal.fire('Error', 'An unexpected error occurred.', 'error');
+      }
     }
   };
 
@@ -532,14 +568,22 @@ export default function HomeworkPage() {
                       <p className="text-xs text-[var(--text-muted)] mt-1">{selectedHw.className} · Due on {selectedHw.dueDate}</p>
                     </div>
                     
-                    {selectedHw.status === "active" && (
+                    <div className="flex gap-2">
+                      {selectedHw.status === "active" && (
+                        <button
+                          onClick={handleSendReminder}
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-amber-400 border border-[var(--primary)]/20 hover:bg-[var(--primary)]/10 transition-all flex items-center gap-1.5"
+                        >
+                          <span><Bell className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Send Parent Reminders
+                        </button>
+                      )}
                       <button
-                        onClick={handleSendReminder}
-                        className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-amber-400 border border-[var(--primary)]/20 hover:bg-[var(--primary)]/10 transition-all flex items-center gap-1.5"
+                        onClick={() => handleDeleteHomework(selectedHw.id, selectedHw.title)}
+                        className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-red-500 border border-red-500/20 hover:bg-red-500/10 transition-all flex items-center gap-1.5"
                       >
-                        <span><Bell className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Send Parent Reminders
+                        <span><Trash className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Delete
                       </button>
-                    )}
+                    </div>
                   </div>
 
                   <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] border border-[var(--border)] rounded-xl text-xs text-slate-350 leading-relaxed whitespace-pre-wrap">
