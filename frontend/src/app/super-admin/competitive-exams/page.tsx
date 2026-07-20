@@ -18,6 +18,7 @@ interface SimulatedQuestion {
   options: string[];
   answer: string;
   rationale: string;
+  correctOptionIndex?: number;
 }
 
 const REALTIME_QUESTIONS: Record<string, SimulatedQuestion[]> = {
@@ -124,6 +125,7 @@ interface QuizItem {
   durationMinutes: number;
   difficulty: "Easy" | "Medium" | "Hard";
   submissions: number;
+  questions?: SimulatedQuestion[];
 }
 
 interface MockTestItem {
@@ -132,6 +134,7 @@ interface MockTestItem {
   questionsCount: number;
   durationHours: number;
   registeredCount: number;
+  questions?: SimulatedQuestion[];
 }
 
 interface ExamDetail {
@@ -333,6 +336,9 @@ export default function SuperAdminCompetitiveExams() {
 
   // Page States for Dynamic Forms & Modifications
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterSubject, setFilterSubject] = useState<string>("All");
+  const [filterWeightage, setFilterWeightage] = useState<string>("All");
+  const [filterDifficulty, setFilterDifficulty] = useState<string>("All");
   const [db, setDb] = useState<Record<string, ExamDetail>>(EXAMS_DATABASE);
   const [categories, setCategories] = useState(INITIAL_CATEGORIES);
 
@@ -348,6 +354,8 @@ export default function SuperAdminCompetitiveExams() {
   const [pdfParseStep, setPdfParseStep] = useState(0);
   const [pdfParseLogs, setPdfParseLogs] = useState<string[]>([]);
   const [parsedSyllabusResult, setParsedSyllabusResult] = useState<SyllabusSubject[] | null>(null);
+  const [pendingModalPdf, setPendingModalPdf] = useState<{ type: string; url: string; name: string } | null>(null);
+
 
   // High-Fidelity Custom React Modal States
   const [customConfirmModal, setCustomConfirmModal] = useState<{
@@ -385,6 +393,14 @@ export default function SuperAdminCompetitiveExams() {
   // Sync state modifications to the backend PostgreSQL database
   const syncExamToDb = async (examId: string, updatedExam: ExamDetail) => {
     try {
+      // Structure payload so PostgreSQL Json column stores syllabus, topics, quizzes (with custom questions & options), and mocks
+      const syllabusPayload = {
+        data: updatedExam.syllabus,
+        topics: updatedExam.topics || [],
+        quizzes: updatedExam.quizzes || [],
+        mocks: updatedExam.mocks || []
+      };
+
       await fetch(`${API_URL}/api/competitive-exams/${examId}`, {
         method: "PUT",
         headers: {
@@ -398,7 +414,7 @@ export default function SuperAdminCompetitiveExams() {
           examDate: updatedExam.examDate,
           eligibility: updatedExam.eligibility,
           website: updatedExam.website,
-          syllabus: updatedExam.syllabus
+          syllabus: syllabusPayload
         })
       });
     } catch (err) {
@@ -416,15 +432,6 @@ export default function SuperAdminCompetitiveExams() {
     }
 
     const newSyllabus = updater(exam.syllabus);
-    if (Array.isArray(newSyllabus)) {
-      console.log("Syllabus updater completed. Subject count:", newSyllabus.length);
-      newSyllabus.forEach((sub, sIdx) => {
-        console.log(`Subject[${sub?.name}] chapter count: Old = ${exam.syllabus?.[sIdx]?.chapters?.length}, New = ${sub?.chapters?.length}`);
-      });
-    } else {
-      console.log("Syllabus updater completed. Custom syllabus object:", newSyllabus);
-    }
-
     const updatedExam = { ...exam, syllabus: newSyllabus };
 
     // Update frontend state
@@ -454,6 +461,28 @@ export default function SuperAdminCompetitiveExams() {
             );
             const fallback = fallbackKey ? EXAMS_DATABASE[fallbackKey] : null;
 
+            let rawSyllabus = item.syllabus;
+            let syllabusVal = rawSyllabus !== null && rawSyllabus !== undefined ? rawSyllabus : (fallback?.syllabus || []);
+            let topicsVal = fallback?.topics || [];
+            let quizzesVal = fallback?.quizzes || [];
+            let mocksVal = fallback?.mocks || [];
+
+            // Unpack DB-persisted structured payload if stored as object { data, topics, quizzes, mocks }
+            if (rawSyllabus && typeof rawSyllabus === "object" && !Array.isArray(rawSyllabus)) {
+              if ("data" in rawSyllabus) {
+                syllabusVal = rawSyllabus.data;
+              }
+              if ("topics" in rawSyllabus && Array.isArray(rawSyllabus.topics) && rawSyllabus.topics.length > 0) {
+                topicsVal = rawSyllabus.topics;
+              }
+              if ("quizzes" in rawSyllabus && Array.isArray(rawSyllabus.quizzes) && rawSyllabus.quizzes.length > 0) {
+                quizzesVal = rawSyllabus.quizzes;
+              }
+              if ("mocks" in rawSyllabus && Array.isArray(rawSyllabus.mocks) && rawSyllabus.mocks.length > 0) {
+                mocksVal = rawSyllabus.mocks;
+              }
+            }
+
             mappedDb[item.id] = {
               id: item.id,
               name: item.examName,
@@ -466,12 +495,10 @@ export default function SuperAdminCompetitiveExams() {
               website: item.website || "",
               examDate: item.examDate,
               regDeadline: item.registrationDeadline,
-              syllabus: (item.syllabus !== null && item.syllabus !== undefined)
-                ? item.syllabus
-                : (fallback?.syllabus || []),
-              topics: fallback?.topics || [],
-              quizzes: fallback?.quizzes || [],
-              mocks: fallback?.mocks || []
+              syllabus: syllabusVal,
+              topics: topicsVal,
+              quizzes: quizzesVal,
+              mocks: mocksVal
             };
           });
 
@@ -532,6 +559,8 @@ export default function SuperAdminCompetitiveExams() {
     questionsCount: number;
     durationMinutes: number;
     difficulty: "Easy" | "Medium" | "Hard";
+    questions: SimulatedQuestion[];
+    activeModalTab: "config" | "questions";
   } | null>(null);
 
   const [mockModal, setMockModal] = useState<{
@@ -540,6 +569,8 @@ export default function SuperAdminCompetitiveExams() {
     title: string;
     questionsCount: number;
     durationHours: number;
+    questions: SimulatedQuestion[];
+    activeModalTab: "config" | "questions";
   } | null>(null);
 
   // Modal / Form input states
@@ -585,15 +616,17 @@ export default function SuperAdminCompetitiveExams() {
   };
 
   // Launch Play & Attempt mode
-  const startAttempt = (id: string, type: "quiz" | "mock", title: string, category: string) => {
-    const isMedical = category === "Medical" || title.toLowerCase().includes("neet") || title.toLowerCase().includes("biology") || title.toLowerCase().includes("anatomy");
-    const isEngineering = category === "Engineering" || title.toLowerCase().includes("jee") || title.toLowerCase().includes("physics") || title.toLowerCase().includes("math") || title.toLowerCase().includes("calculus");
-    
-    let questions = REALTIME_QUESTIONS.general;
-    if (isMedical) {
-      questions = REALTIME_QUESTIONS.medical;
-    } else if (isEngineering) {
-      questions = REALTIME_QUESTIONS.engineering;
+  const startAttempt = (id: string, type: "quiz" | "mock", title: string, category: string, customQuestions?: SimulatedQuestion[]) => {
+    let questions = customQuestions && customQuestions.length > 0 ? customQuestions : REALTIME_QUESTIONS.general;
+    if (!customQuestions || customQuestions.length === 0) {
+      const isMedical = category === "Medical" || title.toLowerCase().includes("neet") || title.toLowerCase().includes("biology") || title.toLowerCase().includes("anatomy");
+      const isEngineering = category === "Engineering" || title.toLowerCase().includes("jee") || title.toLowerCase().includes("physics") || title.toLowerCase().includes("math") || title.toLowerCase().includes("calculus");
+      
+      if (isMedical) {
+        questions = REALTIME_QUESTIONS.medical;
+      } else if (isEngineering) {
+        questions = REALTIME_QUESTIONS.engineering;
+      }
     }
 
     setAttemptingItem({ id, type, title, questions });
@@ -691,13 +724,88 @@ export default function SuperAdminCompetitiveExams() {
     return Object.values(db).filter(exam => exam.category === selectedCategory);
   }, [db, selectedCategory]);
 
-  // Topic search filter
+  // Topic search & category filter
   const filteredTopics = useMemo(() => {
-    return currentExam.topics.filter(topic => 
-      topic.conceptName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      topic.subject.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [currentExam.topics, searchQuery]);
+    return (currentExam.topics || []).filter(topic => {
+      const matchesSearch = topic.conceptName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            topic.subject.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSubject = filterSubject === "All" || topic.subject === filterSubject;
+      const matchesWeightage = filterWeightage === "All" || topic.weightage === filterWeightage;
+      return matchesSearch && matchesSubject && matchesWeightage;
+    });
+  }, [currentExam.topics, searchQuery, filterSubject, filterWeightage]);
+
+  // Quizzes & Mocks filters
+  const filteredQuizzes = useMemo(() => {
+    return (currentExam.quizzes || []).filter(quiz => {
+      const matchesDifficulty = filterDifficulty === "All" || quiz.difficulty === filterDifficulty;
+      const matchesSubject = filterSubject === "All" || quiz.subject === filterSubject;
+      return matchesDifficulty && matchesSubject;
+    });
+  }, [currentExam.quizzes, filterDifficulty, filterSubject]);
+
+  const filteredMocks = useMemo(() => {
+    return (currentExam.mocks || []).filter(mock => {
+      return searchQuery === "" || mock.title.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }, [currentExam.mocks, searchQuery]);
+
+  // Delete concept topic
+  const handleDeleteTopic = (topicId: string) => {
+    setCustomConfirmModal({
+      title: "Delete Concept Topic?",
+      text: "Are you sure you want to remove this concept topic from the matrix?",
+      onConfirm: () => {
+        const current = db[selectedExamId];
+        if (!current) return;
+        const updated = {
+          ...current,
+          topics: (current.topics || []).filter(t => t.id !== topicId)
+        };
+        setDb(prev => ({ ...prev, [selectedExamId]: updated }));
+        syncExamToDb(selectedExamId, updated);
+        showToast("Concept topic deleted");
+      }
+    });
+  };
+
+  // Delete quiz blueprint
+  const handleDeleteQuiz = (quizId: string) => {
+    setCustomConfirmModal({
+      title: "Delete Quiz Blueprint?",
+      text: "Are you sure you want to remove this practice quiz blueprint?",
+      onConfirm: () => {
+        const current = db[selectedExamId];
+        if (!current) return;
+        const updated = {
+          ...current,
+          quizzes: (current.quizzes || []).filter(q => q.id !== quizId)
+        };
+        setDb(prev => ({ ...prev, [selectedExamId]: updated }));
+        syncExamToDb(selectedExamId, updated);
+        showToast("Quiz blueprint deleted");
+      }
+    });
+  };
+
+  // Delete mock exam
+  const handleDeleteMock = (mockId: string) => {
+    setCustomConfirmModal({
+      title: "Delete Mock Exam?",
+      text: "Are you sure you want to remove this mock exam series?",
+      onConfirm: () => {
+        const current = db[selectedExamId];
+        if (!current) return;
+        const updated = {
+          ...current,
+          mocks: (current.mocks || []).filter(m => m.id !== mockId)
+        };
+        setDb(prev => ({ ...prev, [selectedExamId]: updated }));
+        syncExamToDb(selectedExamId, updated);
+        showToast("Mock exam deleted");
+      }
+    });
+  };
 
   // Score Calculator derived metrics
   const totalScore = physicsScore + chemistryScore + biologyScore;
@@ -717,13 +825,16 @@ export default function SuperAdminCompetitiveExams() {
 
   // Toggle active status of a concept topic
   const handleToggleTopicActive = (topicId: string) => {
-    setDb(prev => {
-      const updatedExam = { ...prev[selectedExamId] };
-      updatedExam.topics = updatedExam.topics.map(topic => 
+    const current = db[selectedExamId];
+    if (!current) return;
+    const updatedExam = {
+      ...current,
+      topics: (current.topics || []).map(topic => 
         topic.id === topicId ? { ...topic, active: !topic.active } : topic
-      );
-      return { ...prev, [selectedExamId]: updatedExam };
-    });
+      )
+    };
+    setDb(prev => ({ ...prev, [selectedExamId]: updatedExam }));
+    syncExamToDb(selectedExamId, updatedExam);
   };
 
   // Update pyq count / weightage
@@ -937,17 +1048,33 @@ export default function SuperAdminCompetitiveExams() {
           {view === "details" && (
             <>
               <button
-                onClick={() => setExamModal({
-                  mode: "edit",
-                  id: currentExam.id,
-                  name: currentExam.name,
-                  fullName: currentExam.fullName,
-                  conductedBy: currentExam.conductedBy,
-                  eligibility: currentExam.eligibility,
-                  website: currentExam.website,
-                  examDate: currentExam.examDate,
-                  regDeadline: currentExam.regDeadline
-                })}
+                onClick={() => {
+                  if (currentExam.name.toLowerCase().includes("neet")) {
+                    setActiveNEETSubTab("syllabus");
+                  } else {
+                    setActiveTab("syllabus");
+                  }
+                  setShowPdfUploader(true);
+                }}
+                className="flex items-center gap-1.5 bg-pink-600 hover:bg-pink-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-lg active:scale-95"
+              >
+                <FileText className="w-3.5 h-3.5" /> {isPdfSyllabus ? "Change Syllabus PDF" : "Upload Syllabus PDF"}
+              </button>
+              <button
+                onClick={() => {
+                  setPendingModalPdf(null);
+                  setExamModal({
+                    mode: "edit",
+                    id: currentExam.id,
+                    name: currentExam.name,
+                    fullName: currentExam.fullName,
+                    conductedBy: currentExam.conductedBy,
+                    eligibility: currentExam.eligibility,
+                    website: currentExam.website,
+                    examDate: currentExam.examDate,
+                    regDeadline: currentExam.regDeadline
+                  });
+                }}
                 className="flex items-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-main)] hover:text-[var(--text-heading)] px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
               >
                 <Edit2 className="w-3.5 h-3.5" /> Edit Exam Details
@@ -1148,6 +1275,27 @@ export default function SuperAdminCompetitiveExams() {
                       className="flex-1 text-center bg-violet-600 hover:bg-violet-500 text-white font-extrabold text-xs py-2.5 rounded-xl transition shadow-lg active:scale-95"
                     >
                       Configure Exam Dashboard
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedExamId(examItem.id);
+                        setView("details");
+                        if (examItem.name.toLowerCase().includes("neet")) {
+                          setActiveNEETSubTab("syllabus");
+                        } else {
+                          setActiveTab("syllabus");
+                        }
+                        setShowPdfUploader(true);
+                      }}
+                      className={`px-3 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1 transition-all ${
+                        examItem.syllabus && !Array.isArray(examItem.syllabus) && (examItem.syllabus as any).type === "pdf"
+                          ? "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                          : "bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/20"
+                      }`}
+                      title={examItem.syllabus && !Array.isArray(examItem.syllabus) && (examItem.syllabus as any).type === "pdf" ? "PDF Syllabus Linked" : "Upload Syllabus PDF"}
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>{examItem.syllabus && !Array.isArray(examItem.syllabus) && (examItem.syllabus as any).type === "pdf" ? "PDF" : "Upload"}</span>
                     </button>
                   </div>
                 </div>
@@ -1356,6 +1504,14 @@ export default function SuperAdminCompetitiveExams() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
+                          <a
+                            href={`${API_URL}${(currentExam.syllabus as any).url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-[var(--bg-main)] border border-[var(--border)] text-[var(--text-main)] hover:text-[var(--text-heading)] text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition shadow-sm"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" /> Open in New Tab
+                          </a>
                           <button
                             onClick={() => setShowPdfUploader(true)}
                             className="bg-pink-600 hover:bg-pink-550 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-lg active:scale-95 animate-pulse"
@@ -1506,55 +1662,217 @@ export default function SuperAdminCompetitiveExams() {
 
               {/* SubTab 3: Concept Matrix Table */}
               {activeNEETSubTab === "topics" && (
-                <div className="space-y-4 text-left">
-                  <div className="flex justify-between items-center flex-wrap gap-2">
-                    <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider">Concept Alignment Matrix</h4>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
-                      <input
-                        type="text"
-                        placeholder="Search concepts..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-pink-500 w-56 shadow-sm"
-                      />
+                <div className="space-y-6 text-left animate-in fade-in duration-200">
+                  
+                  {/* High-Yield PYQ Heatmap & Distribution Banner */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-gradient-to-br from-pink-500/10 to-rose-600/10 border border-pink-500/20 p-4 rounded-2xl">
+                      <div className="flex justify-between items-center text-pink-600 mb-1">
+                        <span className="text-[10px] uppercase font-black tracking-wider">Total PYQs Tracked</span>
+                        <Zap className="w-4 h-4 text-pink-500" />
+                      </div>
+                      <div className="text-2xl font-black text-[var(--text-heading)]">
+                        {currentExam.topics.reduce((acc, t) => acc + (t.pyqQuestions || 0), 0)}
+                      </div>
+                      <div className="text-[10px] text-[var(--text-muted)] mt-1 font-bold">Past 10 Years Questions</div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-amber-500/10 to-orange-600/10 border border-amber-500/20 p-4 rounded-2xl">
+                      <div className="flex justify-between items-center text-amber-600 mb-1">
+                        <span className="text-[10px] uppercase font-black tracking-wider">High Weightage Ratio</span>
+                        <span className="text-sm">🔥</span>
+                      </div>
+                      <div className="text-2xl font-black text-amber-500">
+                        {currentExam.topics.filter(t => t.weightage === "High").length} / {currentExam.topics.length}
+                      </div>
+                      <div className="text-[10px] text-[var(--text-muted)] mt-1 font-bold">Priority Target Concepts</div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-emerald-500/10 to-teal-600/10 border border-emerald-500/20 p-4 rounded-2xl">
+                      <div className="flex justify-between items-center text-emerald-600 mb-1">
+                        <span className="text-[10px] uppercase font-black tracking-wider">Study Material Units</span>
+                        <BookOpen className="w-4 h-4 text-emerald-500" />
+                      </div>
+                      <div className="text-2xl font-black text-emerald-500">
+                        {currentExam.topics.reduce((acc, t) => acc + (t.studyMaterials?.pdfs || 0) + (t.studyMaterials?.videos || 0), 0)}
+                      </div>
+                      <div className="text-[10px] text-[var(--text-muted)] mt-1 font-bold">PDF Notes & Video Modules</div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-blue-500/10 to-indigo-600/10 border border-blue-500/20 p-4 rounded-2xl">
+                      <div className="flex justify-between items-center text-blue-600 mb-1">
+                        <span className="text-[10px] uppercase font-black tracking-wider">Active Alignment</span>
+                        <CheckCircle className="w-4 h-4 text-blue-500" />
+                      </div>
+                      <div className="text-2xl font-black text-blue-500">
+                        {currentExam.topics.length > 0 ? Math.round((currentExam.topics.filter(t => t.active).length / currentExam.topics.length) * 100) : 0}%
+                      </div>
+                      <div className="text-[10px] text-[var(--text-muted)] mt-1 font-bold">Student Visibility Coverage</div>
                     </div>
                   </div>
 
+                  {/* Filter & Action Toolbar */}
+                  <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 flex justify-between items-center flex-wrap gap-3 shadow-sm">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+                        <input
+                          type="text"
+                          placeholder="Search concepts..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-pink-500 w-52 shadow-sm font-bold"
+                        />
+                      </div>
+
+                      <select
+                        value={filterSubject}
+                        onChange={(e) => setFilterSubject(e.target.value)}
+                        className="bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-pink-500"
+                      >
+                        <option value="All">All Subjects</option>
+                        <option value="Biology">Biology</option>
+                        <option value="Chemistry">Chemistry</option>
+                        <option value="Physics">Physics</option>
+                        <option value="Mathematics">Mathematics</option>
+                      </select>
+
+                      <select
+                        value={filterWeightage}
+                        onChange={(e) => setFilterWeightage(e.target.value)}
+                        className="bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-pink-500"
+                      >
+                        <option value="All">All Weightages</option>
+                        <option value="High">🔥 High Weightage</option>
+                        <option value="Medium">⚡ Medium Weightage</option>
+                        <option value="Low">❄️ Low Weightage</option>
+                      </select>
+                    </div>
+
+                    <button
+                      onClick={() => setTopicModal({ mode: "create", id: "", subject: "Biology", conceptName: "", weightage: "High", pyqQuestions: 25 })}
+                      className="bg-pink-600 hover:bg-pink-500 text-white font-extrabold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 transition shadow-md active:scale-95"
+                    >
+                      <Plus className="w-4 h-4" /> Add Concept Topic
+                    </button>
+                  </div>
+
+                  {/* Rich Concept Matrix Table */}
                   <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden shadow-sm">
                     <table className="w-full text-xs text-left">
                       <thead>
                         <tr className="bg-[var(--bg-main)] text-[var(--text-muted)] font-bold uppercase tracking-wider text-[9px] border-b border-[var(--border)]">
-                          <th className="p-4">Concept Name</th>
+                          <th className="p-4">Concept Topic</th>
                           <th className="p-4">Subject</th>
-                          <th className="p-4">PYQ Weight</th>
-                          <th className="p-4 text-center">PYQs Asked</th>
+                          <th className="p-4">PYQ Weightage</th>
+                          <th className="p-4">PYQ Frequency Heat</th>
+                          <th className="p-4 text-center">Study Materials</th>
                           <th className="p-4 text-center">Visibility</th>
+                          <th className="p-4 text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[var(--border)] text-[var(--text-main)]">
-                        {filteredTopics.map((topic) => (
-                          <tr key={topic.id} className="hover:bg-[var(--bg-main)] transition-colors">
-                            <td className="p-4 font-bold text-[var(--text-heading)]">{topic.conceptName}</td>
-                            <td className="p-4">{topic.subject}</td>
-                            <td className="p-4">
-                              <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                                topic.weightage === "High" ? "bg-red-500/10 text-red-500" : "bg-amber-500/10 text-amber-500"
-                              }`}>{topic.weightage}</span>
-                            </td>
-                            <td className="p-4 text-center font-bold text-[var(--text-heading)]">{topic.pyqQuestions}</td>
-                            <td className="p-4 text-center">
-                              <button
-                                onClick={() => handleToggleTopicActive(topic.id)}
-                                className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded border ${
-                                  topic.active ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"
-                                }`}
-                              >
-                                {topic.active ? "Active" : "Hidden"}
-                              </button>
+                        {filteredTopics.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="p-8 text-center text-[var(--text-muted)] font-bold">
+                              No concepts found matching your filters.
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          filteredTopics.map((topic) => {
+                            const maxPyqs = Math.max(...currentExam.topics.map(t => t.pyqQuestions), 50);
+                            const heatPercent = Math.min(Math.round((topic.pyqQuestions / maxPyqs) * 100), 100);
+
+                            return (
+                              <tr key={topic.id} className="hover:bg-[var(--bg-main)] transition-colors">
+                                <td className="p-4 font-bold text-[var(--text-heading)]">
+                                  <div className="text-xs">{topic.conceptName}</div>
+                                </td>
+                                <td className="p-4">
+                                  <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-lg border ${
+                                    topic.subject === "Biology" ? "bg-pink-500/10 text-pink-500 border-pink-500/20" :
+                                    topic.subject === "Chemistry" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
+                                    "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                                  }`}>
+                                    {topic.subject}
+                                  </span>
+                                </td>
+                                <td className="p-4">
+                                  <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md inline-flex items-center gap-1 ${
+                                    topic.weightage === "High" ? "bg-red-500/10 text-red-500" :
+                                    topic.weightage === "Medium" ? "bg-amber-500/10 text-amber-500" :
+                                    "bg-slate-500/10 text-slate-500"
+                                  }`}>
+                                    {topic.weightage === "High" ? "🔥 High" : topic.weightage === "Medium" ? "⚡ Medium" : "❄️ Low"}
+                                  </span>
+                                </td>
+                                <td className="p-4">
+                                  <div className="space-y-1 min-w-[140px]">
+                                    <div className="flex justify-between text-[10px] font-bold">
+                                      <span>{topic.pyqQuestions} Questions</span>
+                                      <span className="text-[var(--text-muted)]">{heatPercent}%</span>
+                                    </div>
+                                    <div className="w-full bg-[var(--bg-main)] border border-[var(--border)] h-1.5 rounded-full overflow-hidden">
+                                      <div
+                                        className={`h-full rounded-full transition-all ${
+                                          topic.weightage === "High" ? "bg-gradient-to-r from-pink-500 to-rose-600" :
+                                          topic.weightage === "Medium" ? "bg-gradient-to-r from-amber-500 to-orange-500" :
+                                          "bg-slate-400"
+                                        }`}
+                                        style={{ width: `${heatPercent}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="p-4 text-center">
+                                  <div className="flex items-center justify-center gap-1.5 text-[9px] font-bold">
+                                    <span className="bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-md">
+                                      📄 {topic.studyMaterials?.pdfs || 0} PDFs
+                                    </span>
+                                    <span className="bg-purple-500/10 text-purple-500 border border-purple-500/20 px-2 py-0.5 rounded-md">
+                                      🎬 {topic.studyMaterials?.videos || 0} Videos
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="p-4 text-center">
+                                  <button
+                                    onClick={() => handleToggleTopicActive(topic.id)}
+                                    className={`inline-flex items-center gap-1 text-[9px] font-bold px-2.5 py-1 rounded-lg border transition ${
+                                      topic.active ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20"
+                                    }`}
+                                  >
+                                    {topic.active ? "Active" : "Hidden"}
+                                  </button>
+                                </td>
+                                <td className="p-4 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      onClick={() => setTopicModal({
+                                        mode: "edit",
+                                        id: topic.id,
+                                        subject: topic.subject,
+                                        conceptName: topic.conceptName,
+                                        weightage: topic.weightage,
+                                        pyqQuestions: topic.pyqQuestions
+                                      })}
+                                      className="p-1.5 text-[var(--text-muted)] hover:text-pink-500 bg-[var(--bg-main)] border border-[var(--border)] rounded-lg transition"
+                                      title="Edit Topic"
+                                    >
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteTopic(topic.id)}
+                                      className="p-1.5 text-red-500 hover:text-red-400 bg-[var(--bg-main)] border border-red-500/20 rounded-lg transition"
+                                      title="Delete Topic"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -1563,25 +1881,130 @@ export default function SuperAdminCompetitiveExams() {
 
               {/* SubTab 4: Quizzes & Mocks */}
               {activeNEETSubTab === "quizzes" && (
-                <div className="space-y-6 text-left">
+                <div className="space-y-6 text-left animate-in fade-in duration-200">
+                  
+                  {/* Practice Blueprints Overview Analytics */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-gradient-to-br from-purple-500/10 to-violet-600/10 border border-purple-500/20 p-4 rounded-2xl">
+                      <div className="flex justify-between items-center text-purple-600 mb-1">
+                        <span className="text-[10px] uppercase font-black tracking-wider">Practice Quiz Blueprints</span>
+                        <BookOpen className="w-4 h-4 text-purple-500" />
+                      </div>
+                      <div className="text-2xl font-black text-[var(--text-heading)]">{currentExam.quizzes.length} Active Drills</div>
+                      <div className="text-[10px] text-[var(--text-muted)] mt-1 font-bold">Timed Subject-Wise Challenger Quizzes</div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-pink-500/10 to-rose-600/10 border border-pink-500/20 p-4 rounded-2xl">
+                      <div className="flex justify-between items-center text-pink-600 mb-1">
+                        <span className="text-[10px] uppercase font-black tracking-wider">Full Syllabus Mock Series</span>
+                        <Trophy className="w-4 h-4 text-pink-500" />
+                      </div>
+                      <div className="text-2xl font-black text-pink-500">{currentExam.mocks.length} Full Mock Exams</div>
+                      <div className="text-[10px] text-[var(--text-muted)] mt-1 font-bold">Standard 3-Hour State Simulation Tests</div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-emerald-500/10 to-teal-600/10 border border-emerald-500/20 p-4 rounded-2xl">
+                      <div className="flex justify-between items-center text-emerald-600 mb-1">
+                        <span className="text-[10px] uppercase font-black tracking-wider">Total Student Attempts</span>
+                        <Activity className="w-4 h-4 text-emerald-500" />
+                      </div>
+                      <div className="text-2xl font-black text-emerald-500">
+                        {(currentExam.quizzes.reduce((acc, q) => acc + (q.submissions || 0), 0) + currentExam.mocks.reduce((acc, m) => acc + (m.registeredCount || 0), 0)).toLocaleString()}
+                      </div>
+                      <div className="text-[10px] text-[var(--text-muted)] mt-1 font-bold">Verified Attempt Submissions</div>
+                    </div>
+                  </div>
+
+                  {/* Toolbar */}
+                  <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 flex justify-between items-center flex-wrap gap-3 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={filterDifficulty}
+                        onChange={(e) => setFilterDifficulty(e.target.value)}
+                        className="bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-pink-500"
+                      >
+                        <option value="All">All Difficulty Levels</option>
+                        <option value="Easy">✨ Easy Sprint</option>
+                        <option value="Medium">⚡ Medium Challenge</option>
+                        <option value="Hard">🔥 Hard Blueprint</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setQuizModal({ mode: "create", id: "", title: "", subject: "Biology", questionsCount: 20, durationMinutes: 25, difficulty: "Medium", questions: [], activeModalTab: "config" })}
+                        className="bg-pink-600 hover:bg-pink-500 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition shadow-md active:scale-95"
+                      >
+                        <Plus className="w-4 h-4" /> + Create Quiz Blueprint
+                      </button>
+                      <button
+                        onClick={() => setMockModal({ mode: "create", id: "", title: "", questionsCount: 180, durationHours: 3, questions: [], activeModalTab: "config" })}
+                        className="bg-amber-500 hover:bg-amber-450 text-slate-900 font-extrabold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition shadow-md active:scale-95"
+                      >
+                        <Plus className="w-4 h-4" /> + Create Full Mock
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Active Practice Quizzes Grid */}
                   <div className="space-y-4">
-                    <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider">Active Practice Quizzes</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {currentExam.quizzes.map((quiz) => (
-                        <div key={quiz.id} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 shadow flex flex-col justify-between">
+                    <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-pink-500" /> Active Subject Practice Quizzes
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filteredQuizzes.map((quiz) => (
+                        <div key={quiz.id} className="bg-[var(--bg-card)] border border-[var(--border)] hover:border-pink-500/40 rounded-2xl p-5 shadow-sm transition-all flex flex-col justify-between group">
                           <div>
                             <div className="flex justify-between items-center mb-3">
-                              <span className="text-[9px] bg-[var(--bg-main)] text-[var(--text-main)] font-bold px-2 py-0.5 rounded border border-[var(--border)]">{quiz.subject}</span>
-                              <span className="text-[9px] font-black uppercase text-pink-500">{quiz.difficulty}</span>
+                              <span className="text-[10px] bg-[var(--bg-main)] text-[var(--text-main)] font-black px-2.5 py-1 rounded-lg border border-[var(--border)]">
+                                {quiz.subject}
+                              </span>
+                              <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                quiz.difficulty === "Hard" ? "bg-red-500/10 text-red-500" :
+                                quiz.difficulty === "Medium" ? "bg-amber-500/10 text-amber-500" :
+                                "bg-emerald-500/10 text-emerald-500"
+                              }`}>
+                                {quiz.difficulty === "Hard" ? "🔥 Hard" : quiz.difficulty === "Medium" ? "⚡ Medium" : "✨ Easy"}
+                              </span>
                             </div>
-                            <h4 className="text-sm font-bold text-[var(--text-heading)] mb-2">{quiz.title}</h4>
+                            <h4 className="text-sm font-bold text-[var(--text-heading)] mb-2 group-hover:text-pink-500 transition-colors">{quiz.title}</h4>
+                            <div className="flex items-center gap-3 text-[10px] text-[var(--text-muted)] font-bold mt-3">
+                              <span>❓ {quiz.questionsCount} MCQs</span>
+                              <span>⏱️ {quiz.durationMinutes} Mins</span>
+                              <span>👥 {quiz.submissions} Attempts</span>
+                            </div>
                           </div>
-                          <div className="mt-4 pt-2 flex items-center justify-between">
+
+                          <div className="mt-5 pt-3 border-t border-[var(--border)] flex items-center justify-between gap-2">
                             <button
-                              onClick={() => startAttempt(quiz.id, "quiz", quiz.title, "Medical")}
-                              className="flex items-center gap-1 bg-pink-500 hover:bg-pink-400 text-white font-black text-xs px-3.5 py-1.5 rounded-xl transition"
+                              onClick={() => startAttempt(quiz.id, "quiz", quiz.title, "Medical", quiz.questions)}
+                              className="flex-1 flex items-center justify-center gap-1.5 bg-pink-600 hover:bg-pink-500 text-white font-black text-xs py-2 rounded-xl transition shadow active:scale-95"
                             >
-                              <Play className="w-3 h-3 fill-white text-white" /> Attempt Quiz
+                              <Play className="w-3.5 h-3.5 fill-white text-white" /> Attempt Quiz
+                            </button>
+                            <button
+                              onClick={() => setQuizModal({
+                                mode: "edit",
+                                id: quiz.id,
+                                title: quiz.title,
+                                subject: quiz.subject,
+                                questionsCount: quiz.questionsCount,
+                                durationMinutes: quiz.durationMinutes,
+                                difficulty: quiz.difficulty,
+                                questions: quiz.questions || [],
+                                activeModalTab: "config"
+                              })}
+                              className="p-2 text-[var(--text-muted)] hover:text-[var(--text-heading)] bg-[var(--bg-main)] border border-[var(--border)] rounded-xl transition"
+                              title="Edit Quiz Blueprint"
+                            >
+                              <Settings className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteQuiz(quiz.id)}
+                              className="p-2 text-red-500 hover:text-red-400 bg-[var(--bg-main)] border border-red-500/20 rounded-xl transition"
+                              title="Delete Quiz Blueprint"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
@@ -1589,27 +2012,65 @@ export default function SuperAdminCompetitiveExams() {
                     </div>
                   </div>
 
+                  {/* Full Syllabus Mocks Grid */}
                   <div className="space-y-4 pt-4 border-t border-[var(--border)]">
-                    <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider">Full Syllabus Mocks</h4>
+                    <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider flex items-center gap-2">
+                      <Trophy className="w-4 h-4 text-amber-500" /> Full Syllabus Exam Mock Series
+                    </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {currentExam.mocks.map((test) => (
-                        <div key={test.id} className="border rounded-2xl p-5 bg-[var(--bg-card)] border-[var(--border)] flex flex-col justify-between shadow-sm">
+                      {filteredMocks.map((test) => (
+                        <div key={test.id} className="border rounded-2xl p-5 bg-[var(--bg-card)] border-[var(--border)] hover:border-amber-500/40 flex flex-col justify-between shadow-sm transition-all group">
                           <div>
-                            <h4 className="text-sm font-bold text-[var(--text-heading)] mb-2">{test.title}</h4>
-                            <span className="text-[10px] font-bold text-[var(--text-muted)]">{test.questionsCount} MCQs · {test.durationHours} Hours</span>
+                            <div className="flex justify-between items-center mb-3">
+                              <span className="text-[10px] bg-amber-500/10 text-amber-600 font-extrabold px-2.5 py-1 rounded-lg border border-amber-500/20">
+                                Full Syllabus Mock
+                              </span>
+                              <span className="text-[10px] font-bold text-[var(--text-muted)]">
+                                📍 {test.registeredCount.toLocaleString()} Students Enrolled
+                              </span>
+                            </div>
+                            <h4 className="text-sm font-black text-[var(--text-heading)] mb-2 group-hover:text-amber-500 transition-colors">{test.title}</h4>
+                            <div className="flex items-center gap-4 text-[10px] font-bold text-[var(--text-muted)] mt-3">
+                              <span>📝 {test.questionsCount} MCQs</span>
+                              <span>⏳ {test.durationHours} Hours Duration</span>
+                            </div>
                           </div>
-                          <div className="mt-4 pt-2">
+
+                          <div className="mt-5 pt-3 border-t border-[var(--border)] flex items-center justify-between gap-2">
                             <button
-                              onClick={() => startAttempt(test.id, "mock", test.title, "Medical")}
-                              className="flex items-center gap-1 bg-pink-500 hover:bg-pink-400 text-white font-black text-xs px-4 py-2 rounded-xl transition"
+                              onClick={() => startAttempt(test.id, "mock", test.title, "Medical", test.questions)}
+                              className="flex-1 flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-450 text-slate-950 font-black text-xs py-2 rounded-xl transition shadow active:scale-95"
                             >
-                              <Play className="w-3.5 h-3.5 fill-white text-white" /> Attempt Mock Test
+                              <Play className="w-3.5 h-3.5 fill-slate-950 text-slate-950" /> Attempt Mock Exam
+                            </button>
+                            <button
+                              onClick={() => setMockModal({
+                                mode: "edit",
+                                id: test.id,
+                                title: test.title,
+                                questionsCount: test.questionsCount,
+                                durationHours: test.durationHours,
+                                questions: test.questions || [],
+                                activeModalTab: "config"
+                              })}
+                              className="p-2 text-[var(--text-muted)] hover:text-[var(--text-heading)] bg-[var(--bg-main)] border border-[var(--border)] rounded-xl transition"
+                              title="Edit Mock Exam"
+                            >
+                              <Settings className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteMock(test.id)}
+                              className="p-2 text-red-500 hover:text-red-400 bg-[var(--bg-main)] border border-red-500/20 rounded-xl transition"
+                              title="Delete Mock Exam"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
+
                 </div>
               )}
 
@@ -1658,6 +2119,14 @@ export default function SuperAdminCompetitiveExams() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
+                          <a
+                            href={`${API_URL}${(currentExam.syllabus as any).url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-[var(--bg-main)] border border-[var(--border)] text-[var(--text-main)] hover:text-[var(--text-heading)] text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition shadow-sm"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" /> Open in New Tab
+                          </a>
                           <button
                             onClick={() => setShowPdfUploader(true)}
                             className="bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-lg active:scale-95 animate-pulse"
@@ -1795,73 +2264,235 @@ export default function SuperAdminCompetitiveExams() {
 
               {/* Topics Tab */}
               {activeTab === "topics" && (
-                <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden text-left">
-                  <table className="w-full text-xs text-left">
-                    <thead>
-                      <tr className="bg-[var(--bg-main)] text-[var(--text-muted)] font-bold uppercase tracking-wider border-b border-[var(--border)] text-[9px]">
-                        <th className="p-4">Concept Name</th>
-                        <th className="p-4">Subject</th>
-                        <th className="p-4">Weightage</th>
-                        <th className="p-4 text-center">PYQs Asked</th>
-                        <th className="p-4 text-center">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[var(--border)] text-[var(--text-main)]">
-                      {currentExam.topics.map((topic) => (
-                        <tr key={topic.id} className="hover:bg-[var(--bg-main)]">
-                          <td className="p-4 font-bold text-[var(--text-heading)]">{topic.conceptName}</td>
-                          <td className="p-4">{topic.subject}</td>
-                          <td className="p-4">
-                            <span className="bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded font-bold">{topic.weightage}</span>
-                          </td>
-                          <td className="p-4 text-center font-bold">{topic.pyqQuestions}</td>
-                          <td className="p-4 text-center">
-                            <span className="text-emerald-500 font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded">Mapped</span>
-                          </td>
+                <div className="space-y-6 text-left animate-in fade-in duration-200">
+                  <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 flex justify-between items-center flex-wrap gap-3 shadow-sm">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+                        <input
+                          type="text"
+                          placeholder="Search concepts..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-violet-500 w-52 shadow-sm font-bold"
+                        />
+                      </div>
+                      <select
+                        value={filterWeightage}
+                        onChange={(e) => setFilterWeightage(e.target.value)}
+                        className="bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-violet-500"
+                      >
+                        <option value="All">All Weightages</option>
+                        <option value="High">🔥 High Weightage</option>
+                        <option value="Medium">⚡ Medium Weightage</option>
+                        <option value="Low">❄️ Low Weightage</option>
+                      </select>
+                    </div>
+
+                    <button
+                      onClick={() => setTopicModal({ mode: "create", id: "", subject: currentExam.syllabus?.[0]?.name || "General", conceptName: "", weightage: "High", pyqQuestions: 20 })}
+                      className="bg-violet-600 hover:bg-violet-500 text-white font-extrabold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 transition shadow-md active:scale-95"
+                    >
+                      <Plus className="w-4 h-4" /> Add Concept Topic
+                    </button>
+                  </div>
+
+                  <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden shadow-sm">
+                    <table className="w-full text-xs text-left">
+                      <thead>
+                        <tr className="bg-[var(--bg-main)] text-[var(--text-muted)] font-bold uppercase tracking-wider text-[9px] border-b border-[var(--border)]">
+                          <th className="p-4">Concept Topic</th>
+                          <th className="p-4">Subject</th>
+                          <th className="p-4">Weightage</th>
+                          <th className="p-4 text-center">PYQs Asked</th>
+                          <th className="p-4 text-center">Visibility</th>
+                          <th className="p-4 text-right">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--border)] text-[var(--text-main)]">
+                        {filteredTopics.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-[var(--text-muted)] font-bold">
+                              No concepts registered for this exam yet.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredTopics.map((topic) => (
+                            <tr key={topic.id} className="hover:bg-[var(--bg-main)] transition-colors">
+                              <td className="p-4 font-bold text-[var(--text-heading)]">{topic.conceptName}</td>
+                              <td className="p-4">
+                                <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg border bg-violet-500/10 text-violet-600 border-violet-500/20">
+                                  {topic.subject}
+                                </span>
+                              </td>
+                              <td className="p-4">
+                                <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                  topic.weightage === "High" ? "bg-red-500/10 text-red-500" :
+                                  topic.weightage === "Medium" ? "bg-amber-500/10 text-amber-500" :
+                                  "bg-slate-500/10 text-slate-500"
+                                }`}>
+                                  {topic.weightage === "High" ? "🔥 High" : topic.weightage === "Medium" ? "⚡ Medium" : "❄️ Low"}
+                                </span>
+                              </td>
+                              <td className="p-4 text-center font-bold text-[var(--text-heading)]">{topic.pyqQuestions}</td>
+                              <td className="p-4 text-center">
+                                <button
+                                  onClick={() => handleToggleTopicActive(topic.id)}
+                                  className={`inline-flex items-center gap-1 text-[9px] font-bold px-2.5 py-1 rounded-lg border transition ${
+                                    topic.active ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"
+                                  }`}
+                                >
+                                  {topic.active ? "Active" : "Hidden"}
+                                </button>
+                              </td>
+                              <td className="p-4 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={() => setTopicModal({
+                                      mode: "edit",
+                                      id: topic.id,
+                                      subject: topic.subject,
+                                      conceptName: topic.conceptName,
+                                      weightage: topic.weightage,
+                                      pyqQuestions: topic.pyqQuestions
+                                    })}
+                                    className="p-1.5 text-[var(--text-muted)] hover:text-violet-500 bg-[var(--bg-main)] border border-[var(--border)] rounded-lg transition"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteTopic(topic.id)}
+                                    className="p-1.5 text-red-500 hover:text-red-400 bg-[var(--bg-main)] border border-red-500/20 rounded-lg transition"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
 
               {/* Quizzes Tab */}
               {activeTab === "quiz" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                  {currentExam.quizzes.map((quiz) => (
-                    <div key={quiz.id} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 shadow flex justify-between items-center">
-                      <div>
-                        <span className="text-[9px] bg-[var(--bg-main)] text-[var(--text-main)] px-2 py-0.5 rounded font-bold border border-[var(--border)]">{quiz.subject}</span>
-                        <h4 className="text-sm font-bold text-[var(--text-heading)] mt-2">{quiz.title}</h4>
+                <div className="space-y-6 text-left animate-in fade-in duration-200">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider">Practice Quiz Blueprints</h4>
+                    <button
+                      onClick={() => setQuizModal({ mode: "create", id: "", title: "", subject: currentExam.syllabus?.[0]?.name || "General", questionsCount: 15, durationMinutes: 20, difficulty: "Medium", questions: [], activeModalTab: "config" })}
+                      className="bg-violet-600 hover:bg-violet-500 text-white font-extrabold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 transition shadow-md active:scale-95"
+                    >
+                      <Plus className="w-4 h-4" /> Create Quiz Blueprint
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
+                    {filteredQuizzes.map((quiz) => (
+                      <div key={quiz.id} className="bg-[var(--bg-card)] border border-[var(--border)] hover:border-violet-500/40 rounded-2xl p-5 shadow flex flex-col justify-between group transition-all">
+                        <div>
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-[10px] bg-[var(--bg-main)] text-[var(--text-main)] font-black px-2.5 py-1 rounded-lg border border-[var(--border)]">
+                              {quiz.subject}
+                            </span>
+                            <span className="text-[9px] font-black uppercase tracking-wider text-violet-500">{quiz.difficulty}</span>
+                          </div>
+                          <h4 className="text-sm font-bold text-[var(--text-heading)] mb-2 group-hover:text-violet-500 transition-colors">{quiz.title}</h4>
+                          <div className="flex items-center gap-3 text-[10px] text-[var(--text-muted)] font-bold mt-3">
+                            <span>❓ {quiz.questionsCount} MCQs</span>
+                            <span>⏱️ {quiz.durationMinutes} Mins</span>
+                          </div>
+                        </div>
+                        <div className="mt-5 pt-3 border-t border-[var(--border)] flex items-center justify-between gap-2">
+                          <button
+                            onClick={() => startAttempt(quiz.id, "quiz", quiz.title, currentExam.category, quiz.questions)}
+                            className="flex-1 flex items-center justify-center gap-1.5 bg-violet-600 hover:bg-violet-500 text-white font-black text-xs py-2 rounded-xl transition shadow active:scale-95"
+                          >
+                            <Play className="w-3.5 h-3.5 fill-white text-white" /> Attempt Quiz
+                          </button>
+                          <button
+                            onClick={() => setQuizModal({
+                              mode: "edit",
+                              id: quiz.id,
+                              title: quiz.title,
+                              subject: quiz.subject,
+                              questionsCount: quiz.questionsCount,
+                              durationMinutes: quiz.durationMinutes,
+                              difficulty: quiz.difficulty,
+                              questions: quiz.questions || [],
+                              activeModalTab: "config"
+                            })}
+                            className="p-2 text-[var(--text-muted)] hover:text-[var(--text-heading)] bg-[var(--bg-main)] border border-[var(--border)] rounded-xl transition"
+                          >
+                            <Settings className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteQuiz(quiz.id)}
+                            className="p-2 text-red-500 hover:text-red-400 bg-[var(--bg-main)] border border-red-500/20 rounded-xl transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => startAttempt(quiz.id, "quiz", quiz.title, currentExam.category)}
-                        className="bg-violet-600 hover:bg-violet-500 text-white font-black text-xs px-3.5 py-2 rounded-xl transition"
-                      >
-                        Attempt
-                      </button>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
 
               {/* Mocks Tab */}
               {activeTab === "mock" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                  {currentExam.mocks.map((mock) => (
-                    <div key={mock.id} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 shadow flex justify-between items-center">
-                      <div>
-                        <h4 className="text-sm font-bold text-[var(--text-heading)]">{mock.title}</h4>
-                        <span className="text-[10px] text-[var(--text-muted)] font-bold">{mock.questionsCount} MCQs · {mock.durationHours} Hours</span>
+                <div className="space-y-6 text-left animate-in fade-in duration-200">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider">Full Syllabus Mock Series</h4>
+                    <button
+                      onClick={() => setMockModal({ mode: "create", id: "", title: "", questionsCount: 90, durationHours: 3, questions: [], activeModalTab: "config" })}
+                      className="bg-amber-500 hover:bg-amber-450 text-slate-900 font-extrabold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 transition shadow-md active:scale-95"
+                    >
+                      <Plus className="w-4 h-4" /> Create Mock Exam
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                    {filteredMocks.map((mock) => (
+                      <div key={mock.id} className="bg-[var(--bg-card)] border border-[var(--border)] hover:border-amber-500/40 rounded-2xl p-5 shadow flex flex-col justify-between group transition-all">
+                        <div>
+                          <h4 className="text-sm font-bold text-[var(--text-heading)] group-hover:text-amber-500 transition-colors">{mock.title}</h4>
+                          <span className="text-[10px] text-[var(--text-muted)] font-bold mt-1 block">{mock.questionsCount} MCQs · {mock.durationHours} Hours</span>
+                        </div>
+                        <div className="mt-5 pt-3 border-t border-[var(--border)] flex items-center justify-between gap-2">
+                          <button
+                            onClick={() => startAttempt(mock.id, "mock", mock.title, currentExam.category, mock.questions)}
+                            className="flex-1 flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-450 text-slate-950 font-black text-xs py-2 rounded-xl transition shadow active:scale-95"
+                          >
+                            <Play className="w-3.5 h-3.5 fill-slate-950 text-slate-950" /> Attempt Exam
+                          </button>
+                          <button
+                            onClick={() => setMockModal({
+                              mode: "edit",
+                              id: mock.id,
+                              title: mock.title,
+                              questionsCount: mock.questionsCount,
+                              durationHours: mock.durationHours,
+                              questions: mock.questions || [],
+                              activeModalTab: "config"
+                            })}
+                            className="p-2 text-[var(--text-muted)] hover:text-[var(--text-heading)] bg-[var(--bg-main)] border border-[var(--border)] rounded-xl transition"
+                          >
+                            <Settings className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMock(mock.id)}
+                            className="p-2 text-red-500 hover:text-red-400 bg-[var(--bg-main)] border border-red-500/20 rounded-xl transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => startAttempt(mock.id, "mock", mock.title, currentExam.category)}
-                        className="bg-violet-600 hover:bg-violet-500 text-white font-black text-xs px-3.5 py-2 rounded-xl transition"
-                      >
-                        Attempt
-                      </button>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -2199,7 +2830,7 @@ export default function SuperAdminCompetitiveExams() {
                       examDate: examModal.examDate || "TBD",
                       eligibility: examModal.eligibility || "Standard 10+2 passing",
                       website: examModal.website || "https://",
-                      syllabus: [
+                      syllabus: pendingModalPdf || [
                         { name: "Biology", icon: "🧬", color: "text-pink-500 bg-pink-500/10", chapters: [] },
                         { name: "Chemistry", icon: "🧪", color: "text-emerald-500 bg-emerald-500/10", chapters: [] },
                         { name: "Physics", icon: "⚛️", color: "text-blue-500 bg-blue-500/10", chapters: [] }
@@ -2234,20 +2865,24 @@ export default function SuperAdminCompetitiveExams() {
                 }
               } else {
                 try {
+                  const updatePayload: any = {
+                    examName: abbr,
+                    category: selectedCategory,
+                    conductedBy: examModal.conductedBy,
+                    registrationDeadline: examModal.regDeadline,
+                    examDate: examModal.examDate,
+                    eligibility: examModal.eligibility,
+                    website: examModal.website
+                  };
+                  if (pendingModalPdf) {
+                    updatePayload.syllabus = pendingModalPdf;
+                  }
                   await fetch(`${API_URL}/api/competitive-exams/${examModal.id}`, {
                     method: "PUT",
                     headers: {
                       "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({
-                      examName: abbr,
-                      category: selectedCategory,
-                      conductedBy: examModal.conductedBy,
-                      registrationDeadline: examModal.regDeadline,
-                      examDate: examModal.examDate,
-                      eligibility: examModal.eligibility,
-                      website: examModal.website
-                    })
+                    body: JSON.stringify(updatePayload)
                   });
                   setDb(prev => {
                     const updated = { ...prev[examModal.id] };
@@ -2258,6 +2893,9 @@ export default function SuperAdminCompetitiveExams() {
                     updated.website = examModal.website;
                     updated.examDate = examModal.examDate;
                     updated.regDeadline = examModal.regDeadline;
+                    if (pendingModalPdf) {
+                      updated.syllabus = pendingModalPdf as any;
+                    }
                     return { ...prev, [examModal.id]: updated };
                   });
                   showToast("Exam settings updated");
@@ -2265,6 +2903,7 @@ export default function SuperAdminCompetitiveExams() {
                   console.error("Failed to update competitive exam:", err);
                 }
               }
+              setPendingModalPdf(null);
               setExamModal(null);
             }} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2347,16 +2986,75 @@ export default function SuperAdminCompetitiveExams() {
                 </div>
               </div>
 
+              <div className="pt-2 border-t border-[var(--border)] space-y-1.5">
+                <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)]">Syllabus PDF Document</label>
+                <div className="flex items-center justify-between bg-[var(--bg-main)] p-3 rounded-xl border border-[var(--border)]">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <FileText className="w-4 h-4 text-pink-500 shrink-0" />
+                    <span className="text-xs font-bold text-[var(--text-main)] truncate max-w-xs">
+                      {pendingModalPdf ? pendingModalPdf.name : (
+                        examModal.id && db[examModal.id]?.syllabus && !Array.isArray(db[examModal.id].syllabus) && (db[examModal.id].syllabus as any).type === "pdf"
+                          ? (db[examModal.id].syllabus as any).name || "syllabus.pdf"
+                          : "No PDF attached"
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <input
+                      type="file"
+                      id="exam-modal-pdf-file"
+                      accept=".pdf"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const files = e.target.files;
+                        if (files && files.length > 0) {
+                          const file = files[0];
+                          const formData = new FormData();
+                          formData.append("file", file);
+                          try {
+                            const res = await fetch(`${API_URL}/api/competitive-exams/upload-syllabus-pdf`, {
+                              method: "POST",
+                              body: formData,
+                            });
+                            const data = await res.json();
+                            if (data.success && data.url) {
+                              setPendingModalPdf({ type: "pdf", url: data.url, name: data.name || file.name });
+                              showToast("Syllabus PDF attached");
+                            }
+                          } catch (err) {
+                            console.error(err);
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const el = document.getElementById("exam-modal-pdf-file");
+                        if (el) el.click();
+                      }}
+                      className="text-xs font-bold bg-pink-500/10 text-pink-600 hover:bg-pink-500/20 border border-pink-500/20 px-3 py-1.5 rounded-lg transition flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      <span>{pendingModalPdf || (examModal.id && db[examModal.id]?.syllabus && !Array.isArray(db[examModal.id].syllabus) && (db[examModal.id].syllabus as any).type === "pdf") ? "Change PDF" : "Upload PDF"}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div className="pt-4 border-t border-[var(--border)] flex justify-end gap-2 text-xs">
                 <button
                   type="button"
-                  onClick={() => setExamModal(null)}
+                  onClick={() => {
+                    setPendingModalPdf(null);
+                    setExamModal(null);
+                  }}
                   className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-xl font-bold transition"
                 >
                   Cancel
                 </button>
                 <button type="submit" className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-5 py-2.5 rounded-xl font-black transition active:scale-95 shadow-md">
-                  Register Exam
+                  {examModal.mode === "create" ? "Register Exam" : "Save Changes"}
                 </button>
               </div>
             </form>
@@ -2381,36 +3079,35 @@ export default function SuperAdminCompetitiveExams() {
               e.preventDefault();
               const sub = topicModal.subject.trim();
               const conc = topicModal.conceptName.trim();
+              const current = db[selectedExamId];
+              if (!current) return;
+
+              let updatedTopics = current.topics || [];
               if (topicModal.mode === "create") {
-                setDb(prev => {
-                  const updated = { ...prev[selectedExamId] };
-                  updated.topics = [
-                    ...updated.topics,
-                    {
-                      id: "top_" + Date.now(),
-                      subject: sub,
-                      conceptName: conc,
-                      weightage: topicModal.weightage,
-                      pyqQuestions: Number(topicModal.pyqQuestions),
-                      studyMaterials: { pdfs: 2, videos: 1 },
-                      active: true
-                    }
-                  ];
-                  return { ...prev, [selectedExamId]: updated };
-                });
+                const newTopic: ConceptTopic = {
+                  id: "top_" + Date.now(),
+                  subject: sub,
+                  conceptName: conc,
+                  weightage: topicModal.weightage,
+                  pyqQuestions: Number(topicModal.pyqQuestions),
+                  studyMaterials: { pdfs: 2, videos: 1 },
+                  active: true
+                };
+                updatedTopics = [...updatedTopics, newTopic];
               } else {
-                setDb(prev => {
-                  const updated = { ...prev[selectedExamId] };
-                  updated.topics = updated.topics.map(t => t.id === topicModal.id ? {
-                    ...t,
-                    subject: sub,
-                    conceptName: conc,
-                    weightage: topicModal.weightage,
-                    pyqQuestions: Number(topicModal.pyqQuestions)
-                  } : t);
-                  return { ...prev, [selectedExamId]: updated };
-                });
+                updatedTopics = updatedTopics.map(t => t.id === topicModal.id ? {
+                  ...t,
+                  subject: sub,
+                  conceptName: conc,
+                  weightage: topicModal.weightage,
+                  pyqQuestions: Number(topicModal.pyqQuestions)
+                } : t);
               }
+
+              const updatedExam = { ...current, topics: updatedTopics };
+              setDb(prev => ({ ...prev, [selectedExamId]: updatedExam }));
+              syncExamToDb(selectedExamId, updatedExam);
+              showToast(topicModal.mode === "create" ? "Concept topic added" : "Concept topic updated");
               setTopicModal(null);
             }} className="p-6 space-y-4">
               <div>
@@ -2478,129 +3175,777 @@ export default function SuperAdminCompetitiveExams() {
         </div>
       )}
 
-      {/* ── MODAL 5: Quiz Blueprint Form ──────────────── */}
+      {/* ── MODAL 5: Quiz & Question/Option Authoring Suite ────────────── */}
       {quizModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 text-left">
-            <div className="p-6 bg-[var(--bg-main)] border-b border-[var(--border)] flex items-center justify-between">
-              <h3 className="text-sm font-black text-[var(--text-heading)] uppercase tracking-wider">
-                {quizModal.mode === "create" ? "Configure Practice Quiz" : "Modify Quiz Settings"}
-              </h3>
-              <button onClick={() => setQuizModal(null)} className="text-[var(--text-muted)] hover:text-[var(--text-heading)]">
-                <X className="w-4 h-4" />
-              </button>
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 text-left flex flex-col max-h-[90vh]">
+            
+            {/* Modal Header & Navigation Tabs */}
+            <div className="p-5 bg-[var(--bg-main)] border-b border-[var(--border)] flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <span className="text-[9px] font-black uppercase tracking-wider bg-violet-500/10 text-violet-500 px-2.5 py-1 rounded-lg border border-violet-500/20">
+                  Interactive Quiz Authoring Suite
+                </span>
+                <h3 className="text-base font-black text-[var(--text-heading)] mt-1">
+                  {quizModal.mode === "create" ? "Create New Practice Quiz" : "Edit Quiz & MCQs"}
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex bg-[var(--bg-card)] p-1 rounded-xl border border-[var(--border)] text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setQuizModal(prev => prev ? { ...prev, activeModalTab: "config" } : null)}
+                    className={`px-3 py-1.5 rounded-lg font-extrabold transition-all ${
+                      quizModal.activeModalTab === "config"
+                        ? "bg-violet-600 text-white shadow-sm"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+                    }`}
+                  >
+                    ⚙️ Quiz Config
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuizModal(prev => prev ? { ...prev, activeModalTab: "questions" } : null)}
+                    className={`px-3 py-1.5 rounded-lg font-extrabold transition-all flex items-center gap-1.5 ${
+                      quizModal.activeModalTab === "questions"
+                        ? "bg-violet-600 text-white shadow-sm"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+                    }`}
+                  >
+                    📝 Questions & Options ({quizModal.questions.length})
+                  </button>
+                </div>
+
+                <button onClick={() => setQuizModal(null)} className="text-[var(--text-muted)] hover:text-[var(--text-heading)] p-1.5 hover:bg-[var(--bg-main)] rounded-lg transition">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const title = quizModal.title.trim();
-              const subject = quizModal.subject.trim();
-              if (quizModal.mode === "create") {
-                setDb(prev => {
-                  const updated = { ...prev[selectedExamId] };
-                  updated.quizzes = [
-                    ...updated.quizzes,
-                    {
-                      id: "q_" + Date.now(),
-                      title,
-                      subject,
-                      questionsCount: Number(quizModal.questionsCount),
-                      durationMinutes: Number(quizModal.durationMinutes),
-                      difficulty: quizModal.difficulty,
-                      submissions: 0
-                    }
-                  ];
-                  return { ...prev, [selectedExamId]: updated };
-                });
-              } else {
-                setDb(prev => {
-                  const updated = { ...prev[selectedExamId] };
-                  updated.quizzes = updated.quizzes.map(q => q.id === quizModal.id ? {
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const title = quizModal.title.trim();
+                const subject = quizModal.subject.trim();
+                if (!title || !subject) return;
+
+                const current = db[selectedExamId];
+                if (!current) return;
+
+                const questionsCount = quizModal.questions.length > 0 ? quizModal.questions.length : Number(quizModal.questionsCount);
+                let updatedQuizzes = current.quizzes || [];
+
+                if (quizModal.mode === "create") {
+                  const newQuiz: QuizItem = {
+                    id: "q_" + Date.now(),
+                    title,
+                    subject,
+                    questionsCount,
+                    durationMinutes: Number(quizModal.durationMinutes),
+                    difficulty: quizModal.difficulty,
+                    submissions: 0,
+                    questions: quizModal.questions
+                  };
+                  updatedQuizzes = [...updatedQuizzes, newQuiz];
+                } else {
+                  updatedQuizzes = updatedQuizzes.map(q => q.id === quizModal.id ? {
                     ...q,
                     title,
                     subject,
-                    questionsCount: Number(quizModal.questionsCount),
+                    questionsCount,
                     durationMinutes: Number(quizModal.durationMinutes),
-                    difficulty: quizModal.difficulty
+                    difficulty: quizModal.difficulty,
+                    questions: quizModal.questions
                   } : q);
-                  return { ...prev, [selectedExamId]: updated };
-                });
-              }
-              setQuizModal(null);
-            }} className="p-6 space-y-4">
-              <div>
-                <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Quiz Title</label>
-                <input
-                  type="text"
-                  required
-                  value={quizModal.title}
-                  onChange={(e) => setQuizModal(prev => prev ? { ...prev, title: e.target.value } : null)}
-                  className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-4 py-2.5 text-xs"
-                  placeholder="e.g. Molecular Genetics Challenge"
-                />
-              </div>
+                }
 
-              <div>
-                <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Subject Tag</label>
-                <input
-                  type="text"
-                  required
-                  value={quizModal.subject}
-                  onChange={(e) => setQuizModal(prev => prev ? { ...prev, subject: e.target.value } : null)}
-                  className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-4 py-2.5 text-xs"
-                  placeholder="e.g. Biology"
-                />
-              </div>
+                const updatedExam = { ...current, quizzes: updatedQuizzes };
+                setDb(prev => ({ ...prev, [selectedExamId]: updatedExam }));
+                syncExamToDb(selectedExamId, updatedExam);
+                showToast(quizModal.mode === "create" ? "Quiz & Questions created & saved to DB!" : "Quiz & Questions updated in DB!");
+                setQuizModal(null);
+              }}
+              className="flex-1 overflow-y-auto p-6 space-y-6"
+            >
 
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">MCQs count</label>
-                  <input
-                    type="number"
-                    min={5}
-                    required
-                    value={quizModal.questionsCount}
-                    onChange={(e) => setQuizModal(prev => prev ? { ...prev, questionsCount: Number(e.target.value) } : null)}
-                    className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] text-center rounded-xl px-4 py-2.5 text-xs"
-                  />
+              {/* TAB 1: General Quiz Configuration */}
+              {quizModal.activeModalTab === "config" && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div>
+                    <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Quiz Blueprint Title</label>
+                    <input
+                      type="text"
+                      required
+                      value={quizModal.title}
+                      onChange={(e) => setQuizModal(prev => prev ? { ...prev, title: e.target.value } : null)}
+                      className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-4 py-2.5 text-xs font-bold"
+                      placeholder="e.g. Molecular Basis of Inheritance Master Drill"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Subject Tag</label>
+                    <input
+                      type="text"
+                      required
+                      value={quizModal.subject}
+                      onChange={(e) => setQuizModal(prev => prev ? { ...prev, subject: e.target.value } : null)}
+                      className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-4 py-2.5 text-xs font-bold"
+                      placeholder="e.g. Biology / Physics / Chemistry / Mathematics"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Target MCQs</label>
+                      <input
+                        type="number"
+                        min={1}
+                        required
+                        value={quizModal.questions.length > 0 ? quizModal.questions.length : quizModal.questionsCount}
+                        onChange={(e) => setQuizModal(prev => prev ? { ...prev, questionsCount: Number(e.target.value) } : null)}
+                        className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] text-center rounded-xl px-4 py-2.5 text-xs font-bold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Duration (Mins)</label>
+                      <input
+                        type="number"
+                        min={5}
+                        required
+                        value={quizModal.durationMinutes}
+                        onChange={(e) => setQuizModal(prev => prev ? { ...prev, durationMinutes: Number(e.target.value) } : null)}
+                        className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] text-center rounded-xl px-4 py-2.5 text-xs font-bold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Difficulty Level</label>
+                      <select
+                        value={quizModal.difficulty}
+                        onChange={(e) => setQuizModal(prev => prev ? { ...prev, difficulty: e.target.value as any } : null)}
+                        className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-3 py-2.5 text-xs font-bold"
+                      >
+                        <option value="Easy">✨ Easy</option>
+                        <option value="Medium">⚡ Medium</option>
+                        <option value="Hard">🔥 Hard</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-violet-500/10 border border-violet-500/20 rounded-2xl flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-violet-500">Author Questions & Options</h4>
+                      <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-bold">
+                        {quizModal.questions.length} questions currently authored with options.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setQuizModal(prev => prev ? { ...prev, activeModalTab: "questions" } : null)}
+                      className="bg-violet-600 hover:bg-violet-500 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl transition shadow"
+                    >
+                      Configure Questions →
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Duration (Mins)</label>
-                  <input
-                    type="number"
-                    min={5}
-                    required
-                    value={quizModal.durationMinutes}
-                    onChange={(e) => setQuizModal(prev => prev ? { ...prev, durationMinutes: Number(e.target.value) } : null)}
-                    className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] text-center rounded-xl px-4 py-2.5 text-xs"
-                  />
+              )}
+
+              {/* TAB 2: Questions & 4 Options Authoring Suite */}
+              {quizModal.activeModalTab === "questions" && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="text-xs font-bold text-[var(--text-heading)]">
+                      Question & Multiple-Choice Options Editor
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const sampleQuestions: SimulatedQuestion[] = [
+                            {
+                              question: `Which organelle is primarily responsible for protein synthesis in ${quizModal.subject || "Biology"}?`,
+                              options: ["Ribosome", "Golgi Body", "Mitochondria", "Lysosome"],
+                              answer: "Ribosome",
+                              rationale: "Ribosomes translate mRNA transcripts into polypeptide chains."
+                            },
+                            {
+                              question: "What is the primary function of DNA Polymerase during cell division?",
+                              options: ["Synthesize new DNA strand", "Unwind double helix", "Join Okazaki fragments", "Degrade RNA primer"],
+                              answer: "Synthesize new DNA strand",
+                              rationale: "DNA Polymerase adds complementary nucleotides to the 3' end of the growing strand."
+                            },
+                            {
+                              question: "Which phase of cell division aligns chromosomes at the equatorial plate?",
+                              options: ["Prophase", "Metaphase", "Anaphase", "Telophase"],
+                              answer: "Metaphase",
+                              rationale: "During Metaphase, spindle fibers attach to kinetochores and align chromosomes at the center."
+                            }
+                          ];
+
+                          setQuizModal(prev => prev ? { ...prev, questions: [...prev.questions, ...sampleQuestions] } : null);
+                          showToast("3 High-yield sample MCQs loaded!");
+                        }}
+                        className="bg-pink-500/10 text-pink-600 hover:bg-pink-500/20 border border-pink-500/20 font-extrabold text-[11px] px-3 py-1.5 rounded-xl transition flex items-center gap-1"
+                      >
+                        <Zap className="w-3.5 h-3.5" /> ✨ Auto-Generate Sample MCQs
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newQ: SimulatedQuestion = {
+                            question: "",
+                            options: ["", "", "", ""],
+                            answer: "",
+                            rationale: ""
+                          };
+                          setQuizModal(prev => prev ? { ...prev, questions: [...prev.questions, newQ] } : null);
+                        }}
+                        className="bg-violet-600 hover:bg-violet-500 text-white font-extrabold text-[11px] px-3 py-1.5 rounded-xl transition flex items-center gap-1 shadow"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> + Add Question
+                      </button>
+                    </div>
+                  </div>
+
+                  {quizModal.questions.length === 0 ? (
+                    <div className="p-8 text-center bg-[var(--bg-main)] border border-dashed border-[var(--border)] rounded-2xl">
+                      <p className="text-xs text-[var(--text-muted)] font-bold">No custom questions added yet.</p>
+                      <p className="text-[10px] text-[var(--text-muted)] mt-1">Click "+ Add Question" or "✨ Auto-Generate Sample MCQs" to create questions with options.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {quizModal.questions.map((q, qIdx) => (
+                        <div key={qIdx} className="bg-[var(--bg-main)] border border-[var(--border)] rounded-2xl p-4 space-y-3 shadow-sm text-left">
+                          <div className="flex justify-between items-center pb-2 border-b border-[var(--border)]">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-violet-500">
+                              Question #{qIdx + 1}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setQuizModal(prev => prev ? {
+                                  ...prev,
+                                  questions: prev.questions.filter((_, idx) => idx !== qIdx)
+                                } : null);
+                              }}
+                              className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition"
+                              title="Delete Question"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Question Prompt</label>
+                            <input
+                              type="text"
+                              required
+                              value={q.question}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setQuizModal(prev => prev ? {
+                                  ...prev,
+                                  questions: prev.questions.map((item, idx) => idx === qIdx ? { ...item, question: val } : item)
+                                } : null);
+                              }}
+                              className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-3.5 py-2 text-xs font-bold"
+                              placeholder="e.g. Which organelle is responsible for cellular respiration?"
+                            />
+                          </div>
+
+                          {/* 4 Options Grid */}
+                          <div className="space-y-2 pt-1">
+                            <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)]">Multiple Choice Options (Select radio or card for Correct Answer)</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {["A", "B", "C", "D"].map((optLabel, optIdx) => {
+                                const optVal = q.options[optIdx] || "";
+                                const isCorrect = q.correctOptionIndex !== undefined
+                                  ? q.correctOptionIndex === optIdx
+                                  : (q.answer === optVal && optVal !== "");
+
+                                const selectThisOption = () => {
+                                  setQuizModal(prev => prev ? {
+                                    ...prev,
+                                    questions: prev.questions.map((item, idx) => 
+                                      idx === qIdx ? { ...item, correctOptionIndex: optIdx, answer: optVal } : item
+                                    )
+                                  } : null);
+                                };
+
+                                return (
+                                  <div
+                                    key={optIdx}
+                                    onClick={selectThisOption}
+                                    className={`flex items-center gap-2 p-2 rounded-xl border transition-all cursor-pointer ${
+                                      isCorrect ? "bg-emerald-500/10 border-emerald-500/40 shadow-sm" : "bg-[var(--bg-card)] border-[var(--border)] hover:border-slate-400"
+                                    }`}
+                                  >
+                                    <input
+                                      type="radio"
+                                      name={`quiz_correct_ans_${qIdx}`}
+                                      checked={isCorrect}
+                                      onChange={selectThisOption}
+                                      className="accent-emerald-500 shrink-0 w-3.5 h-3.5 cursor-pointer"
+                                      title="Mark as correct answer"
+                                    />
+                                    <span className="text-[10px] font-black text-violet-500 shrink-0">{optLabel}.</span>
+                                    <input
+                                      type="text"
+                                      required
+                                      value={optVal}
+                                      onClick={(e) => e.stopPropagation()}
+                                      onChange={(e) => {
+                                        const newOptVal = e.target.value;
+                                        setQuizModal(prev => prev ? {
+                                          ...prev,
+                                          questions: prev.questions.map((item, idx) => {
+                                            if (idx !== qIdx) return item;
+                                            const updatedOpts = [...item.options];
+                                            updatedOpts[optIdx] = newOptVal;
+                                            const isThisCorrect = item.correctOptionIndex !== undefined 
+                                              ? item.correctOptionIndex === optIdx 
+                                              : (item.answer === optVal && optVal !== "");
+                                            return {
+                                              ...item,
+                                              options: updatedOpts,
+                                              answer: isThisCorrect ? newOptVal : item.answer,
+                                              correctOptionIndex: isThisCorrect ? optIdx : item.correctOptionIndex
+                                            };
+                                          })
+                                        } : null);
+                                      }}
+                                      className="w-full bg-transparent border-none text-[var(--text-main)] text-xs font-bold focus:outline-none"
+                                      placeholder={`Option ${optLabel}...`}
+                                    />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Answer Explanation / Rationale</label>
+                            <textarea
+                              rows={2}
+                              value={q.rationale}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setQuizModal(prev => prev ? {
+                                  ...prev,
+                                  questions: prev.questions.map((item, idx) => idx === qIdx ? { ...item, rationale: val } : item)
+                                } : null);
+                              }}
+                              className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-3.5 py-2 text-xs font-bold resize-none"
+                              placeholder="Explain why the selected option is correct..."
+                            />
+                          </div>
+
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Difficulty</label>
-                  <select
-                    value={quizModal.difficulty}
-                    onChange={(e) => setQuizModal(prev => prev ? { ...prev, difficulty: e.target.value as any } : null)}
-                    className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-4 py-2.5 text-xs font-bold"
+              )}
+
+              {/* Modal Footer Controls */}
+              <div className="pt-4 border-t border-[var(--border)] flex justify-between items-center gap-2 text-xs">
+                <div className="text-[10px] font-bold text-[var(--text-muted)]">
+                  {quizModal.questions.length} questions configured
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setQuizModal(null)}
+                    className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl font-bold transition"
                   >
-                    <option value="Easy">Easy</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Hard">Hard</option>
-                  </select>
+                    Cancel
+                  </button>
+                  <button type="submit" className="bg-violet-600 hover:bg-violet-500 text-white px-5 py-2 rounded-xl font-black shadow-md transition active:scale-95">
+                    Save Quiz & Questions
+                  </button>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[var(--border)] flex justify-end gap-2 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setQuizModal(null)}
-                  className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-xl font-bold transition"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="bg-amber-500 hover:bg-amber-450 text-slate-950 px-5 py-2.5 rounded-xl font-black shadow-md">
-                  Save Changes
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: Full Mock Exam & Dynamic Question Authoring Suite ────────── */}
+      {mockModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 text-left flex flex-col max-h-[90vh]">
+            
+            {/* Header */}
+            <div className="p-5 bg-[var(--bg-main)] border-b border-[var(--border)] flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <span className="text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                  Full Syllabus Mock Authoring Suite
+                </span>
+                <h3 className="text-base font-black text-[var(--text-heading)] mt-1">
+                  {mockModal.mode === "create" ? "Create Full Mock Exam" : "Edit Mock Exam Series"}
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex bg-[var(--bg-card)] p-1 rounded-xl border border-[var(--border)] text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setMockModal(prev => prev ? { ...prev, activeModalTab: "config" } : null)}
+                    className={`px-3 py-1.5 rounded-lg font-extrabold transition-all ${
+                      mockModal.activeModalTab === "config"
+                        ? "bg-amber-500 text-slate-950 shadow-sm"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+                    }`}
+                  >
+                    ⚙️ Mock Config
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMockModal(prev => prev ? { ...prev, activeModalTab: "questions" } : null)}
+                    className={`px-3 py-1.5 rounded-lg font-extrabold transition-all flex items-center gap-1.5 ${
+                      mockModal.activeModalTab === "questions"
+                        ? "bg-amber-500 text-slate-950 shadow-sm"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+                    }`}
+                  >
+                    📝 Questions & Options ({mockModal.questions.length})
+                  </button>
+                </div>
+
+                <button onClick={() => setMockModal(null)} className="text-[var(--text-muted)] hover:text-[var(--text-heading)] p-1.5 hover:bg-[var(--bg-main)] rounded-lg transition">
+                  <X className="w-4 h-4" />
                 </button>
               </div>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const title = mockModal.title.trim();
+                if (!title) return;
+
+                const current = db[selectedExamId];
+                if (!current) return;
+
+                const questionsCount = mockModal.questions.length > 0 ? mockModal.questions.length : Number(mockModal.questionsCount);
+                let updatedMocks = current.mocks || [];
+
+                if (mockModal.mode === "create") {
+                  const newMock: MockTestItem = {
+                    id: "m_" + Date.now(),
+                    title,
+                    questionsCount,
+                    durationHours: Number(mockModal.durationHours),
+                    registeredCount: 1200,
+                    questions: mockModal.questions
+                  };
+                  updatedMocks = [...updatedMocks, newMock];
+                } else {
+                  updatedMocks = updatedMocks.map(m => m.id === mockModal.id ? {
+                    ...m,
+                    title,
+                    questionsCount,
+                    durationHours: Number(mockModal.durationHours),
+                    questions: mockModal.questions
+                  } : m);
+                }
+
+                const updatedExam = { ...current, mocks: updatedMocks };
+                setDb(prev => ({ ...prev, [selectedExamId]: updatedExam }));
+                syncExamToDb(selectedExamId, updatedExam);
+                showToast(mockModal.mode === "create" ? "Full mock exam created & saved to DB!" : "Mock exam updated in DB!");
+                setMockModal(null);
+              }}
+              className="flex-1 overflow-y-auto p-6 space-y-6"
+            >
+
+              {/* TAB 1: General Mock Configuration */}
+              {mockModal.activeModalTab === "config" && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div>
+                    <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Mock Exam Title</label>
+                    <input
+                      type="text"
+                      required
+                      value={mockModal.title}
+                      onChange={(e) => setMockModal(prev => prev ? { ...prev, title: e.target.value } : null)}
+                      className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-4 py-2.5 text-xs font-bold"
+                      placeholder="e.g. All India NEET UG Full Syllabus Mock Series 1"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Target MCQs Count</label>
+                      <input
+                        type="number"
+                        min={1}
+                        required
+                        value={mockModal.questions.length > 0 ? mockModal.questions.length : mockModal.questionsCount}
+                        onChange={(e) => setMockModal(prev => prev ? { ...prev, questionsCount: Number(e.target.value) } : null)}
+                        className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] text-center rounded-xl px-4 py-2.5 text-xs font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Duration (Hours)</label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        min={0.5}
+                        required
+                        value={mockModal.durationHours}
+                        onChange={(e) => setMockModal(prev => prev ? { ...prev, durationHours: Number(e.target.value) } : null)}
+                        className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] text-center rounded-xl px-4 py-2.5 text-xs font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-amber-600">Author Mock Questions & Options</h4>
+                      <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-bold">
+                        {mockModal.questions.length} questions currently authored with 4 options.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setMockModal(prev => prev ? { ...prev, activeModalTab: "questions" } : null)}
+                      className="bg-amber-500 hover:bg-amber-450 text-slate-950 font-extrabold text-xs px-3.5 py-2 rounded-xl transition shadow"
+                    >
+                      Configure Questions →
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: Questions & 4 Options Authoring Suite */}
+              {mockModal.activeModalTab === "questions" && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="text-xs font-bold text-[var(--text-heading)]">
+                      Mock Questions & Options Editor
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const sampleMockQuestions: SimulatedQuestion[] = [
+                            {
+                              question: "Which organelle is responsible for generating ATP in human cells?",
+                              options: ["Nucleus", "Mitochondria", "Ribosome", "Golgi Apparatus"],
+                              answer: "Mitochondria",
+                              rationale: "Mitochondria performs oxidative phosphorylation to yield cellular ATP energy."
+                            },
+                            {
+                              question: "What is the primary product of light-dependent reactions in photosynthesis?",
+                              options: ["Glucose", "ATP and NADPH", "Carbon Dioxide", "Pyruvic Acid"],
+                              answer: "ATP and NADPH",
+                              rationale: "Light reactions convert solar energy into chemical energy stored in ATP and NADPH."
+                            },
+                            {
+                              question: "Which blood vessels carry oxygenated blood from lungs to left atrium?",
+                              options: ["Pulmonary Artery", "Pulmonary Vein", "Aorta", "Vena Cava"],
+                              answer: "Pulmonary Vein",
+                              rationale: "Pulmonary veins are the only veins in humans that carry oxygen-rich blood."
+                            },
+                            {
+                              question: "In genetics, what is the phenotypic ratio of a classic Mendelian dihybrid cross?",
+                              options: ["3:1", "1:2:1", "9:3:3:1", "1:1:1:1"],
+                              answer: "9:3:3:1",
+                              rationale: "Crossing two heterozygous individuals for two unlinked traits yields a 9:3:3:1 ratio."
+                            }
+                          ];
+
+                          setMockModal(prev => prev ? { ...prev, questions: [...prev.questions, ...sampleMockQuestions] } : null);
+                          showToast("4 High-yield Full Mock questions loaded!");
+                        }}
+                        className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border border-amber-500/20 font-extrabold text-[11px] px-3 py-1.5 rounded-xl transition flex items-center gap-1"
+                      >
+                        <Zap className="w-3.5 h-3.5" /> ✨ Auto-Generate Sample MCQs
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newQ: SimulatedQuestion = {
+                            question: "",
+                            options: ["", "", "", ""],
+                            answer: "",
+                            rationale: ""
+                          };
+                          setMockModal(prev => prev ? { ...prev, questions: [...prev.questions, newQ] } : null);
+                        }}
+                        className="bg-amber-500 hover:bg-amber-450 text-slate-950 font-extrabold text-[11px] px-3 py-1.5 rounded-xl transition flex items-center gap-1 shadow"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> + Add Question
+                      </button>
+                    </div>
+                  </div>
+
+                  {mockModal.questions.length === 0 ? (
+                    <div className="p-8 text-center bg-[var(--bg-main)] border border-dashed border-[var(--border)] rounded-2xl">
+                      <p className="text-xs text-[var(--text-muted)] font-bold">No custom mock questions added yet.</p>
+                      <p className="text-[10px] text-[var(--text-muted)] mt-1">Click "+ Add Question" or "✨ Auto-Generate Sample MCQs" to create questions with 4 options.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {mockModal.questions.map((q, qIdx) => (
+                        <div key={qIdx} className="bg-[var(--bg-main)] border border-[var(--border)] rounded-2xl p-4 space-y-3 shadow-sm text-left">
+                          <div className="flex justify-between items-center pb-2 border-b border-[var(--border)]">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-amber-600">
+                              Question #{qIdx + 1}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMockModal(prev => prev ? {
+                                  ...prev,
+                                  questions: prev.questions.filter((_, idx) => idx !== qIdx)
+                                } : null);
+                              }}
+                              className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition"
+                              title="Delete Question"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Question Prompt</label>
+                            <input
+                              type="text"
+                              required
+                              value={q.question}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setMockModal(prev => prev ? {
+                                  ...prev,
+                                  questions: prev.questions.map((item, idx) => idx === qIdx ? { ...item, question: val } : item)
+                                } : null);
+                              }}
+                              className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-3.5 py-2 text-xs font-bold"
+                              placeholder="e.g. Which enzyme unwinds double stranded DNA during replication?"
+                            />
+                          </div>
+
+                          {/* 4 Options Grid */}
+                          <div className="space-y-2 pt-1">
+                            <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)]">Multiple Choice Options (Select radio or card for Correct Answer)</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {["A", "B", "C", "D"].map((optLabel, optIdx) => {
+                                const optVal = q.options[optIdx] || "";
+                                const isCorrect = q.correctOptionIndex !== undefined
+                                  ? q.correctOptionIndex === optIdx
+                                  : (q.answer === optVal && optVal !== "");
+
+                                const selectThisOption = () => {
+                                  setMockModal(prev => prev ? {
+                                    ...prev,
+                                    questions: prev.questions.map((item, idx) => 
+                                      idx === qIdx ? { ...item, correctOptionIndex: optIdx, answer: optVal } : item
+                                    )
+                                  } : null);
+                                };
+
+                                return (
+                                  <div
+                                    key={optIdx}
+                                    onClick={selectThisOption}
+                                    className={`flex items-center gap-2 p-2 rounded-xl border transition-all cursor-pointer ${
+                                      isCorrect ? "bg-emerald-500/10 border-emerald-500/40 shadow-sm" : "bg-[var(--bg-card)] border-[var(--border)] hover:border-slate-400"
+                                    }`}
+                                  >
+                                    <input
+                                      type="radio"
+                                      name={`mock_correct_ans_${qIdx}`}
+                                      checked={isCorrect}
+                                      onChange={selectThisOption}
+                                      className="accent-emerald-500 shrink-0 w-3.5 h-3.5 cursor-pointer"
+                                      title="Mark as correct answer"
+                                    />
+                                    <span className="text-[10px] font-black text-amber-600 shrink-0">{optLabel}.</span>
+                                    <input
+                                      type="text"
+                                      required
+                                      value={optVal}
+                                      onClick={(e) => e.stopPropagation()}
+                                      onChange={(e) => {
+                                        const newOptVal = e.target.value;
+                                        setMockModal(prev => prev ? {
+                                          ...prev,
+                                          questions: prev.questions.map((item, idx) => {
+                                            if (idx !== qIdx) return item;
+                                            const updatedOpts = [...item.options];
+                                            updatedOpts[optIdx] = newOptVal;
+                                            const isThisCorrect = item.correctOptionIndex !== undefined 
+                                              ? item.correctOptionIndex === optIdx 
+                                              : (item.answer === optVal && optVal !== "");
+                                            return {
+                                              ...item,
+                                              options: updatedOpts,
+                                              answer: isThisCorrect ? newOptVal : item.answer,
+                                              correctOptionIndex: isThisCorrect ? optIdx : item.correctOptionIndex
+                                            };
+                                          })
+                                        } : null);
+                                      }}
+                                      className="w-full bg-transparent border-none text-[var(--text-main)] text-xs font-bold focus:outline-none"
+                                      placeholder={`Option ${optLabel}...`}
+                                    />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase font-bold text-[var(--text-muted)] mb-1">Answer Explanation / Rationale</label>
+                            <textarea
+                              rows={2}
+                              value={q.rationale}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setMockModal(prev => prev ? {
+                                  ...prev,
+                                  questions: prev.questions.map((item, idx) => idx === qIdx ? { ...item, rationale: val } : item)
+                                } : null);
+                              }}
+                              className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-main)] rounded-xl px-3.5 py-2 text-xs font-bold resize-none"
+                              placeholder="Explain why the selected option is correct..."
+                            />
+                          </div>
+
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Modal Footer Controls */}
+              <div className="pt-4 border-t border-[var(--border)] flex justify-between items-center gap-2 text-xs">
+                <div className="text-[10px] font-bold text-[var(--text-muted)]">
+                  {mockModal.questions.length} mock questions configured
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMockModal(null)}
+                    className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl font-bold transition"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="bg-amber-500 hover:bg-amber-450 text-slate-950 px-5 py-2 rounded-xl font-black shadow-md transition active:scale-95">
+                    Save Mock Exam
+                  </button>
+                </div>
+              </div>
+
             </form>
           </div>
         </div>
