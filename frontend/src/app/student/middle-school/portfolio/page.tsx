@@ -813,7 +813,7 @@ export default function MiddleSchoolPortfolio() {
                     </div>
 
                     {act.teacherRemarks && (
-                      <div className="mt-3 p-3 bg-slate-100 dark:bg-slate-955/45 border border-slate-200 dark:border-slate-800 rounded-lg text-[11px] text-slate-750 dark:text-slate-350 italic">
+                      <div className="mt-3 p-3 bg-slate-100 dark:bg-slate-950/45 border border-slate-200 dark:border-slate-800 rounded-lg text-[11px] text-slate-750 dark:text-slate-350 italic">
                         <span className="font-bold text-slate-500 not-italic block mb-0.5">Teacher Feedback:</span>
                         "{act.teacherRemarks}"
                         {act.rating && (

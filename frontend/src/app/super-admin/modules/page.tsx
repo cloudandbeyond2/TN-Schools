@@ -37,7 +37,7 @@ export default function DepartmentModules() {
     name: "", icon: "📌", description: "", category: "Academic", route: "",
     portals: Object.fromEntries(MODULE_PORTALS.map((p) => [p, false])) as Record<string, boolean>,
   });
-  const token = (session as any)?.backendToken;
+  const token = (session?.user as any)?.backendToken || (session as any)?.backendToken;
 
   const authHeaders = {
     "Content-Type": "application/json",
@@ -45,7 +45,12 @@ export default function DepartmentModules() {
   };
 
   useEffect(() => {
-    if (!token) return;
+    if (status === "loading") return;
+    if (!token) {
+      setLoading(false);
+      setError("Not authenticated. Missing token.");
+      return;
+    }
     let cancelled = false;
 
     (async () => {
@@ -88,7 +93,7 @@ export default function DepartmentModules() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, status]);
 
   const togglePortal = async (mod: ModuleItem, portal: string) => {
     const current = mod.portals?.[portal] === true;

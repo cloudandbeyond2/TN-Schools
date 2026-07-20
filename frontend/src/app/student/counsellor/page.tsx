@@ -3,9 +3,13 @@
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
-const Icon = (name: string) => ({ size = 24, className = "" }: { size?: number; className?: string }) => (
-  <i className={`fi ${name} ${className}`} style={{ fontSize: size, lineHeight: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} />
-);
+const Icon = (name: string) => {
+  const Comp = ({ size = 24, className = "" }: { size?: number; className?: string }) => (
+    <i className={`fi ${name} ${className}`} style={{ fontSize: size, lineHeight: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} />
+  );
+  Comp.displayName = "Icon";
+  return Comp;
+};
 
 const Smile = Icon("fi-rr-smile");
 const User = Icon("fi-rr-user");
