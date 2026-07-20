@@ -387,7 +387,7 @@ export default function ParentDashboard() {
               </div>
             </div>
 
-            <div className="text-xs text-slate-455 dark:text-slate-400 italic bg-slate-50 dark:bg-slate-955/20 border border-slate-200 dark:border-slate-800/80 px-4 py-2.5 rounded-xl max-w-xs font-normal flex gap-2 leading-relaxed text-left shrink-0">
+            <div className="text-xs text-slate-455 dark:text-slate-400 italic bg-slate-50 dark:bg-slate-950/20 border border-slate-200 dark:border-slate-800/80 px-4 py-2.5 rounded-xl max-w-xs font-normal flex gap-2 leading-relaxed text-left shrink-0">
               <i className="fi fi-rr-info text-slate-500 mt-0.5 shrink-0"></i>
               <span>To update profile, community, or parent link details, please contact school administrators.</span>
             </div>
@@ -397,7 +397,7 @@ export default function ParentDashboard() {
 
       {/* ── Current Year Academic KPIs ────────────────────────────── */}
       {activeChild && (
-        <div className="bg-slate-50 dark:bg-slate-955/20 border border-slate-205 dark:border-slate-800/80 rounded-2xl p-5 mb-6 shadow-md">
+        <div className="bg-slate-50 dark:bg-slate-950/20 border border-slate-205 dark:border-slate-800/80 rounded-2xl p-5 mb-6 shadow-md">
           <PersonalKpiStrip
             studentId={activeChild.studentId}
             title={`Academic Performance — ${activeChild.name.split(" ")[0]}`}
@@ -513,7 +513,7 @@ export default function ParentDashboard() {
                   
                   <div className="flex items-center gap-2.5 w-full sm:w-auto">
                     {/* View switcher: Chart vs Table */}
-                    <div className="bg-slate-100 dark:bg-slate-955 p-0.5 rounded-lg border border-slate-250 dark:border-slate-855 flex gap-0.5 shrink-0">
+                    <div className="bg-slate-100 dark:bg-slate-950 p-0.5 rounded-lg border border-slate-250 dark:border-slate-855 flex gap-0.5 shrink-0">
                       <button
                         onClick={() => setPerfViewMode("CHART")}
                         className={`p-1 px-3 rounded-md text-[10px] font-bold flex items-center gap-1.5 transition-all ${
@@ -540,7 +540,7 @@ export default function ParentDashboard() {
                     <select
                       value={selectedExam}
                       onChange={e => { setSelectedExam(e.target.value); setSubPage(1); }}
-                      className="bg-slate-50 dark:bg-slate-955 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350 px-3.5 py-1.5 rounded-xl text-xs outline-none cursor-pointer focus:border-emerald-500/80 flex-1 sm:w-44"
+                      className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350 px-3.5 py-1.5 rounded-xl text-xs outline-none cursor-pointer focus:border-emerald-500/80 flex-1 sm:w-44"
                     >
                       <option value="ALL">Comparison: All Exams</option>
                       {sortedExamTypes.map(et => (
@@ -588,7 +588,7 @@ export default function ParentDashboard() {
                             return (
                               <div key={m.subject} className="flex flex-col items-center group relative w-16">
                                 {/* Bar Tooltip */}
-                                <div className="absolute -top-12 bg-slate-800 dark:bg-slate-955 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 whitespace-nowrap">
+                                <div className="absolute -top-12 bg-slate-800 dark:bg-slate-950 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 whitespace-nowrap">
                                   {m.subject}: {val}%
                                 </div>
 
@@ -783,7 +783,7 @@ export default function ParentDashboard() {
                       className={`text-[10px] px-3 py-1 rounded-lg font-bold border transition-all ${
                         notifFilter === cat.id
                           ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                          : "bg-slate-50 dark:bg-slate-955 border-slate-205 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-350"
+                          : "bg-slate-50 dark:bg-slate-950 border-slate-205 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-350"
                       }`}
                     >
                       {cat.label}
@@ -803,7 +803,7 @@ export default function ParentDashboard() {
                       return (
                         <div
                           key={n.id}
-                          className={`p-3.5 rounded-xl border text-xs bg-slate-55 dark:bg-slate-955/20 ${meta.border} ${!n.isRead ? "ring-1 ring-emerald-500/20" : ""}`}
+                          className={`p-3.5 rounded-xl border text-xs bg-slate-55 dark:bg-slate-950/20 ${meta.border} ${!n.isRead ? "ring-1 ring-emerald-500/20" : ""}`}
                         >
                           <div className="flex gap-2.5 items-start">
                             <span className={`w-6.5 h-6.5 rounded-lg ${meta.bg} border ${meta.border} flex items-center justify-center shrink-0 mt-0.5`}>
@@ -945,7 +945,7 @@ export default function ParentDashboard() {
                       : "Loading…",
                   },
                 ].map((card) => (
-                  <div key={card.label} className="bg-slate-50 dark:bg-slate-955/20 rounded-xl px-6 py-5 border border-slate-205 dark:border-slate-800 hover:scale-[1.01] transition-transform">
+                  <div key={card.label} className="bg-slate-50 dark:bg-slate-950/20 rounded-xl px-6 py-5 border border-slate-205 dark:border-slate-800 hover:scale-[1.01] transition-transform">
                     <div className={`w-10 h-10 rounded-full ${card.bg} border ${card.border} flex items-center justify-center mb-4`}>
                       <i className={`fi ${card.icon} ${card.color} text-xs`}></i>
                     </div>

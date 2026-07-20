@@ -1026,6 +1026,7 @@
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Swal from "sweetalert2";
@@ -1116,6 +1117,7 @@ interface InjuryReport {
 }
 
 export default function PETeacherSportsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session, status } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
 
@@ -1396,8 +1398,8 @@ export default function PETeacherSportsPage() {
 
   return (
     <PortalLayout
-      title="Sports & Athletics Desk"
-      subtitle="Physical Education Assessment, Sports Teams mapping, & Injury tracking board."
+      title={lang === "தமிழ்" ? "விளையாட்டு & உடற்கல்வி பிரிவு" : "Sports & Athletics Desk"}
+      subtitle={lang === "தமிழ்" ? "உடற்கல்வி மதிப்பீடு, விளையாட்டு அணிகள் வரைபடம் மற்றும் காயம் கண்காணிப்பு வாரியம்." : "Physical Education Assessment, Sports Teams mapping, & Injury tracking board."}
       avatarLetter="C"
       avatarColor="#06b6d4"
       themeClass="theme-teacher"
@@ -1407,8 +1409,8 @@ export default function PETeacherSportsPage() {
         <div className="mb-6 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 p-4 rounded-2xl flex items-center gap-3 text-xs font-bold shadow-sm animate-in fade-in duration-300">
           <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 animate-pulse" />
           <div>
-            <span className="block text-sm font-extrabold leading-none mb-1">View-Only Portal Access</span>
-            <span className="block opacity-80 mt-1">You are logged in as {session?.user?.name || "Teacher"}. Only teachers with a "Physical Education" specialty can update student sports scores, enroll teams, or schedule events.</span>
+            <span className="block text-sm font-extrabold leading-none mb-1">{lang === "தமிழ்" ? "பார்வைக்கு மட்டுமேயான அணுகல்" : "View-Only Portal Access"}</span>
+            <span className="block opacity-80 mt-1">{lang === "தமிழ்" ? `நீங்கள் ${session?.user?.name || "ஆசிரியர்"} ஆக உள்நுழைந்துள்ளீர்கள். "உடற்கல்வி" சிறப்புப் பிரிவு ஆசிரியர்கள் மட்டுமே விளையாட்டு மதிப்பெண்களைப் புதுப்பிக்கவோ, அணிகளைச் சேர்க்கவோ அல்லது நிகழ்வுகளைத் திட்டமிடவோ முடியும்.` : `You are logged in as ${session?.user?.name || "Teacher"}. Only teachers with a "Physical Education" specialty can update student sports scores, enroll teams, or schedule events.`}</span>
           </div>
         </div>
       )}
@@ -1419,13 +1421,13 @@ export default function PETeacherSportsPage() {
           onClick={() => setActiveTab("roster")}
           className={`flex-1 xl:flex-initial px-6 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeTab === "roster" ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20" : "text-black dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400"}`}
         >
-           Student Roster & Scores
+           {lang === "தமிழ்" ? "மாணவர் பட்டியல் & மதிப்பெண்கள்" : "Student Roster & Scores"}
         </button>
         <button
           onClick={() => setActiveTab("injuries")}
           className={`flex-1 xl:flex-initial px-6 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeTab === "injuries" ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20" : "text-black dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400"}`}
         >
-           Injury Tracker ({injuries.filter(i => i.status === 'Pending' || i.status === 'Under Treatment').length})
+           {lang === "தமிழ்" ? `காயமடைந்தோர் கண்காணிப்பு (${injuries.filter(i => i.status === 'Pending' || i.status === 'Under Treatment').length})` : `Injury Tracker (${injuries.filter(i => i.status === 'Pending' || i.status === 'Under Treatment').length})`}
         </button>
       </div>
 

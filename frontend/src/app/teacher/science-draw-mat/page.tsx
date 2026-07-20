@@ -2,9 +2,11 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { Pencil, Eraser, Circle, Square, Type, Download, Share2, Atom, Palette, Undo, Redo, Save, Trash2, Image as ImageIcon, Rocket, Upload, X, Star } from "lucide-react";
 
 export default function ScienceDrawMatPage() {
+  const { lang } = usePortalLanguage();
   const [activeTool, setActiveTool] = useState("pencil");
   const [activeColor, setActiveColor] = useState("#ec4899");
   const [toastMsg, setToastMsg] = useState("");
@@ -136,12 +138,12 @@ export default function ScienceDrawMatPage() {
   };
   
   const tools = [
-    { id: "pencil", icon: <Pencil className="w-6 h-6" />, label: "Draw" },
-    { id: "eraser", icon: <Eraser className="w-6 h-6" />, label: "Erase" },
-    { id: "shape-circle", icon: <Circle className="w-6 h-6" />, label: "Circle" },
-    { id: "shape-square", icon: <Square className="w-6 h-6" />, label: "Square" },
-    { id: "text", icon: <Type className="w-6 h-6" />, label: "Text" },
-    { id: "image", icon: <ImageIcon className="w-6 h-6" />, label: "Sticker" },
+    { id: "pencil", icon: <Pencil className="w-6 h-6" />, label: lang === "தமிழ்" ? "வரைதல்" : "Draw" },
+    { id: "eraser", icon: <Eraser className="w-6 h-6" />, label: lang === "தமிழ்" ? "அழித்தல்" : "Erase" },
+    { id: "shape-circle", icon: <Circle className="w-6 h-6" />, label: lang === "தமிழ்" ? "வட்டம்" : "Circle" },
+    { id: "shape-square", icon: <Square className="w-6 h-6" />, label: lang === "தமிழ்" ? "சதுரம்" : "Square" },
+    { id: "text", icon: <Type className="w-6 h-6" />, label: lang === "தமிழ்" ? "உரை" : "Text" },
+    { id: "image", icon: <ImageIcon className="w-6 h-6" />, label: lang === "தமிழ்" ? "ஒட்டுப்படம்" : "Sticker" },
   ];
 
   const colors = [
@@ -353,8 +355,8 @@ export default function ScienceDrawMatPage() {
 
   return (
     <PortalLayout
-      title="Science Draw Mat "
-      subtitle="Draw, erase, type, and create awesome science diagrams!"
+      title={lang === "தமிழ்" ? "அறிவியல் வரைபடம்" : "Science Draw Mat"}
+      subtitle={lang === "தமிழ்" ? "வரைந்து, அழித்து, தட்டச்சு செய்து அற்புதமான அறிவியல் வரைபடங்களை உருவாக்குங்கள்!" : "Draw, erase, type, and create awesome science diagrams!"}
     >
       <div className="flex flex-col xl:flex-row gap-6 min-h-[calc(100vh-140px)] xl:h-[calc(100vh-140px)] overflow-y-auto xl:overflow-hidden">
         
@@ -431,9 +433,9 @@ export default function ScienceDrawMatPage() {
             <div className="flex flex-wrap items-center gap-3">
               <div className="px-3 py-1.5 bg-pink-50 dark:bg-pink-900/40 text-pink-600 dark:text-pink-300 font-black text-xs md:text-sm rounded-2xl shadow-md shadow-pink-500/10 flex items-center gap-2">
                 <Atom className="w-4 h-4 animate-spin-slow" />
-                <span>My Super Cool Drawing</span>
+                <span>{lang === "தமிழ்" ? "என் வரைபடம்" : "My Super Cool Drawing"}</span>
               </div>
-              <span className="text-xs text-slate-400 font-bold bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">Not saved yet</span>
+              <span className="text-xs text-slate-400 font-bold bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">{lang === "தமிழ்" ? "இன்னும் சேமிக்கப்படவில்லை" : "Not saved yet"}</span>
             </div>
             
             <div className="flex flex-wrap items-center gap-2">
@@ -446,22 +448,22 @@ export default function ScienceDrawMatPage() {
               />
               <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-black text-fuchsia-600 dark:text-fuchsia-300 bg-fuchsia-50 dark:bg-fuchsia-900/40 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
                 <Upload className="w-4 h-4" />
-                Import
+                {lang === "தமிழ்" ? "இறக்குமதி" : "Import"}
               </button>
-              <button onClick={() => showToast("Link copied to clipboard! Share with your friends!")} className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-black text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
+              <button onClick={() => showToast(lang === "தமிழ்" ? "இணைப்பு நகலெடுக்கப்பட்டது!" : "Link copied to clipboard! Share with your friends!")} className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-black text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
                 <Share2 className="w-4 h-4" />
-                Share
+                {lang === "தமிழ்" ? "பகிர்" : "Share"}
               </button>
               <button onClick={handleDownload} className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 text-xs md:text-sm font-black text-emerald-600 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
                 <Download className="w-4 h-4" />
-                Download
+                {lang === "தமிழ்" ? "பதிவிறக்கம்" : "Download"}
               </button>
               <button onClick={() => {
                 handleDownload();
-                showToast("Awesome drawing saved! ");
+                showToast(lang === "தமிழ்" ? "வரைபடம் சேமிக்கப்பட்டது!" : "Awesome drawing saved! ");
               }} className="flex items-center gap-2 px-4 py-2 md:px-6 md:py-2.5 text-xs md:text-sm font-black text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-2xl transition-all shadow-sm hover:scale-105 active:scale-95">
                 <Save className="w-4 h-4" />
-                Save to Portfolio
+                {lang === "தமிழ்" ? "தொகுப்பில் சேமி" : "Save to Portfolio"}
               </button>
             </div>
           </div>
@@ -561,7 +563,7 @@ export default function ScienceDrawMatPage() {
             <div className="xl:w-80 flex-shrink-0 flex flex-col bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-xl border-8 border-fuchsia-100 dark:border-slate-700 p-4">
               <div className="flex justify-between items-center mb-4 px-2">
                 <h3 className="font-black text-fuchsia-600 dark:text-fuchsia-300 flex items-center gap-2">
-                  <ImageIcon className="w-5 h-5" /> Reference
+                  <ImageIcon className="w-5 h-5" /> {lang === "தமிழ்" ? "குறிப்பு படம்" : "Reference"}
                 </h3>
                 <button onClick={() => setImportedDiagram(null)} className="p-2 hover:bg-fuchsia-50 dark:hover:bg-slate-700 text-fuchsia-400 rounded-xl transition-colors">
                   <X className="w-5 h-5" />
@@ -578,7 +580,7 @@ export default function ScienceDrawMatPage() {
         <div className="w-full xl:w-72 flex-shrink-0 flex flex-col gap-4">
           <div className="bg-white dark:bg-slate-800 p-6 flex flex-col gap-6 rounded-[2.5rem] shadow-xl border-4 border-indigo-100 dark:border-slate-700 h-full">
             <h3 className="text-xl font-black text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-50 dark:border-slate-700 pb-3 flex items-center gap-2">
-              <span className="capitalize">{activeTool.replace('shape-', '')}</span> Options
+              <span className="capitalize">{activeTool.replace('shape-', '')}</span> {lang === "தமிழ்" ? "விருப்பங்கள்" : "Options"}
             </h3>
             
             <div className="flex-1 space-y-6">
@@ -587,7 +589,7 @@ export default function ScienceDrawMatPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2 flex justify-between">
-                       <span>Stroke Width</span>
+                       <span>{lang === "தமிழ்" ? "வரைவு அகலம்" : "Stroke Width"}</span>
                        <span className="text-indigo-500">{strokeWidth}px</span>
                     </label>
                     <input 
@@ -601,7 +603,7 @@ export default function ScienceDrawMatPage() {
                   </div>
                   <div className="p-4 bg-indigo-50 dark:bg-slate-900 rounded-2xl border-2 border-indigo-100 dark:border-slate-700">
                     <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
-                      <Pencil className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Tip: Pick a color from the left menu and start drawing on the canvas!
+                      <Pencil className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "குறிப்பு: இடது மெனுவிலிருந்து ஒரு வண்ணத்தைத் தேர்ந்தெடுத்து கேன்வாஸில் வரையத் தொடங்குங்கள்!" : "Tip: Pick a color from the left menu and start drawing on the canvas!"}
                     </p>
                   </div>
                 </div>
@@ -611,7 +613,7 @@ export default function ScienceDrawMatPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2 flex justify-between">
-                       <span>Eraser Size</span>
+                       <span>{lang === "தமிழ்" ? "அழிப்பான் அளவு" : "Eraser Size"}</span>
                        <span className="text-pink-500">{eraserSize}px</span>
                     </label>
                     <input 
@@ -624,7 +626,7 @@ export default function ScienceDrawMatPage() {
                     />
                   </div>
                   <button onClick={clearCanvas} className="w-full py-3 mt-4 rounded-xl font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-colors border-2 border-red-200 active:scale-95 flex items-center justify-center gap-2">
-                     <Trash2 className="w-5 h-5" /> Erase All
+                     <Trash2 className="w-5 h-5" /> {lang === "தமிழ்" ? "அனைத்தையும் அழி" : "Erase All"}
                   </button>
                 </div>
               )}
@@ -633,7 +635,7 @@ export default function ScienceDrawMatPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2 flex justify-between">
-                       <span>Border Width</span>
+                       <span>{lang === "தமிழ்" ? "எல்லை அகலம்" : "Border Width"}</span>
                        <span className="text-emerald-500">{strokeWidth}px</span>
                     </label>
                     <input 
@@ -646,7 +648,7 @@ export default function ScienceDrawMatPage() {
                     />
                   </div>
                   <label className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-300 transition-colors">
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Fill Shape Background</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{lang === "தமிழ்" ? "வடிவ பின்னணியை நிரப்பு" : "Fill Shape Background"}</span>
                     <input 
                       type="checkbox" 
                       checked={fillShape} 
@@ -656,7 +658,7 @@ export default function ScienceDrawMatPage() {
                   </label>
                   <div className="p-4 bg-emerald-50 dark:bg-slate-900 rounded-2xl border-2 border-emerald-100 dark:border-slate-700 mt-2">
                     <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                      <Square className="w-4 h-4 inline-block mr-1 text-inherit" /> Tip: Click and drag on the canvas to create your shape!
+                      <Square className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "குறிப்பு: வடிவத்தை உருவாக்க கேன்வாஸில் கிளிக் செய்து இழுக்கவும்!" : "Tip: Click and drag on the canvas to create your shape!"}
                     </p>
                   </div>
                 </div>
@@ -666,7 +668,7 @@ export default function ScienceDrawMatPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2 flex justify-between">
-                       <span>Font Size</span>
+                       <span>{lang === "தமிழ்" ? "எழுத்துரு அளவு" : "Font Size"}</span>
                        <span className="text-blue-500">{fontSize}px</span>
                     </label>
                     <input 
@@ -679,7 +681,7 @@ export default function ScienceDrawMatPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">Font Style</label>
+                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">{lang === "தமிழ்" ? "எழுத்துரு நடை" : "Font Style"}</label>
                     <div className="flex gap-2">
                       <button 
                         onClick={() => setIsBold(!isBold)} 
@@ -697,7 +699,7 @@ export default function ScienceDrawMatPage() {
                   </div>
                   <div className="p-4 bg-blue-50 dark:bg-slate-900 rounded-2xl border-2 border-blue-100 dark:border-slate-700 mt-2">
                     <p className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                      <Type className="w-4 h-4 inline-block mr-1 text-inherit" /> Tip: Click anywhere on the canvas to add a new text box! The text will show in your selected color.
+                      <Type className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "குறிப்பு: புதிய உரை பெட்டியைச் சேர்க்க கேன்வாஸில் எங்கு வேண்டுமானாலும் கிளிக் செய்யுங்க! தேர்ந்தெடுத்த வண்ணத்தில் உரை காண்பிக்கப்படும்." : "Tip: Click anywhere on the canvas to add a new text box! The text will show in your selected color."}
                     </p>
                   </div>
                 </div>
@@ -707,7 +709,7 @@ export default function ScienceDrawMatPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2 flex justify-between">
-                       <span>Sticker Opacity</span>
+                       <span>{lang === "தமிழ்" ? "ஒட்டுப்படம் ஒளிபுகாநிலை" : "Sticker Opacity"}</span>
                        <span className="text-purple-500">{opacity}%</span>
                     </label>
                     <input 
@@ -721,7 +723,7 @@ export default function ScienceDrawMatPage() {
                   </div>
                   <div className="p-4 bg-purple-50 dark:bg-slate-900 rounded-2xl border-2 border-purple-100 dark:border-slate-700 mt-2">
                     <p className="text-xs font-bold text-purple-600 dark:text-purple-400">
-                      <Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Tip: Click on the canvas to place a fun science sticker!
+                      <Star className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "குறிப்பு: கேன்வாஸில் கிளிக் செய்து வேடிக்கையான அறிவியல் ஒட்டுப்படத்தை வைக்கவும்!" : "Tip: Click on the canvas to place a fun science sticker!"}
                     </p>
                   </div>
                 </div>

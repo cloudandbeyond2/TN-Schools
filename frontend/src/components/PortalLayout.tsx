@@ -125,6 +125,10 @@ const translations = {
       "NEET/JEE Prep": "NEET/JEE தயாரிப்பு",
       "College Admissions": "கல்லூரி சேர்க்கை",
       "My Classes": "எனது வகுப்புகள்",
+      "Timetable & Proxies": "கால அட்டவணை & பதிலீடுகள்",
+      "SSLC Board Prep": "SSLC பொதுத் தேர்வுத் தயாரிப்பு",
+      "Smart Class": "ஸ்மார்ட் வகுப்பறை",
+      "Social Activities Review": "சமூக செயல்பாடுகள் மதிப்பாய்வு",
       "Science Labs": "அறிவியல் ஆய்வகங்கள்",
       "Subject Analytics": "பொருள் பகுப்பாய்வு",
       "Academics & Guidance": "கல்வி & வழிகாட்டுதல்",
@@ -286,6 +290,184 @@ const translations = {
   }
 };
 
+const headerTranslations: Record<string, Record<string, { title: string; subtitle?: string }>> = {
+  "English": {},
+  "தமிழ்": {
+    "My Classes": {
+      title: "எனது வகுப்புகள்",
+      subtitle: "உங்கள் பிரிவுகள், மாணவர் பட்டியல்கள் மற்றும் அட்டவணைகளை நிர்வகிக்கவும்"
+    },
+    "Daily Attendance Tracker": {
+      title: "தினசரி வருகைப்பதிவு",
+      subtitle: "மாணவர்களின் வருகையை பதிவு செய்யவும் மற்றும் பெற்றோருக்கு தானியங்கி செய்தி அனுப்பவும்."
+    },
+    "Magic 3D Viewer! ": {
+      title: "3D முன்னோட்ட காட்டி",
+      subtitle: "முப்பரிமாண மாதிரிகளை சுழற்றி, பெரிதாக்கி ஆராயுங்கள்!"
+    },
+    "Study Materials & Resources": {
+      title: "பாடப் பொருட்கள் & வளங்கள்",
+      subtitle: "பாட ஆவணங்கள், இணைப்புகள் மற்றும் பணித்தாள்களைப் பதிவேற்றவும்."
+    },
+    "Announcements & Circulars": {
+      title: "அறிவிப்புகள் & சுற்றறிக்கைகள்",
+      subtitle: "வகுப்புகளுக்கான அறிவிப்புகளை வெளியிடவும் அல்லது நிர்வாக சுற்றறிக்கைகளை மதிப்பாய்வு செய்யவும்."
+    },
+    "NEET Preparation": {
+      title: "நீட் தேர்வுத் தயாரிப்பு",
+      subtitle: "நீட் மாதிரித் தேர்வுகளைத் திட்டமிடுங்கள், மாணவர் முன்னேற்றம் மற்றும் பாடத்திட்டத்தை கண்காணிக்கவும்."
+    },
+    "Student Profiles": {
+      title: "மாணவர் சுயவிவரங்கள்",
+      subtitle: "மாணவர் பதிவுகள், EMIS விவரங்கள் மற்றும் செயல்பாடுகளை தேடிக் கண்டறியவும்."
+    },
+    "Student Health Report ": {
+      title: "மாணவர் சுகாதார அறிக்கை",
+      subtitle: "மாணவர்களின் உடல்நலம் மற்றும் நல்வாழ்வைக் கண்காணித்து நிர்வகிக்கவும்."
+    },
+    "School Press": {
+      title: "பள்ளி செய்தி இதழ்",
+      subtitle: "மாணவர்களின் செயல்பாடுகள் மற்றும் சாதனைகளைப் பிரசுரிக்கவும்."
+    },
+    "Scholarship & Govt Schemes": {
+      title: "உதவித்தொகை & அரசுத் திட்டங்கள்",
+      subtitle: "தகுதியான மாணவர் பதிவுகளைச் சரிபார்த்து விநியோக நிலைகளைக் கண்காணிக்கவும்."
+    },
+    "My Profile": {
+      title: "எனது சுயவிவரம்",
+      subtitle: "உங்கள் தனிப்பட்ட கல்விச் சான்றுகள் மற்றும் சுயவிவர விவரங்களைப் பார்க்கவும்."
+    },
+    "Competitive Exams": {
+      title: "போட்டித் தேர்வுகள்",
+      subtitle: "போட்டித் தேர்வு அட்டவணைகள், மாணவர் சேர்க்கை மற்றும் வெற்றி விகிதங்களைக் கண்காணிக்கவும்."
+    },
+    "Science Labs Manager": {
+      title: "அறிவியல் ஆய்வக மேலாளர்",
+      subtitle: "ஆய்வக அமர்வுகள், கையேடுகள் மற்றும் பாதுகாப்பு இணக்கத்தை நிர்வகிக்கவும்."
+    },
+    "Student Status & Engagement": {
+      title: "மாணவர் நிலை & ஈடுபாடு",
+      subtitle: "விர்ச்சுவல் பேட்ஜ்களை வழங்கவும் மற்றும் மாணவர்களின் வகுப்பறை பங்கேற்பை கண்காணிக்கவும்."
+    },
+    "SSLC Prep": {
+      title: "SSLC பொதுத் தேர்வுத் தயாரிப்பு",
+      subtitle: "SSLC மாதிரித் தேர்வுகளைத் திட்டமிடுங்கள், மாணவர் முன்னேற்றத்தைக் கண்காணியுங்கள்."
+    },
+    "Sports": {
+      title: "விளையாட்டு & தடகள",
+      subtitle: "விளையாட்டு நிகழ்வுகள், தடகளப் போட்டிகள் மற்றும் மாணவர் சாதனைகளை நிர்வகிக்கவும்."
+    },
+    "Social Activities": {
+      title: "சமூக செயல்பாடுகள்",
+      subtitle: "மாணவர் சமூகச் சேவைப் பதிவுகள் மற்றும் மன்றச் செயல்பாடுகளை நிர்வகிக்கவும்."
+    },
+    "Smart Class": {
+      title: "ஸ்மார்ட் வகுப்பறை",
+      subtitle: "ஊடாடும் ஸ்மார்ட் போர்டு மற்றும் டிஜிட்டல் வகுப்பறை கருவிகள்."
+    },
+    "Science Lab Support": {
+      title: "அறிவியல் ஆய்வக ஆதரவு",
+      subtitle: "ஆய்வக உபகரணங்கள் மற்றும் சோதனைகளுக்கான தொழில்நுட்ப வழிகாட்டல்."
+    },
+    "Science Draw Mat": {
+      title: "அறிவியல் வரைதல் விரிப்பு",
+      subtitle: "உயிரியல் மற்றும் இயற்பியல் வரைபடங்களை ஊடாடும் வரைதல் கருவி மூலம் கற்றுக்கொள்ளுங்கள்."
+    },
+    "Risk Alerts": {
+      title: "ஆபத்து எச்சரிக்கைகள்",
+      subtitle: "மாணவர்கள் பள்ளி இடைநிற்றல் அபாயத்தைக் கண்டறிந்து முன்கூட்டியே எச்சரிக்கவும்."
+    },
+    "Question Generator": {
+      title: "கேள்வி உருவாக்கி",
+      subtitle: "AI தொழில்நுட்பம் மூலம் வினாத்தாள்களை எளிதாக உருவாக்குங்கள்."
+    },
+    "Personal Guide": {
+      title: "தனிப்பட்ட வழிகாட்டி",
+      subtitle: "ஆசிரியர்களுக்கான தனிப்பட்ட வழிகாட்டுதல்கள் மற்றும் ஆலோசனை விவரங்கள்."
+    },
+    "Parents Details": {
+      title: "பெற்றோர்கள் விவரங்கள்",
+      subtitle: "பெற்றோர்களின் தொடர்புகள் மற்றும் கூட்டப் பதிவுகள்."
+    },
+    "Maths Formulas": {
+      title: "கணித சூத்திரங்கள்",
+      subtitle: "வகுப்பறை கற்பித்தலுக்கான கணித சூத்திரங்கள் மற்றும் சமன்பாடுகள்."
+    },
+    "AI Lesson Planner": {
+      title: "AI பாடத் திட்டமிடுபவர்",
+      subtitle: "AI உதவியுடன் பாடத்திட்டங்களையும் தினசரி கற்பித்தல் திட்டங்களையும் வடிவமைக்கவும்."
+    },
+    "Leave Requests": {
+      title: "விடுப்பு கோரிக்கைகள்",
+      subtitle: "விடுப்பு விண்ணப்பங்களைச் சமர்ப்பிக்க மற்றும் ஒப்புதல் நிலையைப் பார்க்கவும்."
+    },
+    "Language Coaching": {
+      title: "மொழி பயிற்சி",
+      subtitle: "ஆங்கிலம் மற்றும் தமிழ் மொழி உச்சரிப்பு மற்றும் வாசிப்புத் திறன் மேம்பாடு."
+    },
+    "Active Science Lab": {
+      title: "செயலில் உள்ள அறிவியல் ஆய்வகம்",
+      subtitle: "அறிவியல் சோதனைகளின் நேரடி கண்காணிப்பு."
+    },
+    "Homework Manager": {
+      title: "வீட்டுப்பாட மேலாளர்",
+      subtitle: "மாணவர்களின் வீட்டுப்பாடங்களை வழங்க மற்றும் அவற்றின் சமர்ப்பிப்பு நிலைகளைக் கண்காணிக்க."
+    },
+    "Exam Schedule": {
+      title: "தேர்வு அட்டவணை",
+      subtitle: "பள்ளி பொது மற்றும் மாதிரித் தேர்வுகள் அட்டவணை."
+    },
+    "School Events": {
+      title: "பள்ளி நிகழ்வுகள்",
+      subtitle: "பள்ளி விழாக்கள், விளையாட்டுப் போட்டிகள் மற்றும் சிறப்பு நிகழ்வுகள்."
+    },
+    "AI Evaluation": {
+      title: "AI மதிப்பீடு",
+      subtitle: "மாணவர்களின் விடைத்தாள்களை AI மூலம் தானியங்கி மதிப்பீடு செய்தல்."
+    },
+    "Contribute to Library": {
+      title: "நூலகத்திற்கு பங்களிப்பு",
+      subtitle: "பாடப் புத்தகங்கள் மற்றும் டிஜிட்டல் கற்றல் வளங்களைப் பகிரவும்."
+    },
+    "Cultural Events": {
+      title: "கலாச்சார நிகழ்வுகள்",
+      subtitle: "பள்ளி கலை விழாக்களுக்கான முன்பதிவு மற்றும் மாணவர் பங்கேற்பு."
+    },
+    "Computer Education": {
+      title: "கணினி கல்வி",
+      subtitle: "கணினி அறிவியல் பாடங்கள், ஆய்வகம் மற்றும் கோடிங் பயிற்சி."
+    },
+    "Communication": {
+      title: "தொடர்பு",
+      subtitle: "பெற்றோர் மற்றும் நிர்வாகத்துடன் செய்திகளைப் பரிமாறவும்."
+    },
+    "Chemistry Lab": {
+      title: "வேதியியல் ஆய்வகம்",
+      subtitle: "வேதியியல் சோதனைகள் மற்றும் மூலக்கூறு கட்டமைப்புகள் மெய்நிகர் ஆய்வகம்."
+    },
+    "Celebrations": {
+      title: "பள்ளி கொண்டாட்டங்கள்",
+      subtitle: "தேசிய விழாக்கள் மற்றும் பள்ளி ஆண்டு விழா கொண்டாட்டங்களின் விவரங்கள்."
+    },
+    "Analytics": {
+      title: "பகுப்பாய்வு",
+      subtitle: "பள்ளி மற்றும் மாணவர்களின் கல்வித் தரவு பகுப்பாய்வு."
+    },
+    "Academics & Subjects": {
+      title: "கல்வி & பாடங்கள்",
+      subtitle: "பாடங்கள், பாடத்திட்டங்கள், புத்தகங்கள், குறிப்புகள் மற்றும் வீடியோக்கள் ஒரே இடத்தில்."
+    },
+    "Academics Hub": {
+      title: "கல்வி மையம்",
+      subtitle: "கல்வித் தகவல்கள், மாணவர் முன்னேற்றம் மற்றும் பாடத்திட்டங்களை நிர்வகிக்கவும்."
+    },
+    "Academics & Records": {
+      title: "கல்வி & பதிவுகள்",
+      subtitle: "கல்விப் பதிவுகள், மதிப்பெண்கள் மற்றும் மாணவர்களின் தேர்ச்சி விவரங்கள்."
+    }
+  }
+};
+
 export default function PortalLayout({
   children,
   title,
@@ -427,7 +609,7 @@ export default function PortalLayout({
       return () => clearInterval(interval);
     }
   }, [status, session]);
-  
+
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -502,7 +684,7 @@ export default function PortalLayout({
           setMaintenanceMode(data.data.maintenanceMode === true);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Redirect to sign-in page if not logged in
@@ -534,9 +716,9 @@ export default function PortalLayout({
   const sessionClassNum = parseInt(String((session?.user as any)?.class || "").match(/\d+/)?.[0] || "0", 10);
   const classLevel =
     sessionClassNum >= 11 ? "STUDENT_HIGHER"
-    : sessionClassNum >= 9 ? "STUDENT_HIGH"
-    : sessionClassNum >= 1 ? "STUDENT_MIDDLE"
-    : null;
+      : sessionClassNum >= 9 ? "STUDENT_HIGH"
+        : sessionClassNum >= 1 ? "STUDENT_MIDDLE"
+          : null;
 
   // Re-map student roles to specialized configurations based on path
   if (userRole === "STUDENT") {
@@ -568,7 +750,7 @@ export default function PortalLayout({
   if (!navItems && userRole === "STUDENT_HIGHER") {
     resolvedNavItems = applyStudentGroup(resolvedNavItems, studentGroup);
   }
-  
+
   // Subject-wise filtering mapping for interactive modules
   const subjectRoutes: Record<string, string[]> = {
     "Mathematics": ["/teacher/maths-formulas", "/teacher/3d-preview", "/teacher/neet-prep"],
@@ -591,38 +773,38 @@ export default function PortalLayout({
     userRole === "SUPERADMIN"
       ? resolvedNavItems
       : resolvedNavItems.filter((item) => {
-          if (item.href !== "#" && item.label !== "---" && disabledRoutes.has(item.href)) {
-            return false;
-          }
-          
-          if (userRole === "TEACHER" && subjectRestrictedRoutes.has(item.href)) {
-            // It's a restricted route, check if teacher's subject allows it
-            const allowedRoutesForSubject = subjectRoutes[userSubject] || [];
-            return allowedRoutesForSubject.includes(item.href);
-          }
+        if (item.href !== "#" && item.label !== "---" && disabledRoutes.has(item.href)) {
+          return false;
+        }
 
-          if (item.label === "Maths Formulas") {
-            const classNum = String(userClass).match(/\d+/)?.[0];
-            return classNum === "6";
-          }
-          
-          if (item.label === "Botany Centre") {
-            const classNum = String(userClass).match(/\d+/)?.[0];
-            if (classNum === "6" || classNum === "7") {
-              return false;
-            }
-          }
+        if (userRole === "TEACHER" && subjectRestrictedRoutes.has(item.href)) {
+          // It's a restricted route, check if teacher's subject allows it
+          const allowedRoutesForSubject = subjectRoutes[userSubject] || [];
+          return allowedRoutesForSubject.includes(item.href);
+        }
 
-          if (userRole.includes("STUDENT") && (item.label === "Chemistry Lab" || item.label === "Science Lab Support")) {
+        if (item.label === "Maths Formulas") {
+          const classNum = String(userClass).match(/\d+/)?.[0];
+          return classNum === "6" || classNum === "7" || classNum === "8";
+        }
+
+        if (item.label === "Botany Centre") {
+          const classNum = String(userClass).match(/\d+/)?.[0];
+          if (classNum === "6" || classNum === "7") {
             return false;
           }
-          
-          if (item.label === "AI Study Planner") {
-            return false;
-          }
-          
-          return true;
-        });
+        }
+
+        if (userRole.includes("STUDENT") && (item.label === "Chemistry Lab" || item.label === "Science Lab Support")) {
+          return false;
+        }
+
+        if (item.label === "AI Study Planner") {
+          return false;
+        }
+
+        return true;
+      });
 
   // Clean up empty sections (headers and dividers without following links)
   filteredNavItems = filteredNavItems.filter((item, i, arr) => {
@@ -642,8 +824,16 @@ export default function PortalLayout({
     return true;
   });
 
-  const resolvedTitle = title || currentConfig?.title || "Portal Dashboard";
+  let resolvedTitle = title || currentConfig?.title || "Portal Dashboard";
   let resolvedSubtitle = subtitle || currentConfig?.subtitle || "";
+
+  if (currentLanguage === "தமிழ்" && headerTranslations["தமிழ்"][resolvedTitle.trim()]) {
+    const translation = headerTranslations["தமிழ்"][resolvedTitle.trim()];
+    resolvedTitle = translation.title;
+    if (translation.subtitle && subtitle) {
+      resolvedSubtitle = translation.subtitle;
+    }
+  }
   if (session?.user?.name) {
     const s = session.user as any;
     // Base replacement of default dummy names with actual logged-in user name
@@ -822,18 +1012,18 @@ export default function PortalLayout({
         </div>
 
         {/* User Profile Section */}
-        <div 
-          onClick={userRole === "TEACHER" ? () => router.push("/teacher/profile") : undefined} 
+        <div
+          onClick={userRole === "TEACHER" ? () => router.push("/teacher/profile") : undefined}
           className={`mx-4 p-3 border border-[var(--border)] rounded-2xl flex items-center gap-3 mb-6 bg-slate-50/50 dark:bg-slate-900/20 hover:bg-slate-100/50 dark:hover:bg-slate-800/20 transition-all block ${userRole === "TEACHER" ? "cursor-pointer" : ""}`}
         >
           <div className="relative shrink-0">
-             <div
-               className="w-10 h-10 rounded-full text-white text-base font-bold flex items-center justify-center shadow-sm"
-               style={{ background: `linear-gradient(135deg, ${resolvedAccentColor}, ${resolvedAccentColor}dd)` }}
-             >
-               {letter}
-             </div>
-             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[var(--bg-sidebar)] rounded-full"></div>
+            <div
+              className="w-10 h-10 rounded-full text-white text-base font-bold flex items-center justify-center shadow-sm"
+              style={{ background: `linear-gradient(135deg, ${resolvedAccentColor}, ${resolvedAccentColor}dd)` }}
+            >
+              {letter}
+            </div>
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[var(--bg-sidebar)] rounded-full"></div>
           </div>
           <div className="min-w-0 text-left flex flex-col justify-center">
             <div className="text-sm font-bold text-[var(--text-heading)] truncate">{displayName}</div>
@@ -866,10 +1056,10 @@ export default function PortalLayout({
 
             const isActive = pathname === item.href || (
               pathname.startsWith(item.href + "/") &&
-              !filteredNavItems.some(otherItem => 
-                otherItem.href !== item.href && 
-                otherItem.href !== "#" && 
-                pathname.startsWith(otherItem.href + "/") && 
+              !filteredNavItems.some(otherItem =>
+                otherItem.href !== item.href &&
+                otherItem.href !== "#" &&
+                pathname.startsWith(otherItem.href + "/") &&
                 otherItem.href.length > item.href.length
               ) &&
               !filteredNavItems.some(otherItem =>
@@ -932,12 +1122,12 @@ export default function PortalLayout({
       )}
 
       {/* Main Content Area */}
-      <div 
+      <div
         className="main-content relative min-h-screen transition-all duration-300"
         style={hideSidebar ? { marginLeft: 0, width: '100%' } : undefined}
       >
         {/* Argon Header Background Gradient */}
-        <div 
+        <div
           className="absolute top-0 left-0 right-0 h-[300px] transition-all duration-300 pointer-events-none main-content-header-bg"
           style={{
             background: `linear-gradient(87deg, ${resolvedAccentColor} 0%, ${resolvedAccentColor}dd 100%)`
@@ -955,7 +1145,7 @@ export default function PortalLayout({
             >
               <i className="fi fi-rr-menu-burger text-[18px]" />
             </button>
-            
+
             {/* Simplified Logo on Mobile/Tablet */}
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity lg:hidden mr-2">
               <span className="text-xl shrink-0">🏛️</span>
@@ -975,12 +1165,12 @@ export default function PortalLayout({
               </div>
             ) : (
               <div className="relative hidden lg:block max-w-md w-full ml-2">
-                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-muted)]">🔍</span>
-                 <input 
-                   type="text" 
-                   placeholder="Search pages, settings or... Ctrl K" 
-                   className="w-full pl-10 pr-4 py-2 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-full text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 transition-all"
-                 />
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-muted)]">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search pages, settings or... Ctrl K"
+                  className="w-full pl-10 pr-4 py-2 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-full text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 transition-all"
+                />
               </div>
             )}
           </div>
@@ -1010,6 +1200,7 @@ export default function PortalLayout({
                     onClick={() => {
                       setCurrentLanguage("English");
                       localStorage.setItem("portal-language", "English");
+                      window.dispatchEvent(new Event("portal-language-change"));
                       setIsLanguageDropdownOpen(false);
                     }}
                     className="w-full text-left px-4 py-2 text-xs font-medium text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] transition-colors"
@@ -1020,6 +1211,7 @@ export default function PortalLayout({
                     onClick={() => {
                       setCurrentLanguage("தமிழ்");
                       localStorage.setItem("portal-language", "தமிழ்");
+                      window.dispatchEvent(new Event("portal-language-change"));
                       setIsLanguageDropdownOpen(false);
                     }}
                     className="w-full text-left px-4 py-2 text-xs font-medium text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] transition-colors"
@@ -1053,7 +1245,7 @@ export default function PortalLayout({
                 <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-250">
                   <div className="p-4 border-b border-[var(--border)] flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/10">
                     <span className="text-xs font-bold text-[var(--text-heading)]">{t.notificationsTitle}</span>
-                    <button 
+                    <button
                       onClick={handleMarkAllRead}
                       className="text-[10px] text-[var(--primary)] hover:underline font-semibold"
                     >
@@ -1066,9 +1258,8 @@ export default function PortalLayout({
                         <div
                           key={notif.id}
                           onClick={() => !notif.read && handleMarkSingleRead(notif.id)}
-                          className={`p-3.5 text-xs text-[var(--text-main)] border-b border-[var(--border)] hover:bg-[var(--bg-card-hover)] transition-colors cursor-pointer flex justify-between items-start gap-2 ${
-                            !notif.read ? "bg-[var(--primary)]/5 font-semibold text-[var(--text-heading)]" : ""
-                          }`}
+                          className={`p-3.5 text-xs text-[var(--text-main)] border-b border-[var(--border)] hover:bg-[var(--bg-card-hover)] transition-colors cursor-pointer flex justify-between items-start gap-2 ${!notif.read ? "bg-[var(--primary)]/5 font-semibold text-[var(--text-heading)]" : ""
+                            }`}
                         >
                           <div className="flex-1">
                             <div>{notif.message}</div>
@@ -1111,53 +1302,53 @@ export default function PortalLayout({
                     <div className="text-[10px] text-[var(--text-muted)] truncate">{displayEmail}</div>
                   </div>
                   {userRole === "TEACHER" ? (
-                    <Link 
-                      href="/teacher/profile" 
-                      onClick={() => setIsProfileOpen(false)} 
-                      scroll={false} 
+                    <Link
+                      href="/teacher/profile"
+                      onClick={() => setIsProfileOpen(false)}
+                      scroll={false}
                       className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
                     >
-                      <i className="fi fi-rr-user text-[14px]" /> 
+                      <i className="fi fi-rr-user text-[14px]" />
                       <span>{t.profileTitle}</span>
                     </Link>
                   ) : (
-                    <Link 
-                      href={userRole === "PARENT" ? "/parent" : (userRole === "PET" ? "/pet" : "/student")} 
-                      onClick={() => setIsProfileOpen(false)} 
-                      scroll={false} 
+                    <Link
+                      href={userRole === "PARENT" ? "/parent" : (userRole === "PET" ? "/pet" : "/student")}
+                      onClick={() => setIsProfileOpen(false)}
+                      scroll={false}
                       className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
                     >
-                      <i className="fi fi-rr-user text-[14px]" /> 
+                      <i className="fi fi-rr-user text-[14px]" />
                       <span>Dashboard Home</span>
                     </Link>
                   )}
-                  <Link 
-                    href="#" 
-                    onClick={() => setIsProfileOpen(false)} 
-                    scroll={false} 
+                  <Link
+                    href="#"
+                    onClick={() => setIsProfileOpen(false)}
+                    scroll={false}
                     className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
                   >
-                    <i className="fi fi-rr-settings text-[14px]" /> 
+                    <i className="fi fi-rr-settings text-[14px]" />
                     <span>{t.settings}</span>
                   </Link>
-                  <Link 
-                    href="#" 
-                    onClick={() => setIsProfileOpen(false)} 
-                    scroll={false} 
+                  <Link
+                    href="#"
+                    onClick={() => setIsProfileOpen(false)}
+                    scroll={false}
                     className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] hover:text-[var(--portal-color,var(--primary))] transition-colors"
                   >
-                    <i className="fi fi-rr-interrogation text-[14px]" /> 
+                    <i className="fi fi-rr-interrogation text-[14px]" />
                     <span>{t.help}</span>
                   </Link>
                   <div className="my-1 border-t border-[var(--border)]" />
-                  <button 
+                  <button
                     onClick={() => {
                       setIsProfileOpen(false);
                       signOut({ callbackUrl: "/" });
-                    }} 
+                    }}
                     className="flex w-full items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
                   >
-                    <i className="fi fi-rr-exit text-[14px]" /> 
+                    <i className="fi fi-rr-exit text-[14px]" />
                     <span>{t.signOut}</span>
                   </button>
                 </div>

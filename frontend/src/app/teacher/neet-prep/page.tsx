@@ -6,6 +6,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface NEETTopic {
   id: string;
@@ -97,6 +98,7 @@ const emptyTestForm = {
 };
 
 export default function NEETPrepPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const teacherId = (session?.user as any)?.id;
@@ -546,13 +548,13 @@ export default function NEETPrepPage() {
   const avgClassScore = totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
 
   return (
-    <PortalLayout title="NEET Preparation" subtitle="Schedule NEET mock exams, check student dailyum logs, syllabus progress and generate practice sheets">
+    <PortalLayout title={lang === "தமிழ்" ? "NEET தயாரிப்பு" : "NEET Preparation"} subtitle={lang === "தமிழ்" ? "NEET பழக்க தேர்வுகள் திட்டமிடு, மாணவர் நேர்முக பதிவுகள், பாடத்திட்ட நிலை மற்றும் பயிற்சி தாள்கள் உருவாக்கு" : "Schedule NEET mock exams, check student dailyum logs, syllabus progress and generate practice sheets"}>
       
       {/* ── KPI Row ───────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Chapters Tracked", value: topics.length, icon: <Activity className="w-5 h-5" />, color: "text-red-500", bg: "bg-red-50 dark:bg-red-950/20" },
-          { label: "Completed Syllabus", value: `${completedCount}/${topics.length}`, icon: <Check className="w-5 h-5" />, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
+          { label: lang === "தமிழ்" ? "கணக்கிடப்பட்ட படிப்புகள்" : "Chapters Tracked", value: topics.length, icon: <Activity className="w-5 h-5" />, color: "text-red-500", bg: "bg-red-50 dark:bg-red-950/20" },
+          { label: lang === "தமிழ்" ? "முடிந்த பாடத்திட்டம்" : "Completed Syllabus", value: `${completedCount}/${topics.length}`, icon: <Check className="w-5 h-5" />, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
           { label: "Tests Scheduled", value: tests.length, icon: <Edit className="w-5 h-5" />, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950/20" },
           { label: "Avg Class Accuracy", value: `${avgClassScore}%`, icon: <Target className="w-5 h-5" />, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20" },
         ].map((kpi) => (
@@ -1069,7 +1071,7 @@ export default function NEETPrepPage() {
                 </div>
                 <div>
                   <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Correct</label>
-                  <input value={chapterForm.correct} onChange={(e) => setChapterForm({ ...chapterForm, correct: e.target.value })} type="number" className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none" />
+                  <input value={chapterForm.correct} onChange={(e) => setChapterForm({ ...chapterForm, correct: e.target.value })} type="number" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none" />
                 </div>
               </div>
               <div>

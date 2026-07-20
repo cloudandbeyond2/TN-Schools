@@ -497,7 +497,7 @@ export default function GalleryPage() {
             </div>
 
             {/* Simulated or Uploaded Photo Panel */}
-            <div className="w-full h-80 md:h-[420px] relative flex items-center justify-center bg-slate-955 overflow-hidden border-b border-slate-850">
+            <div className="w-full h-80 md:h-[420px] relative flex items-center justify-center bg-slate-950 overflow-hidden border-b border-slate-850">
               {selectedItem.imageUrl ? (
                 <img
                   src={selectedItem.imageUrl}

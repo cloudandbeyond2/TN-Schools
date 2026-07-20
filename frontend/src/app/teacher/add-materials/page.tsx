@@ -5,6 +5,7 @@ import { BookOpen, Folder, Archive, Star, X } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import Swal from "sweetalert2";
 
 interface Material {
@@ -18,6 +19,7 @@ interface Material {
 }
 
 export default function AddMaterialsPage() {
+  const { t } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -296,10 +298,10 @@ export default function AddMaterialsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Upload form */}
         <div className="theme-card p-6 border border-[var(--border)]">
-          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4"><BookOpen className="w-4 h-4 inline-block mr-1 text-inherit" /> Upload New Resource</h2>
+          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4"><BookOpen className="w-4 h-4 inline-block mr-1 text-inherit" /> {t("upload_new_resource")}</h2>
           <form onSubmit={handleUpload} className="space-y-4">
             <div>
-              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Resource Title</label>
+              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{t("resource_title")}</label>
               <input
                 type="text"
                 required
@@ -312,21 +314,21 @@ export default function AddMaterialsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Category</label>
+                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{t("category")}</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as Material["category"])}
                   className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                 >
-                  <option value="Notes">Notes</option>
-                  <option value="Worksheet">Worksheet</option>
-                  <option value="Video Reference">Video Reference</option>
-                  <option value="Exam Prep">Exam Prep</option>
+                  <option value="Notes">{t("notes_category")}</option>
+                  <option value="Worksheet">{t("worksheet_category")}</option>
+                  <option value="Video Reference">{t("video_ref_category")}</option>
+                  <option value="Exam Prep">{t("exam_prep_category")}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Class Section</label>
+                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{t("class_section")}</label>
                 <select
                   value={targetClass}
                   onChange={(e) => setTargetClass(e.target.value)}
@@ -339,14 +341,14 @@ export default function AddMaterialsPage() {
                       </option>
                     ))
                   ) : (
-                    <option value="">No Classes Assigned</option>
+                    <option value="">{t("no_classes_assigned")}</option>
                   )}
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">File Attachment</label>
+              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{t("file_attachment")}</label>
               <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -360,9 +362,9 @@ export default function AddMaterialsPage() {
               >
                 <span className="text-3xl block mb-2"><Folder className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
                 <span className="text-xs text-[var(--text-muted)] font-medium block">
-                  {selectedFileName ? `${selectedFileName} (${selectedFileSize})` : "Click to select study resource file"}
+                  {selectedFileName ? `${selectedFileName} (${selectedFileSize})` : t("click_to_select")}
                 </span>
-                <span className="text-[10px] text-[var(--text-muted)] mt-1 block">Supports PDF, Doc, PPT up to 100MB</span>
+                <span className="text-[10px] text-[var(--text-muted)] mt-1 block">{t("supports_formats")}</span>
               </div>
             </div>
 
@@ -371,7 +373,7 @@ export default function AddMaterialsPage() {
               disabled={!title || !selectedFileName}
               className="w-full py-2.5 bg-[var(--primary)] hover:bg-amber-600 disabled:bg-[var(--bg-card)] disabled:text-[var(--text-muted)] text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
             >
-              Upload & Distribute to Students
+              {t("upload_and_distribute")}
             </button>
           </form>
         </div>
@@ -379,68 +381,83 @@ export default function AddMaterialsPage() {
         {/* Directory details */}
         <div className="lg:col-span-2 theme-card p-6 border border-[var(--border)]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <h2 className="text-base font-semibold text-[var(--text-heading)]"><Archive className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Study Materials Directory</h2>
+            <h2 className="text-base font-semibold text-[var(--text-heading)]"><Archive className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> {t("study_materials_directory")}</h2>
             
             <div className="flex flex-wrap gap-1.5 p-1 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl">
-              {(["All", "Notes", "Worksheet", "Video Reference", "Exam Prep"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    activeTab === tab
-                      ? "bg-[var(--primary)] text-white shadow-sm font-bold"
-                      : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card)]"
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
+              {(["All", "Notes", "Worksheet", "Video Reference", "Exam Prep"] as const).map((tab) => {
+                const tabTranslated = 
+                  tab === "All" ? t("all_tab") :
+                  tab === "Notes" ? t("notes_category") :
+                  tab === "Worksheet" ? t("worksheet_category") :
+                  tab === "Video Reference" ? t("video_ref_category") :
+                  tab === "Exam Prep" ? t("exam_prep_category") : tab;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      activeTab === tab
+                        ? "bg-[var(--primary)] text-white shadow-sm font-bold"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card)]"
+                    }`}
+                  >
+                    {tabTranslated}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           <div className="space-y-4">
             {loading ? (
               <div className="p-12 text-center text-[var(--text-muted)] text-xs">
-                Loading database directory...
+                {t("loading_classes")}
               </div>
             ) : filteredMaterials.length > 0 ? (
-              filteredMaterials.map((m) => (
-                <div
-                  key={m.id}
-                  className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-xl border border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                >
-                  <div>
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-xs font-bold px-2 py-0.5 bg-[var(--primary)]/10 text-amber-400 border border-[var(--primary)]/20 rounded-md">
-                        {m.category}
-                      </span>
-                      <span className="text-xs font-bold text-[var(--text-muted)]">{m.classSection}</span>
+              filteredMaterials.map((m) => {
+                const categoryTranslated = 
+                  m.category === "Notes" ? t("notes_category") :
+                  m.category === "Worksheet" ? t("worksheet_category") :
+                  m.category === "Video Reference" ? t("video_ref_category") :
+                  m.category === "Exam Prep" ? t("exam_prep_category") : m.category;
+                return (
+                  <div
+                    key={m.id}
+                    className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-xl border border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="text-xs font-bold px-2 py-0.5 bg-[var(--primary)]/10 text-amber-400 border border-[var(--primary)]/20 rounded-md">
+                          {categoryTranslated}
+                        </span>
+                        <span className="text-xs font-bold text-[var(--text-muted)]">{m.classSection}</span>
+                      </div>
+                      <h3 className="text-sm font-bold text-[var(--text-heading)] mb-0.5">{m.title}</h3>
+                      <div className="text-[10px] text-[var(--text-muted)] font-semibold">
+                        {t("all_tab") === "All" ? "Format" : "வடிவம்"}: <span className="text-[var(--text-muted)]">{m.format}</span> · {t("all_tab") === "All" ? "Size" : "அளவு"}: <span className="text-[var(--text-muted)]">{m.size}</span> · {t("all_tab") === "All" ? "Uploaded" : "பதிவேற்றப்பட்டது"}: <span className="text-[var(--text-muted)]">{m.date}</span>
+                      </div>
                     </div>
-                    <h3 className="text-sm font-bold text-[var(--text-heading)] mb-0.5">{m.title}</h3>
-                    <div className="text-[10px] text-[var(--text-muted)] font-semibold">
-                      Format: <span className="text-[var(--text-muted)]">{m.format}</span> · Size: <span className="text-[var(--text-muted)]">{m.size}</span> · Uploaded: <span className="text-[var(--text-muted)]">{m.date}</span>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 self-end sm:self-auto">
-                    <button
-                      onClick={() => handleDownload(m)}
-                      className="p-2 bg-[var(--bg-card)] hover:bg-slate-700 text-[var(--text-heading)] rounded-lg text-xs transition-colors border border-[var(--border)]"
-                    >
-                      ⬇ Download
-                    </button>
-                    <button
-                      onClick={() => handleDelete(m.id)}
-                      className="p-2 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 rounded-lg text-xs transition-colors"
-                    >
-                      <X className="w-4 h-4 inline-block mr-1 text-inherit" /> Delete
-                    </button>
+                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                      <button
+                        onClick={() => handleDownload(m)}
+                        className="p-2 bg-[var(--bg-card)] hover:bg-slate-700 text-[var(--text-heading)] rounded-lg text-xs transition-colors border border-[var(--border)]"
+                      >
+                        {t("all_tab") === "All" ? "⬇ Download" : "⬇ பதிவிறக்கு"}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(m.id)}
+                        className="p-2 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 rounded-lg text-xs transition-colors"
+                      >
+                        <X className="w-4 h-4 inline-block mr-1 text-inherit" /> {t("all_tab") === "All" ? "Delete" : "நீக்கு"}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="p-12 text-center text-[var(--text-muted)] text-xs italic">
-                No materials uploaded in this category.
+                {t("all_tab") === "All" ? "No materials uploaded in this category." : "இந்த பிரிவில் எந்த பொருட்களும் பதிவேற்றப்படவில்லை."}
               </div>
             )}
           </div>

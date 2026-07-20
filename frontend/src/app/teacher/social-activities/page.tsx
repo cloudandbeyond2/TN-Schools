@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import PortalLayout from '@/components/PortalLayout';
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { 
   Check, X, Star, Clock, Calendar, MapPin, User, Loader2, BarChart2,
   ListTodo, AlertCircle, Award, CheckCircle2, ShieldAlert, FileText, Image
@@ -42,6 +43,7 @@ interface AnalyticsData {
 }
 
 export default function TeacherSocialActivitiesPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -132,8 +134,8 @@ export default function TeacherSocialActivitiesPage() {
 
   return (
     <PortalLayout 
-      title="Extracurricular Reviews" 
-      subtitle="Verify student community service actions, rate impact, and monitor school-wide participation."
+      title={lang === "தமிழ்" ? "கூடுதல் பாடச் செயல்பாடுகள் மதிப்பாய்வு" : "Extracurricular Reviews"} 
+      subtitle={lang === "தமிழ்" ? "மாணவர்களின் சமூக சேவைச் செயல்களைச் சரிபார்க்கவும், தாக்கத்தை மதிப்பிடவும், பள்ளி அளவிலான பங்கேற்பைக் கண்காணிக்கவும்." : "Verify student community service actions, rate impact, and monitor school-wide participation."}
       avatarLetter="T"
       avatarColor="#4f46e5"
       accentColor="#4f46e5"
@@ -145,19 +147,19 @@ export default function TeacherSocialActivitiesPage() {
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-indigo-150 dark:border-indigo-900 shadow-sm text-left">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-2xl">
+              <div className="p-3 bg-indigo-100 dark:bg-indigo-955/40 text-indigo-600 dark:text-indigo-400 rounded-2xl">
                 <ListTodo className="w-8 h-8" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-black text-black dark:text-white">Community Service Approvals</h1>
-                <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">Review student community participation logs, check AI values, and award badges.</p>
+                <h1 className="text-xl sm:text-2xl font-black text-black dark:text-white">{lang === "தமிழ்" ? "சமூக சேவை ஒப்புதல்கள்" : "Community Service Approvals"}</h1>
+                <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">{lang === "தமிழ்" ? "மாணவர்களின் சமூகப் பங்களிப்புப் பதிவுகளை மதிப்பாய்வு செய்யவும், AI மதிப்புகளைச் சரிபார்க்கவும், பேட்ஜ்களை வழங்கவும்." : "Review student community participation logs, check AI values, and award badges."}</p>
               </div>
             </div>
             <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700/60 self-start">
               {[
-                { id: 'pending', label: `Pending (${pendingList.length})` },
-                { id: 'all', label: 'All Logs' },
-                { id: 'analytics', label: 'Class Analytics' }
+                { id: 'pending', label: lang === "தமிழ்" ? `நிலுவையில் உள்ளவை (${pendingList.length})` : `Pending (${pendingList.length})` },
+                { id: 'all', label: lang === "தமிழ்" ? "அனைத்துப் பதிவுகள்" : "All Logs" },
+                { id: 'analytics', label: lang === "தமிழ்" ? "வகுப்பு பகுப்பாய்வு" : "Class Analytics" }
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -179,10 +181,10 @@ export default function TeacherSocialActivitiesPage() {
         {analytics && activeTab !== 'analytics' && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "Pending Reviews", value: analytics.pendingApprovals, sub: "Action required", icon: AlertCircle, color: "text-amber-500 bg-amber-50 dark:bg-amber-950/20 border-amber-250/30" },
-              { label: "Approved Hours", value: `${analytics.totalHours} hrs`, sub: "Total School-wide", icon: Clock, color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-250/30" },
-              { label: "Community Actions", value: analytics.totalActivities, sub: "Total completed", icon: CheckCircle2, color: "text-indigo-500 bg-indigo-50 dark:bg-indigo-950/20 border-indigo-250/30" },
-              { label: "Points Earned", value: `${analytics.totalPoints} Pts`, sub: "Extracurricular score", icon: Award, color: "text-purple-500 bg-purple-50 dark:bg-purple-950/20 border-purple-250/30" }
+              { label: lang === "தமிழ்" ? "நிலுவையில் உள்ள மதிப்பாய்வுகள்" : "Pending Reviews", value: analytics.pendingApprovals, sub: lang === "தமிழ்" ? "நடவடிக்கை தேவை" : "Action required", icon: AlertCircle, color: "text-amber-500 bg-amber-50 dark:bg-amber-955/20 border-amber-250/30" },
+              { label: lang === "தமிழ்" ? "ஒப்புதல் அளிக்கப்பட்ட மணிநேரம்" : "Approved Hours", value: `${analytics.totalHours} hrs`, sub: lang === "தமிழ்" ? "பள்ளி முழுவதும் மொத்தம்" : "Total School-wide", icon: Clock, color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-955/20 border-emerald-250/30" },
+              { label: lang === "தமிழ்" ? "சமூக நடவடிக்கைகள்" : "Community Actions", value: analytics.totalActivities, sub: lang === "தமிழ்" ? "மொத்தம் முடிந்தது" : "Total completed", icon: CheckCircle2, color: "text-indigo-500 bg-indigo-50 dark:bg-indigo-955/20 border-indigo-250/30" },
+              { label: lang === "தமிழ்" ? "பெறப்பட்ட புள்ளிகள்" : "Points Earned", value: `${analytics.totalPoints} Pts`, sub: lang === "தமிழ்" ? "பாடநெறி சாரா மதிப்பெண்" : "Extracurricular score", icon: Award, color: "text-purple-500 bg-purple-50 dark:bg-purple-955/20 border-purple-250/30" }
             ].map((stat, idx) => (
               <div key={idx} className={`p-4 rounded-2xl border bg-white dark:bg-slate-900 flex justify-between items-center text-left ${stat.color}`}>
                 <div>

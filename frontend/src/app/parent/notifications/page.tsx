@@ -568,7 +568,7 @@ export default function NotificationsPage() {
                 <select
                   value={dateFilter}
                   onChange={e => setDateFilter(e.target.value as any)}
-                  className="bg-slate-50/70 dark:bg-slate-955/60 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350 pl-3 pr-8 py-3 rounded-xl text-xs outline-none cursor-pointer focus:border-emerald-500 transition-all font-bold w-full sm:w-36 appearance-none"
+                  className="bg-slate-50/70 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350 pl-3 pr-8 py-3 rounded-xl text-xs outline-none cursor-pointer focus:border-emerald-500 transition-all font-bold w-full sm:w-36 appearance-none"
                 >
                   <option value="ALL">All Time</option>
                   <option value="TODAY">Today</option>

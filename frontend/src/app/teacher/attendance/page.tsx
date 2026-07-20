@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import { Users, CheckCircle2, AlertCircle, TrendingUp, Calendar, Filter, Save, Check, ArrowRight, ClipboardList, Grid, Clipboard, Clock } from "lucide-react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface AttendanceStudent {
   id: string;
@@ -31,6 +32,7 @@ interface WeeklyStudent {
 }
 
 export default function AttendancePage() {
+  const { t } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -264,7 +266,7 @@ export default function AttendancePage() {
     const rec = records.find(r => r.dayOfWeek === dayIndex);
     if (!rec) {
       return (
-        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-100 text-[10px] text-gray-400 font-bold border border-gray-200" title="No Record">
+        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-100 dark:bg-slate-800 text-[10px] text-gray-400 dark:text-slate-500 font-bold border border-gray-200 dark:border-slate-700" title="No Record">
           -
         </span>
       );
@@ -272,7 +274,7 @@ export default function AttendancePage() {
 
     if (rec.status === "PRESENT") {
       return (
-        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-green-50 text-green-600 text-[10px] font-black border border-green-200" title={`Present (${rec.date})`}>
+        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-green-50 dark:bg-emerald-950/30 text-green-600 dark:text-emerald-400 text-[10px] font-black border border-green-200 dark:border-emerald-900/50" title={`Present (${rec.date})`}>
           P
         </span>
       );
@@ -280,7 +282,7 @@ export default function AttendancePage() {
 
     if (rec.status === "ABSENT") {
       return (
-        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-red-50 text-red-600 text-[10px] font-black border border-red-200" title={`Absent (${rec.date})`}>
+        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-red-50 dark:bg-rose-950/30 text-red-600 dark:text-rose-450 text-[10px] font-black border border-red-200 dark:border-rose-900/50" title={`Absent (${rec.date})`}>
           A
         </span>
       );
@@ -288,14 +290,14 @@ export default function AttendancePage() {
 
     if (rec.status === "LATE") {
       return (
-        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-amber-50 text-amber-600 text-[10px] font-black border border-amber-200" title={`Late (${rec.date})`}>
+        <span className="w-6 h-6 rounded-full flex items-center justify-center bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-[10px] font-black border border-amber-200 dark:border-amber-900/50" title={`Late (${rec.date})`}>
           L
         </span>
       );
     }
 
     return (
-      <span className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-100 text-[10px] text-gray-400 font-bold border border-gray-200">
+      <span className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-100 dark:bg-slate-800 text-[10px] text-gray-400 dark:text-slate-500 font-bold border border-gray-200 dark:border-slate-700">
         -
       </span>
     );
@@ -316,14 +318,14 @@ export default function AttendancePage() {
     if (total <= 1) return null;
     return (
       <div className="flex items-center justify-between mt-6 px-2">
-        <span className="text-xs font-semibold text-gray-500">
+        <span className="text-xs font-semibold text-gray-500 dark:text-slate-400">
           Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, activeTab === 'daily' ? students.length : weeklyStudents.length)} of {activeTab === 'daily' ? students.length : weeklyStudents.length} entries
         </span>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-800 text-xs font-bold text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Previous
           </button>
@@ -334,7 +336,7 @@ export default function AttendancePage() {
                 onClick={() => setCurrentPage(i + 1)}
                 className={`w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center transition-colors ${currentPage === i + 1
                     ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-gray-500 hover:bg-gray-100'
+                    : 'text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800'
                   }`}
               >
                 {i + 1}
@@ -344,7 +346,7 @@ export default function AttendancePage() {
           <button
             onClick={() => setCurrentPage(p => Math.min(total, p + 1))}
             disabled={currentPage === total}
-            className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-800 text-xs font-bold text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Next
           </button>
@@ -355,7 +357,7 @@ export default function AttendancePage() {
 
   return (
     <PortalLayout
-      title="Daily Attendance Tracker"
+      title={t("attendance_module")}
       subtitle="Scope and record student attendance. Auto-notifies parents instantly on absence."
     >
 
@@ -375,7 +377,7 @@ export default function AttendancePage() {
                 }`}
             >
               <ClipboardList className="w-3.5 h-3.5" />
-              <span>Daily Checklist</span>
+              <span>{t("daily_attendance")}</span>
             </button>
             <button
               onClick={() => setActiveTab("weekly")}
@@ -385,7 +387,7 @@ export default function AttendancePage() {
                 }`}
             >
               <Grid className="w-3.5 h-3.5" />
-              <span>Weekly History</span>
+              <span>{t("weekly_attendance")}</span>
             </button>
           </div>
 
@@ -487,7 +489,7 @@ export default function AttendancePage() {
                   htmlFor="smsAbsentToggle"
                   className="text-xs font-bold text-slate-300 cursor-pointer"
                 >
-                  SMS Absent Parents
+                  {t("notify_parents")}
                 </label>
               </div>
 
@@ -502,7 +504,7 @@ export default function AttendancePage() {
                 className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0"
               >
                 <Save className="w-3.5 h-3.5" />
-                <span>Save Sheet</span>
+                <span>{t("save_attendance")}</span>
               </button>
             </div>
           )}
@@ -558,37 +560,37 @@ export default function AttendancePage() {
               ) : students.length > 0 ? (
                 <>
                   {/* Table view for Large Desktops */}
-                  <div className="hidden xl:block overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+                  <div className="hidden xl:block overflow-hidden rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
-                        <tr className="bg-white border-b border-gray-100">
-                          <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Roll No</th>
-                          <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Student Name</th>
-                          <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Class & Sec</th>
-                          <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px] text-center">Status Selection</th>
+                        <tr className="bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
+                          <th className="p-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">Roll No</th>
+                          <th className="p-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">Student Name</th>
+                          <th className="p-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">Class & Sec</th>
+                          <th className="p-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px] text-center">Status Selection</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100 bg-white">
+                      <tbody className="divide-y divide-gray-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
                         {currentStudents.map((student) => (
-                          <tr key={student.id} className="hover:bg-gray-50 transition-colors duration-150">
-                            <td className="p-4 font-bold text-gray-500 text-xs">{student.rollNo}</td>
+                          <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors duration-150">
+                            <td className="p-4 font-bold text-gray-500 dark:text-slate-400 text-xs">{student.rollNo}</td>
                             <td className="p-4">
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 font-bold text-xs">
+                                <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xs">
                                   {student.name.charAt(0)}
                                 </div>
-                                <span className="font-semibold text-gray-800 text-sm">{student.name}</span>
+                                <span className="font-semibold text-gray-800 dark:text-slate-200 text-sm">{student.name}</span>
                               </div>
                             </td>
-                            <td className="p-4 font-semibold text-gray-500 text-xs">{student.className} - {student.section}</td>
+                            <td className="p-4 font-semibold text-gray-500 dark:text-slate-400 text-xs">{student.className} - {student.section}</td>
                             <td className="p-4">
                               <div className="flex justify-center">
-                                <div className="flex bg-white border border-gray-200 rounded-full p-1 max-w-[280px] w-full items-center relative">
+                                <div className="flex bg-white dark:bg-slate-955/0 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-full p-1 max-w-[280px] w-full items-center relative">
                                   <button
                                     onClick={() => handleStatusChange(student.id, "Present")}
                                     className={`flex-1 h-7 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Present"
                                         ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] border border-emerald-600 !text-white"
-                                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                        : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800"
                                       }`}
                                   >
                                     PRESENT
@@ -597,7 +599,7 @@ export default function AttendancePage() {
                                     onClick={() => handleStatusChange(student.id, "Absent")}
                                     className={`flex-1 h-7 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Absent"
                                         ? "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-600 !text-white"
-                                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                        : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800"
                                       }`}
                                   >
                                     ABSENT
@@ -606,7 +608,7 @@ export default function AttendancePage() {
                                     onClick={() => handleStatusChange(student.id, "Late")}
                                     className={`flex-1 h-7 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Late"
                                         ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)] border border-amber-600 !text-white"
-                                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                        : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800"
                                       }`}
                                   >
                                     LATE
@@ -623,22 +625,22 @@ export default function AttendancePage() {
                   {/* Card view for Mobile, Tablet, and Small Laptop */}
                   <div className="xl:hidden grid grid-cols-1 gap-4">
                     {currentStudents.map((student) => (
-                      <div key={student.id} className="p-5 bg-white border border-gray-200 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300">
+                      <div key={student.id} className="p-5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 font-bold text-sm">
+                          <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm">
                             {student.name.charAt(0)}
                           </div>
                           <div className="text-left">
-                            <span className="text-[10px] text-gray-500 font-bold block uppercase tracking-wider mb-0.5">{student.rollNo} • Class {student.className}-{student.section}</span>
-                            <span className="font-semibold text-gray-800 text-base">{student.name}</span>
+                            <span className="text-[10px] text-gray-500 dark:text-slate-400 font-bold block uppercase tracking-wider mb-0.5">{student.rollNo} • Class {student.className}-{student.section}</span>
+                            <span className="font-semibold text-gray-800 dark:text-slate-200 text-base">{student.name}</span>
                           </div>
                         </div>
-                        <div className="flex bg-white border border-gray-200 rounded-full p-1 w-full sm:w-auto max-w-[320px] items-center relative">
+                        <div className="flex bg-white dark:bg-slate-955/0 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-full p-1 w-full sm:w-auto max-w-[320px] items-center relative">
                           <button
                             onClick={() => handleStatusChange(student.id, "Present")}
                             className={`flex-1 py-1.5 h-8 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Present"
                                 ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] border border-emerald-600 !text-white"
-                                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800"
                               }`}
                           >
                             PRESENT
@@ -647,7 +649,7 @@ export default function AttendancePage() {
                             onClick={() => handleStatusChange(student.id, "Absent")}
                             className={`flex-1 py-1.5 h-8 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Absent"
                                 ? "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.4)] border border-rose-600 !text-white"
-                                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800"
                               }`}
                           >
                             ABSENT
@@ -656,7 +658,7 @@ export default function AttendancePage() {
                             onClick={() => handleStatusChange(student.id, "Late")}
                             className={`flex-1 py-1.5 h-8 rounded-full text-[10px] font-bold uppercase transition-all duration-300 flex items-center justify-center z-10 ${student.status === "Late"
                                 ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)] border border-amber-600 !text-white"
-                                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800"
                               }`}
                           >
                             LATE
@@ -722,31 +724,31 @@ export default function AttendancePage() {
             ) : weeklyStudents.length > 0 ? (
               <>
                 {/* Table view for Large Desktops */}
-                <div className="hidden xl:block overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+                <div className="hidden xl:block overflow-hidden rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-white border-b border-gray-100 text-center">
-                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px] text-left">Roll No</th>
-                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px] text-left">Class & Sec</th>
-                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px] text-left">Student Name</th>
-                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Mon</th>
-                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Tue</th>
-                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Wed</th>
-                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Thu</th>
-                        <th className="p-4 text-slate-500 font-bold uppercase tracking-wider text-[10px]">Fri</th>
+                      <tr className="bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 text-center">
+                        <th className="p-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px] text-left">Roll No</th>
+                        <th className="p-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px] text-left">Class & Sec</th>
+                        <th className="p-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px] text-left">Student Name</th>
+                        <th className="p-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">Mon</th>
+                        <th className="p-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">Tue</th>
+                        <th className="p-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">Wed</th>
+                        <th className="p-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">Thu</th>
+                        <th className="p-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">Fri</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 bg-white">
+                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
                       {currentWeeklyStudents.map((student) => (
-                        <tr key={student.id} className="hover:bg-gray-50 transition-colors duration-150">
-                          <td className="p-4 font-bold text-gray-500 text-left text-xs">{student.rollNo}</td>
-                          <td className="p-4 font-semibold text-gray-500 text-left text-xs">{student.className} - {student.section}</td>
+                        <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors duration-150">
+                          <td className="p-4 font-bold text-gray-500 dark:text-slate-400 text-left text-xs">{student.rollNo}</td>
+                          <td className="p-4 font-semibold text-gray-500 dark:text-slate-400 text-left text-xs">{student.className} - {student.section}</td>
                           <td className="p-4 text-left">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 font-bold text-xs">
+                              <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xs">
                                 {student.name.charAt(0)}
                               </div>
-                              <span className="font-semibold text-gray-800 text-sm">{student.name}</span>
+                              <span className="font-semibold text-gray-800 dark:text-slate-200 text-sm">{student.name}</span>
                             </div>
                           </td>
                           <td className="p-4 text-center"><div className="flex justify-center">{getWeeklyStatusNode(student.records, 1)}</div></td>
@@ -763,35 +765,35 @@ export default function AttendancePage() {
                 {/* Cards view for Mobile, Tablet, Small Laptop */}
                 <div className="xl:hidden grid grid-cols-1 gap-4">
                   {currentWeeklyStudents.map((student) => (
-                    <div key={student.id} className="p-5 bg-white border border-gray-200 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300">
+                    <div key={student.id} className="p-5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 font-bold text-sm">
+                        <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm">
                           {student.name.charAt(0)}
                         </div>
                         <div className="text-left">
-                          <span className="text-[10px] text-gray-500 font-bold block uppercase tracking-wider mb-0.5">{student.rollNo} • Class {student.className}-{student.section}</span>
-                          <span className="font-semibold text-gray-800 text-base">{student.name}</span>
+                          <span className="text-[10px] text-gray-500 dark:text-slate-400 font-bold block uppercase tracking-wider mb-0.5">{student.rollNo} • Class {student.className}-{student.section}</span>
+                          <span className="font-semibold text-gray-800 dark:text-slate-200 text-base">{student.name}</span>
                         </div>
                       </div>
-                      <div className="flex gap-3 sm:gap-4 items-center w-full sm:w-auto justify-between sm:justify-end bg-gray-50 p-2 rounded-xl border border-gray-200">
+                      <div className="flex gap-3 sm:gap-4 items-center w-full sm:w-auto justify-between sm:justify-end bg-gray-50 dark:bg-slate-950 p-2 rounded-xl border border-gray-200 dark:border-slate-800">
                         <div className="flex flex-col items-center">
-                          <span className="text-[9px] text-gray-400 font-bold uppercase mb-1">M</span>
+                          <span className="text-[9px] text-gray-400 dark:text-slate-500 font-bold uppercase mb-1">M</span>
                           {getWeeklyStatusNode(student.records, 1)}
                         </div>
                         <div className="flex flex-col items-center">
-                          <span className="text-[9px] text-gray-400 font-bold uppercase mb-1">T</span>
+                          <span className="text-[9px] text-gray-400 dark:text-slate-500 font-bold uppercase mb-1">T</span>
                           {getWeeklyStatusNode(student.records, 2)}
                         </div>
                         <div className="flex flex-col items-center">
-                          <span className="text-[9px] text-gray-400 font-bold uppercase mb-1">W</span>
+                          <span className="text-[9px] text-gray-400 dark:text-slate-500 font-bold uppercase mb-1">W</span>
                           {getWeeklyStatusNode(student.records, 3)}
                         </div>
                         <div className="flex flex-col items-center">
-                          <span className="text-[9px] text-gray-400 font-bold uppercase mb-1">T</span>
+                          <span className="text-[9px] text-gray-400 dark:text-slate-500 font-bold uppercase mb-1">T</span>
                           {getWeeklyStatusNode(student.records, 4)}
                         </div>
                         <div className="flex flex-col items-center">
-                          <span className="text-[9px] text-gray-400 font-bold uppercase mb-1">F</span>
+                          <span className="text-[9px] text-gray-400 dark:text-slate-500 font-bold uppercase mb-1">F</span>
                           {getWeeklyStatusNode(student.records, 5)}
                         </div>
                       </div>

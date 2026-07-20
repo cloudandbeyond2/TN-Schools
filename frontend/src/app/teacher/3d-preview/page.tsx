@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import ThreeDModelViewer from "@/components/ThreeDModelViewer";
 import { Box, Rotate3D, Eye, MousePointer2, Maximize2, X, Sparkles, Heart, Globe2, Leaf, Settings, Search, Layers, Sparkle, Bug, BookOpen, Star, FlaskConical, Globe, Rocket } from "lucide-react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 // Pre-defined high-fidelity 3D shapes for default library items (Hologram mode fallback) with part explanations
 const defaultHeartShapes = [
@@ -225,6 +226,7 @@ const modelColorStyles: Record<string, {
 };
 
 export default function ThreeDPreviewPage() {
+  const { t } = usePortalLanguage();
   const [models, setModels] = useState([
     {
       id: 1,
@@ -506,7 +508,7 @@ export default function ThreeDPreviewPage() {
               <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl rotate-12">
                 <Box className="w-6 h-6" />
               </div>
-              Cool 3D Stuff
+              {t("cool_3d_stuff")}
             </h3>
 
             <div className="space-y-4 overflow-y-auto hide-scrollbar flex-1 pb-4 px-2.5">
@@ -545,7 +547,7 @@ export default function ThreeDPreviewPage() {
             </div>
 
             <button onClick={() => setModalOpen(true)} className="mt-4 w-full py-4 rounded-2xl border-4 border-dashed border-indigo-200 text-sm font-black text-indigo-500 hover:text-white hover:bg-indigo-500 hover:border-indigo-500 transition-all active:scale-95 shadow-sm">
-              + Find More Magic!
+              + {t("find_more_magic")}
             </button>
           </div>
         </div>
@@ -565,18 +567,18 @@ export default function ThreeDPreviewPage() {
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] w-[92%] max-w-md shadow-2xl border-4 border-indigo-200 dark:border-slate-700 animate-in zoom-in-95 p-2">
             <div className="flex justify-between items-center p-5 sm:p-6 bg-indigo-50 dark:bg-slate-900 rounded-[2rem] mb-4">
-              <h3 className="text-lg sm:text-xl font-black text-indigo-600 dark:text-indigo-400">Bring in something cool!</h3>
+              <h3 className="text-lg sm:text-xl font-black text-indigo-600 dark:text-indigo-400">{t("bring_in_cool")}</h3>
               <button onClick={() => setModalOpen(false)} className="w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-800 rounded-full text-slate-400 hover:text-indigo-500 hover:scale-110 transition-all shadow-sm">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleLoadModel} className="p-3 sm:p-4 space-y-4 sm:space-y-5">
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">What is it? <Bug className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">{t("what_is_it")} <Bug className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <input required name="name" type="text" placeholder="e.g., T-Rex Skeleton" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-xl py-3 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all" />
               </div>
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">What subject? <BookOpen className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">{t("what_subject")} <BookOpen className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <select required name="subject" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-xl py-3 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all">
                   <option value="Biology">Biology <Leaf className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
                   <option value="Physics">Physics <Settings className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
@@ -586,10 +588,10 @@ export default function ThreeDPreviewPage() {
               </div>
               <div className="pt-4 flex flex-col sm:flex-row gap-3">
                 <button type="button" onClick={() => setModalOpen(false)} className="w-full sm:flex-1 py-3 rounded-2xl text-sm font-black text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border-2 border-slate-200 dark:border-slate-700">
-                  Nevermind
+                  {t("nevermind")}
                 </button>
                 <button type="submit" className="w-full sm:flex-1 py-3 rounded-2xl text-sm font-black text-white bg-indigo-500 hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-500/30 active:scale-95">
-                  Load It Up! <Rocket className="w-4 h-4 inline-block mr-1 text-inherit" />
+                  {t("load_it_up")} <Rocket className="w-4 h-4 inline-block mr-1 text-inherit" />
                 </button>
               </div>
             </form>

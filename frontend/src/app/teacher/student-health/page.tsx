@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { 
   HeartPulse, 
   Activity, 
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 
 export default function TeacherStudentHealthPage() {
+  const { lang } = usePortalLanguage();
   const [selectedStudent, setSelectedStudent] = useState("Arjun M.");
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [toast, setToast] = useState("");
@@ -56,13 +58,13 @@ export default function TeacherStudentHealthPage() {
   const bmiStatus = getBmiStatus(healthData.bmi);
 
   return (
-    <PortalLayout title="Student Health Report " subtitle="Track and manage student physical well-being.">
+    <PortalLayout title={lang === "தமிழ்" ? "மாணவர் சுகாதார அறிக்கை" : "Student Health Report"} subtitle={lang === "தமிழ்" ? "மாணவர்களின் உடல் நலனைக் கண்காணித்து நிர்வகியுங்கள்." : "Track and manage student physical well-being."}>
       <div className="mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input 
             type="text" 
-            placeholder="Search student name or ID..." 
+            placeholder={lang === "தமிழ்" ? "மாணவர் பெயர் அல்லது ஐடி மூலம் தேடுக..." : "Search student name or ID..."} 
             className="w-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 dark:focus:ring-rose-900/30 transition-all"
             defaultValue="Arjun M."
           />
@@ -71,7 +73,7 @@ export default function TeacherStudentHealthPage() {
           onClick={() => setShowUpdateModal(true)}
           className="w-full md:w-auto px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-black text-sm shadow-md shadow-rose-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
         >
-          <Plus className="w-4 h-4" /> Update Record
+          <Plus className="w-4 h-4" /> {lang === "தமிழ்" ? "பதிவைப் புதுப்பி" : "Update Record"}
         </button>
       </div>
 
@@ -87,10 +89,10 @@ export default function TeacherStudentHealthPage() {
             </div>
             <div>
               <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-1">{selectedStudent}</h2>
-              <p className="text-sm font-bold text-slate-500">Class 9B • Roll No: 14</p>
+              <p className="text-sm font-bold text-slate-500">{lang === "தமிழ்" ? "வகுப்பு 9B • வரிசை எண்: 14" : "Class 9B • Roll No: 14"}</p>
               <div className="flex gap-2 mt-3">
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 bg-emerald-100 text-emerald-600 rounded-md">Cleared for Sports</span>
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 bg-amber-100 text-amber-600 rounded-md">Needs Glasses</span>
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 bg-emerald-100 text-emerald-600 rounded-md">{lang === "தமிழ்" ? "விளையாட்டிற்கு தகுதியானவர்" : "Cleared for Sports"}</span>
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 bg-amber-100 text-amber-600 rounded-md">{lang === "தமிழ்" ? "கண்ணாடி தேவை" : "Needs Glasses"}</span>
               </div>
             </div>
           </div>
@@ -101,7 +103,7 @@ export default function TeacherStudentHealthPage() {
                 <Ruler className="w-5 h-5" />
               </div>
               <h3 className="text-2xl font-black text-slate-800 dark:text-white">{healthData.height}</h3>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Height (cm)</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{lang === "தமிழ்" ? "உயரம் (செ.மீ)" : "Height (cm)"}</p>
             </div>
             
             <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border-2 border-slate-100 dark:border-slate-700 text-center relative overflow-hidden group hover:border-rose-300 transition-colors">
@@ -109,7 +111,7 @@ export default function TeacherStudentHealthPage() {
                 <Scale className="w-5 h-5" />
               </div>
               <h3 className="text-2xl font-black text-slate-800 dark:text-white">{healthData.weight}</h3>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Weight (kg)</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{lang === "தமிழ்" ? "எடை (கிலோ)" : "Weight (kg)"}</p>
             </div>
 
             <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border-2 border-slate-100 dark:border-slate-700 text-center relative overflow-hidden group hover:border-rose-300 transition-colors">
@@ -117,7 +119,7 @@ export default function TeacherStudentHealthPage() {
                 <Droplet className="w-5 h-5 text-rose-500" />
               </div>
               <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400">{healthData.bloodGroup}</h3>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Blood Group</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{lang === "தமிழ்" ? "இரத்த வகை" : "Blood Group"}</p>
             </div>
 
             <div className={`bg-${bmiStatus.color}-50 dark:bg-${bmiStatus.color}-900/20 p-5 rounded-3xl border-2 border-${bmiStatus.color}-200 dark:border-${bmiStatus.color}-800 text-center`}>
@@ -125,7 +127,12 @@ export default function TeacherStudentHealthPage() {
                 <Activity className="w-5 h-5" />
               </div>
               <h3 className={`text-2xl font-black text-${bmiStatus.color}-700 dark:text-${bmiStatus.color}-400`}>{healthData.bmi}</h3>
-              <p className={`text-[10px] font-black text-${bmiStatus.color}-600 dark:text-${bmiStatus.color}-500 uppercase tracking-widest mt-1`}>BMI: {bmiStatus.label}</p>
+              <p className={`text-[10px] font-black text-${bmiStatus.color}-600 dark:text-${bmiStatus.color}-505 uppercase tracking-widest mt-1`}>
+                {lang === "தமிழ்" 
+                  ? `BMI: ${bmiStatus.label === "Healthy" ? "ஆரோக்கியமானது" : bmiStatus.label === "Underweight" ? "குறைந்த எடை" : "அதிக எடை"}`
+                  : `BMI: ${bmiStatus.label}`
+                }
+              </p>
             </div>
           </div>
 
@@ -136,41 +143,41 @@ export default function TeacherStudentHealthPage() {
                 <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/50 text-sky-500 rounded-xl flex items-center justify-center">
                   <Eye className="w-5 h-5" />
                 </div>
-                <h3 className="font-black text-slate-700 dark:text-slate-200">Vision Check</h3>
+                <h3 className="font-black text-slate-700 dark:text-slate-200">{lang === "தமிழ்" ? "பார்வை பரிசோதனை" : "Vision Check"}</h3>
               </div>
               
               <div className="flex gap-4">
                 <div className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl text-center">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Left Eye (L)</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">{lang === "தமிழ்" ? "இடது கண் (L)" : "Left Eye (L)"}</span>
                   <span className="text-xl font-black text-slate-700 dark:text-white">{healthData.eyePower.left}</span>
                 </div>
                 <div className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl text-center">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Right Eye (R)</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">{lang === "தமிழ்" ? "வலது கண் (R)" : "Right Eye (R)"}</span>
                   <span className="text-xl font-black text-slate-700 dark:text-white">{healthData.eyePower.right}</span>
                 </div>
               </div>
               <div className="mt-4 flex items-center gap-2 text-xs font-bold text-amber-500 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-lg">
-                <AlertCircle className="w-4 h-4" /> Wears corrective lenses
+                <AlertCircle className="w-4 h-4" /> {lang === "தமிழ்" ? "திருத்த லென்ஸ்கள் அணிகிறார்" : "Wears corrective lenses"}
               </div>
             </div>
 
             {/* Dental & Medical */}
             <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border-2 border-slate-100 dark:border-slate-700">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-500 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-550 rounded-xl flex items-center justify-center">
                   <Stethoscope className="w-5 h-5" />
                 </div>
-                <h3 className="font-black text-slate-700 dark:text-slate-200">Dental & Checkup</h3>
+                <h3 className="font-black text-slate-700 dark:text-slate-200">{lang === "தமிழ்" ? "பல் & மருத்துவ பரிசோதனை" : "Dental & Checkup"}</h3>
               </div>
               
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
-                  <span className="text-xs font-bold text-slate-500 flex items-center gap-2"><Calendar className="w-4 h-4" /> Last Dental</span>
+                  <span className="text-xs font-bold text-slate-500 flex items-center gap-2"><Calendar className="w-4 h-4" /> {lang === "தமிழ்" ? "கடைசி பல் பரிசோதனை" : "Last Dental"}</span>
                   <span className="text-sm font-black text-slate-700 dark:text-white">{healthData.lastDental}</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
-                  <span className="text-xs font-bold text-emerald-600 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> General Health</span>
-                  <span className="text-xs font-black text-emerald-700 dark:text-emerald-400">Excellent</span>
+                  <span className="text-xs font-bold text-emerald-600 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> {lang === "தமிழ்" ? "பொது ஆரோக்கியம்" : "General Health"}</span>
+                  <span className="text-xs font-black text-emerald-700 dark:text-emerald-400">{lang === "தமிழ்" ? "மிக நன்று" : "Excellent"}</span>
                 </div>
               </div>
             </div>
@@ -182,7 +189,7 @@ export default function TeacherStudentHealthPage() {
         <div className="space-y-6">
           <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border-2 border-slate-100 dark:border-slate-700">
             <h3 className="font-black text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-              <Syringe className="w-5 h-5 text-sky-500" /> Vaccinations
+              <Syringe className="w-5 h-5 text-sky-500" /> {lang === "தமிழ்" ? "தடுப்பூசிகள்" : "Vaccinations"}
             </h3>
             <ul className="space-y-3">
               {healthData.vaccines.map((v, i) => (
@@ -196,7 +203,7 @@ export default function TeacherStudentHealthPage() {
 
           <div className="bg-amber-50 dark:bg-amber-900/20 p-6 rounded-3xl border-2 border-amber-200 dark:border-amber-800/50">
             <h3 className="font-black text-amber-700 dark:text-amber-400 mb-4 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" /> Known Allergies
+              <AlertCircle className="w-5 h-5" /> {lang === "தமிழ்" ? "அறியப்பட்ட ஒவ்வாமைகள்" : "Known Allergies"}
             </h3>
             <div className="flex flex-wrap gap-2">
               {healthData.allergies.map((a, i) => (
@@ -215,33 +222,33 @@ export default function TeacherStudentHealthPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white dark:bg-slate-800 max-w-lg w-full rounded-[2rem] shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-slate-100 dark:border-slate-700">
-              <h3 className="text-xl font-black text-slate-800 dark:text-white">Update Health Record</h3>
-              <p className="text-sm font-bold text-slate-500">Updating for {selectedStudent}</p>
+              <h3 className="text-xl font-black text-slate-800 dark:text-white">{lang === "தமிழ்" ? "சுகாதாரப் பதிவைப் புதுப்பி" : "Update Health Record"}</h3>
+              <p className="text-sm font-bold text-slate-500">{lang === "தமிழ்" ? `மாற்றம் பெறுபவர்: ${selectedStudent}` : `Updating for ${selectedStudent}`}</p>
             </div>
             <form onSubmit={handleUpdate} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase mb-1">Height (cm)</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase mb-1">{lang === "தமிழ்" ? "உயரம் (செ.மீ)" : "Height (cm)"}</label>
                   <input type="number" defaultValue={healthData.height} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 font-bold text-slate-700 dark:text-white focus:outline-none focus:border-rose-400" />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase mb-1">Weight (kg)</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase mb-1">{lang === "தமிழ்" ? "எடை (கிலோ)" : "Weight (kg)"}</label>
                   <input type="number" defaultValue={healthData.weight} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 font-bold text-slate-700 dark:text-white focus:outline-none focus:border-rose-400" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase mb-1">Eye Power (L)</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase mb-1">{lang === "தமிழ்" ? "பார்வைத் திறன் (இடது)" : "Eye Power (L)"}</label>
                   <input type="text" defaultValue={healthData.eyePower.left} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 font-bold text-slate-700 dark:text-white focus:outline-none focus:border-rose-400" />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase mb-1">Eye Power (R)</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase mb-1">{lang === "தமிழ்" ? "பார்வைத் திறன் (வலது)" : "Eye Power (R)"}</label>
                   <input type="text" defaultValue={healthData.eyePower.right} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 font-bold text-slate-700 dark:text-white focus:outline-none focus:border-rose-400" />
                 </div>
               </div>
               <div className="flex gap-3 pt-4">
-                <button type="button" onClick={() => setShowUpdateModal(false)} className="flex-1 py-3 rounded-xl font-black text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Cancel</button>
-                <button type="submit" className="flex-1 py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-black shadow-md shadow-rose-500/20 transition-colors">Save Record</button>
+                <button type="button" onClick={() => setShowUpdateModal(false)} className="flex-1 py-3 rounded-xl font-black text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">{lang === "தமிழ்" ? "ரத்து செய்" : "Cancel"}</button>
+                <button type="submit" className="flex-1 py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-black shadow-md shadow-rose-500/20 transition-colors">{lang === "தமிழ்" ? "பதிவைச் சேமி" : "Save Record"}</button>
               </div>
             </form>
           </div>

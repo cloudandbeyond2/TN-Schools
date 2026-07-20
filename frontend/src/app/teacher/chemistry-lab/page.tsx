@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import Swal from "sweetalert2";
 import { FlaskConical, Flame, Droplets, Wind, ShieldAlert, Calendar, BookOpen, AlertTriangle, X, Sparkles, Zap, Eye, Microscope, Trash2, Settings, PlusCircle, CheckCircle, MapPin, Tag, Star, Clock, Stethoscope, Rocket } from "lucide-react";
 
@@ -26,6 +27,7 @@ interface Ingredient {
 }
 
 export default function ChemistryLabPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -234,14 +236,14 @@ export default function ChemistryLabPage() {
   );
 
   const safetyAlerts = [
-    { msg: "Remember your safety goggles! ", level: "warning" },
-    { msg: "Don't mix the red and green potions! ", level: "critical" }
+    { msg: lang === "தமிழ்" ? "பாதுகாப்பு கண்ணாடிகளை நினைவில் கொள்ளுங்கள்! " : "Remember your safety goggles! ", level: "warning" },
+    { msg: lang === "தமிழ்" ? "சிவப்பு மற்றும் பச்சை கரைசல்களை ஒன்றாக கலக்க வேண்டாம்! " : "Don't mix the red and green potions! ", level: "critical" }
   ];
 
   return (
     <PortalLayout
-      title="Magic Chemistry Lab! "
-      subtitle="Mix potions, watch colors change, and learn science!"
+      title={lang === "தமிழ்" ? "மந்திர வேதியியல் ஆய்வகம்! " : "Magic Chemistry Lab! "}
+      subtitle={lang === "தமிழ்" ? "வேதியியல் கரைசல்களைக் கலக்கவும், நிற மாற்றங்களைக் காணவும், அறிவியலைக் கற்கவும்!" : "Mix potions, watch colors change, and learn science!"}
     >
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 text-left">
 
@@ -259,24 +261,24 @@ export default function ChemistryLabPage() {
                 <div className="p-3 bg-purple-200 dark:bg-slate-900 rounded-2xl rotate-12">
                   <FlaskConical className="w-8 h-8 text-purple-600 dark:text-purple-400" />
                 </div>
-                The Mixology Station
+                {lang === "தமிழ்" ? "கரைசல் தயாரிப்பு நிலையம்" : "The Mixology Station"}
               </h2>
               <p className="text-slate-600 dark:text-slate-300 font-bold max-w-lg mb-8 text-base">
-                Welcome to the coolest lab ever! Schedule fun experiments, check our magical ingredients, and remember: Safety First!
+                {lang === "தமிழ்" ? "எப்பொழுதும் இல்லாத மிகச் சிறந்த ஆய்வகத்திற்கு உங்களை வரவேற்கிறோம்! வேடிக்கையான சோதனைகளைத் திட்டமிடுங்கள், மந்திரப் பொருட்களைச் சரிபார்க்கவும், நினைவில் கொள்க: பாதுகாப்பே முதன்மை!" : "Welcome to the coolest lab ever! Schedule fun experiments, check our magical ingredients, and remember: Safety First!"}
               </p>
 
               <div className="flex flex-wrap gap-4">
                 <button onClick={() => {
                   const colors = ["bg-red-500", "bg-green-500", "bg-blue-500", "bg-yellow-500", "bg-pink-500"];
                   setPotionColor(colors[Math.floor(Math.random() * colors.length)]);
-                  showToast("Mixed a new potion! ");
+                  showToast(lang === "தமிழ்" ? "புதிய கரைசல் தயாரிக்கப்பட்டது! " : "Mixed a new potion! ");
                 }} className="bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 rounded-2xl p-4 flex items-center gap-4 border-2 border-purple-100 dark:border-slate-600 transition-all active:scale-95 cursor-pointer shadow-sm">
                   <div className={`w-12 h-12 rounded-full ${potionColor} flex items-center justify-center shadow-inner border-2 border-white/50 transition-colors duration-500`}>
                     <Sparkles className="w-6 h-6 text-white animate-pulse" />
                   </div>
                   <div className="text-left">
-                    <div className="text-xs font-black text-purple-500 dark:text-purple-400 uppercase tracking-widest">Mix Potion</div>
-                    <div className="text-xl font-black text-slate-800 dark:text-white drop-shadow-sm">Click Me!</div>
+                    <div className="text-xs font-black text-purple-500 dark:text-purple-400 uppercase tracking-widest">{lang === "தமிழ்" ? "கரைசலைக் கலக்கவும்" : "Mix Potion"}</div>
+                    <div className="text-xl font-black text-slate-800 dark:text-white drop-shadow-sm">{lang === "தமிழ்" ? "கிளிக் செய்!" : "Click Me!"}</div>
                   </div>
                 </button>
                 <div className="bg-white dark:bg-slate-700 rounded-2xl p-4 flex items-center gap-4 border-2 border-purple-100 dark:border-slate-600 shadow-sm">
@@ -284,8 +286,8 @@ export default function ChemistryLabPage() {
                     <Flame className="w-6 h-6 text-white" />
                   </div>
                   <div className="text-left">
-                    <div className="text-xs font-black text-orange-500 dark:text-orange-400 uppercase tracking-widest">Bunsen Burners</div>
-                    <div className="text-xl font-black text-slate-800 dark:text-white drop-shadow-sm">Ready! <Flame className="w-4 h-4 inline-block mr-1 text-inherit" /></div>
+                    <div className="text-xs font-black text-orange-500 dark:text-orange-400 uppercase tracking-widest">{lang === "தமிழ்" ? "பன்சன் சுடரடுப்புகள்" : "Bunsen Burners"}</div>
+                    <div className="text-xl font-black text-slate-800 dark:text-white drop-shadow-sm">{lang === "தமிழ்" ? "தயார்!" : "Ready!"} <Flame className="w-4 h-4 inline-block mr-1 text-inherit" /></div>
                   </div>
                 </div>
               </div>
@@ -299,18 +301,18 @@ export default function ChemistryLabPage() {
                 <div className="p-2 bg-teal-100 text-teal-600 dark:bg-slate-900 rounded-xl rotate-[-5deg]">
                   <Calendar className="w-6 h-6" />
                 </div>
-                Cool Experiments!
+                {lang === "தமிழ்" ? "அற்புதமான சோதனைகள்!" : "Cool Experiments!"}
               </h3>
               <div className="flex gap-3 w-full sm:w-auto">
-                <button onClick={() => showToast("Calendar view coming soon! ")} className="flex-1 sm:flex-none px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-black text-sm rounded-2xl hover:bg-slate-200 transition-colors border border-slate-200 dark:border-slate-600">Calendar</button>
-                <button onClick={handleOpenCreate} className="flex-1 sm:flex-none px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white font-black text-sm rounded-2xl shadow-lg shadow-teal-500/30 active:scale-95 transition-all">+ Add New</button>
+                <button onClick={() => showToast(lang === "தமிழ்" ? "காலெண்டர் காட்சி விரைவில் வரும்! " : "Calendar view coming soon! ")} className="flex-1 sm:flex-none px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-black text-sm rounded-2xl hover:bg-slate-200 transition-colors border border-slate-200 dark:border-slate-600">{lang === "தமிழ்" ? "காலெண்டர்" : "Calendar"}</button>
+                <button onClick={handleOpenCreate} className="flex-1 sm:flex-none px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white font-black text-sm rounded-2xl shadow-lg shadow-teal-500/30 active:scale-95 transition-all">{lang === "தமிழ்" ? "+ புதியதைச் சேர்" : "+ Add New"}</button>
               </div>
             </div>
 
             {loading ? (
               <div className="text-center py-10 text-slate-500 text-xs">
                 <div className="w-8 h-8 rounded-full border-2 border-teal-500/30 border-t-teal-500 animate-spin mx-auto mb-4" />
-                <span>Reading PostgreSQL database...</span>
+                <span>{lang === "தமிழ்" ? "தரவுத்தளத்திலிருந்து வாசிக்கப்படுகிறது..." : "Reading PostgreSQL database..."}</span>
               </div>
             ) : experiments.length > 0 ? (
               <div className="space-y-4">
@@ -414,7 +416,7 @@ export default function ChemistryLabPage() {
               </div>
             ) : (
               <div className="text-center py-10 text-slate-500 text-xs italic">
-                No experiments planned yet.
+                {lang === "தமிழ்" ? "சோதனைகள் எதுவும் இன்னும் திட்டமிடப்படவில்லை." : "No experiments planned yet."}
               </div>
             )}
           </div>
@@ -432,7 +434,7 @@ export default function ChemistryLabPage() {
               <div className="p-2 bg-rose-100 dark:bg-slate-900 rounded-xl rotate-12">
                 <ShieldAlert className="w-6 h-6" />
               </div>
-              Safety Rules!
+              {lang === "தமிழ்" ? "பாதுகாப்பு விதிகள்!" : "Safety Rules!"}
             </h3>
 
             <div className="space-y-4">
@@ -454,7 +456,7 @@ export default function ChemistryLabPage() {
               <div className="p-2 bg-indigo-100 dark:bg-slate-900 text-indigo-600 rounded-xl rotate-[-12deg]">
                 <Droplets className="w-6 h-6" />
               </div>
-              Find Ingredients
+              {lang === "தமிழ்" ? "பொருட்களைக் கண்டறி" : "Find Ingredients"}
             </h3>
 
             <div className="relative mb-6">
@@ -462,7 +464,7 @@ export default function ChemistryLabPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for magic powders..."
+                placeholder={lang === "தமிழ்" ? "மந்திரப் பொடிகளைத் தேடு..." : "Search for magic powders..."}
                 className="w-full bg-slate-50 dark:bg-slate-900 border-4 border-indigo-100 dark:border-slate-700 text-indigo-900 dark:text-indigo-100 rounded-3xl py-3 pl-12 pr-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-200 transition-all shadow-inner placeholder:text-indigo-400"
               />
               <Droplets className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400" />
@@ -481,28 +483,28 @@ export default function ChemistryLabPage() {
                         ing.status === "Needs Maintenance" ? "bg-rose-100 text-rose-600 border-rose-200" :
                           "bg-emerald-100 text-emerald-600 border-emerald-200"
                         }`}>
-                        Qty: {ing.count}
+                        {lang === "தமிழ்" ? "அளவு: " : "Qty: "}{ing.count}
                       </span>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-4 text-slate-400 text-xs italic">No matching ingredients</div>
+                  <div className="text-center py-4 text-slate-400 text-xs italic">{lang === "தமிழ்" ? "பொருந்தும் பொருட்கள் எதுவும் இல்லை" : "No matching ingredients"}</div>
                 )}
               </div>
             ) : null}
 
             <div className="grid grid-cols-2 gap-4">
-              <button onClick={() => showToast("Opening the big book of chemicals! ")} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border-4 border-indigo-100 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-indigo-600 dark:text-indigo-400 group">
+              <button onClick={() => showToast(lang === "தமிழ்" ? "வேதிப்பொருட்களின் பெரிய புத்தகத்தைத் திறக்கிறது! " : "Opening the big book of chemicals! ")} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border-4 border-indigo-100 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-indigo-600 dark:text-indigo-400 group">
                 <div className="w-12 h-12 bg-indigo-100 dark:bg-slate-900 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                   <BookOpen className="w-6 h-6" />
                 </div>
-                Book of Secrets
+                {lang === "தமிழ்" ? "ரகசியங்களின் புத்தகம்" : "Book of Secrets"}
               </button>
-              <button onClick={() => showToast("Looking in the cupboards! ")} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border-4 border-emerald-100 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-emerald-600 dark:text-emerald-400 group">
+              <button onClick={() => showToast(lang === "தமிழ்" ? "அலமாரிகளில் தேடுகிறது! " : "Looking in the cupboards! ")} className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border-4 border-emerald-100 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all text-sm font-black text-emerald-600 dark:text-emerald-400 group">
                 <div className="w-12 h-12 bg-emerald-100 dark:bg-slate-900 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                   <FlaskConical className="w-6 h-6" />
                 </div>
-                Cupboard Check
+                {lang === "தமிழ்" ? "அலமாரி சோதனை" : "Cupboard Check"}
               </button>
             </div>
           </div>

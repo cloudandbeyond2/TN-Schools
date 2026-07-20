@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import Swal from "sweetalert2";
 
 interface CulturalEvent {
@@ -25,6 +26,7 @@ const getApiBase = () => {
 const API_URL = getApiBase();
 
 export default function TeacherCulturalEventsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId: string = (session?.user as any)?.schoolId || "";
 
@@ -194,8 +196,8 @@ export default function TeacherCulturalEventsPage() {
 
   return (
     <PortalLayout
-      title="Culture & Fun! "
-      subtitle="Join the dance, art, and music festivals!"
+      title={lang === "தமிழ்" ? "கலை மற்றும் திருவிழாக்கள்! " : "Culture & Fun! "}
+      subtitle={lang === "தமிழ்" ? "நடனம், கலை மற்றும் இசைத் திருவிழாக்களில் இணையுங்கள்!" : "Join the dance, art, and music festivals!"}
     >
       <div className="flex flex-col gap-6 sm:gap-8">
 
@@ -212,21 +214,21 @@ export default function TeacherCulturalEventsPage() {
 
           <div className="relative z-20 max-w-2xl text-left">
             <div className="inline-flex items-center gap-1.5 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-3 py-1.5 sm:px-4 sm:py-2 mb-3 sm:mb-4 font-black tracking-widest text-[10px] sm:text-xs uppercase rounded-xl sm:rounded-2xl shadow-sm rotate-[-2deg] border-2 border-yellow-200 dark:border-yellow-700/50">
-              <i className="fi fi-rr-star text-xs" /> The Big Event!
+              <i className="fi fi-rr-star text-xs" /> {lang === "தமிழ்" ? "பெரும் திருவிழா!" : "The Big Event!"}
             </div>
             <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-800 dark:text-white mb-3 sm:mb-4 tracking-tight drop-shadow-sm flex items-center gap-2">
-              Tamil Heritage Month <i className="fi fi-rr-magic-wand text-pink-500 text-xl sm:text-2xl" />
+              {lang === "தமிழ்" ? "தமிழ் மரபு மாதம்" : "Tamil Heritage Month"} <i className="fi fi-rr-magic-wand text-pink-500 text-xl sm:text-2xl" />
             </h2>
             <p className="text-slate-650 dark:text-slate-350 font-bold mb-6 sm:mb-8 text-xs sm:text-sm md:text-base leading-relaxed">
-              Let's celebrate our rich culture together! There will be yummy food, beautiful dances, traditional games, and lots of fun!
+              {lang === "தமிழ்" ? "நமது வளமான கலாச்சாரத்தை ஒன்றாகக் கொண்டாடுவோம்! சுவையான உணவு, அழகான நடனங்கள், பாரம்பரிய விளையாட்டுகள் மற்றும் பல வேடிக்கைகள் இருக்கும்!" : "Let's celebrate our rich culture together! There will be yummy food, beautiful dances, traditional games, and lots of fun!"}
             </p>
 
             <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <p className="text-xs font-bold text-slate-500 max-w-lg leading-relaxed">
-                💡 Select <strong className="text-emerald-500">Add New Event</strong> to post cultural announcements, manage participant rosters, and coordinate activities.
+                {lang === "தமிழ்" ? "💡 கலாச்சார அறிவிப்புகளைப் பதிவிடவும், பங்கேற்பாளர்களின் பட்டியலை நிர்வகிக்கவும், மற்றும் செயல்பாடுகளை ஒருங்கிணைக்கவும் புதிய நிகழ்வைச் சேர் என்பதைத் தேர்ந்தெடுக்கவும்." : "💡 Select Add New Event to post cultural announcements, manage participant rosters, and coordinate activities."}
               </p>
               <button onClick={handleOpenCreate} className="px-6 py-3 bg-emerald-400 text-emerald-900 font-black text-xs sm:text-sm rounded-xl transition-all shadow-md shadow-emerald-400/30 hover:scale-105 active:scale-95 border-b-4 border-emerald-600 flex items-center justify-center gap-2 shrink-0">
-                <i className="fi fi-rr-plus text-xs" /> Add New Event
+                <i className="fi fi-rr-plus text-xs" /> {lang === "தமிழ்" ? "புதிய நிகழ்வைச் சேர்" : "Add New Event"}
               </button>
             </div>
           </div>
@@ -239,21 +241,25 @@ export default function TeacherCulturalEventsPage() {
               <div className="p-2 sm:p-3 bg-purple-100 text-purple-600 rounded-xl sm:rounded-2xl rotate-[-5deg]">
                 <i className="fi fi-rr-calendar-heart text-base sm:text-xl" />
               </div>
-              Cool Upcoming Stuff
+              {lang === "தமிழ்" ? "வரவிருக்கும் நிகழ்வுகள்" : "Cool Upcoming Stuff"}
             </h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
             {loading ? (
               <div className="col-span-1 xl:col-span-3 text-center py-10 font-bold text-slate-500">
-                Loading events... <i className="fi fi-rr-hourglass text-sm animate-spin inline-block ml-1" />
+                {lang === "தமிழ்" ? "நிகழ்வுகள் ஏற்றப்படுகின்றன..." : "Loading events..."} <i className="fi fi-rr-hourglass text-sm animate-spin inline-block ml-1" />
               </div>
             ) : events.length === 0 ? (
               <div className="col-span-1 xl:col-span-3 text-center py-10 font-bold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-3xl border-4 border-dashed border-slate-200 dark:border-slate-700">
-                No events yet! Go add some! <i className="fi fi-rr-party-horn text-sm inline-block ml-1 animate-bounce" />
+                {lang === "தமிழ்" ? "நிகழ்வுகள் இன்னும் இல்லை! சிலவற்றைச் சேர்க்கவும்!" : "No events yet! Go add some!"} <i className="fi fi-rr-party-horn text-sm inline-block ml-1 animate-bounce" />
               </div>
             ) : events.map((evt, i) => {
               const { icon, color } = getEventStyle(evt.title);
+              const statusTranslated =
+                evt.status === "Upcoming" ? (lang === "தமிழ்" ? "வரவிருப்பவை" : "Upcoming") :
+                evt.status === "Planning" ? (lang === "தமிழ்" ? "திட்டமிடல்" : "Planning") :
+                evt.status === "Open Now!" ? (lang === "தமிழ்" ? "தற்போது திறந்துள்ளது!" : "Open Now!") : evt.status;
               return (
                 <div key={i} className={`p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border-4 border-${color}-100 dark:border-slate-700 hover:border-${color}-300 bg-${color}-50/50 hover:bg-${color}-50 dark:bg-slate-900/50 hover:-translate-y-2 hover:shadow-xl transition-all duration-300 flex flex-col h-full group relative text-left`}>
 
@@ -271,7 +277,7 @@ export default function TeacherCulturalEventsPage() {
                       {icon}
                     </div>
                     <span className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider rounded-lg sm:rounded-xl border-2 bg-white dark:bg-slate-800 text-${color}-600 border-${color}-200 shadow-sm rotate-3`}>
-                      {evt.status}
+                      {statusTranslated}
                     </span>
                   </div>
 
@@ -292,7 +298,7 @@ export default function TeacherCulturalEventsPage() {
                       {(() => {
                         try {
                           const parsed = JSON.parse(evt.location);
-                          return parsed.coordinator ? `Coord: ${parsed.coordinator}` : (parsed.category || "School");
+                          return parsed.coordinator ? `${lang === "தமிழ்" ? "ஒருங்கிணைப்பாளர்" : "Coord"}: ${parsed.coordinator}` : (parsed.category || "School");
                         } catch {
                           return evt.location;
                         }
@@ -302,7 +308,7 @@ export default function TeacherCulturalEventsPage() {
 
                   <div className="mt-4 sm:mt-6 text-center text-[11px] font-bold text-slate-505 bg-slate-50 dark:bg-slate-800/80 p-3 rounded-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center gap-1.5 shadow-sm">
                     <i className="fi fi-rr-info text-blue-500 text-sm" />
-                    <span>Registration is managed on Student Portal</span>
+                    <span>{lang === "தமிழ்" ? "பதிவு மாணவர் போர்ட்டலில் நிர்வகிக்கப்படுகிறது" : "Registration is managed on Student Portal"}</span>
                   </div>
                 </div>
               )
@@ -317,7 +323,7 @@ export default function TeacherCulturalEventsPage() {
         <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-800 rounded-[2rem] sm:rounded-[3rem] w-full max-w-md shadow-2xl border-4 border-rose-200 dark:border-slate-700 animate-in zoom-in-95 p-3">
             <div className="flex justify-between items-center p-4 sm:p-6 bg-rose-50 dark:bg-slate-900 rounded-[1.5rem] sm:rounded-[2.5rem] mb-4 sm:mb-6">
-              <h3 className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400">Join the Party!</h3>
+              <h3 className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400">{lang === "தமிழ்" ? "திருவிழாவில் இணையுங்கள்!" : "Join the Party!"}</h3>
               <button onClick={() => setRegisterModalOpen(false)} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-full text-slate-400 hover:text-rose-500 hover:scale-110 transition-all shadow-sm">
                 <i className="fi fi-rr-cross-small text-base sm:text-lg" />
               </button>
@@ -325,7 +331,7 @@ export default function TeacherCulturalEventsPage() {
             <form onSubmit={handleRegister} className="p-2 sm:p-4 space-y-4 sm:space-y-6">
               <div>
                 <label className="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
-                  Which Event? <i className="fi fi-rr-ticket text-xs sm:text-sm inline-block ml-1" />
+                  {lang === "தமிழ்" ? "எந்த நிகழ்வு?" : "Which Event?"} <i className="fi fi-rr-ticket text-xs sm:text-sm inline-block ml-1" />
                 </label>
                 <select required name="event" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-3 sm:py-4 sm:px-4 text-xs sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-rose-300 transition-all">
                   {events.map((e) => (
@@ -336,23 +342,23 @@ export default function TeacherCulturalEventsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
-                    Class <i className="fi fi-rr-briefcase text-xs sm:text-sm inline-block ml-1" />
+                    {lang === "தமிழ்" ? "வகுப்பு" : "Class"} <i className="fi fi-rr-briefcase text-xs sm:text-sm inline-block ml-1" />
                   </label>
                   <input required name="class" type="text" placeholder="e.g., 9th A" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-3 sm:py-4 sm:px-4 text-xs sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-rose-300 transition-all" />
                 </div>
                 <div>
                   <label className="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
-                    How Many? <i className="fi fi-rr-user text-xs sm:text-sm inline-block ml-1" />
+                    {lang === "தமிழ்" ? "எத்தனை பேர்?" : "How Many?"} <i className="fi fi-rr-user text-xs sm:text-sm inline-block ml-1" />
                   </label>
                   <input required name="count" type="number" min="1" max="60" placeholder="10" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-3 sm:py-4 sm:px-4 text-xs sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-rose-300 transition-all" />
                 </div>
               </div>
               <div className="pt-4 sm:pt-6 flex gap-4">
                 <button type="button" onClick={() => setRegisterModalOpen(false)} className="flex-1 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border-2 border-slate-200 dark:border-slate-700">
-                  Cancel
+                  {lang === "தமிழ்" ? "ரத்துசெய்" : "Cancel"}
                 </button>
                 <button type="submit" className="flex-1 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black text-grey bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 transition-all shadow-lg shadow-rose-500/30 active:scale-95 border-b-4 border-rose-700 flex items-center justify-center gap-2">
-                  Register! <i className="fi fi-rr-party-horn text-xs sm:text-sm" />
+                  {lang === "தமிழ்" ? "பதிவு செய்!" : "Register!"} <i className="fi fi-rr-party-horn text-xs sm:text-sm" />
                 </button>
               </div>
             </form>
@@ -366,7 +372,10 @@ export default function TeacherCulturalEventsPage() {
           <div className="bg-white dark:bg-slate-800 rounded-[2rem] sm:rounded-[3rem] w-full max-w-md shadow-2xl border-4 border-purple-200 dark:border-slate-700 animate-in zoom-in-95 p-3">
             <div className="flex justify-between items-center p-4 sm:p-6 bg-purple-50 dark:bg-slate-900 rounded-[1.5rem] sm:rounded-[2.5rem] mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400">
-                {isEdit ? "Edit Event " : "New Event! "}
+                {isEdit 
+                  ? (lang === "தமிழ்" ? "நிகழ்வைத் திருத்து " : "Edit Event ") 
+                  : (lang === "தமிழ்" ? "புதிய நிகழ்வு! " : "New Event! ")
+                }
               </h3>
               <button onClick={() => setEventModalOpen(false)} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-full text-slate-400 hover:text-purple-500 hover:scale-110 transition-all shadow-sm">
                 <i className="fi fi-rr-cross-small text-base sm:text-lg" />
@@ -375,46 +384,46 @@ export default function TeacherCulturalEventsPage() {
             <form onSubmit={handleSaveEvent} className="p-2 sm:p-4 space-y-4 sm:space-y-6">
               <div>
                 <label className="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
-                  Event Title <i className="fi fi-rr-magic-wand text-xs sm:text-sm inline-block ml-1" />
+                  {lang === "தமிழ்" ? "நிகழ்வின் தலைப்பு" : "Event Title"} <i className="fi fi-rr-magic-wand text-xs sm:text-sm inline-block ml-1" />
                 </label>
                 <input required name="title" defaultValue={currentEvent?.title} type="text" placeholder="e.g., Annual Arts Fest" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-3 sm:py-4 sm:px-4 text-xs sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all" />
               </div>
               <div>
                 <label className="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
-                  Description <i className="fi fi-rr-edit text-xs sm:text-sm inline-block ml-1" />
+                  {lang === "தமிழ்" ? "விளக்கம்" : "Description"} <i className="fi fi-rr-edit text-xs sm:text-sm inline-block ml-1" />
                 </label>
                 <textarea required name="description" defaultValue={currentEvent?.description} placeholder="What's this event about?" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-3 sm:py-4 sm:px-4 text-xs sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all resize-none h-20 sm:h-24" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
-                    Date <i className="fi fi-rr-calendar text-xs sm:text-sm inline-block ml-1" />
+                    {lang === "தமிழ்" ? "தேதி" : "Date"} <i className="fi fi-rr-calendar text-xs sm:text-sm inline-block ml-1" />
                   </label>
                   <input required name="eventDate" defaultValue={currentEvent ? new Date(currentEvent.eventDate).toISOString().substring(0, 10) : ""} type="date" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-3 sm:py-4 sm:px-4 text-xs sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all" />
                 </div>
                 <div>
                   <label className="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
-                    Location <i className="fi fi-rr-marker text-xs sm:text-sm inline-block ml-1" />
+                    {lang === "தமிழ்" ? "இடம்" : "Location"} <i className="fi fi-rr-marker text-xs sm:text-sm inline-block ml-1" />
                   </label>
                   <input required name="location" defaultValue={getDisplayLocation(currentEvent?.location)} type="text" placeholder="e.g., Auditorium" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-3 sm:py-4 sm:px-4 text-xs sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all" />
                 </div>
               </div>
               <div>
                 <label className="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
-                  Status <i className="fi fi-rr-target text-xs sm:text-sm inline-block ml-1" />
+                  {lang === "தமிழ்" ? "நிலை" : "Status"} <i className="fi fi-rr-target text-xs sm:text-sm inline-block ml-1" />
                 </label>
                 <select required name="status" defaultValue={currentEvent?.status || "Upcoming"} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-3 sm:py-4 sm:px-4 text-xs sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all">
-                  <option value="Upcoming">Upcoming</option>
-                  <option value="Planning">Planning</option>
-                  <option value="Open Now!">Open Now!</option>
+                  <option value="Upcoming">{lang === "தமிழ்" ? "வரவிருப்பவை" : "Upcoming"}</option>
+                  <option value="Planning">{lang === "தமிழ்" ? "திட்டமிடல்" : "Planning"}</option>
+                  <option value="Open Now!">{lang === "தமிழ்" ? "தற்போது திறந்துள்ளது!" : "Open Now!"}</option>
                 </select>
               </div>
               <div className="pt-4 sm:pt-6 flex gap-4">
                 <button type="button" onClick={() => setEventModalOpen(false)} className="flex-1 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border-2 border-slate-200 dark:border-slate-700">
-                  Cancel
+                  {lang === "தமிழ்" ? "ரத்துசெய்" : "Cancel"}
                 </button>
                 <button type="submit" className="flex-1 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black text-grey bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 transition-all shadow-lg shadow-purple-500/30 active:scale-95 border-b-4 border-purple-700">
-                  {isEdit ? "Update Event" : "Create Event!"}
+                  {isEdit ? (lang === "தமிழ்" ? "நிகழ்வைப் புதுப்பி" : "Update Event") : (lang === "தமிழ்" ? "நிகழ்வை உருவாக்கு!" : "Create Event!")}
                 </button>
               </div>
             </form>

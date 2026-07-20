@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { useSession } from "next-auth/react";
 import Swal from "sweetalert2";
 import {
@@ -46,6 +47,7 @@ const emptyQuestion = (): QuestionInput => ({
 });
 
 export default function TeacherSSLCPrepPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const sessionUser = session?.user as any;
   const role = sessionUser?.role || "TEACHER";
@@ -431,16 +433,16 @@ export default function TeacherSSLCPrepPage() {
   /* ─── Render ───────────────────────────────────────────────────── */
 
   const TABS = [
-    { id: "overview" as const, label: "Class Performance", icon: LayoutDashboard },
-    { id: "tests" as const, label: "Mock Tests", icon: ClipboardList },
-    { id: "papers" as const, label: "Question Papers", icon: FileText },
-    { id: "plans" as const, label: "Prep Plans", icon: BookOpen },
+    { id: "overview" as const, label: lang === "தமிழ்" ? "வகுப்பு செயல்திறன்" : "Class Performance", icon: LayoutDashboard },
+    { id: "tests" as const, label: lang === "தமிழ்" ? "மாதிரி தேர்வுகள்" : "Mock Tests", icon: ClipboardList },
+    { id: "papers" as const, label: lang === "தமிழ்" ? "வினாத்தாள்கள்" : "Question Papers", icon: FileText },
+    { id: "plans" as const, label: lang === "தமிழ்" ? "தயாரிப்பு திட்டங்கள்" : "Prep Plans", icon: BookOpen },
   ];
 
   return (
     <PortalLayout
-      title="SSLC Board Prep Console"
-      subtitle="Manage board preparation for Classes 9 & 10 — mock tests, papers, plans and predictions."
+      title={lang === "தமிழ்" ? "SSLC தேர்வுத் தயாரிப்பு கட்டுப்பாட்டு மையம்" : "SSLC Board Prep Console"}
+      subtitle={lang === "தமிழ்" ? "வகுப்புகள் 9 & 10 க்கான வாரியத் தேர்வுத் தயாரிப்பை நிர்வகிக்கவும் — மாதிரி தேர்வுகள், தாள்கள், திட்டங்கள் மற்றும் கணிப்புகள்." : "Manage board preparation for Classes 9 & 10 — mock tests, papers, plans and predictions."}
     >
       {/* Tab bar + grade switch */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
@@ -478,7 +480,7 @@ export default function TeacherSSLCPrepPage() {
                     : "text-slate-400 hover:text-white"
                 }`}
               >
-                All Classes
+                {lang === "தமிழ்" ? "அனைத்து வகுப்புகளும்" : "All Classes"}
               </button>
 
               {/* Dynamically render each assigned classroom */}
@@ -492,10 +494,10 @@ export default function TeacherSSLCPrepPage() {
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                     selectedClassroom === cr.id
                       ? "bg-amber-500 text-slate-900 shadow-lg"
-                      : "text-slate-400 hover:text-white"
+                      : "text-slate-450 hover:text-white"
                   }`}
                 >
-                  Class {cr.className}-{cr.section}
+                  {lang === "தமிழ்" ? `வகுப்பு ${cr.className}-${cr.section}` : `Class ${cr.className}-${cr.section}`}
                 </button>
               ))}
             </>
@@ -511,10 +513,10 @@ export default function TeacherSSLCPrepPage() {
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                     selectedGrade === g && selectedClassroom === "all"
                       ? "bg-amber-500 text-slate-900 shadow-lg"
-                      : "text-slate-400 hover:text-white"
+                      : "text-slate-450 hover:text-white"
                   }`}
                 >
-                  Class {g} (All)
+                  {lang === "தமிழ்" ? `வகுப்பு ${g} (அனைத்தும்)` : `Class ${g} (All)`}
                 </button>
               ))}
             </>
@@ -536,7 +538,7 @@ export default function TeacherSSLCPrepPage() {
               onClick={loadAnalytics}
               className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${analyticsLoading ? "animate-spin" : ""}`} /> Refresh
+              <RefreshCw className={`w-3.5 h-3.5 ${analyticsLoading ? "animate-spin" : ""}`} /> {lang === "தமிழ்" ? "புதுப்பி" : "Refresh"}
             </button>
           </div>
 

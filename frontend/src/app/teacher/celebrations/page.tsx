@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface Celebration {
   id: string;
@@ -23,6 +24,7 @@ const getApiBase = () => {
 const API_BASE = getApiBase();
 
 export default function TeacherCelebrationsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session, status } = useSession();
   const schoolId = (session?.user as any)?.schoolId || "";
 
@@ -182,17 +184,17 @@ export default function TeacherCelebrationsPage() {
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full font-medium tracking-wide text-xs uppercase mb-4 border border-white/20">
-                <i className="fi fi-rr-star text-yellow-300" /> School Events
+                <i className="fi fi-rr-star text-yellow-300" /> {lang === "தமிழ்" ? "பள்ளி நிகழ்வுகள்" : "School Events"}
               </div>
               <h2 className="text-2xl sm:text-4xl font-bold tracking-tight mb-3 drop-shadow-sm flex items-center gap-3">
-                Celebrations & Holidays
+                {lang === "தமிழ்" ? "கொண்டாட்டங்கள் & விடுமுறைகள்" : "Celebrations & Holidays"}
               </h2>
               <p className="text-indigo-100 font-normal max-w-2xl text-sm sm:text-base leading-relaxed">
-                Stay updated on upcoming celebrations, festivals, and official holidays. Plan ahead and actively participate in our school community events.
+                {lang === "தமிழ்" ? "வரவிருக்கும் கொண்டாட்டங்கள், பண்டிகைகள் மற்றும் அதிகாரப்பூர்வ விடுமுறைகள் குறித்து உடனுக்குடன் தெரிந்துகொள்ளுங்கள். முன்கூட்டியே திட்டமிட்டு எமது பள்ளி சமூக நிகழ்வுகளில் தீவிரமாக பங்கேற்கவும்." : "Stay updated on upcoming celebrations, festivals, and official holidays. Plan ahead and actively participate in our school community events."}
               </p>
             </div>
             <button onClick={() => setCalendarModalOpen(true)} className="px-6 py-3 bg-white text-indigo-700 font-semibold text-sm rounded-xl transition-all shadow-sm hover:shadow-md hover:bg-indigo-50 active:scale-95 flex items-center gap-2 shrink-0 border border-indigo-100">
-              <i className="fi fi-rr-calendar-lines text-base" /> View Calendar
+              <i className="fi fi-rr-calendar-lines text-base" /> {lang === "தமிழ்" ? "காலெண்டரைப் பார்" : "View Calendar"}
             </button>
           </div>
         </div>
@@ -210,7 +212,7 @@ export default function TeacherCelebrationsPage() {
                   : "border-transparent text-slate-550 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:text-slate-400"
                   }`}
               >
-                <i className="fi fi-rr-sun" /> Today
+                <i className="fi fi-rr-sun" /> {lang === "தமிழ்" ? "இன்று" : "Today"}
               </button>
               <button
                 onClick={() => setActiveTab("week")}
@@ -219,7 +221,7 @@ export default function TeacherCelebrationsPage() {
                   : "border-transparent text-slate-550 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:text-slate-400"
                   }`}
               >
-                <i className="fi fi-rr-calendar" /> All Events
+                <i className="fi fi-rr-calendar" /> {lang === "தமிழ்" ? "அனைத்து நிகழ்வுகள்" : "All Events"}
               </button>
               <button
                 onClick={() => setActiveTab("holiday")}
@@ -228,7 +230,7 @@ export default function TeacherCelebrationsPage() {
                   : "border-transparent text-slate-550 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:text-slate-400"
                   }`}
               >
-                <i className="fi fi-rr-bank" /> Holidays
+                <i className="fi fi-rr-bank" /> {lang === "தமிழ்" ? "விடுமுறைகள்" : "Holidays"}
               </button>
             </div>
 
@@ -237,7 +239,7 @@ export default function TeacherCelebrationsPage() {
                 <div className="space-y-4">
                   {isLoading && (
                     <div className="flex items-center gap-3 text-sm text-slate-550 py-4">
-                      <i className="fi fi-rr-spinner animate-spin text-indigo-600 text-lg" /> Loading today's events...
+                      <i className="fi fi-rr-spinner animate-spin text-indigo-600 text-lg" /> {lang === "தமிழ்" ? "இன்றைய நிகழ்வுகள் ஏற்றப்படுகின்றன..." : "Loading today's events..."}
                     </div>
                   )}
 
@@ -246,8 +248,8 @@ export default function TeacherCelebrationsPage() {
                       <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 border border-slate-100 dark:border-slate-700">
                         <i className="fi fi-rr-calendar-xmark text-slate-400 text-2xl" />
                       </div>
-                      <h3 className="text-lg font-semibold text-slate-850 dark:text-slate-200">No events today</h3>
-                      <p className="text-sm text-slate-550 mt-2 font-medium">Check the All Events tab for upcoming schedules.</p>
+                      <h3 className="text-lg font-semibold text-slate-850 dark:text-slate-200">{lang === "தமிழ்" ? "இன்று எந்த நிகழ்வுகளும் இல்லை" : "No events today"}</h3>
+                      <p className="text-sm text-slate-550 mt-2 font-medium">{lang === "தமிழ்" ? "வரவிருக்கும் அட்டவணைகளுக்கு அனைத்து நிகழ்வுகள் தாவலை சரிபார்க்கவும்." : "Check the All Events tab for upcoming schedules."}</p>
                     </div>
                   )}
 
@@ -264,14 +266,14 @@ export default function TeacherCelebrationsPage() {
                         <div className="flex flex-wrap items-center gap-3 mb-1">
                           <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{item.title}</h4>
                           <span className="px-2 py-0.5 rounded text-[10px] font-medium tracking-wide text-indigo-700 bg-indigo-100 dark:bg-indigo-900/50 dark:text-indigo-300 uppercase">
-                            Event
+                            {lang === "தமிழ்" ? "நிகழ்வு" : "Event"}
                           </span>
                         </div>
                         {item.description && (
                           <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{item.description}</p>
                         )}
                         <div className="flex items-center gap-2 text-xs font-medium text-slate-500 font-bold">
-                          <i className="fi fi-rr-calendar-day" /> Today
+                          <i className="fi fi-rr-calendar-day" /> {lang === "தமிழ்" ? "இன்று" : "Today"}
                         </div>
                       </div>
                     </div>
@@ -283,7 +285,7 @@ export default function TeacherCelebrationsPage() {
                 <div className="space-y-4">
                   {isLoading && (
                     <div className="flex items-center gap-3 text-sm text-slate-555 py-4">
-                      <i className="fi fi-rr-spinner animate-spin text-indigo-600 text-lg" /> Loading upcoming events...
+                      <i className="fi fi-rr-spinner animate-spin text-indigo-600 text-lg" /> {lang === "தமிழ்" ? "வரவிருக்கும் நிகழ்வுகள் ஏற்றப்படுகின்றன..." : "Loading upcoming events..."}
                     </div>
                   )}
 
@@ -292,8 +294,8 @@ export default function TeacherCelebrationsPage() {
                       <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 border border-slate-100 dark:border-slate-700">
                         <i className="fi fi-rr-calendar-xmark text-slate-400 text-2xl" />
                       </div>
-                      <h3 className="text-lg font-semibold text-slate-850 dark:text-slate-200">No events scheduled</h3>
-                      <p className="text-sm text-slate-555 mt-2 font-medium">There are no upcoming events at the moment.</p>
+                      <h3 className="text-lg font-semibold text-slate-850 dark:text-slate-200">{lang === "தமிழ்" ? "நிகழ்வுகள் எதுவும் திட்டமிடப்படவில்லை" : "No events scheduled"}</h3>
+                      <p className="text-sm text-slate-555 mt-2 font-medium">{lang === "தமிழ்" ? "தற்போது வரவிருக்கும் நிகழ்வுகள் எதுவும் இல்லை." : "There are no upcoming events at the moment."}</p>
                     </div>
                   )}
 
@@ -310,7 +312,7 @@ export default function TeacherCelebrationsPage() {
                         <div className="flex flex-wrap items-center gap-3 mb-1">
                           <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{item.title}</h4>
                           <span className="px-2 py-0.5 rounded text-[10px] font-medium tracking-wide text-blue-700 bg-blue-100 dark:bg-blue-900/50 dark:text-blue-300 uppercase">
-                            Event
+                            {lang === "தமிழ்" ? "நிகழ்வு" : "Event"}
                           </span>
                         </div>
                         {item.description && (
@@ -329,7 +331,7 @@ export default function TeacherCelebrationsPage() {
                 <div className="space-y-8">
                   {isLoading && (
                     <div className="flex items-center gap-3 text-sm text-slate-555 py-4">
-                      <i className="fi fi-rr-spinner animate-spin text-indigo-600 text-lg" /> Loading holidays...
+                      <i className="fi fi-rr-spinner animate-spin text-indigo-600 text-lg" /> {lang === "தமிழ்" ? "விடுமுறைகள் ஏற்றப்படுகின்றன..." : "Loading holidays..."}
                     </div>
                   )}
 
@@ -338,8 +340,8 @@ export default function TeacherCelebrationsPage() {
                       <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 border border-slate-100 dark:border-slate-700">
                         <i className="fi fi-rr-calendar-xmark text-slate-400 text-2xl" />
                       </div>
-                      <h3 className="text-lg font-semibold text-slate-850 dark:text-slate-200">No holidays listed</h3>
-                      <p className="text-sm text-slate-555 mt-2 font-medium">No official holidays have been scheduled yet.</p>
+                      <h3 className="text-lg font-semibold text-slate-850 dark:text-slate-200">{lang === "தமிழ்" ? "விடுமுறைகள் எதுவும் பட்டியலிடப்படவில்லை" : "No holidays listed"}</h3>
+                      <p className="text-sm text-slate-555 mt-2 font-medium">{lang === "தமிழ்" ? "அதிகாரப்பூர்வ விடுமுறைகள் எதுவும் இன்னும் திட்டமிடப்படவில்லை." : "No official holidays have been scheduled yet."}</p>
                     </div>
                   )}
 
@@ -347,7 +349,7 @@ export default function TeacherCelebrationsPage() {
                     <div key={year} className="space-y-4">
                       <div className="flex items-center gap-4 py-1">
                         <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-md border border-slate-200 dark:border-slate-700 flex items-center gap-2">
-                          <i className="fi fi-rr-calendar" /> {year} Holidays
+                          <i className="fi fi-rr-calendar" /> {year} {lang === "தமிழ்" ? "விடுமுறைகள்" : "Holidays"}
                         </span>
                         <div className="flex-1 h-[1px] bg-slate-200 dark:bg-slate-700" />
                       </div>

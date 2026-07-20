@@ -5,6 +5,7 @@ import { BarChart, TrendingUp, Calendar, Edit, Target, Clipboard, AlertTriangle 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface AnalyticsStudent {
   rollNo: string;
@@ -29,6 +30,7 @@ interface DistributionItem {
 }
 
 export default function AnalyticsPage() {
+  const { lang, t } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -247,10 +249,10 @@ export default function AnalyticsPage() {
         {/* KPI Summaries Row */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
           {[
-            { label: "Class Average Score", value: `${summary.avgScore}%`, icon: <TrendingUp className="w-5 h-5" />, color: "text-amber-400", desc: "Term average" },
-            { label: "Mean Attendance", value: `${summary.attendance}%`, icon: <Calendar className="w-5 h-5" />, color: "text-emerald-400", desc: "This semester" },
-            { label: "Homework Completes", value: `${summary.hwRate}%`, icon: <Edit className="w-5 h-5" />, color: "text-blue-400", desc: "Last 5 tasks" },
-            { label: "Interventions Flashed", value: `${summary.riskCount}`, icon: <AlertTriangle className="w-5 h-5" />, color: "text-red-400", desc: "Action required" },
+            { label: lang === "தமிழ்" ? "வகுப்பு சராசரி மதிப்பெண்" : "Class Average Score", value: `${summary.avgScore}%`, icon: <TrendingUp className="w-5 h-5" />, color: "text-amber-400", desc: lang === "தமிழ்" ? "பருவ சராசரி" : "Term average" },
+            { label: lang === "தமிழ்" ? "சராசரி வருகை" : "Mean Attendance", value: `${summary.attendance}%`, icon: <Calendar className="w-5 h-5" />, color: "text-emerald-400", desc: lang === "தமிழ்" ? "இந்த செமஸ்டர்" : "This semester" },
+            { label: lang === "தமிழ்" ? "வீட்டுப்பாடம் நிறைவு" : "Homework Completes", value: `${summary.hwRate}%`, icon: <Edit className="w-5 h-5" />, color: "text-blue-400", desc: lang === "தமிழ்" ? "கடந்த 5 பணிகள்" : "Last 5 tasks" },
+            { label: lang === "தமிழ்" ? "தேவைப்படும் தலையீடுகள்" : "Interventions Flashed", value: `${summary.riskCount}`, icon: <AlertTriangle className="w-5 h-5" />, color: "text-red-400", desc: lang === "தமிழ்" ? "நடவடிக்கை தேவை" : "Action required" },
           ].map((kpi) => (
             <div key={kpi.label} className="kpi-card">
               <div className="flex items-center justify-between mb-3">
@@ -318,7 +320,7 @@ export default function AnalyticsPage() {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               {/* Grade Distribution Chart */}
               <div className="theme-card p-6">
-                <h3 className="text-[var(--text-heading)] font-semibold text-xs mb-6 uppercase tracking-wider"><BarChart className="w-4 h-4 inline mr-1 text-emerald-500" /> Grade Distribution</h3>
+                <h3 className="text-[var(--text-heading)] font-semibold text-xs mb-6 uppercase tracking-wider"><BarChart className="w-4 h-4 inline mr-1 text-emerald-500" /> {lang === "தமிழ்" ? "மதிப்பெண் விநியோகம்" : "Grade Distribution"}</h3>
 
                 <div className="flex items-end justify-between h-40 gap-3 px-2">
                   {distribution.map((d) => (
@@ -340,7 +342,7 @@ export default function AnalyticsPage() {
 
               {/* Subject Mastery checklist */}
               <div className="xl:col-span-2 theme-card p-6">
-                <h3 className="text-[var(--text-heading)] font-semibold text-xs mb-5 uppercase tracking-wider"><Target className="w-4 h-4 inline-block mr-1 text-inherit" /> Concept Mastery Index</h3>
+                <h3 className="text-[var(--text-heading)] font-semibold text-xs mb-5 uppercase tracking-wider"><Target className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "கருத்து தேர்ச்சி குறியீடு" : "Concept Mastery Index"}</h3>
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   {mastery.map((m) => (
@@ -368,7 +370,7 @@ export default function AnalyticsPage() {
                           m.status === "mastered" ? "badge-green" : m.status === "developing" ? "badge-yellow" : "badge-red"
                         } text-[9px]`}
                       >
-                        {m.status}
+                        {m.status === "mastered" ? (lang === "தமிழ்" ? "தேர்ச்சி" : "mastered") : m.status === "developing" ? (lang === "தமிழ்" ? "வளர்கிறது" : "developing") : (lang === "தமிழ்" ? "கவனம் தேவை" : "critical")}
                       </span>
                     </div>
                   ))}
@@ -380,31 +382,38 @@ export default function AnalyticsPage() {
             <div className="theme-card p-6">
               <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-4 mb-6">
                 <div>
-                  <h3 className="text-[var(--text-heading)] font-semibold text-sm"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> Student Diagnostics Directory</h3>
-                  <p className="text-xs text-slate-550">Review performance details and key concept gaps of each pupil.</p>
+                  <h3 className="text-[var(--text-heading)] font-semibold text-sm"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "மாணவர் கண்டறியும் அடைவு" : "Student Diagnostics Directory"}</h3>
+                  <p className="text-xs text-slate-550">{lang === "தமிழ்" ? "ஒவ்வொரு மாணவரின் செயல்திறன் விவரங்கள் மற்றும் கருத்து இடைவெளிகளை மதிப்பாய்வு செய்யவும்." : "Review performance details and key concept gaps of each pupil."}</p>
                 </div>
 
                 <div className="flex flex-wrap gap-2.5">
                   <input
                     type="text"
-                    placeholder="Search name/roll..."
+                    placeholder={lang === "தமிழ்" ? "பெயர்/பதிவு எண் தேடு..." : "Search name/roll..."}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="bg-[var(--bg-main)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-heading)] placeholder-slate-650 focus:outline-none focus:border-[var(--primary)]"
                   />
 
                   <div className="flex bg-[var(--bg-main)] border border-[var(--border)] rounded-lg p-0.5">
-                    {(["All", "Good", "Average", "Risk"] as const).map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => setStatusFilter(opt)}
-                        className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${
-                          statusFilter === opt ? "bg-[var(--primary)] text-white shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-heading)]"
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
+                    {(["All", "Good", "Average", "Risk"] as const).map((opt) => {
+                      const optTranslated =
+                        opt === "All" ? (lang === "தமிழ்" ? "அனைத்தும்" : "All") :
+                        opt === "Good" ? (lang === "தமிழ்" ? "நன்று" : "Good") :
+                        opt === "Average" ? (lang === "தமிழ்" ? "சராசரி" : "Average") :
+                        (lang === "தமிழ்" ? "அபாயம்" : "Risk");
+                      return (
+                        <button
+                          key={opt}
+                          onClick={() => setStatusFilter(opt)}
+                          className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${
+                            statusFilter === opt ? "bg-[var(--primary)] text-white shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+                          }`}
+                        >
+                          {optTranslated}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -413,13 +422,13 @@ export default function AnalyticsPage() {
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Roll No</th>
-                      <th>Student Name</th>
-                      <th>Attendance</th>
-                      <th>Homework submissions</th>
-                      <th>Exam Average</th>
-                      <th>Identified Concept Gaps</th>
-                      <th>Status</th>
+                      <th>{lang === "தமிழ்" ? "பதிவு எண்" : "Roll No"}</th>
+                      <th>{lang === "தமிழ்" ? "மாணவர் பெயர்" : "Student Name"}</th>
+                      <th>{lang === "தமிழ்" ? "வருகைப்பதிவு" : "Attendance"}</th>
+                      <th>{lang === "தமிழ்" ? "வீட்டுப்பாடம் சமர்ப்பிப்புகள்" : "Homework submissions"}</th>
+                      <th>{lang === "தமிழ்" ? "தேர்வு சராசரி" : "Exam Average"}</th>
+                      <th>{lang === "தமிழ்" ? "கண்டறியப்பட்ட கருத்து இடைவெளிகள்" : "Identified Concept Gaps"}</th>
+                      <th>{lang === "தமிழ்" ? "நிலை" : "Status"}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -444,7 +453,7 @@ export default function AnalyticsPage() {
                               ))}
                             </div>
                           ) : (
-                            <span className="text-[10px] text-emerald-400 font-medium">No active gaps found</span>
+                            <span className="text-[10px] text-emerald-400 font-medium">{lang === "தமிழ்" ? "செயலில் உள்ள இடைவெளிகள் இல்லை" : "No active gaps found"}</span>
                           )}
                         </td>
                         <td>
@@ -453,7 +462,7 @@ export default function AnalyticsPage() {
                               st.status === "Good" ? "badge-green" : st.status === "Average" ? "badge-yellow" : "badge-red"
                             }`}
                           >
-                            {st.status}
+                            {st.status === "Good" ? (lang === "தமிழ்" ? "நன்று" : "Good") : st.status === "Average" ? (lang === "தமிழ்" ? "சராசரி" : "Average") : (lang === "தமிழ்" ? "அபாயம்" : "Risk")}
                           </span>
                         </td>
                       </tr>
@@ -461,7 +470,7 @@ export default function AnalyticsPage() {
                     {filteredStudents.length === 0 && (
                       <tr>
                         <td colSpan={7} className="text-center text-[var(--text-muted)] text-xs py-8">
-                          No student records match your query.
+                          {lang === "தமிழ்" ? "உங்கள் வினவலுடன் பொருந்தும் மாணவர் பதிவுகள் எதுவும் இல்லை." : "No student records match your query."}
                         </td>
                       </tr>
                     )}
@@ -472,7 +481,10 @@ export default function AnalyticsPage() {
               {totalPages > 1 && (
                 <div className="flex justify-between items-center mt-4 text-xs">
                   <span className="text-[var(--text-muted)]">
-                    Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredStudents.length)} of {filteredStudents.length} entries
+                    {lang === "தமிழ்" 
+                      ? `${filteredStudents.length} பதிவுகளில் ${indexOfFirstItem + 1} முதல் ${Math.min(indexOfLastItem, filteredStudents.length)} வரை காட்டுகிறது`
+                      : `Showing ${indexOfFirstItem + 1} to ${Math.min(indexOfLastItem, filteredStudents.length)} of ${filteredStudents.length} entries`
+                    }
                   </span>
                   <div className="flex gap-2">
                     <button
@@ -480,17 +492,17 @@ export default function AnalyticsPage() {
                       disabled={currentPage === 1}
                       className="px-3 py-1.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg disabled:opacity-50 hover:bg-[var(--bg-card-hover)] transition-colors"
                     >
-                      Previous
+                      {lang === "தமிழ்" ? "முந்தைய" : "Previous"}
                     </button>
                     <span className="px-3 py-1.5 flex items-center justify-center text-[var(--text-heading)] font-medium">
-                      Page {currentPage} of {totalPages}
+                      {lang === "தமிழ்" ? `பக்கம் ${currentPage} / ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
                     </span>
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
                       className="px-3 py-1.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg disabled:opacity-50 hover:bg-[var(--bg-card-hover)] transition-colors"
                     >
-                      Next
+                      {lang === "தமிழ்" ? "அடுத்த" : "Next"}
                     </button>
                   </div>
                 </div>

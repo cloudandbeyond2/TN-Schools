@@ -3,10 +3,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { Languages, Mic, PlayCircle, TrendingUp, MessageCircle, Headphones, Star, Activity, CheckCircle2, Volume2, Sparkles, Bot, User, BookA, Award, X, Send, ArrowRight, Building, Cat } from "lucide-react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 type ChatMessage = { sender: "ai" | "user"; text: string; audio?: string };
 
 export default function LanguageCoachingPage() {
+  const { lang } = usePortalLanguage();
   const [activeTab, setActiveTab] = useState<"roleplay" | "pronunciation" | "tanglish">("roleplay");
   const [toastMsg, setToastMsg] = useState("");
   
@@ -255,8 +257,8 @@ export default function LanguageCoachingPage() {
 
   return (
     <PortalLayout
-      title="Spoken English Hub! "
-      subtitle="Speak fearlessly! Learn English using Tamil."
+      title={lang === "தமிழ்" ? "பேசுமொழி ஆங்கில மையம்! " : "Spoken English Hub! "}
+      subtitle={lang === "தமிழ்" ? "தைரியமாக பேசுங்கள்! தமிழ் மூலம் ஆங்கிலம் கற்கவும்." : "Speak fearlessly! Learn English using Tamil."}
     >
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         
@@ -323,7 +325,7 @@ export default function LanguageCoachingPage() {
                   activeTab === "roleplay" ? "bg-white dark:bg-slate-800 text-sky-600 shadow-sm border-2 border-slate-200 dark:border-slate-600" : "text-slate-500 hover:text-slate-700"
                 }`}
               >
-                <MessageCircle className="w-4 h-4" /> Daily Roleplays
+                <MessageCircle className="w-4 h-4" /> {lang === "தமிழ்" ? "நாளாந்த பாத்திரங்கள்" : "Daily Roleplays"}
               </button>
               <button 
                 onClick={() => setActiveTab("pronunciation")}
@@ -331,7 +333,7 @@ export default function LanguageCoachingPage() {
                   activeTab === "pronunciation" ? "bg-white dark:bg-slate-800 text-rose-600 shadow-sm border-2 border-slate-200 dark:border-slate-600" : "text-slate-500 hover:text-slate-700"
                 }`}
               >
-                <Activity className="w-4 h-4" /> Pronunciation Lab
+                <Activity className="w-4 h-4" /> {lang === "தமிழ்" ? "உச்சரிப்பு பயிற்சிகூடம்" : "Pronunciation Lab"}
               </button>
             </div>
 
@@ -339,7 +341,7 @@ export default function LanguageCoachingPage() {
             {activeTab === "roleplay" && (
               <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-black text-slate-700 dark:text-slate-200 text-lg">Practical Situations</h3>
+                  <h3 className="font-black text-slate-700 dark:text-slate-200 text-lg">{lang === "தமிழ்" ? "ஏற்றப்பட்ட சூழல்கள்" : "Practical Situations"}</h3>
                   <span className="text-xs font-bold text-slate-400">Speak & Learn</span>
                 </div>
                 
@@ -365,7 +367,7 @@ export default function LanguageCoachingPage() {
                       }} 
                       className="w-full sm:w-auto px-6 py-3 rounded-xl text-sm font-black text-white bg-sky-500 hover:bg-sky-600 shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
                     >
-                      <PlayCircle className="w-4 h-4" /> Start
+                      <PlayCircle className="w-4 h-4" /> {lang === "தமிழ்" ? "தொடங்கு" : "Start"}
                     </button>
                   </div>
                 ))}
@@ -376,7 +378,7 @@ export default function LanguageCoachingPage() {
             {activeTab === "pronunciation" && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="text-center mb-8">
-                  <h3 className="font-black text-slate-700 dark:text-slate-200 text-xl mb-2">Speak & Match</h3>
+                  <h3 className="font-black text-slate-700 dark:text-slate-200 text-xl mb-2">{lang === "தமிழ்" ? "பேசு & போட்டி" : "Speak & Match"}</h3>
                   <p className="text-sm font-bold text-slate-500">
                     Don't worry about perfect accents! We focus on clarity. Listen and repeat.
                   </p>
@@ -436,7 +438,7 @@ export default function LanguageCoachingPage() {
                     <Bot className="w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="font-black text-slate-800 dark:text-white text-sm">Maya (AI English Partner)</h4>
+                    <h4 className="font-black text-slate-800 dark:text-white text-sm">{lang === "தமிழ்" ? "மாயா (AI ஆங்கில கூட்டாளி)" : "Maya (AI English Partner)"}</h4>
                     <p className="text-[10px] font-bold text-emerald-500 flex items-center gap-1">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Online - Speaks Tanglish
                     </p>
@@ -610,7 +612,7 @@ export default function LanguageCoachingPage() {
                     onClick={() => setRoleplayStep(s => s + 1)}
                     className="px-6 py-3 bg-sky-500 text-white font-black rounded-xl hover:bg-sky-600 active:scale-95 transition-all flex items-center gap-2"
                   >
-                    Next Line <ArrowRight className="w-4 h-4" />
+                    {lang === "தமிழ்" ? "அடுத்த வரி" : "Next Line"} <ArrowRight className="w-4 h-4" />
                   </button>
                 ) : (
                   <button 
@@ -620,7 +622,7 @@ export default function LanguageCoachingPage() {
                     }}
                     className="px-8 py-3 bg-emerald-500 text-white font-black rounded-xl hover:bg-emerald-600 active:scale-95 transition-all flex items-center gap-2"
                   >
-                    Finish <CheckCircle2 className="w-5 h-5" />
+                    {lang === "தமிழ்" ? "முடி" : "Finish"} <CheckCircle2 className="w-5 h-5" />
                   </button>
                 )}
               </div>

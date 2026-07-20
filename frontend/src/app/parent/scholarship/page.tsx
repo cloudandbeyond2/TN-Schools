@@ -798,7 +798,7 @@ export default function ScholarshipPage() {
 
       {/* Drawer / Modal Details */}
       {selectedScheme && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-955/80 dark:bg-slate-950/80 backdrop-blur-md transition-all duration-300 animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 dark:bg-slate-950/80 backdrop-blur-md transition-all duration-300 animate-fade-in">
           <div
             className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl"
             onClick={e => e.stopPropagation()}
@@ -828,7 +828,7 @@ export default function ScholarshipPage() {
               </div>
 
               {/* Grid detail stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 dark:bg-slate-955/30 border border-slate-205 dark:border-slate-800 p-4 rounded-2xl">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 dark:bg-slate-950/30 border border-slate-205 dark:border-slate-800 p-4 rounded-2xl">
                 <div>
                   <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Target Standards</span>
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{selectedScheme.standardText}</span>

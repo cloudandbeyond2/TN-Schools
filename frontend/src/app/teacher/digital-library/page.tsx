@@ -5,6 +5,7 @@ import PortalLayout from "@/components/PortalLayout";
 import { Upload, CheckCircle2, AlertCircle, BookOpen, Trash2, Edit3, X, Loader2, Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const CATEGORIES = [
   "E-books",
@@ -17,6 +18,7 @@ const CATEGORIES = [
 const CLASSES = ["6", "7", "8", "9", "10", "11", "12"];
 
 export default function TeacherDigitalLibraryPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const [formData, setFormData] = useState({
     title: "", type: "", subject: "", class: "", description: "", fileUrl: ""
@@ -345,7 +347,11 @@ export default function TeacherDigitalLibraryPage() {
   };
 
   return (
-    <PortalLayout title="Contribute to Library" subtitle="Share valuable resources with your students" accentColor="#10b981">
+    <PortalLayout
+      title={lang === "தமிழ்" ? "நூலகத்திற்கு பங்களிப்பு" : "Contribute to Library"}
+      subtitle={lang === "தமிழ்" ? "உங்கள் மாணவர்களுடன் பயனுள்ள வளங்களைப் பகிர்ந்து கொள்ளுங்கள்" : "Share valuable resources with your students"}
+      accentColor="#10b981"
+    >
       <div className="w-full px-4 sm:px-6 lg:px-8 space-y-8 pt-4">
 
         {message && (
@@ -363,85 +369,98 @@ export default function TeacherDigitalLibraryPage() {
           <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
             <div>
               <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                📚 Your Contributed Resources ({items.length})
+                📚 {lang === "தமிழ்" ? `பங்களிக்கப்பட்ட உங்கள் வளங்கள் (${items.length})` : `Your Contributed Resources (${items.length})`}
               </h2>
-              <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">Manage and track your submitted textbooks, video lessons, and reference books.</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">{lang === "தமிழ்" ? "நீங்கள் சமர்ப்பித்த பாடப்புத்தகங்கள், வீடியோ பாடங்கள் மற்றும் குறிப்புப் புத்தகங்களை நிர்வகிக்கவும் கண்காணிக்கவும்." : "Manage and track your submitted textbooks, video lessons, and reference books."}</p>
             </div>
             <button 
               onClick={openCreateModal}
               className="bg-emerald-600 hover:bg-emerald-750 text-white font-bold py-2.5 px-5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 active:scale-95 text-xs"
               style={{ backgroundColor: "#059669" }} // fallback color to ensure visibility
             >
-              <Plus className="w-4 h-4" /> Submit New Resource
+              <Plus className="w-4 h-4" /> {lang === "தமிழ்" ? "புதிய வளத்தை சமர்ப்பி" : "Submit New Resource"}
             </button>
           </div>
 
           {isFetching ? (
             <div className="flex flex-col items-center justify-center py-16 text-slate-400">
               <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-2" />
-              <p className="text-sm">Loading contributed resources...</p>
+              <p className="text-sm">{lang === "தமிழ்" ? "பங்களிக்கப்பட்ட வளங்கள் ஏற்றப்படுகின்றன..." : "Loading contributed resources..."}</p>
             </div>
           ) : items.length === 0 ? (
             <div className="text-center py-16 text-slate-400 border border-dashed border-slate-250 dark:border-slate-800 rounded-2xl">
               <BookOpen className="w-12 h-12 mx-auto text-slate-300 dark:text-slate-700 mb-3" />
-              <h3 className="font-bold text-slate-750 dark:text-slate-300 mb-1">No resources found</h3>
-              <p className="text-xs text-slate-500 max-w-md mx-auto">Use the submit resource button to contribute your first educational resource to the school library.</p>
+              <h3 className="font-bold text-slate-750 dark:text-slate-300 mb-1">{lang === "தமிழ்" ? "வளங்கள் எதுவும் கிடைக்கவில்லை" : "No resources found"}</h3>
+              <p className="text-xs text-slate-505 max-w-md mx-auto">{lang === "தமிழ்" ? "பள்ளி நூலகத்திற்கு உங்களின் முதல் கல்வி வளத்தை வழங்க வளம் சமர்ப்பிக்கும் பொத்தானைப் பயன்படுத்தவும்." : "Use the submit resource button to contribute your first educational resource to the school library."}</p>
             </div>
           ) : (
             <div className="overflow-x-auto w-full">
               <table className="w-full text-left border-collapse min-w-[800px]">
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-slate-800/60 text-xs font-bold uppercase tracking-wider text-slate-450">
-                    <th className="py-4 px-4">Title</th>
-                    <th className="py-4 px-4">Class & Subject</th>
-                    <th className="py-4 px-4">Category</th>
-                    <th className="py-4 px-4">Status</th>
-                    <th className="py-4 px-4 text-center">Actions</th>
+                    <th className="py-4 px-4">{lang === "தமிழ்" ? "தலைப்பு" : "Title"}</th>
+                    <th className="py-4 px-4">{lang === "தமிழ்" ? "வகுப்பு & பாடம்" : "Class & Subject"}</th>
+                    <th className="py-4 px-4">{lang === "தமிழ்" ? "வகை" : "Category"}</th>
+                    <th className="py-4 px-4">{lang === "தமிழ்" ? "நிலை" : "Status"}</th>
+                    <th className="py-4 px-4 text-center">{lang === "தமிழ்" ? "செயல்கள்" : "Actions"}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                  {items.map((item) => (
-                    <tr key={item.id} className="text-sm hover:bg-slate-50/50 dark:hover:bg-slate-850/50 transition-colors">
-                      <td className="py-4 px-4">
-                        <div className="font-bold text-slate-800 dark:text-white">{item.title}</div>
-                        {item.description && (
-                          <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5 max-w-xs">{item.description}</div>
-                        )}
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="font-semibold text-slate-705 dark:text-slate-305">Class {item.class}</div>
-                        <div className="text-xs text-slate-505 capitalize">{item.subject}</div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className="text-xs font-medium text-slate-650 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200/40 dark:border-slate-700/40">
-                          {item.type}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className={`inline-flex items-center text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${getStatusBadgeClass(item.approvalStatus)}`}>
-                          {item.approvalStatus === "APPROVED" ? "Approved" : item.approvalStatus === "REJECTED" ? "Rejected" : "Pending"}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => startEdit(item)}
-                            className="p-2 text-slate-500 hover:text-indigo-650 dark:hover:text-indigo-400 bg-slate-100 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-indigo-950/20 rounded-xl transition-all"
-                            title="Edit Resource"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="p-2 text-slate-505 hover:text-rose-650 dark:hover:text-rose-400 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/20 rounded-xl transition-all"
-                            title="Delete Resource"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {items.map((item) => {
+                    const typeTranslated =
+                      item.type === "E-books" ? (lang === "தமிழ்" ? "மின் புத்தகங்கள்" : item.type) :
+                      item.type === "Reference books" ? (lang === "தமிழ்" ? "குறிப்புப் புத்தகங்கள்" : item.type) :
+                      item.type === "Educational videos" ? (lang === "தமிழ்" ? "கல்வி வீடியோக்கள்" : item.type) :
+                      item.type === "Government learning materials" ? (lang === "தமிழ்" ? "அரசு கற்றல் பொருட்கள்" : item.type) :
+                      item.type === "Research content" ? (lang === "தமிழ்" ? "ஆராய்ச்சி உள்ளடக்கம்" : item.type) :
+                      item.type === "Competitive examination resources" ? (lang === "தமிழ்" ? "போட்டித் தேர்வு வளங்கள்" : item.type) : item.type;
+                    const approvalStatusTranslated =
+                      item.approvalStatus === "APPROVED" ? (lang === "தமிழ்" ? "அங்கீகரிக்கப்பட்டது" : "Approved") :
+                      item.approvalStatus === "REJECTED" ? (lang === "தமிழ்" ? "நிராகரிக்கப்பட்டது" : "Rejected") :
+                      (lang === "தமிழ்" ? "நிலுவையில் உள்ளது" : "Pending");
+                    return (
+                      <tr key={item.id} className="text-sm hover:bg-slate-50/50 dark:hover:bg-slate-850/50 transition-colors">
+                        <td className="py-4 px-4">
+                          <div className="font-bold text-slate-800 dark:text-white">{item.title}</div>
+                          {item.description && (
+                            <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5 max-w-xs">{item.description}</div>
+                          )}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="font-semibold text-slate-705 dark:text-slate-305">{lang === "தமிழ்" ? `வகுப்பு ${item.class}` : `Class ${item.class}`}</div>
+                          <div className="text-xs text-slate-505 capitalize">{item.subject}</div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="text-xs font-medium text-slate-650 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200/40 dark:border-slate-700/40">
+                            {typeTranslated}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className={`inline-flex items-center text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${getStatusBadgeClass(item.approvalStatus)}`}>
+                            {approvalStatusTranslated}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => startEdit(item)}
+                              className="p-2 text-slate-500 hover:text-indigo-650 dark:hover:text-indigo-400 bg-slate-100 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-indigo-950/20 rounded-xl transition-all"
+                              title="Edit Resource"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="p-2 text-slate-505 hover:text-rose-655 dark:hover:text-rose-400 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/20 rounded-xl transition-all"
+                              title="Delete Resource"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -460,7 +479,7 @@ export default function TeacherDigitalLibraryPage() {
             
             <button 
               onClick={closeCreateModal}
-              className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-all"
+              className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-slate-650 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-all"
             >
               <X className="w-5 h-5" />
             </button>
@@ -471,50 +490,62 @@ export default function TeacherDigitalLibraryPage() {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-slate-800 dark:text-white">
-                  {editingId ? "Edit Resource details" : "Submit New Resource"}
+                  {editingId 
+                    ? (lang === "தமிழ்" ? "வளத்தின் விவரங்களைத் திருத்து" : "Edit Resource details") 
+                    : (lang === "தமிழ்" ? "புதிய வளத்தை சமர்ப்பி" : "Submit New Resource")
+                  }
                 </h2>
-                <p className="text-slate-500 dark:text-slate-400 text-xs">Fill out the fields to publish study materials to students.</p>
+                <p className="text-slate-500 dark:text-slate-400 text-xs">{lang === "தமிழ்" ? "மாணவர்களுக்குப் பாடப் பொருட்களை வெளியிட படிவத்தை நிரப்பவும்." : "Fill out the fields to publish study materials to students."}</p>
               </div>
             </div>
 
             <form onSubmit={handleUpload} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-705 dark:text-slate-300">Title *</label>
-                  <input type="text" required placeholder="Enter resource title..." value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white" />
+                  <label className="text-xs font-bold text-slate-705 dark:text-slate-300">{lang === "தமிழ்" ? "தலைப்பு *" : "Title *"}</label>
+                  <input type="text" required placeholder={lang === "தமிழ்" ? "வளத்தின் தலைப்பை உள்ளிடவும்..." : "Enter resource title..."} value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-705 dark:text-slate-300">Category *</label>
+                  <label className="text-xs font-bold text-slate-705 dark:text-slate-300">{lang === "தமிழ்" ? "வகை *" : "Category *"}</label>
                   <select required value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white">
-                    <option value="" disabled>Select Category</option>
-                    {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    <option value="" disabled>{lang === "தமிழ்" ? "வகையைத் தேர்ந்தெடுக்கவும்" : "Select Category"}</option>
+                    {CATEGORIES.map(cat => {
+                      const catTranslated =
+                        cat === "E-books" ? (lang === "தமிழ்" ? "மின் புத்தகங்கள்" : cat) :
+                        cat === "Reference books" ? (lang === "தமிழ்" ? "குறிப்புப் புத்தகங்கள்" : cat) :
+                        cat === "Educational videos" ? (lang === "தமிழ்" ? "கல்வி வீடியோக்கள்" : cat) :
+                        cat === "Government learning materials" ? (lang === "தமிழ்" ? "அரசு கற்றல் பொருட்கள்" : cat) :
+                        cat === "Research content" ? (lang === "தமிழ்" ? "ஆராய்ச்சி உள்ளடக்கம்" : cat) :
+                        (lang === "தமிழ்" ? "போட்டித் தேர்வு வளங்கள்" : cat);
+                      return <option key={cat} value={cat}>{catTranslated}</option>;
+                    })}
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-705 dark:text-slate-300">Class Level *</label>
+                  <label className="text-xs font-bold text-slate-705 dark:text-slate-300">{lang === "தமிழ்" ? "வகுப்பு நிலை *" : "Class Level *"}</label>
                   <select
                     required
                     value={formData.class}
                     onChange={(e) => handleClassChange(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white"
                   >
-                    <option value="" disabled>Select Class Level</option>
+                    <option value="" disabled>{lang === "தமிழ்" ? "வகுப்பு நிலையைத் தேர்ந்தெடுக்கவும்" : "Select Class Level"}</option>
                     {finalClasses.map((cls) => (
                       <option key={cls} value={cls}>
-                        Class {cls}
+                        {lang === "தமிழ்" ? `வகுப்பு ${cls}` : `Class ${cls}`}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-705 dark:text-slate-300">Subject *</label>
+                  <label className="text-xs font-bold text-slate-705 dark:text-slate-300">{lang === "தமிழ்" ? "பாடம் *" : "Subject *"}</label>
                   <select
                     required
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white"
                   >
-                    <option value="" disabled>Select Subject</option>
+                    <option value="" disabled>{lang === "தமிழ்" ? "பாடத்தைத் தேர்ந்தெடுக்கவும்" : "Select Subject"}</option>
                     {finalSubjects.map((subj) => (
                       <option key={subj} value={subj}>
                         {subj}
@@ -523,32 +554,32 @@ export default function TeacherDigitalLibraryPage() {
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-705 dark:text-slate-300">File Upload (PDF/Image/Video)</label>
+                  <label className="text-xs font-bold text-slate-705 dark:text-slate-300">{lang === "தமிழ்" ? "கோப்பு பதிவேற்றம் (PDF/படம்/வீடியோ)" : "File Upload (PDF/Image/Video)"}</label>
                   <input type="file" accept="image/*,application/pdf,video/*" onChange={e => setSelectedFile(e.target.files?.[0] || null)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-705 dark:text-slate-300">OR File URL</label>
+                  <label className="text-xs font-bold text-slate-705 dark:text-slate-300">{lang === "தமிழ்" ? "அல்லது கோப்பு வலை முகவரி" : "OR File URL"}</label>
                   <input type="url" value={formData.fileUrl} onChange={e => setFormData({...formData, fileUrl: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white" placeholder="https://example.com/file" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-705 dark:text-slate-300">Description</label>
-                <textarea rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white" placeholder="Explain what students will learn..." />
+                <label className="text-xs font-bold text-slate-705 dark:text-slate-300">{lang === "தமிழ்" ? "விளக்கம்" : "Description"}</label>
+                <textarea rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:border-slate-700 outline-none transition-all dark:text-white" placeholder={lang === "தமிழ்" ? "மாணவர்கள் என்ன கற்றுக்கொள்வார்கள் என்பதை விளக்கவும்..." : "Explain what students will learn..."} />
               </div>
 
               <div className="pt-4 flex justify-end gap-3 font-bold text-xs">
                 <button type="button" onClick={closeCreateModal} className="border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 py-3 px-6 rounded-xl transition-all">
-                  Cancel
+                  {lang === "தமிழ்" ? "ரத்துசெய்" : "Cancel"}
                 </button>
                 <button type="submit" disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-8 rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 active:scale-95">
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> {editingId ? "Updating..." : "Submitting..."}
+                      <Loader2 className="w-4 h-4 animate-spin" /> {editingId ? (lang === "தமிழ்" ? "புதுப்பிக்கப்படுகிறது..." : "Updating...") : (lang === "தமிழ்" ? "சமர்ப்பிக்கப்படுகிறது..." : "Submitting...")}
                     </>
                   ) : (
                     <>
-                      {editingId ? "Update Resource" : "Submit for Approval"} <Upload className="w-4 h-4" />
+                      {editingId ? (lang === "தமிழ்" ? "வளத்தைப் புதுப்பி" : "Update Resource") : (lang === "தமிழ்" ? "அங்கீகாரத்திற்குச் சமர்ப்பி" : "Submit for Approval")} <Upload className="w-4 h-4" />
                     </>
                   )}
                 </button>

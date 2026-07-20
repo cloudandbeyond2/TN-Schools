@@ -173,7 +173,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
       { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
       { label: "Chemistry Lab", href: "/student/chemistry-lab", icon: "FlaskConical" },
-      { label: "Zoology Centre", href: "/student/zoology-centre", icon: "Target" },
+      // { label: "Zoology Centre", href: "/student/zoology-centre", icon: "Target" },
       { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
 
       // ── Extracurricular & Wellbeing ───────────────────

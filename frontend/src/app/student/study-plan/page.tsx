@@ -1273,7 +1273,7 @@ export default function StudyPlanPage() {
                   <h4 className="text-white font-bold text-xs mb-2">🎯 Exit Ticket MCQs & Answers</h4>
                   <div className="space-y-3 font-sans">
                     {currentPlan.units?.flatMap((u: any) => u.quiz || [])?.map((ticket: any, i: number) => (
-                      <div key={i} className="p-3.5 bg-slate-950 hover:bg-slate-955 rounded-xl border border-slate-850">
+                      <div key={i} className="p-3.5 bg-slate-950 hover:bg-slate-900 rounded-xl border border-slate-850">
                         <div className="font-bold text-white mb-2 leading-relaxed">Question {i + 1}: {ticket.question}</div>
                         <div className="grid grid-cols-2 gap-2 font-mono text-[10px] text-slate-500">
                           {ticket.options?.map((opt: string, oIdx: number) => <div key={oIdx}>{opt}</div>)}
