@@ -36,7 +36,7 @@ const DEFAULT_SETTINGS: Settings = {
 
 export default function PortalSettings() {
   const { data: session } = useSession();
-  const token = (session as any)?.backendToken;
+  const token = (session?.user as any)?.backendToken;
   const myId = (session?.user as any)?.id;
 
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
