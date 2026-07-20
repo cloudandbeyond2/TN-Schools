@@ -591,7 +591,7 @@ export default function StudentPersonalGuidePage() {
                       alt={activePose.name}
                       className="object-cover w-full h-full"
                     />
-                    <span className="absolute bottom-2 right-2 text-[9px] bg-black/60 backdrop-blur-sm text-white px-2 py-0.5 rounded-full font-bold">
+                    <span className="absolute bottom-2 right-2 text-[9px] bg-white/80 dark:bg-black/60 backdrop-blur-sm text-slate-800 dark:text-white px-2 py-0.5 rounded-full font-bold shadow-sm">
                       ⏱️ {activePose.duration}
                     </span>
                   </div>

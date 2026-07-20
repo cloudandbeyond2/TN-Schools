@@ -3,12 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
-import { 
-  Calendar, MapPin, FileText, CheckCircle2, 
-  Clock, AlertCircle, Printer, GraduationCap, 
-  Sparkles, Tag, ShieldCheck, UserCheck, Timer,
-  BookOpen, FlaskConical, Layers2, Award, ChevronRight, Lock
-} from "lucide-react";
+
 
 type ExamType = "Unit Test" | "Quarterly" | "Half-Yearly" | "Annual" | "Model" | "Public";
 type ExamMode = "Theory" | "Practical" | "Both";
@@ -352,9 +347,9 @@ export default function StudentExamsPage() {
 
   const getModeIcon = (mode: ExamMode = "Theory") => {
     switch (mode) {
-      case "Theory":    return <BookOpen className="w-3 h-3" />;
-      case "Practical": return <FlaskConical className="w-3 h-3" />;
-      case "Both":      return <Layers2 className="w-3 h-3" />;
+      case "Theory":    return <i className="fi fi-rr-book-open-reader text-[10px]"></i>;
+      case "Practical": return <i className="fi fi-rr-flask text-[10px]"></i>;
+      case "Both":      return <i className="fi fi-rr-layer-group text-[10px]"></i>;
     }
   };
 
@@ -387,26 +382,26 @@ export default function StudentExamsPage() {
       accentColor="#6366f1"
     >
       {/* Navigation tabs */}
-      <div className="flex bg-slate-950 border border-slate-800 p-1.5 rounded-2xl mb-6 w-fit print:hidden">
+      <div className="flex flex-col sm:flex-row bg-slate-950 border border-slate-800 p-1.5 rounded-2xl mb-6 w-full sm:w-fit print:hidden">
         <button
           onClick={() => setActiveTab("calendar")}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+          className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
             activeTab === "calendar"
               ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <Calendar className="w-4 h-4" /> Exam Timetables
+          <i className="fi fi-rr-calendar"></i> Exam Timetables
         </button>
         <button
           onClick={() => setActiveTab("marks")}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+          className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
             activeTab === "marks"
               ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <Award className="w-4 h-4" /> My Model Exam Marks
+          <i className="fi fi-rr-award"></i> My Model Exam Marks
         </button>
       </div>
 
@@ -418,28 +413,28 @@ export default function StudentExamsPage() {
             <div className="rounded-2xl p-6 bg-slate-900 border border-slate-800 mb-6 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="p-1 bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-indigo-400">
-                    <Timer className="w-4 h-4" />
+                  <span className="p-1 bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-indigo-400 flex items-center justify-center">
+                    <i className="fi fi-rr-stopwatch text-sm leading-none"></i>
                   </span>
                   <span className="text-[10px] text-indigo-450 font-extrabold uppercase tracking-wider">Next Upcoming Examination</span>
                 </div>
                 <h2 className="text-lg font-black text-white">{nextExam.name} ({nextExam.subject})</h2>
                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400 font-semibold">
                   <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-slate-500" /> {formatStudentFriendlyDate(nextExam.date)}
+                    <i className="fi fi-rr-calendar text-slate-500"></i> {formatStudentFriendlyDate(nextExam.date)}
                   </span>
                   <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-slate-500" /> {nextExam.timeSlot}
+                    <i className="fi fi-rr-clock text-slate-500"></i> {nextExam.timeSlot}
                   </span>
                   <span className="flex items-center gap-1 text-purple-300">
-                    <MapPin className="w-3.5 h-3.5 text-purple-400" /> Room: {nextExam.hall.split(" (")[0]}
+                    <i className="fi fi-rr-marker text-purple-400"></i> Room: {nextExam.hall.split(" (")[0]}
                   </span>
                   <span className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] ${getModeBadgeStyle(nextExam.examMode)}`}>
                     {getModeIcon(nextExam.examMode)}
                     {nextExam.examMode || "Theory"} Mode
                   </span>
                   <span className="flex items-center gap-1 text-amber-400">
-                    <Award className="w-3.5 h-3.5 text-amber-500" /> {getTotalMarksStr(nextExam)}
+                    <i className="fi fi-rr-award text-amber-500"></i> {getTotalMarksStr(nextExam)}
                   </span>
                 </div>
               </div>
@@ -480,7 +475,7 @@ export default function StudentExamsPage() {
             {/* Exam Schedule List */}
             <div className="glass rounded-2xl p-6 flex flex-col min-h-[400px] w-full">
               <div className="flex items-center gap-2 mb-5">
-                <Calendar className="w-5 h-5 text-indigo-400" />
+                <i className="fi fi-rr-calendar text-xl text-indigo-400 leading-none"></i>
                 <h2 className="text-sm font-bold text-white">Class assessment date sheet</h2>
                 <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black px-2 py-0.5 rounded-md">
                   {studentExams.length}
@@ -494,8 +489,8 @@ export default function StudentExamsPage() {
                 </div>
               ) : studentExams.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-slate-800 rounded-xl bg-slate-900/10">
-                  <div className="p-4 bg-slate-900/40 rounded-full text-slate-500 border border-slate-800 mb-3">
-                    <AlertCircle className="w-8 h-8" />
+                  <div className="p-4 bg-slate-900/40 rounded-full text-slate-500 border border-slate-800 mb-3 flex items-center justify-center">
+                    <i className="fi fi-rr-info text-2xl leading-none"></i>
                   </div>
                   <h3 className="text-sm font-bold text-white mb-1">No exam timetables published</h3>
                   <p className="text-xs text-slate-500 max-w-sm">
@@ -507,11 +502,11 @@ export default function StudentExamsPage() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-black uppercase tracking-wider">
-                        <th className="p-4 align-middle">Standard &amp; Mode</th>
-                        <th className="p-4 align-middle">Exam Details</th>
-                        <th className="p-4 align-middle">Date &amp; Time</th>
-                        <th className="p-4 align-middle">Room &amp; Invigilator</th>
-                        <th className="p-4 align-middle text-right">Seating &amp; Status</th>
+                        <th className="p-4 align-middle whitespace-nowrap">Standard &amp; Mode</th>
+                        <th className="p-4 align-middle whitespace-nowrap">Exam Details</th>
+                        <th className="p-4 align-middle whitespace-nowrap">Date &amp; Time</th>
+                        <th className="p-4 align-middle whitespace-nowrap">Room &amp; Invigilator</th>
+                        <th className="p-4 align-middle text-right whitespace-nowrap">Seating &amp; Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -524,7 +519,7 @@ export default function StudentExamsPage() {
                             "border-l-4 border-l-emerald-400"
                           }`}
                         >
-                          <td className="p-4 align-middle">
+                          <td className="p-4 align-middle whitespace-nowrap">
                             <div className="flex flex-col gap-1">
                               <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md w-max">
                                 {ex.classSection}
@@ -536,7 +531,7 @@ export default function StudentExamsPage() {
                             </div>
                           </td>
 
-                          <td className="p-4 align-middle">
+                          <td className="p-4 align-middle min-w-[200px]">
                             <div className="flex items-start gap-2.5">
                               <span className="mt-1.5 flex-shrink-0">
                                 <span className={`relative flex h-2.5 w-2.5`}>
@@ -565,30 +560,30 @@ export default function StudentExamsPage() {
                           <td className="p-4 align-middle whitespace-nowrap">
                             <div className="space-y-1">
                               <div className="flex items-center gap-1.5 text-slate-750 font-bold text-[13px]">
-                                <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                                <i className="fi fi-rr-calendar text-indigo-500"></i>
                                 <span>{formatStudentFriendlyDate(ex.date)}</span>
                               </div>
                               <div className="flex items-center gap-1.5 text-slate-550 text-[11px] font-semibold">
-                                <Clock className="w-3.5 h-3.5 text-amber-500" />
+                                <i className="fi fi-rr-clock text-amber-500"></i>
                                 <span>{ex.timeSlot} <span className="text-slate-450">({ex.duration || "3 Hours"})</span></span>
                               </div>
                             </div>
                           </td>
 
-                          <td className="p-4 align-middle">
+                          <td className="p-4 align-middle whitespace-nowrap">
                             <div className="space-y-1">
                               <div className="flex items-center gap-1.5 text-purple-700 font-bold">
-                                <MapPin className="w-3.5 h-3.5 text-purple-500" />
+                                <i className="fi fi-rr-marker text-purple-500"></i>
                                 <span>{ex.hall.split(" (")[0]}</span>
                               </div>
                               <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
-                                <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                <i className="fi fi-rr-user-check text-emerald-600"></i>
                                 <span>{ex.invigilator}</span>
                               </div>
                             </div>
                           </td>
 
-                          <td className="p-4 align-middle text-right">
+                          <td className="p-4 align-middle text-right whitespace-nowrap">
                             <div className="flex flex-col items-end gap-1.5">
                               <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[9px] font-black rounded-full border uppercase tracking-wider w-max ${
                                 ex.status === "Completed"
@@ -622,7 +617,7 @@ export default function StudentExamsPage() {
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="glass rounded-2xl p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
                   <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-indigo-500" />
+                    <i className="fi fi-rr-stars text-indigo-500"></i>
                     Important Exam Instructions
                   </h3>
                   <ul className="space-y-2.5 text-xs text-slate-650 dark:text-slate-400 font-medium">
@@ -639,7 +634,7 @@ export default function StudentExamsPage() {
 
                 <div className="glass rounded-2xl p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
                   <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
-                    <Award className="w-4 h-4 text-amber-500" />
+                    <i className="fi fi-rr-award text-amber-500"></i>
                     Preparation &amp; Exam Tips
                   </h3>
                   <ul className="space-y-2.5 text-xs text-slate-650 dark:text-slate-400 font-medium">
@@ -662,7 +657,7 @@ export default function StudentExamsPage() {
         <div className="fade-in">
           <div className="glass rounded-3xl border border-slate-250 bg-white p-6 shadow-xl dark:border-slate-850 dark:bg-slate-950">
             <h2 className="text-base font-extrabold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-              <Award className="w-5 h-5 text-indigo-500" />
+              <i className="fi fi-rr-award text-lg text-indigo-500 leading-none"></i>
               My Model &amp; Revision Exam Marks
             </h2>
             <p className="text-xs text-slate-500 leading-relaxed mb-6">
@@ -676,7 +671,7 @@ export default function StudentExamsPage() {
               </div>
             ) : studentResults.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/40 dark:bg-slate-950/20">
-                <FileText className="w-10 h-10 text-slate-300 dark:text-slate-800" />
+                <i className="fi fi-rr-document text-4xl text-slate-300 dark:text-slate-800"></i>
                 <h3 className="text-sm font-bold text-slate-800 dark:text-white">No exam results published yet</h3>
                 <p className="text-xs text-slate-400 max-w-xs text-center leading-relaxed">
                   Your marks cards will appear here automatically once the Headmaster inputs and locks your results in the system.
