@@ -118,7 +118,7 @@ export default function ClassesPage() {
     };
     fetchSchoolDetails();
   }, [schoolId, API_URL]);
-  
+
   // Modals State
   const [notesModalOpen, setNotesModalOpen] = useState(false);
   const [postponeModalOpen, setPostponeModalOpen] = useState(false);
@@ -464,7 +464,7 @@ export default function ClassesPage() {
   return (
     <PortalLayout title="My Classes" subtitle="Manage your sections, student rosters, and schedules">
       {/* Academic-year school KPIs */}
-      <KpiStrip path={schoolId ? `/api/analytics/school/${schoolId}` : null} title="School KPIs" variant="light" />
+      {/* <KpiStrip path={schoolId ? `/api/analytics/school/${schoolId}` : null} title="School KPIs" variant="light" /> */}
 
       {/* Toast */}
       {toast && (
@@ -494,30 +494,29 @@ export default function ClassesPage() {
                     <i className="fi fi-rr-clock-three mr-1"></i> Period {tc.period} ({tc.timeSlot})
                   </p>
                 </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                  tc.status === 'Completed' ? "bg-emerald-100 text-emerald-700" :
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${tc.status === 'Completed' ? "bg-emerald-100 text-emerald-700" :
                   tc.status === 'Postponed' ? "bg-red-100 text-red-700" :
-                  "bg-amber-100 text-amber-700"
-                }`}>
+                    "bg-amber-100 text-amber-700"
+                  }`}>
                   {tc.status}
                 </span>
               </div>
-              
+
               <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                <button 
+                <button
                   onClick={() => showToast("Redirecting to Attendance Module...", "success")}
                   className="flex-1 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-600 border border-sky-200 rounded-lg text-xs font-bold transition-colors"
                 >
                   <i className="fi fi-rr-users-alt mr-1"></i> Attendance
                 </button>
-                <button 
+                <button
                   onClick={() => handleOpenNotes(tc)}
                   className="flex-1 py-1.5 bg-violet-50 hover:bg-violet-100 text-violet-600 border border-violet-200 rounded-lg text-xs font-bold transition-colors"
                 >
                   <i className="fi fi-rr-document mr-1"></i> Notes
                 </button>
                 {tc.status !== 'Postponed' && tc.status !== 'Completed' && (
-                  <button 
+                  <button
                     onClick={() => handleOpenPostpone(tc)}
                     className="flex-none px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs font-bold transition-colors"
                     title="Postpone Class"
