@@ -5,8 +5,10 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import { Camera, Send, CheckCircle, Search, Upload, Trash2, Check, X, Newspaper } from "lucide-react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 export default function SchoolPressPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -165,7 +167,7 @@ export default function SchoolPressPage() {
   );
 
   return (
-    <PortalLayout title="School Press" subtitle="Publish student activities and achievements" accentColor="#10b981">
+    <PortalLayout title={lang === "தமிழ்" ? "பள்ளி செய்தி" : "School Press"} subtitle={lang === "தமிழ்" ? "மாணவர் சாதனைகள் மற்றும் சாதனைகள் வெளியிடு" : "Publish student activities and achievements"} accentColor="#10b981">
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-in fade-in duration-300">
         
         {/* Left Column - Submission Form */}
@@ -176,8 +178,8 @@ export default function SchoolPressPage() {
                 <Camera className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-[var(--text-heading)]">New Activity</h2>
-                <p className="text-xs text-[var(--text-muted)]">Record an achievement or special moment</p>
+                <h2 className="text-xl font-bold text-[var(--text-heading)]">{lang === "தமிழ்" ? "புதிய செயல்பாடு" : "New Activity"}</h2>
+                <p className="text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "ஒரு சாதனை மற்றும் சிறப்பு தருணத்தை பதிவு செய்" : "Record an achievement or special moment"}</p>
               </div>
             </div>
 

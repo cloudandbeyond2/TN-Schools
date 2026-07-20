@@ -6,6 +6,7 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface Experiment {
   id: string;
@@ -25,6 +26,7 @@ interface StudentLabGrade {
 }
 
 export default function ScienceLabsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -442,13 +444,13 @@ export default function ScienceLabsPage() {
 
   if (activeExp) {
     return (
-      <PortalLayout title="Active Science Lab" subtitle={`Live monitoring of: ${activeExp.name}`}>
+      <PortalLayout title={lang === "தமிழ்" ? "உலிவியல் ஆய்வகம்" : "Active Science Lab"} subtitle={lang === "தமிழ்" ? `நேரடி கண்காணிப்பு: ${activeExp.name}` : `Live monitoring of: ${activeExp.name}`}>
         <div className="mb-6 flex items-center justify-between">
           <button
             onClick={() => setActiveExp(null)}
             className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-xs font-bold text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)] transition-all"
           >
-            ← Back to Lab Manager
+            {lang === "தமிழ்" ? "← ஆய்வக நிர்வாகத்திர்கு" : "← Back to Lab Manager"}
           </button>
           
           <div className="flex items-center gap-3">
@@ -460,7 +462,7 @@ export default function ScienceLabsPage() {
               onClick={() => endSession(activeExp.id)}
               className="py-2 px-4 rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white text-xs transition-all shadow-md"
             >
-              End Session
+              {lang === "தமிழ்" ? "அமர்வை முடி" : "End Session"}
             </button>
           </div>
         </div>
@@ -642,18 +644,18 @@ export default function ScienceLabsPage() {
   }
 
   return (
-    <PortalLayout title="Science Labs Manager" subtitle="Manage experimental sessions, lab manuals, and safety compliance.">
+    <PortalLayout title={lang === "தமிழ்" ? "அறிவியல் ஆய்வகம் நிர்வாகம்" : "Science Labs Manager"} subtitle={lang === "தமிழ்" ? "ஆய்வு முறைகள், ஆய்வக கைெயடுப்புகள் மற்றும் பாதுகாப்பு இணக்கம் நிர்வகி" : "Manage experimental sessions, lab manuals, and safety compliance."}>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Lab Sessions */}
         <div className="lg:col-span-2 theme-card p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-            <h2 className="text-base font-semibold text-[var(--text-heading)]"><FlaskConical className="w-4 h-4 inline-block mr-1 text-inherit" /> Experimental Lab Sessions</h2>
+            <h2 className="text-base font-semibold text-[var(--text-heading)]"><FlaskConical className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "ஆய்வக முறைகள்" : "Experimental Lab Sessions"}</h2>
             <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-start">
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
                 className="bg-[var(--portal-color,var(--primary))] hover:brightness-95 text-white py-1.5 px-3 text-[11px] font-bold rounded-lg shadow-sm transition-all active:scale-95 inline-flex items-center justify-center whitespace-nowrap"
               >
-                {showAddForm ? "Cancel" : "+ Schedule Lab"}
+                {showAddForm ? (lang === "தமிழ்" ? "ரத்து" : "Cancel") : (lang === "தமிழ்" ? "+ ஆய்வகம் திட்டமிடு" : "+ Schedule Lab")}
               </button>
               <span className="text-xs font-medium text-[var(--text-muted)] bg-[var(--bg-main)] px-2.5 py-1 rounded-full whitespace-nowrap">
                 Active: {experiments.filter((e) => e.status === "active").length}
@@ -663,7 +665,7 @@ export default function ScienceLabsPage() {
 
           {showAddForm && (
             <form onSubmit={handleCreateLab} className="mb-6 p-4 rounded-xl border border-[var(--border)] bg-[var(--bg-main)] space-y-3">
-              <h3 className="text-xs font-bold text-[var(--text-heading)] uppercase">New Lab Session Details</h3>
+              <h3 className="text-xs font-bold text-[var(--text-heading)] uppercase">{lang === "தமிழ்" ? "புதிய ஆய்வக முறை விவரங்கள்" : "New Lab Session Details"}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <input
                   type="text"
@@ -704,9 +706,9 @@ export default function ScienceLabsPage() {
           )}
 
           {loading ? (
-            <div className="text-center py-8 text-xs text-[var(--text-muted)]">Loading lab sessions...</div>
+            <div className="text-center py-8 text-xs text-[var(--text-muted)]">                Loading lab sessions...</div>
           ) : experiments.length === 0 ? (
-            <div className="text-center py-8 text-xs text-[var(--text-muted)]">No experimental sessions scheduled.</div>
+            <div className="text-center py-8 text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "ஆய்வக முறைகள் எதுவும் திட்டமிடப்படவில்லை." : "No experimental sessions scheduled."}</div>
           ) : (
             <div className="space-y-4">
               {experiments.map((exp) => (

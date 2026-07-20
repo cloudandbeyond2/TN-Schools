@@ -5,6 +5,7 @@ import { CheckCircle, MessageSquare, Bot, Zap, Megaphone } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 import Swal from "sweetalert2";
 
@@ -25,6 +26,7 @@ interface Message {
 }
 
 export default function CommunicationPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -157,8 +159,8 @@ export default function CommunicationPage() {
 
   return (
     <PortalLayout
-      title="Parent Communication"
-      subtitle="Bilingual direct messaging and AI-assisted updates to parents and guardians"
+      title={lang === "தமிழ்" ? "பெற்றோர் தொடர்பு" : "Parent Communication"}
+      subtitle={lang === "தமிழ்" ? "பெற்றோர்கள் மற்றும் பாதுகாவலர்களுக்கு இருமொழி நேரடி செய்தி மற்றும் AI-உதவி அறிவிப்புகள்" : "Bilingual direct messaging and AI-assisted updates to parents and guardians"}
     >
       {toastMessage && (
         <div className="fixed top-5 right-5 bg-emerald-500 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2">
@@ -167,14 +169,14 @@ export default function CommunicationPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-xs text-[var(--text-muted)]">Loading communication channel...</div>
+        <div className="text-center py-12 text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "தொடர்பு சேனல் ஏற்றப்படுகிறது..." : "Loading communication channel..."}</div>
       ) : parents.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-190px)]">
           {/* Chat sidebar contacts */}
           <div className="lg:col-span-1 theme-card p-4 flex flex-col gap-4 overflow-y-auto">
             <div className="flex justify-between items-center border-b border-[var(--border)] pb-3">
-              <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider"><MessageSquare className="w-4 h-4 inline mr-1" /> Inbox Chats</h3>
-              <span className="badge badge-yellow">Active</span>
+              <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider"><MessageSquare className="w-4 h-4 inline mr-1" /> {lang === "தமிழ்" ? "உள்வரும் அரட்டைகள்" : "Inbox Chats"}</h3>
+              <span className="badge badge-yellow">{lang === "தமிழ்" ? "செயலில்" : "Active"}</span>
             </div>
 
             <div className="space-y-2">
@@ -213,10 +215,15 @@ export default function CommunicationPage() {
                   </div>
                   <div>
                     <h4 className="text-[var(--text-heading)] font-semibold text-xs">{selectedParent.name}</h4>
-                    <p className="text-[9px] text-[var(--text-muted)]">Parent of {selectedParent.studentName} (Class {selectedParent.studentClass})</p>
+                    <p className="text-[9px] text-[var(--text-muted)]">
+                      {lang === "தமிழ்" 
+                        ? `${selectedParent.studentName} -ன் பெற்றோர் (வகுப்பு ${selectedParent.studentClass})`
+                        : `Parent of ${selectedParent.studentName} (Class ${selectedParent.studentClass})`
+                      }
+                    </p>
                   </div>
                 </div>
-                <span className="badge badge-green text-[9px]">Active chat</span>
+                <span className="badge badge-green text-[9px]">{lang === "தமிழ்" ? "செயலில் உள்ள அரட்டை" : "Active chat"}</span>
               </div>
 
               {/* Conversation history list */}
@@ -242,7 +249,7 @@ export default function CommunicationPage() {
                     );
                   })
                 ) : (
-                  <div className="text-center py-12 text-xs text-[var(--text-muted)] italic">No message logs. Start conversation below.</div>
+                  <div className="text-center py-12 text-xs text-[var(--text-muted)] italic">{lang === "தமிழ்" ? "செய்தி பதிவுகள் இல்லை. கீழே அரட்டையைத் தொடங்கவும்." : "No message logs. Start conversation below."}</div>
                 )}
               </div>
 
@@ -251,7 +258,7 @@ export default function CommunicationPage() {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Type your reply here..."
+                    placeholder={lang === "தமிழ்" ? "உங்கள் பதிலை இங்கே தட்டச்சு செய்யவும்..." : "Type your reply here..."}
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
@@ -261,7 +268,7 @@ export default function CommunicationPage() {
                     onClick={handleSendMessage}
                     className="btn-primary py-2.5 px-6 font-bold text-xs shadow-none hover:shadow-[var(--primary-shadow-1)] rounded-xl"
                   >
-                    Send
+                    {lang === "தமிழ்" ? "அனுப்பு" : "Send"}
                   </button>
                 </div>
               </div>
@@ -273,43 +280,55 @@ export default function CommunicationPage() {
             <div>
               <div className="border-b border-[var(--border)] pb-3 mb-4">
                 <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider flex items-center gap-1.5">
-                  <span><Bot className="w-4 h-4 inline mr-1 text-blue-500" /></span> AI Smart Composer
+                  <span><Bot className="w-4 h-4 inline mr-1 text-blue-500" /></span> {lang === "தமிழ்" ? "AI ஸ்மார்ட் கம்போசர்" : "AI Smart Composer"}
                 </h3>
-                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Generate translation-ready bilingual updates</p>
+                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{lang === "தமிழ்" ? "இருமொழி அறிவிப்புகளை உருவாக்கவும்" : "Generate translation-ready bilingual updates"}</p>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-semibold text-[var(--text-muted)] block mb-1.5 uppercase tracking-wider">Update Topic</label>
+                  <label className="text-[10px] font-semibold text-[var(--text-muted)] block mb-1.5 uppercase tracking-wider">{lang === "தமிழ்" ? "தலைப்பு" : "Update Topic"}</label>
                   <div className="grid grid-cols-3 gap-1">
-                    {(["performance", "attendance", "general"] as const).map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => setDraftType(type)}
-                        className={`py-1.5 rounded-lg text-[9px] font-bold capitalize transition-all border ${
-                          draftType === type ? "bg-[var(--primary)] border-[var(--primary)] text-white shadow-sm" : "bg-[var(--bg-main)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
-                        }`}
-                      >
-                        {type}
-                      </button>
-                    ))}
+                    {(["performance", "attendance", "general"] as const).map((type) => {
+                      const typeTranslated =
+                        type === "performance" ? (lang === "தமிழ்" ? "செயல்திறன்" : "performance") :
+                        type === "attendance" ? (lang === "தமிழ்" ? "வருகை" : "attendance") :
+                        (lang === "தமிழ்" ? "பொதுவான" : "general");
+                      return (
+                        <button
+                          key={type}
+                          onClick={() => setDraftType(type)}
+                          className={`py-1.5 rounded-lg text-[9px] font-bold capitalize transition-all border ${
+                            draftType === type ? "bg-[var(--primary)] border-[var(--primary)] text-white shadow-sm" : "bg-[var(--bg-main)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
+                          }`}
+                        >
+                          {typeTranslated}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-semibold text-[var(--text-muted)] block mb-1.5 uppercase tracking-wider">Message Tone</label>
+                  <label className="text-[10px] font-semibold text-[var(--text-muted)] block mb-1.5 uppercase tracking-wider">{lang === "தமிழ்" ? "செய்தியின் குரல்" : "Message Tone"}</label>
                   <div className="grid grid-cols-3 gap-1">
-                    {(["supportive", "urgent", "encouraging"] as const).map((tone) => (
-                      <button
-                        key={tone}
-                        onClick={() => setDraftTone(tone)}
-                        className={`py-1.5 rounded-lg text-[9px] font-bold capitalize transition-all border ${
-                          draftTone === tone ? "bg-[var(--primary)] border-[var(--primary)] text-white shadow-sm" : "bg-[var(--bg-main)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
-                        }`}
-                      >
-                        {tone}
-                      </button>
-                    ))}
+                    {(["supportive", "urgent", "encouraging"] as const).map((tone) => {
+                      const toneTranslated =
+                        tone === "supportive" ? (lang === "தமிழ்" ? "ஆதரவான" : "supportive") :
+                        tone === "urgent" ? (lang === "தமிழ்" ? "அவசரமான" : "urgent") :
+                        (lang === "தமிழ்" ? "ஊக்கமளிக்கும்" : "encouraging");
+                      return (
+                        <button
+                          key={tone}
+                          onClick={() => setDraftTone(tone)}
+                          className={`py-1.5 rounded-lg text-[9px] font-bold capitalize transition-all border ${
+                            draftTone === tone ? "bg-[var(--primary)] border-[var(--primary)] text-white shadow-sm" : "bg-[var(--bg-main)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
+                          }`}
+                        >
+                          {toneTranslated}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -320,17 +339,17 @@ export default function CommunicationPage() {
                 onClick={handleGenerateAIDraft}
                 className="w-full py-2.5 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] text-xs font-semibold text-[var(--text-heading)] border border-[var(--border)] flex items-center justify-center gap-1 shadow-sm transition-all"
               >
-                <Zap className="w-4 h-4 inline-block mr-1 text-inherit" /> Insert AI Draft
+                <Zap className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "AI வரைவைச் செருகவும்" : "Insert AI Draft"}
               </button>
               <div className="p-3 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl text-[10px] text-[var(--text-muted)] leading-relaxed italic">
-                <Megaphone className="w-4 h-4 inline-block mr-1 text-inherit" /> AI generates messages both in **Tamil** and **English** so parents can select their preferred reading medium.
+                <Megaphone className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "AI செய்திகளை **தமிழ்** மற்றும் **ஆங்கிலம்** ஆகிய இரு மொழிகளிலும் உருவாக்குகிறது, இதனால் பெற்றோர் தங்களுக்கு விருப்பமான மொழியைத் தேர்ந்தெடுக்கலாம்." : "AI generates messages both in **Tamil** and **English** so parents can select their preferred reading medium."}
               </div>
             </div>
           </div>
         </div>
       ) : (
         <div className="text-center py-12 text-xs text-[var(--text-muted)] italic">
-          No parent records found for this school in the PostgreSQL database.
+          {lang === "தமிழ்" ? "தரவுத்தளத்தில் இந்த பள்ளிக்கு பெற்றோர் பதிவுகள் எதுவும் கிடைக்கவில்லை." : "No parent records found for this school in the PostgreSQL database."}
         </div>
       )}
     </PortalLayout>

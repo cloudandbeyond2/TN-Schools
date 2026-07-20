@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { Calculator, Search, Sigma, Pi, DivideSquare, BookOpen, Copy, Star, Check, Zap, Gamepad2, BrainCircuit, Joystick, GraduationCap, X, Plus, Edit2, Trash2 } from "lucide-react";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -25,6 +26,7 @@ import { FormulaSandboxLoader } from "@/components/MathSandboxes";
 
 
 export default function MathsFormulasPage() {
+  const { lang: portalLang } = usePortalLanguage();
   const [activeCat, setActiveCat] = useState("all");
   const [activeStandard, setActiveStandard] = useState("6");
   const [activeTerm, setActiveTerm] = useState("3");
@@ -247,8 +249,8 @@ export default function MathsFormulasPage() {
 
   return (
     <PortalLayout
-      title="Maths Magic Formulas"
-      subtitle="Your super-powered interactive cheat sheet for math!"
+      title={portalLang === "தமிழ்" ? "கணித மாயா விளக்கங்கள்" : "Maths Magic Formulas"}
+      subtitle={portalLang === "தமிழ்" ? "கணிதத்திற்கான உங்களின் சுபர்-சக்தி இன்டரக்டிவ் உதவியேடு!" : "Your super-powered interactive cheat sheet for math!"}
     >
       <div className="flex flex-col gap-8">
 
@@ -265,7 +267,7 @@ export default function MathsFormulasPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search formulas..."
+                placeholder={portalLang === "தமிழ்" ? "விளக்கங்கள் தேடு..." : "Search formulas..."}
                 className="flex-1 bg-transparent border-none text-slate-700 dark:text-slate-200 text-sm px-3 py-1.5 focus:outline-none focus:ring-0 placeholder:text-slate-400"
               />
               <button className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0">

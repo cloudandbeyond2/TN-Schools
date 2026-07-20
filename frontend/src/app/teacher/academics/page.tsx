@@ -4,6 +4,7 @@ import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 /* ────────────────────────────────────────────────────────────
    Flaticon (uicons) glyph — the app loads uicons-regular-rounded,
@@ -155,6 +156,7 @@ const getCategoryGradient = (key: CategoryKey) => {
 };
 
 export default function AcademicsHubPage() {
+  const { t } = usePortalLanguage();
   const { data: session } = useSession();
   const studentClass = "10"; // Placeholder for teacher class
   const [activeTab, setActiveTab] = useState<CategoryKey>("overview");
@@ -779,23 +781,22 @@ export default function AcademicsHubPage() {
                 className="text-[11px] font-black uppercase tracking-widest"
                 style={{ color: "rgba(255,255,255,0.85)" }}
               >
-                Your Assigned Classes · Tamil Nadu State Board
+                {t("assigned_classes")}
               </span>
             </div>
             <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#fff" }}>
-              Academics & Subjects Hub
+              {t("academics_hub_title")}
             </div>
             <p className="text-sm max-w-xl" style={{ color: "rgba(255,255,255,0.9)" }}>
-              Browse your class subjects, follow the syllabus, and open textbooks, study materials,
-              teacher notes, video lessons and reference content — all from one place.
+              {t("academics_hub_desc")}
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
             {[
-              { label: "Subjects", value: subjects.length, icon: "graduation-cap" },
-              { label: "Resources", value: resources.length, icon: "document" },
-              { label: "Videos", value: resources.filter((r) => r.category === "videos").length, icon: "play-alt" },
-              { label: "Saved", value: bookmarks.length, icon: "bookmark" },
+              { label: t("subjects_stat"), value: subjects.length, icon: "graduation-cap" },
+              { label: t("resources_stat"), value: resources.length, icon: "document" },
+              { label: t("videos_stat"), value: resources.filter((r) => r.category === "videos").length, icon: "play-alt" },
+              { label: t("saved_stat"), value: bookmarks.length, icon: "bookmark" },
             ].map((s) => (
               <div
                 key={s.label}
@@ -823,7 +824,7 @@ export default function AcademicsHubPage() {
           }`}
           style={selectedSubject === "All" ? { color: "#fff" } : undefined}
         >
-          <Fi name="apps" className="text-sm" /> All Subjects
+          <Fi name="apps" className="text-sm" /> {t("all_subjects_tab")}
         </button>
         {subjects.map((s) => {
           const active = selectedSubject === s.name;
@@ -854,6 +855,11 @@ export default function AcademicsHubPage() {
             c.key === "overview" || c.key === "subjects"
               ? null
               : countByCategory(c.key);
+          const translatedLabel =
+            c.key === "overview" ? t("overview") :
+            c.key === "subjects" ? t("class_subjects") :
+            c.key === "notes" ? t("notes_tab") :
+            t(c.key);
           return (
             <button
               key={c.key}
@@ -866,7 +872,7 @@ export default function AcademicsHubPage() {
               style={active ? { background: getCategoryGradient(c.key), color: "#fff" } : undefined}
             >
               <Fi name={c.icon} className="text-sm" />
-              {c.label}
+              {translatedLabel}
               {count !== null && (
                 <span
                   className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
@@ -891,7 +897,9 @@ export default function AcademicsHubPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={`Search ${CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
+              placeholder={`${t("search")} ${
+                activeTab === "notes" ? t("notes_tab") : t(activeTab as any)
+              }...`}
               className="w-full pl-10 pr-4 py-2.5 glass border border-[var(--border)] rounded-xl text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all"
             />
             {search && (
@@ -913,7 +921,7 @@ export default function AcademicsHubPage() {
             style={showSavedOnly ? { color: "#fff" } : undefined}
           >
             <Fi name="bookmark" className="text-sm" />
-            Saved only {bookmarks.length > 0 && `(${bookmarks.length})`}
+            {t("saved_only")} {bookmarks.length > 0 && `(${bookmarks.length})`}
           </button>
         </div>
       )}

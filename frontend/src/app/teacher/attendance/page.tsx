@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import { Users, CheckCircle2, AlertCircle, TrendingUp, Calendar, Filter, Save, Check, ArrowRight, ClipboardList, Grid, Clipboard, Clock } from "lucide-react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface AttendanceStudent {
   id: string;
@@ -31,6 +32,7 @@ interface WeeklyStudent {
 }
 
 export default function AttendancePage() {
+  const { t } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -355,7 +357,7 @@ export default function AttendancePage() {
 
   return (
     <PortalLayout
-      title="Daily Attendance Tracker"
+      title={t("attendance_module")}
       subtitle="Scope and record student attendance. Auto-notifies parents instantly on absence."
     >
 
@@ -375,7 +377,7 @@ export default function AttendancePage() {
                 }`}
             >
               <ClipboardList className="w-3.5 h-3.5" />
-              <span>Daily Checklist</span>
+              <span>{t("daily_attendance")}</span>
             </button>
             <button
               onClick={() => setActiveTab("weekly")}
@@ -385,7 +387,7 @@ export default function AttendancePage() {
                 }`}
             >
               <Grid className="w-3.5 h-3.5" />
-              <span>Weekly History</span>
+              <span>{t("weekly_attendance")}</span>
             </button>
           </div>
 
@@ -487,7 +489,7 @@ export default function AttendancePage() {
                   htmlFor="smsAbsentToggle"
                   className="text-xs font-bold text-slate-300 cursor-pointer"
                 >
-                  SMS Absent Parents
+                  {t("notify_parents")}
                 </label>
               </div>
 
@@ -502,7 +504,7 @@ export default function AttendancePage() {
                 className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0"
               >
                 <Save className="w-3.5 h-3.5" />
-                <span>Save Sheet</span>
+                <span>{t("save_attendance")}</span>
               </button>
             </div>
           )}
