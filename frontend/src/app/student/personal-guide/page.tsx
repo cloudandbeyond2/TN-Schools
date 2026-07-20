@@ -196,6 +196,10 @@ export default function StudentPersonalGuidePage() {
   const [draftText, setDraftText] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState<string | null>(null);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const tasksPerPage = 5;
+
   // Dynamic Mentor Hub States
   const [lowestSubject, setLowestSubject] = useState<string>("");
   const [lowestScore, setLowestScore] = useState<number>(0);
@@ -309,6 +313,12 @@ export default function StudentPersonalGuidePage() {
   const subjectStudyTip = SUBJECT_STUDY_TIPS[lowestSubject] || SUBJECT_STUDY_TIPS["English"];
   const activePose = YOGA_POSES[yogaIdx];
 
+  // Pagination logic
+  const indexOfLastTask = currentPage * tasksPerPage;
+  const indexOfFirstTask = indexOfLastTask - tasksPerPage;
+  const currentTasks = tasks.slice(indexOfFirstTask, indexOfLastTask);
+  const totalPages = Math.ceil(tasks.length / tasksPerPage);
+
   if (loading) {
     return (
       <PortalLayout>
@@ -337,18 +347,18 @@ export default function StudentPersonalGuidePage() {
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3 max-w-xl">
-              <div className="bg-white/10 rounded-xl p-3 text-center border border-white/20">
-                <p className="text-xl font-black text-amber-300">{pendingCount}</p>
-                <p className="text-xs text-indigo-200">Awaiting Reply</p>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-xl">
+              <div className="bg-white/10 rounded-xl p-2 sm:p-3 text-center border border-white/20 flex flex-col justify-center">
+                <p className="text-lg sm:text-xl font-black text-amber-300">{pendingCount}</p>
+                <p className="text-[10px] sm:text-xs text-indigo-200 leading-tight">Awaiting Reply</p>
               </div>
-              <div className="bg-white/10 rounded-xl p-3 text-center border border-white/20">
-                <p className="text-xl font-black text-blue-200">{answeredCount}</p>
-                <p className="text-xs text-indigo-200">Replied</p>
+              <div className="bg-white/10 rounded-xl p-2 sm:p-3 text-center border border-white/20 flex flex-col justify-center">
+                <p className="text-lg sm:text-xl font-black text-blue-200">{answeredCount}</p>
+                <p className="text-[10px] sm:text-xs text-indigo-200 leading-tight">Replied</p>
               </div>
-              <div className="bg-white/10 rounded-xl p-3 text-center border border-white/20">
-                <p className="text-xl font-black text-emerald-300">{reviewedCount}</p>
-                <p className="text-xs text-indigo-200">Feedback Received</p>
+              <div className="bg-white/10 rounded-xl p-2 sm:p-3 text-center border border-white/20 flex flex-col justify-center">
+                <p className="text-lg sm:text-xl font-black text-emerald-300">{reviewedCount}</p>
+                <p className="text-[10px] sm:text-xs text-indigo-200 leading-tight">Feedback Received</p>
               </div>
             </div>
           </div>
@@ -375,29 +385,30 @@ export default function StudentPersonalGuidePage() {
                   </p>
                 </div>
               ) : (
-                tasks.map((task) => {
-                  const cfg = STATUS_CONFIG[task.status] || STATUS_CONFIG.pending;
-                  const isExp = expandedId === task._id;
-                  const hasRes = !!task.response;
+                <div className="space-y-4">
+                  {currentTasks.map((task) => {
+                    const cfg = STATUS_CONFIG[task.status] || STATUS_CONFIG.pending;
+                    const isExp = expandedId === task._id;
+                    const hasRes = !!task.response;
 
-                  return (
-                    <div
+                    return (
+                      <div
                       key={task._id}
                       className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm overflow-hidden transition-colors ${cfg.border}`}
                     >
                       <div
                         onClick={() => setExpandedId(isExp ? null : task._id)}
-                        className="flex items-start gap-4 p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
+                        className="flex items-start gap-3 sm:gap-4 p-4 sm:p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
                       >
                         <div className="shrink-0 mt-0.5">
                           <StatusIcon status={task.status} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <h3 className="text-sm font-black text-slate-800 dark:text-white">
+                          <div className="flex items-start sm:items-center flex-col sm:flex-row gap-1 sm:gap-2 mb-1">
+                            <h3 className="text-sm font-black text-slate-800 dark:text-white leading-tight">
                               {task.title}
                             </h3>
-                            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
+                            <span className="text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 w-fit">
                               {TASK_TYPE_LABELS[task.taskType] || task.taskType}
                             </span>
                           </div>
@@ -505,7 +516,31 @@ export default function StudentPersonalGuidePage() {
                       )}
                     </div>
                   );
-                })
+                })}
+
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between pt-4 pb-2">
+                      <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+                      >
+                        <ChevronLeft className="w-4 h-4" /> Previous
+                      </button>
+                      <span className="text-xs font-bold text-slate-500">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <button
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+                      >
+                        Next <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
