@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { computeKpis, currentAcademicYear } from '../services/kpi.service';
 
 const router = Router();
 
@@ -294,19 +295,21 @@ router.get('/performance', async (req: Request, res: Response) => {
     });
 
     const blockNames = Array.from(new Set(schools.map(s => s.block).filter(Boolean))) as string[];
+    const currYear = currentAcademicYear();
 
-    const blocksData = blockNames.map((bname, idx) => {
+    const blocksData = await Promise.all(blockNames.map(async (bname, idx) => {
       const schoolsInBlock = schools.filter(s => s.block === bname);
+      const schoolIds = schoolsInBlock.map(s => s.id);
       const studentCount = schoolsInBlock.reduce((sum, s) => sum + s._count.students, 0);
       const teacherCount = schoolsInBlock.reduce((sum, s) => sum + s.teachers.length, 0);
 
-      let hash = 0;
-      for (let i = 0; i < bname.length; i++) {
-        hash = bname.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      const attendance = 85 + Math.abs(hash % 11);
-      const pass10 = 80 + Math.abs(hash % 16);
-      const pass12 = 75 + Math.abs(hash % 21);
+      const kpiOverall = await computeKpis(schoolIds, currYear);
+      const kpi10 = await computeKpis(schoolIds, currYear, { class: '10th' });
+      const kpi12 = await computeKpis(schoolIds, currYear, { class: '12th' });
+
+      const attendance = kpiOverall.attendancePct !== null ? Math.round(kpiOverall.attendancePct) : 88;
+      const pass10 = kpi10.marks.passPct !== null ? Math.round(kpi10.marks.passPct) : (kpiOverall.marks.passPct !== null ? Math.round(kpiOverall.marks.passPct) : 85);
+      const pass12 = kpi12.marks.passPct !== null ? Math.round(kpi12.marks.passPct) : (kpiOverall.marks.passPct !== null ? Math.round(kpiOverall.marks.passPct) : 82);
 
       return {
         name: bname,
@@ -319,7 +322,7 @@ router.get('/performance', async (req: Request, res: Response) => {
         overall: Math.round((attendance + pass10 + pass12) / 3),
         rank: idx + 1
       };
-    });
+    }));
 
     // Sort by overall descending
     blocksData.sort((a, b) => b.overall - a.overall);
@@ -349,24 +352,26 @@ router.get('/rankings', async (req: Request, res: Response) => {
       }
     });
 
-    const ranked = schools.map((s: any) => {
-      let hash = 0;
-      for (let i = 0; i < s.name.length; i++) {
-        hash = s.name.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      const pass10 = 80 + Math.abs(hash % 19); // 80% to 98%
-      const pass12 = 75 + Math.abs(hash % 24); // 75% to 98%
+    const currYear = currentAcademicYear();
+
+    const ranked = await Promise.all(schools.map(async (s: any) => {
+      const kpiOverall = await computeKpis([s.id], currYear);
+      const kpi10 = await computeKpis([s.id], currYear, { class: '10th' });
+      const kpi12 = await computeKpis([s.id], currYear, { class: '12th' });
+
+      const pass10 = kpi10.marks.passPct !== null ? Math.round(kpi10.marks.passPct) : (kpiOverall.marks.passPct !== null ? Math.round(kpiOverall.marks.passPct) : 85);
+      const pass12 = kpi12.marks.passPct !== null ? Math.round(kpi12.marks.passPct) : (kpiOverall.marks.passPct !== null ? Math.round(kpiOverall.marks.passPct) : 82);
       const composite = Math.round((pass10 + pass12) / 2 * 10) / 10;
 
       return {
         name: s.name,
         block: s.block || 'District Block',
-        students: s._count.students || 120,
+        students: s._count.students || 0,
         pass10,
         pass12,
         composite
       };
-    });
+    }));
 
     // Sort by composite descending
     ranked.sort((a, b) => b.composite - a.composite);
