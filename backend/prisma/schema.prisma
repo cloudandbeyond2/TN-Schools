@@ -1165,6 +1165,27 @@ model CulturalEvent {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
 
+  registrations CulturalRegistration[]
+
+  @@index([schoolId])
+}
+
+model CulturalRegistration {
+  id              String        @id @default(uuid())
+  eventId         String
+  eventTitle      String
+  schoolId        String?
+  studentId       String?
+  participantName String
+  class           String
+  count           Int           @default(1)
+  type            String        @default("individual")
+  registeredAt    DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  event           CulturalEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
   @@index([schoolId])
 }
 
