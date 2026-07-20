@@ -118,6 +118,130 @@ const SUBJECT_MARKS_CONFIG: Record<string, { theory: number; practical: number; 
   "Economics": { theory: 100, practical: 0, allowPractical: false }
 };
 
+const translations = {
+  en: {
+    title: "My Examinations & Marks",
+    subtitle: (name: string, cls: string, emis: string) => `${name} · ${cls} · EMIS: ${emis}`,
+    tabCalendar: "Exam Timetables",
+    tabMarks: "My Model Exam Marks",
+    nextUpcoming: "Next Upcoming Examination",
+    room: "Room",
+    mode: "Mode",
+    marks: "Marks",
+    days: "Days",
+    hours: "Hours",
+    mins: "Mins",
+    secs: "Secs",
+    dateSheet: "Class assessment date sheet",
+    noSchedules: "No exam timetables published",
+    noSchedulesDesc: "The school has not published any exam schedules for your grade yet. Check back soon.",
+    thStandardMode: "Standard & Mode",
+    thExamDetails: "Exam Details",
+    thDateTime: "Date & Time",
+    thRoomInvigilator: "Room & Invigilator",
+    thSeatingStatus: "Seating & Status",
+    deskAssigned: "Desk: Assigned",
+    examDone: "Exam Done",
+    ongoing: "Ongoing",
+    upcoming: "Upcoming",
+    instructionsTitle: "Important Exam Instructions",
+    instructions1: "Be present at the allocated exam hall at least **15 minutes** prior to the time slot.",
+    instructions2: "Bring all necessary stationery items. Borrowing items during the exam is strictly prohibited.",
+    tipsTitle: "Preparation & Exam Tips",
+    tips1: "**Read the paper carefully**: Spend the first 10 minutes reading all questions.",
+    tips2: "**Review your sheet**: Save the last 10 minutes to verify your answers and formulas.",
+    marksTitle: "My Model & Revision Exam Marks",
+    marksDesc: "Only locked/finalized exam results verified by the Headmaster office are displayed here.",
+    loadingReportCards: "Loading report cards…",
+    noResults: "No exam results published yet",
+    noResultsDesc: "Your marks cards will appear here automatically once the Headmaster inputs and locks your results in the system.",
+    emisGroup: "EMIS Group",
+    academicYear: "Academic Year",
+    class: "Class",
+    conductedOn: "Conducted on",
+    finalScore: "Final Score",
+    percentage: "Percentage",
+    pass: "PASS",
+    fail: "FAIL",
+    theory: "Theory",
+    practical: "Practical",
+    both: "Both"
+  },
+  ta: {
+    title: "என் தேர்வுகள் மற்றும் மதிப்பெண்கள்",
+    subtitle: (name: string, cls: string, emis: string) => `${name} · ${cls} · EMIS: ${emis}`,
+    tabCalendar: "தேர்வு கால அட்டவணைகள்",
+    tabMarks: "மாதிரி தேர்வு மதிப்பெண்கள்",
+    nextUpcoming: "அடுத்த வரவிருக்கும் தேர்வு",
+    room: "அறை",
+    mode: "முறை",
+    marks: "மதிப்பெண்கள்",
+    days: "நாட்கள்",
+    hours: "மணி",
+    mins: "நிமி",
+    secs: "நொடிகள்",
+    dateSheet: "வகுப்பு மதிப்பீட்டு தேதித்தாள்",
+    noSchedules: "எந்த தேர்வு அட்டவணையும் வெளியிடப்படவில்லை",
+    noSchedulesDesc: "பள்ளி உங்கள் வகுப்புக்கு எந்த தேர்வு அட்டவணையையும் இன்னும் வெளியிடவில்லை. விரைவில் மீண்டும் பார்க்கவும்.",
+    thStandardMode: "வகுப்பு மற்றும் முறை",
+    thExamDetails: "தேர்வு விவரங்கள்",
+    thDateTime: "தேதி மற்றும் நேரம்",
+    thRoomInvigilator: "அறை மற்றும் கண்காணிப்பாளர்",
+    thSeatingStatus: "இருக்கை மற்றும் நிலை",
+    deskAssigned: "மேசை: ஒதுக்கப்பட்டுள்ளது",
+    examDone: "தேர்வு முடிந்தது",
+    ongoing: "நடக்கிறது",
+    upcoming: "வரவிருக்கிறது",
+    instructionsTitle: "முக்கிய தேர்வு வழிமுறைகள்",
+    instructions1: "தேர்வு தொடங்குவதற்கு குறைந்தது 15 நிமிடங்களுக்கு முன்பாக தேர்வு அறையில் இருக்க வேண்டும்.",
+    instructions2: "தேவையான அனைத்து பொருட்களையும் கொண்டு வரவும். தேர்வு நேரத்தில் மற்றவர்களிடம் கடன் வாங்குவது கண்டிப்பாக தடைசெய்யப்பட்டுள்ளது.",
+    tipsTitle: "தயாரிப்பு மற்றும் தேர்வு குறிப்புகள்",
+    tips1: "**வினாத்தாளை கவனமாக படிக்கவும்**: முதல் 10 நிமிடங்களை அனைத்து கேள்விகளையும் படிக்க செலவிடவும்.",
+    tips2: "**விடைத்தாளை சரிபார்க்கவும்**: உங்கள் பதில்கள் மற்றும் சூத்திரங்களை சரிபார்க்க கடைசி 10 நிமிடங்களை சேமிக்கவும்.",
+    marksTitle: "என் மாதிரி மற்றும் திருப்புதல் தேர்வு மதிப்பெண்கள்",
+    marksDesc: "தலைமையாசிரியர் அலுவலகத்தால் சரிபார்க்கப்பட்டு இறுதி செய்யப்பட்ட தேர்வு முடிவுகள் மட்டுமே இங்கு காட்டப்படும்.",
+    loadingReportCards: "மதிப்பெண் அட்டைகளை ஏற்றுகிறது...",
+    noResults: "எந்த தேர்வு முடிவுகளும் இன்னும் வெளியிடப்படவில்லை",
+    noResultsDesc: "தலைமையாசிரியர் உங்கள் முடிவுகளை கணினியில் உள்ளிட்டு உறுதிசெய்தவுடன் உங்கள் மதிப்பெண் அட்டைகள் தானாகவே இங்கே தோன்றும்.",
+    emisGroup: "எமிஸ் குழு",
+    academicYear: "கல்வி ஆண்டு",
+    class: "வகுப்பு",
+    conductedOn: "நடைபெற்ற தேதி",
+    finalScore: "இறுதி மதிப்பெண்",
+    percentage: "சதவீதம்",
+    pass: "தேர்ச்சி",
+    fail: "தோல்வி",
+    theory: "எழுத்து",
+    practical: "செய்முறை",
+    both: "இரண்டும்"
+  }
+};
+
+function getSubjectTranslation(label: string, lang: "en" | "ta") {
+  if (lang === "en") return label;
+  const t: Record<string, string> = {
+    tamil: "தமிழ்",
+    english: "ஆங்கிலம்",
+    mathematics: "கணிதம்",
+    maths: "கணிதம்",
+    science: "அறிவியல்",
+    "social science": "சமூக அறிவியல்",
+    physics: "இயற்பியல்",
+    chemistry: "வேதியியல்",
+    biology: "உயிரியல்",
+    "comp sci": "கணினி அறிவியல்",
+    "computer science": "கணினி அறிவியல்",
+    botany: "தாவரவியல்",
+    zoology: "விலங்கியல்",
+    commerce: "வணிகவியல்",
+    accountancy: "கணக்குப்பதிவியல்",
+    economics: "பொருளாதாரம்",
+    "comp app": "கணினி பயன்பாடுகள்",
+    "business math": "வணிக கணிதம்"
+  };
+  return t[label.toLowerCase()] || label;
+}
+
 export default function StudentExamsPage() {
   const { data: session } = useSession();
   const [exams, setExams] = useState<ExamCalendar[]>([]);
@@ -125,6 +249,9 @@ export default function StudentExamsPage() {
   const [studentClass, setStudentClass] = useState("Class 10");
   const [studentName, setStudentName] = useState("Arjun Kumar");
   const [emisNumber, setEmisNumber] = useState("3301234567");
+
+  const [lang, setLang] = useState<"en" | "ta">("en");
+  const t = translations[lang];
 
   // Tab View state
   const [activeTab, setActiveTab] = useState<"calendar" | "marks">("calendar");
@@ -367,42 +494,60 @@ export default function StudentExamsPage() {
     }
     
     const mode = ex.examMode || "Theory";
-    if (mode === "Theory")    return "70 Marks";
-    if (mode === "Practical") return "30 Marks";
-    return "70 (T) + 30 (P) = 100 Marks";
+    if (mode === "Theory")    return `70 ${t.marks}`;
+    if (mode === "Practical") return `30 ${t.marks}`;
+    return `70 (T) + 30 (P) = 100 ${t.marks}`;
   };
 
   return (
     <PortalLayout
-      title="My Examinations & Marks"
-      subtitle={`${studentName} · ${studentClass} · EMIS: ${emisNumber}`}
+      title={t.title}
+      subtitle={t.subtitle(studentName, studentClass, emisNumber)}
       avatarLetter={(studentName || "Student").charAt(0)}
       avatarColor="#6366f1"
       themeClass="theme-student"
       accentColor="#6366f1"
     >
-      {/* Navigation tabs */}
-      <div className="flex flex-col sm:flex-row bg-slate-950 border border-slate-800 p-1.5 rounded-2xl mb-6 w-full sm:w-fit print:hidden">
-        <button
-          onClick={() => setActiveTab("calendar")}
-          className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
-            activeTab === "calendar"
-              ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
-              : "text-slate-400 hover:text-white"
-          }`}
-        >
-          <i className="fi fi-rr-calendar"></i> Exam Timetables
-        </button>
-        <button
-          onClick={() => setActiveTab("marks")}
-          className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
-            activeTab === "marks"
-              ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
-              : "text-slate-400 hover:text-white"
-          }`}
-        >
-          <i className="fi fi-rr-award"></i> My Model Exam Marks
-        </button>
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-4 print:hidden">
+        {/* Navigation tabs */}
+        <div className="flex flex-col sm:flex-row bg-slate-950 border border-slate-800 p-1.5 rounded-2xl w-full sm:w-fit">
+          <button
+            onClick={() => setActiveTab("calendar")}
+            className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+              activeTab === "calendar"
+                ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <i className="fi fi-rr-calendar"></i> {t.tabCalendar}
+          </button>
+          <button
+            onClick={() => setActiveTab("marks")}
+            className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+              activeTab === "marks"
+                ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <i className="fi fi-rr-award"></i> {t.tabMarks}
+          </button>
+        </div>
+        
+        {/* Language Toggle */}
+        <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-xl w-fit">
+          <button
+            onClick={() => setLang("en")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${lang === "en" ? "bg-indigo-500 text-white" : "text-slate-400 hover:text-white"}`}
+          >
+            English
+          </button>
+          <button
+            onClick={() => setLang("ta")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${lang === "ta" ? "bg-indigo-500 text-white" : "text-slate-400 hover:text-white"}`}
+          >
+            தமிழ்
+          </button>
+        </div>
       </div>
 
       {activeTab === "calendar" ? (
@@ -416,9 +561,9 @@ export default function StudentExamsPage() {
                   <span className="p-1 bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-indigo-400 flex items-center justify-center">
                     <i className="fi fi-rr-stopwatch text-sm leading-none"></i>
                   </span>
-                  <span className="text-[10px] text-indigo-450 font-extrabold uppercase tracking-wider">Next Upcoming Examination</span>
+                  <span className="text-[10px] text-indigo-450 font-extrabold uppercase tracking-wider">{t.nextUpcoming}</span>
                 </div>
-                <h2 className="text-lg font-black text-white">{nextExam.name} ({nextExam.subject})</h2>
+                <h2 className="text-lg font-black text-white">{nextExam.name} ({getSubjectTranslation(nextExam.subject, lang)})</h2>
                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400 font-semibold">
                   <span className="flex items-center gap-1">
                     <i className="fi fi-rr-calendar text-slate-500"></i> {formatStudentFriendlyDate(nextExam.date)}
@@ -427,11 +572,11 @@ export default function StudentExamsPage() {
                     <i className="fi fi-rr-clock text-slate-500"></i> {nextExam.timeSlot}
                   </span>
                   <span className="flex items-center gap-1 text-purple-300">
-                    <i className="fi fi-rr-marker text-purple-400"></i> Room: {nextExam.hall.split(" (")[0]}
+                    <i className="fi fi-rr-marker text-purple-400"></i> {t.room}: {nextExam.hall.split(" (")[0]}
                   </span>
                   <span className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] ${getModeBadgeStyle(nextExam.examMode)}`}>
                     {getModeIcon(nextExam.examMode)}
-                    {nextExam.examMode || "Theory"} Mode
+                    {lang === "ta" ? (nextExam.examMode === "Theory" ? t.theory : nextExam.examMode === "Practical" ? t.practical : nextExam.examMode === "Both" ? t.both : t.theory) : (nextExam.examMode || "Theory")} {t.mode}
                   </span>
                   <span className="flex items-center gap-1 text-amber-400">
                     <i className="fi fi-rr-award text-amber-500"></i> {getTotalMarksStr(nextExam)}
@@ -447,22 +592,22 @@ export default function StudentExamsPage() {
                     <>
                       <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-800 rounded-xl">
                         <div className="text-xl font-black text-white">{days.toString().padStart(2, "0")}</div>
-                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">Days</div>
+                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.days}</div>
                       </div>
                       <div className="text-xl font-bold text-slate-800">:</div>
                       <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-800 rounded-xl">
                         <div className="text-xl font-black text-white">{hours.toString().padStart(2, "0")}</div>
-                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">Hours</div>
+                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.hours}</div>
                       </div>
                       <div className="text-xl font-bold text-slate-800">:</div>
                       <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-800 rounded-xl">
                         <div className="text-xl font-black text-white">{minutes.toString().padStart(2, "0")}</div>
-                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">Mins</div>
+                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.mins}</div>
                       </div>
                       <div className="text-xl font-bold text-slate-800">:</div>
                       <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-850 rounded-xl">
                         <div className="text-xl font-black text-indigo-400">{seconds.toString().padStart(2, "0")}</div>
-                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">Secs</div>
+                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.secs}</div>
                       </div>
                     </>
                   );
@@ -476,7 +621,7 @@ export default function StudentExamsPage() {
             <div className="glass rounded-2xl p-6 flex flex-col min-h-[400px] w-full">
               <div className="flex items-center gap-2 mb-5">
                 <i className="fi fi-rr-calendar text-xl text-indigo-400 leading-none"></i>
-                <h2 className="text-sm font-bold text-white">Class assessment date sheet</h2>
+                <h2 className="text-sm font-bold text-white">{t.dateSheet}</h2>
                 <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black px-2 py-0.5 rounded-md">
                   {studentExams.length}
                 </span>
@@ -492,9 +637,9 @@ export default function StudentExamsPage() {
                   <div className="p-4 bg-slate-900/40 rounded-full text-slate-500 border border-slate-800 mb-3 flex items-center justify-center">
                     <i className="fi fi-rr-info text-2xl leading-none"></i>
                   </div>
-                  <h3 className="text-sm font-bold text-white mb-1">No exam timetables published</h3>
+                  <h3 className="text-sm font-bold text-white mb-1">{t.noSchedules}</h3>
                   <p className="text-xs text-slate-500 max-w-sm">
-                    The school has not published any exam schedules for your grade yet. Check back soon.
+                    {t.noSchedulesDesc}
                   </p>
                 </div>
               ) : (
@@ -502,11 +647,11 @@ export default function StudentExamsPage() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-black uppercase tracking-wider">
-                        <th className="p-4 align-middle whitespace-nowrap">Standard &amp; Mode</th>
-                        <th className="p-4 align-middle whitespace-nowrap">Exam Details</th>
-                        <th className="p-4 align-middle whitespace-nowrap">Date &amp; Time</th>
-                        <th className="p-4 align-middle whitespace-nowrap">Room &amp; Invigilator</th>
-                        <th className="p-4 align-middle text-right whitespace-nowrap">Seating &amp; Status</th>
+                        <th className="p-4 align-middle whitespace-nowrap">{t.thStandardMode}</th>
+                        <th className="p-4 align-middle whitespace-nowrap">{t.thExamDetails}</th>
+                        <th className="p-4 align-middle whitespace-nowrap">{t.thDateTime}</th>
+                        <th className="p-4 align-middle whitespace-nowrap">{t.thRoomInvigilator}</th>
+                        <th className="p-4 align-middle text-right whitespace-nowrap">{t.thSeatingStatus}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -597,12 +742,12 @@ export default function StudentExamsPage() {
                                   ex.status === "In Progress" ? "bg-amber-400" :
                                   "bg-emerald-500"
                                 }`} />
-                                {ex.status === "Completed" ? "Exam Done" :
-                                 ex.status === "In Progress" ? "Ongoing" :
-                                 "Upcoming"}
+                                {ex.status === "Completed" ? t.examDone :
+                                 ex.status === "In Progress" ? t.ongoing :
+                                 t.upcoming}
                               </span>
                               <div className="text-[9px] text-slate-500 font-semibold bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md w-max">
-                                Desk: Assigned
+                                {t.deskAssigned}
                               </div>
                             </div>
                           </td>
@@ -618,16 +763,16 @@ export default function StudentExamsPage() {
                 <div className="glass rounded-2xl p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
                   <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
                     <i className="fi fi-rr-stars text-indigo-500"></i>
-                    Important Exam Instructions
+                    {t.instructionsTitle}
                   </h3>
                   <ul className="space-y-2.5 text-xs text-slate-650 dark:text-slate-400 font-medium">
                     <li className="flex items-start gap-2.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
-                      <span>Be present at the allocated exam hall at least **15 minutes** prior to the time slot.</span>
+                      <span>{t.instructions1}</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
-                      <span>Bring all necessary stationery items. Borrowing items during the exam is strictly prohibited.</span>
+                      <span>{t.instructions2}</span>
                     </li>
                   </ul>
                 </div>
@@ -635,16 +780,16 @@ export default function StudentExamsPage() {
                 <div className="glass rounded-2xl p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
                   <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
                     <i className="fi fi-rr-award text-amber-500"></i>
-                    Preparation &amp; Exam Tips
+                    {t.tipsTitle}
                   </h3>
                   <ul className="space-y-2.5 text-xs text-slate-650 dark:text-slate-400 font-medium">
                     <li className="flex items-start gap-2.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
-                      <span>**Read the paper carefully**: Spend the first 10 minutes reading all questions.</span>
+                      <span>{t.tips1}</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
-                      <span>**Review your sheet**: Save the last 10 minutes to verify your answers and formulas.</span>
+                      <span>{t.tips2}</span>
                     </li>
                   </ul>
                 </div>
@@ -658,23 +803,23 @@ export default function StudentExamsPage() {
           <div className="glass rounded-3xl border border-slate-250 bg-white p-6 shadow-xl dark:border-slate-850 dark:bg-slate-950">
             <h2 className="text-base font-extrabold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
               <i className="fi fi-rr-award text-lg text-indigo-500 leading-none"></i>
-              My Model &amp; Revision Exam Marks
+              {t.marksTitle}
             </h2>
             <p className="text-xs text-slate-500 leading-relaxed mb-6">
-              Only locked/finalized exam results verified by the Headmaster office are displayed here.
+              {t.marksDesc}
             </p>
 
             {loadingResults ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3">
                 <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                <div className="text-xs font-semibold text-slate-400 animate-pulse">Loading report cards…</div>
+                <div className="text-xs font-semibold text-slate-400 animate-pulse">{t.loadingReportCards}</div>
               </div>
             ) : studentResults.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/40 dark:bg-slate-950/20">
                 <i className="fi fi-rr-document text-4xl text-slate-300 dark:text-slate-800"></i>
-                <h3 className="text-sm font-bold text-slate-800 dark:text-white">No exam results published yet</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">{t.noResults}</h3>
                 <p className="text-xs text-slate-400 max-w-xs text-center leading-relaxed">
-                  Your marks cards will appear here automatically once the Headmaster inputs and locks your results in the system.
+                  {t.noResultsDesc}
                 </p>
               </div>
             ) : (
@@ -698,33 +843,33 @@ export default function StudentExamsPage() {
                       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/60 dark:border-slate-800 pb-4 mb-5">
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-sm font-black text-slate-900 dark:text-white">{exam.examName}</h3>
+                            <h3 className="text-sm font-black text-slate-900 dark:text-white">{getSubjectTranslation(exam.examName, lang)}</h3>
                             <span className="text-[9px] bg-slate-100 border border-slate-250 px-2 py-0.5 rounded-full text-slate-500 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400">
-                              {exam.examType}
+                              {getSubjectTranslation(exam.examType, lang)}
                             </span>
                             {exam.group && (
                               <span className="text-[9px] bg-indigo-50 border border-indigo-150 px-2 py-0.5 rounded-full text-indigo-650 dark:bg-indigo-950/20 dark:border-indigo-900 dark:text-indigo-400">
-                                EMIS Group: {exam.group}
+                                {t.emisGroup}: {exam.group}
                               </span>
                             )}
                           </div>
                           <p className="text-[11px] text-slate-400 mt-1">
-                            Academic Year {exam.academicYear} · Class {exam.class} ({exam.section})
-                            {exam.examDate ? ` · Conducted on ${new Date(exam.examDate).toLocaleDateString("en-IN")}` : ""}
+                            {t.academicYear} {exam.academicYear} · {t.class} {exam.class} ({exam.section})
+                            {exam.examDate ? ` · ${t.conductedOn} ${new Date(exam.examDate).toLocaleDateString("en-IN")}` : ""}
                           </p>
                         </div>
 
                         {/* Overall badge metrics */}
                         <div className="flex items-center gap-3">
                           <div className="text-right">
-                            <div className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">Final Score</div>
+                            <div className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">{t.finalScore}</div>
                             <div className="text-lg font-black text-slate-800 dark:text-white leading-none mt-1">
                               {total}/{maxTotal}
                             </div>
                           </div>
                           <div className="w-[1px] h-8 bg-slate-200 dark:bg-slate-850" />
                           <div className="text-right">
-                            <div className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">Percentage</div>
+                            <div className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">{t.percentage}</div>
                             <div className="text-lg font-black text-indigo-600 dark:text-indigo-400 leading-none mt-1">
                               {pct}%
                             </div>
@@ -735,7 +880,7 @@ export default function StudentExamsPage() {
                               ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400" 
                               : "bg-rose-500/10 border border-rose-500/25 text-rose-500 dark:text-rose-450"
                           }`}>
-                            {isPassed ? "PASS" : "FAIL"}
+                            {isPassed ? t.pass : t.fail}
                           </span>
                         </div>
                       </div>
@@ -758,7 +903,7 @@ export default function StudentExamsPage() {
                               }`}
                             >
                               <div className={`text-[10px] font-black uppercase tracking-wider ${subj.color}`}>
-                                {subj.label}
+                                {getSubjectTranslation(subj.label, lang)}
                               </div>
                               <div className="mt-2 flex items-baseline gap-0.5">
                                 <span className={`text-xl font-black ${
@@ -776,7 +921,7 @@ export default function StudentExamsPage() {
                                     ? "bg-rose-500/10 text-rose-500" 
                                     : "bg-slate-100 text-slate-600 dark:bg-slate-850 dark:text-slate-400"
                                 }`}>
-                                  {isFailedSubj ? "FAIL" : "PASS"}
+                                  {isFailedSubj ? t.fail : t.pass}
                                 </span>
                               )}
                             </div>
