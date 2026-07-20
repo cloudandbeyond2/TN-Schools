@@ -19,11 +19,11 @@ interface FeatureItem {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function FeatureToggles() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [features, setFeatures] = useState<FeatureItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const token = (session as any)?.backendToken;
+  const token = (session?.user as any)?.backendToken || (session as any)?.backendToken;
 
   const authHeaders = {
     "Content-Type": "application/json",
@@ -31,7 +31,12 @@ export default function FeatureToggles() {
   };
 
   useEffect(() => {
-    if (!token) return;
+    if (status === "loading") return;
+    if (!token) {
+      setLoading(false);
+      setError("Not authenticated. Missing token.");
+      return;
+    }
     let cancelled = false;
 
     (async () => {
@@ -74,7 +79,7 @@ export default function FeatureToggles() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, status]);
 
   const toggleFeature = async (key: string, current: boolean) => {
     // Optimistic toggle with rollback
