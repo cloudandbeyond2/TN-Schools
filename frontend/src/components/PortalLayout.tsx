@@ -785,7 +785,7 @@ export default function PortalLayout({
 
         if (item.label === "Maths Formulas") {
           const classNum = String(userClass).match(/\d+/)?.[0];
-          return classNum === "6";
+          return classNum === "6" || classNum === "7" || classNum === "8";
         }
 
         if (item.label === "Botany Centre") {
