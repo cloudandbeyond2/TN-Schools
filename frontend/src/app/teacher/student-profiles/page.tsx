@@ -3,6 +3,7 @@ import { Search, X, MessageCircle } from "lucide-react";
 
 
 import React, { useState, useEffect } from "react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 
@@ -20,6 +21,7 @@ interface StudentProfile {
 }
 
 export default function StudentProfilesPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -172,7 +174,7 @@ export default function StudentProfilesPage() {
   );
 
   return (
-    <PortalLayout title="Student Profiles" subtitle="View and search comprehensive records, EMIS profiles, and performance details.">
+    <PortalLayout title={lang === "தமிழ்" ? "மாணவர் சுயவிவரங்கள்" : "Student Profiles"} subtitle={lang === "தமிழ்" ? "விரிவான ஆவணங்கள், EMIS சுயவிவரங்கள் மற்றும் செயல்திறன் விவரங்களைக் கண்டு தேடுங்கள்." : "View and search comprehensive records, EMIS profiles, and performance details."}>
       {/* Search and Filters */}
       <div className="theme-card p-5 mb-6 border border-[var(--border)] flex flex-col gap-4 fade-in">
         <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
@@ -186,7 +188,7 @@ export default function StudentProfilesPage() {
                   : "bg-[var(--bg-main)] border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
               }`}
             >
-              All Classes
+              {lang === "தமிழ்" ? "அனைத்து வகுப்புகளும்" : "All Classes"}
             </button>
             {teacherClasses.map((cls) => {
               const val = `${cls.className}${cls.section}`;
@@ -209,13 +211,13 @@ export default function StudentProfilesPage() {
           <div className="flex items-center gap-3 w-full md:w-auto">
             <input
               type="text"
-              placeholder="Search by student name or EMIS ID..."
+              placeholder={lang === "தமிழ்" ? "மாணவர் பெயர் அல்லது EMIS ஐடி மூலம் தேடுக..." : "Search by student name or EMIS ID..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full md:w-64 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-4 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors"
             />
             <div className="text-xs text-[var(--text-muted)] font-semibold shrink-0">
-              Showing {filteredStudents.length} students
+              {lang === "தமிழ்" ? `${filteredStudents.length} மாணவர்கள் காட்டப்படுகிறார்கள்` : `Showing ${filteredStudents.length} students`}
             </div>
           </div>
         </div>
@@ -257,7 +259,7 @@ export default function StudentProfilesPage() {
           ))}
         </div>
       ) : filteredStudents.length === 0 ? (
-        <div className="text-center py-12 text-xs text-[var(--text-muted)]">No student records found matching the query.</div>
+        <div className="text-center py-12 text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "தேடலுக்குப் பொருந்தும் மாணவர் பதிவுகள் எதுவும் இல்லை." : "No student records found matching the query."}</div>
       ) : (
         <>
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
@@ -279,15 +281,15 @@ export default function StudentProfilesPage() {
 
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-xs">
-                    <span className="text-[var(--text-muted)]">Class Section:</span>
+                    <span className="text-[var(--text-muted)]">{lang === "தமிழ்" ? "வகுப்பு பிரிவு:" : "Class Section:"}</span>
                     <span className="text-[var(--text-heading)] font-bold">{student.class}</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-[var(--text-muted)]">Average Grade:</span>
+                    <span className="text-[var(--text-muted)]">{lang === "தமிழ்" ? "சராசரி தரம்:" : "Average Grade:"}</span>
                     <span className="text-emerald-400 font-extrabold">{student.avgGrade}</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-[var(--text-muted)]">Attendance:</span>
+                    <span className="text-[var(--text-muted)]">{lang === "தமிழ்" ? "வருகைப்பதிவு:" : "Attendance:"}</span>
                     <span className={`font-bold ${student.attendance >= 85 ? "text-emerald-400" : "text-amber-400"}`}>
                       {student.attendance}%
                     </span>
@@ -299,7 +301,7 @@ export default function StudentProfilesPage() {
                 onClick={() => handleViewFullProfile(student)}
                 className="w-full py-2 bg-[var(--bg-card)] hover:bg-slate-700 text-[var(--text-heading)] hover:text-[var(--text-heading)] font-bold rounded-xl text-xs transition-colors border border-[var(--border)]"
               >
-                <Search className="w-4 h-4 inline-block mr-1 text-inherit" /> View Full Profile
+                <Search className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "முழு சுயவிவரத்தைக் காண்க" : "View Full Profile"}
               </button>
             </div>
           ))}
@@ -362,32 +364,32 @@ export default function StudentProfilesPage() {
             </div>
 
             {loadingDetail ? (
-              <div className="text-center py-12 text-xs text-[var(--text-muted)]">Loading full performance metrics...</div>
+              <div className="text-center py-12 text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "முழு செயல்திறன் அளவீடுகளையும் ஏற்றுகிறது..." : "Loading full performance metrics..."}</div>
             ) : (
               /* Profile Content Details */
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {/* Left Column: Stats & Contact */}
                 <div className="space-y-5">
                   <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-2xl border border-[var(--border)] space-y-3">
-                    <h3 className="text-xs uppercase font-extrabold text-amber-400">Academic & Contact</h3>
+                    <h3 className="text-xs uppercase font-extrabold text-amber-400">{lang === "தமிழ்" ? "கல்வி & தொடர்பு" : "Academic & Contact"}</h3>
                     <div className="space-y-2 text-xs">
                       <div className="flex justify-between">
-                        <span className="text-[var(--text-muted)]">Average Grade:</span>
+                        <span className="text-[var(--text-muted)]">{lang === "தமிழ்" ? "சராசரி தரம்:" : "Average Grade:"}</span>
                         <strong className="text-emerald-400">{selectedStudent.avgGrade}</strong>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-[var(--text-muted)]">Attendance Rate:</span>
+                        <span className="text-[var(--text-muted)]">{lang === "தமிழ்" ? "வருகை விகிதம்:" : "Attendance Rate:"}</span>
                         <strong className="text-[var(--text-heading)]">{selectedStudent.attendance}%</strong>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-[var(--text-muted)]">Parent Contact:</span>
+                        <span className="text-[var(--text-muted)]">{lang === "தமிழ்" ? "பெற்றோர் தொடர்பு:" : "Parent Contact:"}</span>
                         <strong className="text-[var(--text-heading)]">{selectedStudent.parentContact}</strong>
                       </div>
                     </div>
                   </div>
 
                   <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-2xl border border-[var(--border)] space-y-3">
-                    <h3 className="text-xs uppercase font-extrabold text-emerald-400">Strengths</h3>
+                    <h3 className="text-xs uppercase font-extrabold text-emerald-400">{lang === "தமிழ்" ? "பலம்" : "Strengths"}</h3>
                     <ul className="list-disc pl-4 text-xs text-[var(--text-main)] space-y-1">
                       {selectedStudent.strengths?.map((str, i) => (
                         <li key={i}>{str}</li>
@@ -399,7 +401,7 @@ export default function StudentProfilesPage() {
                 {/* Right Column: Improvement Areas & History */}
                 <div className="space-y-5">
                   <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-2xl border border-[var(--border)] space-y-3">
-                    <h3 className="text-xs uppercase font-extrabold text-red-400">Key Areas for Growth</h3>
+                    <h3 className="text-xs uppercase font-extrabold text-red-400">{lang === "தமிழ்" ? "மேம்படுத்த வேண்டிய பகுதிகள்" : "Key Areas for Growth"}</h3>
                     <ul className="list-disc pl-4 text-xs text-[var(--text-main)] space-y-1">
                       {selectedStudent.weaknesses?.map((weak, i) => (
                         <li key={i}>{weak}</li>
@@ -408,7 +410,7 @@ export default function StudentProfilesPage() {
                   </div>
 
                   <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-2xl border border-[var(--border)] space-y-3">
-                    <h3 className="text-xs uppercase font-extrabold text-blue-400">Exam History Log</h3>
+                    <h3 className="text-xs uppercase font-extrabold text-blue-400">{lang === "தமிழ்" ? "தேர்வு வரலாற்றுப் பதிவு" : "Exam History Log"}</h3>
                     <table className="w-full text-xs">
                       <tbody>
                         {selectedStudent.gradesHistory?.map((item, i) => (
@@ -430,10 +432,10 @@ export default function StudentProfilesPage() {
                 onClick={() => setSelectedStudent(null)}
                 className="px-5 py-2.5 bg-[var(--bg-card)] hover:bg-slate-700 text-[var(--text-heading)] rounded-xl text-xs font-semibold mr-3 transition-colors"
               >
-                Close Profile
+                {lang === "தமிழ்" ? "மூடுக" : "Close Profile"}
               </button>
               <button className="px-5 py-2.5 bg-[var(--primary)] hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition-colors">
-                <MessageCircle className="w-4 h-4 inline-block mr-1 text-inherit" /> Message Parent
+                <MessageCircle className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "பெற்றோருக்கு செய்தி அனுப்புக" : "Message Parent"}
               </button>
             </div>
           </div>
