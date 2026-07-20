@@ -443,6 +443,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Student Status", href: "/teacher/student-status", icon: "TrendingUp" },
       { label: "Homework Manager", href: "/teacher/homework", icon: "Check" },
       { label: "Scholarship Details", href: "/teacher/scholarships", icon: "GraduationCap" },
+      { label: "Social Activities Review", href: "/teacher/social-activities", icon: "HeartHandshake" },
       { label: "Student Analytics", href: "/teacher/analytics", icon: "Activity" },
       { label: "Risk Alerts", href: "/teacher/risk-alerts", icon: "ShieldAlert" },
       // { label: "Parent Management", href: "/teacher/parents", icon: "Users" },
@@ -535,6 +536,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Rewards & Honors", href: "/headmaster/rewards", icon: "fi fi-rr-trophy" },
       { label: "School History", href: "/headmaster/history", icon: "fi fi-rr-document" },
       { label: "Clubs & Activities", href: "/headmaster/clubs", icon: "fi fi-rr-smile" },
+      { label: "Social Responsibility", href: "/headmaster/social-activities", icon: "fi fi-rr-heart" },
     ],
   },
   BEO: {
