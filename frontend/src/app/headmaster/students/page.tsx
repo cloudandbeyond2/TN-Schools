@@ -1644,23 +1644,18 @@ export default function StudentsMonitoringPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
-            className="w-full max-w-4xl rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-6 relative transition-all duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar"
-            style={{
-              background: "#ffffff",
-              border: "1px solid rgba(0, 0, 0, 0.08)",
-              boxShadow: "0 20px 50px rgba(0, 0, 0, 0.15)",
-            }}
+            className="w-full max-w-4xl rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-6 relative transition-all duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar bg-slate-900 border border-slate-800 shadow-2xl text-white"
           >
             {/* Modal Header with Tabs */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-3 gap-2.5">
-              <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 self-start sm:self-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-3 gap-2.5">
+              <div className="flex items-center gap-1 bg-slate-950/40 rounded-xl p-1 self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => setModalTab("manual")}
                   disabled={previewStudents.length > 0}
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${modalTab === "manual"
-                      ? "bg-white text-slate-800 shadow-sm"
-                      : "text-slate-500 hover:text-slate-700"
+                      ? "bg-slate-800 text-white shadow-sm"
+                      : "text-slate-400 hover:text-slate-200"
                     }`}
                 >
                   <span className="flex items-center gap-1.5"><i className="fi fi-rr-edit" /> Manual Entry</span>
@@ -1670,8 +1665,8 @@ export default function StudentsMonitoringPage() {
                   onClick={() => setModalTab("excel")}
                   disabled={previewStudents.length > 0}
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${modalTab === "excel"
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-slate-500 hover:text-slate-700"
+                      ? "bg-slate-800 text-white shadow-sm"
+                      : "text-slate-400 hover:text-slate-200"
                     }`}
                 >
                   <span className="flex items-center gap-1.5"><i className="fi fi-rr-file-spreadsheet" /> Excel Import</span>
@@ -1679,7 +1674,7 @@ export default function StudentsMonitoringPage() {
               </div>
               <button
                 onClick={() => { setIsModalOpen(false); setPreviewStudents([]); setModalTab("manual"); }}
-                className="text-slate-500 hover:text-slate-800 text-xs font-semibold self-end sm:self-auto flex items-center gap-1"
+                className="text-slate-400 hover:text-white text-xs font-semibold self-end sm:self-auto flex items-center gap-1"
               >
                 <i className="fi fi-rr-cross text-[9px]" /> Close
               </button>
@@ -2140,7 +2135,7 @@ export default function StudentsMonitoringPage() {
                     </div>
                   ) : (
                     /* ── REGULAR ADD / EDIT STUDENT MANUAL FORM ── */
-                    <form onSubmit={handleManualSubmit} className="space-y-4">
+                    <form onSubmit={handleManualSubmit} className="space-y-4 [&_label]:text-slate-600 [&_label]:dark:text-slate-400 [&_h4]:text-slate-700 [&_h4]:dark:text-slate-300 [&_.border-b]:border-slate-200 [&_.border-b]:dark:border-slate-800">
                       <fieldset disabled={isViewMode}>
                         <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Manual Entry</div>
 

@@ -418,16 +418,15 @@ export default function TemporaryStaffPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
-            className="w-full max-w-4xl rounded-3xl p-6 space-y-6 relative transition-all duration-300"
-            style={{ background: "#ffffff", border: "1px solid rgba(0, 0, 0, 0.08)", boxShadow: "0 20px 50px rgba(0, 0, 0, 0.15)" }}
+            className="w-full max-w-4xl rounded-3xl p-6 space-y-6 relative transition-all duration-300 bg-slate-900 border border-slate-800 shadow-2xl text-white"
           >
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-slate-800">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-white">
                 {previewStaff.length > 0 ? "📋 Preview Contract Staff Import" : "🤝 Register Temporary & Contract Staff"}
               </h3>
               <button
                 onClick={() => { setIsModalOpen(false); setPreviewStaff([]); }}
-                className="text-slate-500 hover:text-slate-800 text-xs font-semibold"
+                className="text-slate-400 hover:text-white text-xs font-semibold"
               >
                 ✕ Close
               </button>
@@ -500,13 +499,13 @@ export default function TemporaryStaffPage() {
                   <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Manual Entry</div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Full Name</label>
+                      <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Full Name</label>
                       <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)}
                         placeholder="e.g. Mr. Rajesh P."
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Designated Role</label>
+                      <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Designated Role</label>
                       <input type="text" required value={newRole} onChange={(e) => setNewRole(e.target.value)}
                         placeholder="e.g. Guest Teacher (Math)"
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
@@ -514,7 +513,7 @@ export default function TemporaryStaffPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Agency / Source</label>
+                      <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Agency / Source</label>
                       <select value={newAgency} onChange={(e) => setNewAgency(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors">
                         <option value="Direct Contract">Direct Contract</option>
@@ -523,7 +522,7 @@ export default function TemporaryStaffPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Joined Date</label>
+                      <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Joined Date</label>
                       <input type="text" required value={newJoined} onChange={(e) => setNewJoined(e.target.value)}
                         placeholder="e.g. June 2026"
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
@@ -531,13 +530,13 @@ export default function TemporaryStaffPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Phone Number</label>
+                      <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Phone Number</label>
                       <input type="text" required value={newPhone} onChange={(e) => setNewPhone(e.target.value)}
                         placeholder="e.g. 9876543235"
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Email Address</label>
+                      <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Email Address</label>
                       <input type="email" required value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
                         placeholder="e.g. rajesh@emis.tn.gov.in"
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
@@ -545,20 +544,20 @@ export default function TemporaryStaffPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Contract Duration</label>
+                      <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Contract Duration</label>
                       <input type="text" required value={newDuration} onChange={(e) => setNewDuration(e.target.value)}
                         placeholder="e.g. 12 Months"
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Monthly Stipend</label>
+                      <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Monthly Stipend</label>
                       <input type="text" required value={newSalary} onChange={(e) => setNewSalary(e.target.value)}
                         placeholder="e.g. ₹15,000"
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Default Portal Password</label>
+                    <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Default Portal Password</label>
                     <input type="text" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="e.g. password123"
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
@@ -572,12 +571,12 @@ export default function TemporaryStaffPage() {
                 </form>
 
                 {/* Excel Import */}
-                <div className="border-l border-slate-200 pl-6 flex flex-col justify-between">
+                <div className="border-l border-slate-800 pl-6 flex flex-col justify-between">
                   <div className="space-y-4">
                     <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex justify-between items-center">
                       <span>Excel Import</span>
                       <button onClick={downloadExcelTemplate} type="button"
-                        className="text-[10px] text-blue-600 hover:text-blue-700 font-bold underline cursor-pointer">
+                        className="text-[10px] text-blue-400 hover:text-blue-500 font-bold underline cursor-pointer">
                         📥 Get Template
                       </button>
                     </div>
@@ -587,7 +586,7 @@ export default function TemporaryStaffPage() {
                       onDragLeave={handleDragLeave}
                       onDrop={handleDrop}
                       className={`rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-3 min-h-[160px] border-2 border-dashed ${
-                        isDragging ? "border-emerald-500 bg-emerald-50" : "border-slate-300 bg-white hover:border-emerald-500"
+                        isDragging ? "border-emerald-500 bg-emerald-950/20" : "border-slate-700 bg-slate-950/20 hover:border-emerald-500"
                       }`}
                     >
                       {isUploading ? (
@@ -598,8 +597,8 @@ export default function TemporaryStaffPage() {
                       ) : (
                         <>
                           <span className="text-4xl">📊</span>
-                          <span className="text-xs font-bold text-slate-800">Import Staff Roster</span>
-                          <span className="text-[9px] text-slate-500 leading-normal">Drag & drop Excel or click to upload</span>
+                          <span className="text-xs font-bold text-white">Import Staff Roster</span>
+                          <span className="text-[9px] text-slate-400 leading-normal">Drag & drop Excel or click to upload</span>
                         </>
                       )}
                     </div>
@@ -620,15 +619,15 @@ export default function TemporaryStaffPage() {
       {/* Delete Confirmation Modal */}
       {tempStaffToDelete && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-3xl p-6 relative bg-white border border-slate-200 shadow-2xl">
-            <h3 className="text-lg font-bold text-slate-800 mb-2">Remove Temporary Staff?</h3>
-            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-              Are you sure you want to remove <strong className="text-slate-800">{tempStaffToDelete.name}</strong> from the registry? This action cannot be undone.
+          <div className="w-full max-w-sm rounded-3xl p-6 relative bg-slate-900 border border-slate-800 shadow-2xl text-white">
+            <h3 className="text-lg font-bold text-white mb-2">Remove Temporary Staff?</h3>
+            <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+              Are you sure you want to remove <strong className="text-white">{tempStaffToDelete.name}</strong> from the registry? This action cannot be undone.
             </p>
             <div className="flex space-x-3">
               <button
                 onClick={() => setTempStaffToDelete(null)}
-                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors"
+                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-colors"
               >
                 Cancel
               </button>
@@ -650,14 +649,13 @@ export default function TemporaryStaffPage() {
       {isEditModalOpen && staffToEdit && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
-            className="w-full max-w-2xl rounded-3xl p-6 space-y-6 relative transition-all duration-300 bg-white"
-            style={{ border: "1px solid rgba(0, 0, 0, 0.08)", boxShadow: "0 20px 50px rgba(0, 0, 0, 0.15)" }}
+            className="w-full max-w-2xl rounded-3xl p-6 space-y-6 relative transition-all duration-300 bg-slate-900 border border-slate-800 shadow-2xl text-white"
           >
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-slate-800">✎ Edit Temporary Staff</h3>
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-white">✎ Edit Temporary Staff</h3>
               <button
                 onClick={() => { setIsEditModalOpen(false); setStaffToEdit(null); }}
-                className="text-slate-500 hover:text-slate-800 text-xs font-semibold"
+                className="text-slate-400 hover:text-white text-xs font-semibold"
               >
                 ✕ Close
               </button>
@@ -687,19 +685,19 @@ export default function TemporaryStaffPage() {
             }} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Full Name</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Full Name</label>
                   <input type="text" required value={staffToEdit.name} onChange={(e) => setStaffToEdit({ ...staffToEdit, name: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:bg-white focus:border-blue-500 transition-colors" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Designated Role</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Designated Role</label>
                   <input type="text" required value={staffToEdit.role} onChange={(e) => setStaffToEdit({ ...staffToEdit, role: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:bg-white focus:border-blue-500 transition-colors" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Agency / Source</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Agency / Source</label>
                   <select value={staffToEdit.agency} onChange={(e) => setStaffToEdit({ ...staffToEdit, agency: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:bg-white focus:border-blue-500 transition-colors">
                     <option value="Direct Contract">Direct Contract</option>
@@ -708,37 +706,37 @@ export default function TemporaryStaffPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Joined Date</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Joined Date</label>
                   <input type="text" required value={staffToEdit.joined} onChange={(e) => setStaffToEdit({ ...staffToEdit, joined: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:bg-white focus:border-blue-500 transition-colors" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Phone Number</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Phone Number</label>
                   <input type="text" required value={staffToEdit.phone} onChange={(e) => setStaffToEdit({ ...staffToEdit, phone: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:bg-white focus:border-blue-500 transition-colors" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Email Address</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Email Address</label>
                   <input type="email" required value={staffToEdit.email} onChange={(e) => setStaffToEdit({ ...staffToEdit, email: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:bg-white focus:border-blue-500 transition-colors" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Contract Duration</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Contract Duration</label>
                   <input type="text" required value={staffToEdit.duration} onChange={(e) => setStaffToEdit({ ...staffToEdit, duration: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:bg-white focus:border-blue-500 transition-colors" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Monthly Stipend</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Monthly Stipend</label>
                   <input type="text" required value={staffToEdit.salary} onChange={(e) => setStaffToEdit({ ...staffToEdit, salary: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:bg-white focus:border-blue-500 transition-colors" />
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Update Password</label>
+                <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Update Password</label>
                 <input type="text" value={staffToEdit.password} onChange={(e) => setStaffToEdit({ ...staffToEdit, password: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:bg-white focus:border-blue-500 transition-colors" />
               </div>
