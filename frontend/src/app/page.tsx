@@ -85,7 +85,12 @@ const t = {
     ftTerms: "Terms of Service",
     ftCopy: "© 2026 Tamil Nadu School Education Department. All rights reserved.",
     ftStatus: "All Systems Operational",
-    ftGovt: "Government of Tamil Nadu"
+    ftGovt: "Government of Tamil Nadu",
+    ftMobileApp: "Download Mobile App",
+    ftGetItGoogle: "Get it on",
+    ftGooglePlay: "Google Play",
+    ftGetItApple: "Download on the",
+    ftAppStore: "App Store"
   },
   ta: {
     govtName: "தமிழ்நாடு அரசு",
@@ -160,7 +165,12 @@ const t = {
     ftTerms: "சேவை விதிமுறைகள்",
     ftCopy: "© 2026 தமிழ்நாடு பள்ளிக்கல்வி துறை. அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.",
     ftStatus: "அனைத்து அமைப்புகளும் செயல்படுகின்றன",
-    ftGovt: "தமிழ்நாடு அரசு"
+    ftGovt: "தமிழ்நாடு அரசு",
+    ftMobileApp: "மொபைல் ஆப் பதிவிறக்கம்",
+    ftGetItGoogle: "பெறுங்கள்",
+    ftGooglePlay: "Google Play",
+    ftGetItApple: "பதிவிறக்கவும்",
+    ftAppStore: "App Store"
   }
 };
 
@@ -719,6 +729,76 @@ export default function HomePage() {
             <h4 className="text-white" style={{ fontSize: "14px", fontWeight: 800, color: "white", textTransform: "uppercase", marginBottom: "24px" }}>{text.ftAdmin}</h4>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {portals.slice(4).map(p => <Link key={p.href} href={p.href} style={{ color: "#A7F3D0", textDecoration: "none", fontSize: "14px", fontWeight: 500 }}>{p.label}</Link>)}
+            </div>
+          </div>
+
+          {/* Mobile App Column */}
+          <div>
+            <h4 className="text-white" style={{ fontSize: "14px", fontWeight: 800, textTransform: "uppercase", marginBottom: "24px", letterSpacing: "1px" }}>{text.ftMobileApp}</h4>
+            <p style={{ fontSize: "13px", color: "#6EE7B7", lineHeight: 1.7, marginBottom: "20px" }}>
+              {lang === "en"
+                ? "Access the TN Schools portal anytime on your mobile device."
+                : "உங்கள் மொபைலில் TN Schools போர்ட்டலை எப்போதும் பயன்படுத்துங்கள்."}
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {/* Google Play Button */}
+              <a
+                href="https://play.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  background: "rgba(255,255,255,0.07)",
+                  border: "1px solid rgba(167,243,208,0.2)",
+                  borderRadius: "14px",
+                  padding: "12px 16px",
+                  textDecoration: "none",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.14)"; e.currentTarget.style.borderColor = "rgba(52,211,153,0.5)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(167,243,208,0.2)"; e.currentTarget.style.transform = "translateY(0)"; }}
+              >
+                <svg viewBox="0 0 24 24" style={{ width: "26px", height: "26px", flexShrink: 0 }} fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3.18 1.32C2.77 1.73 2.5 2.38 2.5 3.22v17.56c0 .84.27 1.49.68 1.9l.1.09 9.84-9.84v-.23L3.28 1.23l-.1.09z" fill="#EA4335"/>
+                  <path d="M16.39 15.6l-3.28-3.28V12l3.28-3.28.07.04 3.89 2.21c1.11.63 1.11 1.66 0 2.29l-3.89 2.21-.07.04" fill="#FBBC04"/>
+                  <path d="M16.46 15.56L13.11 12 3.18 21.93c.37.39.97.44 1.64.07l11.64-6.44"/>
+                  <path d="M16.46 8.44L4.82 2c-.67-.37-1.27-.32-1.64.07L13.11 12l3.35-3.56" fill="#34A853"/>
+                </svg>
+                <div>
+                  <div style={{ fontSize: "10px", color: "#A7F3D0", fontWeight: 500, lineHeight: 1, marginBottom: "3px" }}>{text.ftGetItGoogle}</div>
+                  <div style={{ fontSize: "15px", color: "white", fontWeight: 800, lineHeight: 1.2 }}>{text.ftGooglePlay}</div>
+                </div>
+              </a>
+
+              {/* App Store Button */}
+              <a
+                href="https://apps.apple.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  background: "rgba(255,255,255,0.07)",
+                  border: "1px solid rgba(167,243,208,0.2)",
+                  borderRadius: "14px",
+                  padding: "12px 16px",
+                  textDecoration: "none",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.14)"; e.currentTarget.style.borderColor = "rgba(52,211,153,0.5)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(167,243,208,0.2)"; e.currentTarget.style.transform = "translateY(0)"; }}
+              >
+                <svg viewBox="0 0 24 24" style={{ width: "26px", height: "26px", flexShrink: 0 }} fill="white" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                </svg>
+                <div>
+                  <div style={{ fontSize: "10px", color: "#A7F3D0", fontWeight: 500, lineHeight: 1, marginBottom: "3px" }}>{text.ftGetItApple}</div>
+                  <div style={{ fontSize: "15px", color: "white", fontWeight: 800, lineHeight: 1.2 }}>{text.ftAppStore}</div>
+                </div>
+              </a>
             </div>
           </div>
         </div>
