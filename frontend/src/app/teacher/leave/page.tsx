@@ -6,6 +6,7 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface LeaveRequest {
   id: string;
@@ -25,6 +26,7 @@ interface Staff {
 }
 
 export default function LeaveRequestsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const userName = session?.user?.name || "Teacher";
@@ -185,28 +187,28 @@ export default function LeaveRequestsPage() {
       icon: <File className="w-5 h-5" />,
       accent: "bg-sky-400/70",
       iconBg: "bg-sky-400/10",
-      label: "Total Leave Records",
+      label: lang === "தமிழ்" ? "மொத்த விடுமுறை பதிவுகள்" : "Total Leave Records",
       value: filteredRequests.length,
     },
     {
       icon: <Building2 className="w-5 h-5" />,
       accent: "bg-violet-400/70",
       iconBg: "bg-violet-400/10",
-      label: "Classes Covered",
+      label: lang === "தமிழ்" ? "வகுப்புகள்" : "Classes Covered",
       value: "6 – 12",
     },
     {
       icon: <Users className="w-5 h-5" />,
       accent: "bg-emerald-400/70",
       iconBg: "bg-emerald-400/10",
-      label: "Total Students",
+      label: lang === "தமிழ்" ? "மொத்த மாணவர்கள்" : "Total Students",
       value: staffList.length,
     },
     {
       icon: <School className="w-5 h-5 text-amber-500" />,
       accent: "bg-amber-400/70",
       iconBg: "bg-amber-400/10",
-      label: "School",
+      label: lang === "தமிழ்" ? "பள்ளி" : "School",
       value: "TN Govt School",
       small: true,
     },
@@ -214,8 +216,8 @@ export default function LeaveRequestsPage() {
 
   return (
     <PortalLayout
-      title="Leave Management"
-      subtitle="Track and request absences."
+      title={lang === "தமிழ்" ? "விடுமுறை நிர்வகம்" : "Leave Management"}
+      subtitle={lang === "தமிழ்" ? "விடுமுறைகளை கண்டறிந்து கேட்குங்கள்." : "Track and request absences."}
     >
       <div className="w-full max-w-full overflow-x-hidden">
         {/* Leave Quota Allowances */}
@@ -257,7 +259,7 @@ export default function LeaveRequestsPage() {
                 : "bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:border-[var(--primary)]/50"
               }`}
           >
-            <Users className="w-4 h-4" /> Student Leave
+            <Users className="w-4 h-4" /> {lang === "தமிழ்" ? "மாணவர் விடுமுறை" : "Student Leave"}
           </button>
           <button
             onClick={() => setActiveTab("Teacher")}
@@ -266,7 +268,7 @@ export default function LeaveRequestsPage() {
                 : "bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:border-[var(--primary)]/50"
               }`}
           >
-            <User className="w-4 h-4" /> My Leave
+            <User className="w-4 h-4" /> {lang === "தமிழ்" ? "எனது விடுமுறை" : "My Leave"}
           </button>
         </div>
 
@@ -276,12 +278,12 @@ export default function LeaveRequestsPage() {
           <div className="theme-card p-4 sm:p-5 lg:p-6 border border-[var(--border)] h-fit rounded-2xl bg-[var(--bg-card)] min-w-0">
             <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4">
               <FileText className="w-4 h-4 inline-block mr-1 text-[var(--primary)]" />{" "}
-              {activeTab === "Student" ? "Request Student Leave" : "Request My Leave"}
+              {activeTab === "Student" ? (lang === "தமிழ்" ? "மாணவர் விடுமுறை கேள்வி" : "Request Student Leave") : (lang === "தமிழ்" ? "எனது விடுமுறை கேள்வி" : "Request My Leave")}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">
-                  Leave Category
+                  {lang === "தமிழ்" ? "விடுமுறை வகை" : "Leave Category"}
                 </label>
                 <select
                   required
@@ -289,7 +291,7 @@ export default function LeaveRequestsPage() {
                   onChange={(e) => setLeaveType(e.target.value)}
                   className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                 >
-                  <option value="" disabled>Select Leave Category</option>
+                  <option value="" disabled>{lang === "தமிழ்" ? "விடுமுறை வகையைத் தேர்ந்தெடுக்கவும்" : "Select Leave Category"}</option>
                   {activeTab === "Student" ? (
                     <>
                       <optgroup label="Medical Reasons">
@@ -429,7 +431,7 @@ export default function LeaveRequestsPage() {
               <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-4">
                 <div className="min-w-0">
                   <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">
-                    Start Date
+                    {lang === "தமிழ்" ? "தொடக்க தேதி" : "Start Date"}
                   </label>
                   <div className="relative">
                     <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
@@ -444,7 +446,7 @@ export default function LeaveRequestsPage() {
                 </div>
                 <div className="min-w-0">
                   <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">
-                    End Date
+                    {lang === "தமிழ்" ? "முடிவு தேதி" : "End Date"}
                   </label>
                   <div className="relative">
                     <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
@@ -461,7 +463,7 @@ export default function LeaveRequestsPage() {
               {activeTab === "Student" ? (
                 <div>
                   <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">
-                    Student Name
+                    {lang === "தமிழ்" ? "மாணவர் பெயர்" : "Student Name"}
                   </label>
                   <select
                     required
@@ -469,7 +471,7 @@ export default function LeaveRequestsPage() {
                     onChange={(e) => setStudentId(e.target.value)}
                     className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                   >
-                    <option value="" disabled>Select Student Name</option>
+                    <option value="" disabled>{lang === "தமிழ்" ? "மாணவர் பெயரைத் தேர்வு செய்யவும்" : "Select Student Name"}</option>
                     {staffList.length > 0 ? (
                       staffList.map((st) => (
                         <option key={st.id} value={st.id}>
@@ -477,14 +479,14 @@ export default function LeaveRequestsPage() {
                         </option>
                       ))
                     ) : (
-                      <option value="" disabled>No students found</option>
+                      <option value="" disabled>{lang === "தமிழ்" ? "மாணவர்கள் எவரும் இல்ளை" : "No students found"}</option>
                     )}
                   </select>
                 </div>
               ) : (
                 <div>
                   <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">
-                    Teacher Name
+                    {lang === "தமிழ்" ? "ஆசிரியர் பெயர்" : "Teacher Name"}
                   </label>
                   <input
                     type="text"
@@ -498,14 +500,14 @@ export default function LeaveRequestsPage() {
               {leaveType === "Other (Specify)" && (
                 <div>
                   <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">
-                    Reason for Absence
+                    {lang === "தமிழ்" ? "வருகையின்மைக்கான காரணம்" : "Reason for Absence"}
                   </label>
                   <textarea
                     required
                     rows={3}
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    placeholder="Explain the reason briefly..."
+                    placeholder={lang === "தமிழ்" ? "காரணத்தைச் சுருக்கமாக விளக்கவும்..." : "Explain the reason briefly..."}
                     className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors resize-none"
                   />
                 </div>
@@ -515,7 +517,7 @@ export default function LeaveRequestsPage() {
                 type="submit"
                 className="w-full py-2.5 bg-[var(--primary)] hover:brightness-110 text-slate-950 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2"
               >
-                Submit Leave Request
+                {lang === "தமிழ்" ? "விடுமுறை கேள்வி சமர்ப்பி" : "Submit Leave Request"}
               </button>
             </form>
           </div>
@@ -526,7 +528,7 @@ export default function LeaveRequestsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <h2 className="text-base font-semibold text-[var(--text-heading)]">
                   <Clipboard className="w-4 h-4 inline-block mr-1 text-[var(--primary)]" />{" "}
-                  {recordTab === "Pending" ? "Pending Requests" : "Leave History"}
+                  {recordTab === "Pending" ? (lang === "தமிழ்" ? "நிலுவையிலுள்ள கேள்விகள்" : "Pending Requests") : (lang === "தமிழ்" ? "விடுமுறை வரலாறு" : "Leave History")}
                 </h2>
                 
                 {/* Record Tabs */}
@@ -539,7 +541,7 @@ export default function LeaveRequestsPage() {
                         : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
                     }`}
                   >
-                    Pending
+                    {lang === "தமிழ்" ? "நிலுவை" : "Pending"}
                   </button>
                   <button
                     onClick={() => setRecordTab("History")}
@@ -549,7 +551,7 @@ export default function LeaveRequestsPage() {
                         : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
                     }`}
                   >
-                    History
+                    {lang === "தமிழ்" ? "வரலாறு" : "History"}
                   </button>
                 </div>
               </div>
@@ -562,11 +564,11 @@ export default function LeaveRequestsPage() {
 
               {loading ? (
                 <div className="text-center py-8 text-xs text-[var(--text-muted)]">
-                  Loading leave history...
+                  {lang === "தமிழ்" ? "விடுமுறை வரலாறு ஏற்றப்படுகிறது..." : "Loading leave history..."}
                 </div>
               ) : filteredRequests.length === 0 ? (
                 <div className="text-center py-8 text-xs text-[var(--text-muted)]">
-                  No leave requests found.
+                  {lang === "தமிழ்" ? "விடுமுறை கேள்விகள் எதுவும் காணப்படவில்ளை." : "No leave requests found."}
                 </div>
               ) : (
                 <>
@@ -575,11 +577,11 @@ export default function LeaveRequestsPage() {
                     <table className="w-full text-left border-collapse min-w-[560px]">
                       <thead>
                         <tr className="bg-[var(--bg-main)] border-b border-[var(--border)] text-[var(--text-muted)] text-[11px] uppercase tracking-wider font-extrabold">
-                          <th className="p-3.5">Leave Type</th>
-                          <th className="p-3.5">Period Details</th>
-                          <th className="p-3.5">Reason</th>
-                          <th className="p-3.5">Name</th>
-                          <th className="p-3.5 text-center">Status</th>
+                          <th className="p-3.5">{lang === "தமிழ்" ? "விடுமுறை வகை" : "Leave Type"}</th>
+                          <th className="p-3.5">{lang === "தமிழ்" ? "கால விவரம்" : "Period Details"}</th>
+                          <th className="p-3.5">{lang === "தமிழ்" ? "காரணம்" : "Reason"}</th>
+                          <th className="p-3.5">{lang === "தமிழ்" ? "பெயர்" : "Name"}</th>
+                          <th className="p-3.5 text-center">{lang === "தமிழ்" ? "நிலை" : "Status"}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[var(--border)]">
@@ -610,7 +612,7 @@ export default function LeaveRequestsPage() {
                                     : "bg-amber-500/10 text-amber-500"
                                 }`}
                               >
-                                {req.status || "Pending"}
+                                {req.status === "Approved" ? (lang === "தமிழ்" ? "அனுமதிக்கப்பட்டது" : "Approved") : req.status === "Rejected" ? (lang === "தமிழ்" ? "நிராகரிக்கப்பட்டது" : "Rejected") : (lang === "தமிழ்" ? "நிலுவை" : "Pending")}
                               </span>
                             </td>
                           </tr>
@@ -650,7 +652,7 @@ export default function LeaveRequestsPage() {
                                 : "bg-amber-500/10 text-amber-500"
                             }`}
                           >
-                            {req.status || "Pending"}
+                             {req.status === "Approved" ? (lang === "தமிழ்" ? "அனுமதிக்கப்பட்டது" : "Approved") : req.status === "Rejected" ? (lang === "தமிழ்" ? "நிராகரிக்கப்பட்டது" : "Rejected") : (lang === "தமிழ்" ? "நிலுவை" : "Pending")}
                           </span>
                         </div>
                       </div>
@@ -677,7 +679,7 @@ export default function LeaveRequestsPage() {
                     onClick={() => setCurrentPage(currentPage - 1)}
                     className="p-2 text-xs rounded-xl border border-[var(--border)] text-[var(--text-heading)] bg-[var(--bg-main)] hover:bg-[var(--bg-card-hover)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
-                    ← Prev
+                    ← {lang === "தமிழ்" ? "முந்தையது" : "Prev"}
                   </button>
 
                   {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
@@ -698,7 +700,7 @@ export default function LeaveRequestsPage() {
                     onClick={() => setCurrentPage(currentPage + 1)}
                     className="p-2 text-xs rounded-xl border border-[var(--border)] text-[var(--text-heading)] bg-[var(--bg-main)] hover:bg-[var(--bg-card-hover)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
-                    Next →
+                    {lang === "தமிழ்" ? "அடுதது" : "Next"} →
                   </button>
                 </div>
               </div>

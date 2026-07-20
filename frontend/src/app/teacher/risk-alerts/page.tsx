@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import { AlertTriangle, Plus, Search, Mail, Edit, CheckCircle, Trash2, X, Users, Percent, TrendingDown, FileText, Check, Circle, Clipboard, Lightbulb } from "lucide-react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface AtRiskStudent {
   id: string;
@@ -23,6 +24,7 @@ interface AtRiskStudent {
 }
 
 export default function RiskAlertsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const teacherId = (session?.user as any)?.id;
@@ -402,14 +404,14 @@ export default function RiskAlertsPage() {
 
   return (
     <PortalLayout
-      title="Risk Alerts"
-      subtitle="Early-warning indicators identifying students requiring urgent academic support"
+      title={lang === "தமிழ்" ? "ஆபத்து எச்சரிக்கைகள்" : "Risk Alerts"}
+      subtitle={lang === "தமிழ்" ? "அவசரகால கலவி ஆதரவு தேவைப்படும் மாணவர்களை அடையாளம் காணும் முன் எச்சரிக்கை குறிகள்" : "Early-warning indicators identifying students requiring urgent academic support"}
     >
       {/* Stats Board */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 mb-6">
         <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="block text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider">Total Alerts</span>
+            <span className="block text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-wider">{lang === "தமிழ்" ? "மொத்த எச்சரிக்கைகள்" : "Total Alerts"}</span>
             <span className="text-2xl font-black text-[var(--text-heading)]">{stats.total}</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-450">

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import KpiStrip from "@/components/kpi/KpiStrip";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 // ─── Types ─────────────────────────────────────────────────────
 interface DailyClass {
@@ -80,6 +81,7 @@ const EMPTY_FORM = {
 
 // ─── Component ─────────────────────────────────────────────────
 export default function ClassesPage() {
+  const { t } = usePortalLanguage();
   const { data: session } = useSession();
   const user = session?.user as any;
   const schoolId = user?.schoolId || "";
@@ -462,7 +464,7 @@ export default function ClassesPage() {
 
   // ─── Render ────────────────────────────────────────────────
   return (
-    <PortalLayout title="My Classes" subtitle="Manage your sections, student rosters, and schedules">
+    <PortalLayout title={t("my_classes")} subtitle={t("manage_sections")}>
       {/* Academic-year school KPIs */}
       {/* <KpiStrip path={schoolId ? `/api/analytics/school/${schoolId}` : null} title="School KPIs" variant="light" /> */}
 
@@ -479,7 +481,7 @@ export default function ClassesPage() {
       {/* Today's Schedule & Actions */}
       <div className="mb-6">
         <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center mb-4">
-          <i className="fi fi-rr-calendar-day mr-2 text-amber-500"></i> Today's Schedule
+          <i className="fi fi-rr-calendar-day mr-2 text-amber-500"></i> {t("todays_schedule")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {todayClasses.map(tc => (
@@ -498,7 +500,7 @@ export default function ClassesPage() {
                   tc.status === 'Postponed' ? "bg-red-100 text-red-700" :
                     "bg-amber-100 text-amber-700"
                   }`}>
-                  {tc.status}
+                  {tc.status === 'Completed' ? t("completed") : tc.status === 'Postponed' ? t("postponed") : t("scheduled")}
                 </span>
               </div>
 
@@ -507,13 +509,13 @@ export default function ClassesPage() {
                   onClick={() => showToast("Redirecting to Attendance Module...", "success")}
                   className="flex-1 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-600 border border-sky-200 rounded-lg text-xs font-bold transition-colors"
                 >
-                  <i className="fi fi-rr-users-alt mr-1"></i> Attendance
+                  <i className="fi fi-rr-users-alt mr-1"></i> {t("attendance")}
                 </button>
                 <button
                   onClick={() => handleOpenNotes(tc)}
                   className="flex-1 py-1.5 bg-violet-50 hover:bg-violet-100 text-violet-600 border border-violet-200 rounded-lg text-xs font-bold transition-colors"
                 >
-                  <i className="fi fi-rr-document mr-1"></i> Notes
+                  <i className="fi fi-rr-document mr-1"></i> {t("notes")}
                 </button>
                 {tc.status !== 'Postponed' && tc.status !== 'Completed' && (
                   <button
@@ -529,7 +531,7 @@ export default function ClassesPage() {
           ))}
           {todayClasses.length === 0 && (
             <div className="col-span-full py-8 text-center bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-              <p className="text-slate-400 text-sm">No classes scheduled for today.</p>
+              <p className="text-slate-400 text-sm">{t("no_classes_scheduled")}</p>
             </div>
           )}
         </div>
@@ -538,10 +540,10 @@ export default function ClassesPage() {
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Classes", value: classes.length, icon: <i className="fi fi-rr-building"></i>, color: "text-amber-500" },
-          { label: "Active Classes", value: activeCount, icon: <i className="fi fi-rr-check-circle"></i>, color: "text-emerald-500" },
-          { label: "Total Students", value: totalStudents, icon: <i className="fi fi-rr-graduation-cap"></i>, color: "text-violet-500" },
-          { label: "Subjects Taught", value: uniqueSubjects.length, icon: <i className="fi fi-rr-book-alt"></i>, color: "text-sky-500" },
+          { label: t("total_classes"), value: classes.length, icon: <i className="fi fi-rr-building"></i>, color: "text-amber-500" },
+          { label: t("active_classes"), value: activeCount, icon: <i className="fi fi-rr-check-circle"></i>, color: "text-emerald-500" },
+          { label: t("total_students"), value: totalStudents, icon: <i className="fi fi-rr-graduation-cap"></i>, color: "text-violet-500" },
+          { label: t("subjects_taught"), value: uniqueSubjects.length, icon: <i className="fi fi-rr-book-alt"></i>, color: "text-sky-500" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
             <div className="flex items-center justify-between mb-1">
@@ -558,16 +560,16 @@ export default function ClassesPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <h2 className="text-sm font-bold text-slate-800 dark:text-white"><i className="fi fi-rr-clipboard mr-2 text-amber-500"></i>Class Directory</h2>
+              <h2 className="text-sm font-bold text-slate-800 dark:text-white"><i className="fi fi-rr-clipboard mr-2 text-amber-500"></i>{t("class_directory")}</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Showing classes assigned to you from PostgreSQL — filter by class or subject.
+                {t("showing_assigned_classes")}
               </p>
             </div>
             <button
               onClick={openAdd}
               className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-md whitespace-nowrap self-start lg:self-auto"
             >
-              + Create Class
+              + {t("create_class")}
             </button>
           </div>
 
@@ -575,13 +577,13 @@ export default function ClassesPage() {
           <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 dark:border-slate-800 pt-4">
             {/* Class Dropdown — fetched from DB */}
             <div className="flex flex-col gap-0.5">
-              <label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Filter by Class</label>
+              <label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{t("filter_by_class")}</label>
               <select
                 value={filterClass}
                 onChange={(e) => { setFilterClass(e.target.value); }}
                 className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-white focus:outline-none focus:border-amber-500 transition-colors min-w-[160px]"
               >
-                <option value="All">All Classes</option>
+                <option value="All">{t("all_classes")}</option>
                 {classOptions.map((opt) => (
                   <option key={`${opt.className}-${opt.section}`} value={`${opt.className}-${opt.section}`}>
                     Class {opt.className} — {opt.section}
@@ -592,23 +594,23 @@ export default function ClassesPage() {
 
             {/* Subject Dropdown */}
             <div className="flex flex-col gap-0.5">
-              <label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Filter by Subject</label>
+              <label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{t("filter_by_subject")}</label>
               <select
                 value={filterSubj}
                 onChange={(e) => setFilterSubj(e.target.value)}
                 className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-white focus:outline-none focus:border-amber-500 transition-colors min-w-[150px]"
               >
-                <option value="All">All Subjects</option>
+                <option value="All">{t("all_subjects")}</option>
                 {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
 
             {/* Search */}
             <div className="flex flex-col gap-0.5">
-              <label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Search</label>
+              <label className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{t("search")}</label>
               <input
                 type="text"
-                placeholder="Class, subject, room..."
+                placeholder={t("search_placeholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 w-52 transition-colors"
@@ -640,7 +642,7 @@ export default function ClassesPage() {
                   onClick={() => { setFilterClass("All"); setFilterSubj("All"); setSearch(""); }}
                   className="text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-white underline"
                 >
-                  Clear all
+                  {t("clear_all")}
                 </button>
               </div>
             )}
@@ -652,13 +654,13 @@ export default function ClassesPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-8 h-8 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin mb-3" />
-          <span className="text-xs text-slate-400">Loading classes from PostgreSQL...</span>
+          <span className="text-xs text-slate-400">{t("loading_classes")}</span>
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
           <span className="text-5xl block mb-4 text-slate-300 dark:text-slate-700"><i className="fi fi-rr-building"></i></span>
           <h3 className="text-sm font-bold text-slate-700 dark:text-white mb-2">
-            {classes.length === 0 ? "No Classes Created Yet" : "No Matching Classes Found"}
+            {classes.length === 0 ? t("no_classes_created") : t("no_matching_classes")}
           </h3>
           <p className="text-xs text-slate-400 mb-5">
             {classes.length === 0
@@ -670,7 +672,7 @@ export default function ClassesPage() {
               onClick={openAdd}
               className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-md"
             >
-              + Create First Class
+              + {t("create_first_class")}
             </button>
           )}
         </div>

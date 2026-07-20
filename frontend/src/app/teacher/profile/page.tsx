@@ -1,11 +1,11 @@
 "use client";
 import { CheckCircle, Building2, Settings, Star, Pencil, X } from "lucide-react";
 
-
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface ProfileData {
   id: string;
@@ -26,6 +26,7 @@ interface ProfileData {
 }
 
 export default function TeacherProfilePage() {
+  const { lang } = usePortalLanguage();
   const { data: session, update: updateSession } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   const userId = (session?.user as any)?.id;
@@ -106,7 +107,6 @@ export default function TeacherProfilePage() {
 
       const result = await res.json();
       if (result.success) {
-        // Trigger a session refresh if name changed
         if (session && session.user && name !== session.user.name) {
           await updateSession({
             ...session,
@@ -119,8 +119,8 @@ export default function TeacherProfilePage() {
 
         Swal.fire({
           icon: "success",
-          title: "Profile Updated!",
-          text: "Your profile details have been saved successfully.",
+          title: lang === "தமிழ்" ? "விவரப்படிவு புதுப்பிக்கப்பட்டது!" : "Profile Updated!",
+          text: lang === "தமிழ்" ? "உங்கள் விவரங்கள் வெற்றிகரமாக சேமிக்கப்பட்டன." : "Your profile details have been saved successfully.",
           timer: 2000,
           showConfirmButton: false,
         });
@@ -130,7 +130,7 @@ export default function TeacherProfilePage() {
       } else {
         Swal.fire({
           icon: "error",
-          title: "Save Failed",
+          title: lang === "தமிழ்" ? "சேமிப்பு தோல்வி" : "Save Failed",
           text: result.error || "Could not save profile details.",
           confirmButtonColor: "#ef4444",
         });
@@ -159,13 +159,13 @@ export default function TeacherProfilePage() {
   };
 
   return (
-    <PortalLayout title="My Profile" subtitle="View and edit your personal educational credentials.">
+    <PortalLayout title={lang === "தமிழ்" ? "என் விவரப்படிவு" : "My Profile"} subtitle={lang === "தமிழ்" ? "உங்கள் தனிப்பட்ட கல்வி தகுதிகள் காணுங்கள் மற்றும் திருத்துங்கள்." : "View and edit your personal educational credentials."}>
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
 
         {/* Left Card: Profile overview */}
         <div className="theme-card p-6 border border-[var(--border)] flex flex-col items-center text-center relative overflow-hidden">
           {loading ? (
-            <div className="py-20 text-xs text-[var(--text-muted)]">Loading credentials...</div>
+            <div className="py-20 text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "சான்றிதழ்கள் ஏற்றுகிறது..." : "Loading credentials..."}</div>
           ) : profile ? (
             <>
               {/* Header background card decoration */}
@@ -200,40 +200,40 @@ export default function TeacherProfilePage() {
                 {/* Meta details list */}
                 <div className="w-full text-left space-y-3.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[var(--text-muted)] font-medium">EMIS Staff ID</span>
+                    <span className="text-[var(--text-muted)] font-medium">{lang === "தமிழ்" ? "EMIS ஊழியர் ID" : "EMIS Staff ID"}</span>
                     <span className="font-bold text-[var(--text-heading)] select-all">{profile.emisId}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[var(--text-muted)] font-medium">Subjects Taught</span>
+                    <span className="text-[var(--text-muted)] font-medium">{lang === "தமிழ்" ? "கற்பிக்கும் பாடங்கள்" : "Subjects Taught"}</span>
                     <span className="font-bold text-[var(--text-heading)] max-w-[150px] truncate" title={profile.subject}>
                       {profile.subject}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[var(--text-muted)] font-medium">Qualification</span>
+                    <span className="text-[var(--text-muted)] font-medium">{lang === "தமிழ்" ? "தகுதி" : "Qualification"}</span>
                     <span className="font-bold text-[var(--text-heading)]">{profile.qualification}</span>
                   </div>
                   {profile.joiningDate && (
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-[var(--text-muted)] font-medium">Joining Date</span>
+                      <span className="text-[var(--text-muted)] font-medium">{lang === "தமிழ்" ? "சேர்ந்த தேதி" : "Joining Date"}</span>
                       <span className="font-bold text-[var(--text-heading)]">{profile.joiningDate}</span>
                     </div>
                   )}
                   {profile.gender && (
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-[var(--text-muted)] font-medium">Gender</span>
+                      <span className="text-[var(--text-muted)] font-medium">{lang === "தமிழ்" ? "பாலினம்" : "Gender"}</span>
                       <span className="font-bold text-[var(--text-heading)]">{profile.gender}</span>
                     </div>
                   )}
                   {profile.dob && (
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-[var(--text-muted)] font-medium">Date of Birth</span>
+                      <span className="text-[var(--text-muted)] font-medium">{lang === "தமிழ்" ? "பிறந்த தேதி" : "Date of Birth"}</span>
                       <span className="font-bold text-[var(--text-heading)]">{profile.dob}</span>
                     </div>
                   )}
                   {profile.address && (
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-[var(--text-muted)] font-medium">Residential Address</span>
+                      <span className="text-[var(--text-muted)] font-medium">{lang === "தமிழ்" ? "முகவரி" : "Residential Address"}</span>
                       <span className="font-bold text-[var(--text-heading)] max-w-[150px] truncate" title={profile.address}>
                         {profile.address}
                       </span>
@@ -243,23 +243,23 @@ export default function TeacherProfilePage() {
               </div>
             </>
           ) : (
-            <div className="py-20 text-xs text-red-400 italic">Failed to load profile.</div>
+            <div className="py-20 text-xs text-red-400 italic">{lang === "தமிழ்" ? "விவரப்படிவு ஏற்றல் தோல்வி." : "Failed to load profile."}</div>
           )}
         </div>
 
         {/* Right Columns: Edit form */}
         <div className="xl:col-span-2 theme-card p-6 border border-[var(--border)]">
-          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4"><Settings className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Profile Details</h2>
+          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4"><Settings className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "விவரப்படிவு விவரங்கள்" : "Profile Details"}</h2>
 
           {loading ? (
             <div className="py-32 text-center text-xs text-[var(--text-muted)]">
-              Loading fields...
+              {lang === "தமிழ்" ? "தகவல்கள் ஏற்றுகிறது..." : "Loading fields..."}
             </div>
           ) : (
             <form onSubmit={handleSave} className="space-y-4">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Full Name</label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "முழு பெயர்" : "Full Name"}</label>
                   <input
                     type="text"
                     required
@@ -272,7 +272,7 @@ export default function TeacherProfilePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Email Address</label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "மின்னஞ்சல் முகவரி" : "Email Address"}</label>
                   <input
                     type="email"
                     required
@@ -287,7 +287,7 @@ export default function TeacherProfilePage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Phone Number</label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "தொலைபேசி எண்" : "Phone Number"}</label>
                   <input
                     type="tel"
                     disabled={!isEditing}
@@ -299,7 +299,7 @@ export default function TeacherProfilePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Academic Qualification</label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "கல்வித் தகுதி" : "Academic Qualification"}</label>
                   <input
                     type="text"
                     disabled={!isEditing}
@@ -313,7 +313,7 @@ export default function TeacherProfilePage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Subject Specialties (comma separated)</label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "பாட நிபுணதை (கமாவால் பிரிக்கவும்)" : "Subject Specialties (comma separated)"}</label>
                   <input
                     type="text"
                     disabled={!isEditing}
@@ -325,7 +325,7 @@ export default function TeacherProfilePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Joining Date</label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "சேர்ந்த தேதி" : "Joining Date"}</label>
                   <input
                     type="date"
                     disabled={!isEditing}
@@ -338,22 +338,22 @@ export default function TeacherProfilePage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Gender</label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "பாலினம்" : "Gender"}</label>
                   <select
                     disabled={!isEditing}
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
                     className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors disabled:opacity-75 disabled:cursor-not-allowed"
                   >
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
+                    <option value="">{lang === "தமிழ்" ? "பாலினம் தேர்வு" : "Select Gender"}</option>
+                    <option value="Male">{lang === "தமிழ்" ? "ஆண்" : "Male"}</option>
+                    <option value="Female">{lang === "தமிழ்" ? "பெண்" : "Female"}</option>
+                    <option value="Other">{lang === "தமிழ்" ? "பிற" : "Other"}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Date of Birth</label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "பிறந்த தேதி" : "Date of Birth"}</label>
                   <input
                     type="date"
                     disabled={!isEditing}
@@ -365,7 +365,7 @@ export default function TeacherProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Residential Address</label>
+                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "வசிப்பிட முகவரி" : "Residential Address"}</label>
                 <textarea
                   disabled={!isEditing}
                   value={address}
@@ -377,7 +377,7 @@ export default function TeacherProfilePage() {
               </div>
 
               <div>
-                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Assigned Registry School (Read-Only)</label>
+                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "நியமிக்கப்பட்ட பள்ளி (படிக்க மட்டும்)" : "Assigned Registry School (Read-Only)"}</label>
                 <input
                   type="text"
                   disabled
@@ -393,7 +393,7 @@ export default function TeacherProfilePage() {
                     onClick={() => setIsEditing(true)}
                     className="px-6 py-2.5 bg-[var(--primary)] hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-md flex items-center gap-2"
                   >
-                    <Pencil className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> Edit Profile
+                    <Pencil className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "விவரப்படிவு திருத்து" : "Edit Profile"}
                   </button>
                 ) : (
                   <>
@@ -405,14 +405,14 @@ export default function TeacherProfilePage() {
                       }}
                       className="px-6 py-2.5 bg-[var(--bg-card-hover)] border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--sidebar-item-hover-bg)] font-bold rounded-xl text-xs transition-all"
                     >
-                      <X className="w-4 h-4 inline-block mr-1 text-inherit" /> Cancel
+                      <X className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "ரத்து" : "Cancel"}
                     </button>
                     <button
                       type="submit"
                       disabled={saving}
                       className="px-6 py-2.5 bg-[var(--primary)] hover:bg-amber-600 disabled:bg-[var(--bg-card)] disabled:text-[var(--text-muted)] text-slate-950 font-bold rounded-xl text-xs transition-all shadow-md flex items-center gap-2"
                     >
-                      {saving ? "Saving..." : " Save Profile Details"}
+                      {saving ? (lang === "தமிழ்" ? "சேமிக்கிறது..." : "Saving...") : (lang === "தமிழ்" ? " விவரங்களை சேமி" : " Save Profile Details")}
                     </button>
                   </>
                 )}

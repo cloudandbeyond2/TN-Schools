@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { 
   Calendar, MapPin, FileText, CheckCircle2, 
   Clock, AlertCircle, Filter, Search, GraduationCap,
@@ -125,6 +126,7 @@ function calcLocal(row: any, isHsc: boolean) {
 }
 
 export default function TeacherExamsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId || "";
   const [exams, setExams] = useState<ExamCalendar[]>([]);
@@ -354,8 +356,8 @@ export default function TeacherExamsPage() {
 
   return (
     <PortalLayout
-      title="Examination Center & Analytics"
-      subtitle={`${teacherName} · ${(session?.user as any)?.schoolName || "Holy Cross Higher Secondary School"} · Teacher Exam Desk`}
+      title={lang === "தமிழ்" ? "தேர்வு மையம் மற்றும் பகுப்பாய்வு" : "Examination Center & Analytics"}
+      subtitle={`${teacherName} · ${(session?.user as any)?.schoolName || (lang === "தமிழ்" ? "புனித சிலுவை மேல்நிலைப்பள்ளி" : "Holy Cross Higher Secondary School")} · ${lang === "தமிழ்" ? "ஆசிரியர் தேர்வு பணிமனை" : "Teacher Exam Desk"}`}
       avatarLetter={(teacherName || "Teacher").charAt(0)}
       avatarColor="#f59e0b"
       themeClass="theme-teacher"
@@ -371,7 +373,7 @@ export default function TeacherExamsPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <Calendar className="w-4 h-4" /> Exam Schedules &amp; Duties
+          <Calendar className="w-4 h-4" /> {lang === "தமிழ்" ? "தேர்வு அட்டவணைகள் & கடமைகள்" : "Exam Schedules & Duties"}
         </button>
         <button
           onClick={() => setActiveTab("results")}
@@ -381,7 +383,7 @@ export default function TeacherExamsPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <Award className="w-4 h-4" /> Model Exam Results
+          <Award className="w-4 h-4" /> {lang === "தமிழ்" ? "மாதிரி தேர்வு முடிவுகள்" : "Model Exam Results"}
         </button>
       </div>
 
@@ -395,7 +397,7 @@ export default function TeacherExamsPage() {
                 <FileText className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Published Exams</div>
+                <div className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">{lang === "தமிழ்" ? "வெளியிடப்பட்ட தேர்வுகள்" : "Published Exams"}</div>
                 <div className="text-xl font-black mt-0.5">{totalExams}</div>
               </div>
             </div>
@@ -405,7 +407,7 @@ export default function TeacherExamsPage() {
                 <UserCheck className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">My Total Duties</div>
+                <div className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">{lang === "தமிழ்" ? "எனது மொத்த கடமைகள்" : "My Total Duties"}</div>
                 <div className="text-xl font-black mt-0.5">{myDutiesCount}</div>
               </div>
             </div>
@@ -418,7 +420,7 @@ export default function TeacherExamsPage() {
                 )}
               </div>
               <div>
-                <div className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">My Pending Duties</div>
+                <div className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">{lang === "தமிழ்" ? "எனது நிலுவைக் கடமைகள்" : "My Pending Duties"}</div>
                 <div className="text-xl font-black mt-0.5">{myPendingDuties}</div>
               </div>
             </div>
@@ -428,7 +430,7 @@ export default function TeacherExamsPage() {
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Completed</div>
+                <div className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">{lang === "தமிழ்" ? "முடிவடைநதவை" : "Completed"}</div>
                 <div className="text-xl font-black mt-0.5">{myDutiesCount - myPendingDuties}</div>
               </div>
             </div>
@@ -441,9 +443,13 @@ export default function TeacherExamsPage() {
                 <div key={`notif-${duty.id}`} className="p-4 bg-amber-50 border border-amber-200/80 text-amber-900 rounded-2xl flex flex-col sm:flex-row gap-3 shadow-sm">
                   <ShieldAlert className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
                   <div>
-                    <strong className="text-xs font-black block uppercase tracking-wider text-amber-900">⚠️ Upcoming Invigilation Duty Notification</strong>
+                    <strong className="text-xs font-black block uppercase tracking-wider text-amber-900">{lang === "தமிழ்" ? "⚠️ வரவிருக்கும் தேர்வு கண்காணிப்பாளர் பணி அறிவிப்பு" : "⚠️ Upcoming Invigilation Duty Notification"}</strong>
                     <p className="text-xs mt-1 font-semibold leading-relaxed text-amber-800">
-                      You are assigned to invigilate the <strong className="text-slate-900 font-extrabold">{duty.name} ({duty.subject})</strong> for <strong className="text-slate-900 font-bold">{duty.classSection}</strong> on <strong className="text-amber-900 underline">{formatStudentFriendlyDate(duty.date)}</strong> at <strong className="text-slate-900 font-bold">{duty.timeSlot}</strong>. Seating Room: <strong className="text-purple-900 font-bold">{duty.hall.split(" (")[0]}</strong>.
+                      {lang === "தமிழ்" ? (
+                        <>வகுப்பு <strong className="text-slate-900 font-bold">{duty.classSection}</strong>-க்கான <strong className="text-slate-900 font-extrabold">{duty.name} ({duty.subject})</strong> தேர்வை <strong className="text-amber-900 underline">{formatStudentFriendlyDate(duty.date)}</strong> அன்று <strong className="text-slate-900 font-bold">{duty.timeSlot}</strong> மணிக்கு கண்காணிக்க நீங்கள் நியமிக்கப்பட்டுள்ளீர்கள். அமர்வு அறை: <strong className="text-purple-900 font-bold">{duty.hall.split(" (")[0]}</strong>.</>
+                      ) : (
+                        <>You are assigned to invigilate the <strong className="text-slate-900 font-extrabold">{duty.name} ({duty.subject})</strong> for <strong className="text-slate-900 font-bold">{duty.classSection}</strong> on <strong className="text-amber-900 underline">{formatStudentFriendlyDate(duty.date)}</strong> at <strong className="text-slate-900 font-bold">{duty.timeSlot}</strong>. Seating Room: <strong className="text-purple-900 font-bold">{duty.hall.split(" (")[0]}</strong>.</>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -456,7 +462,7 @@ export default function TeacherExamsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-850 pb-5 mb-5">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-amber-500" />
-                  <h2 className="text-sm font-bold text-white">My Assigned Exam Duties</h2>
+                  <h2 className="text-sm font-bold text-white">{lang === "தமிழ்" ? "எனக்கு ாஒதுக்கப்பட்ட தேர்வு கடமைகள்" : "My Assigned Exam Duties"}</h2>
                   <span className="bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-black px-2 py-0.5 rounded-md">
                     {filteredExams.length}
                   </span>
@@ -465,7 +471,7 @@ export default function TeacherExamsPage() {
                   <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
                   <input
                     type="text"
-                    placeholder="Quick search exam/subject..."
+                    placeholder={lang === "தமிழ்" ? "தேர்வு/பாடத்தை விரைவாகத் தேடுங்கள்..." : "Quick search exam/subject..."}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full bg-slate-950/60 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:bg-slate-950 transition-all"
@@ -480,7 +486,7 @@ export default function TeacherExamsPage() {
                   onChange={(e) => setTypeFilter(e.target.value)}
                   className="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-[11px] font-bold text-slate-300 focus:outline-none cursor-pointer hover:border-slate-700"
                 >
-                  <option value="All">All Types</option>
+                  <option value="All">{lang === "தமிழ்" ? "அனைத்து வகைகள்" : "All Types"}</option>
                   {examTypesList.filter(t => t !== "All").map((t) => (
                     <option key={t} value={t}>{t}</option>
                   ))}
@@ -491,7 +497,7 @@ export default function TeacherExamsPage() {
                   onChange={(e) => setClassFilter(e.target.value)}
                   className="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-[11px] font-bold text-slate-300 focus:outline-none cursor-pointer hover:border-slate-700"
                 >
-                  <option value="All">All Classes</option>
+                  <option value="All">{lang === "தமிழ்" ? "அனைத்து வகுப்புகள்" : "All Classes"}</option>
                   {CLASS_OPTIONS.map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
@@ -508,7 +514,10 @@ export default function TeacherExamsPage() {
                           : "text-slate-400 hover:text-white"
                       }`}
                     >
-                      {s}
+                      {(() => {
+                        const labels: Record<string, string> = lang === "தமிழ்" ? { "All": "அனைத்தும்", "Scheduled": "திட்டமிடப்பட்டது", "In Progress": "நடைபெறுகிறது", "Completed": "முடிவடைநதது" } : { "All": "All", "Scheduled": "Scheduled", "In Progress": "In Progress", "Completed": "Completed" };
+                        return labels[s] || s;
+                      })()}
                     </button>
                   ))}
                 </div>
@@ -517,16 +526,16 @@ export default function TeacherExamsPage() {
               {!isMounted ? (
                 <div className="flex-1 flex flex-col items-center justify-center gap-3 py-10">
                   <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
-                  <div className="text-xs font-semibold text-slate-400">Loading schedules...</div>
+                  <div className="text-xs font-semibold text-slate-400">{lang === "தமிழ்" ? "அட்டவணைகள் ஏற்றப்படுகின்றன..." : "Loading schedules..."}</div>
                 </div>
               ) : filteredExams.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-slate-800 rounded-xl bg-slate-900/10">
                   <div className="p-4 bg-slate-900/40 rounded-full text-slate-500 border border-slate-800 mb-3">
                     <AlertCircle className="w-8 h-8" />
                   </div>
-                  <h3 className="text-sm font-bold text-white mb-1">No exam timetables published</h3>
+                  <h3 className="text-sm font-bold text-white mb-1">{lang === "தமிழ்" ? "தேர்வு கால அட்டவணைகள் வெளியிடப்படவில்ளை" : "No exam timetables published"}</h3>
                   <p className="text-xs text-slate-500 max-w-sm">
-                    Headmaster has not published any exam schedules yet, or check your filter parameters.
+                    {lang === "தமிழ்" ? "தலைமையாசிரியர் இன்னும் தேர்வு அட்டவணைகளை வெளியிடவில்ளை, அல்லது உங்கள் வடிகட்டி அமைப்புகளைச் சரிபார்க்கவும்." : "Headmaster has not published any exam schedules yet, or check your filter parameters."}
                   </p>
                 </div>
               ) : (
@@ -547,7 +556,7 @@ export default function TeacherExamsPage() {
                           </span>
                           <span className={`text-[9px] font-extrabold px-2 py-0.5 border rounded-md flex items-center gap-1 ${getModeBadgeStyle(ex.examMode)}`}>
                             {getModeIcon(ex.examMode)}
-                            {ex.examMode || "Theory"}
+                            {ex.examMode === "Theory" ? (lang === "தமிழ்" ? "தியரி" : "Theory") : ex.examMode === "Practical" ? (lang === "தமிழ்" ? "செய்முறை" : "Practical") : ex.examMode === "Both" ? (lang === "தமிழ்" ? "இரண்டும்" : "Both") : (ex.examMode || (lang === "தமிழ்" ? "தியரி" : "Theory"))}
                           </span>
                           <span className="text-[9px] text-slate-400 font-bold bg-slate-800/60 px-2 py-0.5 rounded-md border border-slate-700/50 flex items-center gap-1">
                             <Calendar className="w-3 h-3 text-slate-500" />
@@ -560,8 +569,8 @@ export default function TeacherExamsPage() {
                         </div>
                         <h3 className="text-sm font-bold text-white">{ex.name}</h3>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] text-slate-400 font-semibold">
-                          <div>Subject: <span className="text-slate-200 font-bold">{ex.subject}</span></div>
-                          <div>Invigilator: <span className="text-white font-bold">{ex.invigilator}</span></div>
+                          <div>{lang === "தமிழ்" ? "பாடம்: " : "Subject: "}<span className="text-slate-200 font-bold">{ex.subject}</span></div>
+                          <div>{lang === "தமிழ்" ? "கண்காணிப்பாளர்: " : "Invigilator: "}<span className="text-white font-bold">{ex.invigilator}</span></div>
                           <div className="flex items-center gap-1">
                             <Award className="w-3 h-3 text-amber-400" />
                             <span className="text-amber-300 font-bold">{getTotalMarks(ex)}</span>
@@ -574,7 +583,7 @@ export default function TeacherExamsPage() {
                           ex.status === "In Progress" ? "bg-rose-500/20 border-rose-500/30 text-rose-300 font-extrabold shadow-[0_0_10px_rgba(244,63,94,0.3)]" :
                           "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                         }`}>
-                          {ex.status}
+                          {ex.status === "Scheduled" ? (lang === "தமிழ்" ? "திட்டமிடப்பட்டது" : "Scheduled") : ex.status === "In Progress" ? (lang === "தமிழ்" ? "நடைபெறுகிறது" : "In Progress") : (lang === "தமிழ்" ? "முடிவடைநதது" : "Completed")}
                         </span>
                         <div className="text-[10px] text-purple-300 font-bold flex items-center gap-1 bg-purple-950/20 border border-purple-900/35 px-2 py-1 rounded-lg">
                           <MapPin className="w-3.5 h-3.5 text-purple-400" />
@@ -592,15 +601,14 @@ export default function TeacherExamsPage() {
               <div className="glass rounded-2xl p-6">
                 <h2 className="text-base font-bold text-white mb-2 flex items-center gap-2">
                   <UserCheck className="w-5 h-5 text-amber-500" />
-                  My Invigilation Duties
+                  {lang === "தமிழ்" ? "எனது தேர்வு கண்காணிப்பு கடமைகள்" : "My Invigilation Duties"}
                 </h2>
                 <p className="text-xs text-slate-500 leading-relaxed mb-4">
-                  Timetable as scheduled by the Headmaster office.
-                </p>
+                  {lang === "தமிழ்" ? "தலைமையாசிரியர் அலுவலகத்தால் திட்டமிடப்பட்ட கால அட்டவணை." : "Timetable as scheduled by the Headmaster office."}</p>
 
                 {myDuties.length === 0 ? (
                   <div className="text-center py-8 text-xs text-slate-650 border border-dashed border-[var(--border)] rounded-xl bg-[var(--input-bg)] font-semibold italic">
-                    No invigilation duties assigned to you.
+                    {lang === "தமிழ்" ? "உங்களுக்கு கண்காணிப்பு கடமைகள் எதுவும் ஒதுக்கப்படவில்ளை." : "No invigilation duties assigned to you."}
                   </div>
                 ) : (
                   <div className="space-y-4 max-h-[550px] overflow-y-auto pr-1">
@@ -623,9 +631,9 @@ export default function TeacherExamsPage() {
                         <div>
                           <h4 className="text-sm font-black text-white leading-snug">{duty.name}</h4>
                           <div className="text-xs text-slate-400 font-medium mt-1.5 space-y-1">
-                            <div>Class: <strong className="text-white font-extrabold">{duty.classSection}</strong></div>
-                            <div>Subject: <strong className="text-white font-extrabold">{duty.subject}</strong></div>
-                            <div>Time Slot: <strong className="text-indigo-400 font-extrabold">{duty.timeSlot}</strong></div>
+                            <div>{lang === "தமிழ்" ? "வகுப்பு: " : "Class: "}<strong className="text-white font-extrabold">{duty.classSection}</strong></div>
+                            <div>{lang === "தமிழ்" ? "பாடம்: " : "Subject: "}<strong className="text-white font-extrabold">{duty.subject}</strong></div>
+                            <div>{lang === "தமிழ்" ? "நேர அலகு: " : "Time Slot: "}<strong className="text-indigo-400 font-extrabold">{duty.timeSlot}</strong></div>
                           </div>
                           <div className="flex flex-wrap items-center gap-2 mt-3">
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${
@@ -634,15 +642,15 @@ export default function TeacherExamsPage() {
                               "bg-blue-500/10 border-blue-500/20 text-blue-300"
                             }`}>
                               {getModeIcon(duty.examMode)}
-                              {duty.examMode || "Theory"}
+                              {duty.examMode === "Theory" ? (lang === "தமிழ்" ? "தியரி" : "Theory") : duty.examMode === "Practical" ? (lang === "தமிழ்" ? "செய்முறை" : "Practical") : duty.examMode === "Both" ? (lang === "தமிழ்" ? "இரண்டும்" : "Both") : (duty.examMode || (lang === "தமிழ்" ? "தியரி" : "Theory"))}
                             </span>
                             <span className="text-[10px] text-amber-300 bg-amber-500/10 border border-amber-500/20 font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
                               <Award className="w-3 h-3 text-amber-500" />
                               {duty.examMode === "Both"
-                                ? `${duty.theoryMaxMarks} (T) + ${duty.practicalMaxMarks} (P) = 100 Marks`
+                                ? `${duty.theoryMaxMarks} (T) + ${duty.practicalMaxMarks} (P) = 100 ${lang === "தமிழ்" ? "மதிப்பெண்கள்" : "Marks"}`
                                 : duty.examMode === "Practical"
-                                ? `${duty.practicalMaxMarks} Marks`
-                                : `${duty.theoryMaxMarks ?? 100} Marks`}
+                                ? `${duty.practicalMaxMarks} ${lang === "தமிழ்" ? "மதிப்பெண்கள்" : "Marks"}`
+                                : `${duty.theoryMaxMarks ?? 100} ${lang === "தமிழ்" ? "மதிப்பெண்கள்" : "Marks"}`}
                             </span>
                           </div>
                         </div>
@@ -657,7 +665,7 @@ export default function TeacherExamsPage() {
                                 onClick={() => handleUpdateDutyStatus(duty.id, "In Progress")}
                                 className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-extrabold uppercase transition-all shadow-sm cursor-pointer"
                               >
-                                Start Duty
+                                {lang === "தமிழ்" ? "கடமையைத் தொடங்கு" : "Start Duty"}
                               </button>
                             )}
                             {duty.status === "In Progress" && (
@@ -665,7 +673,7 @@ export default function TeacherExamsPage() {
                                 onClick={() => handleUpdateDutyStatus(duty.id, "Completed")}
                                 className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-extrabold uppercase transition-all shadow-sm cursor-pointer"
                               >
-                                Complete Duty
+                                {lang === "தமிழ்" ? "கடமையை முடி" : "Complete Duty"}
                               </button>
                             )}
                             <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border ${
@@ -673,7 +681,7 @@ export default function TeacherExamsPage() {
                               duty.status === "In Progress" ? "bg-rose-500/10 border-rose-500/20 text-rose-450 font-bold shadow-[0_0_10px_rgba(244,63,94,0.1)]" :
                               "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                             }`}>
-                              {duty.status}
+                              {duty.status === "Scheduled" ? (lang === "தமிழ்" ? "திட்டமிடப்பட்டது" : "Scheduled") : duty.status === "In Progress" ? (lang === "தமிழ்" ? "நடைபெறுகிறது" : "In Progress") : (lang === "தமிழ்" ? "முடிவடைநதது" : "Completed")}
                             </span>
                           </div>
                         </div>
@@ -686,16 +694,16 @@ export default function TeacherExamsPage() {
               <div className="glass rounded-2xl p-5">
                 <h3 className="text-xs font-bold text-white mb-2.5 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                  Supervision Protocols
+                  {lang === "தமிழ்" ? "கண்காணிப்பு நெறிமுறைகள்" : "Supervision Protocols"}
                 </h3>
                 <ul className="space-y-2.5 text-[10px] text-slate-400 font-semibold">
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1 flex-shrink-0" />
-                    <span>Arrive at your assigned exam hall at least 15 minutes before slot.</span>
+                    <span>{lang === "தமிழ்" ? "ஒதுக்கப்பட்ட தேர்வு அறைக்கு குறைந்தது 15 நிமிடங்களுக்கு முன்பே வரவும்." : "Arrive at your assigned exam hall at least 15 minutes before slot."}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1 flex-shrink-0" />
-                    <span>Verify student hall ticket passes and QR codes upon room entry.</span>
+                    <span>{lang === "தமிழ்" ? "அறைக்குள் நுழையும்போது மாணவர்களின் தேர்வு அனுமதி சீட்டு மற்றும் QR குறியீடுகளை சரிபார்க்கவும்." : "Verify student hall ticket passes and QR codes upon room entry."}</span>
                   </li>
                 </ul>
               </div>
@@ -715,17 +723,17 @@ export default function TeacherExamsPage() {
                 <div>
                   <h1 className="text-base font-black text-white">{selectedModelExam.examName}</h1>
                   <p className="text-xs text-slate-400">
-                    Class {selectedModelExam.class} — Section {selectedModelExam.section} 
+                    {lang === "தமிழ்" ? `வகுப்பு ${selectedModelExam.class} — பிரிவு ${selectedModelExam.section}` : `Class ${selectedModelExam.class} — Section ${selectedModelExam.section}`} 
                     {selectedModelExam.group ? ` (EMIS Code: ${selectedModelExam.group})` : ""} · {selectedModelExam.academicYear} · {selectedModelExam.examType}
                   </p>
                 </div>
                 {selectedModelExam.isLocked ? (
                   <span className="flex items-center gap-1.5 px-3 py-1 bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-bold rounded-full">
-                    <Lock className="w-3 h-3" /> Lock Confirmed (Read-Only)
+                    <Lock className="w-3 h-3" /> {lang === "தமிழ்" ? "பூட்டு உறுதி செய்யப்பட்டது (வாசிக்க மட்டும்)" : "Lock Confirmed (Read-Only)"}
                   </span>
                 ) : (
                   <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold rounded-full">
-                    <Unlock className="w-3 h-3" /> Draft / Open
+                    <Unlock className="w-3 h-3" /> {lang === "தமிழ்" ? "வரைவு / திறந்திருக்கும்" : "Draft / Open"}
                   </span>
                 )}
               </div>
@@ -733,18 +741,18 @@ export default function TeacherExamsPage() {
               {/* Roster Table card */}
               <div className="glass rounded-2xl border border-slate-800 mb-6 overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-                  <h2 className="text-sm font-bold text-white">📋 Student Mark List</h2>
+                  <h2 className="text-sm font-bold text-white">📋 {lang === "தமிழ்" ? "மாணவர் மதிப்பெண் பட்டியல்" : "Student Mark List"}</h2>
                   <span className="text-xs text-slate-400">
-                    {modelExamRows.length} Students · Pass Score: 35
+                    {lang === "தமிழ்" ? `${modelExamRows.length} மாணவர்கள் · தேர்ச்சி மதிப்பெண்: 35` : `${modelExamRows.length} Students · Pass Score: 35`}
                   </span>
                 </div>
 
                 {loadingModelRows ? (
-                  <div className="flex items-center justify-center py-16 text-slate-400 text-sm animate-pulse">Loading marks roster…</div>
+                  <div className="flex items-center justify-center py-16 text-slate-400 text-sm animate-pulse">{lang === "தமிழ்" ? "மதிப்பெண் பட்டியல் ஏற்றப்படுகிறது..." : "Loading marks roster…"}</div>
                 ) : modelExamRows.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 gap-3">
                     <BookOpen className="w-10 h-10 text-slate-700" />
-                    <p className="text-slate-500 text-sm">No marks entries recorded yet for this exam session.</p>
+                    <p className="text-slate-500 text-sm">{lang === "தமிழ்" ? "இந்தத் தேர்வு அமர்வுக்கு இன்னும் மதிப்பெண்கள் பதிவு செய்யப்படவில்லை." : "No marks entries recorded yet for this exam session."}</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
@@ -752,17 +760,17 @@ export default function TeacherExamsPage() {
                       <thead>
                         <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px] tracking-wider">
                           <th className="py-3 pl-5 text-left w-8">#</th>
-                          <th className="py-3 text-left">Student Name</th>
-                          <th className="py-3 text-left">Roll No</th>
+                          <th className="py-3 text-left">{lang === "தமிழ்" ? "மாணவர் பெயர்" : "Student Name"}</th>
+                          <th className="py-3 text-left">{lang === "தமிழ்" ? "பதிவு எண்" : "Roll No"}</th>
                           {activeSubjects.map(s => (
                             <th key={s.key} className={`py-3 text-center ${s.color}`}>{s.label}</th>
                           ))}
-                          <th className="py-3 text-center text-white font-black">Total</th>
+                          <th className="py-3 text-center text-white font-black">{lang === "தமிழ்" ? "மொத்தம்" : "Total"}</th>
                           <th className="py-3 text-center">%</th>
-                          <th className="py-3 text-center pr-5">Result</th>
+                          <th className="py-3 text-center pr-5">{lang === "தமிழ்" ? "முடிவு" : "Result"}</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800/60">
+                      <tbody className="divide-y divide-slate-800/60 text-left">
                         {modelExamRows.map((row, idx) => {
                           const { total, pct, isPassed, maxTotal } = calcLocal(row, isHsc);
                           return (
@@ -786,7 +794,7 @@ export default function TeacherExamsPage() {
                               <td className="py-3 text-center pr-5">
                                 {isPassed != null ? (
                                   <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${isPassed ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
-                                    {isPassed ? "PASS" : "FAIL"}
+                                    {isPassed ? (lang === "தமிழ்" ? "தேர்ச்சி" : "PASS") : (lang === "தமிழ்" ? "தோல்வி" : "FAIL")}
                                   </span>
                                 ) : <span className="text-slate-600">—</span>}
                               </td>
@@ -804,13 +812,13 @@ export default function TeacherExamsPage() {
             <div>
               {/* Class Selection Tabs */}
               <div className="flex items-center gap-2 mb-6 flex-wrap">
-                <span className="text-xs text-slate-500 font-bold mr-1">CLASS</span>
+                <span className="text-xs text-slate-505 font-bold mr-1">{lang === "தமிழ்" ? "வகுப்பு" : "CLASS"}</span>
                 {CLASSES.map(cls => (
                   <button key={cls}
                     onClick={() => { setActiveClassTab(cls); }}
                     className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${activeClassTab === cls ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20" : "bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700"}`}
                   >
-                    Class {cls}
+                    {lang === "தமிழ்" ? `வகுப்பு ${cls}` : `Class ${cls}`}
                   </button>
                 ))}
               </div>
@@ -818,15 +826,15 @@ export default function TeacherExamsPage() {
               {/* Exams list */}
               <div className="glass rounded-2xl border border-slate-800 overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-                  <h2 className="text-sm font-bold text-white">📋 Class {activeClassTab} — Model Exam Results List</h2>
-                  {loadingModelExams && <span className="text-xs text-slate-500 animate-pulse">Loading…</span>}
+                  <h2 className="text-sm font-bold text-white">📋 {lang === "தமிழ்" ? `வகுப்பு ${activeClassTab} — மாதிரி தேர்வு முடிவுகள் பட்டியல்` : `Class ${activeClassTab} — Model Exam Results List`}</h2>
+                  {loadingModelExams && <span className="text-xs text-slate-500 animate-pulse">{lang === "தமிழ்" ? "ஏற்றப்படுகிறது..." : "Loading…"}</span>}
                 </div>
 
                 {!loadingModelExams && modelExams.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 gap-3">
                     <BookOpen className="w-10 h-10 text-slate-700" />
-                    <p className="text-slate-500 text-sm font-semibold">No model exam records found for Class {activeClassTab}</p>
-                    <p className="text-slate-600 text-xs">Model exams are created and published by the Headmaster.</p>
+                    <p className="text-slate-500 text-sm font-semibold">{lang === "தமிழ்" ? `வகுப்பு ${activeClassTab}-க்கான மாதிரி தேர்வு பதிவுகள் எதுவும் இல்லை` : `No model exam records found for Class ${activeClassTab}`}</p>
+                    <p className="text-slate-600 text-xs">{lang === "தமிழ்" ? "மாதிரி தேர்வுகள் தலைமையாசிரியரால் உருவாக்கப்பட்டு வெளியிடப்படுகின்றன." : "Model exams are created and published by the Headmaster."}</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-800/60">
@@ -834,22 +842,22 @@ export default function TeacherExamsPage() {
                       <div key={exam.id} className="px-5 py-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors group">
                         <div className="flex items-center gap-4 min-w-0">
                           <div className={`w-2 h-10 rounded-full flex-shrink-0 ${exam.isLocked ? "bg-red-500" : "bg-emerald-500"}`} />
-                          <div className="min-w-0">
+                          <div className="min-w-0 text-left">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-sm font-bold text-white">{exam.examName}</span>
                               <span className="text-[10px] bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full text-slate-400">{exam.examType}</span>
                               {exam.group && <span className="text-[10px] bg-blue-600/15 border border-blue-500/30 px-2 py-0.5 rounded-full text-blue-400">EMIS: {exam.group}</span>}
-                              {exam.isLocked && <span className="text-[10px] bg-red-500/15 border border-red-500/30 px-2 py-0.5 rounded-full text-red-400 flex items-center gap-1"><Lock className="w-2.5 h-2.5" /> Locked</span>}
+                              {exam.isLocked && <span className="text-[10px] bg-red-500/15 border border-red-500/30 px-2 py-0.5 rounded-full text-red-400 flex items-center gap-1"><Lock className="w-2.5 h-2.5" /> {lang === "தமிழ்" ? "பூட்டப்பட்டது" : "Locked"}</span>}
                             </div>
                             <p className="text-xs text-slate-500 mt-0.5">
-                              Section {exam.section} · {exam.academicYear}
+                              {lang === "தமிழ்" ? `பிரிவு ${exam.section} · ${exam.academicYear}` : `Section ${exam.section} · ${exam.academicYear}`}
                               {exam.examDate ? ` · ${new Date(exam.examDate).toLocaleDateString("en-IN")}` : ""}
-                              {" · "}<span className="text-blue-400 font-semibold">{exam._count?.results || 0} students marked</span>
+                              {" · "}<span className="text-blue-400 font-semibold">{lang === "தமிழ்" ? `${exam._count?.results || 0} மாணவர்கள் மதிப்பெண் பெற்றனர்` : `${exam._count?.results || 0} students marked`}</span>
                             </p>
                           </div>
                         </div>
                         <button onClick={() => openModelExam(exam)} className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 text-blue-400 text-xs font-bold rounded-xl transition-colors">
-                          🔍 View Marks roster
+                          {lang === "தமிழ்" ? "🔍 மதிப்பெண் பட்டியலைக் காண்க" : "🔍 View Marks roster"}
                         </button>
                       </div>
                     ))}

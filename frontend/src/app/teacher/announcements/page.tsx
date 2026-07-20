@@ -5,6 +5,7 @@ import { Megaphone, Clipboard, Pin } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import Swal from "sweetalert2";
 
 interface Announcement {
@@ -19,6 +20,7 @@ interface Announcement {
 }
 
 export default function AnnouncementsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -188,10 +190,10 @@ export default function AnnouncementsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
         {/* Broadcast Form */}
         <div className="theme-card p-6 border border-[var(--border)] h-fit">
-          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4"><Megaphone className="w-4 h-4 inline-block mr-1 text-inherit" /> Compose Announcement</h2>
+          <h2 className="text-base font-semibold text-[var(--text-heading)] mb-4"><Megaphone className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "அறிவிப்பை உருவாக்கு" : "Compose Announcement"}</h2>
           <form onSubmit={handleBroadcast} className="space-y-4">
             <div>
-              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Topic / Title</label>
+              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "தலைப்பு" : "Topic / Title"}</label>
               <input
                 type="text"
                 required
@@ -203,25 +205,25 @@ export default function AnnouncementsPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Target Audience</label>
+              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "இலக்கு பார்வையாளர்கள்" : "Target Audience"}</label>
               <select
                 required
                 value={target}
                 onChange={(e) => setTarget(e.target.value)}
                 className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)] transition-colors"
               >
-                <option value="" disabled>-- Select Audience --</option>
+                <option value="" disabled>{lang === "தமிழ்" ? "-- பார்வையாளர்களைத் தேர்ந்தெடு --" : "-- Select Audience --"}</option>
                 {teacherClasses.length > 0 && teacherClasses.map((cls) => (
                   <option key={cls.id} value={`Class ${cls.className}${cls.section} Parents`}>
-                    Class {cls.className}{cls.section} Parents
+                    {lang === "தமிழ்" ? `வகுப்பு ${cls.className}${cls.section} பெற்றோர்கள்` : `Class ${cls.className}${cls.section} Parents`}
                   </option>
                 ))}
-                <option value="All Parents taught by me">All Parents taught by me</option>
+                <option value="All Parents taught by me">{lang === "தமிழ்" ? "நான் கற்பிக்கும் அனைத்து பெற்றோர்களும்" : "All Parents taught by me"}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Message Body</label>
+              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">{lang === "தமிழ்" ? "செய்தி உள்ளடக்கம்" : "Message Body"}</label>
               <textarea
                 required
                 rows={4}
@@ -241,7 +243,7 @@ export default function AnnouncementsPage() {
                 className="accent-amber-500 cursor-pointer"
               />
               <label htmlFor="pin-announcement" className="text-xs text-[var(--text-muted)] cursor-pointer select-none">
-                Pin to the top of the dashboard
+                {lang === "தமிழ்" ? "டாஷ்போர்டின் மேலே பின் செய்யவும்" : "Pin to the top of the dashboard"}
               </label>
             </div>
 
@@ -254,7 +256,7 @@ export default function AnnouncementsPage() {
                 className="accent-amber-500 cursor-pointer"
               />
               <label htmlFor="sms-notice" className="text-xs text-[var(--text-muted)] cursor-pointer select-none">
-                Send SMS alert to Parents
+                {lang === "தமிழ்" ? "பெற்றோருக்கு SMS எச்சரிக்கை அனுப்பவும்" : "Send SMS alert to Parents"}
               </label>
             </div>
 
@@ -262,14 +264,14 @@ export default function AnnouncementsPage() {
               type="submit"
               className="w-full py-2.5 bg-[var(--primary)] hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
             >
-              <Megaphone className="w-4 h-4 inline-block mr-1 text-inherit" /> Broadcast Announcement
+              <Megaphone className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "அறிவிப்பை வெளியிடு" : "Broadcast Announcement"}
             </button>
           </form>
         </div>
 
         {/* Board feed */}
         <div className="xl:col-span-2 theme-card p-6 border border-[var(--border)] space-y-5">
-          <h2 className="text-base font-semibold text-[var(--text-heading)]"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> Active Announcement Board</h2>
+          <h2 className="text-base font-semibold text-[var(--text-heading)]"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "செயலில் உள்ள அறிவிப்பு பலகை" : "Active Announcement Board"}</h2>
 
           {toast && (
             <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs rounded-xl">
@@ -279,7 +281,7 @@ export default function AnnouncementsPage() {
 
           <div className="space-y-4">
             {loading ? (
-              <div className="text-center text-xs py-8 text-[var(--text-muted)]">Loading board...</div>
+              <div className="text-center text-xs py-8 text-[var(--text-muted)]">{lang === "தமிழ்" ? "ஏற்றப்படுகிறது..." : "Loading board..."}</div>
             ) : announcements.length > 0 ? (
               announcements.map((ann) => (
                 <div
@@ -290,7 +292,7 @@ export default function AnnouncementsPage() {
                 >
                   {ann.pinned && (
                     <span className="absolute top-3 right-3 text-[10px] bg-[var(--primary)]/10 text-amber-400 border border-[var(--primary)]/20 px-2 py-0.5 rounded-full font-bold">
-                      <Pin className="w-4 h-4 inline-block mr-1 text-inherit" /> Pinned
+                      <Pin className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "முக்கியமானது" : "Pinned"}
                     </span>
                   )}
 
@@ -300,27 +302,27 @@ export default function AnnouncementsPage() {
                         {ann.target}
                       </span>
                       <span className="text-[10px] text-[var(--text-muted)] font-semibold">{ann.date}</span>
-                      <span className="text-[10px] text-slate-650 font-semibold">· By {ann.sender}</span>
+                      <span className="text-[10px] text-slate-650 font-semibold">{lang === "தமிழ்" ? `· அனுப்பியவர்: ${ann.sender}` : `· By ${ann.sender}`}</span>
                     </div>
                     <h3 className="text-sm font-bold text-[var(--text-heading)] mb-2">{ann.title}</h3>
                     <p className="text-xs text-[var(--text-main)] leading-relaxed">{ann.body}</p>
                   </div>
 
                   <div className="flex justify-between items-center pt-3 border-t border-[var(--border)] text-[11px] text-[var(--text-muted)]">
-                    <span>{ann.readReceipts ? `Read receipts: ${ann.readReceipts}` : "Received"}</span>
+                    <span>{ann.readReceipts ? (lang === "தமிழ்" ? `படித்த ரசீதுகள்: ${ann.readReceipts}` : `Read receipts: ${ann.readReceipts}`) : (lang === "தமிழ்" ? "பெறப்பட்டது" : "Received")}</span>
                     {ann.sender.startsWith("You") && (
                       <button
                         onClick={() => handleDelete(ann.id)}
                         className="text-red-400 hover:text-red-300 transition-colors"
                       >
-                        Delete
+                        {lang === "தமிழ்" ? "அழி" : "Delete"}
                       </button>
                     )}
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-center text-xs py-8 text-[var(--text-muted)] italic">No announcements broadcasted yet.</div>
+              <div className="text-center text-xs py-8 text-[var(--text-muted)] italic">{lang === "தமிழ்" ? "இன்னும் அறிவிப்புகள் எதுவும் வெளியிடப்படவில்லை." : "No announcements broadcasted yet."}</div>
             )}
           </div>
         </div>

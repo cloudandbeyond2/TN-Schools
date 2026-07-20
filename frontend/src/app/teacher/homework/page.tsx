@@ -6,6 +6,7 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface Assignment {
   id: string;
@@ -30,6 +31,7 @@ interface Submission {
 }
 
 export default function HomeworkPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -421,8 +423,8 @@ export default function HomeworkPage() {
 
   return (
     <PortalLayout
-      title="Homework Manager"
-      subtitle="Track submissions, send automated parent reminders, and generate AI homework exercises"
+      title={lang === "தமிழ்" ? "குறிப்பேடு நிர்வகிப்பம்" : "Homework Manager"}
+      subtitle={lang === "தமிழ்" ? "சமர்ப்பிக்களை கண்டறி, பெற்றோர்களுக்கு தள்ளூக்கல் அன்பு, மற்றும் AI குறிப்பேடுகளை உருவாக்கவும்" : "Track submissions, send automated parent reminders, and generate AI homework exercises"}
     >
       {toastMessage && (
         <div className="fixed top-5 right-5 bg-emerald-500 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2">
@@ -446,7 +448,11 @@ export default function HomeworkPage() {
                   activeTab === tab ? "bg-[var(--primary)] text-white shadow-sm font-bold" : "text-[var(--text-muted)] hover:text-[var(--text-heading)]"
                 }`}
               >
-                {tab}
+                {lang === "தமிழ்" ? (
+                  <>
+                    {tab === "active" ? "சுறுப்புள்ளது" : tab === "draft" ? "வரைவு" : "முடிவடைநதது"}
+                  </>
+                ) : tab}
               </button>
             ))}
           </div>
@@ -455,7 +461,7 @@ export default function HomeworkPage() {
             onClick={() => setShowCreateModal(true)}
             className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[var(--primary)] hover:bg-amber-600 transition-colors"
           >
-            <Plus className="w-4 h-4 inline-block mr-1 text-inherit" /> Create Assignment
+            <Plus className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "பணி உருவாக்கு" : "Create Assignment"}
           </button>
         </div>
 
@@ -463,7 +469,7 @@ export default function HomeworkPage() {
         {teacherClasses.length > 0 && (
           <div className="flex flex-col gap-3 bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border)]">
             <div className="flex items-center gap-3">
-              <span className="text-xs font-semibold text-[var(--text-muted)] w-16">Class:</span>
+              <span className="text-xs font-semibold text-[var(--text-muted)] w-16">{lang === "தமிழ்" ? "வகுப்பு:" : "Class:"}</span>
               <div className="flex flex-wrap gap-2">
                 {uniqueClasses.map((cls) => (
                   <button
@@ -478,7 +484,7 @@ export default function HomeworkPage() {
                         : "bg-[var(--bg-main)] text-[var(--text-muted)] hover:text-[var(--text-heading)] border border-[var(--border)]"
                     }`}
                   >
-                    {cls === "All" ? "All Classes" : `Class ${cls}`}
+                    {cls === "All" ? (lang === "தமிழ்" ? "அனைத்து வகுப்புகள்" : "All Classes") : (lang === "தமிழ்" ? `வகுப்பு ${cls}` : `Class ${cls}`)}
                   </button>
                 ))}
               </div>
@@ -486,7 +492,7 @@ export default function HomeworkPage() {
 
             {activeClass !== "All" && uniqueSections.length > 1 && (
               <div className="flex items-center gap-3">
-                <span className="text-xs font-semibold text-[var(--text-muted)] w-16">Section:</span>
+                <span className="text-xs font-semibold text-[var(--text-muted)] w-16">{lang === "தமிழ்" ? "பிரிவு:" : "Section:"}</span>
                 <div className="flex flex-wrap gap-2">
                   {uniqueSections.map((sec) => (
                     <button
@@ -498,7 +504,7 @@ export default function HomeworkPage() {
                           : "bg-[var(--bg-main)] text-[var(--text-muted)] hover:text-[var(--text-heading)] border border-[var(--border)]"
                       }`}
                     >
-                      {sec === "All" ? "All Sections" : `Section ${sec}`}
+                      {sec === "All" ? (lang === "தமிழ்" ? "அனைத்து பிரிவுகள்" : "All Sections") : (lang === "தமிழ்" ? `பிரிவு ${sec}` : `Section ${sec}`)}
                     </button>
                   ))}
                 </div>
@@ -508,13 +514,13 @@ export default function HomeworkPage() {
         )}
 
         {loading ? (
-          <div className="text-center py-12 text-xs text-[var(--text-muted)]">Loading homework dashboard...</div>
+          <div className="text-center py-12 text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "குறிப்பேடு மேல்தள் ஏற்றப்படுகிறது..." : "Loading homework dashboard..."}</div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Homework Cards List */}
             <div className="space-y-4">
               <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider mb-1">
-                <Edit className="w-4 h-4 inline-block mr-1 text-inherit" /> Assignments ({activeAssignments.length})
+                <Edit className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? `பணிகள் (${activeAssignments.length})` : `Assignments (${activeAssignments.length})`}
               </h3>
               
               {activeAssignments.map((hw) => {
@@ -538,7 +544,7 @@ export default function HomeworkPage() {
                     {hw.status !== "draft" && (
                       <div className="mt-4 space-y-1.5">
                         <div className="flex justify-between items-center text-[9px] text-[var(--text-muted)]">
-                          <span>Submissions Progress</span>
+                          <span>{lang === "தமிழ்" ? "சமர்ப்பிப்பு முன்னேற்றம்" : "Submissions Progress"}</span>
                           <span className="font-semibold text-[var(--text-heading)]">{hw.submittedCount}/{hw.totalStudents} ({percent}%)</span>
                         </div>
                         <div className="progress-bar w-full">
@@ -552,7 +558,7 @@ export default function HomeworkPage() {
 
               {activeAssignments.length === 0 && (
                 <div className="theme-card p-8 border border-dashed border-[var(--border)] text-center text-xs text-[var(--text-muted)]">
-                  No assignments found in this status category.
+                  {lang === "தமிழ்" ? "இந்த நிலையில் எந்த பணியும் காணப்படவில்ளை." : "No assignments found in this status category."}
                 </div>
               )}
             </div>
@@ -565,7 +571,7 @@ export default function HomeworkPage() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-[var(--text-heading)] font-bold text-base leading-snug">{selectedHw.title}</h3>
-                      <p className="text-xs text-[var(--text-muted)] mt-1">{selectedHw.className} · Due on {selectedHw.dueDate}</p>
+                      <p className="text-xs text-[var(--text-muted)] mt-1">{selectedHw.className} · {lang === "தமிழ்" ? `கடைசி தேதி: ${selectedHw.dueDate}` : `Due on ${selectedHw.dueDate}`}</p>
                     </div>
                     
                     <div className="flex gap-2">
@@ -574,20 +580,20 @@ export default function HomeworkPage() {
                           onClick={handleSendReminder}
                           className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-amber-400 border border-[var(--primary)]/20 hover:bg-[var(--primary)]/10 transition-all flex items-center gap-1.5"
                         >
-                          <span><Bell className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Send Parent Reminders
+                          <span><Bell className="w-4 h-4 inline-block mr-1 text-inherit" /></span> {lang === "தமிழ்" ? "பெற்றோர் நினைவூட்டல் அன்பு" : "Send Parent Reminders"}
                         </button>
                       )}
                       <button
                         onClick={() => handleDeleteHomework(selectedHw.id, selectedHw.title)}
                         className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-red-500 border border-red-500/20 hover:bg-red-500/10 transition-all flex items-center gap-1.5"
                       >
-                        <span><Trash className="w-4 h-4 inline-block mr-1 text-inherit" /></span> Delete
+                        <span><Trash className="w-4 h-4 inline-block mr-1 text-inherit" /></span> {lang === "தமிழ்" ? "நீக்கு" : "Delete"}
                       </button>
                     </div>
                   </div>
 
                   <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] border border-[var(--border)] rounded-xl text-xs text-slate-350 leading-relaxed whitespace-pre-wrap">
-                    <span className="font-semibold text-[var(--text-heading)] block mb-1">Homework Guidelines:</span>
+                    <span className="font-semibold text-[var(--text-heading)] block mb-1">{lang === "தமிழ்" ? "குறிப்பேடு வழிகாட்டுகள்:" : "Homework Guidelines:"}</span>
                     {selectedHw.description}
                   </div>
                 </div>
@@ -596,23 +602,23 @@ export default function HomeworkPage() {
                 {selectedHw.status !== "draft" && (
                   <div className="theme-card p-6 border border-[var(--border)]">
                     <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider mb-4">
-                      <Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> Submission Roster
+                      <Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "சமர்ப்பிப்பு பட்டியல்" : "Submission Roster"}
                     </h3>
 
                     {loadingSubs ? (
-                      <div className="text-center py-8 text-xs text-[var(--text-muted)]">Loading submission roster...</div>
+                      <div className="text-center py-8 text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "சமர்ப்பிப்பு பட்டியல் ஏற்றப்படுகிறது..." : "Loading submission roster..."}</div>
                     ) : submissions.length > 0 ? (
                       <>
                         <div className="overflow-x-auto">
                           <table className="data-table">
                             <thead>
                               <tr>
-                                <th>Roll No</th>
-                                <th>Student Name</th>
-                                <th>Status</th>
-                                <th>Turned In</th>
-                                <th>Score</th>
-                                <th>Actions</th>
+                                <th>{lang === "தமிழ்" ? "கல்வி எண்" : "Roll No"}</th>
+                                <th>{lang === "தமிழ்" ? "மாணவர் பெயர்" : "Student Name"}</th>
+                                <th>{lang === "தமிழ்" ? "நிலை" : "Status"}</th>
+                                <th>{lang === "தமிழ்" ? "கையளித்த தேதி" : "Turned In"}</th>
+                                <th>{lang === "தமிழ்" ? "மதிப்பெண்" : "Score"}</th>
+                                <th>{lang === "தமிழ்" ? "செயல்கள்" : "Actions"}</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -622,7 +628,7 @@ export default function HomeworkPage() {
                                   <td className="font-medium text-[var(--text-heading)]">{sub.name}</td>
                                   <td>
                                     <span className={`badge ${sub.status === "submitted" ? "badge-green" : "badge-yellow"}`}>
-                                      {sub.status}
+                                      {sub.status === "submitted" ? (lang === "தமிழ்" ? "சமர்ப்பிக்கப்பட்டது" : "submitted") : (lang === "தமிழ்" ? "நிலுவை" : "pending")}
                                     </span>
                                   </td>
                                   <td>{sub.date}</td>
@@ -634,14 +640,14 @@ export default function HomeworkPage() {
                                           onClick={() => handleViewAnswer(sub)}
                                           className="text-xs text-teal-500 hover:underline font-semibold"
                                         >
-                                          View Answer
+                                          {lang === "தமிழ்" ? "விடையைக் காண்" : "View Answer"}
                                         </button>
                                       )}
                                       <button
                                         onClick={() => handleGradeSubmission(sub.id, sub.name, sub.score, sub.feedback)}
                                         className="text-xs text-amber-400 hover:underline font-semibold"
                                       >
-                                        Grade Sheet
+                                        {lang === "தமிழ்" ? "மதிப்பு தாள்" : "Grade Sheet"}
                                       </button>
                                     </div>
                                   </td>
@@ -652,26 +658,26 @@ export default function HomeworkPage() {
                         </div>
                         {Math.ceil(submissions.length / itemsPerPage) > 1 && (
                           <div className="flex justify-between items-center mt-4 text-xs">
-                            <span className="text-[var(--text-muted)]">
-                              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, submissions.length)} of {submissions.length} entries
-                            </span>
+                              <span className="text-[var(--text-muted)]">
+                                {lang === "தமிழ்" ? `${(currentPage - 1) * itemsPerPage + 1} தொடக்கம் ${Math.min(currentPage * itemsPerPage, submissions.length)} வரை (${submissions.length} மொத்தம்)` : `Showing ${(currentPage - 1) * itemsPerPage + 1} to ${Math.min(currentPage * itemsPerPage, submissions.length)} of ${submissions.length} entries`}
+                              </span>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                 disabled={currentPage === 1}
                                 className="px-3 py-1.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg disabled:opacity-50 hover:bg-[var(--bg-card-hover)] transition-colors"
                               >
-                                Previous
+                                {lang === "தமிழ்" ? "முந்தையது" : "Previous"}
                               </button>
                               <span className="px-3 py-1.5 flex items-center justify-center text-[var(--text-heading)] font-medium">
-                                Page {currentPage} of {Math.ceil(submissions.length / itemsPerPage)}
+                                {lang === "தமிழ்" ? `பக்கம் ${currentPage} / ${Math.ceil(submissions.length / itemsPerPage)}` : `Page ${currentPage} of ${Math.ceil(submissions.length / itemsPerPage)}`}
                               </span>
                               <button
                                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(submissions.length / itemsPerPage)))}
                                 disabled={currentPage === Math.ceil(submissions.length / itemsPerPage)}
                                 className="px-3 py-1.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg disabled:opacity-50 hover:bg-[var(--bg-card-hover)] transition-colors"
                               >
-                                Next
+                                {lang === "தமிழ்" ? "அடுதது" : "Next"}
                               </button>
                             </div>
                           </div>
