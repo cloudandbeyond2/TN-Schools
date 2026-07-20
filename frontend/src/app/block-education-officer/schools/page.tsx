@@ -409,51 +409,53 @@ export default function BlockSchoolsPage() {
 
       {/* Directory Main Card */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm mb-6 fade-in">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-          <div>
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
+          <div className="flex-1 max-w-xl">
             <h2 className="text-base font-bold text-slate-800 dark:text-white">🏆 Block Schools Index</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-1">
               Manage schools under Block jurisdiction, audit settings, and bulk upload DISE records.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full xl:w-auto">
             <input
               type="text"
               placeholder="Search school, ID or headmaster..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-              className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-805 dark:text-white placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors w-full sm:w-60"
+              className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-805 dark:text-white placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors w-full sm:w-52 md:w-64 shrink"
             />
             
-            <button
-              onClick={downloadSampleExcel}
-              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5"
-            >
-              📥 Template
-            </button>
+            <div className="flex flex-nowrap items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 shrink-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <button
+                onClick={downloadSampleExcel}
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap shrink-0"
+              >
+                📥 Template
+              </button>
 
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5"
-            >
-              {isUploading ? "Uploading..." : "📊 Excel Upload"}
-            </button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleExcelUpload}
-              accept=".xlsx, .xls"
-              className="hidden"
-            />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap shrink-0"
+              >
+                {isUploading ? "Uploading..." : "📊 Excel Upload"}
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleExcelUpload}
+                accept=".xlsx, .xls"
+                className="hidden"
+              />
 
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-xl transition-all shadow-md whitespace-nowrap"
-            >
-              + Register School
-            </button>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-xl transition-all shadow-md whitespace-nowrap shrink-0"
+              >
+                + Register School
+              </button>
+            </div>
           </div>
         </div>
 

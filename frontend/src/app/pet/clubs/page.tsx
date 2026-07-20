@@ -92,6 +92,20 @@ const renderPetClubIcon = (iconStr: string) => {
   return <i className="fi fi-rr-users text-xl text-blue-500" />;
 };
 
+const getClubEligibility = (clubName: string) => {
+  const name = clubName.toLowerCase();
+  if (name.includes("service scheme") || name.includes("nss") || name.includes("ribbon") || name.includes("rrc")) {
+    return { label: "Class 11 - 12", minClass: 11, maxClass: 12, levels: ["higher"] };
+  }
+  if (name.includes("cadet corps") || name.includes("ncc") || name.includes("safety patrol") || name.includes("rsp")) {
+    return { label: "Class 9 - 12", minClass: 9, maxClass: 12, levels: ["high", "higher"] };
+  }
+  if (name.includes("red cross") || name.includes("jrc") || name.includes("scouts") || name.includes("guides") || name.includes("green corps") || name.includes("eco club")) {
+    return { label: "Class 6 - 10", minClass: 6, maxClass: 10, levels: ["middle", "high"] };
+  }
+  return { label: "Class 6 - 12", minClass: 6, maxClass: 12, levels: ["middle", "high", "higher"] };
+};
+
 export default function ClubsPage() {
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId || "";
@@ -159,7 +173,7 @@ export default function ClubsPage() {
             name: c.name,
             icon: c.icon,
             category: c.category,
-            coordinator: c.sponsor || "—",
+            coordinator: session?.user?.name || c.sponsor || "PET Staff",
             meetingTime: c.meetingTime || "TBD",
             description: c.description || "",
             memberCount: apiMemberCounts[c.id],
@@ -169,14 +183,14 @@ export default function ClubsPage() {
             name: c.name,
             icon: c.icon,
             category: c.category,
-            coordinator: c.coordinator,
+            coordinator: session?.user?.name || c.coordinator,
             meetingTime: c.meetingTime,
             description: c.description,
             memberCount: c.members.length as number | undefined,
           }));
     const q = searchTerm.toLowerCase();
     return q ? list.filter((c) => c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q)) : list;
-  }, [mode, apiClubs, apiMemberCounts, localClubs, searchTerm]);
+  }, [mode, apiClubs, apiMemberCounts, localClubs, searchTerm, session]);
 
   const totalMembers = useMemo(() => {
     if (mode === "api") return Object.values(apiMemberCounts).reduce((a, b) => a + b, 0);
@@ -373,22 +387,29 @@ export default function ClubsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {cards.map((club) => (
-              <div key={club.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:border-blue-500/30 transition-all hover:scale-[1.01] duration-300">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
-                      {renderPetClubIcon(club.icon)}
+            {cards.map((club) => {
+              const eligibility = getClubEligibility(club.name);
+              return (
+                <div key={club.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:border-blue-500/30 transition-all hover:scale-[1.01] duration-300">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                        {renderPetClubIcon(club.icon)}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-base font-bold text-slate-800 dark:text-white truncate">{club.name}</h3>
+                        <div className="text-xs text-slate-500 font-semibold mt-0.5">Coordinator: {club.coordinator}</div>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="text-base font-bold text-slate-800 dark:text-white truncate">{club.name}</h3>
-                      <div className="text-xs text-slate-500 font-semibold mt-0.5">Coordinator: {club.coordinator}</div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                        {club.category}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-lg text-[9px] font-semibold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700/50">
+                        {eligibility.label}
+                      </span>
                     </div>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 shrink-0">
-                    {club.category}
-                  </span>
-                </div>
 
                 {club.description && (
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed line-clamp-2">{club.description}</p>
@@ -425,7 +446,8 @@ export default function ClubsPage() {
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
             {cards.length === 0 && (
               <div className="col-span-2 text-center py-16 text-slate-500 italic text-xs">
                 No clubs found. Click <span className="font-bold">New Club</span> to create one.
@@ -579,11 +601,16 @@ function ApiMembersModal({
 
   const candidates = useMemo(() => {
     const q = query.toLowerCase();
+    const eligibility = getClubEligibility(clubName);
     return students
       .filter((s) => !memberIds.has(s.id))
+      .filter((s) => {
+        const studentClass = parseInt(s.class || "0", 10);
+        return studentClass >= eligibility.minClass && studentClass <= eligibility.maxClass;
+      })
       .filter((s) => !q || (s.user?.name || "").toLowerCase().includes(q) || `${s.class}${s.section}`.toLowerCase().includes(q))
       .slice(0, 8);
-  }, [students, memberIds, query]);
+  }, [students, memberIds, query, clubName]);
 
   const addStudent = async (s: ApiStudent) => {
     setBusyId(s.id);
@@ -670,9 +697,14 @@ function LocalMembersModal({
   const [query, setQuery] = useState("");
   const memberIds = new Set(club.members.map((m) => m.id));
   const q = query.toLowerCase();
-  const candidates = LOCAL_STUDENT_ROSTER.filter((s) => !memberIds.has(s.id)).filter(
-    (s) => !q || s.name.toLowerCase().includes(q) || s.class.toLowerCase().includes(q)
-  ).slice(0, 8);
+  const eligibility = getClubEligibility(club.name);
+  const candidates = LOCAL_STUDENT_ROSTER.filter((s) => !memberIds.has(s.id))
+    .filter((s) => {
+      const studentClass = parseInt(s.class || "0", 10);
+      return studentClass >= eligibility.minClass && studentClass <= eligibility.maxClass;
+    })
+    .filter((s) => !q || s.name.toLowerCase().includes(q) || s.class.toLowerCase().includes(q))
+    .slice(0, 8);
 
   return (
     <ModalShell title={`Members — ${club.name}`} onClose={onClose} wide>

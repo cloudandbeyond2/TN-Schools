@@ -8,15 +8,60 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const { schoolId } = req.query;
 
-    const clubs = await prisma.club.findMany({
+    let clubs = await prisma.club.findMany({
       where: schoolId ? { schoolId: String(schoolId) } : undefined,
       orderBy: { name: 'asc' }
     });
 
-    const events = await prisma.clubEvent.findMany({
+    if (clubs.length === 0 && schoolId) {
+      const sId = String(schoolId);
+      const defaultClubs = [
+        { schoolId: sId, name: "Junior Red Cross (JRC)", category: "Jrc", icon: "fi fi-rr-heart", themeColor: "text-rose-500", themeBg: "bg-rose-500/10 border-rose-500/20", themeTagBg: "bg-rose-500/20" },
+        { schoolId: sId, name: "National Cadet Corps (NCC)", category: "Ncc", icon: "fi fi-rr-star", themeColor: "text-blue-500", themeBg: "bg-blue-500/10 border-blue-500/20", themeTagBg: "bg-blue-500/20" },
+        { schoolId: sId, name: "National Green Corps (Eco Club)", category: "Green Corps", icon: "fi fi-rr-leaf", themeColor: "text-emerald-500", themeBg: "bg-emerald-500/10 border-emerald-500/20", themeTagBg: "bg-emerald-500/20" },
+        { schoolId: sId, name: "National Service Scheme (NSS)", category: "Nss", icon: "fi fi-rr-heart", themeColor: "text-red-500", themeBg: "bg-red-500/10 border-red-500/20", themeTagBg: "bg-red-500/20" },
+        { schoolId: sId, name: "Scouts & Guides", category: "Scouts & Guides", icon: "fi fi-rr-star", themeColor: "text-amber-500", themeBg: "bg-amber-500/10 border-amber-500/20", themeTagBg: "bg-amber-500/20" },
+        { schoolId: sId, name: "Sports Club", category: "Sports", icon: "fi fi-rr-star", themeColor: "text-orange-500", themeBg: "bg-orange-500/10 border-orange-500/20", themeTagBg: "bg-orange-500/20" },
+        { schoolId: sId, name: "Red Ribbon Club (RRC)", category: "Academics", icon: "fi fi-rr-star", themeColor: "text-red-500", themeBg: "bg-red-500/10 border-red-500/20", themeTagBg: "bg-red-500/20" },
+        { schoolId: sId, name: "Road Safety Patrol (RSP)", category: "Academics", icon: "fi fi-rr-star", themeColor: "text-blue-500", themeBg: "bg-blue-500/10 border-blue-500/20", themeTagBg: "bg-blue-500/20" }
+      ];
+
+      await prisma.club.createMany({
+        data: defaultClubs
+      });
+
+      clubs = await prisma.club.findMany({
+        where: { schoolId: sId },
+        orderBy: { name: 'asc' }
+      });
+    }
+
+    // Fetch actual sports events logged by the PET teacher
+    const petEvents = await prisma.petSportsEvent.findMany({
       where: schoolId ? { schoolId: String(schoolId) } : undefined,
-      orderBy: { eventDate: 'asc' },
-      take: 5
+      orderBy: { date: 'asc' },
+    });
+
+    const events = petEvents.map(pe => {
+      let icon = "fi fi-rr-star";
+      const s = pe.sport.toLowerCase();
+      if (s.includes("chess")) icon = "fi fi-rr-chess-knight";
+      else if (s.includes("badminton") || s.includes("tennis") || s.includes("ball")) icon = "fi fi-rr-basketball";
+      else if (s.includes("athletics") || s.includes("run") || pe.name.toLowerCase().includes("sports day")) icon = "fi fi-rr-running";
+      
+      let themeColor = "text-blue-500";
+      if (pe.kind.toLowerCase().includes("competition") || pe.kind.toLowerCase().includes("championship")) {
+        themeColor = "text-amber-500";
+      }
+
+      return {
+        id: pe.id,
+        title: pe.name,
+        type: `${pe.sport} (${pe.level})`,
+        icon,
+        themeColor,
+        eventDate: pe.date
+      };
     });
 
     // For demo purposes, fetch the first student's joined clubs

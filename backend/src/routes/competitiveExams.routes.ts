@@ -1,6 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { randomUUID } from 'crypto';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import {
   HSC_GROUPS,
   STREAM_LABELS,
@@ -10,6 +13,7 @@ import {
 } from '../constants/hscGroups';
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Stream affinity for exams open to all groups (sorts them toward
 // "recommended" for students of the matching stream).
@@ -314,6 +318,35 @@ router.delete('/:id', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('[DELETE /api/competitive-exams/:id]', err.message);
     return res.status(500).json({ success: false, error: 'Failed to delete exam' });
+  }
+});
+
+// ─── POST /api/competitive-exams/upload-syllabus-pdf ──────────────
+router.post('/upload-syllabus-pdf', upload.single('file'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No file uploaded' });
+    }
+
+    const uploadsDir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const fileExt = path.extname(req.file.originalname) || '.pdf';
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}${fileExt}`;
+    const filePath = path.join(uploadsDir, fileName);
+
+    fs.writeFileSync(filePath, req.file.buffer);
+
+    return res.json({
+      success: true,
+      url: `/uploads/${fileName}`,
+      name: req.file.originalname
+    });
+  } catch (err: any) {
+    console.error('[POST /api/competitive-exams/upload-syllabus-pdf]', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to upload syllabus PDF' });
   }
 });
 
