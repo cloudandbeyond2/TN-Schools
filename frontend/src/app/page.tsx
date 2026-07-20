@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { portals } from "@/lib/navConfig";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, MoreVertical } from "lucide-react";
-import { LucideIcon } from "@/components/LucideIcon";
+
 
 /* ─── Government Color Palette ─── */
 // New Palette: Deep Purple (#065F46), Lavender (#10B981), Golden Yellow (#F59E0B), Warm Orange (#F97316), Red-Orange (#0D9488)
@@ -181,16 +180,7 @@ const testimonials = [
   { name: "Mr. Venkatesh R.", role: "Headmaster, GHS Coimbatore", text: "Managing 1200+ students has never been this efficient. The dashboard gives me a complete 360° view of the school.", avatar: "V", color: "#0D9488" },
 ];
 
-const portalColors: Record<string, { bg: string; border: string; text: string }> = {
-  "/student": { bg: "#F0FDF4", border: "#166534", text: "#166534" },
-  "/parent": { bg: "#ECFDF5", border: "#059669", text: "#047857" },
-  "/teacher": { bg: "#F0FDFA", border: "#0D9488", text: "#0F766E" },
-  "/headmaster": { bg: "#FFFBEB", border: "#D97706", text: "#B45309" },
-  "/block-education-officer": { bg: "#FEFCE8", border: "#CA8A04", text: "#A16207" },
-  "/district-education-officer": { bg: "#FFF7ED", border: "#EA580C", text: "#C2410C" },
-  "/commissioner": { bg: "#F0F9FF", border: "#0284C7", text: "#0369A1" },
-  "/minister": { bg: "#F5F3FF", border: "#7C3AED", text: "#6D28D9" },
-};
+
 
 /* ─── Typed Text Effect ─── */
 function TypedText({ texts, speed = 60, pause = 2000 }: { texts: string[]; speed?: number; pause?: number }) {
@@ -375,8 +365,8 @@ export default function HomePage() {
           </div>
 
           <div className="lg:hidden">
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-emerald-800">
-              {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-emerald-800" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "22px", color: "#065F46" }}>
+              {isMobileMenuOpen ? <i className="fi fi-rr-cross" /> : <i className="fi fi-rr-menu-burger" />}
             </button>
           </div>
         </div>
@@ -530,8 +520,8 @@ export default function HomePage() {
               </div>
 
               {/* Floating elements */}
-              <div style={{ position: "absolute", top: "0", left: "20%", background: "#F59E0B", padding: "12px 24px", borderRadius: "20px", color: "white", fontWeight: 800, transform: "rotate(-10deg)", boxShadow: "0 8px 20px rgba(245,158,11,0.3)", zIndex: 5 }}>
-                <i className="fi fi-rr-rocket"></i> AI Powered
+              <div style={{ position: "absolute", top: "0", left: "20%", background: "#F59E0B", padding: "12px 24px", borderRadius: "20px", color: "white", fontWeight: 800, transform: "rotate(-10deg)", boxShadow: "0 8px 20px rgba(245,158,11,0.3)", zIndex: 5, display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="fi fi-rr-rocket" style={{ fontSize: "16px" }}></i> AI Powered
               </div>
             </motion.div>
           </div>
@@ -553,64 +543,207 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══════════════ PORTALS: BENTO BOX ═══════════════ */}
-      <section id="portals" className="py-16 md:py-24 bg-[#FAFAFA]">
-        <div className="max-w-[1280px] mx-auto px-6 md:px-8">
-          <div className="text-center mb-16">
+      {/* ═══════════════ PORTALS: INFOGRAPHIC HIERARCHY ═══════════════ */}
+      <section id="portals" style={{ padding: "80px 0 100px", background: "linear-gradient(180deg, #f0fdf4 0%, #FAFAFA 100%)", position: "relative", overflow: "hidden" }}>
+        {/* Background decoration */}
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundImage: "radial-gradient(circle at 20% 50%, rgba(16,185,129,0.06) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(245,158,11,0.06) 0%, transparent 50%)", pointerEvents: "none" }} />
+
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 24px", position: "relative", zIndex: 1 }}>
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: "64px" }}>
             <span style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "2px", color: "#10B981", display: "inline-block", background: "#ECFDF5", padding: "6px 16px", borderRadius: "20px", marginBottom: "12px" }}>{text.portalTitleSub}</span>
             <h2 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 900, color: "#022C22", marginBottom: "16px" }}>
               {text.portalTitle1} <span style={{ color: "#F59E0B" }}>{text.portalTitle2}</span>
             </h2>
-            <p style={{ color: "#4B5563", maxWidth: "600px", margin: "0 auto", fontSize: "16px", lineHeight: 1.6 }}>{text.portalDesc}</p>
+            <p style={{ color: "#4B5563", maxWidth: "560px", margin: "0 auto", fontSize: "16px", lineHeight: 1.6 }}>{text.portalDesc}</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 grid-flow-row-dense gap-6 auto-rows-auto lg:auto-rows-[200px]">
-            {portals.map((portal, i) => {
-              const pColor = portalColors[portal.href] || { bg: "#f3f4f6", border: "#6b7280", text: "#374151" };
-              // Make Student & Teacher larger in the grid
-              const isLarge = portal.href === "/student" || portal.href === "/teacher";
-              return (
-                <Link
-                  key={portal.href}
-                  href={portal.href}
-                  className={`flex flex-col justify-center bg-white rounded-[32px] p-5 sm:p-7 relative overflow-hidden shadow-sm transition-all duration-300 ${
-                    isLarge ? "col-span-1 sm:col-span-2 row-span-1 sm:row-span-2" : "col-span-1 row-span-1"
-                  }`}
-                  style={{
-                    border: `2px solid ${pColor.border}20`,
-                    textDecoration: "none"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-6px)";
-                    e.currentTarget.style.boxShadow = `0 16px 40px ${pColor.border}30`;
-                    e.currentTarget.style.borderColor = pColor.border;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.04)";
-                    e.currentTarget.style.borderColor = `${pColor.border}20`;
-                  }}
-                >
-                  <div
-                    className="rounded-[16px] flex items-center justify-center mb-3 sm:mb-4 w-11 h-11 sm:w-12 sm:h-12"
-                    style={{ background: pColor.bg, color: pColor.text }}
-                  >
-                    <LucideIcon name={portal.icon} className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </div>
-                  <h3 className="text-base sm:text-lg font-extrabold text-gray-900 mb-1 sm:mb-2">{portal.label}</h3>
-                  <p className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4 line-clamp-2 leading-relaxed">
-                    {portal.desc}
-                  </p>
-                  <div
-                    className="inline-flex items-center text-[10px] sm:text-xs font-bold px-3 py-1 sm:px-4 sm:py-1.5 rounded-full mt-auto"
-                    style={{ color: pColor.text, background: pColor.bg }}
-                  >
-                    {text.portalEnter} →
-                  </div>
-                </Link>
-              );
-            })}
+          {/* ── TIER 1: Students & Parents (Beneficiaries) ── */}
+          <div style={{ marginBottom: "0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px", justifyContent: "center" }}>
+              <div style={{ height: "1px", flex: 1, maxWidth: "120px", background: "linear-gradient(to right, transparent, #D1FAE5)" }} />
+              <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "2px", color: "#10B981", background: "#ECFDF5", padding: "4px 14px", borderRadius: "20px", whiteSpace: "nowrap" }}>
+                {lang === "en" ? "Beneficiaries" : "பயனாளிகள்"}
+              </span>
+              <div style={{ height: "1px", flex: 1, maxWidth: "120px", background: "linear-gradient(to left, transparent, #D1FAE5)" }} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px", marginBottom: "0" }}>
+              {[
+                { href: "/student", label: portals[0].label, desc: portals[0].desc, accent: "#065F46", accentLight: "#D1FAE5", accentText: "#064E3B", fiIcon: "fi-rr-graduation-cap", features: ["AI Tutor", "Adaptive Quiz", "Career Guide"] },
+                { href: "/parent", label: portals[1].label, desc: portals[1].desc, accent: "#059669", accentLight: "#ECFDF5", accentText: "#065F46", fiIcon: "fi-rr-user-relationship", features: ["Child Progress", "Notifications", "Attendance"] },
+              ].map((p, i) => (
+                <motion.div key={p.href} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+                  <Link href={p.href} style={{ textDecoration: "none", display: "block" }}>
+                    <div
+                      style={{ background: "white", border: `2px solid ${p.accentLight}`, borderRadius: "24px", padding: "28px", position: "relative", overflow: "hidden", transition: "all 0.3s ease", cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-6px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 20px 50px ${p.accent}22`; (e.currentTarget as HTMLDivElement).style.borderColor = p.accent; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 20px rgba(0,0,0,0.05)"; (e.currentTarget as HTMLDivElement).style.borderColor = p.accentLight; }}
+                    >
+                      {/* Decorative blob */}
+                      <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "100px", height: "100px", borderRadius: "50%", background: p.accentLight, opacity: 0.6 }} />
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "16px", position: "relative", zIndex: 1 }}>
+                        <div style={{ width: "52px", height: "52px", borderRadius: "16px", background: p.accentLight, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0, color: p.accentText }}><i className={`fi ${p.fiIcon}`} /></div>
+                        <div style={{ flex: 1 }}>
+                          <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#022C22", marginBottom: "4px" }}>{p.label}</h3>
+                          <p style={{ fontSize: "13px", color: "#6B7280", lineHeight: 1.5, marginBottom: "16px" }}>{p.desc}</p>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                            {p.features.map(f => (
+                              <span key={f} style={{ fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "20px", background: p.accentLight, color: p.accentText }}>{f}</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: `1px solid ${p.accentLight}`, display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 1 }}>
+                        <span style={{ fontSize: "13px", fontWeight: 700, color: p.accentText, display: "flex", alignItems: "center", gap: "6px" }}>{text.portalEnter} <i className="fi fi-rr-arrow-right" /></span>
+                        <span style={{ fontSize: "11px", color: "#9CA3AF", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}><i className="fi fi-rr-lock" />{lang === "en" ? " Secure Login" : " பாதுகாப்பான உள்நுழைவு"}</span>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
           </div>
+
+          {/* Connector arrow down */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 0", gap: "2px" }}>
+            <div style={{ width: "2px", height: "28px", background: "linear-gradient(to bottom, #10B981, #065F46)" }} />
+            <div style={{ width: 0, height: 0, borderLeft: "7px solid transparent", borderRight: "7px solid transparent", borderTop: "10px solid #065F46" }} />
+          </div>
+
+          {/* ── TIER 2: School Level ── */}
+          <div style={{ marginBottom: "0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px", justifyContent: "center" }}>
+              <div style={{ height: "1px", flex: 1, maxWidth: "120px", background: "linear-gradient(to right, transparent, #FEF3C7)" }} />
+              <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "2px", color: "#B45309", background: "#FFFBEB", padding: "4px 14px", borderRadius: "20px", whiteSpace: "nowrap" }}>
+                {lang === "en" ? "School Level" : "பள்ளி நிலை"}
+              </span>
+              <div style={{ height: "1px", flex: 1, maxWidth: "120px", background: "linear-gradient(to left, transparent, #FEF3C7)" }} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+              {[
+                { href: "/teacher", label: portals[2].label, desc: portals[2].desc, accent: "#D97706", accentLight: "#FFFBEB", accentText: "#92400E", fiIcon: "fi-rr-book-alt", features: ["AI Lesson Plan", "Question Gen", "Analytics"] },
+                { href: "/headmaster", label: portals[3].label, desc: portals[3].desc, accent: "#0284C7", accentLight: "#EFF6FF", accentText: "#1D4ED8", fiIcon: "fi-rr-building", features: ["Staff Mgmt", "Enrollment", "Resources"] },
+              ].map((p, i) => (
+                <motion.div key={p.href} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.12 }}>
+                  <Link href={p.href} style={{ textDecoration: "none", display: "block" }}>
+                    <div
+                      style={{ background: "white", border: `2px solid ${p.accentLight}`, borderRadius: "20px", padding: "22px", position: "relative", overflow: "hidden", transition: "all 0.3s ease", cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", height: "100%" }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-5px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 16px 40px ${p.accent}22`; (e.currentTarget as HTMLDivElement).style.borderColor = p.accent; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)"; (e.currentTarget as HTMLDivElement).style.borderColor = p.accentLight; }}
+                    >
+                      <div style={{ position: "absolute", top: "-15px", right: "-15px", width: "70px", height: "70px", borderRadius: "50%", background: p.accentLight, opacity: 0.8 }} />
+                      <div style={{ position: "relative", zIndex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+                          <div style={{ width: "44px", height: "44px", borderRadius: "14px", background: p.accentLight, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", flexShrink: 0, color: p.accentText }}><i className={`fi ${p.fiIcon}`} /></div>
+                          <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#022C22" }}>{p.label}</h3>
+                        </div>
+                        <p style={{ fontSize: "12px", color: "#6B7280", lineHeight: 1.5, marginBottom: "14px" }}>{p.desc}</p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "14px" }}>
+                          {p.features.map(f => (
+                            <span key={f} style={{ fontSize: "10px", fontWeight: 700, padding: "2px 9px", borderRadius: "20px", background: p.accentLight, color: p.accentText }}>{f}</span>
+                          ))}
+                        </div>
+                        <span style={{ fontSize: "12px", fontWeight: 700, color: p.accentText, display: "flex", alignItems: "center", gap: "5px" }}>{text.portalEnter} <i className="fi fi-rr-arrow-right" /></span>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Connector */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 0", gap: "2px" }}>
+            <div style={{ width: "2px", height: "28px", background: "linear-gradient(to bottom, #F59E0B, #EA580C)" }} />
+            <div style={{ width: 0, height: 0, borderLeft: "7px solid transparent", borderRight: "7px solid transparent", borderTop: "10px solid #EA580C" }} />
+          </div>
+
+          {/* ── TIER 3: District Level ── */}
+          <div style={{ marginBottom: "0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px", justifyContent: "center" }}>
+              <div style={{ height: "1px", flex: 1, maxWidth: "120px", background: "linear-gradient(to right, transparent, #FFEDD5)" }} />
+              <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "2px", color: "#C2410C", background: "#FFF7ED", padding: "4px 14px", borderRadius: "20px", whiteSpace: "nowrap" }}>
+                {lang === "en" ? "District Level" : "மாவட்ட நிலை"}
+              </span>
+              <div style={{ height: "1px", flex: 1, maxWidth: "120px", background: "linear-gradient(to left, transparent, #FFEDD5)" }} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
+              {[
+                { href: "/block-education-officer", label: "Block Education Officer", accent: "#7C3AED", accentLight: "#F5F3FF", accentText: "#5B21B6", fiIcon: "fi-rr-building-columns", features: ["School Visits", "Exam Analytics"] },
+                { href: "/district-education-officer", label: "District Education Officer", accent: "#DB2777", accentLight: "#FDF2F8", accentText: "#9D174D", fiIcon: "fi-rr-map", features: ["Heatmaps", "School Ranking"] },
+              ].map((p, i) => (
+                <motion.div key={p.href} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+                  <Link href={p.href} style={{ textDecoration: "none", display: "block" }}>
+                    <div
+                      style={{ background: "white", border: `2px solid ${p.accentLight}`, borderRadius: "18px", padding: "18px 20px", display: "flex", alignItems: "center", gap: "14px", transition: "all 0.3s ease", cursor: "pointer", boxShadow: "0 2px 10px rgba(0,0,0,0.04)" }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 12px 30px ${p.accent}20`; (e.currentTarget as HTMLDivElement).style.borderColor = p.accent; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 10px rgba(0,0,0,0.04)"; (e.currentTarget as HTMLDivElement).style.borderColor = p.accentLight; }}
+                    >
+                      <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: p.accentLight, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", flexShrink: 0, color: p.accentText }}><i className={`fi ${p.fiIcon}`} /></div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{ fontSize: "14px", fontWeight: 800, color: "#022C22", marginBottom: "4px", lineHeight: 1.3 }}>{p.label}</h3>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                          {p.features.map(f => (
+                            <span key={f} style={{ fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "20px", background: p.accentLight, color: p.accentText }}>{f}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <span style={{ fontSize: "16px", color: p.accent, fontWeight: 800, flexShrink: 0 }}><i className="fi fi-rr-arrow-right" /></span>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Connector */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 0", gap: "2px" }}>
+            <div style={{ width: "2px", height: "28px", background: "linear-gradient(to bottom, #EA580C, #0284C7)" }} />
+            <div style={{ width: 0, height: 0, borderLeft: "7px solid transparent", borderRight: "7px solid transparent", borderTop: "10px solid #0284C7" }} />
+          </div>
+
+          {/* ── TIER 4: State Level ── */}
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px", justifyContent: "center" }}>
+              <div style={{ height: "1px", flex: 1, maxWidth: "120px", background: "linear-gradient(to right, transparent, #BFDBFE)" }} />
+              <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "2px", color: "#1D4ED8", background: "#EFF6FF", padding: "4px 14px", borderRadius: "20px", whiteSpace: "nowrap" }}>
+                {lang === "en" ? "State Level" : "மாநில நிலை"}
+              </span>
+              <div style={{ height: "1px", flex: 1, maxWidth: "120px", background: "linear-gradient(to left, transparent, #BFDBFE)" }} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
+              {[
+                { href: "/commissioner", label: "Commissioner Portal", accent: "#0369A1", accentLight: "#F0F9FF", accentText: "#075985", fiIcon: "fi-rr-scale", features: ["State Ops", "Policy Monitor"] },
+                { href: "/minister", label: "Minister Dashboard", accent: "#DC2626", accentLight: "#FEF2F2", accentText: "#991B1B", fiIcon: "fi-rr-flag", features: ["Command Center", "KPI View"] },
+              ].map((p, i) => (
+                <motion.div key={p.href} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+                  <Link href={p.href} style={{ textDecoration: "none", display: "block" }}>
+                    <div
+                      style={{ background: "white", border: `2px solid ${p.accentLight}`, borderRadius: "18px", padding: "18px 20px", display: "flex", alignItems: "center", gap: "14px", transition: "all 0.3s ease", cursor: "pointer", boxShadow: "0 2px 10px rgba(0,0,0,0.04)" }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 12px 30px ${p.accent}20`; (e.currentTarget as HTMLDivElement).style.borderColor = p.accent; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 10px rgba(0,0,0,0.04)"; (e.currentTarget as HTMLDivElement).style.borderColor = p.accentLight; }}
+                    >
+                      <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: p.accentLight, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", flexShrink: 0, color: p.accentText }}><i className={`fi ${p.fiIcon}`} /></div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{ fontSize: "14px", fontWeight: 800, color: "#022C22", marginBottom: "4px", lineHeight: 1.3 }}>{p.label}</h3>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                          {p.features.map(f => (
+                            <span key={f} style={{ fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "20px", background: p.accentLight, color: p.accentText }}>{f}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <span style={{ fontSize: "16px", color: p.accent, fontWeight: 800, flexShrink: 0 }}><i className="fi fi-rr-arrow-right" /></span>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
         </div>
       </section>
 
