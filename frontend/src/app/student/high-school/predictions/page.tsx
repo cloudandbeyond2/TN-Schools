@@ -3,7 +3,10 @@
 import { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
-import { TrendingUp, TrendingDown, Minus, Brain, Award, AlertTriangle, RefreshCw, Info, Sparkles } from "lucide-react";
+
+const Icon = ({ name, className = "", style }: { name: string; className?: string; style?: React.CSSProperties }) => (
+  <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} style={style} />
+);
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -52,78 +55,6 @@ function Sparkline({ points, color }: { points: Array<{ percent: number }>; colo
   );
 }
 
-const FALLBACK_PREDICTION = {
-  overall: {
-    predictedTotal: 428,
-    maxTotal: 500,
-    overallPercent: 85.6,
-    grade: "A2",
-    passLikely: true,
-    subjectsWithData: 5
-  },
-  subjects: [
-    {
-      subject: "Mathematics",
-      samples: 5,
-      averagePercent: 78.5,
-      predictedPercent: 86.0,
-      predictedMarks: 86,
-      trend: 3.2,
-      confidence: 85,
-      grade: "A2",
-      risk: "Low",
-      history: [{ percent: 65 }, { percent: 72 }, { percent: 79 }, { percent: 84 }, { percent: 91 }]
-    },
-    {
-      subject: "Science",
-      samples: 4,
-      averagePercent: 82.0,
-      predictedPercent: 89.0,
-      predictedMarks: 89,
-      trend: 1.5,
-      confidence: 78,
-      grade: "A2",
-      risk: "Low",
-      history: [{ percent: 78 }, { percent: 81 }, { percent: 84 }, { percent: 85 }]
-    },
-    {
-      subject: "Social Science",
-      samples: 3,
-      averagePercent: 62.0,
-      predictedPercent: 58.0,
-      predictedMarks: 58,
-      trend: -2.1,
-      confidence: 65,
-      grade: "C",
-      risk: "Medium",
-      history: [{ percent: 70 }, { percent: 64 }, { percent: 52 }]
-    },
-    {
-      subject: "English",
-      samples: 4,
-      averagePercent: 88.0,
-      predictedPercent: 92.0,
-      predictedMarks: 92,
-      trend: 1.0,
-      confidence: 82,
-      grade: "A1",
-      risk: "Low",
-      history: [{ percent: 85 }, { percent: 87 }, { percent: 89 }, { percent: 91 }]
-    },
-    {
-      subject: "Tamil",
-      samples: 4,
-      averagePercent: 72.0,
-      predictedPercent: 78.0,
-      predictedMarks: 78,
-      trend: 2.0,
-      confidence: 75,
-      grade: "B1",
-      risk: "Low",
-      history: [{ percent: 65 }, { percent: 70 }, { percent: 75 }, { percent: 78 }]
-    }
-  ]
-};
 
 export default function PredictionsPage() {
   const { data: session } = useSession();
@@ -131,7 +62,6 @@ export default function PredictionsPage() {
   const [prediction, setPrediction] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [usingFallback, setUsingFallback] = useState(false);
 
   useEffect(() => {
     fetch(`${API_BASE}/api/students`)
@@ -157,15 +87,14 @@ export default function PredictionsPage() {
     if (!s) return;
     setLoading(true);
     setError(null);
-    setUsingFallback(false);
     fetch(`${API_BASE}/api/sslc-prep/predictions/${s.id}`)
       .then((res) => res.json())
       .then((json) => {
         if (json.success) {
           const subjectsWithData = json.data.subjects?.filter((x: any) => x.samples > 0) || [];
           if (subjectsWithData.length === 0) {
-            setPrediction(FALLBACK_PREDICTION);
-            setUsingFallback(true);
+            setPrediction(null);
+            setError("No practice or mock test scores recorded yet. Take a test to generate predictions!");
           } else {
             setPrediction(json.data);
           }
@@ -175,8 +104,8 @@ export default function PredictionsPage() {
         setLoading(false);
       })
       .catch(() => {
-        setPrediction(FALLBACK_PREDICTION);
-        setUsingFallback(true);
+        setPrediction(null);
+        setError("Failed to fetch predictions.");
         setLoading(false);
       });
   };
@@ -200,29 +129,24 @@ export default function PredictionsPage() {
         </div>
       ) : error ? (
         <div className="glass rounded-2xl p-10 border border-red-500/30 text-center">
-          <AlertTriangle className="w-10 h-10 text-red-400 mx-auto mb-3" />
+          <Icon name="triangle-warning" className="text-4xl text-red-400 mx-auto mb-3" />
           <p className="text-slate-300 text-sm mb-4">{error}</p>
           <button
             onClick={() => loadPrediction(student)}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-bold"
           >
-            <RefreshCw className="w-4 h-4" /> Retry
+            <Icon name="refresh" className="text-sm" /> Retry
           </button>
         </div>
       ) : (
         <>
-          {usingFallback && (
-            <div className="mb-6 text-xs text-amber-300/90 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 shrink-0" />
-              Showing sample prediction data. Take a mock test or log practice paper marks to see your actual personalized predictions.
-            </div>
-          )}
+
           
           {/* Overall banner */}
           <div className="glass rounded-2xl p-6 mb-6 border-l-4 border-red-500 bg-red-900/10 fade-in flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center shrink-0">
-                <Brain className="w-6 h-6 text-red-400" />
+                <Icon name="brain" className="text-2xl text-red-400" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-white">Predicted Board Performance</h2>
@@ -258,7 +182,7 @@ export default function PredictionsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 fade-in-2">
             {subjects.map((s: any) => {
               const color = SUBJECT_COLORS[s.subject] || "#ef4444";
-              const TrendIcon = s.trend > 0.5 ? TrendingUp : s.trend < -0.5 ? TrendingDown : Minus;
+              const TrendIconName = s.trend > 0.5 ? "arrow-trend-up" : s.trend < -0.5 ? "arrow-trend-down" : "minus";
               const trendColor = s.trend > 0.5 ? "text-emerald-400" : s.trend < -0.5 ? "text-red-400" : "text-slate-400";
               return (
                 <div key={s.subject} className="glass rounded-2xl p-5 border border-slate-700/50 hover:border-red-500/40 transition-colors">
@@ -296,7 +220,7 @@ export default function PredictionsPage() {
                         </div>
                         <div className="bg-slate-900/60 rounded-lg py-2 border border-slate-800">
                           <div className={`text-sm font-bold flex items-center justify-center gap-1 ${trendColor}`}>
-                            <TrendIcon className="w-3.5 h-3.5" />
+                            <Icon name={TrendIconName} className="text-xs" />
                             {s.trend > 0 ? "+" : ""}{s.trend}
                           </div>
                           <div className="text-[9px] text-slate-500 uppercase font-bold">Trend / Exam</div>
@@ -333,7 +257,7 @@ export default function PredictionsPage() {
           {/* How it works */}
           <div className="glass rounded-2xl p-6 mt-6 border border-slate-700/50 fade-in-3">
             <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-              <Award className="w-4 h-4 text-red-400" /> How predictions are calculated
+              <Icon name="award" className="text-sm text-red-400" /> How predictions are calculated
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-400">
               <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-800">
