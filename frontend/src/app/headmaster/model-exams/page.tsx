@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
 import { Lock, Unlock, Plus, Download, Upload, Trash2, ChevronLeft, AlertTriangle, CheckCircle2, TrendingUp, Users, BookOpen, Award } from "lucide-react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -201,6 +202,7 @@ function calcLocal(row: Omit<LocalRow, "dirty">, isHsc: boolean) {
 
 // ── Main Page ─────────────────────────────────────────────────────────────
 export default function ModelExamsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
 
@@ -511,7 +513,7 @@ export default function ModelExamsPage() {
 
   return (
     <PortalLayout
-      title="Model Exam Results & Revision Analytics"
+      title={lang === "தமிழ்" ? "மாதிரி தேர்வு மதிப்பெண்கள் & முன்னேற்ற பகுப்ில்" : "Model Exam Results & Revision Analytics"}
       subtitle={`${(session?.user as any)?.name || "Headmaster"} · ${(session?.user as any)?.schoolName || ""}`}
       avatarLetter="H"
       avatarColor="#3b82f6"

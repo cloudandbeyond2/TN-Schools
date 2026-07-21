@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 /* ------------------------------- Types ------------------------------- */
 
@@ -221,6 +222,7 @@ function stars(n: number): string {
 /* ------------------------------- Page -------------------------------- */
 
 export default function MiddayMealPage() {
+  const { lang } = usePortalLanguage();
   const [records, setRecords] = useState<DailyRecord[]>(SEED_RECORDS);
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(SEED_BENEFICIARIES);
   const [stock, setStock] = useState<StockItem[]>(SEED_STOCK);
@@ -461,18 +463,18 @@ export default function MiddayMealPage() {
   /* ------------------------------ Render ------------------------------ */
 
   const TABS: { key: TabKey; label: string; icon: string }[] = [
-    { key: "overview", label: "Overview", icon: "📊" },
-    { key: "records", label: "Daily Records", icon: "🍛" },
-    { key: "beneficiaries", label: "Beneficiaries", icon: "👥" },
-    { key: "stock", label: "Food Stock", icon: "📦" },
-    { key: "menu", label: "Menu Monitoring", icon: "📅" },
-    { key: "quality", label: "Quality Reports", icon: "🧪" },
+    { key: "overview",      label: lang === "தமிழ்" ? "மேலோட்டம்"              : "Overview",         icon: "📊" },
+    { key: "records",       label: lang === "தமிழ்" ? "உணவு பதிவுகள்"          : "Daily Records",    icon: "🍛" },
+    { key: "beneficiaries", label: lang === "தமிழ்" ? "பயனாளர்கள்"             : "Beneficiaries",    icon: "👥" },
+    { key: "stock",         label: lang === "தமிழ்" ? "உணவு கிடங்கு"           : "Kitchen Stock",    icon: "📦" },
+    { key: "menu",          label: lang === "தமிழ்" ? "மெனு கண்காணிப்பு"      : "Menu Monitoring",  icon: "📅" },
+    { key: "quality",       label: lang === "தமிழ்" ? "தரம் அறிக்கைகள்"       : "Quality Reports",  icon: "🧪" },
   ];
 
   return (
     <PortalLayout
-      title="Mid-Day Meal Monitoring"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
+      title={lang === "தமிழ்" ? "மதியம் உணவு கண்காணிப்பு" : "Mid-Day Meal Monitoring"}
+      subtitle={lang === "தமிழ்" ? "மாணவர்களுக்கான தினசரி உணவு பரிமாற்றம், பயனாளர்கள் மற்றும் உணவு தரம் கண்காணிக்கவும்." : "Monitor daily meal servings, beneficiaries and kitchen stock."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
@@ -481,16 +483,15 @@ export default function MiddayMealPage() {
       {/* Hero banner */}
       <div className="rounded-2xl p-6 mb-6 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 relative overflow-hidden">
         <div className="absolute -right-8 -top-8 text-[120px] opacity-15 select-none" aria-hidden>🍛</div>
-        <div className="text-lg font-black" style={{ color: "#fff" }}>Mid-Day Meal Monitoring</div>
+        <div className="text-lg font-black" style={{ color: "#fff" }}>{lang === "தமிழ்" ? "மதியம் உணவு கண்காணிப்பு" : "Mid-Day Meal Monitoring"}</div>
         <p className="text-xs mt-1 max-w-2xl leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
-          Single desk for the PM POSHAN / Puratchi Thalaivar MGR Nutritious Meal Programme — log daily servings,
-          track beneficiaries and kitchen stock, monitor the sanctioned menu and file quality inspections.
+          {lang === "தமிழ்" ? "மாணவர்களுக்கான தினசரி உணவு பரிமாற்றம், பயனாளர்கள் மற்றும் உணவுமக சரகுகள், அனுமதிக்கப்பட்ட மெனுவை கண்காணித்து தரம் ஆய்வுகளை பதிவு செய்யவும்." : "Single desk for the PM POSHAN / Puratchi Thalaivar MGR Nutritious Meal Programme — log daily servings, track beneficiaries and kitchen stock, monitor the sanctioned menu and file quality inspections."}
         </p>
         <div className="flex flex-wrap gap-4 mt-4">
-          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.activeBens}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>Active beneficiaries</span></div>
-          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.monthMeals.toLocaleString("en-IN")}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>Meals served in July</span></div>
-          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.avgCoverage}%</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>Avg coverage</span></div>
-          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.avgQuality}/5</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>Quality score</span></div>
+          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.activeBens}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "வினையொளிர்" : "Active beneficiaries"}</span></div>
+          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.monthMeals.toLocaleString("en-IN")}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "ஜூலையில் உணவு பரிமாற்றம்" : "Meals served in July"}</span></div>
+          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.avgCoverage}%</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "சராசரி உல்ளடக்கம்" : "Avg coverage"}</span></div>
+          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.avgQuality}/5</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "தரம் மதிப்பெண்" : "Quality score"}</span></div>
         </div>
       </div>
 

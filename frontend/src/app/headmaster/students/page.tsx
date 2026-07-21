@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 interface IconProps {
   className?: string;
   size?: number;
@@ -200,6 +201,7 @@ interface WatchlistStudent {
 }
 
 export default function StudentsMonitoringPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   // Headmaster's own school — derived directly from session, never changes
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
@@ -1267,8 +1269,8 @@ export default function StudentsMonitoringPage() {
 
   return (
     <PortalLayout
-      title="Student Monitoring & Watchlist"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
+      title={lang === "தமிழ்" ? "மாணவர் கண்காணிப்பு & கவற்றல் பட்டியல்" : "Student Monitoring & Watchlist"}
+      subtitle={lang === "தமிழ்" ? "மாணவர் தகவல், வருகைப்பதிவு மற்றும் கவற்றல் நிலை." : "Student information, attendance and watchlist status."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
@@ -1277,8 +1279,8 @@ export default function StudentsMonitoringPage() {
       {/* School Badge — locked to this headmaster's school */}
       <div className="glass rounded-2xl p-4 border border-slate-800 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 fade-in">
         <div>
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider">Managed Institution</h3>
-          <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Student data is scoped to your assigned school only.</p>
+          <h3 className="text-xs font-bold text-white uppercase tracking-wider">{lang === "தமிழ்" ? "நிர்வகிக்கப்படும் நிறுவனம்" : "Managed Institution"}</h3>
+          <p className="text-[10px] text-slate-500 font-semibold mt-0.5">{lang === "தமிழ்" ? "மாணவர் தகவல் உங்கள் பள்ளிக்கு மட்டுமிட்டதாகும்." : "Student data is scoped to your assigned school only."}</p>
         </div>
         <div className="flex items-center gap-2 bg-blue-600/10 border border-blue-500/30 rounded-xl px-4 py-2 w-full sm:w-auto">
           <i className="fi fi-rr-school text-blue-400 text-base" />
@@ -1292,10 +1294,10 @@ export default function StudentsMonitoringPage() {
       {/* Metrics Row */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-6 fade-in">
         {[
-          { label: "Total Students", value: isLoading ? "..." : watchlist.length.toString(), icon: <i className="fi fi-rr-graduation-cap" />, color: "text-blue-400", bg: "bg-blue-500/10", sub: "All registered students" },
-          { label: "Active Students", value: isLoading ? "..." : activeCount.toString(), icon: <i className="fi fi-rr-checkbox" />, color: "text-emerald-400", bg: "bg-emerald-500/10", sub: "Currently attending" },
-          { label: "Boys", value: isLoading ? "..." : boysCount.toString(), icon: <i className="fi fi-rr-user" />, color: "text-indigo-400", bg: "bg-indigo-500/10", sub: "Male students" },
-          { label: "Girls", value: isLoading ? "..." : girlsCount.toString(), icon: <i className="fi fi-rr-user" />, color: "text-pink-400", bg: "bg-pink-500/10", sub: "Female students" },
+          { label: lang === "தமிழ்" ? "மொத்த மாணவர்கள்" : "Total Students", value: isLoading ? "..." : watchlist.length.toString(), icon: <i className="fi fi-rr-graduation-cap" />, color: "text-blue-400", bg: "bg-blue-500/10", sub: lang === "தமிழ்" ? "பதிவு செய்த அனைத்து மாணவர்கள்" : "All registered students" },
+          { label: lang === "தமிழ்" ? "சுறுப்புள்ள மாணவர்கள்" : "Active Students", value: isLoading ? "..." : activeCount.toString(), icon: <i className="fi fi-rr-checkbox" />, color: "text-emerald-400", bg: "bg-emerald-500/10", sub: lang === "தமிழ்" ? "தற்போது படிக்கறார்கள்" : "Currently attending" },
+          { label: lang === "தமிழ்" ? "ஆண்கள்" : "Boys", value: isLoading ? "..." : boysCount.toString(), icon: <i className="fi fi-rr-user" />, color: "text-indigo-400", bg: "bg-indigo-500/10", sub: lang === "தமிழ்" ? "ஆண் மாணவர்கள்" : "Male students" },
+          { label: lang === "தமிழ்" ? "பெண்கள்" : "Girls", value: isLoading ? "..." : girlsCount.toString(), icon: <i className="fi fi-rr-user" />, color: "text-pink-400", bg: "bg-pink-500/10", sub: lang === "தமிழ்" ? "பெண் மாணவர்கள்" : "Female students" },
         ].map((kpi) => (
           <div key={kpi.label} className="glass rounded-2xl p-3 sm:p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all shadow-sm">
             <div className="flex flex-col text-left min-w-0">

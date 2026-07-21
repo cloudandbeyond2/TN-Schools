@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 /* ------------------------------- Types ------------------------------- */
 
@@ -260,6 +261,7 @@ function coveragePct(s: Scheme): number {
 /* ------------------------------- Page -------------------------------- */
 
 export default function GovSchemesPage() {
+  const { lang } = usePortalLanguage();
   const [schemes, setSchemes] = useState<Scheme[]>(SEED_SCHEMES);
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(SEED_BENEFICIARIES);
   const [activity, setActivity] = useState<Activity[]>(SEED_ACTIVITY);
@@ -404,16 +406,16 @@ export default function GovSchemesPage() {
   /* ------------------------------ Render ------------------------------ */
 
   const TABS: { key: TabKey; label: string; icon: string }[] = [
-    { key: "overview", label: "Overview", icon: "📊" },
-    { key: "schemes", label: "Schemes", icon: "🏛️" },
-    { key: "beneficiaries", label: "Beneficiaries", icon: "👥" },
-    { key: "progress", label: "Implementation", icon: "🚧" },
+    { key: "overview",       label: lang === "தமிழ்" ? "மேலோட்டம்"         : "Overview",        icon: "📊" },
+    { key: "schemes",        label: lang === "தமிழ்" ? "திட்டங்கள்"        : "Schemes",         icon: "🏛️" },
+    { key: "beneficiaries",  label: lang === "தமிழ்" ? "பயனாளர்கள்"        : "Beneficiaries",   icon: "👥" },
+    { key: "progress",       label: lang === "தமிழ்" ? "செயலாக்கம்"        : "Implementation",  icon: "🚧" },
   ];
 
   return (
     <PortalLayout
-      title="Government Scheme Management"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
+      title={lang === "தமிழ்" ? "அரசு திட்ட மேலாண்மை" : "Government Scheme Management"}
+      subtitle={lang === "தமிழ்" ? "மாணவர்களுக்கான திட்டங்கள், உதவிதொகைகள் மற்றும் நலன் திட்டங்களை கண்காணிக்கவும்." : "Track and manage student schemes, scholarships and welfare programs."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
@@ -422,15 +424,14 @@ export default function GovSchemesPage() {
       {/* Hero banner */}
       <div className="rounded-2xl p-6 mb-6 bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 relative overflow-hidden">
         <div className="absolute -right-8 -top-8 text-[120px] opacity-15 select-none" aria-hidden>🏛️</div>
-        <div className="text-lg font-black" style={{ color: "#fff" }}>Government Scheme Management</div>
+        <div className="text-lg font-black" style={{ color: "#fff" }}>{lang === "தமிழ்" ? "அரசு திட்ட மேலாண்மை" : "Government Scheme Management"}</div>
         <p className="text-xs mt-1 max-w-2xl leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
-          Single desk to track student schemes, scholarships and welfare programs — enrol beneficiaries,
-          verify EMIS records, log distributions and monitor implementation milestones.
+          {lang === "தமிழ்" ? "மாணவர் திட்டங்கள், உதவிதொகைகள் மற்றும் நலன் திட்டங்களை கண்காணிக்க ஒரு மேஜை. பயனைதாரர்களை சேர்த்து EMIS பதிவுகளை சரிபார்த்திது, விதரணங்களை பதிவு செய்து இயக்க நிலைகளை கண்காணிக்கவும்." : "Single desk to track student schemes, scholarships and welfare programs — enrol beneficiaries, verify EMIS records, log distributions and monitor implementation milestones."}
         </p>
         <div className="flex flex-wrap gap-4 mt-4">
-          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.total}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>Schemes</span></div>
-          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.totalDisbursed}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>Benefits delivered</span></div>
-          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{inr(stats.totalUtilized)}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>Funds utilized</span></div>
+          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.total}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "திட்டங்கள்" : "Schemes"}</span></div>
+          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.totalDisbursed}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "பயன்கள் விதரிக்கப்பட்டன" : "Benefits delivered"}</span></div>
+          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{inr(stats.totalUtilized)}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "நிதியம் பயன்படுத்தப்பட்டது" : "Funds utilized"}</span></div>
         </div>
       </div>
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface HonorRecord {
   id: string;
@@ -24,6 +25,7 @@ const getApiBase = () => {
 const API_BASE = getApiBase();
 
 export default function RewardsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId: string = (session?.user as any)?.schoolId || "";
 
@@ -114,7 +116,7 @@ export default function RewardsPage() {
 
   return (
     <PortalLayout
-      title="Rewards, Honors & Citations Board"
+      title={lang === "தமிழ்" ? "விருதுகள், மரியாதைகள் & சான்றிதழ்கள் பலகை" : "Rewards, Honors & Citations Board"}
       subtitle={`${session?.user?.name || "Headmaster"} · School ID: ${schoolId || "33012345"}`}
       avatarLetter={session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "H"}
       avatarColor="#3b82f6"
@@ -178,9 +180,9 @@ export default function RewardsPage() {
         {/* Honors Listing Board */}
         <div className="lg:col-span-2 glass rounded-2xl p-6 border border-slate-800">
           <h2 className="text-base font-semibold text-white flex items-center gap-2 mb-1">
-            <i className="fi fi-rr-trophy text-blue-400" /> School Honors Ledger
+            <i className="fi fi-rr-trophy text-blue-400" /> {lang === "தமிழ்" ? "பள்ளி மரியாதைகள் பதிவுப்புத்தகம்" : "School Honors Ledger"}
           </h2>
-          <p className="text-xs text-slate-500 mb-5 leading-relaxed">Official registry of awards won by students, faculty, and school operations.</p>
+          <p className="text-xs text-slate-500 mb-5 leading-relaxed">{lang === "தமிழ்" ? "மாணவர்கள், ஆசிரியர்கள் மற்றும் பள்ளி செயல்பாடுகள் மூலம் வென்ற விருதுகளின் அதிகாரப்பூர்வ பதிவு." : "Official registry of awards won by students, faculty, and school operations."}</p>
 
           {isLoading ? (
             <div className="py-12 text-center text-slate-400 font-bold flex items-center justify-center gap-2">
@@ -230,10 +232,10 @@ export default function RewardsPage() {
         {/* Add Honor Entry form */}
         <div className="glass rounded-2xl p-6 border border-slate-800 h-fit">
           <h2 className="text-base font-semibold text-white flex items-center gap-2 mb-2">
-            <i className="fi fi-rr-medal text-blue-400" /> Record New Citation
+            <i className="fi fi-rr-medal text-blue-400" /> {lang === "தமிழ்" ? "புதிய மரியாதையை பதிவு செய்" : "Record New Citation"}
           </h2>
           <p className="text-xs text-slate-500 leading-relaxed mb-4 font-medium">
-            Register certificates, science fair recognitions, or sports medals won by pupils or teaching staff.
+            {lang === "தமிழ்" ? "மாணவர்கள் அல்லது ஆசிரியர்களால் வென்ற சான்றிதழ்கள், அறிவியல் கண்காட்சி அங்கீகாரங்கள் அல்லது விளையாட்டு பதக்கங்களை பதிவு செய்யவும்." : "Register certificates, science fair recognitions, or sports medals won by pupils or teaching staff."}
           </p>
 
           <form onSubmit={handlePostHonor} className="space-y-4">

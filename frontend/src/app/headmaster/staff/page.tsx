@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { 
   Users, 
   UserCheck, 
@@ -92,6 +93,7 @@ interface LeaveRequest {
 }
 
 export default function StaffManagementPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
   
@@ -940,8 +942,8 @@ export default function StaffManagementPage() {
 
   return (
     <PortalLayout
-      title="Staff Management Portal"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
+      title={lang === "தமிழ்" ? "ஆசிரியர்கள் & பணியாளர்கள் மேலாண்மை" : "Staff Management Portal"}
+      subtitle={lang === "தமிழ்" ? "பள்ளி ஆசிரியர்கள் மற்றும் பணியாளர்கள் அட்டவணை, வருகைப்பதிவு மற்றும் விடுப்பு ஒப்புதல்கள்." : "Staff roster, attendance, and leave approvals."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
@@ -954,9 +956,9 @@ export default function StaffManagementPage() {
         {/* Card 1: Teaching */}
         <div className="glass rounded-2xl p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all bg-gradient-to-br from-blue-500/10 to-transparent">
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Teaching Faculty</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{lang === "தமிழ்" ? "கற்பித்தல் ஆசிரியர்கள்" : "Teaching Faculty"}</span>
             <span className="text-2xl font-black text-slate-900 dark:text-white mt-1">{stats.teaching}</span>
-            <span className="text-[9px] text-blue-600 dark:text-blue-400 font-semibold mt-1">Permanent Roster</span>
+            <span className="text-[9px] text-blue-600 dark:text-blue-400 font-semibold mt-1">{lang === "தமிழ்" ? "நிரந்தரப் பட்டியல்" : "Permanent Roster"}</span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-500 dark:text-blue-400">
             <Users className="w-6 h-6" />
@@ -966,9 +968,9 @@ export default function StaffManagementPage() {
         {/* Card 2: Non-Teaching */}
         <div className="glass rounded-2xl p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all bg-gradient-to-br from-violet-500/10 to-transparent">
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Non-Teaching Staff</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{lang === "தமிழ்" ? "கற்பிக்காத பணியாளர்கள்" : "Non-Teaching Staff"}</span>
             <span className="text-2xl font-black text-slate-900 dark:text-white mt-1">{stats.nonTeaching}</span>
-            <span className="text-[9px] text-violet-600 dark:text-violet-400 font-semibold mt-1">Admin & Support</span>
+            <span className="text-[9px] text-violet-600 dark:text-violet-400 font-semibold mt-1">{lang === "தமிழ்" ? "நிர்வாகம் & ஆதரவு" : "Admin & Support"}</span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-violet-500 dark:text-violet-400">
             <Briefcase className="w-6 h-6" />
@@ -990,9 +992,9 @@ export default function StaffManagementPage() {
         {/* Card 4: Leave Requests */}
         <div className="glass rounded-2xl p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all bg-gradient-to-br from-red-500/10 to-transparent">
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Leaves</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{lang === "தமிழ்" ? "நிலுவையில் உள்ள விடுப்புகள்" : "Pending Leaves"}</span>
             <span className="text-2xl font-black text-slate-900 dark:text-white mt-1">{stats.leaves}</span>
-            <span className="text-[9px] text-red-600 dark:text-red-400 font-semibold mt-1">Action Required</span>
+            <span className="text-[9px] text-red-650 dark:text-red-450 font-bold mt-1">{lang === "தமிழ்" ? "தேவைப்படும் நடவடிக்கை" : "Action Required"}</span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-500 dark:text-red-400">
             <FileText className="w-6 h-6" />
@@ -1004,11 +1006,11 @@ export default function StaffManagementPage() {
       {/* Main Tab Controls */}
       <div className="flex flex-wrap border-b border-slate-200 dark:border-slate-800/80 mb-6 gap-2">
         {[
-          { id: "directory", label: "Roster & Directory", icon: Users },
-          { id: "attendance", label: "Daily Attendance", icon: UserCheck },
-          { id: "leave", label: "Leave Approvals", icon: FileText },
-          { id: "work", label: "Duties & Work Allocation", icon: Briefcase },
-          { id: "appointments", label: "Verification Appointments", icon: Calendar }
+          { id: "directory", label: lang === "தமிழ்" ? "பட்டியல் & அடைவு" : "Roster & Directory", icon: Users },
+          { id: "attendance", label: lang === "தமிழ்" ? "தினசரி வருகைப்பதிவு" : "Daily Attendance", icon: UserCheck },
+          { id: "leave", label: lang === "தமிழ்" ? "விடுப்பு ஒப்புதல்கள்" : "Leave Approvals", icon: FileText },
+          { id: "work", label: lang === "தமிழ்" ? "கடமைகள் & பணி ஒதுக்கீடு" : "Duties & Work Allocation", icon: Briefcase },
+          { id: "appointments", label: lang === "தமிழ்" ? "சரிபார்ப்பு நியமனங்கள்" : "Verification Appointments", icon: Calendar }
         ].map(tab => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;

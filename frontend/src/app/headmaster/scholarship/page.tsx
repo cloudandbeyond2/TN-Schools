@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface ScholarshipApp {
   id: string;
@@ -26,6 +27,7 @@ const getApiBase = () => {
 const API_BASE = getApiBase();
 
 export default function ScholarshipPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId: string = (session?.user as any)?.schoolId || "";
 
@@ -241,7 +243,7 @@ export default function ScholarshipPage() {
 
   return (
     <PortalLayout
-      title="Scholarship Distribution & Verification Desk"
+      title={lang === "தமிழ்" ? "உதவித்தொகை விநியோகம் & சரிபார்ப்பு மேசை" : "Scholarship Distribution & Verification Desk"}
       subtitle={`${session?.user?.name || "Headmaster"} · School ID: ${schoolId || "33012345"}`}
       avatarLetter={session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "H"}
       avatarColor="#3b82f6"
@@ -307,15 +309,15 @@ export default function ScholarshipPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                <i className="fi fi-rr-graduation-cap text-blue-400" /> Community Scholarship Register
+                <i className="fi fi-rr-graduation-cap text-blue-400" /> {lang === "தமிழ்" ? "சமூக உதவித்தொகை பதிவேடு" : "Community Scholarship Register"}
               </h2>
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <p className="text-xs text-slate-500 leading-relaxed">Applicants flagged for social welfare bursary allocations.</p>
+                <p className="text-xs text-slate-500 leading-relaxed">{lang === "தமிழ்" ? "சமூக நல நிதி ஒதுக்கீடுகளுக்கு கொடியிடப்பட்ட விண்ணப்பதாரர்கள்." : "Applicants flagged for social welfare bursary allocations."}</p>
                 <button
                   onClick={handleCreate}
                   className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-[10px] transition-colors flex items-center gap-1.5 w-fit"
                 >
-                  <i className="fi fi-rr-plus" /> Create Allocation
+                  <i className="fi fi-rr-plus" /> {lang === "தமிழ்" ? "ஒதுக்கீடு உருவாக்கு" : "Create Allocation"}
                 </button>
               </div>
             </div>
@@ -332,7 +334,13 @@ export default function ScholarshipPage() {
                       : "text-slate-400 hover:text-white hover:bg-slate-800"
                   }`}
                 >
-                  {filterVal === "Pending Verification" ? "Pending" : filterVal}
+                  {filterVal === "Pending Verification" 
+                    ? (lang === "தமிழ்" ? "சரிபார்ப்பு நிலுவையில்" : "Pending") 
+                    : filterVal === "All" 
+                      ? (lang === "தமிழ்" ? "அனைத்தும்" : "All") 
+                      : filterVal === "Disbursed" 
+                        ? (lang === "தமிழ்" ? "விநியோகிக்கப்பட்டது" : "Disbursed") 
+                        : (lang === "தமிழ்" ? "அங்கீகரிக்கப்பட்டது" : "Approved")}
                 </button>
               ))}
             </div>

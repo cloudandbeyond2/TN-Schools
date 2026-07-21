@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 interface IconProps {
   className?: string;
   size?: number;
@@ -88,6 +89,7 @@ const STATUS_LABELS: Record<string, string> = {
 const CLASSES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
 export default function PromotionsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
   const myUserId: string = (session?.user as any)?.id || "";
@@ -274,8 +276,8 @@ export default function PromotionsPage() {
 
   return (
     <PortalLayout
-      title="Student Promotions"
-      subtitle="Academic-year class promotions with BEO approval"
+      title={lang === "தமிழ்" ? "மாணவர் உயர்வுப் பதிவுகள்" : "Student Promotions"}
+      subtitle={lang === "தமிழ்" ? "படிக்க ஆண்டு வகுப்பு உயர்வுப் பதிவுகள் BEO அனுமதியுடன்." : "Academic-year class promotions with BEO approval"}
       avatarLetter="P"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"

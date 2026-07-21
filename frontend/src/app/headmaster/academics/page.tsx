@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { 
   FiEdit2 as FiEditIcon, 
   FiTrash2 as FiTrashIcon, 
@@ -117,6 +118,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export default function HeadmasterAcademicsPage() {
+  const { lang } = usePortalLanguage();
   const [activeTab, setActiveTab] = useState("overview");
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -319,7 +321,7 @@ export default function HeadmasterAcademicsPage() {
     } else {
       setEditResourceId(null);
       setResourceForm({
-        title: "", subjectId: subjects[0]?.id || "", type: "PDF", url: "", meta: "", description: "", addedBy: "Headmaster",
+        title: "", subjectId: "", type: "PDF", url: "", meta: "", description: "", addedBy: "Headmaster",
         class: filterClass || "", section: filterSection || "", group: "", term: "", chapterNumber: "", topicName: "",
         learningOutcomes: "", medium: "", bookVersion: "", publisher: "", language: "",
         coverImage: "", materialType: "", downloadAllowed: true, chapter: "", lessonTitle: "",
@@ -538,8 +540,8 @@ export default function HeadmasterAcademicsPage() {
 
   return (
     <PortalLayout
-      title="Academics Hub Management"
-      subtitle="Verify, edit and approve class subjects, syllabus, lecture notes and study resources."
+      title={lang === "தமிழ்" ? "கல்வி மையம் மேலாண்மை" : "Academics Hub Management"}
+      subtitle={lang === "தமிழ்" ? "வகுப்புப் பாடங்கள், பாடத்திட்டம், விரிவுரை குறிப்புகள் மற்றும் ஆய்வு ஆதாரங்களை சரிபார்த்து, திருத்தி ஒப்புதல் அளிக்கவும்." : "Verify, edit and approve class subjects, syllabus, lecture notes and study resources."}
       themeClass="theme-headmaster"
     >
       <div className="space-y-6">
@@ -555,14 +557,14 @@ export default function HeadmasterAcademicsPage() {
                   <Fi name="graduation-cap" className="text-xl" style={{ color: "#ffffff" }} />
                 </span>
                 <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "rgba(255, 255, 255, 0.85)" }}>
-                  {filterClass ? `Class ${filterClass}` : "All Classes"} · Tamil Nadu State Board
+                  {filterClass ? (lang === "தமிழ்" ? `வகுப்பு ${filterClass}` : `Class ${filterClass}`) : (lang === "தமிழ்" ? "அனைத்து வகுப்புகள்" : "All Classes")} · Tamil Nadu State Board
                 </span>
               </div>
               <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#ffffff" }}>
-                Academics & Subjects Hub
+                {lang === "தமிழ்" ? "கல்வி & பாடங்கள் மையம்" : "Academics & Subjects Hub"}
               </div>
               <p className="text-sm max-w-xl leading-relaxed" style={{ color: "rgba(255, 255, 255, 0.9)" }}>
-                Review class subjects, term plans, textbooks, learning notes, mock-tests and educational media. Manage teacher uploads and curriculum alignment.
+                {lang === "தமிழ்" ? "வகுப்புப் பாடங்கள், காலத் திட்டங்கள், பாடப்புத்தகங்கள், கற்றல் குறிப்புகள், போலித் தேர்வுகள் மற்றும் கல்வி ஊடகங்களை மதிப்பாய்வு செய்யவும். ஆசிரியர் பதிவேற்றங்கள் மற்றும் பாடத்திட்ட சீரமைப்பை நிர்வகிக்கவும்." : "Review class subjects, term plans, textbooks, learning notes, mock-tests and educational media. Manage teacher uploads and curriculum alignment."}
               </p>
             </div>
             
@@ -634,6 +636,22 @@ export default function HeadmasterAcademicsPage() {
             const active = activeTab === c.key;
             const count = (c.key === "overview" || c.key === "subjects" || c.key === "syllabus") ? null : countByCategory(c.key);
             
+            // Inline localization mapping
+            const getCategoryLabel = (key: string, l: string) => {
+              const map: Record<string, string> = {
+                overview: l === "தமிழ்" ? "மேலோட்டம்" : "Overview",
+                subjects: l === "தமிழ்" ? "வகுப்புப் பாடங்கள்" : "Class Subjects",
+                syllabus: l === "தமிழ்" ? "பாடத்திட்டம்" : "Syllabus",
+                textbooks: l === "தமிழ்" ? "பாடப்புத்தகங்கள்" : "Textbooks",
+                materials: l === "தமிழ்" ? "ஆய்வுப் பொருட்கள்" : "Study Materials",
+                notes: l === "தமிழ்" ? "ஆசிரியர் குறிப்புகள்" : "Teacher Notes",
+                videos: l === "தமிழ்" ? "வீடியோ பாடங்கள்" : "Video Lessons",
+                digital: l === "தமிழ்" ? "டிஜிட்டல் உள்ளடக்கம்" : "Digital Content",
+                reference: l === "தமிழ்" ? "குறிப்புப் பொருட்கள்" : "Reference Materials"
+              };
+              return map[key] || key;
+            };
+
             return (
               <button
                 key={c.key}
@@ -646,7 +664,7 @@ export default function HeadmasterAcademicsPage() {
                 style={active ? { background: c.gradient } : undefined}
               >
                 <Fi name={c.icon} className="text-sm" />
-                {c.label}
+                {getCategoryLabel(c.key, lang)}
                 {count !== null && (
                   <span
                     className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
@@ -1368,7 +1386,21 @@ export default function HeadmasterAcademicsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
-                    <select required value={resourceForm.class} onChange={e => setResourceForm({ ...resourceForm, class: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
+                    <select 
+                      required 
+                      value={resourceForm.class} 
+                      onChange={e => {
+                        const newClass = e.target.value;
+                        const filtered = newClass ? subjects.filter(s => String(s.class) === String(newClass)) : subjects;
+                        const isStillValid = filtered.some(s => String(s.id) === String(resourceForm.subjectId));
+                        setResourceForm({
+                          ...resourceForm,
+                          class: newClass,
+                          subjectId: isStillValid ? resourceForm.subjectId : ""
+                        });
+                      }} 
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none"
+                    >
                       <option value="">Select Class</option>
                       {[...Array(12)].map((_, i) => <option key={i} value={String(i + 1)}>Class {i + 1}</option>)}
                     </select>
@@ -1377,7 +1409,9 @@ export default function HeadmasterAcademicsPage() {
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject *</label>
                     <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="" disabled>Select subject</option>
-                      {subjects.map(s => <option key={s.id} value={s.id}>{s.name} (Class {s.class})</option>)}
+                      {subjects
+                        .filter(s => !resourceForm.class || String(s.class) === String(resourceForm.class))
+                        .map(s => <option key={s.id} value={s.id}>{s.name} (Class {s.class})</option>)}
                     </select>
                   </div>
                 </div>
