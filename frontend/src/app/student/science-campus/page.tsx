@@ -34,7 +34,7 @@ const ACCENT: Record<string, { grad: string; text: string; soft: string; ring: s
   lime: { grad: "from-lime-500 to-green-600", text: "text-lime-600", soft: "bg-lime-50", ring: "hover:border-lime-300" },
 };
 
-const itemVariants = {
+const itemVariants: import("framer-motion").Variants = {
   hidden: { y: 20, opacity: 0 },
   visible: { y: 0, opacity: 1, transition: { duration: 0.4, ease: "easeOut" } }
 };
