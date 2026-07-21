@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { motion } from "framer-motion";
 import PortalLayout from "@/components/PortalLayout";
 import {
   FlaskConical, Atom, Dna, Wrench, Bug, Leaf, Globe, Rocket, HeartPulse,
@@ -33,12 +34,22 @@ const ACCENT: Record<string, { grad: string; text: string; soft: string; ring: s
   lime: { grad: "from-lime-500 to-green-600", text: "text-lime-600", soft: "bg-lime-50", ring: "hover:border-lime-300" },
 };
 
+const itemVariants: import("framer-motion").Variants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { duration: 0.4, ease: "easeOut" } }
+};
+
 function CenterCard({ c }: { c: ScienceCenter }) {
   const a = ACCENT[c.accent] || ACCENT.emerald;
   const Icon = ICONS[c.icon] || FlaskConical;
   const live = c.status === "live";
   const inner = (
-    <div className={`relative h-full bg-white/80 dark:bg-slate-800/70 backdrop-blur rounded-3xl p-5 border-2 border-slate-100 dark:border-slate-700 ${live ? a.ring + " hover:-translate-y-1 hover:shadow-xl" : "opacity-70"} transition-all flex flex-col`}>
+    <motion.div 
+      variants={itemVariants}
+      whileHover={live ? { y: -5, scale: 1.02 } : {}}
+      whileTap={live ? { scale: 0.98 } : {}}
+      className={`relative h-full bg-white/80 dark:bg-slate-800/70 backdrop-blur rounded-3xl p-5 border-2 border-slate-100 dark:border-slate-700 ${live ? a.ring + " shadow-sm hover:shadow-xl" : "opacity-70"} transition-all flex flex-col`}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className={`w-12 h-12 rounded-2xl ${a.soft} flex items-center justify-center ${a.text} border border-slate-100 dark:border-slate-700/50 shadow-sm`}>
           <Icon className="w-6 h-6 stroke-[2.2]" />
@@ -55,7 +66,7 @@ function CenterCard({ c }: { c: ScienceCenter }) {
           Enter <ArrowRight className="w-3.5 h-3.5" />
         </span>
       )}
-    </div>
+    </motion.div>
   );
   return live ? <Link href={c.route} className="block h-full">{inner}</Link> : <div className="h-full cursor-not-allowed">{inner}</div>;
 }
@@ -173,6 +184,10 @@ export default function ScienceCampusPage() {
       if (c.group === "Commerce" || c.group === "Computer Science" || c.group === "For Teachers") {
         return false;
       }
+      // Hide Higher Secondary specific subjects like Botany and Zoology from Classes < 11
+      if (c.id === "botany" || c.id === "zoology") {
+        return false;
+      }
       return c.streams.includes("Science");
     }
     // High Secondary students see stream-specific centers
@@ -187,7 +202,12 @@ export default function ScienceCampusPage() {
       <div className="flex flex-col gap-7 text-left">
 
         {/* hero */}
-        <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 text-white p-8 shadow-lg">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 text-white p-8 shadow-lg"
+        >
           <div className="absolute -right-10 -top-10 w-56 h-56 bg-white/10 rounded-full blur-2xl" />
           <div className="absolute right-24 bottom-0 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
           <div className="relative z-10 max-w-2xl">
@@ -204,7 +224,7 @@ export default function ScienceCampusPage() {
               {liveCount} centers are open {isHigherSecondary ? `for the ${activeStream?.label} stream` : "for your class"}.
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* stream / group switcher - ONLY shown for Class 11-12 Higher Secondary students */}
         {isHigherSecondary && (
@@ -237,9 +257,17 @@ export default function ScienceCampusPage() {
           return (
             <section key={group}>
               <h3 className="text-sm font-black uppercase tracking-wider text-slate-400 mb-3">{group}</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <motion.div 
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+                }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+              >
                 {items.map((c) => <CenterCard key={c.id} c={c} />)}
-              </div>
+              </motion.div>
             </section>
           );
         })}
