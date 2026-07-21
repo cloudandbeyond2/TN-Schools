@@ -139,16 +139,20 @@ export default function ScholarshipPage() {
 
     const { value: formValues } = await Swal.fire({
       title: 'Allocate New Scholarship',
+      customClass: {
+        popup: 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl',
+        title: 'text-slate-900 dark:text-white font-bold text-lg',
+      },
       html:
         `<div class="text-left">
-          <label class="block text-xs text-slate-500 mb-1 font-bold">Select Student</label>
-          <select id="swal-student" class="w-full p-2 mb-3 border rounded text-sm text-slate-800 bg-white">
+          <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1 font-bold">Select Student</label>
+          <select id="swal-student" class="w-full p-2.5 mb-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-white bg-slate-50 dark:bg-slate-800 focus:outline-none">
             ${studentOptions}
           </select>
-          <label class="block text-xs text-slate-500 mb-1 font-bold">Scholarship Scheme Name</label>
-          <input id="swal-scheme" class="w-full p-2 mb-3 border rounded text-sm text-slate-800 bg-white" placeholder="e.g. Merit Cum Means">
-          <label class="block text-xs text-slate-500 mb-1 font-bold">Amount (₹)</label>
-          <input id="swal-amount" type="number" class="w-full p-2 border rounded text-sm text-slate-800 bg-white" placeholder="e.g. 5000">
+          <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1 font-bold">Scholarship Scheme Name</label>
+          <input id="swal-scheme" class="w-full p-2.5 mb-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-white bg-slate-50 dark:bg-slate-800 placeholder-slate-400 focus:outline-none" placeholder="e.g. Merit Cum Means">
+          <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1 font-bold">Amount (₹)</label>
+          <input id="swal-amount" type="number" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-white bg-slate-50 dark:bg-slate-800 placeholder-slate-400 focus:outline-none" placeholder="e.g. 5000">
         </div>`,
       focusConfirm: false,
       showCancelButton: true,
@@ -254,33 +258,33 @@ export default function ScholarshipPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           {
-            label: "Total Disbursed Funds",
+            label: lang === "தமிழ்" ? "மொத்த விநியோக நிதிகள்" : "Total Disbursed Funds",
             value: `₹${totalDisbursed.toLocaleString()}`,
-            sub: "Credited direct to Aadhaar linked accounts.",
+            sub: lang === "தமிழ்" ? "ஆதார் இணைக்கப்பட்ட கணக்குகளுக்கு நேரடியாக வரவு வைக்கப்பட்டது." : "Credited direct to Aadhaar linked accounts.",
             icon: <i className="fi fi-rr-sack-dollar text-lg" />,
             color: "text-emerald-400",
             bg: "bg-emerald-500/10"
           },
           {
-            label: "Approved Batches",
-            value: `${approvedCount} ${approvedCount === 1 ? "Application" : "Applications"}`,
-            sub: "Ready for Treasury officer authorization.",
+            label: lang === "தமிழ்" ? "அங்கீகரிக்கப்பட்ட பிரிவுகள்" : "Approved Batches",
+            value: `${approvedCount} ${lang === "தமிழ்" ? "விண்ணப்பங்கள்" : approvedCount === 1 ? "Application" : "Applications"}`,
+            sub: lang === "தமிழ்" ? "கருவூல அதிகாரி ஒப்புதலுக்கு தயார்." : "Ready for Treasury officer authorization.",
             icon: <i className="fi fi-rr-checkbox text-lg" />,
             color: "text-blue-400",
             bg: "bg-blue-500/10"
           },
           {
-            label: "Pending EMIS Audits",
-            value: `${pendingCount} ${pendingCount === 1 ? "Application" : "Applications"}`,
-            sub: "Verify academic records & community tags.",
+            label: lang === "தமிழ்" ? "நிலுவையில் உள்ள EMIS தணிக்கைகள்" : "Pending EMIS Audits",
+            value: `${pendingCount} ${lang === "தமிழ்" ? "விண்ணப்பங்கள்" : pendingCount === 1 ? "Application" : "Applications"}`,
+            sub: lang === "தமிழ்" ? "கல்வி பதிவுகள் & சமூகக் குறியீடுகளை சரிபார்க்கவும்." : "Verify academic records & community tags.",
             icon: <i className="fi fi-rr-clipboard-list text-lg" />,
             color: "text-amber-500",
             bg: "bg-amber-500/10"
           },
           {
-            label: "Target Conversion",
+            label: lang === "தமிழ்" ? "இலக்கு மாற்றம்" : "Target Conversion",
             value: `${conversionPct}%`,
-            sub: "Active mapping for eligible students.",
+            sub: lang === "தமிழ்" ? "தகுதியான மாணவர்களுக்கான செயலில் உள்ள வரைபடம்." : "Active mapping for eligible students.",
             icon: <i className="fi fi-rr-arrow-trend-up text-lg" />,
             color: "text-indigo-400",
             bg: "bg-indigo-500/10"
@@ -347,8 +351,8 @@ export default function ScholarshipPage() {
           </div>
 
           {isLoading ? (
-            <div className="py-12 text-center text-slate-405 font-bold flex items-center justify-center gap-2">
-              <i className="fi fi-rr-spinner animate-spin text-lg" /> Loading scholarship records...
+            <div className="py-12 text-center text-slate-400 font-bold flex items-center justify-center gap-2">
+              <i className="fi fi-rr-spinner animate-spin text-lg" /> {lang === "தமிழ்" ? "உதவித்தொகை பதிவுகள் ஏற்றப்படுகின்றன..." : "Loading scholarship records..."}
             </div>
           ) : (
             <div className="space-y-4">
@@ -366,7 +370,7 @@ export default function ScholarshipPage() {
                     </div>
                     <h3 className="text-sm font-bold text-white mb-0.5">{app.studentName}</h3>
                     <div className="text-xs text-slate-400">
-                      Grade: <strong className="text-slate-300">{app.classSection}</strong> · Amount: <span className="text-emerald-400 font-bold">₹{app.amount}</span>
+                      {lang === "தமிழ்" ? "வகுப்பு:" : "Grade:"} <strong className="text-slate-300">{app.classSection}</strong> · {lang === "தமிழ்" ? "தொகை:" : "Amount:"} <span className="text-emerald-400 font-bold">₹{app.amount}</span>
                     </div>
                   </div>
 
@@ -378,12 +382,16 @@ export default function ScholarshipPage() {
                         ? "badge-blue"
                         : "badge-yellow"
                     }`}>
-                      {app.status}
+                      {app.status === "Disbursed" 
+                        ? (lang === "தமிழ்" ? "விநியோகிக்கப்பட்டது" : "Disbursed")
+                        : app.status === "Approved"
+                        ? (lang === "தமிழ்" ? "அங்கீகரிக்கப்பட்டது" : "Approved")
+                        : (lang === "தமிழ்" ? "சரிபார்ப்பு நிலுவையில்" : "Pending Verification")}
                     </span>
                     <button
                       onClick={() => handleDelete(app.id, app.studentName)}
                       className="w-8 h-8 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors border border-red-500/20"
-                      title="Delete Allocation"
+                      title={lang === "தமிழ்" ? "ஒதுக்கீட்டை நீக்கு" : "Delete Allocation"}
                     >
                       <i className="fi fi-rr-trash" />
                     </button>
@@ -392,7 +400,7 @@ export default function ScholarshipPage() {
               ))}
               {filteredApps.length === 0 && (
                 <div className="py-6 text-center text-slate-500 italic">
-                  No matching applications found.
+                  {lang === "தமிழ்" ? "பொருந்தக்கூடிய விண்ணப்பங்கள் எதுவும் இல்லை." : "No matching applications found."}
                 </div>
               )}
 
@@ -404,7 +412,7 @@ export default function ScholarshipPage() {
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     className="w-full sm:w-auto px-3.5 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-slate-300 hover:text-white rounded-xl border border-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <i className="fi fi-rr-angle-left text-[10px]" /> Previous
+                    <i className="fi fi-rr-angle-left text-[10px]" /> {lang === "தமிழ்" ? "முந்தைய" : "Previous"}
                   </button>
                   
                   <div className="flex items-center gap-1.5 flex-wrap justify-center font-bold">
@@ -429,7 +437,7 @@ export default function ScholarshipPage() {
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     className="w-full sm:w-auto px-3.5 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-slate-300 hover:text-white rounded-xl border border-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    Next <i className="fi fi-rr-angle-right text-[10px]" />
+                    {lang === "தமிழ்" ? "அடுத்த" : "Next"} <i className="fi fi-rr-angle-right text-[10px]" />
                   </button>
                 </div>
               )}
@@ -440,15 +448,15 @@ export default function ScholarshipPage() {
         {/* Verification workspace */}
         <div className="glass rounded-2xl p-6 border border-slate-800 h-fit">
           <h2 className="text-base font-semibold text-white flex items-center gap-2 mb-2">
-            <i className="fi fi-rr-checkbox text-blue-400" /> Verify Candidate Data
+            <i className="fi fi-rr-checkbox text-blue-400" /> {lang === "தமிழ்" ? "விண்ணப்பதாரர் தரவை சரிபார்க்கவும்" : "Verify Candidate Data"}
           </h2>
           <p className="text-xs text-slate-500 leading-relaxed mb-4">
-            Perform EMIS Community Cert audits and clear pending scholarship grants for processing.
+            {lang === "தமிழ்" ? "EMIS சமுதாய சான்றிதழ் தணிக்கைகளை மேற்கொண்டு நிலுவையில் உள்ள உதவித்தொகைகளை செயல்படுத்தவும்." : "Perform EMIS Community Cert audits and clear pending scholarship grants for processing."}
           </p>
 
           <form onSubmit={handleVerify} className="space-y-4">
             <div>
-              <label className="block text-xs text-slate-400 mb-1.5 font-semibold">Select Student</label>
+              <label className="block text-xs text-slate-400 mb-1.5 font-semibold">{lang === "தமிழ்" ? "மாணவரைத் தேர்ந்தெடுக்கவும்" : "Select Student"}</label>
               <select
                 value={selectedAppId}
                 onChange={(e) => setSelectedAppId(e.target.value)}
@@ -462,13 +470,13 @@ export default function ScholarshipPage() {
                     </option>
                   ))}
                 {applications.filter((app) => app.status === "Pending Verification").length === 0 && (
-                  <option value="">No pending audits remaining</option>
+                  <option value="">{lang === "தமிழ்" ? "நிலுவையில் உள்ள தணிக்கைகள் எதுவுமில்லை" : "No pending audits remaining"}</option>
                 )}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs text-slate-400 mb-1.5 font-semibold">EMIS Verification Key</label>
+              <label className="block text-xs text-slate-400 mb-1.5 font-semibold">{lang === "தமிழ்" ? "EMIS சரிபார்ப்பு சாவி" : "EMIS Verification Key"}</label>
               <input
                 type="text"
                 value={verificationCode}
@@ -483,7 +491,7 @@ export default function ScholarshipPage() {
               disabled={applications.filter((app) => app.status === "Pending Verification").length === 0}
               className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-800 disabled:text-slate-600 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
             >
-              Verify Communities Cert & Approve
+              {lang === "தமிழ்" ? "சமூக சான்றிதழைச் சரிபார்த்து அங்கீகரிக்கவும்" : "Verify Communities Cert & Approve"}
             </button>
           </form>
 

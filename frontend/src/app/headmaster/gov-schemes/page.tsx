@@ -457,21 +457,21 @@ export default function GovSchemesPage() {
           {/* KPI cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="glass p-5 rounded-2xl border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Active Schemes</span>
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "செயலில் உள்ள திட்டங்கள்" : "Active Schemes"}</span>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-2xl font-black text-blue-400">{stats.active}</span>
-                <span className="text-[10px] text-slate-400 font-bold">of {stats.total} total</span>
+                <span className="text-[10px] text-slate-400 font-bold">{lang === "தமிழ்" ? "மொத்தம்" : "of"} {stats.total} {lang === "தமிழ்" ? "இல்" : "total"}</span>
               </div>
               <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-                {schemes.filter((s) => s.status === "Completed").length} completed · {schemes.filter((s) => s.status === "On Hold" || s.status === "Pending Approval").length} awaiting action
+                {schemes.filter((s) => s.status === "Completed").length} {lang === "தமிழ்" ? "நிறைவடைந்தன" : "completed"} · {schemes.filter((s) => s.status === "On Hold" || s.status === "Pending Approval").length} {lang === "தமிழ்" ? "நடவடிக்கைக்கு காத்திருக்கின்றன" : "awaiting action"}
               </div>
             </div>
 
             <div className="glass p-5 rounded-2xl border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Benefit Coverage</span>
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "பயன் கவரேஜ்" : "Benefit Coverage"}</span>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-2xl font-black text-emerald-400">{stats.coverage}%</span>
-                <span className="text-[10px] text-slate-400 font-bold">{stats.totalDisbursed}/{stats.totalEligible} delivered</span>
+                <span className="text-[10px] text-slate-400 font-bold">{stats.totalDisbursed}/{stats.totalEligible} {lang === "தமிழ்" ? "வழங்கப்பட்டன" : "delivered"}</span>
               </div>
               <div className="w-full bg-slate-850 h-1.5 rounded-full overflow-hidden mt-2.5">
                 <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${stats.coverage}%` }} />
@@ -479,10 +479,10 @@ export default function GovSchemesPage() {
             </div>
 
             <div className="glass p-5 rounded-2xl border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Budget Utilization</span>
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "பட்ஜெட் பயன்பாடு" : "Budget Utilization"}</span>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-2xl font-black text-white">{inr(stats.totalUtilized)}</span>
-                <span className="text-[10px] text-slate-400 font-bold">of {inr(stats.totalBudget)} ({stats.budgetPct}%)</span>
+                <span className="text-[10px] text-slate-400 font-bold">{lang === "தமிழ்" ? "மொத்தம்" : "of"} {inr(stats.totalBudget)} ({stats.budgetPct}%)</span>
               </div>
               <div className="w-full bg-slate-850 h-1.5 rounded-full overflow-hidden mt-2.5">
                 <div className="bg-blue-500 h-full rounded-full transition-all duration-500" style={{ width: `${stats.budgetPct}%` }} />
@@ -490,13 +490,13 @@ export default function GovSchemesPage() {
             </div>
 
             <div className="glass p-5 rounded-2xl border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Avg Implementation</span>
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "சராசரி செயலாக்கம்" : "Avg Implementation"}</span>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-2xl font-black text-amber-400">{stats.avgProgress}%</span>
-                <span className="text-[10px] text-slate-400 font-bold">milestones cleared</span>
+                <span className="text-[10px] text-slate-400 font-bold">{lang === "தமிழ்" ? "மைல்கற்கள் பூர்த்தி" : "milestones cleared"}</span>
               </div>
               <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-                Across all {stats.total} schemes this academic year.
+                {lang === "தமிழ்" ? `இந்த கல்வியாண்டில் உள்ள அனைத்து ${stats.total} திட்டங்களிலும்.` : `Across all ${stats.total} schemes this academic year.`}
               </div>
             </div>
           </div>
@@ -504,8 +504,8 @@ export default function GovSchemesPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Category coverage bars */}
             <div className="lg:col-span-2 glass rounded-2xl p-6 border border-slate-800">
-              <h2 className="text-base font-semibold text-white mb-1">📈 Coverage by Category</h2>
-              <p className="text-xs text-slate-500 mb-5">Benefits delivered vs eligible students, grouped by scheme type.</p>
+              <h2 className="text-base font-semibold text-white mb-1">📈 {lang === "தமிழ்" ? "வகை வாரியான கவரேஜ்" : "Coverage by Category"}</h2>
+              <p className="text-xs text-slate-500 mb-5">{lang === "தமிழ்" ? "தகுதியான மாணவர்களுக்கு வழங்கப்பட்ட பயன்கள், திட்ட வகை அடிப்படையில்." : "Benefits delivered vs eligible students, grouped by scheme type."}</p>
               <div className="space-y-5">
                 {(["Student Scheme", "Scholarship", "Welfare Program"] as Category[]).map((cat) => {
                   const group = schemes.filter((s) => s.category === cat);
@@ -513,10 +513,11 @@ export default function GovSchemesPage() {
                   const disbursed = group.reduce((a, s) => a + s.disbursed, 0);
                   const pct = eligible ? Math.round((disbursed / eligible) * 100) : 0;
                   const meta = CATEGORY_META[cat];
+                  const catLabel = cat === "Student Scheme" ? (lang === "தமிழ்" ? "மாணவர் திட்டம்" : "Student Scheme") : cat === "Scholarship" ? (lang === "தமிழ்" ? "உதவித்தொகை" : "Scholarship") : (lang === "தமிழ்" ? "நலத்திட்டம்" : "Welfare Program");
                   return (
                     <div key={cat}>
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-bold text-slate-300">{meta.icon} {cat} <span className="text-slate-500 font-semibold">· {group.length} scheme{group.length !== 1 ? "s" : ""}</span></span>
+                        <span className="text-xs font-bold text-slate-300">{meta.icon} {catLabel} <span className="text-slate-500 font-semibold">· {group.length} {lang === "தமிழ்" ? "திட்டங்கள்" : group.length !== 1 ? "schemes" : "scheme"}</span></span>
                         <span className="text-[11px] font-bold text-slate-400">{disbursed}/{eligible} ({pct}%)</span>
                       </div>
                       <div className="w-full bg-slate-850 h-2.5 rounded-full overflow-hidden">
@@ -528,22 +529,23 @@ export default function GovSchemesPage() {
               </div>
 
               {/* Deadlines */}
-              <h3 className="text-sm font-semibold text-white mt-7 mb-3">⏰ Upcoming Deadlines</h3>
+              <h3 className="text-sm font-semibold text-white mt-7 mb-3">⏰ {lang === "தமிழ்" ? "வரவிருக்கும் கடைசி தேதிகள்" : "Upcoming Deadlines"}</h3>
               <div className="space-y-2">
                 {upcomingDeadlines.map((s) => {
                   const d = daysLeft(s.deadline);
                   const urgent = d <= 21;
+                  const schemeStatusLabel = s.status === "Active" ? (lang === "தமிழ்" ? "செயலில் உள்ளது" : "Active") : s.status === "Completed" ? (lang === "தமிழ்" ? "நிறைவடைந்தது" : "Completed") : s.status === "On Hold" ? (lang === "தமிழ்" ? "நிறுத்தி வைக்கப்பட்டது" : "On Hold") : (lang === "தமிழ்" ? "ஒப்புதல் நிலுவையில்" : "Pending Approval");
                   return (
                     <div key={s.id} className="flex items-center justify-between p-3 bg-slate-900/60 rounded-xl border border-slate-850">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <span className="text-base shrink-0">{CATEGORY_META[s.category].icon}</span>
                         <div className="min-w-0">
                           <div className="text-xs font-bold text-white truncate">{s.name}</div>
-                          <div className="text-[10px] text-slate-500 font-semibold">{fmtDate(s.deadline)} · {s.status}</div>
+                          <div className="text-[10px] text-slate-500 font-semibold">{fmtDate(s.deadline)} · {schemeStatusLabel}</div>
                         </div>
                       </div>
                       <span className={`badge shrink-0 ${urgent ? "badge-red" : d <= 45 ? "badge-yellow" : "badge-blue"}`}>
-                        {d < 0 ? "Overdue" : `${d} days`}
+                        {d < 0 ? (lang === "தமிழ்" ? "காலாவதியானது" : "Overdue") : `${d} ${lang === "தமிழ்" ? "நாட்கள்" : "DAYS"}`}
                       </span>
                     </div>
                   );
@@ -554,26 +556,29 @@ export default function GovSchemesPage() {
             {/* Right column: beneficiary donut + activity */}
             <div className="space-y-6">
               <div className="glass rounded-2xl p-6 border border-slate-800">
-                <h2 className="text-base font-semibold text-white mb-1">👥 Beneficiary Pipeline</h2>
-                <p className="text-xs text-slate-500 mb-4">Individual records on this desk, by verification stage.</p>
+                <h2 className="text-base font-semibold text-white mb-1">👥 {lang === "தமிழ்" ? "பயனாளி பைப்லைன்" : "Beneficiary Pipeline"}</h2>
+                <p className="text-xs text-slate-500 mb-4">{lang === "தமிழ்" ? "சரிபார்ப்பு நிலை அடிப்படையில் இந்த மேஜையில் உள்ள தனிப்பட்ட பதிவுகள்." : "Individual records on this desk, by verification stage."}</p>
                 <div className="flex items-center gap-5">
                   <DonutChart counts={benStatusCounts} total={beneficiaries.length} />
                   <div className="space-y-2 flex-1">
-                    {(Object.keys(benStatusCounts) as BenStatus[]).map((st) => (
-                      <div key={st} className="flex items-center justify-between">
-                        <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full inline-block" style={{ background: DONUT_COLORS[st] }} />
-                          {st}
-                        </span>
-                        <span className="text-[11px] font-black text-slate-300">{benStatusCounts[st]}</span>
-                      </div>
-                    ))}
+                    {(Object.keys(benStatusCounts) as BenStatus[]).map((st) => {
+                      const stLabel = st === "Pending Verification" ? (lang === "தமிழ்" ? "சரிபார்ப்பு நிலுவையில்" : "Pending Verification") : st === "Verified" ? (lang === "தமிழ்" ? "சரிபார்க்கப்பட்டது" : "Verified") : st === "Approved" ? (lang === "தமிழ்" ? "அங்கீகரிக்கப்பட்டது" : "Approved") : (lang === "தமிழ்" ? "விநியோகிக்கப்பட்டது" : "Disbursed");
+                      return (
+                        <div key={st} className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full inline-block" style={{ background: DONUT_COLORS[st] }} />
+                            {stLabel}
+                          </span>
+                          <span className="text-[11px] font-black text-slate-300">{benStatusCounts[st]}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
 
               <div className="glass rounded-2xl p-6 border border-slate-800">
-                <h2 className="text-base font-semibold text-white mb-3">🕑 Recent Activity</h2>
+                <h2 className="text-base font-semibold text-white mb-3">🕑 {lang === "தமிழ்" ? "சமீபத்திய செயல்பாடுகள்" : "Recent Activity"}</h2>
                 <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
                   {activity.map((a) => (
                     <div key={a.id} className="flex gap-2.5 items-start">
@@ -596,15 +601,15 @@ export default function GovSchemesPage() {
         <div className="glass rounded-2xl p-6 border border-slate-800 mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
             <div>
-              <h2 className="text-base font-semibold text-white">🏛️ Scheme Registry</h2>
-              <p className="text-xs text-slate-500">Student schemes, scholarships and welfare programs running at this school.</p>
+              <h2 className="text-base font-semibold text-white">🏛️ {lang === "தமிழ்" ? "திட்டப் பதிவேடு" : "Scheme Registry"}</h2>
+              <p className="text-xs text-slate-500">{lang === "தமிழ்" ? "இப்பள்ளியில் இயங்கும் மாணவர் திட்டங்கள், உதவித்தொகைகள் மற்றும் நல திட்டங்கள்." : "Student schemes, scholarships and welfare programs running at this school."}</p>
             </div>
             <button
               onClick={() => setShowAddScheme(true)}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 font-bold rounded-xl text-xs transition-colors w-fit"
               style={{ color: "#fff" }}
             >
-              + Register New Scheme
+              + {lang === "தமிழ்" ? "புதிய திட்டத்தைப் பதிவு செய்" : "Register New Scheme"}
             </button>
           </div>
 
@@ -734,15 +739,15 @@ export default function GovSchemesPage() {
         <div className="glass rounded-2xl p-6 border border-slate-800 mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
             <div>
-              <h2 className="text-base font-semibold text-white">👥 Beneficiary Register</h2>
-              <p className="text-xs text-slate-500">Verify EMIS records, approve applications and confirm disbursements.</p>
+              <h2 className="text-base font-semibold text-white">👥 {lang === "தமிழ்" ? "பயனாளி பதிவேடு" : "Beneficiary Register"}</h2>
+              <p className="text-xs text-slate-500">{lang === "தமிழ்" ? "EMIS பதிவுகளை சரிபார்க்கவும், விண்ணப்பங்களை அங்கீகரிக்கவும் மற்றும் விநியோகங்களை உறுதிப்படுத்தவும்." : "Verify EMIS records, approve applications and confirm disbursements."}</p>
             </div>
             <button
               onClick={() => setShowAddBen(true)}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 font-bold rounded-xl text-xs transition-colors w-fit"
               style={{ color: "#fff" }}
             >
-              + Enrol Beneficiary
+              + {lang === "தமிழ்" ? "பயனாளியைச் சேர்" : "Enrol Beneficiary"}
             </button>
           </div>
 
@@ -796,12 +801,12 @@ export default function GovSchemesPage() {
             <table className="w-full text-left min-w-[720px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
-                  <th className="py-2.5 pr-3 font-bold">Student</th>
-                  <th className="py-2.5 pr-3 font-bold">EMIS ID</th>
-                  <th className="py-2.5 pr-3 font-bold">Scheme</th>
-                  <th className="py-2.5 pr-3 font-bold">Stage</th>
-                  <th className="py-2.5 pr-3 font-bold">Updated</th>
-                  <th className="py-2.5 font-bold text-right">Action</th>
+                  <th className="py-2.5 pr-3 font-bold">{lang === "தமிழ்" ? "மாணவர்" : "Student"}</th>
+                  <th className="py-2.5 pr-3 font-bold">{lang === "தமிழ்" ? "EMIS எண்" : "EMIS ID"}</th>
+                  <th className="py-2.5 pr-3 font-bold">{lang === "தமிழ்" ? "திட்டம்" : "Scheme"}</th>
+                  <th className="py-2.5 pr-3 font-bold">{lang === "தமிழ்" ? "நிலை" : "Stage"}</th>
+                  <th className="py-2.5 pr-3 font-bold">{lang === "தமிழ்" ? "புதுப்பிக்கப்பட்டது" : "Updated"}</th>
+                  <th className="py-2.5 font-bold text-right">{lang === "தமிழ்" ? "நடவடிக்கை" : "Action"}</th>
                 </tr>
               </thead>
               <tbody>
