@@ -128,7 +128,7 @@ export default function PredictionsPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500" />
         </div>
       ) : error ? (
-        <div className="glass rounded-2xl p-10 border border-red-500/30 text-center">
+        <div className="glass rounded-2xl p-6 sm:p-10 border border-red-500/30 text-center">
           <Icon name="triangle-warning" className="text-4xl text-red-400 mx-auto mb-3" />
           <p className="text-slate-300 text-sm mb-4">{error}</p>
           <button
@@ -143,7 +143,7 @@ export default function PredictionsPage() {
 
           
           {/* Overall banner */}
-          <div className="glass rounded-2xl p-6 mb-6 border-l-4 border-red-500 bg-red-900/10 fade-in flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="glass rounded-2xl p-4 sm:p-6 mb-6 border-l-4 border-red-500 bg-red-900/10 fade-in flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center shrink-0">
                 <Icon name="brain" className="text-2xl text-red-400" />
@@ -157,20 +157,20 @@ export default function PredictionsPage() {
                 </p>
               </div>
             </div>
-            <div className="flex gap-4 flex-wrap">
-              <div className="bg-slate-900/80 rounded-xl p-4 text-center min-w-[110px] border border-red-500/30">
+            <div className="flex gap-3 sm:gap-4 flex-wrap w-full lg:w-auto justify-between sm:justify-start">
+              <div className="bg-slate-900/80 rounded-xl p-3 sm:p-4 text-center flex-1 sm:flex-none min-w-[30%] sm:min-w-[110px] border border-red-500/30">
                 <div className="text-3xl font-black text-red-400">
                   {overall?.predictedTotal ?? 0}
                   <span className="text-sm text-slate-500">/500</span>
                 </div>
                 <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-1">Predicted Total</div>
               </div>
-              <div className="bg-slate-900/80 rounded-xl p-4 text-center min-w-[90px] border border-slate-700">
+              <div className="bg-slate-900/80 rounded-xl p-3 sm:p-4 text-center flex-1 sm:flex-none min-w-[30%] sm:min-w-[90px] border border-slate-700">
                 <div className="text-3xl font-black text-white">{overall?.grade ?? "—"}</div>
                 <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-1">Grade Band</div>
               </div>
-              <div className={`rounded-xl p-4 text-center min-w-[110px] border ${overall?.passLikely ? "bg-emerald-900/20 border-emerald-500/40" : "bg-amber-900/20 border-amber-500/40"}`}>
-                <div className={`text-xl font-black ${overall?.passLikely ? "text-emerald-400" : "text-amber-400"}`}>
+              <div className={`rounded-xl p-3 sm:p-4 text-center flex-1 sm:flex-none min-w-[30%] sm:min-w-[110px] border ${overall?.passLikely ? "bg-emerald-900/20 border-emerald-500/40" : "bg-amber-900/20 border-amber-500/40"}`}>
+                <div className={`text-lg sm:text-xl font-black ${overall?.passLikely ? "text-emerald-400" : "text-amber-400"}`}>
                   {subjectsWithData.length === 0 ? "No Data" : overall?.passLikely ? "On Track" : "At Risk"}
                 </div>
                 <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-1">Pass Outlook</div>
@@ -185,7 +185,7 @@ export default function PredictionsPage() {
               const TrendIconName = s.trend > 0.5 ? "arrow-trend-up" : s.trend < -0.5 ? "arrow-trend-down" : "minus";
               const trendColor = s.trend > 0.5 ? "text-emerald-400" : s.trend < -0.5 ? "text-red-400" : "text-slate-400";
               return (
-                <div key={s.subject} className="glass rounded-2xl p-5 border border-slate-700/50 hover:border-red-500/40 transition-colors">
+                <div key={s.subject} className="glass rounded-2xl p-4 sm:p-5 border border-slate-700/50 hover:border-red-500/40 transition-colors">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2.5">
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
@@ -255,7 +255,7 @@ export default function PredictionsPage() {
           </div>
 
           {/* How it works */}
-          <div className="glass rounded-2xl p-6 mt-6 border border-slate-700/50 fade-in-3">
+          <div className="glass rounded-2xl p-4 sm:p-6 mt-6 border border-slate-700/50 fade-in-3">
             <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
               <Icon name="award" className="text-sm text-red-400" /> How predictions are calculated
             </h3>

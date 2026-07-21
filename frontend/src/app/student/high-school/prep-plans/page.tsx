@@ -101,19 +101,13 @@ export default function PrepPlansPage() {
             </button>
           ))}
         </div>
-        <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700 self-start">
-          {(["9", "10"] as const).map((g) => (
-            <button
-              key={g}
-              onClick={() => setSelectedGrade(g)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                selectedGrade === g ? "bg-red-500 text-white shadow-lg" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              Class {g}
-            </button>
-          ))}
-        </div>
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+            <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700">
+              <div className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-red-500 text-white">
+                Class {selectedGrade}
+              </div>
+            </div>
+      </div>
       </div>
 
 
@@ -123,7 +117,7 @@ export default function PrepPlansPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500" />
         </div>
       ) : visiblePlans.length === 0 ? (
-        <div className="glass rounded-2xl p-10 border border-slate-700/50 text-center">
+        <div className="glass rounded-2xl p-6 sm:p-10 border border-slate-700/50 text-center">
           <Icon name="book-alt" className="text-4xl text-slate-600 mx-auto mb-3" />
           <p className="text-slate-400 text-sm">No preparation plans published for this subject yet.</p>
         </div>
@@ -139,7 +133,7 @@ export default function PrepPlansPage() {
               >
                 <button
                   onClick={() => setExpandedPlan(isOpen ? null : plan._id)}
-                  className="w-full p-6 flex items-start justify-between gap-4 text-left"
+                  className="w-full p-4 sm:p-6 flex items-start justify-between gap-4 text-left"
                 >
                   <div className="flex items-start gap-4">
                     <div
@@ -177,7 +171,7 @@ export default function PrepPlansPage() {
                 </button>
 
                 {isOpen && (
-                  <div className="px-6 pb-6 space-y-3">
+                  <div className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-3">
                     {(plan.weeks || []).map((week: any, wIdx: number) => {
                       const weekKey = `${plan._id}-${wIdx}`;
                       const weekOpen = expandedWeeks[weekKey] ?? wIdx === 0;
