@@ -324,15 +324,15 @@ export default function AnnouncementsPage() {
       themeClass="theme-student"
       accentColor="#f59e0b"
     >
-      <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full text-left">
+      <div className="flex flex-col gap-6 w-full text-left">
         
         {/* 🌟 Modern Hero Banner with Flat Icon Styling */}
-        <div className="relative overflow-hidden rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-6 sm:p-8 lg:p-10 shadow-xl transition-all">
+        <div className="relative overflow-hidden rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-6 sm:p-8 lg:p-10 shadow-xl transition-all w-full">
           <div className="absolute top-0 right-0 w-72 h-72 bg-amber-500/10 dark:bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-72 h-72 bg-sky-500/10 dark:bg-sky-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-2xl">
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 w-full">
+            <div className="space-y-2 w-full md:max-w-2xl">
               <div className="inline-flex items-center gap-2 bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-3 py-1 font-bold text-xs uppercase tracking-wider rounded-xl border border-amber-200 dark:border-amber-900/40 shadow-sm">
                 <i className="fi fi-rr-bell text-xs" /> Notification Center
               </div>
@@ -346,7 +346,7 @@ export default function AnnouncementsPage() {
 
             <button
               onClick={markAllRead}
-              className="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-white font-black text-xs rounded-2xl transition-all shadow-md shadow-amber-500/20 active:scale-95 flex items-center justify-center gap-2 shrink-0 border-b-4 border-black/20"
+              className="w-full md:w-auto px-5 py-3 bg-amber-500 hover:bg-amber-600 text-white font-black text-xs rounded-2xl transition-all shadow-md shadow-amber-500/20 active:scale-95 flex items-center justify-center gap-2 shrink-0 border-b-4 border-black/20"
             >
               <i className="fi fi-rr-check-circle text-sm" />
               <span>Mark All as Read</span>
@@ -523,7 +523,7 @@ export default function AnnouncementsPage() {
                       )}
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-start gap-4 pr-12">
+                    <div className="flex flex-col sm:flex-row items-start gap-4 pr-0 sm:pr-12 mt-6 sm:mt-0">
                       {/* Flat Icon Container */}
                       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 shadow-sm border ${
                         isUnread ? `${formatted.iconBg} ${formatted.border}` : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
