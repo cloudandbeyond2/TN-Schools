@@ -139,16 +139,20 @@ export default function ScholarshipPage() {
 
     const { value: formValues } = await Swal.fire({
       title: 'Allocate New Scholarship',
+      customClass: {
+        popup: 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl',
+        title: 'text-slate-900 dark:text-white font-bold text-lg',
+      },
       html:
         `<div class="text-left">
-          <label class="block text-xs text-slate-500 mb-1 font-bold">Select Student</label>
-          <select id="swal-student" class="w-full p-2 mb-3 border rounded text-sm text-slate-800 bg-white">
+          <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1 font-bold">Select Student</label>
+          <select id="swal-student" class="w-full p-2.5 mb-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-white bg-slate-50 dark:bg-slate-800 focus:outline-none">
             ${studentOptions}
           </select>
-          <label class="block text-xs text-slate-500 mb-1 font-bold">Scholarship Scheme Name</label>
-          <input id="swal-scheme" class="w-full p-2 mb-3 border rounded text-sm text-slate-800 bg-white" placeholder="e.g. Merit Cum Means">
-          <label class="block text-xs text-slate-500 mb-1 font-bold">Amount (₹)</label>
-          <input id="swal-amount" type="number" class="w-full p-2 border rounded text-sm text-slate-800 bg-white" placeholder="e.g. 5000">
+          <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1 font-bold">Scholarship Scheme Name</label>
+          <input id="swal-scheme" class="w-full p-2.5 mb-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-white bg-slate-50 dark:bg-slate-800 placeholder-slate-400 focus:outline-none" placeholder="e.g. Merit Cum Means">
+          <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1 font-bold">Amount (₹)</label>
+          <input id="swal-amount" type="number" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-white bg-slate-50 dark:bg-slate-800 placeholder-slate-400 focus:outline-none" placeholder="e.g. 5000">
         </div>`,
       focusConfirm: false,
       showCancelButton: true,
