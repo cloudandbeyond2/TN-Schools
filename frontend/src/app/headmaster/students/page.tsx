@@ -1327,7 +1327,7 @@ export default function StudentsMonitoringPage() {
           </div>
           <button
             onClick={() => setToast(null)}
-            className="text-[10px] font-bold text-slate-455 hover:text-white shrink-0 ml-2 flex items-center justify-center"
+            className="text-[10px] font-bold text-slate-500 hover:text-white shrink-0 ml-2 flex items-center justify-center"
           >
             <i className="fi fi-rr-cross text-[9px]" />
           </button>
@@ -1646,18 +1646,18 @@ export default function StudentsMonitoringPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
-            className="w-full max-w-4xl rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-6 relative transition-all duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar bg-slate-900 border border-slate-800 shadow-2xl text-white"
+            className="w-full max-w-4xl rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-6 relative transition-all duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl text-slate-900 dark:text-white"
           >
             {/* Modal Header with Tabs */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-3 gap-2.5">
-              <div className="flex items-center gap-1 bg-slate-950/40 rounded-xl p-1 self-start sm:self-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 pb-3 gap-2.5">
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950/40 rounded-xl p-1 self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => setModalTab("manual")}
                   disabled={previewStudents.length > 0}
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${modalTab === "manual"
-                      ? "bg-slate-800 text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm"
+                      : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
                     }`}
                 >
                   <span className="flex items-center gap-1.5"><i className="fi fi-rr-edit" /> Manual Entry</span>
@@ -1667,8 +1667,8 @@ export default function StudentsMonitoringPage() {
                   onClick={() => setModalTab("excel")}
                   disabled={previewStudents.length > 0}
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${modalTab === "excel"
-                      ? "bg-slate-800 text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm"
+                      : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
                     }`}
                 >
                   <span className="flex items-center gap-1.5"><i className="fi fi-rr-file-spreadsheet" /> Excel Import</span>
@@ -1676,7 +1676,7 @@ export default function StudentsMonitoringPage() {
               </div>
               <button
                 onClick={() => { setIsModalOpen(false); setPreviewStudents([]); setModalTab("manual"); }}
-                className="text-slate-400 hover:text-white text-xs font-semibold self-end sm:self-auto flex items-center gap-1"
+                className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white text-xs font-semibold self-end sm:self-auto flex items-center gap-1"
               >
                 <i className="fi fi-rr-cross text-[9px]" /> Close
               </button>
@@ -1822,7 +1822,7 @@ export default function StudentsMonitoringPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-slate-800 dark:text-slate-200">
                       
                       {/* Left Column: Profile Card */}
-                      <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-880 rounded-3xl p-5 flex flex-col items-center text-center space-y-4 self-start">
+                      <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col items-center text-center space-y-4 self-start">
                         
                         {/* Profile Image */}
                         <div className="relative w-24 h-24 rounded-full overflow-hidden shadow border-4 border-white dark:border-slate-800">
@@ -1845,46 +1845,46 @@ export default function StudentsMonitoringPage() {
                           )}
                         </div>
 
-                        <div className="w-full space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800 text-left text-xs font-semibold text-slate-600 dark:text-slate-350">
+                        <div className="w-full space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">
                           <div className="flex justify-between">
-                            <span className="text-slate-455">EMIS Number</span>
+                            <span className="text-slate-500">EMIS Number</span>
                             <span className="font-extrabold text-slate-800 dark:text-white">{newEmisNumber || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Roll Number</span>
+                            <span className="text-slate-500">Roll Number</span>
                             <span className="font-extrabold text-slate-800 dark:text-white">{newRollNumber || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Admission No</span>
+                            <span className="text-slate-500">Admission No</span>
                             <span className="font-extrabold text-slate-800 dark:text-white">{newAdmissionNumber || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Status</span>
+                            <span className="text-slate-500">Status</span>
                             <span className={`px-2 py-0.2 rounded-full text-[9px] font-bold ${
-                              newStudentStatus === "Active" ? "bg-emerald-500/10 text-emerald-605" : "bg-red-500/10 text-red-600"
+                              newStudentStatus === "Active" ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"
                             }`}>{newStudentStatus}</span>
                           </div>
                         </div>
 
-                        <div className="w-full space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800 text-left text-xs font-semibold text-slate-600 dark:text-slate-350">
+                        <div className="w-full space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Gender</span>
+                            <span className="text-slate-500">Gender</span>
                             <span className="font-bold text-slate-800 dark:text-white">{newGender || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Date of Birth</span>
+                            <span className="text-slate-500">Date of Birth</span>
                             <span className="font-bold text-slate-800 dark:text-white">{newDob || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Blood Group</span>
+                            <span className="text-slate-500">Blood Group</span>
                             <span className="px-1.5 py-0.2 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900 rounded font-black text-[10px]">{newBloodGroup || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Religion/Caste</span>
+                            <span className="text-slate-500">Religion/Caste</span>
                             <span className="font-bold text-slate-800 dark:text-white">{newReligion || "—"} · {newCommunity || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Medium</span>
+                            <span className="text-slate-500">Medium</span>
                             <span className="font-bold text-slate-800 dark:text-white">{newMediumOfInstruction}</span>
                           </div>
                         </div>
@@ -1926,9 +1926,9 @@ export default function StudentsMonitoringPage() {
                           <div className="space-y-4 pt-2 fade-in">
                             
                             {/* Family Details */}
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl">
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
                               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Parent / Guardian Details</h4>
-                              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700 dark:text-slate-350">
+                              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700 dark:text-slate-400">
                                 <div>
                                   <span className="text-slate-400 block mb-0.5">Father Name</span>
                                   <span className="font-extrabold text-slate-800 dark:text-white">{newFatherName || "—"}</span>
@@ -1951,9 +1951,9 @@ export default function StudentsMonitoringPage() {
                             </div>
 
                             {/* Contact Details */}
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl">
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
                               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Contact & Address</h4>
-                              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700 dark:text-slate-350">
+                              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700 dark:text-slate-400">
                                 <div>
                                   <span className="text-slate-400 block mb-0.5">Mobile Contact</span>
                                   <span className="font-black text-slate-800 dark:text-white">{newPhone || "—"}</span>
@@ -1986,7 +1986,7 @@ export default function StudentsMonitoringPage() {
                             </div>
 
                             {/* Aadhaar Details */}
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl space-y-3">
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl space-y-3">
                               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aadhaar Identity Details</h4>
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                                 <div>
@@ -2026,7 +2026,7 @@ export default function StudentsMonitoringPage() {
                             </div>
 
                             {/* Bank Account */}
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl space-y-3">
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl space-y-3">
                               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bank Details</h4>
                               <div className="grid grid-cols-2 gap-4 text-xs border-b border-slate-100 dark:border-slate-800 pb-2">
                                 <div>
@@ -2061,14 +2061,14 @@ export default function StudentsMonitoringPage() {
                             </div>
 
                             {/* Active Schemes */}
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl">
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
                               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Welfare & Government Schemes Held</h4>
                               {newSchemes.length === 0 ? (
                                 <p className="text-xs text-slate-400 italic">No welfare schemes hold by student.</p>
                               ) : (
                                 <div className="flex flex-wrap gap-2">
                                   {newSchemes.map((scheme) => (
-                                    <span key={scheme} className="px-3 py-1 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-650 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900 rounded-xl text-xs font-bold shadow-sm">
+                                    <span key={scheme} className="px-3 py-1 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900 rounded-xl text-xs font-bold shadow-sm">
                                       ✓ {scheme}
                                     </span>
                                   ))}
@@ -2077,16 +2077,16 @@ export default function StudentsMonitoringPage() {
                             </div>
 
                             {/* Welfare Certificates Attachments */}
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl">
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
                               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Welfare Certificates & Attachments</h4>
                               <div className="grid grid-cols-3 gap-3">
                                 
-                                <div className="bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-850 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
+                                <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
                                   <span className="text-[10px] font-bold text-slate-400 block">Income Certificate</span>
                                   {newDocIncome ? (
                                     <>
                                       <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded-md text-[9px] font-bold">Uploaded</span>
-                                      <a href={newDocIncome} download={`income_${newRollNumber}.png`} className="text-[10px] text-blue-650 dark:text-blue-400 font-bold underline hover:text-blue-705">Download</a>
+                                      <a href={newDocIncome} download={`income_${newRollNumber}.png`} className="text-[10px] text-blue-600 dark:text-blue-400 font-bold underline hover:text-blue-700">Download</a>
                                     </>
                                   ) : (
                                     <>
@@ -2096,12 +2096,12 @@ export default function StudentsMonitoringPage() {
                                   )}
                                 </div>
 
-                                <div className="bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-850 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
+                                <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
                                   <span className="text-[10px] font-bold text-slate-400 block">Community Certificate</span>
                                   {newDocCommunity ? (
                                     <>
                                       <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded-md text-[9px] font-bold">Uploaded</span>
-                                      <a href={newDocCommunity} download={`community_${newRollNumber}.png`} className="text-[10px] text-blue-655 dark:text-blue-400 font-bold underline hover:text-blue-700">Download</a>
+                                      <a href={newDocCommunity} download={`community_${newRollNumber}.png`} className="text-[10px] text-blue-600 dark:text-blue-400 font-bold underline hover:text-blue-700">Download</a>
                                     </>
                                   ) : (
                                     <>
@@ -2111,12 +2111,12 @@ export default function StudentsMonitoringPage() {
                                   )}
                                 </div>
 
-                                <div className="bg-white dark:bg-slate-950 border border-slate-255 dark:border-slate-850 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
+                                <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
                                   <span className="text-[10px] font-bold text-slate-400 block">Ration / Smart Card</span>
                                   {newDocRation ? (
                                     <>
                                       <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded-md text-[9px] font-bold">Uploaded</span>
-                                      <a href={newDocRation} download={`ration_${newRollNumber}.png`} className="text-[10px] text-blue-655 dark:text-blue-400 font-bold underline hover:text-blue-700">Download</a>
+                                      <a href={newDocRation} download={`ration_${newRollNumber}.png`} className="text-[10px] text-blue-600 dark:text-blue-400 font-bold underline hover:text-blue-700">Download</a>
                                     </>
                                   ) : (
                                     <>
