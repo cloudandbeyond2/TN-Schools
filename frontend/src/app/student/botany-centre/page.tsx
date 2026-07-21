@@ -17,6 +17,17 @@ const C: Record<string, { chip: string; ring: string; soft: string; text: string
 };
 const col = (k?: string) => C[k || "lime"] || C.lime;
 
+const getFlaticon = (emoji: string, textCol: string) => {
+  const map: Record<string, string> = {
+    "🌿": "fi-sr-leaf",
+    "🌾": "fi-sr-tree",
+    "☀️": "fi-sr-sun",
+    "💧": "fi-sr-drop",
+    "🌱": "fi-sr-flower",
+  };
+  return <i className={`fi ${map[emoji] || 'fi-sr-book-alt'} ${textCol}`}></i>;
+};
+
 export default function BotanyCentrePage() {
   const { data: session } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -39,16 +50,6 @@ export default function BotanyCentrePage() {
     return bilingualText;
   };
 
-  const getFlaticon = (emoji: string, textCol: string) => {
-    const map: Record<string, string> = {
-      "🌿": "fi-sr-leaf",
-      "🌾": "fi-sr-tree",
-      "☀️": "fi-sr-sun",
-      "💧": "fi-sr-drop",
-      "🌱": "fi-sr-flower",
-    };
-    return <i className={`fi ${map[emoji] || 'fi-sr-book-alt'} ${textCol}`}></i>;
-  };
 
   useEffect(() => {
     (async () => {
