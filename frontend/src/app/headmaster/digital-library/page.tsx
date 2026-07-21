@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { Upload, CheckCircle2, AlertCircle, Check, X, FileText, Clock, Library, Trash2, Folder, ChevronRight } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const CATEGORIES = [
   "E-books",
@@ -16,6 +17,7 @@ const CATEGORIES = [
 const CLASSES = ["6", "7", "8", "9", "10", "11", "12"];
 
 export default function HeadmasterDigitalLibraryPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<'upload' | 'approvals' | 'allResources'>('approvals');
   
@@ -168,7 +170,11 @@ export default function HeadmasterDigitalLibraryPage() {
   };
 
   return (
-    <PortalLayout title="Library Management" subtitle="Manage and approve digital resources for your school" accentColor="#0284c7">
+    <PortalLayout 
+      title={lang === "தமிழ்" ? "நூலக மேலாண்மை" : "Library Management"} 
+      subtitle={lang === "தமிழ்" ? "உங்கள் பள்ளிக்கான டிஜிட்டல் வளங்களை நிர்வகிக்கவும் மற்றும் அங்கீகரிக்கவும்" : "Manage and approve digital resources for your school"} 
+      accentColor="#0284c7"
+    >
       <div className="w-full space-y-6">
         
         {/* Tabs */}
@@ -177,7 +183,7 @@ export default function HeadmasterDigitalLibraryPage() {
             onClick={() => setActiveTab('approvals')}
             className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold border-b-2 transition-colors flex items-center gap-1 sm:gap-2 ${activeTab === 'approvals' ? 'border-sky-600 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
           >
-            <img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" alt="pending" /> Pending
+            <img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" alt="pending" /> {lang === "தமிழ்" ? "ஒப்புதல்கள்" : "Pending"}
             {pendingItems.length > 0 && (
               <span className="ml-1 px-2 py-0.5 bg-rose-500 text-white text-[10px] rounded-full">{pendingItems.length}</span>
             )}
@@ -186,13 +192,13 @@ export default function HeadmasterDigitalLibraryPage() {
             onClick={() => setActiveTab('upload')}
             className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold border-b-2 transition-colors flex items-center gap-1 sm:gap-2 ${activeTab === 'upload' ? 'border-sky-600 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
           >
-            <img src="https://cdn-icons-png.flaticon.com/128/109/109612.png" className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" alt="upload" /> Direct Upload
+            <img src="https://cdn-icons-png.flaticon.com/128/109/109612.png" className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" alt="upload" /> {lang === "தமிழ்" ? "பதிவேற்றம்" : "Direct Upload"}
           </button>
           <button 
             onClick={() => setActiveTab('allResources')}
             className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold border-b-2 transition-colors flex items-center gap-1 sm:gap-2 ${activeTab === 'allResources' ? 'border-sky-600 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
           >
-            <img src="https://cdn-icons-png.flaticon.com/128/2232/2232688.png" className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" alt="library" /> Resources
+            <img src="https://cdn-icons-png.flaticon.com/128/2232/2232688.png" className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" alt="library" /> {lang === "தமிழ்" ? "அனைத்து வளங்கள்" : "Resources"}
           </button>
         </div>
 

@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
+import { FiEdit2 as FiEditIcon, FiTrash2 as FiTrashIcon } from "react-icons/fi";
+import Swal from "sweetalert2";
 
 interface BlockData {
   name: string;
@@ -141,6 +143,131 @@ export default function BlockComparisonsPage() {
     }
   };
 
+  const handleEditBlock = async (oldBlockName: string) => {
+    const { value: newBlockName } = await Swal.fire({
+      title: "Rename Block Jurisdiction",
+      input: "text",
+      inputLabel: "New name for " + oldBlockName + " Block",
+      inputValue: oldBlockName,
+      showCancelButton: true,
+      inputPlaceholder: "e.g. Pollachi West",
+      confirmButtonColor: "#ec4899",
+      cancelButtonColor: "#64748b",
+      background: document.documentElement.classList.contains("dark") ? "#0f172a" : "#ffffff",
+      color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a",
+      inputValidator: (value) => {
+        if (!value || !value.trim()) {
+          return "Block name cannot be empty!";
+        }
+        return null;
+      }
+    });
+
+    if (!newBlockName || newBlockName.trim() === oldBlockName) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/hierarchy/block`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          oldBlockName,
+          newBlockName: newBlockName.trim(),
+          district: district || undefined
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        Swal.fire({
+          title: "Renamed!",
+          text: `Block "${oldBlockName}" successfully renamed to "${newBlockName.trim()}"!`,
+          icon: "success",
+          confirmButtonColor: "#ec4899",
+          background: document.documentElement.classList.contains("dark") ? "#0f172a" : "#ffffff",
+          color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+        });
+        fetchData();
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: json.error || "Failed to update block.",
+          icon: "error",
+          confirmButtonColor: "#ec4899",
+          background: document.documentElement.classList.contains("dark") ? "#0f172a" : "#ffffff",
+          color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+        });
+      }
+    } catch (err) {
+      Swal.fire({
+        title: "Error",
+        text: "Network error. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#ec4899",
+        background: document.documentElement.classList.contains("dark") ? "#0f172a" : "#ffffff",
+        color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+      });
+    }
+  };
+
+  const handleDeleteBlock = async (blockName: string) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: `Do you want to delete Block "${blockName}"? This will dissociate BEOs and schools from this block name.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ec4899",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Yes, delete!",
+      cancelButtonText: "Cancel",
+      background: document.documentElement.classList.contains("dark") ? "#0f172a" : "#ffffff",
+      color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/hierarchy/block`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          blockName,
+          district: district || undefined
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        Swal.fire({
+          title: "Deleted!",
+          text: `Block "${blockName}" deleted successfully!`,
+          icon: "success",
+          confirmButtonColor: "#ec4899",
+          background: document.documentElement.classList.contains("dark") ? "#0f172a" : "#ffffff",
+          color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+        });
+        fetchData();
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: json.error || "Failed to delete block.",
+          icon: "error",
+          confirmButtonColor: "#ec4899",
+          background: document.documentElement.classList.contains("dark") ? "#0f172a" : "#ffffff",
+          color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+        });
+      }
+    } catch (err) {
+      Swal.fire({
+        title: "Error",
+        text: "Network error. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#ec4899",
+        background: document.documentElement.classList.contains("dark") ? "#0f172a" : "#ffffff",
+        color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+      });
+    }
+  };
+
   const filteredBlocks = blocksData.filter(
     (b) =>
       b.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -259,16 +386,32 @@ export default function BlockComparisonsPage() {
                     <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 font-medium">{b.schoolCount}</td>
                     <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 font-mono">{b.studentCount.toLocaleString()}</td>
                     <td className="px-4 py-3 text-right">
-                      {b.beoName === "Unassigned" ? (
-                        <Link
-                          href="/district-education-officer/beos"
-                          className="px-2.5 py-1 bg-pink-500/10 hover:bg-pink-500/20 text-pink-650 dark:text-pink-400 border border-pink-500/20 rounded-md font-bold text-[10px] transition-all inline-block"
+                      <div className="flex items-center justify-end gap-2">
+                        {b.beoName === "Unassigned" ? (
+                          <Link
+                            href="/district-education-officer/beos"
+                            className="px-2.5 py-1 bg-pink-500/10 hover:bg-pink-500/20 text-pink-650 dark:text-pink-400 border border-pink-500/20 rounded-md font-bold text-[10px] transition-all inline-block mr-2"
+                          >
+                            Assign BEO
+                          </Link>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 font-semibold italic mr-2">Complete</span>
+                        )}
+                        <button
+                          onClick={() => handleEditBlock(b.name)}
+                          className="p-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg transition-all"
+                          title="Rename Block"
                         >
-                          Assign BEO
-                        </Link>
-                      ) : (
-                        <span className="text-[10px] text-slate-400 font-semibold italic">Complete</span>
-                      )}
+                          <FiEditIcon className="text-xs" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteBlock(b.name)}
+                          className="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-650 dark:text-red-400 border border-red-500/20 rounded-lg transition-all"
+                          title="Delete Block"
+                        >
+                          <FiTrashIcon className="text-xs" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

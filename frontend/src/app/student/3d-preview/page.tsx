@@ -244,7 +244,8 @@ export default function ThreeDPreviewPage() {
     {
       id: 1,
       name: "Human Heart Structure ❤️",
-      subject: "Biology",
+      subject: "Class 10 Biology",
+      category: "Class 10",
       views: 245,
       icon: <Heart />,
       color: "rose",
@@ -255,7 +256,8 @@ export default function ThreeDPreviewPage() {
     {
       id: 2,
       name: "Solar System Map 🪐",
-      subject: "Physics",
+      subject: "Class 9 Physics",
+      category: "Class 9",
       views: 189,
       icon: <Globe2 />,
       color: "indigo",
@@ -266,7 +268,8 @@ export default function ThreeDPreviewPage() {
     {
       id: 3,
       name: "Plant Cell Organelles 🌿",
-      subject: "Biology",
+      subject: "Class 9 Biology",
+      category: "Class 9",
       views: 312,
       icon: <Leaf />,
       color: "emerald",
@@ -277,7 +280,8 @@ export default function ThreeDPreviewPage() {
     {
       id: 4,
       name: "Cool Engine Parts ⚙️",
-      subject: "Physics",
+      subject: "Class 10 Physics",
+      category: "Class 10",
       views: 156,
       icon: <Settings />,
       color: "amber",
@@ -293,6 +297,10 @@ export default function ThreeDPreviewPage() {
   const [toastMsg, setToastMsg] = useState("");
   const [autoRotate, setAutoRotate] = useState(true);
   const [customLoading, setCustomLoading] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("All");
+
+  const categories = ["All", "Class 9", "Class 10"];
+  const filteredModels = models.filter(m => activeCategory === "All" || (m as any).category === activeCategory);
 
   // Set default view mode based on Sketchfab UID availability
   useEffect(() => {
@@ -336,6 +344,7 @@ export default function ThreeDPreviewPage() {
           id: Date.now(),
           name: generated.name || (topic + " ✨"),
           subject: generated.subject || subject,
+          category: "General",
           views: 1,
           icon: <Box />,
           color: generated.color || randomColor,
@@ -482,7 +491,7 @@ export default function ThreeDPreviewPage() {
               /* ui_annotations=1 enables clickable numbered annotation pins that display explanations of different parts */
               <div className="w-full h-full pt-20 z-10">
                 <iframe
-                  src={`https://sketchfab.com/models/${activeModel.sketchfabUid}/embed?autostart=1&ui_theme=dark&ui_ar=0&ui_vr=0&ui_infos=0&ui_help=0&ui_settings=0&ui_annotations=1&ui_animations=0&double_click=0`}
+                  src={`https://sketchfab.com/models/${activeModel.sketchfabUid}/embed?autostart=1&ui_theme=dark&ui_ar=1&ui_vr=0&ui_infos=0&ui_help=0&ui_settings=0&ui_annotations=1&ui_animations=0&double_click=0`}
                   title={activeModel.name}
                   className="w-full h-full border-0"
                   allow="autoplay; fullscreen; xr-spatial-tracking"
@@ -524,8 +533,20 @@ export default function ThreeDPreviewPage() {
               Cool 3D Stuff
             </h3>
 
+            <div className="flex gap-2 mb-4 overflow-x-auto hide-scrollbar px-2 pb-2">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm ${activeCategory === cat ? "bg-indigo-500 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
             <div className="flex flex-row xl:flex-col gap-4 overflow-x-auto xl:overflow-y-auto hide-scrollbar flex-1 pb-4 px-2.5 flex-nowrap xl:flex-wrap">
-              {models.map(model => (
+              {filteredModels.map(model => (
                 <div
                   key={model.id}
                   onClick={() => { setActiveModel(model); showToast(`Loaded ${model.name}!`); }}

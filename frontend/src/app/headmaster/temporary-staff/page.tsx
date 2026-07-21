@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -46,6 +47,7 @@ interface ParsedPreviewTempStaff {
 }
 
 export default function TemporaryStaffPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   // Headmaster's own school — derived directly from session, never changes
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
@@ -265,8 +267,8 @@ export default function TemporaryStaffPage() {
 
   return (
     <PortalLayout
-      title="Temporary & Contract Staff"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
+      title={lang === "தமிழ்" ? "தற்காலிக & ஒப்பந்த பணியாளர்கள்" : "Temporary & Contract Staff"}
+      subtitle={lang === "தமிழ்" ? "பள்ளியிட்டப்பட்ட பள்ளியின் தற்காலிக பணியாளர் தகவல்கள்." : "Temporary staff data scoped to your assigned school."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
@@ -275,8 +277,8 @@ export default function TemporaryStaffPage() {
       {/* School Badge — locked to this headmaster's school */}
       <div className="glass rounded-2xl p-4 border border-slate-800 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 fade-in">
         <div>
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider">Managed Institution</h3>
-          <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Temporary staff data is scoped to your assigned school only.</p>
+          <h3 className="text-xs font-bold text-white uppercase tracking-wider">{lang === "தமிழ்" ? "நிர்வகிக்கப்படும் நிறுவனம்" : "Managed Institution"}</h3>
+          <p className="text-[10px] text-slate-500 font-semibold mt-0.5">{lang === "தமிழ்" ? "தற்காலிக பணியாளர் தகவல் உங்கள் பள்ளிக்கு மட்டுமிட்டதாகும்." : "Temporary staff data is scoped to your assigned school only."}</p>
         </div>
         <div className="flex items-center gap-2 bg-blue-600/10 border border-blue-500/30 rounded-xl px-4 py-2 w-full sm:w-auto">
           <span className="text-blue-400 text-base">🏫</span>
@@ -290,19 +292,19 @@ export default function TemporaryStaffPage() {
       {/* Metric summaries */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 fade-in">
         <div className="glass rounded-2xl p-6 border border-slate-700/50">
-          <div className="text-slate-400 text-sm mb-2 font-medium">Total Contract Staff</div>
-          <div className="text-3xl font-extrabold text-blue-400">{isLoading ? "—" : temps.length} staff</div>
+          <div className="text-slate-400 text-sm mb-2 font-medium">{lang === "தமிழ்" ? "மொத்த ொப்பந்த பணியாளர்கள்" : "Total Contract Staff"}</div>
+          <div className="text-3xl font-extrabold text-blue-400">{isLoading ? "—" : temps.length} {lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}</div>
         </div>
         <div className="glass rounded-2xl p-6 border border-slate-700/50">
-          <div className="text-slate-400 text-sm mb-2 font-medium">Agency Outsourced</div>
+          <div className="text-slate-400 text-sm mb-2 font-medium">{lang === "தமிழ்" ? "நிறுவன ஒப்பந்தம்" : "Agency Outsourced"}</div>
           <div className="text-3xl font-extrabold text-emerald-400">
-            {isLoading ? "—" : temps.filter((t) => t.agency.includes("Outsourcing") || t.agency.includes("Scheme")).length} staff
+            {isLoading ? "—" : temps.filter((t) => t.agency.includes("Outsourcing") || t.agency.includes("Scheme")).length} {lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}
           </div>
         </div>
         <div className="glass rounded-2xl p-6 border border-slate-700/50">
-          <div className="text-slate-400 text-sm mb-2 font-medium">Direct Contracts</div>
+          <div className="text-slate-400 text-sm mb-2 font-medium">{lang === "தமிழ்" ? "நேரடி ொப்பந்தங்கள்" : "Direct Contracts"}</div>
           <div className="text-3xl font-extrabold text-amber-400">
-            {isLoading ? "—" : temps.filter((t) => t.agency === "Direct Contract").length} staff
+            {isLoading ? "—" : temps.filter((t) => t.agency === "Direct Contract").length} {lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}
           </div>
         </div>
       </div>

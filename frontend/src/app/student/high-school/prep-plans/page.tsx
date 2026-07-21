@@ -3,7 +3,10 @@
 import { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
-import { BookOpen, ChevronDown, ChevronUp, User, CalendarRange, ListChecks, Sparkles } from "lucide-react";
+
+const Icon = ({ name, className = "", style }: { name: string; className?: string; style?: React.CSSProperties }) => (
+  <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} style={style} />
+);
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -25,36 +28,6 @@ const SUBJECT_COLORS: Record<string, string> = {
   "Social Science": "#8b5cf6",
 };
 
-// Shown when the backend has no published plans yet, so the page stays useful.
-const FALLBACK_PLANS = [
-  {
-    _id: "demo-maths",
-    subject: "Mathematics",
-    class: "10",
-    title: "SSLC Mathematics 8-Week Mastery Plan",
-    description: "Chapter-wise preparation covering the full board blueprint, with PYQ drills every week.",
-    teacherName: "Mathematics Department",
-    weeks: [
-      { week: 1, focus: "Relations & Functions + Numbers and Sequences", topics: ["Relations", "Functions", "AP & GP"], activities: ["Solve Exercise problems", "10 PYQ questions", "Formula flashcards"] },
-      { week: 2, focus: "Algebra", topics: ["Simultaneous equations", "Quadratics", "Matrices"], activities: ["Practice factorization drills", "Board paper Section B questions"] },
-      { week: 3, focus: "Geometry & Trigonometry", topics: ["Similar triangles", "Circles", "Trig identities"], activities: ["Theorem proofs practice", "Identity derivations"] },
-      { week: 4, focus: "Coordinate Geometry & Mensuration", topics: ["Area of triangle", "Straight lines", "Volume & surface area"], activities: ["Graph plotting", "Mensuration formula test"] },
-    ],
-  },
-  {
-    _id: "demo-science",
-    subject: "Science",
-    class: "10",
-    title: "Science Board Blueprint Coverage Plan",
-    description: "Physics, Chemistry and Biology units sequenced by board weightage.",
-    teacherName: "Science Department",
-    weeks: [
-      { week: 1, focus: "Optics & Electricity", topics: ["Laws of reflection/refraction", "Ohm's law numericals"], activities: ["Numerical practice set", "Diagram drills"] },
-      { week: 2, focus: "Chemistry core", topics: ["Periodic classification", "Carbon compounds"], activities: ["Nomenclature worksheet", "Equation balancing"] },
-      { week: 3, focus: "Biology", topics: ["Heredity", "Life processes"], activities: ["Diagram labelling", "One-mark rapid fire"] },
-    ],
-  },
-];
 
 export default function PrepPlansPage() {
   const { data: session } = useSession();
@@ -65,7 +38,6 @@ export default function PrepPlansPage() {
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
   const [expandedWeeks, setExpandedWeeks] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
-  const [usingFallback, setUsingFallback] = useState(false);
 
   useEffect(() => {
     fetch(`${API_BASE}/api/students`)
@@ -92,16 +64,13 @@ export default function PrepPlansPage() {
       .then((json) => {
         if (json.success && json.data.length > 0) {
           setPlans(json.data);
-          setUsingFallback(false);
         } else {
-          setPlans(FALLBACK_PLANS);
-          setUsingFallback(true);
+          setPlans([]);
         }
         setLoading(false);
       })
       .catch(() => {
-        setPlans(FALLBACK_PLANS);
-        setUsingFallback(true);
+        setPlans([]);
         setLoading(false);
       });
   }, [student, selectedGrade]);
@@ -132,35 +101,24 @@ export default function PrepPlansPage() {
             </button>
           ))}
         </div>
-        <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700 self-start">
-          {(["9", "10"] as const).map((g) => (
-            <button
-              key={g}
-              onClick={() => setSelectedGrade(g)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                selectedGrade === g ? "bg-red-500 text-white shadow-lg" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              Class {g}
-            </button>
-          ))}
-        </div>
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+            <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700">
+              <div className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-red-500 text-white">
+                Class {selectedGrade}
+              </div>
+            </div>
+      </div>
       </div>
 
-      {usingFallback && (
-        <div className="mb-6 text-xs text-amber-300/90 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 shrink-0" />
-          Showing sample preparation plans — your teachers haven&apos;t published plans for Class {selectedGrade} yet.
-        </div>
-      )}
+
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500" />
         </div>
       ) : visiblePlans.length === 0 ? (
-        <div className="glass rounded-2xl p-10 border border-slate-700/50 text-center">
-          <BookOpen className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+        <div className="glass rounded-2xl p-6 sm:p-10 border border-slate-700/50 text-center">
+          <Icon name="book-alt" className="text-4xl text-slate-600 mx-auto mb-3" />
           <p className="text-slate-400 text-sm">No preparation plans published for this subject yet.</p>
         </div>
       ) : (
@@ -175,14 +133,14 @@ export default function PrepPlansPage() {
               >
                 <button
                   onClick={() => setExpandedPlan(isOpen ? null : plan._id)}
-                  className="w-full p-6 flex items-start justify-between gap-4 text-left"
+                  className="w-full p-4 sm:p-6 flex items-start justify-between gap-4 text-left"
                 >
                   <div className="flex items-start gap-4">
                     <div
                       className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
                       style={{ backgroundColor: `${color}22`, border: `1px solid ${color}55` }}
                     >
-                      <BookOpen className="w-5 h-5" style={{ color }} />
+                      <Icon name="book-alt" className="text-xl" style={{ color }} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
@@ -195,25 +153,25 @@ export default function PrepPlansPage() {
                       {plan.description && (
                         <p className="text-xs text-slate-400 mt-1.5 max-w-2xl">{plan.description}</p>
                       )}
-                      <div className="flex items-center gap-4 mt-2.5 text-[11px] text-slate-500">
+                      <div className="flex flex-wrap items-center gap-4 mt-2.5 text-[11px] text-slate-500">
                         {plan.teacherName && (
-                          <span className="flex items-center gap-1"><User className="w-3 h-3" /> {plan.teacherName}</span>
+                          <span className="flex items-center gap-1"><Icon name="user" className="text-sm" /> {plan.teacherName}</span>
                         )}
                         <span className="flex items-center gap-1">
-                          <CalendarRange className="w-3 h-3" /> {plan.weeks?.length || 0} week schedule
+                          <Icon name="calendar" className="text-sm" /> {plan.weeks?.length || 0} week schedule
                         </span>
                       </div>
                     </div>
                   </div>
                   {isOpen ? (
-                    <ChevronUp className="w-5 h-5 text-slate-400 shrink-0 mt-1" />
+                    <Icon name="angle-up" className="text-xl text-slate-400 shrink-0 mt-1" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-slate-400 shrink-0 mt-1" />
+                    <Icon name="angle-down" className="text-xl text-slate-400 shrink-0 mt-1" />
                   )}
                 </button>
 
                 {isOpen && (
-                  <div className="px-6 pb-6 space-y-3">
+                  <div className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-3">
                     {(plan.weeks || []).map((week: any, wIdx: number) => {
                       const weekKey = `${plan._id}-${wIdx}`;
                       const weekOpen = expandedWeeks[weekKey] ?? wIdx === 0;
@@ -233,9 +191,9 @@ export default function PrepPlansPage() {
                               <span className="text-sm font-semibold text-slate-200">{week.focus}</span>
                             </div>
                             {weekOpen ? (
-                              <ChevronUp className="w-4 h-4 text-slate-500" />
+                              <Icon name="angle-up" className="text-sm text-slate-500" />
                             ) : (
-                              <ChevronDown className="w-4 h-4 text-slate-500" />
+                              <Icon name="angle-down" className="text-sm text-slate-500" />
                             )}
                           </button>
                           {weekOpen && (
@@ -253,7 +211,7 @@ export default function PrepPlansPage() {
                               </div>
                               <div>
                                 <div className="text-[10px] font-black uppercase text-slate-500 mb-2 flex items-center gap-1">
-                                  <ListChecks className="w-3 h-3" /> Practice activities
+                                  <Icon name="list-check" className="text-xs" /> Practice activities
                                 </div>
                                 <ul className="space-y-1.5">
                                   {(week.activities || []).map((a: string, i: number) => (

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -92,6 +93,7 @@ interface Grievance {
 }
 
 export default function ParentsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   // Headmaster's own school — derived directly from session, never changes
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
@@ -536,8 +538,8 @@ export default function ParentsPage() {
 
   return (
     <PortalLayout
-      title="Parents & PTA Committee"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
+      title={lang === "தமிழ்" ? "பரிசுகள் & பிடியெ கமிட்டி" : "Parents & PTA Committee"}
+      subtitle={lang === "தமிழ்" ? "படிக்கம் முகாம் மேலாண்மை மற்றும் பெற்றோர் தொடர்பு களம்." : "PTA Committee management and parent engagement platform."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"

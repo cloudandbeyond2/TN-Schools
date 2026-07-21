@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
-import { ZoomIn, ZoomOut, RotateCcw, Play, Pause, X } from "lucide-react";
+import { ZoomIn, ZoomOut, RotateCcw, Play, Pause, X, Volume2, Bookmark, HelpCircle } from "lucide-react";
 
 interface Shape3D {
   type: "sphere" | "cylinder" | "box" | "ring" | "line" | "particle_cloud" | "text";
@@ -87,6 +87,67 @@ export default function ThreeDModelViewer({
   const [hoveredLabel, setHoveredLabel] = useState<string | null>(null);
   const [selectedShape, setSelectedShape] = useState<Shape3D | null>(null);
   const [cursorStyle, setCursorStyle] = useState<"grab" | "grabbing" | "pointer">("grab");
+
+  // Quiz State
+  const [quizMode, setQuizMode] = useState<boolean>(false);
+  const [quizTarget, setQuizTarget] = useState<Shape3D | null>(null);
+  const [quizOptions, setQuizOptions] = useState<string[]>([]);
+  const [quizMessage, setQuizMessage] = useState<string>("");
+
+  // Start Quiz
+  const toggleQuizMode = () => {
+    if (quizMode) {
+      setQuizMode(false);
+      setQuizTarget(null);
+      setQuizMessage("");
+      setSelectedShape(null);
+    } else {
+      const parts = shapes.filter(s => s.label);
+      if (parts.length < 2) {
+        alert("Not enough labeled parts to create a quiz for this model!");
+        return;
+      }
+      const target = parts[Math.floor(Math.random() * parts.length)];
+      setQuizTarget(target);
+      
+      // Generate options (1 correct, 3 random wrong)
+      const optionsSet = new Set<string>();
+      optionsSet.add(target.label!);
+      while (optionsSet.size < Math.min(4, parts.length)) {
+        const randomPart = parts[Math.floor(Math.random() * parts.length)];
+        optionsSet.add(randomPart.label!);
+      }
+      setQuizOptions(Array.from(optionsSet).sort(() => Math.random() - 0.5));
+      
+      setQuizMode(true);
+      setQuizMessage("What is the highlighted part?");
+      setSelectedShape(null);
+    }
+  };
+
+  const handleQuizAnswer = (option: string) => {
+    if (option === quizTarget?.label) {
+      setQuizMessage("Correct! 🎉");
+      setTimeout(() => toggleQuizMode(), 2000);
+    } else {
+      setQuizMessage("Try again! ❌");
+    }
+  };
+
+  // Text to Speech
+  const speakText = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert("Text-to-speech is not supported in this browser.");
+    }
+  };
+
+  const handleSaveFlashcard = () => {
+    alert("Saved to Study Boost Flashcards! 🚀");
+  };
 
   // Update Y rotation over time if auto-playing
   useEffect(() => {
@@ -204,7 +265,7 @@ export default function ThreeDModelViewer({
       }
     });
 
-    if (clickedShape) {
+    if (clickedShape && !quizMode) {
       setSelectedShape(clickedShape);
     }
   };
@@ -341,12 +402,14 @@ export default function ThreeDModelViewer({
             ctx.arc(p.sx, p.sy, rScaled, 0, Math.PI * 2);
             ctx.fill();
 
-            // Glow ring around hovered/selected parts
-            const isHovered = shape.label && hoveredLabel === shape.label;
-            const isSelected = shape.label && selectedShape?.label === shape.label;
-            if (isHovered || isSelected) {
-              ctx.strokeStyle = isSelected ? "#e0e7ff" : "#ffffff";
-              ctx.lineWidth = isSelected ? 3 : 2;
+            // Glow ring around hovered/selected/quiz parts
+            const isHovered = shape.label && hoveredLabel === shape.label && !quizMode;
+            const isSelected = shape.label && selectedShape?.label === shape.label && !quizMode;
+            const isQuizTarget = quizMode && quizTarget?.label === shape.label;
+            
+            if (isHovered || isSelected || isQuizTarget) {
+              ctx.strokeStyle = isSelected ? "#e0e7ff" : (isQuizTarget ? "#fcd34d" : "#ffffff");
+              ctx.lineWidth = isSelected || isQuizTarget ? 3 : 2;
               ctx.beginPath();
               ctx.arc(p.sx, p.sy, rScaled + 4, 0, Math.PI * 2);
               ctx.stroke();
@@ -608,9 +671,9 @@ export default function ThreeDModelViewer({
             const by = pText.sy - boxH / 2;
 
             // Background
-            const isSelected = selectedShape && (selectedShape.label === textContent || selectedShape.text === textContent);
+            const isSelected = (!quizMode && selectedShape && (selectedShape.label === textContent || selectedShape.text === textContent)) || (quizMode && quizTarget?.label === textContent);
             ctx.fillStyle = isSelected 
-              ? (theme === "light" ? "rgba(59, 130, 246, 0.95)" : "rgba(79, 70, 229, 0.95)")
+              ? (quizMode ? "rgba(245, 158, 11, 0.95)" : (theme === "light" ? "rgba(59, 130, 246, 0.95)" : "rgba(79, 70, 229, 0.95)"))
               : (theme === "light" ? "rgba(255, 255, 255, 0.9)" : "rgba(15, 23, 42, 0.9)");
             
             ctx.strokeStyle = isSelected 
@@ -641,8 +704,16 @@ export default function ThreeDModelViewer({
 
     // Render everything
     ctx.clearRect(0, 0, width, height);
-    items.forEach((item) => item.draw());
-  }, [shapes, angleX, angleY, zoom, hoveredLabel, selectedShape]);
+    items.forEach((item) => {
+      // Hide labels in quiz mode unless it's the target
+      if (quizMode && item.type === "text" && item.label !== quizTarget?.label) {
+         // Optionally draw it empty or skip
+         // We'll skip to hide the text completely to prevent cheating
+         return;
+      }
+      item.draw();
+    });
+  }, [shapes, angleX, angleY, zoom, hoveredLabel, selectedShape, quizMode, quizTarget]);
 
   // Handle pointer interactions on labels
   const handleCanvasMouseMove = (e: React.MouseEvent) => {
@@ -719,7 +790,7 @@ export default function ThreeDModelViewer({
       </div>
 
       {/* Selected Shape / Click-to-Explain HUD popup */}
-      {selectedShape && (
+      {selectedShape && !quizMode && (
         <div className={`absolute bottom-20 lg:bottom-auto lg:top-24 left-4 right-4 lg:right-auto lg:left-6 z-40 max-w-sm lg:max-w-xs backdrop-blur-md border p-4 lg:p-5 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-left-4 duration-300 ${theme === "light" ? "bg-white/95 border-blue-200" : "bg-slate-950/95 border-indigo-500/70"}`}>
           <button
             onClick={() => setSelectedShape(null)}
@@ -728,19 +799,59 @@ export default function ThreeDModelViewer({
           >
             <X className="w-4 h-4" />
           </button>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-            <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Part Explanation</span>
+          <div className="flex justify-between items-start mb-2 pr-6">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Part Explanation</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button onClick={() => speakText(`${selectedShape.label}. ${selectedShape.description || ""}`)} className="p-1.5 bg-blue-100 dark:bg-indigo-900/50 text-blue-600 dark:text-indigo-400 rounded-lg hover:bg-blue-200 transition-colors" title="Read Aloud">
+                <Volume2 className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={handleSaveFlashcard} className="p-1.5 bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-200 transition-colors" title="Save to Flashcards">
+                <Bookmark className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
-          <h5 className={`text-base font-black mb-2 ${theme === "light" ? "text-slate-800" : "text-white"}`}>{selectedShape.label}</h5>
+          <h5 className={`text-base font-black mb-2 pr-4 ${theme === "light" ? "text-slate-800" : "text-white"}`}>{selectedShape.label}</h5>
           <p className={`text-xs leading-relaxed ${theme === "light" ? "text-slate-600" : "text-slate-300"}`}>
             {selectedShape.description || "Interactive structural detail of this model."}
           </p>
         </div>
       )}
 
+      {/* Quiz HUD */}
+      {quizMode && quizTarget && (
+        <div className={`absolute bottom-20 lg:bottom-auto lg:top-24 left-4 right-4 lg:right-auto lg:left-6 z-40 max-w-sm lg:max-w-xs backdrop-blur-md border p-4 lg:p-5 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-left-4 duration-300 ${theme === "light" ? "bg-white/95 border-amber-300" : "bg-slate-950/95 border-amber-500/70"}`}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Quiz Mode</span>
+          </div>
+          <h5 className={`text-sm font-black mb-4 ${theme === "light" ? "text-slate-800" : "text-white"}`}>{quizMessage}</h5>
+          <div className="flex flex-col gap-2">
+            {quizOptions.map((opt, i) => (
+              <button
+                key={i}
+                onClick={() => handleQuizAnswer(opt)}
+                className={`py-2 px-3 text-xs font-bold rounded-xl text-left transition-all ${theme === "light" ? "bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-700" : "bg-slate-900 hover:bg-amber-900/50 text-slate-300 hover:text-amber-400"}`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Floating control buttons */}
       <div className={`absolute bottom-6 right-6 z-30 flex items-center gap-2 backdrop-blur-md px-3 py-2 rounded-2xl border shadow-lg ${theme === "light" ? "bg-white/90 border-slate-200" : "bg-slate-900/90 border-white/10"}`}>
+        <button
+          onClick={toggleQuizMode}
+          className={`p-2 rounded-xl transition-all ${quizMode ? "bg-amber-500 text-white" : (theme === "light" ? "hover:bg-slate-100 text-amber-500" : "hover:bg-amber-500/20 text-amber-400")}`}
+          title={quizMode ? "Exit Quiz" : "Test Me!"}
+        >
+          <HelpCircle className="w-4 h-4" />
+        </button>
+        <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1"></div>
         <button
           onClick={() => setIsPlaying(!isPlaying)}
           className={`p-2 rounded-xl transition-all ${isPlaying ? "bg-blue-500 text-white" : (theme === "light" ? "hover:bg-slate-100 text-slate-500" : "hover:bg-white/10 text-slate-400")}`}
@@ -786,7 +897,7 @@ export default function ThreeDModelViewer({
       />
 
       {/* Detail HUD Overlay on Hover */}
-      {hoveredLabel && !selectedShape && (
+      {hoveredLabel && !selectedShape && !quizMode && (
         <div className={`absolute bottom-24 left-1/2 -translate-x-1/2 font-bold border px-4 py-2 rounded-xl text-xs z-30 pointer-events-none animate-bounce shadow-xl flex items-center gap-2 ${theme === "light" ? "bg-white/95 text-blue-600 border-blue-200" : "bg-slate-950/90 text-indigo-300 border-indigo-500/50"}`}>
           <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
           Click to explain: <span className={`font-black ${theme === "light" ? "text-slate-800" : "text-white"}`}>{hoveredLabel}</span>

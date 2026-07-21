@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 /* ------------------------------- Types ------------------------------- */
 
@@ -221,6 +222,7 @@ function stars(n: number): string {
 /* ------------------------------- Page -------------------------------- */
 
 export default function MiddayMealPage() {
+  const { lang } = usePortalLanguage();
   const [records, setRecords] = useState<DailyRecord[]>(SEED_RECORDS);
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(SEED_BENEFICIARIES);
   const [stock, setStock] = useState<StockItem[]>(SEED_STOCK);
@@ -461,18 +463,18 @@ export default function MiddayMealPage() {
   /* ------------------------------ Render ------------------------------ */
 
   const TABS: { key: TabKey; label: string; icon: string }[] = [
-    { key: "overview", label: "Overview", icon: "📊" },
-    { key: "records", label: "Daily Records", icon: "🍛" },
-    { key: "beneficiaries", label: "Beneficiaries", icon: "👥" },
-    { key: "stock", label: "Food Stock", icon: "📦" },
-    { key: "menu", label: "Menu Monitoring", icon: "📅" },
-    { key: "quality", label: "Quality Reports", icon: "🧪" },
+    { key: "overview",      label: lang === "தமிழ்" ? "மேலோட்டம்"              : "Overview",         icon: "📊" },
+    { key: "records",       label: lang === "தமிழ்" ? "உணவு பதிவுகள்"          : "Daily Records",    icon: "🍛" },
+    { key: "beneficiaries", label: lang === "தமிழ்" ? "பயனாளர்கள்"             : "Beneficiaries",    icon: "👥" },
+    { key: "stock",         label: lang === "தமிழ்" ? "உணவு கிடங்கு"           : "Kitchen Stock",    icon: "📦" },
+    { key: "menu",          label: lang === "தமிழ்" ? "மெனு கண்காணிப்பு"      : "Menu Monitoring",  icon: "📅" },
+    { key: "quality",       label: lang === "தமிழ்" ? "தரம் அறிக்கைகள்"       : "Quality Reports",  icon: "🧪" },
   ];
 
   return (
     <PortalLayout
-      title="Mid-Day Meal Monitoring"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
+      title={lang === "தமிழ்" ? "மதியம் உணவு கண்காணிப்பு" : "Mid-Day Meal Monitoring"}
+      subtitle={lang === "தமிழ்" ? "மாணவர்களுக்கான தினசரி உணவு பரிமாற்றம், பயனாளர்கள் மற்றும் உணவு தரம் கண்காணிக்கவும்." : "Monitor daily meal servings, beneficiaries and kitchen stock."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
@@ -481,16 +483,15 @@ export default function MiddayMealPage() {
       {/* Hero banner */}
       <div className="rounded-2xl p-6 mb-6 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 relative overflow-hidden">
         <div className="absolute -right-8 -top-8 text-[120px] opacity-15 select-none" aria-hidden>🍛</div>
-        <div className="text-lg font-black" style={{ color: "#fff" }}>Mid-Day Meal Monitoring</div>
+        <div className="text-lg font-black" style={{ color: "#fff" }}>{lang === "தமிழ்" ? "மதியம் உணவு கண்காணிப்பு" : "Mid-Day Meal Monitoring"}</div>
         <p className="text-xs mt-1 max-w-2xl leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
-          Single desk for the PM POSHAN / Puratchi Thalaivar MGR Nutritious Meal Programme — log daily servings,
-          track beneficiaries and kitchen stock, monitor the sanctioned menu and file quality inspections.
+          {lang === "தமிழ்" ? "மாணவர்களுக்கான தினசரி உணவு பரிமாற்றம், பயனாளர்கள் மற்றும் உணவுமக சரகுகள், அனுமதிக்கப்பட்ட மெனுவை கண்காணித்து தரம் ஆய்வுகளை பதிவு செய்யவும்." : "Single desk for the PM POSHAN / Puratchi Thalaivar MGR Nutritious Meal Programme — log daily servings, track beneficiaries and kitchen stock, monitor the sanctioned menu and file quality inspections."}
         </p>
         <div className="flex flex-wrap gap-4 mt-4">
-          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.activeBens}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>Active beneficiaries</span></div>
-          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.monthMeals.toLocaleString("en-IN")}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>Meals served in July</span></div>
-          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.avgCoverage}%</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>Avg coverage</span></div>
-          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.avgQuality}/5</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>Quality score</span></div>
+          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.activeBens}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "வினையொளிர்" : "Active beneficiaries"}</span></div>
+          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.monthMeals.toLocaleString("en-IN")}</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "ஜூலையில் உணவு பரிமாற்றம்" : "Meals served in July"}</span></div>
+          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.avgCoverage}%</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "சராசரி உல்ளடக்கம்" : "Avg coverage"}</span></div>
+          <div><span className="text-xl font-black" style={{ color: "#fff" }}>{stats.avgQuality}/5</span><span className="text-[10px] font-bold ml-1.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.75)" }}>{lang === "தமிழ்" ? "தரம் மதிப்பெண்" : "Quality score"}</span></div>
         </div>
       </div>
 
@@ -515,11 +516,11 @@ export default function MiddayMealPage() {
         <>
           {/* Quick lookup */}
           <div className="glass rounded-2xl p-6 border border-slate-800 mb-6">
-            <h2 className="text-base font-semibold text-white mb-1">🔎 Quick Lookup</h2>
-            <p className="text-xs text-slate-500 mb-4">Search across beneficiaries, stock items, daily records and inspection reports in one place.</p>
+            <h2 className="text-base font-semibold text-white mb-1">🔎 {lang === "தமிழ்" ? "விரைவு தேடல்" : "Quick Lookup"}</h2>
+            <p className="text-xs text-slate-500 mb-4">{lang === "தமிழ்" ? "பயனாளர்கள், கைவசம் உள்ள பொருட்கள், தினசரி பதிவுகள் மற்றும் ஆய்வு அறிக்கைகளை ஒரே இடத்தில் தேடவும்." : "Search across beneficiaries, stock items, daily records and inspection reports in one place."}</p>
             <input
               type="text"
-              placeholder="🔍 Try a student name, EMIS ID, grocery item, date (2026-07-09) or inspector…"
+              placeholder={lang === "தமிழ்" ? "🔍 மாணவர் பெயர், EMIS ID, மளிகை பொருள், தேதி (2026-07-09) அல்லது ஆய்வாளரை தேடவும்…" : "🔍 Try a student name, EMIS ID, grocery item, date (2026-07-09) or inspector…"}
               value={lookup}
               onChange={(e) => setLookup(e.target.value)}
               className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
@@ -567,10 +568,10 @@ export default function MiddayMealPage() {
           {/* KPI cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="glass p-5 rounded-2xl border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Served Today</span>
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "இன்று வழங்கப்பட்டது" : "Served Today"}</span>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-2xl font-black text-emerald-400">{today?.mealsServed ?? 0}</span>
-                <span className="text-[10px] text-slate-400 font-bold">of {today?.studentsPresent ?? 0} present ({today ? coverage(today) : 0}%)</span>
+                <span className="text-[10px] text-slate-400 font-bold">{today?.studentsPresent ?? 0} {lang === "தமிழ்" ? "வருகையில்" : "present"} ({today ? coverage(today) : 0}%)</span>
               </div>
               <div className="w-full bg-slate-850 h-1.5 rounded-full overflow-hidden mt-2.5">
                 <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${today ? coverage(today) : 0}%` }} />
@@ -578,37 +579,37 @@ export default function MiddayMealPage() {
             </div>
 
             <div className="glass p-5 rounded-2xl border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Beneficiary Roll</span>
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "பயனாளி பட்டியல்" : "Beneficiary Roll"}</span>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-2xl font-black text-blue-400">{stats.activeBens}</span>
-                <span className="text-[10px] text-slate-400 font-bold">of {TOTAL_ON_ROLL} on roll active</span>
+                <span className="text-[10px] text-slate-400 font-bold">{lang === "தமிழ்" ? "மொத்தம்" : "of"} {TOTAL_ON_ROLL} {lang === "தமிழ்" ? "இல் செயலில் உள்ளவை" : "on roll active"}</span>
               </div>
               <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-                {benCatCounts["Egg Alternative"]} on banana alternative · {benCatCounts["Special Diet"]} special diet
+                {benCatCounts["Egg Alternative"]} {lang === "தமிழ்" ? "வாழைப்பழ மாற்று" : "on banana alternative"} · {benCatCounts["Special Diet"]} {lang === "தமிழ்" ? "சிறப்பு உணவு" : "special diet"}
               </div>
             </div>
 
             <div className="glass p-5 rounded-2xl border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Stock Health</span>
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "கையிருப்பு நிலை" : "Stock Health"}</span>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className={`text-2xl font-black ${stats.criticalItems > 0 ? "text-red-400" : stats.lowItems > 0 ? "text-amber-400" : "text-emerald-400"}`}>
                   {stats.lowItems + stats.criticalItems}
                 </span>
-                <span className="text-[10px] text-slate-400 font-bold">of {stock.length} items flagged</span>
+                <span className="text-[10px] text-slate-400 font-bold">{stock.length} {lang === "தமிழ்" ? "பொருட்களில் கவனிக்க வேண்டியவை" : "items flagged"}</span>
               </div>
               <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-                {stats.criticalItems} critical · {stats.lowItems} low stock · rest adequate
+                {stats.criticalItems} {lang === "தமிழ்" ? "மிகக் குறைவு" : "critical"} · {stats.lowItems} {lang === "தமிழ்" ? "குறைந்த கையிருப்பு" : "low stock"} · {lang === "தமிழ்" ? "மற்றவை போதுமானது" : "rest adequate"}
               </div>
             </div>
 
             <div className="glass p-5 rounded-2xl border border-slate-800">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Menu Compliance</span>
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{lang === "தமிழ்" ? "மெனு இணக்கம்" : "Menu Compliance"}</span>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-2xl font-black text-amber-400">{stats.menuCompliance}%</span>
-                <span className="text-[10px] text-slate-400 font-bold">this week</span>
+                <span className="text-[10px] text-slate-400 font-bold">{lang === "தமிழ்" ? "இந்த வாரம்" : "this week"}</span>
               </div>
               <div className="text-[11px] text-slate-500 mt-2 font-semibold">
-                {stats.openIssues} quality issue{stats.openIssues !== 1 ? "s" : ""} open · {stats.pendingSync} record{stats.pendingSync !== 1 ? "s" : ""} awaiting EMIS sync
+                {stats.openIssues} {lang === "தமிழ்" ? "திறந்த தர சிக்கல்கள்" : "quality issues open"} · {stats.pendingSync} {lang === "தமிழ்" ? "EMIS ஒத்திசைவு நிலுவையில்" : "awaiting EMIS sync"}
               </div>
             </div>
           </div>
@@ -616,8 +617,8 @@ export default function MiddayMealPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Coverage trend + stock alerts */}
             <div className="lg:col-span-2 glass rounded-2xl p-6 border border-slate-800">
-              <h2 className="text-base font-semibold text-white mb-1">📈 Serving Coverage — Last 7 School Days</h2>
-              <p className="text-xs text-slate-500 mb-5">Meals served against students present, from the daily distribution register.</p>
+              <h2 className="text-base font-semibold text-white mb-1">📈 {lang === "தமிழ்" ? "உணவு வழங்கல் கவரேஜ் — கடந்த 7 நாட்கள்" : "Serving Coverage — Last 7 School Days"}</h2>
+              <p className="text-xs text-slate-500 mb-5">{lang === "தமிழ்" ? "தினசரி விநியோகப் பதிவேட்டில் இருந்து, வருகை தந்த மாணவர்களுக்கு வழங்கப்பட்ட உணவுகள்." : "Meals served against students present, from the daily distribution register."}</p>
               <div className="flex items-end gap-3 h-40 mb-2">
                 {coverageTrend.map((r) => {
                   const pct = coverage(r);
@@ -637,7 +638,7 @@ export default function MiddayMealPage() {
                 })}
               </div>
 
-              <h3 className="text-sm font-semibold text-white mt-6 mb-3">⚠️ Stock Alerts</h3>
+              <h3 className="text-sm font-semibold text-white mt-6 mb-3">⚠️ {lang === "தமிழ்" ? "கையிருப்பு எச்சரிக்கைகள்" : "Stock Alerts"}</h3>
               {stockAlerts.length === 0 ? (
                 <div className="text-xs text-slate-500 italic">All storeroom items are at adequate levels. 🎉</div>
               ) : (
@@ -652,19 +653,21 @@ export default function MiddayMealPage() {
                           <div className="min-w-0">
                             <div className="text-xs font-bold text-white truncate">{s.item}</div>
                             <div className="text-[10px] text-slate-500 font-semibold">
-                              {s.quantity} {s.unit} left · ~{d} day{d !== 1 ? "s" : ""} of usage · {s.reorderPlaced ? "Reorder placed" : "No reorder yet"}
+                              {s.quantity} {s.unit} {lang === "தமிழ்" ? "மீதம்" : "left"} · ~{d} {lang === "தமிழ்" ? "நாட்கள் பயன்பாடு" : `day${d !== 1 ? "s" : ""} of usage`} · {s.reorderPlaced ? (lang === "தமிழ்" ? "மறுஆர்டர் செய்யப்பட்டது" : "Reorder placed") : (lang === "தமிழ்" ? "மறுஆர்டர் செய்யப்படவில்லை" : "No reorder yet")}
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className={`badge ${STOCK_LEVEL_BADGE[lvl]}`}>{lvl}</span>
+                          <span className={`badge ${STOCK_LEVEL_BADGE[lvl]}`}>
+                            {lvl === "Critical" ? (lang === "தமிழ்" ? "மிகக் குறைவு" : "Critical") : lvl === "Low Stock" ? (lang === "தமிழ்" ? "குறைந்த கையிருப்பு" : "Low Stock") : (lang === "தமிழ்" ? "போதுமானது" : "Adequate")}
+                          </span>
                           {!s.reorderPlaced && (
                             <button
                               onClick={() => placeReorder(s.id)}
                               className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-[10px] font-bold transition-colors"
                               style={{ color: "#fff" }}
                             >
-                              Reorder
+                              {lang === "தமிழ்" ? "மறுஆர்டர் செய்" : "Reorder"}
                             </button>
                           )}
                         </div>
@@ -678,26 +681,29 @@ export default function MiddayMealPage() {
             {/* Right column: category donut + activity */}
             <div className="space-y-6">
               <div className="glass rounded-2xl p-6 border border-slate-800">
-                <h2 className="text-base font-semibold text-white mb-1">👥 Beneficiaries by Meal Type</h2>
-                <p className="text-xs text-slate-500 mb-4">Active students on the noon meal roll, by dietary category.</p>
+                <h2 className="text-base font-semibold text-white mb-1">👥 {lang === "தமிழ்" ? "உணவு வகை வாரியாக பயனாளிகள்" : "Beneficiaries by Meal Type"}</h2>
+                <p className="text-xs text-slate-500 mb-4">{lang === "தமிழ்" ? "உணவுப் பழக்க வகை அடிப்படையில், மதிய உணவுப் பட்டியலில் உள்ள செயலில் உள்ள மாணவர்கள்." : "Active students on the noon meal roll, by dietary category."}</p>
                 <div className="flex items-center gap-5">
                   <DonutChart counts={benCatCounts} total={stats.activeBens} />
                   <div className="space-y-2 flex-1">
-                    {(Object.keys(benCatCounts) as BenCategory[]).map((cat) => (
-                      <div key={cat} className="flex items-center justify-between">
-                        <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full inline-block" style={{ background: BEN_CAT_META[cat].color }} />
-                          {cat}
-                        </span>
-                        <span className="text-[11px] font-black text-slate-300">{benCatCounts[cat]}</span>
-                      </div>
-                    ))}
+                    {(Object.keys(benCatCounts) as BenCategory[]).map((cat) => {
+                      const catLabel = cat === "Regular Meal" ? (lang === "தமிழ்" ? "சாதாரண உணவு" : "Regular Meal") : cat === "Egg Alternative" ? (lang === "தமிழ்" ? "முட்டை மாற்று" : "Egg Alternative") : (lang === "தமிழ்" ? "சிறப்பு உணவு" : "Special Diet");
+                      return (
+                        <div key={cat} className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full inline-block" style={{ background: BEN_CAT_META[cat].color }} />
+                            {catLabel}
+                          </span>
+                          <span className="text-[11px] font-black text-slate-300">{benCatCounts[cat]}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
 
               <div className="glass rounded-2xl p-6 border border-slate-800">
-                <h2 className="text-base font-semibold text-white mb-3">🕑 Recent Activity</h2>
+                <h2 className="text-base font-semibold text-white mb-3">🕑 {lang === "தமிழ்" ? "சமீபத்திய செயல்பாடுகள்" : "Recent Activity"}</h2>
                 <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
                   {activity.map((a) => (
                     <div key={a.id} className="flex gap-2.5 items-start">

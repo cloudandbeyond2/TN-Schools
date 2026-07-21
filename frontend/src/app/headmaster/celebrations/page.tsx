@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface Celebration {
   id: string;
@@ -25,6 +26,7 @@ const getApiBase = () => {
 const API_BASE = getApiBase();
 
 export default function HeadmasterCelebrationsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
 
@@ -197,8 +199,8 @@ export default function HeadmasterCelebrationsPage() {
 
   return (
     <PortalLayout
-      title="Celebrations Manager"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
+      title={lang === "தமிழ்" ? "கொண்டாட்டங்கள் மேலாளர்" : "Celebrations Manager"}
+      subtitle={lang === "தமிழ்" ? "பள்ளி கொண்டாட்டங்கள், பண்டிகைகள் மற்றும் விடுமுறை நாட்களை நிர்வகிக்கவும்." : "Schedule school celebrations, festivals, and holidays."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
@@ -212,24 +214,24 @@ export default function HeadmasterCelebrationsPage() {
             <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
                 <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-                  <i className="fi fi-rr-party-horn text-blue-500 text-base" /> Registered Celebrations & Events
+                  <i className="fi fi-rr-party-horn text-blue-500 text-base" /> {lang === "தமிழ்" ? "பதிவு செய்யப்பட்ட கொண்டாட்டங்கள் & நிகழ்வுகள்" : "Registered Celebrations & Events"}
                 </h2>
               </div>
               <p className="text-[11px] sm:text-xs text-slate-550 mb-1 leading-relaxed">
-                Add school festivals and celebrations. These events will sync instantly to the Teacher Portal celebrations list.
+                {lang === "தமிழ்" ? "பள்ளி திருவிழாக்கள் மற்றும் கொண்டாட்டங்களைச் சேர்க்கவும். இந்த நிகழ்வுகள் ஆசிரியர் போர்டல் கொண்டாட்டங்கள் பட்டியலுடன் ஒத்திசைக்கப்படும்." : "Add school festivals and celebrations. These events will sync instantly to the Teacher Portal celebrations list."}
               </p>
             </div>
 
             {/* List items */}
             {isLoading ? (
-              <div className="glass rounded-2xl p-12 sm:p-16 border border-slate-800 flex flex-col items-center justify-center text-slate-550 text-[11px] sm:text-xs">
-                <i className="fi fi-rr-spinner animate-spin text-blue-500 text-2xl mb-4" />
-                <span>Loading institution events...</span>
+              <div className="glass rounded-2xl p-8 border border-slate-800 flex flex-col items-center justify-center">
+                <div className="w-8 h-8 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin mb-3" />
+                <span className="text-xs text-slate-400 font-medium">{lang === "தமிழ்" ? "ஏற்றப்படுகிறது..." : "Loading celebrations..."}</span>
               </div>
             ) : filteredCelebrations.length === 0 ? (
-              <div className="glass rounded-2xl p-12 sm:p-16 border border-slate-800 text-center text-slate-550 text-[11px] sm:text-xs italic">
-                <i className="fi fi-rr-info text-slate-600 text-2xl mx-auto mb-3" />
-                No events or celebrations found.
+              <div className="glass rounded-2xl p-8 border border-slate-800 text-center">
+                <span className="text-3xl block mb-2">📅</span>
+                <span className="text-xs text-slate-400 font-medium">{lang === "தமிழ்" ? "கொண்டாட்டங்கள் அல்லது நிகழ்வுகள் எதுவும் காணப்படவில்லை." : "No celebrations or events registered yet."}</span>
               </div>
             ) : (
               <div className="space-y-3 sm:space-y-4">
@@ -256,11 +258,11 @@ export default function HeadmasterCelebrationsPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           {item.type === "HOLIDAY" ? (
                             <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md border bg-amber-500/15 text-amber-400 border-amber-500/20">
-                              Government Holiday
+                              {lang === "தமிழ்" ? "அரசு விடுமுறை" : "Government Holiday"}
                             </span>
                           ) : (
                             <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md border bg-pink-500/15 text-pink-400 border-pink-500/20">
-                              School Event
+                              {lang === "தமிழ்" ? "பள்ளி நிகழ்வு" : "School Event"}
                             </span>
                           )}
                           <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold flex items-center gap-1">
@@ -279,14 +281,14 @@ export default function HeadmasterCelebrationsPage() {
                       <button
                         onClick={() => handleStartEdit(item)}
                         className="p-1.5 sm:p-2 border border-slate-700 hover:border-blue-500 rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
-                        title="Edit Celebration"
+                        title={lang === "தமிழ்" ? "திருத்து" : "Edit Celebration"}
                       >
                         <i className="fi fi-rr-edit text-xs sm:text-sm" />
                       </button>
                       <button
                         onClick={() => handleDelete(item.id, item.title)}
                         className="p-1.5 sm:p-2 border border-red-500/20 hover:border-red-500/50 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
-                        title="Delete Celebration"
+                        title={lang === "தமிழ்" ? "நீக்கு" : "Delete Celebration"}
                       >
                         <i className="fi fi-rr-trash text-xs sm:text-sm" />
                       </button>
@@ -305,18 +307,18 @@ export default function HeadmasterCelebrationsPage() {
               ) : (
                 <i className="fi fi-rr-plus text-blue-500 text-base" />
               )}
-              {editingId ? "Edit Event / Celebration" : "Add Event / Celebration"}
+              {editingId ? (lang === "தமிழ்" ? "நிகழ்வு / கொண்டாட்டம் திருத்து" : "Edit Event / Celebration") : (lang === "தமிழ்" ? "நிகழ்வு / கொண்டாட்டம் சேர்" : "Add Event / Celebration")}
             </h2>
             <p className="text-[11px] sm:text-xs text-slate-555 leading-relaxed mb-4">
-              {editingId ? "Modify the details of the selected celebration." : "Schedule school celebrations or festivals."}
+              {editingId ? (lang === "தமிழ்" ? "தேர்ந்தெடுக்கப்பட்ட கொண்டாட்டத்தின் விவரங்களை மாற்றவும்." : "Modify the details of the selected celebration.") : (lang === "தமிழ்" ? "பள்ளி கொண்டாட்டங்கள் அல்லது பண்டிகைகளை திட்டமிடுங்கள்." : "Schedule school celebrations or festivals.")}
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-[9px] sm:text-[10px] text-slate-400 mb-1 sm:mb-1.5 font-bold uppercase tracking-wider">Title *</label>
+                <label className="block text-[9px] sm:text-[10px] text-slate-400 mb-1 sm:mb-1.5 font-bold uppercase tracking-wider">{lang === "தமிழ்" ? "தலைப்பு *" : "Title *"}</label>
                 <input
                   type="text"
-                  placeholder="E.g., Annual Day, Sports Festival"
+                  placeholder={lang === "தமிழ்" ? "எ.கா., ஆண்டு விழா, விளையாட்டு விழா" : "E.g., Annual Day, Sports Festival"}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
@@ -325,7 +327,7 @@ export default function HeadmasterCelebrationsPage() {
               </div>
 
               <div>
-                <label className="block text-[9px] sm:text-[10px] text-slate-400 mb-1 sm:mb-1.5 font-bold uppercase tracking-wider">Date *</label>
+                <label className="block text-[9px] sm:text-[10px] text-slate-400 mb-1 sm:mb-1.5 font-bold uppercase tracking-wider">{lang === "தமிழ்" ? "தேதி *" : "Date *"}</label>
                 <input
                   type="date"
                   value={date}
@@ -336,24 +338,24 @@ export default function HeadmasterCelebrationsPage() {
               </div>
 
               <div>
-                <label className="block text-[9px] sm:text-[10px] text-slate-400 mb-1 sm:mb-1.5 font-bold uppercase tracking-wider">Type *</label>
+                <label className="block text-[9px] sm:text-[10px] text-slate-400 mb-1 sm:mb-1.5 font-bold uppercase tracking-wider">{lang === "தமிழ்" ? "வகை *" : "Type *"}</label>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
                   required
                 >
-                  <option value="EVENT">School Event</option>
-                  <option value="HOLIDAY">Government Holiday</option>
+                  <option value="EVENT">{lang === "தமிழ்" ? "பள்ளி நிகழ்வு" : "School Event"}</option>
+                  <option value="HOLIDAY">{lang === "தமிழ்" ? "அரசு விடுமுறை" : "Government Holiday"}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-[9px] sm:text-[10px] text-slate-400 mb-1 sm:mb-1.5 font-bold uppercase tracking-wider">Remarks / Description</label>
+                <label className="block text-[9px] sm:text-[10px] text-slate-400 mb-1 sm:mb-1.5 font-bold uppercase tracking-wider">{lang === "தமிழ்" ? "குறிப்புகள் / விளக்கம்" : "Remarks / Description"}</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="E.g., Principal speech at 9 AM. Cultural events after lunch."
+                  placeholder={lang === "தமிழ்" ? "எ.கா., காலை 9 மணிக்கு தலைமையாசிரியர் உரை. மதிய உணவிற்கு பின் கலை நிகழ்ச்சிகள்." : "E.g., Principal speech at 9 AM. Cultural events after lunch."}
                   rows={4}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white placeholder-slate-650 focus:outline-none focus:border-blue-500 transition-colors resize-none"
                 />
@@ -368,12 +370,12 @@ export default function HeadmasterCelebrationsPage() {
                   {isSaving ? (
                     <>
                       <i className="fi fi-rr-spinner animate-spin text-xs" />{" "}
-                      {editingId ? "Updating..." : "Saving..."}
+                      {editingId ? (lang === "தமிழ்" ? "புதுப்பிக்கப்படுகிறது..." : "Updating...") : (lang === "தமிழ்" ? "சேமிக்கப்படுகிறது..." : "Saving...")}
                     </>
                   ) : (
                     <>
                       <i className="fi fi-rr-check text-xs" />{" "}
-                      {editingId ? "Update Celebration" : "Add to Portal"}
+                      {editingId ? (lang === "தமிழ்" ? "திருத்தங்களைச் சேமி" : "Update Celebration") : (lang === "தமிழ்" ? "போர்ட்டலில் சேர்" : "Add to Portal")}
                     </>
                   )}
                 </button>
@@ -383,7 +385,7 @@ export default function HeadmasterCelebrationsPage() {
                     onClick={handleCancelEdit}
                     className="w-full py-1.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-[11px] sm:text-xs transition-colors border border-slate-750"
                   >
-                    Cancel Edit
+                    {lang === "தமிழ்" ? "திருத்தத்தை ரத்துசெய்" : "Cancel Edit"}
                   </button>
                 )}
               </div>
