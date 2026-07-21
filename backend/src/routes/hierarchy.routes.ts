@@ -249,4 +249,72 @@ router.post('/create-officer', requireMinRole('DEO'), async (req: Request, res: 
   }
 });
 
+// ─── PUT /api/hierarchy/block ────────────────────────────────────────────────
+// Update a block name (updates all schools and BEOs assigned to that block)
+router.put('/block', requireMinRole('DEO'), async (req: Request, res: Response) => {
+  try {
+    const { oldBlockName, newBlockName, district } = req.body;
+    if (!oldBlockName || !newBlockName) {
+      return res.status(400).json({ success: false, error: 'oldBlockName and newBlockName are required' });
+    }
+
+    const whereClause: any = district 
+      ? { block: { equals: oldBlockName, mode: 'insensitive' as const }, district: { equals: district, mode: 'insensitive' as const } }
+      : { block: { equals: oldBlockName, mode: 'insensitive' as const } };
+
+    const whereClauseUser: any = district
+      ? { block: { equals: oldBlockName, mode: 'insensitive' as const }, district: { equals: district, mode: 'insensitive' as const } }
+      : { block: { equals: oldBlockName, mode: 'insensitive' as const } };
+
+    await Promise.all([
+      prisma.school.updateMany({
+        where: whereClause,
+        data: { block: newBlockName },
+      }),
+      prisma.user.updateMany({
+        where: { role: 'BEO', ...whereClauseUser },
+        data: { block: newBlockName },
+      })
+    ]);
+
+    res.json({ success: true, message: 'Block updated successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// ─── DELETE /api/hierarchy/block ─────────────────────────────────────────────
+// Dissociate a block (sets block = null for all schools and BEOs under that block name)
+router.delete('/block', requireMinRole('DEO'), async (req: Request, res: Response) => {
+  try {
+    const { blockName, district } = req.body;
+    if (!blockName) {
+      return res.status(400).json({ success: false, error: 'blockName is required' });
+    }
+
+    const whereClause: any = district
+      ? { block: { equals: blockName, mode: 'insensitive' as const }, district: { equals: district, mode: 'insensitive' as const } }
+      : { block: { equals: blockName, mode: 'insensitive' as const } };
+
+    const whereClauseUser: any = district
+      ? { block: { equals: blockName, mode: 'insensitive' as const }, district: { equals: district, mode: 'insensitive' as const } }
+      : { block: { equals: blockName, mode: 'insensitive' as const } };
+
+    await Promise.all([
+      prisma.school.updateMany({
+        where: whereClause,
+        data: { block: "" },
+      }),
+      prisma.user.updateMany({
+        where: { role: 'BEO', ...whereClauseUser },
+        data: { block: null },
+      })
+    ]);
+
+    res.json({ success: true, message: 'Block deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
