@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import { BookOpen, FlaskConical, Layers } from "lucide-react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 
 type ExamType = "Unit Test" | "Quarterly" | "Half-Yearly" | "Annual" | "Model" | "Public";
@@ -172,6 +173,7 @@ function getTotalMarks(exam: ExamCalendar): number {
 }
 
 export default function HeadmasterExamsPage() {
+  const { lang } = usePortalLanguage();
   const [exams, setExams] = useState<ExamCalendar[]>([]);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -800,7 +802,7 @@ export default function HeadmasterExamsPage() {
   return (
     <>
       <PortalLayout
-        title="Exam Scheduling & Seating"
+        title={lang === "தமிழ்" ? "தேர்வு அட்டவணை & இருக்கம் திட்டமிடல்" : "Exam Scheduling & Seating"}
       subtitle={`${session?.user?.name || "Headmaster"} · ${(session?.user as any)?.schoolName || "Holy Cross Higher Secondary School"} · DISE: ${(session?.user as any)?.schoolDise || "50001"}`}
       avatarLetter={(session?.user?.name || "Headmaster").charAt(0)}
       avatarColor="#3b82f6"

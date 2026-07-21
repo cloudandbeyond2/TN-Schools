@@ -175,6 +175,8 @@ const translations = {
       "School Resources": "பள்ளி வளங்கள்",
       "Mid-Day Meal": "மதிய உணவு",
       "Govt Schemes Update": "அரசு திட்டங்கள் அப்டேட்",
+      "Govt Scheme Management": "அரசு திட்ட நிர்வாகம்",
+      "Academics Approvals": "கல்வி ஒப்புதல்கள்",
       "Extra Curricular & Info": "கூடுதல் பாடத்திட்டம் & தகவல்",
       "Public Portal Page": "பொது வலைவாசல் பக்கம்",
       "School Events": "பள்ளி நிகழ்வுகள்",

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -40,6 +41,7 @@ const flaticonOptions = [
 ];
 
 export default function HeadmasterClubsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId: string = (session?.user as any)?.schoolId || "";
 
@@ -201,8 +203,8 @@ export default function HeadmasterClubsPage() {
 
   return (
     <PortalLayout 
-      title="Clubs & Activities Management" 
-      subtitle="Create and manage extracurricular clubs for the school" 
+      title={lang === "தமிழ்" ? "மன்றங்கள் & நடவடிக்கைகள் மேலாண்மை" : "Clubs & Activities Management"} 
+      subtitle={lang === "தமிழ்" ? "பள்ளிக்கான கூடுதல் கல்வி மன்றங்களை உருவாக்கி நிர்வகிக்கவும்" : "Create and manage extracurricular clubs for the school"} 
       themeClass="theme-headmaster"
       avatarLetter="V"
       avatarColor="#3b82f6"
@@ -212,40 +214,40 @@ export default function HeadmasterClubsPage() {
         {/* Create Club Form */}
         <div className="lg:col-span-5 bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm h-fit">
           <h2 className="text-base sm:text-lg font-bold mb-4 flex items-center gap-2 text-slate-800 dark:text-white">
-            <i className="fi fi-rr-add-document text-blue-500" /> Add New Club
+            <i className="fi fi-rr-add-document text-blue-500" /> {lang === "தமிழ்" ? "புதிய மன்றத்தைச் சேர்" : "Add New Club"}
           </h2>
           <form onSubmit={handleCreateClub} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Club Name</label>
+              <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">{lang === "தமிழ்" ? "மன்றத்தின் பெயர்" : "Club Name"}</label>
               <input 
                 required 
                 type="text" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)} 
                 className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors text-slate-800 dark:text-white"
-                placeholder="e.g. Eco Warriors"
+                placeholder={lang === "தமிழ்" ? "எ.கா. சுற்றுச்சூழல் மன்றம்" : "e.g. Eco Warriors"}
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Category</label>
+                <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">{lang === "தமிழ்" ? "வகை" : "Category"}</label>
                 <select 
                   value={category} 
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent dark:bg-slate-900 outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors text-slate-800 dark:text-white cursor-pointer"
                 >
-                  <option value="Environment">Environment</option>
-                  <option value="Arts">Arts</option>
-                  <option value="Science">Science</option>
-                  <option value="Literature">Literature</option>
-                  <option value="Academics">Academics</option>
-                  <option value="Sports">Sports</option>
+                  <option value="Environment">{lang === "தமிழ்" ? "சுற்றுச்சூழல்" : "Environment"}</option>
+                  <option value="Arts">{lang === "தமிழ்" ? "கலை" : "Arts"}</option>
+                  <option value="Science">{lang === "தமிழ்" ? "அறிவியல்" : "Science"}</option>
+                  <option value="Literature">{lang === "தமிழ்" ? "இலக்கியம்" : "Literature"}</option>
+                  <option value="Academics">{lang === "தமிழ்" ? "கல்வி சார்ந்தவை" : "Academics"}</option>
+                  <option value="Sports">{lang === "தமிழ்" ? "விளையாட்டு" : "Sports"}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Icon Visual</label>
+                <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">{lang === "தமிழ்" ? "சின்னம்" : "Icon Visual"}</label>
                 <select 
                   value={icon} 
                   onChange={(e) => setIcon(e.target.value)} 
@@ -259,14 +261,14 @@ export default function HeadmasterClubsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Faculty Sponsor</label>
+              <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">{lang === "தமிழ்" ? "ஆசிரியர் நடத்துநர்" : "Faculty Sponsor"}</label>
               <select 
                 required 
                 value={sponsor} 
                 onChange={(e) => setSponsor(e.target.value)} 
                 className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent dark:bg-slate-900 outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors text-slate-800 dark:text-white cursor-pointer"
               >
-                {teachers.length === 0 && <option value="">Loading school staff...</option>}
+                {teachers.length === 0 && <option value="">{lang === "தமிழ்" ? "பள்ளி பணியாளர்கள் ஏற்றப்படுகிறார்கள்..." : "Loading school staff..."}</option>}
                 {teachers.map(teacher => (
                   <option key={teacher.id} value={teacher.name}>{teacher.name}</option>
                 ))}
@@ -274,26 +276,26 @@ export default function HeadmasterClubsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Meeting Time</label>
+              <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">{lang === "தமிழ்" ? "கூட்ட நேரம்" : "Meeting Time"}</label>
               <input 
                 required 
                 type="text" 
                 value={meetingTime} 
                 onChange={(e) => setMeetingTime(e.target.value)} 
                 className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors text-slate-800 dark:text-white"
-                placeholder="e.g. Every Friday at 4 PM"
+                placeholder={lang === "தமிழ்" ? "எ.கா. ஒவ்வொரு வெள்ளிக்கிழமையும் மாலை 4 மணிக்கு" : "e.g. Every Friday at 4 PM"}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">About the Club</label>
+              <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">{lang === "தமிழ்" ? "மன்றத்தைப் பற்றி" : "About the Club"}</label>
               <textarea 
                 required 
                 rows={3}
                 value={description} 
                 onChange={(e) => setDescription(e.target.value)} 
                 className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors custom-scrollbar resize-none text-slate-800 dark:text-white"
-                placeholder="Describe the club's activities and goals..."
+                placeholder={lang === "தமிழ்" ? "மன்றத்தின் செயல்பாடுகள் மற்றும் குறிக்கோள்களை விளக்கவும்..." : "Describe the club's activities and goals..."}
               />
             </div>
 
@@ -302,7 +304,7 @@ export default function HeadmasterClubsPage() {
               disabled={isSubmitting || !schoolId}
               className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md shadow-blue-500/10 text-xs disabled:opacity-50"
             >
-              {isSubmitting ? "Creating..." : "Create Club"}
+              {isSubmitting ? (lang === "தமிழ்" ? "உруவாக்கப்படுகிறது..." : "Creating...") : (lang === "தமிழ்" ? "மன்றத்தை உருவாக்கு" : "Create Club")}
             </button>
           </form>
         </div>
@@ -310,12 +312,12 @@ export default function HeadmasterClubsPage() {
         {/* List of Clubs */}
         <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
           <h2 className="text-base sm:text-lg font-bold mb-4 flex items-center gap-2 text-slate-800 dark:text-white">
-            <i className="fi fi-rr-users text-blue-500" /> Existing Clubs ({clubs.length})
+            <i className="fi fi-rr-users text-blue-500" /> {lang === "தமிழ்" ? `செயலில் உள்ள மன்றங்கள் (${clubs.length})` : `Existing Clubs (${clubs.length})`}
           </h2>
           {isLoading ? (
             <div className="flex flex-col items-center justify-center p-12 text-slate-500 text-xs gap-3">
               <div className="w-8 h-8 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin" />
-              <span>Loading clubs...</span>
+              <span>{lang === "தமிழ்" ? "மன்றங்கள் ஏற்றப்படுகின்றன..." : "Loading clubs..."}</span>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[550px] overflow-y-auto pr-1 custom-scrollbar">
@@ -334,11 +336,16 @@ export default function HeadmasterClubsPage() {
                   <div className="min-w-0 flex-1">
                     <h3 className="font-bold leading-tight text-slate-800 dark:text-white text-xs truncate">{club.name}</h3>
                     <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                      {club.category}
+                      {club.category === "Environment" ? (lang === "தமிழ்" ? "சுற்றுச்சூழல்" : "Environment") :
+                       club.category === "Arts" ? (lang === "தமிழ்" ? "கலை" : "Arts") :
+                       club.category === "Science" ? (lang === "தமிழ்" ? "அறிவியல்" : "Science") :
+                       club.category === "Literature" ? (lang === "தமிழ்" ? "இலக்கியம்" : "Literature") :
+                       club.category === "Academics" ? (lang === "தமிழ்" ? "கல்வி சார்ந்தவை" : "Academics") :
+                       club.category === "Sports" ? (lang === "தமிழ்" ? "விளையாட்டு" : "Sports") : club.category}
                     </span>
                     <div className="mt-2 space-y-1 text-[10px] text-slate-500 dark:text-slate-400 leading-normal">
-                      <div><strong>Sponsor:</strong> {club.sponsor}</div>
-                      <div><strong>Meets:</strong> {club.meetingTime}</div>
+                      <div><strong>{lang === "தமிழ்" ? "நடத்துநர்:" : "Sponsor:"}</strong> {club.sponsor}</div>
+                      <div><strong>{lang === "தமிழ்" ? "கூடல்:" : "Meets:"}</strong> {club.meetingTime}</div>
                       <p className="mt-1 line-clamp-2 text-slate-400 leading-relaxed">{club.description}</p>
                     </div>
                   </div>
@@ -346,7 +353,7 @@ export default function HeadmasterClubsPage() {
               ))}
               {clubs.length === 0 && (
                 <div className="sm:col-span-2 text-center py-16 text-slate-550 dark:text-slate-400 italic text-xs">
-                  No clubs registered for this school yet. Use the registration form on the left.
+                  {lang === "தமிழ்" ? "இப்பள்ளிக்கு மன்றங்கள் எதுவும் பதிவு செய்யப்படவில்லை. இடதுபுறத்தில் உள்ள படிவத்தைப் பயன்படுத்தவும்." : "No clubs registered for this school yet. Use the registration form on the left."}
                 </div>
               )}
             </div>

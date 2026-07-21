@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -35,6 +36,7 @@ interface CulturalEventBackend {
 }
 
 export default function EventsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId || "";
 
@@ -242,8 +244,8 @@ export default function EventsPage() {
 
   return (
     <PortalLayout
-      title="School Events Billboard"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
+      title={lang === "தமிழ்" ? "பள்ளி நிகழ்வுகள் விளம்பர பலகை" : "School Events Billboard"}
+      subtitle={lang === "தமிழ்" ? "இந்த கல்வியாண்டிற்கான நிகழ்வுகள், விளையாட்டுப் போட்டிகள், கண்காட்சிகள் மற்றும் பெற்றோர் கவுன்சில் மாநாடுகளை நிர்வகிக்கவும்." : "Manage school events, sports qualifiers, exhibitions and parent council summits."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
@@ -255,7 +257,7 @@ export default function EventsPage() {
           <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
               <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-                <i className="fi fi-rr-party-horn text-blue-500 text-base" /> Calendar of Activities
+                <i className="fi fi-rr-party-horn text-blue-500 text-base" /> {lang === "தமிழ்" ? "நிகழ்வுகள் கலேண்டர்" : "Calendar of Activities"}
               </h2>
               
               {/* Event toggle filters */}
@@ -270,13 +272,13 @@ export default function EventsPage() {
                         : "text-slate-400 hover:text-white hover:bg-slate-800"
                     }`}
                   >
-                    {filterVal}
+                    {filterVal === "All" ? (lang === "தமிழ்" ? "அனைத்தும்" : "All") : filterVal === "Upcoming" ? (lang === "தமிழ்" ? "வரூகிறது" : "Upcoming") : (lang === "தமிழ்" ? "முடியனது" : "Completed")}
                   </button>
                 ))}
               </div>
             </div>
             <p className="text-[11px] sm:text-xs text-slate-500 mb-1 leading-relaxed">
-              Track timelines, sports qualifiers, exhibitions, and parent council summits planned for this academic year.
+              {lang === "தமிழ்" ? "இந்த கல்வியாண்டிற்கான நிகழ்வுகள், விளையாட்டு தகுதிப் போட்டிகள், கண்காட்சிகள் மற்றும் பெற்றோர் கவுன்சில் மாநாடுகଳின் காலக்கோற்களை கண்டறியும்." : "Track timelines, sports qualifiers, exhibitions, and parent council summits planned for this academic year."}
             </p>
           </div>
 

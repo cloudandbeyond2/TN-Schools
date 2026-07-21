@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { FileText, Plus, Trash2, CheckCircle, RefreshCw, Sparkles, Folder, FolderOpen, ChevronRight, ChevronDown, Layers } from "lucide-react";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface QuestionInput {
   type: "mcq" | "short";
@@ -15,6 +16,7 @@ interface QuestionInput {
 }
 
 export default function HeadmasterMockTestsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const [profile, setProfile] = useState<any>(null);
   const [title, setTitle] = useState("");
@@ -242,7 +244,10 @@ export default function HeadmasterMockTestsPage() {
   }, {});
 
   return (
-    <PortalLayout title="Mock Exam Creator" subtitle="Upload and manage SSLC standardized board exams" accentColor="#3b82f6">
+    <PortalLayout
+      title={lang === "தமிழ்" ? "மாதிரி தேர்வு உருவாக்கி" : "Mock Exam Creator"}
+      subtitle={lang === "தமிழ்" ? "SSLC தரப்படுத்தப்பட்ட பலகை தேர்வுகளை பதிவேற்றி நிர்வகிக்கவும்" : "Upload and manage SSLC standardized board exams"}
+      accentColor="#3b82f6">
       
       {/* Tabs */}
       <div className="flex gap-4 border-b border-[var(--border)] mb-8 w-full">
@@ -250,13 +255,13 @@ export default function HeadmasterMockTestsPage() {
           onClick={() => setActiveTab("create")}
           className={`pb-4 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${activeTab === "create" ? "border-blue-500 text-blue-600 dark:text-blue-400" : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}
         >
-          <Plus className="w-4 h-4" /> Create New Mock Exam
+          <Plus className="w-4 h-4" /> {lang === "தமிழ்" ? "புதிய மாதிரி தேர்வு உருவாக்கு" : "Create New Mock Exam"}
         </button>
         <button
           onClick={() => setActiveTab("repository")}
           className={`pb-4 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${activeTab === "repository" ? "border-blue-500 text-blue-600 dark:text-blue-400" : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}
         >
-          <Layers className="w-4 h-4" /> Mock Exam Repository
+          <Layers className="w-4 h-4" /> {lang === "தமிழ்" ? "மாதிரி தேர்வு கலங்கம்" : "Mock Exam Repository"}
         </button>
       </div>
 

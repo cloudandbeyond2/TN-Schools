@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface GalleryItem {
   id: string | number;
@@ -26,6 +27,7 @@ const getApiBase = () => {
 const API_BASE = getApiBase();
 
 export default function GalleryPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId: string = (session?.user as any)?.schoolId || "";
 
@@ -212,7 +214,7 @@ export default function GalleryPage() {
 
   return (
     <PortalLayout
-      title="School Media Gallery"
+      title={lang === "தமிழ்" ? "பள்ளி இயக்க தொகுப்பகம்" : "School Media Gallery"}
       subtitle={`${schoolName || "GHS Coimbatore"} · DISE: ${schoolDise || "33012345"}`}
       avatarLetter="V"
       avatarColor="#3b82f6"
@@ -226,9 +228,9 @@ export default function GalleryPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
               <div>
                 <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-                  <i className="fi fi-rr-camera text-blue-500 text-base" /> School Events & Infrastructure Media
+                  <i className="fi fi-rr-camera text-blue-500 text-base" /> {lang === "தமிழ்" ? "பள்ளி நிகழ்வுகள் & கட்டமைப்பு இயக்க தொகுப்பகம்" : "School Events & Infrastructure Media"}
                 </h2>
-                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">Visual chronicle of sports championships, upgrades, and cultural celebrations.</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">{lang === "தமிழ்" ? "விளையாட்டு சாதனைகள், மேம்பாடுகள் மற்றும் கலாசார விழாக்களின் காட்சி வரலாறு." : "Visual chronicle of sports championships, upgrades, and cultural celebrations."}</p>
               </div>
 
               {/* Category tabs */}
@@ -243,7 +245,7 @@ export default function GalleryPage() {
                         : "text-slate-400 hover:text-white hover:bg-slate-800"
                     }`}
                   >
-                    {cat}
+                    {cat === "All" ? (lang === "தமிழ்" ? "அனைத்தும்" : "All") : cat === "Academic" ? (lang === "தமிழ்" ? "கல்வி" : "Academic") : cat === "Sports" ? (lang === "தமிழ்" ? "விளையாட்டு" : "Sports") : cat === "Infrastructure" ? (lang === "தமிழ்" ? "கட்டமைப்பு" : "Infrastructure") : (lang === "தமிழ்" ? "கலாசாரம்" : "Culturals")}
                   </button>
                 ))}
               </div>
