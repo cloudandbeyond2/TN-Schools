@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { FiEdit2 as FiEditIcon, FiTrash2 as FiTrashIcon } from "react-icons/fi";
+import Swal from "sweetalert2";
 
 interface BEOUser {
   id: string;
@@ -26,6 +28,7 @@ export default function ManageBEOsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
   const [district, setDistrict] = useState("");
 
   // Custom block add states
@@ -136,6 +139,7 @@ export default function ManageBEOsPage() {
     setBlockName(b.block || "");
     setIsCustomBlock(false);
     setCustomBlockName("");
+    setModalError(null);
     setIsModalOpen(true);
   };
 
@@ -149,16 +153,51 @@ export default function ManageBEOsPage() {
     setIsCustomBlock(false);
     setCustomBlockName("");
     setIsModalOpen(false);
+    setModalError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setToast(null);
+    setModalError(null);
 
+    // 1. Full Name Validation
+    if (name.trim().length < 3) {
+      setModalError("⚠️ Full Name must be at least 3 characters long.");
+      setSubmitting(false);
+      return;
+    }
+
+    // 2. Email Format Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setModalError("⚠️ Please enter a valid email address.");
+      setSubmitting(false);
+      return;
+    }
+
+    // 3. Mobile Number Validation (if provided)
+    if (mobile.trim()) {
+      const mobileRegex = /^[0-9]{10}$/;
+      if (!mobileRegex.test(mobile.trim())) {
+        setModalError("⚠️ Mobile number must be a valid 10-digit number.");
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    // 4. Password Validation (if provided)
+    if (password && password.length < 6) {
+      setModalError("⚠️ Password must be at least 6 characters long.");
+      setSubmitting(false);
+      return;
+    }
+
+    // 5. Block Jurisdiction Validation
     const finalBlock = isCustomBlock ? customBlockName.trim() : blockName;
     if (!finalBlock) {
-      setToast({ message: "⚠️ Block jurisdiction is required.", type: "error" });
+      setModalError("⚠️ Block jurisdiction is required.");
       setSubmitting(false);
       return;
     }
@@ -174,7 +213,7 @@ export default function ManageBEOsPage() {
       const payload: any = {
         name,
         email,
-        mobile: mobile || undefined,
+        mobile: mobile.trim() || null,
         role: "BEO",
         district: district || undefined, // dynamic district assignment
         block: finalBlock,                 // custom or selected block assignment
@@ -194,14 +233,21 @@ export default function ManageBEOsPage() {
 
       const data = await res.json();
       if (data.success) {
-        setToast({ message: successMsg, type: "success" });
+        Swal.fire({
+          title: "Success!",
+          text: successMsg,
+          icon: "success",
+          confirmButtonColor: "#ec4899",
+          background: document.documentElement.classList.contains("dark") ? "#0f172a" : "#ffffff",
+          color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+        });
         handleModalClose();
         refreshBeos();
       } else {
-        setToast({ message: `⚠️ ${data.error || "Request failed."}`, type: "error" });
+        setModalError(`⚠️ ${data.error || "Request failed."}`);
       }
     } catch (err) {
-      setToast({ message: "❌ Network error. Please try again.", type: "error" });
+      setModalError("❌ Network error. Please try again.");
     } finally {
       setSubmitting(false);
       setTimeout(() => setToast(null), 5000);
@@ -209,21 +255,53 @@ export default function ManageBEOsPage() {
   };
 
   const handleDelete = async (id: string, beoName: string) => {
-    if (!confirm(`Are you sure you want to delete BEO ${beoName}?`)) return;
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: `Do you want to delete BEO ${beoName}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ec4899",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Yes, delete!",
+      cancelButtonText: "Cancel",
+      background: document.documentElement.classList.contains("dark") ? "#0f172a" : "#ffffff",
+      color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       const res = await fetch(`${API_URL}/api/users/${id}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
-        setToast({ message: `🗑️ BEO ${beoName} removed successfully!`, type: "success" });
+        Swal.fire({
+          title: "Deleted!",
+          text: `BEO ${beoName} removed successfully!`,
+          icon: "success",
+          confirmButtonColor: "#ec4899",
+          background: document.documentElement.classList.contains("dark") ? "#0f172a" : "#ffffff",
+          color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+        });
         refreshBeos();
       } else {
-        setToast({ message: `⚠️ ${data.error || "Failed to delete user."}`, type: "error" });
+        Swal.fire({
+          title: "Error!",
+          text: data.error || "Failed to delete user.",
+          icon: "error",
+          confirmButtonColor: "#ec4899",
+          background: document.documentElement.classList.contains("dark") ? "#0f172a" : "#ffffff",
+          color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+        });
       }
     } catch (err) {
-      setToast({ message: "❌ Error deleting user.", type: "error" });
-    } finally {
-      setTimeout(() => setToast(null), 5000);
+      Swal.fire({
+        title: "Error!",
+        text: "Error deleting user.",
+        icon: "error",
+        confirmButtonColor: "#ec4899",
+        background: document.documentElement.classList.contains("dark") ? "#0f172a" : "#ffffff",
+        color: document.documentElement.classList.contains("dark") ? "#f1f5f9" : "#0f172a"
+      });
     }
   };
 
@@ -295,7 +373,10 @@ export default function ManageBEOsPage() {
               className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-pink-500 transition-colors w-full sm:w-64"
             />
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                setModalError(null);
+                setIsModalOpen(true);
+              }}
               className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0"
             >
               + Add BEO
@@ -344,15 +425,17 @@ export default function ManageBEOsPage() {
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleEditClick(b)}
-                          className="px-2.5 py-1 bg-slate-100 dark:bg-slate-850 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md font-bold text-[10px] transition-all"
+                          className="p-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg transition-all"
+                          title="Edit BEO"
                         >
-                          Edit
+                          <FiEditIcon className="text-sm" />
                         </button>
                         <button
                           onClick={() => handleDelete(b.id, b.name)}
-                          className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-650 dark:text-red-400 border border-red-500/20 rounded-md font-bold text-[10px] transition-all"
+                          className="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-650 dark:text-red-400 border border-red-500/20 rounded-lg transition-all"
+                          title="Delete BEO"
                         >
-                          Delete
+                          <FiTrashIcon className="text-sm" />
                         </button>
                       </div>
                     </td>
@@ -378,6 +461,11 @@ export default function ManageBEOsPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {modalError && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-300 p-3.5 rounded-2xl text-[11px] font-semibold">
+                  {modalError}
+                </div>
+              )}
               <div>
                 <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold">Full Name</label>
                 <input

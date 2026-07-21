@@ -220,6 +220,15 @@ router.post('/create-officer', requireMinRole('DEO'), async (req: Request, res: 
       return res.status(400).json({ success: false, error: 'User with this email already exists' });
     }
 
+    if (mobile) {
+      const mobileDuplicate = await prisma.user.findUnique({
+        where: { mobile },
+      });
+      if (mobileDuplicate) {
+        return res.status(400).json({ success: false, error: 'User with this mobile number already exists' });
+      }
+    }
+
     const user = await prisma.user.create({
       data: {
         name,
