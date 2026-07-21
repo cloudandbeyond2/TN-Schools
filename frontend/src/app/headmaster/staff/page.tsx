@@ -1720,29 +1720,29 @@ export default function StaffManagementPage() {
       {/* ======================================================== */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl rounded-3xl p-6 relative bg-white border border-slate-200 shadow-2xl overflow-y-auto max-h-[90vh] text-slate-800">
+          <div className="w-full max-w-2xl rounded-3xl p-6 relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl overflow-y-auto max-h-[90vh] text-slate-800 dark:text-slate-200">
             
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
-              <h3 className="text-sm font-bold text-slate-950 flex items-center gap-1.5">
+            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-3 mb-4">
+              <h3 className="text-sm font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-blue-600" />
                 Register New School Faculty / Contractor
               </h3>
-              <button onClick={() => { setIsAddModalOpen(false); resetForm(); }} className="text-slate-400 hover:text-slate-800 text-xs font-semibold">✕ Close</button>
+              <button onClick={() => { setIsAddModalOpen(false); resetForm(); }} className="text-slate-400 hover:text-slate-800 dark:hover:text-white text-xs font-semibold">✕ Close</button>
             </div>
 
             <form onSubmit={handleSaveStaff} className="space-y-4 text-xs">
               
               {/* Type Switcher */}
               <div>
-                <label className="block text-[10px] text-slate-500 mb-1.5 font-bold uppercase tracking-wider">Employment Category</label>
-                <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/60 max-w-md">
+                <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1.5 font-bold uppercase tracking-wider">Employment Category</label>
+                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700 max-w-md">
                   {["Teaching", "Non-Teaching", "Temporary"].map(type => (
                     <button
                       key={type}
                       type="button"
                       onClick={() => setFormType(type as any)}
                       className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-                        formType === type ? "bg-blue-600 text-white shadow-md" : "text-slate-500 hover:text-slate-800"
+                        formType === type ? "bg-blue-600 text-white shadow-md" : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
                       }`}
                     >
                       {type}
@@ -1754,27 +1754,27 @@ export default function StaffManagementPage() {
               {/* Basic Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Full Name *</label>
+                  <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Full Name *</label>
                   <input
                     type="text"
                     required
                     value={formName}
                     onChange={e => setFormName(e.target.value)}
                     placeholder="e.g. Mr. Vignesh K."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
                   />
                 </div>
                 
                 {formType !== "Temporary" && (
                   <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">EMIS ID / Staff ID *</label>
+                    <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">EMIS ID / Staff ID *</label>
                     <input
                       type="text"
                       required
                       value={formEmisId}
                       onChange={e => setFormEmisId(e.target.value)}
                       placeholder="e.g. TCH206"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
                     />
                   </div>
                 )}
@@ -1790,7 +1790,7 @@ export default function StaffManagementPage() {
                     <select
                       value={formSubjectOrRole}
                       onChange={e => setFormSubjectOrRole(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
                     >
                       {subjectsList.map(sub => (
                         <option key={sub} value={sub}>{sub}</option>
@@ -1803,55 +1803,55 @@ export default function StaffManagementPage() {
                       value={formSubjectOrRole}
                       onChange={e => setFormSubjectOrRole(e.target.value)}
                       placeholder={formType === "Temporary" ? "e.g. Security, Midday helper" : "e.g. Clerk, Librarian, Office Assistant"}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
                     />
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Phone Number *</label>
+                  <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Phone Number *</label>
                   <input
                     type="text"
                     required
                     value={formPhone}
                     onChange={e => setFormPhone(e.target.value)}
                     placeholder="10 digit mobile"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
 
               {/* Temporary Staff specific fields */}
               {formType === "Temporary" ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/60">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50 dark:bg-slate-850 p-3 rounded-2xl border border-slate-200/60 dark:border-slate-700">
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Contracting Agency / Provider</label>
+                    <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Contracting Agency / Provider</label>
                     <input
                       type="text"
                       value={formTempAgency}
                       onChange={e => setFormTempAgency(e.target.value)}
                       placeholder="e.g. Direct Contract, Swift Security"
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Contract Duration</label>
+                    <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Contract Duration</label>
                     <input
                       type="text"
                       value={formTempDuration}
                       onChange={e => setFormTempDuration(e.target.value)}
                       placeholder="e.g. 12 Months"
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Monthly Compensation (₹)</label>
+                    <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Monthly Compensation (₹)</label>
                     <input
                       type="text"
                       value={formTempSalary}
                       onChange={e => setFormTempSalary(e.target.value)}
                       placeholder="e.g. 18,000"
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                     />
                   </div>
                 </div>
@@ -1860,30 +1860,30 @@ export default function StaffManagementPage() {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Email Address</label>
+                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Email Address</label>
                       <input
                         type="email"
                         value={formEmail}
                         onChange={e => setFormEmail(e.target.value)}
                         placeholder="e.g. name@emis.tn.gov.in"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Date of Birth</label>
+                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Date of Birth</label>
                       <input
                         type="date"
                         value={formDob}
                         onChange={e => setFormDob(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Gender</label>
+                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Gender</label>
                       <select
                         value={formGender}
                         onChange={e => setFormGender(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                       >
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
@@ -1893,23 +1893,23 @@ export default function StaffManagementPage() {
                   </div>
 
                   {/* Joined Date & Appointments */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-blue-50/40 p-3 rounded-2xl border border-blue-100">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-blue-50/40 dark:bg-blue-950/30 p-3 rounded-2xl border border-blue-100 dark:border-blue-900/50">
                     <div>
-                      <label className="block text-[10px] text-blue-800 mb-1 font-bold">Official Joining Date</label>
+                      <label className="block text-[10px] text-blue-800 dark:text-blue-300 mb-1 font-bold">Official Joining Date</label>
                       <input
                         type="date"
                         value={formJoiningDate}
                         onChange={e => setFormJoiningDate(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-blue-800 mb-1 font-bold">Doc Collection Appointment</label>
+                      <label className="block text-[10px] text-blue-800 dark:text-blue-300 mb-1 font-bold">Doc Collection Appointment</label>
                       <input
                         type="datetime-local"
                         value={formDocAppointment}
                         onChange={e => setFormDocAppointment(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -1920,24 +1920,24 @@ export default function StaffManagementPage() {
               <div className="grid grid-cols-1 gap-3">
                 {formType !== "Temporary" && (
                   <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Duties & Work Allocation Description</label>
+                    <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Duties & Work Allocation Description</label>
                     <input
                       type="text"
                       value={formWorkAllocation}
                       onChange={e => setFormWorkAllocation(e.target.value)}
                       placeholder="e.g. Class 10A Science, Library Incharge, Sports Coordinator"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
                     />
                   </div>
                 )}
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Residential Address</label>
+                  <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Residential Address</label>
                   <textarea
                     rows={2}
                     value={formAddressVal}
                     onChange={e => setFormAddressVal(e.target.value)}
                     placeholder="Current postal address..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 resize-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 resize-none"
                   />
                 </div>
               </div>
@@ -1946,56 +1946,56 @@ export default function StaffManagementPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {formType === "Temporary" ? (
                   <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Joined Date</label>
+                    <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Joined Date</label>
                     <input
                       type="date"
                       value={formTempJoined}
                       onChange={e => setFormTempJoined(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                     />
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Attendance Rate (%)</label>
+                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Attendance Rate (%)</label>
                       <input
                         type="number"
                         min="0"
                         max="100"
                         value={formAttendance}
                         onChange={e => setFormAttendance(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Leave Used (Days)</label>
+                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Leave Used (Days)</label>
                       <input
                         type="number"
                         min="0"
                         value={formLeaveUsed}
                         onChange={e => setFormLeaveUsed(parseInt(e.target.value, 10) || 0)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                       />
                     </div>
                   </div>
                 )}
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Portal Password</label>
+                  <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Portal Password</label>
                   <input
                     type="text"
                     value={formPassword}
                     onChange={e => setFormPassword(e.target.value)}
                     placeholder="123456"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => { setIsAddModalOpen(false); resetForm(); }}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs transition-all"
                 >
                   Cancel
                 </button>
