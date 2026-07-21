@@ -319,7 +319,7 @@ export default function HeadmasterAcademicsPage() {
     } else {
       setEditResourceId(null);
       setResourceForm({
-        title: "", subjectId: subjects[0]?.id || "", type: "PDF", url: "", meta: "", description: "", addedBy: "Headmaster",
+        title: "", subjectId: "", type: "PDF", url: "", meta: "", description: "", addedBy: "Headmaster",
         class: filterClass || "", section: filterSection || "", group: "", term: "", chapterNumber: "", topicName: "",
         learningOutcomes: "", medium: "", bookVersion: "", publisher: "", language: "",
         coverImage: "", materialType: "", downloadAllowed: true, chapter: "", lessonTitle: "",
@@ -1368,7 +1368,21 @@ export default function HeadmasterAcademicsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
-                    <select required value={resourceForm.class} onChange={e => setResourceForm({ ...resourceForm, class: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
+                    <select 
+                      required 
+                      value={resourceForm.class} 
+                      onChange={e => {
+                        const newClass = e.target.value;
+                        const filtered = newClass ? subjects.filter(s => String(s.class) === String(newClass)) : subjects;
+                        const isStillValid = filtered.some(s => String(s.id) === String(resourceForm.subjectId));
+                        setResourceForm({
+                          ...resourceForm,
+                          class: newClass,
+                          subjectId: isStillValid ? resourceForm.subjectId : ""
+                        });
+                      }} 
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none"
+                    >
                       <option value="">Select Class</option>
                       {[...Array(12)].map((_, i) => <option key={i} value={String(i + 1)}>Class {i + 1}</option>)}
                     </select>
@@ -1377,7 +1391,9 @@ export default function HeadmasterAcademicsPage() {
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject *</label>
                     <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="" disabled>Select subject</option>
-                      {subjects.map(s => <option key={s.id} value={s.id}>{s.name} (Class {s.class})</option>)}
+                      {subjects
+                        .filter(s => !resourceForm.class || String(s.class) === String(resourceForm.class))
+                        .map(s => <option key={s.id} value={s.id}>{s.name} (Class {s.class})</option>)}
                     </select>
                   </div>
                 </div>
