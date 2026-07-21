@@ -95,6 +95,7 @@ import PortalLayout from "@/components/PortalLayout";
 import PersonalKpiStrip from "@/components/kpi/PersonalKpiStrip";
 import StudentDailyOverview from "@/components/student/StudentDailyOverview";
 import { useSession } from "next-auth/react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import Link from "next/link";
 import {
   Megaphone,
@@ -152,7 +153,7 @@ const BADGE_META: Record<string, { icon: string; color: string; rarity: string }
   "🌟 Mentor Star":    { icon: "Sparkles", color: "from-purple-500 to-fuchsia-600", rarity: "Epic" },
 };
 
-const subjects = [
+const subjectsEn = [
   { name: "Mathematics", progress: 85, color: "#6366f1", icon: "Calculator" },
   { name: "Science Explorer", progress: 70, color: "#10b981", icon: "Compass" },
   { name: "Tamil", progress: 92, color: "#f59e0b", icon: "Volume2" },
@@ -160,8 +161,17 @@ const subjects = [
   { name: "Social Science", progress: 60, color: "#ec4899", icon: "Globe" },
 ];
 
+const subjectsTa = [
+  { name: "கணிதம்", progress: 85, color: "#6366f1", icon: "Calculator" },
+  { name: "அறிவியல் ஆய்வாளர்", progress: 70, color: "#10b981", icon: "Compass" },
+  { name: "தமிழ்", progress: 92, color: "#f59e0b", icon: "Volume2" },
+  { name: "ஆங்கிலம்", progress: 80, color: "#3b82f6", icon: "PenTool" },
+  { name: "சமூக அறிவியல்", progress: 60, color: "#ec4899", icon: "Globe" },
+];
+
 export default function MiddleSchoolDashboard() {
   const { data: session } = useSession();
+  const { lang } = usePortalLanguage();
   const [student, setStudent] = useState<any>(null);
   const [earnedBadges, setEarnedBadges] = useState<any[]>([]);
   const [loadingBadges, setLoadingBadges] = useState(true);
@@ -251,10 +261,21 @@ export default function MiddleSchoolDashboard() {
       .catch((err) => console.error("Failed to load today progress:", err));
   }, [session]);
 
-  const userName = session?.user?.name || student?.user?.name || "Student";
+  const userName = session?.user?.name || student?.user?.name || (lang === "தமிழ்" ? "மாணவர்" : "Student");
   const subtitle = student 
-    ? `Welcome back, ${userName}! · Class ${student.class} ${student.section} · You have earned ${earnedBadges.length} ${earnedBadges.length === 1 ? "badge" : "badges"}!`
-    : "Loading student data...";
+    ? (lang === "தமிழ்"
+        ? `மீண்டும் வருக, ${userName}! · வகுப்பு ${student.class} ${student.section} · நீங்கள் ${earnedBadges.length} பேட்ஜ்களைப் பெற்றுள்ளீர்கள்!`
+        : `Welcome back, ${userName}! · Class ${student.class} ${student.section} · You have earned ${earnedBadges.length} ${earnedBadges.length === 1 ? "badge" : "badges"}!`)
+    : (lang === "தமிழ்" ? "மாணவர் தரவு ஏற்றப்படுகிறது..." : "Loading student data...");
+
+  const subjectsList = lang === "தமிழ்" ? subjectsTa : subjectsEn;
+
+  const kpis = [
+    { label: lang === "தமிழ்" ? "வருகை நட்சத்திரம்" : "Attendance Star", value: "98%", icon: "Star", color: "text-amber-500 dark:text-amber-400", sub: lang === "தமிழ்" ? "இந்த வாரம் சிறப்பு!" : "Perfect this week!" },
+    { label: lang === "தமிழ்" ? "கற்றல் புள்ளிகள்" : "Learning Points", value: "1,250", icon: "Trophy", color: "text-emerald-600 dark:text-emerald-400", sub: lang === "தமிழ்" ? "இன்று +50" : "+50 today" },
+    { label: lang === "தமிழ்" ? "தேர்ச்சி பெற்ற வினாக்கள்" : "Quizzes Passed", value: "12", icon: "Target", color: "text-blue-600 dark:text-blue-400", sub: lang === "தமிழ்" ? "2 நிலுவையில்" : "2 pending" },
+    { label: lang === "தமிழ்" ? "வாசிக்கும் நேரம்" : "Reading Time", value: "5 Hrs", icon: "BookOpen", color: "text-purple-600 dark:text-purple-400", sub: lang === "தமிழ்" ? "இந்த வாரம்" : "This week" },
+  ];
 
   return (
     <PortalLayout subtitle={subtitle}>
@@ -266,12 +287,7 @@ export default function MiddleSchoolDashboard() {
 
       {/* KPI Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
-        {[
-          { label: "Attendance Star", value: "98%", icon: "Star", color: "text-amber-500 dark:text-amber-400", sub: "Perfect this week!" },
-          { label: "Learning Points", value: "1,250", icon: "Trophy", color: "text-emerald-600 dark:text-emerald-400", sub: "+50 today" },
-          { label: "Quizzes Passed", value: "12", icon: "Target", color: "text-blue-600 dark:text-blue-400", sub: "2 pending" },
-          { label: "Reading Time", value: "5 Hrs", icon: "BookOpen", color: "text-purple-600 dark:text-purple-400", sub: "This week" },
-        ].map((kpi) => {
+        {kpis.map((kpi) => {
           const Icon = IconMap[kpi.icon] || Star;
           return (
             <div key={kpi.label} className="kpi-card bg-gradient-to-b from-white to-slate-50 dark:from-slate-800/80 dark:to-slate-900/80 border-2 border-emerald-500/20 hover:border-emerald-500/50 transition-all flex flex-col justify-between p-4 sm:p-5 rounded-2xl">
@@ -294,12 +310,14 @@ export default function MiddleSchoolDashboard() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -z-10" />
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white flex items-center gap-2">
-              <Rocket className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500" /> My Learning Journey
+              <Rocket className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500" /> {lang === "தமிழ்" ? "எனது கற்றல் பயணம்" : "My Learning Journey"}
             </h2>
-            <button id="ms-view-all-subjects" className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-500/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl">Explore All</button>
+            <button id="ms-view-all-subjects" className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-500/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl">
+              {lang === "தமிழ்" ? "அனைத்தையும் ஆராயுங்கள்" : "Explore All"}
+            </button>
           </div>
           <div className="space-y-4 sm:space-y-5">
-            {subjects.map((s) => {
+            {subjectsList.map((s) => {
               const SubjectIcon = IconMap[s.icon] || BookOpen;
               return (
                 <div key={s.name} className="flex items-center gap-4 sm:gap-5 p-2 sm:p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">
@@ -327,24 +345,24 @@ export default function MiddleSchoolDashboard() {
           {/* Today's Learning Progress Card */}
           <div className="glass rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent">
             <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white mb-3 flex items-center gap-2">
-              <span>⏱️</span> Today's Study Progress
+              <span>⏱️</span> {lang === "தமிழ்" ? "இன்றைய படிப்பு முன்னேற்றம்" : "Today's Study Progress"}
             </h2>
             {todayProgress ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
                   <div className="text-left">
-                    <div className="text-[10px] text-slate-500 uppercase font-black">Logged Today</div>
-                    <div className="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{todayProgress.totalTimeSpentMinutes} mins</div>
+                    <div className="text-[10px] text-slate-500 uppercase font-black">{lang === "தமிழ்" ? "இன்று பதிவான நேரம்" : "Logged Today"}</div>
+                    <div className="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{todayProgress.totalTimeSpentMinutes} {lang === "தமிழ்" ? "நிமி" : "mins"}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[10px] text-slate-500 uppercase font-black">Resources Studied</div>
+                    <div className="text-[10px] text-slate-500 uppercase font-black">{lang === "தமிழ்" ? "படித்தவை" : "Resources Studied"}</div>
                     <div className="text-xl font-extrabold text-emerald-650 dark:text-emerald-400">{todayProgress.activeCount}</div>
                   </div>
                 </div>
 
                 {todayProgress.recentResources && todayProgress.recentResources.length > 0 ? (
                   <div className="space-y-2.5">
-                    <div className="text-[10px] text-slate-500 uppercase font-black text-left font-sans">Recent Activity</div>
+                    <div className="text-[10px] text-slate-500 uppercase font-black text-left font-sans">{lang === "தமிழ்" ? "சமீபத்திய செயல்பாடு" : "Recent Activity"}</div>
                     {todayProgress.recentResources.slice(0, 3).map((r: any) => (
                       <div key={r.resourceId} className="bg-slate-50 dark:bg-slate-900/30 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/60 text-left space-y-1">
                         <div className="flex justify-between items-center">
@@ -358,21 +376,21 @@ export default function MiddleSchoolDashboard() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-505 dark:text-slate-500 italic py-2 text-center">No study activity logged today yet.</p>
+                  <p className="text-xs text-slate-505 dark:text-slate-500 italic py-2 text-center">{lang === "தமிழ்" ? "இன்று இன்னும் படிப்பு நடவடிக்கை ஏதும் பதிவாகவில்லை." : "No study activity logged today yet."}</p>
                 )}
               </div>
             ) : (
-              <div className="text-xs text-slate-500 py-4 text-center">Loading progress...</div>
+              <div className="text-xs text-slate-500 py-4 text-center">{lang === "தமிழ்" ? "முன்னேற்றம் ஏற்றப்படுகிறது..." : "Loading progress..."}</div>
             )}
           </div>
 
           {/* Recent Assessment Marks Card */}
           <div className="glass rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
             <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white mb-3 flex items-center gap-2">
-              <span>🎯</span> Recent Assessment Marks
+              <span>🎯</span> {lang === "தமிழ்" ? "சமீபத்திய மதிப்பீட்டு மதிப்பெண்கள்" : "Recent Assessment Marks"}
             </h2>
             {loadingMarks ? (
-              <div className="text-xs text-slate-500 py-4 text-center">Loading marks...</div>
+              <div className="text-xs text-slate-500 py-4 text-center">{lang === "தமிழ்" ? "மதிப்பெண்கள் ஏற்றப்படுகின்றன..." : "Loading marks..."}</div>
             ) : recentMarks.length > 0 ? (
               <div className="space-y-3">
                 {recentMarks.map((m) => (
@@ -396,9 +414,9 @@ export default function MiddleSchoolDashboard() {
               </div>
             ) : (
               <div className="text-center py-6">
-                <p className="text-xs text-slate-505 dark:text-slate-500 italic">No assessments completed yet.</p>
+                <p className="text-xs text-slate-505 dark:text-slate-500 italic">{lang === "தமிழ்" ? "இதுவரை எந்த மதிப்பீடும் முடிக்கப்படவில்லை." : "No assessments completed yet."}</p>
                 <Link href="/student/assessments" className="inline-block mt-3 text-xs font-bold text-indigo-650 dark:text-indigo-400 hover:underline">
-                  Take your first test →
+                  {lang === "தமிழ்" ? "உங்கள் முதல் தேர்வை எழுதுங்கள் →" : "Take your first test →"}
                 </Link>
               </div>
             )}
@@ -408,11 +426,11 @@ export default function MiddleSchoolDashboard() {
           <div className="glass rounded-3xl p-4 sm:p-6 fade-in-3 flex flex-col border border-slate-200 dark:border-slate-700/50 shadow-2xl bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 text-left">
             <div className="flex items-center gap-3 mb-4">
               <Megaphone className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500 animate-pulse" />
-              <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white">Recent Notifications</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white">{lang === "தமிழ்" ? "சமீபத்திய அறிவிப்புகள்" : "Recent Notifications"}</h2>
             </div>
             <div className="flex-1 space-y-3">
               {loadingNotifications ? (
-                <div className="text-center py-8 text-xs sm:text-sm text-slate-500">Loading notifications...</div>
+                <div className="text-center py-8 text-xs sm:text-sm text-slate-500">{lang === "தமிழ்" ? "அறிவிப்புகள் ஏற்றப்படுகின்றன..." : "Loading notifications..."}</div>
               ) : notifications.length > 0 ? (
                 notifications.map((n) => (
                   <div key={n.id} className="p-3 bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-700/50 hover:shadow-md transition-shadow">
@@ -423,7 +441,7 @@ export default function MiddleSchoolDashboard() {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-xs sm:text-sm text-slate-500">No new notifications.</div>
+                <div className="text-center py-8 text-xs sm:text-sm text-slate-500">{lang === "தமிழ்" ? "புதிய அறிவிப்புகள் இல்லை." : "No new notifications."}</div>
               )}
             </div>
           </div>
@@ -434,9 +452,11 @@ export default function MiddleSchoolDashboard() {
               <span className="text-3xl">❤️</span>
               <div>
                 <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white flex items-center gap-2">
-                  My Health Report
+                  {lang === "தமிழ்" ? "எனது சுகாதார அறிக்கை" : "My Health Report"}
                 </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Check your physical health metrics, height/weight charts, and wellness logs.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  {lang === "தமிழ்" ? "உங்கள் உடலமைப்பு அளவீடுகள், உயரம்/எடை வரைபடங்கள் மற்றும் நல்வாழ்வுப் பதிவுகளைச் சரிபார்க்கவும்." : "Check your physical health metrics, height/weight charts, and wellness logs."}
+                </p>
               </div>
             </div>
           </Link>
@@ -447,9 +467,11 @@ export default function MiddleSchoolDashboard() {
               <span className="text-3xl">📅</span>
               <div>
                 <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white flex items-center gap-2">
-                  My Leave History
+                  {lang === "தமிழ்" ? "எனது விடுப்பு வரலாறு" : "My Leave History"}
                 </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Submit new leave requests, check status of submissions, and view school calendar logs.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  {lang === "தமிழ்" ? "புதிய விடுப்பு விண்ணப்பங்களைச் சமர்ப்பிக்கவும், நிலையைச் சரிபார்க்கவும்." : "Submit new leave requests, check status of submissions, and view school calendar logs."}
+                </p>
               </div>
             </div>
           </Link>
@@ -461,9 +483,11 @@ export default function MiddleSchoolDashboard() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -z-10" />
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white flex items-center gap-2">
-            <Award className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500" /> My Earned Badges
+            <Award className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500" /> {lang === "தமிழ்" ? "நான் பெற்ற பேட்ஜ்கள்" : "My Earned Badges"}
           </h2>
-          <Link href="/student/middle-school/badges" className="text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-500/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl">View Trophy Room</Link>
+          <Link href="/student/middle-school/badges" className="text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-500/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl">
+            {lang === "தமிழ்" ? "கோப்பை அறையைப் பார்" : "View Trophy Room"}
+          </Link>
         </div>
         
         {loadingBadges ? (
@@ -488,7 +512,9 @@ export default function MiddleSchoolDashboard() {
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">No badges earned yet. Keep up the good work to earn badges from your teachers!</p>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              {lang === "தமிழ்" ? "இன்னும் பேட்ஜ்கள் எதுவும் பெறப்படவில்லை. உங்கள் ஆசிரியர்களிடமிருந்து பேட்ஜ்களைப் பெற தொடர்ந்து நன்றாகப் படியுங்கள்!" : "No badges earned yet. Keep up the good work to earn badges from your teachers!"}
+            </p>
           </div>
         )}
       </div>

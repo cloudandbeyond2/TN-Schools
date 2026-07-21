@@ -71,16 +71,27 @@ export default function BlockSchoolsPage() {
 
     try {
       setLoading(true);
-      
-      // Fetch all schools from the database directly as requested to show old data
-      let url = `${API_URL}/api/schools`;
-      const res = await fetch(url);
-      const data = await res.json();
-      
-      if (data.success) {
+
+      // If the current user is a BEO we should fetch only schools in their block/jurisdiction
+      let data: any = null;
+      if (beoUserId) {
+        const res = await fetch(`${API_URL}/api/hierarchy/beo/${beoUserId}`);
+        const json = await res.json();
+        if (json && json.success && json.data) {
+          data = { success: true, data: json.data.schools || [] };
+        } else {
+          data = { success: false, error: json?.error || "Failed to load block schools" };
+        }
+      } else {
+        // Fallback: fetch all schools
+        const res = await fetch(`${API_URL}/api/schools`);
+        data = await res.json();
+      }
+
+      if (data && data.success) {
         setSchools(data.data || []);
       } else {
-        setToast({ message: `Error loading schools: ${data.error || "Failed"}`, type: "error" });
+        setToast({ message: `Error loading schools: ${data?.error || "Failed"}`, type: "error" });
       }
     } catch (err) {
       console.error("Fetch schools error:", err);
