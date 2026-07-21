@@ -850,6 +850,11 @@ export default function PortalLayout({
       .replace("Minister", s.name)
       .replace("System Management", s.name);
 
+    if (userRole === "BEO") {
+      const blockStr = s.block ? (s.block.endsWith("Block") ? s.block : `${s.block} Block`) : "Unassigned Block";
+      resolvedSubtitle = resolvedSubtitle.replace("Coimbatore South Block", blockStr);
+    }
+
     if (s.schoolName) {
       if (userRole === "TEACHER") {
         resolvedSubtitle = s.schoolName;
