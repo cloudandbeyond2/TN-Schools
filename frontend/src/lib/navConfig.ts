@@ -164,17 +164,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
       { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
-      // ── Science Labs & Centers ────────────────────────
-      { label: "---", href: "#", icon: "" },
-      { label: "Science Labs & Centers", href: "#", icon: "" },
-      { label: "Science Campus", href: "/student/science-campus", icon: "Sparkles" },
-      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
-      { label: "Botany Centre", href: "/student/botany-centre", icon: "Leaf" },
-      { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
-      { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
-      { label: "Chemistry Lab", href: "/student/chemistry-lab", icon: "FlaskConical" },
-      // { label: "Zoology Centre", href: "/student/zoology-centre", icon: "Target" },
-      { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
+
 
       // ── Extracurricular & Wellbeing ───────────────────
       { label: "---", href: "#", icon: "" },
@@ -185,7 +175,6 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
       // { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
-      { label: "Wellness", href: "/student/wellness", icon: "Smile" },
 
       // ── School & Career ───────────────────────────────
       { label: "---", href: "#", icon: "" },
