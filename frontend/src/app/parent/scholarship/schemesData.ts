@@ -354,7 +354,7 @@ export const TAMIL_NADU_SCHEMES: Scheme[] = [
     incomeLimitText: "Parents' annual income must be ≤ ₹2,00,000",
     amount: 5000,
     amountText: "Full tuition fee waiver for undergraduate studies",
-    description: "Reimbursement of tuition fees for undergraduate courses in government and private colleges to BC/MBC/DNC students who are the first graduates in their families.",
+    description: "Reimbursement of tuition fees for undergraduate courses in government colleges to BC/MBC/DNC students who are the first graduates in their families.",
     eligibilityDetails: [
       "Must belong to BC, MBC, or DNC community.",
       "Must have cleared Class 12 board examination.",

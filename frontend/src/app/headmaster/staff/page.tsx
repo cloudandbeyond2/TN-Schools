@@ -44,6 +44,8 @@ interface StaffMetadata {
   staffType: "Teaching" | "Non-Teaching";
   joiningDate?: string;
   workAllocation?: string;
+  assignedClass?: string;
+  assignedSection?: string;
   docAppointment?: string;
 }
 
@@ -142,6 +144,8 @@ export default function StaffManagementPage() {
   const [formAddressVal, setFormAddressVal] = useState("");
   const [formJoiningDate, setFormJoiningDate] = useState("");
   const [formWorkAllocation, setFormWorkAllocation] = useState("");
+  const [formAssignedClass, setFormAssignedClass] = useState("");
+  const [formAssignedSection, setFormAssignedSection] = useState("");
   const [formDocAppointment, setFormDocAppointment] = useState("");
 
   // Temporary Staff specific form fields
@@ -176,12 +180,14 @@ export default function StaffManagementPage() {
     if (rawAddress) {
       try {
         const parsed = JSON.parse(rawAddress);
-        if (parsed && (parsed.staffType || parsed.joiningDate || parsed.workAllocation || parsed.docAppointment)) {
+        if (parsed && (parsed.staffType || parsed.joiningDate || parsed.workAllocation || parsed.assignedClass || parsed.assignedSection || parsed.docAppointment)) {
           parsedMeta = {
             address: parsed.address || "",
             staffType: parsed.staffType || parsedMeta.staffType,
             joiningDate: parsed.joiningDate || "",
             workAllocation: parsed.workAllocation || parsedMeta.workAllocation,
+            assignedClass: parsed.assignedClass || "",
+            assignedSection: parsed.assignedSection || "",
             docAppointment: parsed.docAppointment || ""
           };
         } else {
@@ -331,6 +337,8 @@ export default function StaffManagementPage() {
           staffType: formType,
           joiningDate: formJoiningDate,
           workAllocation: formWorkAllocation,
+          assignedClass: formAssignedClass,
+          assignedSection: formAssignedSection,
           docAppointment: formDocAppointment
         });
 
@@ -438,6 +446,8 @@ export default function StaffManagementPage() {
           staffType: formType,
           joiningDate: formJoiningDate,
           workAllocation: formWorkAllocation,
+          assignedClass: formAssignedClass,
+          assignedSection: formAssignedSection,
           docAppointment: formDocAppointment
         });
 
@@ -512,6 +522,8 @@ export default function StaffManagementPage() {
     setFormAddressVal(staff.parsedMeta?.address || "");
     setFormJoiningDate(staff.parsedMeta?.joiningDate || "");
     setFormWorkAllocation(staff.parsedMeta?.workAllocation || "");
+    setFormAssignedClass(staff.parsedMeta?.assignedClass || "");
+    setFormAssignedSection(staff.parsedMeta?.assignedSection || "");
     setFormDocAppointment(staff.parsedMeta?.docAppointment || "");
     setIsEditModalOpen(true);
   };
@@ -671,14 +683,15 @@ export default function StaffManagementPage() {
   };
 
   // Inline work allocation save
-  const handleInlineWorkAllocation = async (id: string, workText: string) => {
+  const handleInlineWorkAllocation = async (id: string, assignedClass: string, assignedSection: string) => {
     const staff = staffList.find(s => s.id === id);
     if (!staff) return;
 
     try {
       const serializedAddress = JSON.stringify({
         ...(staff.parsedMeta || {}),
-        workAllocation: workText
+        assignedClass,
+        assignedSection
       });
 
       const res = await fetch(`${API_BASE}/api/headmaster/staff/${id}`, {
@@ -688,7 +701,7 @@ export default function StaffManagementPage() {
       });
       const json = await res.json();
       if (json.success) {
-        setStaffList(prev => prev.map(s => s.id === id ? { ...s, parsedMeta: { ...s.parsedMeta!, workAllocation: workText } } : s));
+        setStaffList(prev => prev.map(s => s.id === id ? { ...s, parsedMeta: { ...s.parsedMeta!, assignedClass, assignedSection } } : s));
       }
     } catch (err) {
       console.error("Failed to update work allocation inline", err);
@@ -723,6 +736,8 @@ export default function StaffManagementPage() {
           const email = row["Email"] || "";
           const joiningDate = row["Joined Date"] || row["Joining Date"] || "";
           const workAllocation = row["Work Allocation"] || "";
+          const assignedClass = row["Assigned Class"] || "";
+          const assignedSection = row["Assigned Section"] || "";
           const docAppointment = row["Document Appointment"] || "";
 
           // Serialize extra fields into address
@@ -731,6 +746,8 @@ export default function StaffManagementPage() {
             staffType,
             joiningDate,
             workAllocation,
+            assignedClass,
+            assignedSection,
             docAppointment
           });
 
@@ -795,7 +812,7 @@ export default function StaffManagementPage() {
   const exportExcel = () => {
     const headers = [
       "Staff Name", "EMIS ID", "Category", "Subject/Role", "Phone",
-      "Email", "Attendance (%)", "Performance", "Leave Used", "Joined Date", "Work Allocation", "Doc Appointment"
+      "Email", "Attendance (%)", "Performance", "Leave Used", "Joined Date", "Work Allocation", "Assigned Class", "Assigned Section", "Doc Appointment"
     ];
     const data = staffList.map(s => [
       s.name,
@@ -809,6 +826,8 @@ export default function StaffManagementPage() {
       s.leaveUsed,
       s.parsedMeta?.joiningDate || "",
       s.parsedMeta?.workAllocation || "",
+      s.parsedMeta?.assignedClass || "",
+      s.parsedMeta?.assignedSection || "",
       s.parsedMeta?.docAppointment || ""
     ]);
 
@@ -821,18 +840,18 @@ export default function StaffManagementPage() {
   const downloadSampleTemplate = () => {
     const headers = [
       "Staff Name", "EMIS ID", "Category", "Subject/Role", "Phone",
-      "Email", "Joined Date", "Work Allocation", "Document Appointment",
+      "Email", "Joined Date", "Work Allocation", "Assigned Class", "Assigned Section", "Document Appointment",
       "Address", "Attendance", "Performance", "Leave Used", "Password"
     ];
     const sampleRows = [
       [
         "Karthik Raja", "TCHKR001", "Teaching", "Mathematics", "9876543210",
-        "karthik.raja@email.com", "2024-06-01", "Class 10 Math & Physics", "Completed",
+        "karthik.raja@email.com", "2024-06-01", "Exam Coordinator", "10", "A", "Completed",
         "12, Anna Salai, Coimbatore", "95", "Excellent", "1", "123456"
       ],
       [
         "Meena Kumari", "NTCMK002", "Non-Teaching", "Librarian", "9876543211",
-        "meena.kumari@email.com", "2023-09-15", "Library Management", "Completed",
+        "meena.kumari@email.com", "2023-09-15", "Library Management", "", "", "Completed",
         "45, Gandhi Road, Coimbatore", "98", "Good", "0", "123456"
       ]
     ];
@@ -857,6 +876,8 @@ export default function StaffManagementPage() {
     setFormAddressVal("");
     setFormJoiningDate("");
     setFormWorkAllocation("");
+    setFormAssignedClass("");
+    setFormAssignedSection("");
     setFormDocAppointment("");
     setFormTempAgency("Direct Contract");
     setFormTempJoined("");
@@ -1594,13 +1615,28 @@ export default function StaffManagementPage() {
                     <td className="p-4 text-slate-400 font-semibold">{s.parsedMeta?.staffType || "Teaching"}</td>
                     <td className="p-4 font-medium text-slate-300">{s.subject}</td>
                     <td className="p-4">
-                      <input
-                        type="text"
-                        defaultValue={s.parsedMeta?.workAllocation || s.subject}
-                        placeholder="Click to assign classes or responsibilities (e.g. Class 10A Science, Exam Coordinator)"
-                        onBlur={e => handleInlineWorkAllocation(s.id!, e.target.value)}
-                        className="w-full bg-slate-950/40 border border-slate-800/80 hover:border-slate-700/80 focus:border-blue-500 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none transition-colors"
-                      />
+                      <div className="flex gap-2">
+                        <select
+                          value={s.parsedMeta?.assignedClass || ""}
+                          onChange={e => handleInlineWorkAllocation(s.id!, e.target.value, s.parsedMeta?.assignedSection || "")}
+                          className="w-1/2 bg-slate-950/40 border border-slate-800/80 hover:border-slate-700/80 focus:border-blue-500 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none transition-colors"
+                        >
+                          <option value="">Class</option>
+                          {["Pre-KG", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"].map(cls => (
+                            <option key={cls} value={cls}>{cls}</option>
+                          ))}
+                        </select>
+                        <select
+                          value={s.parsedMeta?.assignedSection || ""}
+                          onChange={e => handleInlineWorkAllocation(s.id!, s.parsedMeta?.assignedClass || "", e.target.value)}
+                          className="w-1/2 bg-slate-950/40 border border-slate-800/80 hover:border-slate-700/80 focus:border-blue-500 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none transition-colors"
+                        >
+                          <option value="">Section</option>
+                          {["A", "B", "C", "D", "E", "F"].map(sec => (
+                            <option key={sec} value={sec}>{sec}</option>
+                          ))}
+                        </select>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1609,7 +1645,7 @@ export default function StaffManagementPage() {
           </div>
           
           <div className="text-[11px] text-slate-500 italic bg-slate-950/40 border border-slate-800 p-3 rounded-xl">
-            * Note: Simply click and modify the text in the "Assigned Work Portfolio & Duty Allocation" input box. Pressing Enter or clicking away (onBlur) will automatically save the allocation changes in the database.
+            * Note: Simply select the Class and Section dropdowns to assign the staff member. Changing the selection will automatically save the allocation in the database.
           </div>
         </div>
       )}
@@ -1919,15 +1955,33 @@ export default function StaffManagementPage() {
               {/* Work Allocation & Address */}
               <div className="grid grid-cols-1 gap-3">
                 {formType !== "Temporary" && (
-                  <div>
-                    <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Duties & Work Allocation Description</label>
-                    <input
-                      type="text"
-                      value={formWorkAllocation}
-                      onChange={e => setFormWorkAllocation(e.target.value)}
-                      placeholder="e.g. Class 10A Science, Library Incharge, Sports Coordinator"
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
-                    />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Assigned Class</label>
+                      <select
+                        value={formAssignedClass}
+                        onChange={e => setFormAssignedClass(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">Select Class</option>
+                        {["Pre-KG", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"].map(cls => (
+                          <option key={cls} value={cls}>{cls}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Assigned Section</label>
+                      <select
+                        value={formAssignedSection}
+                        onChange={e => setFormAssignedSection(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">Select Section</option>
+                        {["A", "B", "C", "D", "E", "F"].map(sec => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 )}
                 <div>
@@ -2193,15 +2247,33 @@ export default function StaffManagementPage() {
               {/* Work Allocation & Address */}
               <div className="grid grid-cols-1 gap-3">
                 {formType !== "Temporary" && (
-                  <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Duties & Work Allocation Description</label>
-                    <input
-                      type="text"
-                      value={formWorkAllocation}
-                      onChange={e => setFormWorkAllocation(e.target.value)}
-                      placeholder="Assign portfolios..."
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
-                    />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Assigned Class</label>
+                      <select
+                        value={formAssignedClass}
+                        onChange={e => setFormAssignedClass(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">Select Class</option>
+                        {["Pre-KG", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"].map(cls => (
+                          <option key={cls} value={cls}>{cls}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Assigned Section</label>
+                      <select
+                        value={formAssignedSection}
+                        onChange={e => setFormAssignedSection(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">Select Section</option>
+                        {["A", "B", "C", "D", "E", "F"].map(sec => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 )}
                 <div>

@@ -1008,7 +1008,7 @@ const alternativePaths = [
     title: "ITI (Industrial Training Institutes)",
     duration: "1 to 2 Years",
     admission: "Class 10 Pass / Direct Entry",
-    details: "Skill-based technical trade certificates (e.g., Electrician, Fitter, Welder, Machinist). Ideal for securing immediate technical employment in state departments, railways, or private industries.",
+    details: "Skill-based technical trade certificates (e.g., Electrician, Fitter, Welder, Machinist). Ideal for securing immediate technical employment in state departments, railways.",
     icon: <i className="fi fi-sr-wrench" />
   },
   {

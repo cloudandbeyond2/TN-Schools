@@ -749,7 +749,7 @@ export default function BlockSchoolsPage() {
                   >
                     <option value="Government">Government</option>
                     <option value="Aided">Aided</option>
-                    <option value="Private">Private</option>
+                    {/* <option value="Private">Private</option> */}
                   </select>
                 </div>
               </div>
