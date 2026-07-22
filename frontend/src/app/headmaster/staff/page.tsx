@@ -6,23 +6,23 @@ import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
-import { 
-  Users, 
-  UserCheck, 
-  Calendar, 
-  Briefcase, 
-  FileText, 
-  Search, 
-  Download, 
-  Upload, 
-  Edit, 
-  Trash2, 
-  Check, 
-  X, 
-  Clock, 
-  Plus, 
-  ChevronRight, 
-  Filter, 
+import {
+  Users,
+  UserCheck,
+  Calendar,
+  Briefcase,
+  FileText,
+  Search,
+  Download,
+  Upload,
+  Edit,
+  Trash2,
+  Check,
+  X,
+  Clock,
+  Plus,
+  ChevronRight,
+  Filter,
   RefreshCw,
   BookOpen,
   Award,
@@ -98,7 +98,7 @@ export default function StaffManagementPage() {
   const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
-  
+
   const [schools, setSchools] = useState<{ id: string; name: string }[]>([]);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [tempStaffList, setTempStaffList] = useState<TempStaffMember[]>([]);
@@ -115,7 +115,7 @@ export default function StaffManagementPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  
+
   // Selected items
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [selectedTempStaff, setSelectedTempStaff] = useState<TempStaffMember | null>(null);
@@ -139,7 +139,7 @@ export default function StaffManagementPage() {
   const [formPerformance, setFormPerformance] = useState<"Excellent" | "Good" | "Average">("Good");
   const [formAttendance, setFormAttendance] = useState(100);
   const [formLeaveUsed, setFormLeaveUsed] = useState(0);
-  
+
   // Custom metadata fields
   const [formAddressVal, setFormAddressVal] = useState("");
   const [formJoiningDate, setFormJoiningDate] = useState("");
@@ -222,7 +222,7 @@ export default function StaffManagementPage() {
       // 1. Fetch Permanent Staff
       const staffRes = await fetch(`${API_BASE}/api/headmaster/staff?schoolId=${mySchoolId}`);
       const staffJson = await staffRes.json();
-      
+
       // 2. Fetch Temporary Staff
       const tempRes = await fetch(`${API_BASE}/api/headmaster/temp-staff?schoolId=${mySchoolId}`);
       const tempJson = await tempRes.json();
@@ -231,8 +231,9 @@ export default function StaffManagementPage() {
       const leaveRes = await fetch(`${API_BASE}/api/teacher/leave?schoolId=${mySchoolId}`);
       const leaveJson = await leaveRes.json();
 
+      let formattedStaff: StaffMember[] = [];
       if (staffJson.success) {
-        const formattedStaff: StaffMember[] = staffJson.data.map((s: StaffMember) => {
+        formattedStaff = staffJson.data.map((s: StaffMember) => {
           const parsedMeta = parseStaffAddress(s.address, s.subject);
           return {
             ...s,
@@ -260,14 +261,14 @@ export default function StaffManagementPage() {
         // Find teacher names from the staff list for leave items
         const rawLeaves = leaveJson.data || [];
         const formattedLeaves = rawLeaves.map((l: any) => {
-          const teacher = staffList.find((s: any) => s.id === l.staffId || s.emisId === l.staffId);
+          const teacher = formattedStaff.find((s: any) => s.id === l.staffId || s.emisId === l.staffId);
           return {
             ...l,
             teacherName: teacher ? teacher.name : l.studentName || "Staff Member",
             teacherEmis: teacher ? teacher.emisId : "—"
           };
         }).filter((l: any) => l.staffId !== null && l.staffId !== undefined); // only show staff leaves here
-        
+
         setLeaveRequests(formattedLeaves);
       }
 
@@ -276,11 +277,13 @@ export default function StaffManagementPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [mySchoolId, staffList]);
+  }, [mySchoolId]);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (mySchoolId) {
+      fetchData();
+    }
+  }, [mySchoolId, fetchData]);
 
   // Handle manual additions
   const handleSaveStaff = async (e: React.FormEvent) => {
@@ -311,7 +314,7 @@ export default function StaffManagementPage() {
           body: JSON.stringify(body)
         });
         const json = await res.json();
-        
+
         if (json.success) {
           Swal.fire({
             title: "Staff Added",
@@ -585,7 +588,7 @@ export default function StaffManagementPage() {
   // Handle Leave approvals/rejections
   const handleLeaveAction = async (id: string, status: "Approved" | "Rejected") => {
     const isApproved = status === "Approved";
-    
+
     const result = await Swal.fire({
       title: isApproved ? 'Approve Leave Request?' : 'Reject Leave Request?',
       text: `Are you sure you want to ${status.toLowerCase()} this staff leave request?`,
@@ -644,7 +647,7 @@ export default function StaffManagementPage() {
 
         let newRate = staff.attendance;
         let newLeave = staff.leaveUsed;
-        
+
         if (status === "Absent") {
           newRate = Math.max(0, newRate - 1.5); // decrease slightly
         } else if (status === "Leave") {
@@ -726,7 +729,7 @@ export default function StaffManagementPage() {
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         const rawJson = XLSX.utils.sheet_to_json<any>(sheet);
-        
+
         const validated = rawJson.map((row, index) => {
           const name = row["Staff Name"] || row["Name"] || "";
           const emisId = row["EMIS ID"] || row["ID"] || "";
@@ -970,10 +973,10 @@ export default function StaffManagementPage() {
       themeClass="theme-headmaster"
       accentColor="#3b82f6"
     >
-      
+
       {/* Dynamic Header Metrics - "Flaticon" Style colored cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
-        
+
         {/* Card 1: Teaching */}
         <div className="glass rounded-2xl p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all bg-gradient-to-br from-blue-500/10 to-transparent">
           <div className="flex flex-col">
@@ -1039,11 +1042,10 @@ export default function StaffManagementPage() {
             <button
               key={tab.id}
               onClick={() => { setActiveTab(tab.id as any); setCurrentPage(1); }}
-              className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 outline-none -mb-[2px] ${
-                active 
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400" 
-                  : "border-transparent text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
-              }`}
+              className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 outline-none -mb-[2px] ${active
+                ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
+                }`}
             >
               <Icon className="w-4 h-4" />
               <span>{tab.label}</span>
@@ -1055,10 +1057,10 @@ export default function StaffManagementPage() {
       {/* Roster & Directory Tab */}
       {activeTab === "directory" && (
         <div className="space-y-6 fade-in">
-          
+
           {/* Sub-directory Filter and Toolbar */}
           <div className="glass rounded-2xl p-4 border border-slate-800/60 flex flex-col md:flex-row items-center justify-between gap-4">
-            
+
             {/* Sub-Tabs: Teaching, Non-Teaching, Temporary */}
             <div className="flex bg-slate-100 dark:bg-slate-950/60 p-1 rounded-xl border border-slate-200 dark:border-slate-800 w-full md:w-auto">
               {[
@@ -1071,11 +1073,10 @@ export default function StaffManagementPage() {
                   <button
                     key={subTab.id}
                     onClick={() => { setDirectoryType(subTab.id as any); setCurrentPage(1); }}
-                    className={`flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      active 
-                        ? "bg-blue-600 text-white shadow-md font-bold" 
-                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                    }`}
+                    className={`flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${active
+                      ? "bg-blue-600 text-white shadow-md font-bold"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                      }`}
                   >
                     {subTab.label}
                   </button>
@@ -1095,7 +1096,7 @@ export default function StaffManagementPage() {
                 <Plus className="w-4 h-4" />
                 <span>Add Staff Member</span>
               </button>
-              
+
               {directoryType !== "temporary" && (
                 <>
                   <button
@@ -1105,7 +1106,7 @@ export default function StaffManagementPage() {
                     <Upload className="w-3.5 h-3.5" />
                     <span>Excel Import</span>
                   </button>
-                  
+
                   <button
                     onClick={exportExcel}
                     className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-1.5 w-full sm:w-auto justify-center"
@@ -1121,13 +1122,13 @@ export default function StaffManagementPage() {
 
           {/* Search, Filter Bar */}
           <div className="glass rounded-2xl p-4 border border-slate-800/60 flex flex-wrap items-center gap-4">
-            
+
             {/* Search */}
             <div className="relative flex-1 min-w-[240px]">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search staff by Name or EMIS ID..."
+                placeholder="Search staff by Name or Staff ID..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 className="w-full bg-slate-950/60 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
@@ -1241,13 +1242,13 @@ export default function StaffManagementPage() {
                         );
                       } else {
                         const s = item as StaffMember;
-                        const dateFormatted = s.parsedMeta?.joiningDate 
-                          ? new Date(s.parsedMeta.joiningDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) 
+                        const dateFormatted = s.parsedMeta?.joiningDate
+                          ? new Date(s.parsedMeta.joiningDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
                           : "—";
-                        const apptDate = s.parsedMeta?.docAppointment 
-                          ? new Date(s.parsedMeta.docAppointment).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" }) 
+                        const apptDate = s.parsedMeta?.docAppointment
+                          ? new Date(s.parsedMeta.docAppointment).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })
                           : "Pending";
-                        
+
                         return (
                           <tr key={s.id || s.emisId} className="hover:bg-slate-900/30 transition-colors">
                             <td className="p-4">
@@ -1263,26 +1264,23 @@ export default function StaffManagementPage() {
                             <td className="p-4 font-semibold text-slate-300">{s.subject}</td>
                             <td className="p-4 text-slate-400">{dateFormatted}</td>
                             <td className="p-4">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                s.parsedMeta?.docAppointment 
-                                  ? (new Date(s.parsedMeta.docAppointment) < new Date() ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-blue-500/10 text-blue-400 border border-blue-500/20")
-                                  : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
-                              }`}>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.parsedMeta?.docAppointment
+                                ? (new Date(s.parsedMeta.docAppointment) < new Date() ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-blue-500/10 text-blue-400 border border-blue-500/20")
+                                : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
+                                }`}>
                                 {apptDate}
                               </span>
                             </td>
                             <td className="p-4 space-y-1">
                               <div className="flex items-center gap-2">
-                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${
-                                  s.attendance >= 95 ? "bg-emerald-500/10 text-emerald-400" : s.attendance >= 90 ? "bg-amber-500/10 text-amber-400" : "bg-red-500/10 text-red-400"
-                                }`}>
+                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${s.attendance >= 95 ? "bg-emerald-500/10 text-emerald-400" : s.attendance >= 90 ? "bg-amber-500/10 text-amber-400" : "bg-red-500/10 text-red-400"
+                                  }`}>
                                   {s.attendance}% Attendance
                                 </span>
                               </div>
                               <div>
-                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${
-                                  s.performance === "Excellent" ? "bg-emerald-500/10 text-emerald-400" : s.performance === "Good" ? "bg-blue-500/10 text-blue-400" : "bg-amber-500/10 text-amber-400"
-                                }`}>
+                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${s.performance === "Excellent" ? "bg-emerald-500/10 text-emerald-400" : s.performance === "Good" ? "bg-blue-500/10 text-blue-400" : "bg-amber-500/10 text-amber-400"
+                                  }`}>
                                   {s.performance} Performance
                                 </span>
                               </div>
@@ -1358,7 +1356,7 @@ export default function StaffManagementPage() {
               </h2>
               <p className="text-[11px] text-slate-500 mt-0.5">Toggle daily status for permanent and contract staff to automatically re-compile average attendance.</p>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <span className="text-xs font-bold text-slate-400">Date:</span>
               <input
@@ -1390,9 +1388,8 @@ export default function StaffManagementPage() {
                     </td>
                     <td className="p-4 text-slate-400 font-semibold">{s.parsedMeta?.staffType || "Teaching"}</td>
                     <td className="p-4">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        s.attendance >= 95 ? "bg-emerald-500/10 text-emerald-400" : s.attendance >= 90 ? "bg-amber-500/10 text-amber-400" : "bg-red-500/10 text-red-400"
-                      }`}>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.attendance >= 95 ? "bg-emerald-500/10 text-emerald-400" : s.attendance >= 90 ? "bg-amber-500/10 text-amber-400" : "bg-red-500/10 text-red-400"
+                        }`}>
                         {s.attendance}%
                       </span>
                     </td>
@@ -1408,9 +1405,8 @@ export default function StaffManagementPage() {
                             <button
                               key={btn.id}
                               onClick={() => setAttendanceLog(prev => ({ ...prev, [s.id || s.emisId]: btn.id as any }))}
-                              className={`px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all ${
-                                active ? btn.color : btn.idle
-                              }`}
+                              className={`px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all ${active ? btn.color : btn.idle
+                                }`}
                             >
                               {btn.id}
                             </button>
@@ -1442,9 +1438,8 @@ export default function StaffManagementPage() {
                             <button
                               key={btn.id}
                               onClick={() => setAttendanceLog(prev => ({ ...prev, [t.id!]: btn.id as any }))}
-                              className={`px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all ${
-                                active ? btn.color : btn.idle
-                              }`}
+                              className={`px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all ${active ? btn.color : btn.idle
+                                }`}
                             >
                               {btn.id}
                             </button>
@@ -1473,7 +1468,7 @@ export default function StaffManagementPage() {
       {/* Leave Management Tab */}
       {activeTab === "leave" && (
         <div className="space-y-6 fade-in">
-          
+
           {/* Leaves list */}
           <div className="glass rounded-2xl p-6 border border-slate-800 space-y-4">
             <div>
@@ -1518,11 +1513,10 @@ export default function StaffManagementPage() {
                           {new Date(req.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
                         </td>
                         <td className="p-4">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            req.status === "Approved" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${req.status === "Approved" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
                             req.status === "Rejected" ? "bg-red-500/10 text-red-400 border border-red-500/20" :
-                            "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                          }`}>
+                              "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                            }`}>
                             {req.status}
                           </span>
                         </td>
@@ -1564,7 +1558,7 @@ export default function StaffManagementPage() {
               <h3 className="text-xs font-bold text-white uppercase tracking-wider">Leave Balance Logs</h3>
               <p className="text-[10px] text-slate-500 mt-0.5">Tracking cumulative leave days used by faculty members during the current term.</p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {staffList.slice(0, 6).map(s => (
                 <div key={s.id} className="p-4 border border-slate-800 bg-slate-950/20 rounded-2xl flex items-center justify-between">
@@ -1643,7 +1637,7 @@ export default function StaffManagementPage() {
               </tbody>
             </table>
           </div>
-          
+
           <div className="text-[11px] text-slate-500 italic bg-slate-950/40 border border-slate-800 p-3 rounded-xl">
             * Note: Simply select the Class and Section dropdowns to assign the staff member. Changing the selection will automatically save the allocation in the database.
           </div>
@@ -1653,7 +1647,7 @@ export default function StaffManagementPage() {
       {/* Verification Appointments Tab */}
       {activeTab === "appointments" && (
         <div className="space-y-6 fade-in">
-          
+
           {/* Scheduling & Info */}
           <div className="glass rounded-2xl p-6 border border-slate-800 space-y-4">
             <div>
@@ -1674,11 +1668,10 @@ export default function StaffManagementPage() {
                   const isCompleted = appt.status === "Completed";
                   const dateObj = new Date(appt.appointment);
                   return (
-                    <div 
-                      key={appt.id} 
-                      className={`p-4 rounded-2xl border transition-all flex items-start justify-between bg-slate-950/20 ${
-                        isCompleted ? "border-slate-800 opacity-60" : "border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-transparent"
-                      }`}
+                    <div
+                      key={appt.id}
+                      className={`p-4 rounded-2xl border transition-all flex items-start justify-between bg-slate-950/20 ${isCompleted ? "border-slate-800 opacity-60" : "border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-transparent"
+                        }`}
                     >
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
@@ -1688,7 +1681,7 @@ export default function StaffManagementPage() {
                             {appt.category}
                           </span>
                         </div>
-                        
+
                         <div className="text-[10px] text-slate-400 space-y-1">
                           <div className="flex items-center gap-1.5">
                             <Clock className="w-3.5 h-3.5 text-slate-500" />
@@ -1701,9 +1694,8 @@ export default function StaffManagementPage() {
                         </div>
                       </div>
 
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                        isCompleted ? "bg-slate-800/40 text-slate-400 border-slate-700/40" : "bg-blue-600/10 text-blue-400 border-blue-500/20"
-                      }`}>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isCompleted ? "bg-slate-800/40 text-slate-400 border-slate-700/40" : "bg-blue-600/10 text-blue-400 border-blue-500/20"
+                        }`}>
                         {appt.status}
                       </span>
                     </div>
@@ -1730,10 +1722,9 @@ export default function StaffManagementPage() {
                   return (
                     <div key={appt.id} className="relative">
                       {/* Timeline dot */}
-                      <span className={`absolute -left-[31px] top-0 w-4 h-4 rounded-full border-2 ${
-                        isCompleted ? "bg-slate-800 border-slate-700" : "bg-blue-500 border-slate-900"
-                      }`} />
-                      
+                      <span className={`absolute -left-[31px] top-0 w-4 h-4 rounded-full border-2 ${isCompleted ? "bg-slate-800 border-slate-700" : "bg-blue-500 border-slate-900"
+                        }`} />
+
                       <div className="text-xs space-y-1">
                         <div className="text-[10px] text-slate-500 font-bold">
                           {dateObj.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })} · {dateObj.toLocaleTimeString("en-IN", { timeStyle: "short" })}
@@ -1757,7 +1748,7 @@ export default function StaffManagementPage() {
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl rounded-3xl p-6 relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl overflow-y-auto max-h-[90vh] text-slate-800 dark:text-slate-200">
-            
+
             <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-3 mb-4">
               <h3 className="text-sm font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-blue-600" />
@@ -1767,7 +1758,7 @@ export default function StaffManagementPage() {
             </div>
 
             <form onSubmit={handleSaveStaff} className="space-y-4 text-xs">
-              
+
               {/* Type Switcher */}
               <div>
                 <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1.5 font-bold uppercase tracking-wider">Employment Category</label>
@@ -1777,9 +1768,8 @@ export default function StaffManagementPage() {
                       key={type}
                       type="button"
                       onClick={() => setFormType(type as any)}
-                      className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-                        formType === type ? "bg-blue-600 text-white shadow-md" : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
-                      }`}
+                      className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition-all ${formType === type ? "bg-blue-600 text-white shadow-md" : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                        }`}
                     >
                       {type}
                     </button>
@@ -1800,7 +1790,7 @@ export default function StaffManagementPage() {
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
                   />
                 </div>
-                
+
                 {formType !== "Temporary" && (
                   <div>
                     <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">EMIS ID / Staff ID *</label>
@@ -1816,45 +1806,17 @@ export default function StaffManagementPage() {
                 )}
               </div>
 
-              {/* Subject specialty or role selection */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                    {formType === "Teaching" ? "Subject Specialty" : formType === "Non-Teaching" ? "Designation / Role" : "Assigned Duty Role"}
-                  </label>
-                  {formType === "Teaching" ? (
-                    <select
-                      value={formSubjectOrRole}
-                      onChange={e => setFormSubjectOrRole(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
-                    >
-                      {subjectsList.map(sub => (
-                        <option key={sub} value={sub}>{sub}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      required
-                      value={formSubjectOrRole}
-                      onChange={e => setFormSubjectOrRole(e.target.value)}
-                      placeholder={formType === "Temporary" ? "e.g. Security, Midday helper" : "e.g. Clerk, Librarian, Office Assistant"}
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
-                    />
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Phone Number *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formPhone}
-                    onChange={e => setFormPhone(e.target.value)}
-                    placeholder="10 digit mobile"
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
+              {/* Phone Number */}
+              <div>
+                <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Phone Number *</label>
+                <input
+                  type="text"
+                  required
+                  value={formPhone}
+                  onChange={e => setFormPhone(e.target.value)}
+                  placeholder="10 digit mobile"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                />
               </div>
 
               {/* Temporary Staff specific fields */}
@@ -1952,38 +1914,8 @@ export default function StaffManagementPage() {
                 </>
               )}
 
-              {/* Work Allocation & Address */}
+              {/* Address */}
               <div className="grid grid-cols-1 gap-3">
-                {formType !== "Temporary" && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Assigned Class</label>
-                      <select
-                        value={formAssignedClass}
-                        onChange={e => setFormAssignedClass(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
-                      >
-                        <option value="">Select Class</option>
-                        {["Pre-KG", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"].map(cls => (
-                          <option key={cls} value={cls}>{cls}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Assigned Section</label>
-                      <select
-                        value={formAssignedSection}
-                        onChange={e => setFormAssignedSection(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
-                      >
-                        <option value="">Select Section</option>
-                        {["A", "B", "C", "D", "E", "F"].map(sec => (
-                          <option key={sec} value={sec}>{sec}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                )}
                 <div>
                   <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Residential Address</label>
                   <textarea
@@ -2074,7 +2006,7 @@ export default function StaffManagementPage() {
       {isEditModalOpen && (selectedStaff || selectedTempStaff) && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl rounded-3xl p-6 relative bg-white border border-slate-200 shadow-2xl overflow-y-auto max-h-[90vh] text-slate-800">
-            
+
             <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
               <h3 className="text-sm font-bold text-slate-950 flex items-center gap-1.5">
                 <Edit className="w-4 h-4 text-blue-600" />
@@ -2084,7 +2016,7 @@ export default function StaffManagementPage() {
             </div>
 
             <form onSubmit={handleEditStaff} className="space-y-4 text-xs">
-              
+
               {/* Category Info */}
               <div className="bg-slate-100 px-4 py-2.5 rounded-xl border border-slate-200/60 flex items-center justify-between">
                 <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Employment Profile</span>
@@ -2114,43 +2046,16 @@ export default function StaffManagementPage() {
                 </div>
               </div>
 
-              {/* Subject specialty or role selection */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                    {formType === "Teaching" ? "Subject Specialty" : "Designation / Role"}
-                  </label>
-                  {formType === "Teaching" ? (
-                    <select
-                      value={formSubjectOrRole}
-                      onChange={e => setFormSubjectOrRole(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                    >
-                      {subjectsList.map(sub => (
-                        <option key={sub} value={sub}>{sub}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      required
-                      value={formSubjectOrRole}
-                      onChange={e => setFormSubjectOrRole(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
-                    />
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Phone Number *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formPhone}
-                    onChange={e => setFormPhone(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
-                  />
-                </div>
+              {/* Phone Number */}
+              <div>
+                <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Phone Number *</label>
+                <input
+                  type="text"
+                  required
+                  value={formPhone}
+                  onChange={e => setFormPhone(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                />
               </div>
 
               {/* Temporary Staff specific fields */}
@@ -2244,38 +2149,8 @@ export default function StaffManagementPage() {
                 </>
               )}
 
-              {/* Work Allocation & Address */}
+              {/* Address */}
               <div className="grid grid-cols-1 gap-3">
-                {formType !== "Temporary" && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Assigned Class</label>
-                      <select
-                        value={formAssignedClass}
-                        onChange={e => setFormAssignedClass(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                      >
-                        <option value="">Select Class</option>
-                        {["Pre-KG", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"].map(cls => (
-                          <option key={cls} value={cls}>{cls}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Assigned Section</label>
-                      <select
-                        value={formAssignedSection}
-                        onChange={e => setFormAssignedSection(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                      >
-                        <option value="">Select Section</option>
-                        {["A", "B", "C", "D", "E", "F"].map(sec => (
-                          <option key={sec} value={sec}>{sec}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                )}
                 <div>
                   <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Residential Address</label>
                   <textarea
@@ -2409,7 +2284,7 @@ export default function StaffManagementPage() {
                   <div className="font-bold text-emerald-600 uppercase tracking-wider">Parsed {previewData.length} Staff Records</div>
                   <div className="text-slate-500 font-semibold">{previewData.filter(d => !d.isValid).length} invalid rows found</div>
                 </div>
-                
+
                 <div className="max-h-[350px] overflow-y-auto border border-slate-200 rounded-xl bg-slate-50/50">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
@@ -2460,9 +2335,8 @@ export default function StaffManagementPage() {
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`rounded-2xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-3 min-h-[200px] border-2 border-dashed ${
-                    isDragging ? "border-emerald-500 bg-emerald-50" : "border-slate-300 bg-white hover:border-emerald-500"
-                  }`}
+                  className={`rounded-2xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-3 min-h-[200px] border-2 border-dashed ${isDragging ? "border-emerald-500 bg-emerald-50" : "border-slate-300 bg-white hover:border-emerald-500"
+                    }`}
                 >
                   <Upload className="w-10 h-10 text-slate-400" />
                   <span className="text-xs font-bold text-slate-800">Upload Staff Directory Template</span>

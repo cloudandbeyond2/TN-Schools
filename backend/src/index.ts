@@ -17,6 +17,7 @@ import petFitnessRoutes from './routes/petFitness.routes';
 import petInventoryRoutes from './routes/petInventory.routes';
 import wellnessRoutes from './routes/wellness.routes';
 import studentRoutes from './routes/student.routes';
+import languageCoachingRoutes from './routes/languageCoaching.routes';
 import activitiesRoutes from './routes/activities.routes';
 import attendanceRoutes from './routes/attendance.routes';
 import schoolRoutes from './routes/school.routes';
@@ -170,6 +171,29 @@ app.get('/', async (req: Request, res: Response) => {
   });
 });
 
+import { authenticate } from './middleware/auth.middleware';
+
+// ─── Public API Whitelist ──────────────────────────────────────
+const PUBLIC_PATHS = [
+  '/',
+  '/api/users/auth',
+  '/api/users/login',
+  '/api/users/student-login',
+];
+
+// ─── Global Authentication Guard (Fail-Closed) ─────────────────
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (
+    req.path === '/' ||
+    req.path.startsWith('/uploads/') ||
+    req.method === 'OPTIONS' ||
+    PUBLIC_PATHS.includes(req.path)
+  ) {
+    return next();
+  }
+  return authenticate(req, res, next);
+});
+
 // ─── API Routes ──────────────────────────────────────────────
 app.use('/api/ai', aiRoutes);
 app.use('/api/portfolio', portfolioRoutes);
@@ -179,6 +203,7 @@ app.use('/api/pet/inventory', petInventoryRoutes);
 app.use('/api/pet/sports-conducted', petSportsRoutes);
 app.use('/api/wellness', wellnessRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/language-coaching', languageCoachingRoutes);
 app.use('/api/activities', activitiesRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/schools', schoolRoutes);

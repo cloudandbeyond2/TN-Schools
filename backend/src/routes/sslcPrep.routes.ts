@@ -98,9 +98,19 @@ router.get('/plans', async (req: Request, res: Response) => {
     const filter: any = {};
     if (cls) filter.class = cls;
     if (subject && subject !== 'All') filter.subject = subject;
-    if (schoolId) filter.schoolId = schoolId;
+    if (schoolId) {
+      filter.$or = [{ schoolId }, { schoolId: null }, { schoolId: { $exists: false } }];
+    }
     if (!(includeDrafts === 'true' && isStaffRole(req))) filter.published = true;
-    const plans = await SSLCPrepPlan.find(filter).sort({ subject: 1, createdAt: -1 });
+    
+    let plans = await SSLCPrepPlan.find(filter).sort({ subject: 1, createdAt: -1 });
+
+    // Auto-seed high-yield state board prep plans if collection is empty
+    if (plans.length === 0) {
+      await seedMasterPrepPlans();
+      plans = await SSLCPrepPlan.find(filter).sort({ subject: 1, createdAt: -1 });
+    }
+
     res.json({ success: true, data: plans });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
@@ -963,5 +973,117 @@ router.get('/analytics/school', requireRole(STAFF_ROLES), async (req: Request, r
     res.status(500).json({ success: false, error: String(err) });
   }
 });
+
+async function seedMasterPrepPlans() {
+  try {
+    const count = await SSLCPrepPlan.countDocuments();
+    if (count > 0) return;
+
+    const masterPlans = [
+      {
+        class: "10",
+        subject: "Tamil",
+        title: "SSLC தமிழ் 100 நாட்கள் அரசுத் தேர்வு சாதனைத் திட்டம் 2026",
+        description: "தமிழ்நாடு அரசுப் பாடத்திட்டத்தின்படி பத்தாம் வகுப்பு செய்யுள், உரைநடை, இலக்கணம் மற்றும் மொழிப் பயிற்சி வாரவாரி வழிகாட்டி.",
+        teacherName: "முனைவர் க. சுப்பிரமணியன் (முதுகலை தமிழசிரியர்)",
+        published: true,
+        weeks: [
+          { week: 1, focus: "செய்யுள் & உரைநடை - இயல் 1-3", topics: ["அன்னை மொழியே & தமிழ்ச் சொல் வளம்", "காற்றே வா & முல்லைப் பாட்டு", "விருந்து போற்றுதும் & காசிக்காண்டம்"], activities: ["மனப்பாடப் பாடல்கள் 5 முறை எழுதிப் பார்த்தல்", "உரைநடை வினாக்களுக்கு 2 பக்கப் பத்தி விடை எழுதுதல்"] },
+          { week: 2, focus: "இலக்கணம் & மொழித்திறன் பயிற்சி", topics: ["எழுத்து, சொல் வகைப்பாடு", "தொகைநிலை & தொகாநிலைத் தொடர்கள்", "புணர்ச்சி விதிகள் & அணி இலக்கணம்"], activities: ["பண்புத்தொகை, வினைத்தொகை பகுத்தறிதல்", "படைப்பாக்கப் பயிற்சி - கவிதை புனைதல்"] },
+          { week: 3, focus: "செய்யுள் & துணைப்பாடம் - இயல் 4-6", topics: ["செயற்கை நுண்ணறிவு & திருக்குறள்", "நீதி வெண்பா & திருவிளையாடற் புராணம்", "பூத்தொடுத்தல் & முத்துக்கুমারசாமி பிள்ளைத் தமிழ்"], activities: ["திருக்குறள் மனப்பாடப் பகுதிகள் பயிற்சி", "துணைப்பாடக் கட்டுரை வரைதல்"] },
+          { week: 4, focus: "மாதிரி வினாத்தாள் & அரசுத் தேர்வுப் பயிற்சி", topics: ["பகுதி 1-4 அரசு வினாத்தாள் அமைப்பு", "படைப்பாக்கக் கட்டுரைகள் & கடிதம் எழுதுதல்", "பிழை திருத்தம் & மொழிபெயர்ப்பு"], activities: ["3 மணி நேர முழு மாதிரித் தேர்வு எழுதுதல்", "முந்தைய ஆண்டு வினாத்தாள் பயிற்சி"] }
+        ]
+      },
+      {
+        class: "10",
+        subject: "Mathematics",
+        title: "SSLC Mathematics 100/100 Blueprint Strategy Plan 2026",
+        description: "Step-by-step 4-week intensive revision plan targeting 5-mark and 8-mark high-yield board exam questions.",
+        teacherName: "R. Ramanujam, M.Sc., M.Ed. (PGT Maths)",
+        published: true,
+        weeks: [
+          { week: 1, focus: "Relations, Functions & Sequences (Algebraic Foundations)", topics: ["Relations and Functions (Exercise 1.1 - 1.5)", "Arithmetic & Geometric Progressions (AP & GP)", "Sum to n terms of AP/GP and Special Series"], activities: ["Solve all 5-mark Theorem proofs & Function mappings", "Practice 10 Previous Year AP/GP Board Questions"] },
+          { week: 2, focus: "Algebra & Matrices", topics: ["Simultaneous Linear Equations in 3 variables", "Quadratic Equations, Nature of Roots & Graphs", "Matrix Operations, Multiplication & Transpose"], activities: ["Draw Parabola Graphs for 8-mark questions", "Solve Matrix Multiplication word problems"] },
+          { week: 3, focus: "Geometry & Coordinate Geometry", topics: ["Thales Theorem, Angle Bisector & Pythagoras Theorems", "Practical Geometry - Construction of Tangents & Triangles", "Slope of Line & Equation of Straight Lines"], activities: ["Draw Practical Geometry constructions with steps", "Calculate Area of Quadrilateral using vertices"] },
+          { week: 4, focus: "Trigonometry, Mensuration & Probability", topics: ["Heights & Distances using Trigonometric Ratios", "Surface Area & Volume of Combined Solids (Cone, Hemisphere, Cylinder)", "Probability & Addition Theorem of Probability"], activities: ["Complete 3 Full Model Mathematics Question Papers", "Memorize all Mensuration formulas & Trigonometric values"] }
+        ]
+      },
+      {
+        class: "10",
+        subject: "Science",
+        title: "SSLC Science Mastery & High-Yield Diagram Plan",
+        description: "Covering Physics, Chemistry, and Biology with focus on compulsory numericals and labeled diagrams.",
+        teacherName: "S. Meenakshi, M.Sc., B.Ed.",
+        published: true,
+        weeks: [
+          { week: 1, focus: "Physics Units (Motion, Optics & Electricity)", topics: ["Newton's Laws of Motion & Conservation of Momentum", "Refraction of Light, Lenses & Human Eye", "Ohm's Law, Joule's Law of Heating & Electric Circuits"], activities: ["Solve Physics compulsory numerical problems", "Draw Labeled Ray Diagrams for Convex/Concave Lenses"] },
+          { week: 2, focus: "Chemistry Units (Atoms, Periodic Table & Reactions)", topics: ["Relative Atomic Mass & Mole Concept", "Modern Periodic Table & Metallurgy of Aluminium/Copper", "Types of Chemical Reactions, pH Scale & Carbon Compounds"], activities: ["Practice balancing chemical equations", "Calculate pH values & Mole conversion problems"] },
+          { week: 3, focus: "Biology Units (Plant Anatomy & Human Systems)", topics: ["Plant Anatomy & Physiology (Xylem/Phloem)", "Nervous System, Endocrine Glands & Hormones", "Genetics - Mendel's Laws & DNA Structure"], activities: ["Draw Labeled Diagrams of Neuron, Brain, and Heart", "Write 4-mark answers on Monohybrid/Dihybrid Cross"] },
+          { week: 4, focus: "Environmental Management & Revision", topics: ["Renewable Energy Resources & Conservation", "Waste Management & Eco-friendly Practices", "Practical Viva Questions & Model Exam Paper Analysis"], activities: ["Take 2-Hour Science Mock Test", "Revise 1-mark Fill ups & Match the Following"] }
+        ]
+      },
+      {
+        class: "10",
+        subject: "English",
+        title: "SSLC English Board Exam Excellence Plan",
+        description: "Grammar, Prose, Poetry appreciation, Supplementary Reader summaries, and Letter writing templates.",
+        teacherName: "P. Jennifer, M.A., M.Phil.",
+        published: true,
+        weeks: [
+          { week: 1, focus: "Prose Units 1-3 & Core Grammar", topics: ["His First Flight & The Night the Ghost Got In", "Tenses, Active & Passive Voice", "Direct and Indirect Speech Transformation"], activities: ["Write 5-line answers for Prose questions", "Complete 20 Active/Passive voice transformation drills"] },
+          { week: 2, focus: "Poetry Appreciation & Figures of Speech", topics: ["Life, I am Every Woman, The Ant and the Cricket", "Rhyming Scheme, Alliteration & Metaphor Identification", "Paraphrasing Poetic Stanzas"], activities: ["Memorize poem lines for Memory Poem section", "Practice poetic device identification"] },
+          { week: 3, focus: "Supplementary Reader & Writing Skills", topics: ["The Tempest, Zigzag & The Story of Mulan", "Notice Writing, Advertisement Design & Picture Comprehension", "Formal Letter Writing (Editor/Headmaster)"], activities: ["Draft an attractive product Advertisement", "Write a 150-word Paragraph on Supplementary characters"] },
+          { week: 4, focus: "Full Syllabus Grammar Drills & Mock Test", topics: ["Error Spotting, Road Map Directions & Sentence Rearrangement", "Summary Writing & Note Making Techniques", "Public Exam Time Management"], activities: ["Solve 3 Board Exam Model English Papers", "Self-assess against State Marking Scheme"] }
+        ]
+      },
+      {
+        class: "10",
+        subject: "Social Science",
+        title: "SSLC Social Science Timeline & Map Blueprint Plan",
+        description: "Comprehensive guide for History, Geography, Civics, Economics, History Timeline, and Map marking.",
+        teacherName: "K. Alagappan, M.A., B.Ed.",
+        published: true,
+        weeks: [
+          { week: 1, focus: "History (Imperialism, World Wars & Freedom Struggle)", topics: ["Outbreak of WWI & WWII Consequences", "Anti-Colonial Movements & Nationalism in India", "Freedom Struggle in Tamil Nadu & Social Reformers"], activities: ["Mark 10 Historical Events on India History Timeline (1900-1950)", "Write 5-mark answers on Veerapandiya Kattabomman & Velu Nachiyar"] },
+          { week: 2, focus: "Geography (Physiography, Climate & Agriculture)", topics: ["India - Location, Relief & Drainage Systems", "Climate, Natural Vegetation & Soils of India", "Agriculture, Resources & Industries"], activities: ["Mark Rivers, Mountain Ranges & Ports on India Physical Map", "Practice 2-mark distinction questions (Western vs Eastern Ghats)"] },
+          { week: 3, focus: "Civics & Economics", topics: ["Indian Constitution, Fundamental Rights & Duties", "Central & State Executive (President, Governor, Chief Minister)", "Gross Domestic Product (GDP) & Globalization"], activities: ["Memorize Preamble & Key Constitutional Articles", "Explain Green Revolution & Public Distribution System (PDS)"] },
+          { week: 4, focus: "Map Marking Drills & Final Board Review", topics: ["India Map & Tamil Nadu Map Intensive Practice", "History Timeline Practice (1910 - 1940)", "5-Mark High-Yield Long Answers Review"], activities: ["Complete 5 Full Map Marking Worksheets", "Write 3-Hour Social Science Board Revision Exam"] }
+        ]
+      },
+      {
+        class: "9",
+        subject: "Tamil",
+        title: "ஒன்பதாம் வகுப்பு தமிழ் ஆண்டுத் தேர்வு தயாரிப்புத் திட்டம்",
+        description: "9 ஆம் வகுப்பு தமிழ் பாடநூல் இயல்கள் 1-9 செய்யுள், உரைநடை மற்றும் இலக்கண வழிகாட்டி.",
+        teacherName: "முனைவர் க. சுப்பிரமணியன்",
+        published: true,
+        weeks: [
+          { week: 1, focus: "திராவிட மொழிக்குடும்பம் & செய்யுள்", topics: ["திராவிட மொழிக்குடும்பம்", "தமிழோவியம் & தமிழ் விடு தூது", "வளரும் செல்வம்"], activities: ["மனப்பாடப் பாடல்கள் எழுதிப் பார்த்தல்", "உரைநடை வினா விடை பயிற்சி"] },
+          { week: 2, focus: "இலக்கணம் & துணைப்பாடம்", topics: ["தொடர் இலக்கணம்", "துணைப்பாடக் கதைகள்", "பகுபத உறுப்பிலக்கணம்"], activities: ["இலக்கணப் பயிற்சிகள் செய்தல்", "பகுபத உறுப்பிலக்கணம் பிரித்து எழுதுதல்"] },
+          { week: 3, focus: "இயற்கை & சுற்றுச்சூழல் இயல்கள்", topics: ["நீரின்றி அமையாது உலகு", "பட்டமரம் & பெரியபுராணம்", "புறநானூறு & தண்ணீர் தண்ணீர்"], activities: ["சுற்றுச்சூழல் விழிப்புணர்வுக் கட்டுரை", "செய்யுள் நயம்பாராட்டல்"] },
+          { week: 4, focus: "மாதிரித் தேர்வு & கட்டுரைப் பயிற்சி", topics: ["ஆண்டு இறுதி மாதிரி வினாத்தாள்", "கடிதம் & கட்டுரை வரைதல்"], activities: ["மாதிரித் தேர்வு எழுதுதல்"] }
+        ]
+      },
+      {
+        class: "9",
+        subject: "Mathematics",
+        title: "Class 9 Mathematics Exam Foundation Plan",
+        description: "Set Language, Real Numbers, Algebra, Coordinate Geometry, and Statistics revision for Class 9.",
+        teacherName: "R. Ramanujam, M.Sc.",
+        published: true,
+        weeks: [
+          { week: 1, focus: "Set Language & Real Numbers", topics: ["Types of Sets, Set Operations & Venn Diagrams", "Laws of Exponents & Radicals", "Rational & Irrational Numbers"], activities: ["Draw Venn diagrams for De Morgan's Laws", "Practice Irrational Number proofs"] },
+          { week: 2, focus: "Algebra & Polynomials", topics: ["Polynomial Addition, Subtraction & Multiplication", "Algebraic Identities & Factorization", "Synthetic Division & Remainder Theorem"], activities: ["Factorize cubic polynomials using Synthetic Division", "Solve 10 Algebra practice problems"] },
+          { week: 3, focus: "Geometry & Coordinate Geometry", topics: ["Properties of Parallelograms & Quadrilaterals", "Distance Formula & Midpoint Formula", "Section Formula & Centroid of Triangle"], activities: ["Find Centroid of Triangle given 3 vertices", "Construct Triangles in Practical Geometry"] },
+          { week: 4, focus: "Trigonometry & Statistics", topics: ["Trigonometric Ratios & Complementary Angles", "Mean, Median, Mode for Ungrouped & Grouped Data", "Probability Basics"], activities: ["Calculate Mean/Median for Frequency tables", "Solve 3-Hour Class 9 Mathematics Revision Exam"] }
+        ]
+      }
+    ];
+
+    await SSLCPrepPlan.insertMany(masterPlans);
+  } catch (err) {
+    console.error("Error seeding master prep plans:", err);
+  }
+}
 
 export default router;

@@ -437,15 +437,19 @@ export interface ILanguageCoachingProgress extends Document {
   sentencesSpoken: number;
   newWordsCount: number;
   grammarScore: number;
+  recentWords: string[];
+  lastWordOfDay: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const LanguageCoachingProgressSchema = new Schema<ILanguageCoachingProgress>({
-  studentId: { type: String, required: true, unique: true },
-  sentencesSpoken: { type: Number, default: 0 },
-  newWordsCount: { type: Number, default: 0 },
-  grammarScore: { type: Number, default: 80 }
+  studentId:      { type: String, required: true, unique: true },
+  sentencesSpoken:{ type: Number, default: 0 },
+  newWordsCount:  { type: Number, default: 0 },
+  grammarScore:   { type: Number, default: 80 },
+  recentWords:    { type: [String], default: [] },
+  lastWordOfDay:  { type: String, default: '' }
 }, { timestamps: true });
 
 export const LanguageCoachingProgress = mongoose.models.LanguageCoachingProgress || mongoose.model<ILanguageCoachingProgress>('LanguageCoachingProgress', LanguageCoachingProgressSchema);

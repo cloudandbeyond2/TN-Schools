@@ -134,7 +134,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
-      // { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
+      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
@@ -144,7 +144,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
       { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
-      
+
       { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
@@ -160,6 +160,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
       { label: "Maths Formulas", href: "/student/maths-formulas", icon: "Calculator" },
       { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
+      { label: "Science Fact", href: "/student/science-fact", icon: "Sparkles" },
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
       { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
@@ -208,7 +209,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
-      // { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
+      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
@@ -218,8 +219,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
       { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
-      // ── Exams & Assessments ───────────────────────────
-      { label: "---", href: "#", icon: "" },
+
       { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Board Prep", href: "/student/high-school/board-prep", icon: "Target" },
@@ -264,7 +264,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
       { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
-      { label: "Wellness", href: "/student/wellness", icon: "Smile" },
+      // { label: "Wellness", href: "/student/wellness", icon: "Smile" },
 
       // ── School & Career ───────────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -299,7 +299,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "Academics & Subjects", href: "#", icon: "" },
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
-      // { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
+      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
@@ -354,7 +354,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
       { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
-      { label: "Wellness", href: "/student/wellness", icon: "Smile" },
+      // { label: "Wellness", href: "/student/wellness", icon: "Smile" },
 
       // ── School & Career ───────────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -448,6 +448,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // Interactive Modules & Centers
       { label: "Interactive Modules", href: "#", icon: "" },
       { label: "Science Draw Mat", href: "/teacher/science-draw-mat", icon: "Microscope" },
+      { label: "Science Fact", href: "/teacher/science-fact", icon: "Sparkles" },
       { label: "Maths Formulas", href: "/teacher/maths-formulas", icon: "Calculator" },
       { label: "Language Coaching", href: "/teacher/language-coaching", icon: "MessageSquare" },
       { label: "Science Lab Support", href: "/teacher/science-lab-support", icon: "FlaskConical" },

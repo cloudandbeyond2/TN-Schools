@@ -897,12 +897,14 @@ router.delete('/subjects/:id', async (req: Request, res: Response) => {
 router.put('/units/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, unitNumber } = req.body;
+    const { name, unitNumber, isApproved, isAiMapped } = req.body;
     const unit = await prisma.centralUnit.update({
       where: { id },
       data: {
         name,
-        unitNumber: unitNumber !== undefined ? Number(unitNumber) : undefined
+        unitNumber: unitNumber !== undefined ? Number(unitNumber) : undefined,
+        isApproved: isApproved !== undefined ? Boolean(isApproved) : undefined,
+        isAiMapped: isAiMapped !== undefined ? Boolean(isAiMapped) : undefined
       }
     });
     res.json({ success: true, data: unit });
@@ -1856,38 +1858,38 @@ function buildInfographicSVG(opts: {
   const { unitNumber, primaryTitle, secondaryTitle, description, tip, emoji, color } = opts;
   const c = /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#6366f1';
 
-  const descLines = wrapText(description, 38, 3);
+  const descLines = wrapText(description, 44, 3);
   const descTspans = descLines
     .map((ln, i) => `<tspan x="24" dy="${i === 0 ? 0 : 15}">${svgEscape(ln)}</tspan>`)
     .join('');
 
-  const tipLines = wrapText(tip, 44, 2);
+  const tipLines = wrapText(tip, 50, 2);
   const tipTspans = tipLines
     .map((ln, i) => `<tspan x="52" dy="${i === 0 ? 0 : 14}">${svgEscape(i === 0 ? 'Tip: ' + ln : ln)}</tspan>`)
     .join('');
 
-  const titleText = svgEscape(primaryTitle.length > 28 ? primaryTitle.slice(0, 27) + '…' : primaryTitle);
-  const subText = svgEscape(secondaryTitle.length > 44 ? secondaryTitle.slice(0, 43) + '…' : secondaryTitle);
+  const titleText = svgEscape(primaryTitle.length > 32 ? primaryTitle.slice(0, 31) + '…' : primaryTitle);
+  const subText = svgEscape(secondaryTitle.length > 50 ? secondaryTitle.slice(0, 49) + '…' : secondaryTitle);
 
-  return `<svg viewBox="0 0 380 260" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', 'Nirmala UI', 'Latha', Arial, sans-serif">
+  return `<svg viewBox="0 0 420 270" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', 'Nirmala UI', 'Latha', Arial, sans-serif">
   <defs>
     <linearGradient id="badgeGrad" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="${c}"/>
       <stop offset="100%" stop-color="${c}cc"/>
     </linearGradient>
   </defs>
-  <rect x="1.5" y="1.5" width="377" height="257" rx="18" fill="#ffffff" stroke="${c}" stroke-width="2"/>
-  <rect x="1.5" y="1.5" width="377" height="6" rx="3" fill="${c}"/>
+  <rect x="1.5" y="1.5" width="417" height="267" rx="18" fill="#ffffff" stroke="${c}" stroke-width="2"/>
+  <rect x="1.5" y="1.5" width="417" height="6" rx="3" fill="${c}"/>
   <circle cx="40" cy="46" r="20" fill="url(#badgeGrad)"/>
   <text x="40" y="52" font-size="18" font-weight="800" fill="#ffffff" text-anchor="middle">${unitNumber}</text>
-  <rect x="312" y="26" width="44" height="44" rx="12" fill="${c}1a"/>
-  <text x="334" y="55" font-size="24" text-anchor="middle">${svgEscape(emoji || '📘')}</text>
+  <rect x="352" y="26" width="44" height="44" rx="12" fill="${c}1a"/>
+  <text x="374" y="55" font-size="24" text-anchor="middle">${svgEscape(emoji || '📘')}</text>
   <text x="24" y="92" font-size="18" font-weight="800" fill="#0f172a"><tspan x="24" dy="0">${titleText}</tspan></text>
   <text x="24" y="110" font-size="12" fill="#64748b" font-style="italic">${subText}</text>
   <text x="24" y="134" font-size="12.5" fill="#334155">${descTspans}</text>
-  <rect x="24" y="190" width="332" height="54" rx="10" fill="${c}12" stroke="${c}33" stroke-width="1"/>
-  <text x="34" y="212" font-size="16">💡</text>
-  <text x="52" y="211" font-size="11" font-weight="600" fill="${c}">${tipTspans}</text>
+  <rect x="24" y="195" width="372" height="54" rx="10" fill="${c}12" stroke="${c}33" stroke-width="1"/>
+  <text x="34" y="217" font-size="16">💡</text>
+  <text x="52" y="216" font-size="11" font-weight="600" fill="${c}">${tipTspans}</text>
 </svg>`;
 }
 

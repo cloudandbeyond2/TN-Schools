@@ -52,8 +52,44 @@ router.get('/block', async (req: Request, res: Response) => {
     const ids = schools.map((s) => s.id);
 
     const year = resolveYear(req);
-    const [kpis, bySchool] = await Promise.all([computeKpis(ids, year), perSchoolBreakdown(ids, year)]);
-    res.json({ success: true, data: { ...kpis, totalSchools: ids.length, bySchool } });
+    const [kpis, bySchool, totalAthletes, stateReps, districtMedals] = await Promise.all([
+      computeKpis(ids, year),
+      perSchoolBreakdown(ids, year),
+      prisma.sportsProfile.count({
+        where: { student: { schoolId: { in: ids } } }
+      }),
+      prisma.sportsTeam.count({
+        where: {
+          sportsProfile: { student: { schoolId: { in: ids } } },
+          OR: [
+            { name: { contains: 'State', mode: 'insensitive' } },
+            { match: { contains: 'State', mode: 'insensitive' } }
+          ]
+        }
+      }),
+      prisma.sportsTeam.count({
+        where: {
+          sportsProfile: { student: { schoolId: { in: ids } } },
+          OR: [
+            { name: { contains: 'District', mode: 'insensitive' } },
+            { match: { contains: 'District', mode: 'insensitive' } }
+          ]
+        }
+      })
+    ]);
+    res.json({
+      success: true,
+      data: {
+        ...kpis,
+        totalSchools: ids.length,
+        bySchool,
+        sports: {
+          totalAthletes,
+          stateReps,
+          districtMedals
+        }
+      }
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -352,6 +388,20 @@ router.get('/minister/live', async (req: Request, res: Response) => {
       prisma.ministerGrievance.count({ where: { status: { in: ['Pending', 'Under Review', 'Intervention Pending'] } } })
     ]);
 
+    const zonePerformances = await prisma.ministerDistrictPerformance.groupBy({
+      by: ['zone'],
+      _count: { id: true },
+      _avg: { attendance: true }
+    });
+
+    const regionMapping: Record<string, string> = {
+      North: "Northern TN",
+      South: "Southern TN",
+      West: "Western TN",
+      Central: "Central TN",
+      Delta: "Delta TN"
+    };
+
     let attendanceStr = "86.4%";
     if (todayTotalAtt > 0) {
       attendanceStr = (Math.round((todayPresentAtt / todayTotalAtt) * 1000) / 10) + "%";
@@ -376,6 +426,11 @@ router.get('/minister/live', async (req: Request, res: Response) => {
           type: a.type,
           msg: a.msg,
           time: a.time
+        })),
+        coverage: zonePerformances.map(zp => ({
+          region: regionMapping[zp.zone] || `${zp.zone} TN`,
+          coverage: zp._avg.attendance ? Math.round(zp._avg.attendance) : 85,
+          districts: zp._count.id
         }))
       }
     });

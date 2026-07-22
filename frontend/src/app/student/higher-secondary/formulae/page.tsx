@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import {
   BookOpen,
@@ -211,15 +212,19 @@ const FORMULAE_DATA: Formula[] = [
 ];
 
 export default function FormulaeHubPage() {
+  const { data: session } = useSession();
+  const userClassRaw = (session?.user as any)?.class || (session?.user as any)?.className || "";
+  const userClassMatch = String(userClassRaw).match(/(11|12)/);
+  const userStandard = userClassMatch ? userClassMatch[0] : "All";
+
   const [activeSubject, setActiveSubject] = useState<"All" | "Mathematics" | "Physics" | "Chemistry">("All");
-  const [activeStandard, setActiveStandard] = useState<"All" | "11" | "12">("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFormula, setSelectedFormula] = useState<Formula | null>(null);
 
   // Filters
   const filteredFormulae = FORMULAE_DATA.filter((f) => {
     const matchesSubject = activeSubject === "All" || f.subject === activeSubject;
-    const matchesStandard = activeStandard === "All" || f.standard === activeStandard;
+    const matchesStandard = userStandard === "All" || f.standard === userStandard;
     const matchesSearch =
       f.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       f.formula.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -292,21 +297,7 @@ export default function FormulaeHubPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
-            {/* Class Filter Tabs */}
-            <div className="flex gap-1 p-1 bg-slate-950/85 border border-slate-850 rounded-xl">
-              {(["All", "11", "12"] as const).map((std) => (
-                <button
-                  key={std}
-                  onClick={() => setActiveStandard(std)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeStandard === std
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-400 hover:text-white"
-                    }`}
-                >
-                  {std === "All" ? "All Classes" : `Class ${std}`}
-                </button>
-              ))}
-            </div>
+
 
             {/* Subject Tabs */}
             <div className="flex gap-1 p-1 bg-slate-950/85 border border-slate-850 rounded-xl hide-scrollbar">

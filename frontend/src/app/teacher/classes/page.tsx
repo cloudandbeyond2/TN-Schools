@@ -982,7 +982,7 @@ export default function ClassesPage() {
                 className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-1 flex items-center justify-center gap-2"
               >
                 {submitting
-                  ? "Saving to PostgreSQL..."
+                  ? "Saving..."
                   : editingId
                     ? <><i className="fi fi-rr-disk"></i> Save Changes</>
                     : <><i className="fi fi-rr-building"></i> Create Class</>}

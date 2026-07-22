@@ -4,6 +4,7 @@ import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { BookOpen } from "lucide-react";
 
 interface Subject {
   id: string;
@@ -53,15 +54,20 @@ export default function StudentSyllabusBoardPage() {
   const [loadingUnits, setLoadingUnits] = useState<boolean>(false);
 
   useEffect(() => {
+    if (status === "loading") return;
     if (status === "authenticated" && session?.user) {
       const userClass = (session?.user as any)?.class;
       if (userClass) {
-        setSelectedClass(String(userClass));
-      } else {
-        setSelectedClass("8");
+        const num = String(userClass).match(/\d+/)?.[0] || String(userClass);
+        setSelectedClass(num);
+        return;
       }
     }
-  }, [session, status]);
+    // Fallback if not authenticated or class is missing
+    if (!selectedClass) {
+      setSelectedClass("10"); // default to 10
+    }
+  }, [session, status, selectedClass]);
 
   useEffect(() => {
     if (!selectedClass) return;
@@ -103,7 +109,7 @@ export default function StudentSyllabusBoardPage() {
     setLoadingUnits(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/centralized-content/subjects/${sub.id}/units?approvedOnly=true`);
+      const res = await fetch(`${API_URL}/api/centralized-content/subjects/${sub.id}/units`);
       const json = await res.json();
       if (!json.success) return;
 
@@ -136,7 +142,7 @@ export default function StudentSyllabusBoardPage() {
   return (
     <PortalLayout
       title="Class Syllabus Board"
-      subtitle="Unit-by-unit visual summaries your teacher has published for your class."
+      subtitle="Unit-by-unit visual summaries published for your class standard."
       avatarLetter="A"
       avatarColor="#6366f1"
       themeClass="theme-student"
@@ -145,11 +151,13 @@ export default function StudentSyllabusBoardPage() {
       <div className="flex items-center justify-between gap-4 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
         <div>
           <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1">Syllabus Board</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Only units your teacher has published appear here.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">All centralized units published for your curriculum standard.</p>
         </div>
-        <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm">
-          Class {selectedClass}th Standard
-        </span>
+        {selectedClass && (
+          <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+            Class {selectedClass}th Standard
+          </span>
+        )}
       </div>
 
       {loadingSubjects ? (
@@ -193,11 +201,11 @@ export default function StudentSyllabusBoardPage() {
           ) : unitCards.length === 0 ? (
             <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
               <span className="text-5xl block mb-4">🕓</span>
-              <p className="text-lg font-bold text-slate-700 dark:text-slate-300">Your teacher hasn&apos;t published any units yet.</p>
-              <p className="text-xs text-slate-500 mt-2">Check back once your teacher shares this subject&apos;s syllabus board.</p>
+              <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No units have been published yet for this subject.</p>
+              <p className="text-xs text-slate-500 mt-2">Check back once the syllabus board is updated.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
               {unitCards.map((card) => (
                 <Link
                   key={card.unitId}
@@ -207,7 +215,19 @@ export default function StudentSyllabusBoardPage() {
                   {card.imageUrl ? (
                     <img src={card.imageUrl} alt={card.unitName} className="w-full h-auto block group-hover:scale-[1.02] transition-transform duration-300" />
                   ) : (
-                    <div className="h-40 flex items-center justify-center text-slate-400 text-xs font-semibold">Unit {card.unitNumber}</div>
+                    <div className="h-44 bg-gradient-to-br from-indigo-50/50 to-indigo-100/30 dark:from-slate-900/60 dark:to-slate-900/20 flex flex-col items-center justify-center p-6 text-center border-b border-slate-100 dark:border-slate-800/80 relative overflow-hidden group-hover:from-indigo-100/50 group-hover:to-indigo-200/20 transition-all duration-300 select-none">
+                      {/* Decorative background grid pattern */}
+                      <div className="absolute inset-0 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.06] dark:opacity-[0.03]" />
+                      <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 flex items-center justify-center mb-3 shadow-inner relative z-10">
+                        <BookOpen className="w-5 h-5 text-indigo-550 dark:text-indigo-400" />
+                      </div>
+                      <span className="text-xs font-black text-slate-800 dark:text-slate-200 relative z-10 leading-snug">
+                        Unit {card.unitNumber} Overview
+                      </span>
+                      <span className="text-[9px] text-indigo-650 dark:text-indigo-450 font-extrabold uppercase tracking-widest mt-1.5 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded border border-indigo-100/20 dark:border-indigo-900/20 relative z-10">
+                        Pending AI Map
+                      </span>
+                    </div>
                   )}
                   <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
                     <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">
