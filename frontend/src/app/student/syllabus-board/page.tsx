@@ -4,6 +4,7 @@ import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { BookOpen } from "lucide-react";
 
 interface Subject {
   id: string;
@@ -204,7 +205,7 @@ export default function StudentSyllabusBoardPage() {
               <p className="text-xs text-slate-500 mt-2">Check back once the syllabus board is updated.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
               {unitCards.map((card) => (
                 <Link
                   key={card.unitId}
@@ -214,7 +215,19 @@ export default function StudentSyllabusBoardPage() {
                   {card.imageUrl ? (
                     <img src={card.imageUrl} alt={card.unitName} className="w-full h-auto block group-hover:scale-[1.02] transition-transform duration-300" />
                   ) : (
-                    <div className="h-40 flex items-center justify-center text-slate-400 text-xs font-semibold">Unit {card.unitNumber}</div>
+                    <div className="h-44 bg-gradient-to-br from-indigo-50/50 to-indigo-100/30 dark:from-slate-900/60 dark:to-slate-900/20 flex flex-col items-center justify-center p-6 text-center border-b border-slate-100 dark:border-slate-800/80 relative overflow-hidden group-hover:from-indigo-100/50 group-hover:to-indigo-200/20 transition-all duration-300 select-none">
+                      {/* Decorative background grid pattern */}
+                      <div className="absolute inset-0 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.06] dark:opacity-[0.03]" />
+                      <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 flex items-center justify-center mb-3 shadow-inner relative z-10">
+                        <BookOpen className="w-5 h-5 text-indigo-550 dark:text-indigo-400" />
+                      </div>
+                      <span className="text-xs font-black text-slate-800 dark:text-slate-200 relative z-10 leading-snug">
+                        Unit {card.unitNumber} Overview
+                      </span>
+                      <span className="text-[9px] text-indigo-650 dark:text-indigo-450 font-extrabold uppercase tracking-widest mt-1.5 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded border border-indigo-100/20 dark:border-indigo-900/20 relative z-10">
+                        Pending AI Map
+                      </span>
+                    </div>
                   )}
                   <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
                     <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">
