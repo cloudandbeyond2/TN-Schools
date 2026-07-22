@@ -26,7 +26,7 @@ const DISTRICTS = [
   "Tirunelveli", "Tirupathur", "Tiruppur", "Tiruvannamalai", "The Nilgiris",
   "Vellore", "Viluppuram", "Virudhunagar"
 ];
-const TYPES = ["Government", "Aided", "Private", "GHS", "GHSS", "Middle", "Primary"] as const;
+const TYPES = ["Government", "Aided","GHS", "GHSS", "Middle", "Primary"] as const;
 const MEDIUMS = ["Tamil", "English", "Both"] as const;
 
 const typeColors: Record<string, string> = {
