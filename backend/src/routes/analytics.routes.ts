@@ -388,6 +388,20 @@ router.get('/minister/live', async (req: Request, res: Response) => {
       prisma.ministerGrievance.count({ where: { status: { in: ['Pending', 'Under Review', 'Intervention Pending'] } } })
     ]);
 
+    const zonePerformances = await prisma.ministerDistrictPerformance.groupBy({
+      by: ['zone'],
+      _count: { id: true },
+      _avg: { attendance: true }
+    });
+
+    const regionMapping: Record<string, string> = {
+      North: "Northern TN",
+      South: "Southern TN",
+      West: "Western TN",
+      Central: "Central TN",
+      Delta: "Delta TN"
+    };
+
     let attendanceStr = "86.4%";
     if (todayTotalAtt > 0) {
       attendanceStr = (Math.round((todayPresentAtt / todayTotalAtt) * 1000) / 10) + "%";
@@ -412,6 +426,11 @@ router.get('/minister/live', async (req: Request, res: Response) => {
           type: a.type,
           msg: a.msg,
           time: a.time
+        })),
+        coverage: zonePerformances.map(zp => ({
+          region: regionMapping[zp.zone] || `${zp.zone} TN`,
+          coverage: zp._avg.attendance ? Math.round(zp._avg.attendance) : 85,
+          districts: zp._count.id
         }))
       }
     });
