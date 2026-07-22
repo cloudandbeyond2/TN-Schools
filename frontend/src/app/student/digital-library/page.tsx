@@ -85,21 +85,21 @@ export default function DigitalLibraryPage() {
       <div className="space-y-8 text-left animate-in fade-in duration-500 pb-20">
 
         {/* Premium Hero Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-indigo-600 dark:bg-slate-900 p-6 sm:p-8 md:p-12 shadow-2xl border border-indigo-500/20 dark:border-white/10 group">
+        <div className="relative overflow-hidden rounded-2xl bg-indigo-600 dark:bg-slate-900 p-5 sm:p-6 md:p-8 shadow-lg border border-indigo-500/20 dark:border-white/10 group">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-600/40 dark:via-purple-600/40 dark:to-pink-600/40 opacity-90 dark:opacity-50 group-hover:opacity-100 dark:group-hover:opacity-70 transition-opacity duration-700" />
-          <div className="absolute -right-16 -top-16 opacity-20 dark:opacity-10 transform rotate-12 scale-150 pointer-events-none transition-transform duration-1000 group-hover:scale-[1.6]">
-            <img src="https://cdn-icons-png.flaticon.com/128/2232/2232688.png" className="w-96 h-96 grayscale invert" alt="library bg" />
+          <div className="absolute -right-16 -top-16 opacity-20 dark:opacity-10 transform rotate-12 scale-110 pointer-events-none transition-transform duration-1000 group-hover:scale-[1.2]">
+            <img src="https://cdn-icons-png.flaticon.com/128/2232/2232688.png" className="w-64 h-64 grayscale invert" alt="library bg" />
           </div>
 
-          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-            <div className="space-y-4 max-w-2xl">
-              <p className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold !text-white/90 bg-white/20 dark:bg-white/10 backdrop-blur-md rounded-full border border-white/30 dark:border-white/20 uppercase tracking-widest shadow-xl">
-                <img src="https://cdn-icons-png.flaticon.com/128/1666/1666579.png" className="w-4 h-4 !text-white/90" alt="sparkles" /> Premium Knowledge Hub
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="space-y-3 max-w-xl text-left">
+              <p className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold !text-white/90 bg-white/20 dark:bg-white/10 backdrop-blur-md rounded-full border border-white/30 dark:border-white/20 uppercase tracking-widest shadow-sm">
+                <img src="https://cdn-icons-png.flaticon.com/128/1666/1666579.png" className="w-3.5 h-3.5 !text-white/90" alt="sparkles" /> Premium Knowledge Hub
               </p>
-              <p className="!text-white/90 text-4xl md:text-5xl font-black tracking-tight font-sans leading-tight !text-amber-300 drop-shadow-lg">
+              <p className="!text-white/90 text-2xl md:text-3xl font-black tracking-tight font-sans leading-tight !text-amber-300 drop-shadow-md">
                 Limitless Learning, Anytime.
               </p>
-              <p className="!text-white/90 text-base md:text-lg leading-relaxed font-medium drop-shadow">
+              <p className="!text-white/90 text-xs md:text-sm leading-relaxed font-medium drop-shadow-sm opacity-95">
                 Explore an extensive collection of E-books, Government materials, Video lectures, and Competitive exam prep. Your ultimate academic companion.
               </p>
             </div>
@@ -134,25 +134,25 @@ export default function DigitalLibraryPage() {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`snap-start shrink-0 relative overflow-hidden rounded-2xl p-4 md:p-5 text-left transition-all duration-300 w-40 sm:w-44 md:w-56 group border ${isActive
-                    ? "border-transparent ring-2 ring-indigo-500 shadow-xl scale-105"
-                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-lg"
+                  className={`snap-start shrink-0 relative overflow-hidden rounded-xl p-3 md:p-3.5 text-left transition-all duration-300 w-28 sm:w-32 md:w-40 group border ${isActive
+                    ? "border-transparent ring-2 ring-indigo-500 shadow-md scale-105"
+                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md"
                     }`}
                 >
                   {isActive && (
                     <div className={`absolute inset-0 bg-gradient-to-br ${cat.gradient} opacity-100 z-0`} />
                   )}
-                  <div className="relative z-10 flex flex-col h-full gap-3 sm:gap-4">
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-colors ${isActive ? "bg-white/20" : `bg-gradient-to-br ${cat.gradient} shadow-md`
+                  <div className="relative z-10 flex flex-col h-full gap-2 sm:gap-3">
+                    <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center transition-colors ${isActive ? "bg-white/20" : `bg-gradient-to-br ${cat.gradient} shadow-sm`
                       }`}>
-                      <img src={cat.flaticon} className="w-5 h-5 sm:w-6 sm:h-6 brightness-0 invert opacity-90" alt={cat.label} />
+                      <img src={cat.flaticon} className="w-4 h-4 sm:w-5 sm:h-5 brightness-0 invert opacity-90" alt={cat.label} />
                     </div>
                     <div>
-                      <p className={`font-bold leading-tight ${isActive ? "!text-white/90" : "text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`}>
+                      <p className={`text-xs font-bold leading-snug ${isActive ? "!text-white/90" : "text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400"}`}>
                         {cat.label}
                       </p>
                       {!isActive && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
                           Explore collection
                         </p>
                       )}
@@ -172,38 +172,42 @@ export default function DigitalLibraryPage() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2">
               {resources.slice(0, 3).map((res) => (
-                <div key={`trend-${res.id}`} onClick={() => {
-                  const url = res.fileUrl?.startsWith('/')
-                    ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${res.fileUrl}`
-                    : res.fileUrl;
-                  window.open(url, '_blank');
-                }} className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden transform hover:-translate-y-1">
-                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
-                    <img src="https://cdn-icons-png.flaticon.com/128/3112/3112946.png" className="w-24 h-24 grayscale" alt="trophy bg" />
+                <div 
+                  key={`trend-${res.id}`} 
+                  onClick={() => {
+                    const url = res.fileUrl?.startsWith('/')
+                      ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${res.fileUrl}`
+                      : res.fileUrl;
+                    window.open(url, '_blank');
+                  }} 
+                  className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer overflow-hidden transform hover:-translate-y-1"
+                >
+                  <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
+                    <img src="https://cdn-icons-png.flaticon.com/128/3112/3112946.png" className="w-16 h-16 grayscale" alt="trophy bg" />
                   </div>
-                  <div className="relative z-10 space-y-4">
+                  <div className="relative z-10 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-full border border-indigo-100 dark:border-indigo-800/50">
+                      <span className="px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-650 dark:text-indigo-400 text-[10px] font-black rounded-full border border-indigo-100 dark:border-indigo-800/50">
                         {res.type.toUpperCase()}
                       </span>
-                      <span className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                      <span className="flex items-center gap-1 text-[10px] text-slate-400 font-bold">
                         <img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" className="w-3.5 h-3.5 opacity-70 grayscale" alt="clock" /> 5m read
                       </span>
                     </div>
                     <div>
-                      <h4 className="text-xl font-bold text-slate-800 dark:text-white line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-white line-clamp-2 leading-snug group-hover:text-indigo-600 transition-colors">
                         {res.title}
                       </h4>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Subject: {res.subject}</p>
+                      <p className="text-[11px] text-slate-450 dark:text-slate-400 mt-1">Subject: {res.subject}</p>
                     </div>
-                    <div className="pt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                    <div className="pt-3 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
                       <div className="flex gap-1">
                         {res.tags?.slice(0, 2).map((tag: string) => (
-                          <span key={tag} className="text-[10px] px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-md font-semibold">#{tag}</span>
+                          <span key={tag} className="text-[9px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded font-semibold">#{tag}</span>
                         ))}
                       </div>
-                      <div className="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center transform group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/30">
-                        <img src="https://cdn-icons-png.flaticon.com/128/2989/2989988.png" className="w-4 h-4 invert" alt="go" />
+                      <div className="w-7 h-7 rounded-full bg-indigo-500 text-white flex items-center justify-center transform group-hover:scale-110 transition-transform shadow-md shadow-indigo-500/30">
+                        <img src="https://cdn-icons-png.flaticon.com/128/2989/2989988.png" className="w-3.5 h-3.5 invert" alt="go" />
                       </div>
                     </div>
                   </div>
@@ -240,44 +244,44 @@ export default function DigitalLibraryPage() {
                     const url = res.fileUrl?.startsWith('/')
                       ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${res.fileUrl}`
                       : res.fileUrl;
-                    window.open(url, '_blank');
-                  }} className="group flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer hover:border-indigo-400/50">
+                    window.open(url, '_blank')
+                  }} className="group flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-indigo-400/50">
                     {/* Media Thumbnail Area */}
-                    <div className={`h-32 w-full relative overflow-hidden flex items-center justify-center ${isVideo ? 'bg-slate-900' : 'bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900'}`}>
+                    <div className={`h-24 w-full relative overflow-hidden flex items-center justify-center ${isVideo ? 'bg-slate-900' : 'bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900'}`}>
                       {isVideo ? (
                         <>
                           <img src={`https://images.unsplash.com/photo-1616469829581-73993eb86b02?w=800&q=80`} alt="Video Thumbnail" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" />
-                          <img src="https://cdn-icons-png.flaticon.com/128/3176/3176388.png" className="w-12 h-12 invert drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform" alt="play" />
+                          <img src="https://cdn-icons-png.flaticon.com/128/3176/3176388.png" className="w-8 h-8 invert drop-shadow-2xl relative z-10 group-hover:scale-110 transition-transform" alt="play" />
                         </>
                       ) : (
-                        <div className="transition-colors group-hover:scale-110 duration-500">
-                          <img src="https://cdn-icons-png.flaticon.com/128/3389/3389081.png" className="w-16 h-16 opacity-30 group-hover:opacity-60 transition-opacity" alt="book thumbnail" />
+                        <div className="transition-colors group-hover:scale-105 duration-550">
+                          <img src="https://cdn-icons-png.flaticon.com/128/3389/3389081.png" className="w-10 h-10 opacity-30 group-hover:opacity-60 transition-opacity" alt="book thumbnail" />
                         </div>
                       )}
 
                       {/* Top Badges */}
-                      <div className="absolute top-3 left-3 flex gap-2">
-                        <span className="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider bg-white/90 dark:bg-black/80 backdrop-blur-sm text-slate-800 dark:text-white rounded-md shadow-sm border border-slate-200/50 dark:border-slate-700/50">
+                      <div className="absolute top-2 left-2 flex gap-1.5">
+                        <span className="px-2 py-0.5 text-[8px] font-black uppercase tracking-wider bg-white/95 dark:bg-black/90 backdrop-blur-sm text-slate-800 dark:text-white rounded shadow-sm border border-slate-200/50 dark:border-slate-700/50">
                           {res.type}
                         </span>
                       </div>
                     </div>
 
                     {/* Content Area */}
-                    <div className="p-5 flex flex-col flex-1">
+                    <div className="p-3.5 flex flex-col flex-1 text-left">
                       <div className="flex-1">
-                        <p className="text-xs font-bold text-indigo-500 mb-1.5">{res.subject}</p>
-                        <h4 className="font-bold text-slate-800 dark:text-white leading-snug group-hover:text-indigo-600 transition-colors line-clamp-2">
+                        <p className="text-[10px] font-bold text-indigo-500 mb-1">{res.subject}</p>
+                        <h4 className="text-xs font-bold text-slate-800 dark:text-white leading-snug group-hover:text-indigo-600 transition-colors line-clamp-2">
                           {res.title}
                         </h4>
                       </div>
 
-                      <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1.5">
-                          <img src="https://cdn-icons-png.flaticon.com/128/2983/2983155.png" className="w-3 h-3 grayscale opacity-60" alt="doc" /> {res.size || 'PDF'}
+                      <div className="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <span className="text-[9px] text-slate-400 font-semibold flex items-center gap-1">
+                          <img src="https://cdn-icons-png.flaticon.com/128/2983/2983155.png" className="w-2.5 h-2.5 grayscale opacity-60" alt="doc" /> {res.size || 'PDF'}
                         </span>
-                        <div className="flex items-center gap-1 text-xs font-bold text-indigo-500 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
-                          Access <img src="https://cdn-icons-png.flaticon.com/128/2989/2989988.png" className="w-3.5 h-3.5 opacity-80" alt="go" />
+                        <div className="flex items-center gap-1 text-[10px] font-bold text-indigo-500 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
+                          Access <img src="https://cdn-icons-png.flaticon.com/128/2989/2989988.png" className="w-3 h-3 opacity-80" alt="go" />
                         </div>
                       </div>
                     </div>
