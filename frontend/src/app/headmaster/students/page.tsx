@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 interface IconProps {
   className?: string;
   size?: number;
@@ -200,6 +201,7 @@ interface WatchlistStudent {
 }
 
 export default function StudentsMonitoringPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   // Headmaster's own school — derived directly from session, never changes
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
@@ -390,7 +392,9 @@ export default function StudentsMonitoringPage() {
   // UI Control states
   const [showAadhar, setShowAadhar] = useState(false);
   const [showBankAccount, setShowBankAccount] = useState(false);
-  const [viewModalTab, setViewModalTab] = useState<"academic" | "confidential">("academic");
+  const [viewModalTab, setViewModalTab] = useState<"academic" | "confidential" | "idcard">("academic");
+  const idCardRef = useRef<HTMLDivElement>(null);
+  const idCardBackRef = useRef<HTMLDivElement>(null);
 
   // Live input validations
   const [pincodeError, setPincodeError] = useState("");
@@ -530,6 +534,42 @@ export default function StudentsMonitoringPage() {
       }
     } catch (e) {
       showToast("Failed to save health report", "error");
+    }
+  };
+
+  const handleDownloadIdCard = async () => {
+    const frontEl = idCardRef.current;
+    const backEl = idCardBackRef.current;
+    if (!frontEl || !backEl) return;
+    try {
+      showToast("Generating ID Card PDF...");
+      // Standard CR80 Card format in mm: 85.6mm x 53.98mm (landscape)
+      const W = 85.6, H = 53.98;
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [W, H] });
+
+      const frontCanvas = await html2canvas(frontEl, {
+        scale: 4,
+        useCORS: true,
+        backgroundColor: '#0f2744',
+        logging: false,
+      });
+      pdf.addImage(frontCanvas.toDataURL('image/png'), 'PNG', 0, 0, W, H);
+
+      pdf.addPage([W, H], 'landscape');
+      const backCanvas = await html2canvas(backEl, {
+        scale: 4,
+        useCORS: true,
+        backgroundColor: '#f8fafc',
+        logging: false,
+      });
+      pdf.addImage(backCanvas.toDataURL('image/png'), 'PNG', 0, 0, W, H);
+
+      const safeName = (newName || 'Student').replace(/[^a-zA-Z0-9]/g, '_');
+      pdf.save(`${safeName}_IDCard.pdf`);
+      showToast('🎉 ID Card PDF (front + back) downloaded!');
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to generate ID Card PDF.', 'error');
     }
   };
 
@@ -1267,8 +1307,8 @@ export default function StudentsMonitoringPage() {
 
   return (
     <PortalLayout
-      title="Student Monitoring & Watchlist"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
+      title={lang === "தமிழ்" ? "மாணவர் கண்காணிப்பு & கவற்றல் பட்டியல்" : "Student Monitoring & Watchlist"}
+      subtitle={lang === "தமிழ்" ? "மாணவர் தகவல், வருகைப்பதிவு மற்றும் கவற்றல் நிலை." : "Student information, attendance and watchlist status."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
@@ -1277,8 +1317,8 @@ export default function StudentsMonitoringPage() {
       {/* School Badge — locked to this headmaster's school */}
       <div className="glass rounded-2xl p-4 border border-slate-800 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 fade-in">
         <div>
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider">Managed Institution</h3>
-          <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Student data is scoped to your assigned school only.</p>
+          <h3 className="text-xs font-bold text-white uppercase tracking-wider">{lang === "தமிழ்" ? "நிர்வகிக்கப்படும் நிறுவனம்" : "Managed Institution"}</h3>
+          <p className="text-[10px] text-slate-500 font-semibold mt-0.5">{lang === "தமிழ்" ? "மாணவர் தகவல் உங்கள் பள்ளிக்கு மட்டுமிட்டதாகும்." : "Student data is scoped to your assigned school only."}</p>
         </div>
         <div className="flex items-center gap-2 bg-blue-600/10 border border-blue-500/30 rounded-xl px-4 py-2 w-full sm:w-auto">
           <i className="fi fi-rr-school text-blue-400 text-base" />
@@ -1292,10 +1332,10 @@ export default function StudentsMonitoringPage() {
       {/* Metrics Row */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-6 fade-in">
         {[
-          { label: "Total Students", value: isLoading ? "..." : watchlist.length.toString(), icon: <i className="fi fi-rr-graduation-cap" />, color: "text-blue-400", bg: "bg-blue-500/10", sub: "All registered students" },
-          { label: "Active Students", value: isLoading ? "..." : activeCount.toString(), icon: <i className="fi fi-rr-checkbox" />, color: "text-emerald-400", bg: "bg-emerald-500/10", sub: "Currently attending" },
-          { label: "Boys", value: isLoading ? "..." : boysCount.toString(), icon: <i className="fi fi-rr-user" />, color: "text-indigo-400", bg: "bg-indigo-500/10", sub: "Male students" },
-          { label: "Girls", value: isLoading ? "..." : girlsCount.toString(), icon: <i className="fi fi-rr-user" />, color: "text-pink-400", bg: "bg-pink-500/10", sub: "Female students" },
+          { label: lang === "தமிழ்" ? "மொத்த மாணவர்கள்" : "Total Students", value: isLoading ? "..." : watchlist.length.toString(), icon: <i className="fi fi-rr-graduation-cap" />, color: "text-blue-400", bg: "bg-blue-500/10", sub: lang === "தமிழ்" ? "பதிவு செய்த அனைத்து மாணவர்கள்" : "All registered students" },
+          { label: lang === "தமிழ்" ? "சுறுப்புள்ள மாணவர்கள்" : "Active Students", value: isLoading ? "..." : activeCount.toString(), icon: <i className="fi fi-rr-checkbox" />, color: "text-emerald-400", bg: "bg-emerald-500/10", sub: lang === "தமிழ்" ? "தற்போது படிக்கறார்கள்" : "Currently attending" },
+          { label: lang === "தமிழ்" ? "ஆண்கள்" : "Boys", value: isLoading ? "..." : boysCount.toString(), icon: <i className="fi fi-rr-user" />, color: "text-indigo-400", bg: "bg-indigo-500/10", sub: lang === "தமிழ்" ? "ஆண் மாணவர்கள்" : "Male students" },
+          { label: lang === "தமிழ்" ? "பெண்கள்" : "Girls", value: isLoading ? "..." : girlsCount.toString(), icon: <i className="fi fi-rr-user" />, color: "text-pink-400", bg: "bg-pink-500/10", sub: lang === "தமிழ்" ? "பெண் மாணவர்கள்" : "Female students" },
         ].map((kpi) => (
           <div key={kpi.label} className="glass rounded-2xl p-3 sm:p-4 border border-slate-800 flex items-center justify-between hover:scale-[1.02] transition-all shadow-sm">
             <div className="flex flex-col text-left min-w-0">
@@ -1325,7 +1365,7 @@ export default function StudentsMonitoringPage() {
           </div>
           <button
             onClick={() => setToast(null)}
-            className="text-[10px] font-bold text-slate-455 hover:text-white shrink-0 ml-2 flex items-center justify-center"
+            className="text-[10px] font-bold text-slate-500 hover:text-white shrink-0 ml-2 flex items-center justify-center"
           >
             <i className="fi fi-rr-cross text-[9px]" />
           </button>
@@ -1644,23 +1684,18 @@ export default function StudentsMonitoringPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
-            className="w-full max-w-4xl rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-6 relative transition-all duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar"
-            style={{
-              background: "#ffffff",
-              border: "1px solid rgba(0, 0, 0, 0.08)",
-              boxShadow: "0 20px 50px rgba(0, 0, 0, 0.15)",
-            }}
+            className="w-full max-w-4xl rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-6 relative transition-all duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl text-slate-900 dark:text-white"
           >
             {/* Modal Header with Tabs */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-3 gap-2.5">
-              <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 self-start sm:self-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 pb-3 gap-2.5">
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950/40 rounded-xl p-1 self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => setModalTab("manual")}
                   disabled={previewStudents.length > 0}
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${modalTab === "manual"
-                      ? "bg-white text-slate-800 shadow-sm"
-                      : "text-slate-500 hover:text-slate-700"
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm"
+                      : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
                     }`}
                 >
                   <span className="flex items-center gap-1.5"><i className="fi fi-rr-edit" /> Manual Entry</span>
@@ -1670,8 +1705,8 @@ export default function StudentsMonitoringPage() {
                   onClick={() => setModalTab("excel")}
                   disabled={previewStudents.length > 0}
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${modalTab === "excel"
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-slate-500 hover:text-slate-700"
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm"
+                      : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
                     }`}
                 >
                   <span className="flex items-center gap-1.5"><i className="fi fi-rr-file-spreadsheet" /> Excel Import</span>
@@ -1679,7 +1714,7 @@ export default function StudentsMonitoringPage() {
               </div>
               <button
                 onClick={() => { setIsModalOpen(false); setPreviewStudents([]); setModalTab("manual"); }}
-                className="text-slate-500 hover:text-slate-800 text-xs font-semibold self-end sm:self-auto flex items-center gap-1"
+                className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white text-xs font-semibold self-end sm:self-auto flex items-center gap-1"
               >
                 <i className="fi fi-rr-cross text-[9px]" /> Close
               </button>
@@ -1825,7 +1860,7 @@ export default function StudentsMonitoringPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-slate-800 dark:text-slate-200">
                       
                       {/* Left Column: Profile Card */}
-                      <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-880 rounded-3xl p-5 flex flex-col items-center text-center space-y-4 self-start">
+                      <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col items-center text-center space-y-4 self-start">
                         
                         {/* Profile Image */}
                         <div className="relative w-24 h-24 rounded-full overflow-hidden shadow border-4 border-white dark:border-slate-800">
@@ -1848,46 +1883,46 @@ export default function StudentsMonitoringPage() {
                           )}
                         </div>
 
-                        <div className="w-full space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800 text-left text-xs font-semibold text-slate-600 dark:text-slate-350">
+                        <div className="w-full space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">
                           <div className="flex justify-between">
-                            <span className="text-slate-455">EMIS Number</span>
+                            <span className="text-slate-500">EMIS Number</span>
                             <span className="font-extrabold text-slate-800 dark:text-white">{newEmisNumber || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Roll Number</span>
+                            <span className="text-slate-500">Roll Number</span>
                             <span className="font-extrabold text-slate-800 dark:text-white">{newRollNumber || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Admission No</span>
+                            <span className="text-slate-500">Admission No</span>
                             <span className="font-extrabold text-slate-800 dark:text-white">{newAdmissionNumber || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Status</span>
+                            <span className="text-slate-500">Status</span>
                             <span className={`px-2 py-0.2 rounded-full text-[9px] font-bold ${
-                              newStudentStatus === "Active" ? "bg-emerald-500/10 text-emerald-605" : "bg-red-500/10 text-red-600"
+                              newStudentStatus === "Active" ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"
                             }`}>{newStudentStatus}</span>
                           </div>
                         </div>
 
-                        <div className="w-full space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800 text-left text-xs font-semibold text-slate-600 dark:text-slate-350">
+                        <div className="w-full space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Gender</span>
+                            <span className="text-slate-500">Gender</span>
                             <span className="font-bold text-slate-800 dark:text-white">{newGender || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Date of Birth</span>
+                            <span className="text-slate-500">Date of Birth</span>
                             <span className="font-bold text-slate-800 dark:text-white">{newDob || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Blood Group</span>
+                            <span className="text-slate-500">Blood Group</span>
                             <span className="px-1.5 py-0.2 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900 rounded font-black text-[10px]">{newBloodGroup || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Religion/Caste</span>
+                            <span className="text-slate-500">Religion/Caste</span>
                             <span className="font-bold text-slate-800 dark:text-white">{newReligion || "—"} · {newCommunity || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-455">Medium</span>
+                            <span className="text-slate-500">Medium</span>
                             <span className="font-bold text-slate-800 dark:text-white">{newMediumOfInstruction}</span>
                           </div>
                         </div>
@@ -1922,6 +1957,18 @@ export default function StudentsMonitoringPage() {
                             <Lock className="w-3.5 h-3.5 text-blue-500" />
                             <span>🔐 Confidential Records</span>
                           </button>
+                          <button
+                            type="button"
+                            onClick={() => setViewModalTab("idcard")}
+                            className={`px-4 py-2 text-xs font-bold transition-all border-b-2 -mb-[10px] flex items-center gap-1.5 ${
+                              viewModalTab === "idcard" 
+                                ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 font-extrabold" 
+                                : "border-transparent text-slate-400 hover:text-slate-650"
+                            }`}
+                          >
+                            <CreditCard className="w-3.5 h-3.5" />
+                            <span>🪪 ID Card</span>
+                          </button>
                         </div>
 
                         {/* Tab 1: Academic & Contact */}
@@ -1929,9 +1976,9 @@ export default function StudentsMonitoringPage() {
                           <div className="space-y-4 pt-2 fade-in">
                             
                             {/* Family Details */}
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl">
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
                               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Parent / Guardian Details</h4>
-                              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700 dark:text-slate-350">
+                              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700 dark:text-slate-400">
                                 <div>
                                   <span className="text-slate-400 block mb-0.5">Father Name</span>
                                   <span className="font-extrabold text-slate-800 dark:text-white">{newFatherName || "—"}</span>
@@ -1954,9 +2001,9 @@ export default function StudentsMonitoringPage() {
                             </div>
 
                             {/* Contact Details */}
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl">
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
                               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Contact & Address</h4>
-                              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700 dark:text-slate-350">
+                              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700 dark:text-slate-400">
                                 <div>
                                   <span className="text-slate-400 block mb-0.5">Mobile Contact</span>
                                   <span className="font-black text-slate-800 dark:text-white">{newPhone || "—"}</span>
@@ -1989,7 +2036,7 @@ export default function StudentsMonitoringPage() {
                             </div>
 
                             {/* Aadhaar Details */}
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl space-y-3">
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl space-y-3">
                               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aadhaar Identity Details</h4>
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                                 <div>
@@ -2029,7 +2076,7 @@ export default function StudentsMonitoringPage() {
                             </div>
 
                             {/* Bank Account */}
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl space-y-3">
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl space-y-3">
                               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bank Details</h4>
                               <div className="grid grid-cols-2 gap-4 text-xs border-b border-slate-100 dark:border-slate-800 pb-2">
                                 <div>
@@ -2064,14 +2111,14 @@ export default function StudentsMonitoringPage() {
                             </div>
 
                             {/* Active Schemes */}
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl">
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
                               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Welfare & Government Schemes Held</h4>
                               {newSchemes.length === 0 ? (
                                 <p className="text-xs text-slate-400 italic">No welfare schemes hold by student.</p>
                               ) : (
                                 <div className="flex flex-wrap gap-2">
                                   {newSchemes.map((scheme) => (
-                                    <span key={scheme} className="px-3 py-1 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-650 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900 rounded-xl text-xs font-bold shadow-sm">
+                                    <span key={scheme} className="px-3 py-1 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900 rounded-xl text-xs font-bold shadow-sm">
                                       ✓ {scheme}
                                     </span>
                                   ))}
@@ -2080,16 +2127,16 @@ export default function StudentsMonitoringPage() {
                             </div>
 
                             {/* Welfare Certificates Attachments */}
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-4 rounded-2xl">
+                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
                               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Welfare Certificates & Attachments</h4>
                               <div className="grid grid-cols-3 gap-3">
                                 
-                                <div className="bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-850 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
+                                <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
                                   <span className="text-[10px] font-bold text-slate-400 block">Income Certificate</span>
                                   {newDocIncome ? (
                                     <>
                                       <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded-md text-[9px] font-bold">Uploaded</span>
-                                      <a href={newDocIncome} download={`income_${newRollNumber}.png`} className="text-[10px] text-blue-650 dark:text-blue-400 font-bold underline hover:text-blue-705">Download</a>
+                                      <a href={newDocIncome} download={`income_${newRollNumber}.png`} className="text-[10px] text-blue-600 dark:text-blue-400 font-bold underline hover:text-blue-700">Download</a>
                                     </>
                                   ) : (
                                     <>
@@ -2099,12 +2146,12 @@ export default function StudentsMonitoringPage() {
                                   )}
                                 </div>
 
-                                <div className="bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-850 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
+                                <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
                                   <span className="text-[10px] font-bold text-slate-400 block">Community Certificate</span>
                                   {newDocCommunity ? (
                                     <>
                                       <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded-md text-[9px] font-bold">Uploaded</span>
-                                      <a href={newDocCommunity} download={`community_${newRollNumber}.png`} className="text-[10px] text-blue-655 dark:text-blue-400 font-bold underline hover:text-blue-700">Download</a>
+                                      <a href={newDocCommunity} download={`community_${newRollNumber}.png`} className="text-[10px] text-blue-600 dark:text-blue-400 font-bold underline hover:text-blue-700">Download</a>
                                     </>
                                   ) : (
                                     <>
@@ -2114,12 +2161,12 @@ export default function StudentsMonitoringPage() {
                                   )}
                                 </div>
 
-                                <div className="bg-white dark:bg-slate-950 border border-slate-255 dark:border-slate-850 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
+                                <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 rounded-xl flex flex-col justify-between items-center text-center space-y-2">
                                   <span className="text-[10px] font-bold text-slate-400 block">Ration / Smart Card</span>
                                   {newDocRation ? (
                                     <>
                                       <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded-md text-[9px] font-bold">Uploaded</span>
-                                      <a href={newDocRation} download={`ration_${newRollNumber}.png`} className="text-[10px] text-blue-655 dark:text-blue-400 font-bold underline hover:text-blue-700">Download</a>
+                                      <a href={newDocRation} download={`ration_${newRollNumber}.png`} className="text-[10px] text-blue-600 dark:text-blue-400 font-bold underline hover:text-blue-700">Download</a>
                                     </>
                                   ) : (
                                     <>
@@ -2135,12 +2182,230 @@ export default function StudentsMonitoringPage() {
                           </div>
                         )}
 
-                      </div>
+                        {/* Tab 3: ID Card */}
+                        {viewModalTab === "idcard" && (() => {
+                          const schoolName = schools.find((s) => s.id === mySchoolId)?.name || 'Government Higher Secondary School';
+                          
+                          // Format district & state
+                          const rawDist = newDistrict.replace(/district/gi, '').replace(/\./g, '').trim();
+                          const formattedDistrict = rawDist ? `${rawDist} Dist.` : '';
+                          const formattedLocation = [formattedDistrict, newState || 'Tamil Nadu'].filter(Boolean).join(', ');
 
+                          // Clean and deduplicate student address
+                          const rawAddressParts = [newStreetAddress || newAddress, newCity, newDistrict, newState, newPincode].filter(Boolean);
+                          const cleanAddressParts: string[] = [];
+                          rawAddressParts.forEach((part) => {
+                            const trimmed = part.trim();
+                            if (trimmed && !cleanAddressParts.some(p => p.toLowerCase() === trimmed.toLowerCase())) {
+                              cleanAddressParts.push(trimmed);
+                            }
+                          });
+                          const studentAddress = cleanAddressParts.join(', ');
+
+                          // Smart parent name fallback
+                          const isParentPhone = /^\d+$/.test(newParentName.trim());
+                          const parentDisplayName = (!isParentPhone && newParentName.trim()) 
+                            ? newParentName.trim() 
+                            : (newFatherName || newMotherName || 'Not Provided');
+
+                          // Perfectly proportional CR80 Canvas Dimensions (Ratio 460 x 290 = 1.5862)
+                          const CARD_W = '460px', CARD_H = '290px';
+
+                          return (
+                          <div className="space-y-4 pt-1 fade-in">
+                            {/* Toolbar */}
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-xs font-bold text-slate-700 dark:text-slate-200">Student Identity Card</p>
+                                <p className="text-[10px] text-slate-400">CR80 Standard · Front &amp; Back PDF Export</p>
+                              </div>
+                              <button type="button" onClick={handleDownloadIdCard}
+                                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all shadow-md">
+                                <Download className="w-3.5 h-3.5" /> Download PDF (Front + Back)
+                              </button>
+                            </div>
+
+                            {/* ── FRONT SIDE ── */}
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1"><i className="fi fi-rr-id-badge" /> Front Side</p>
+                              <div className="flex justify-center py-1">
+                                <div ref={idCardRef} style={{
+                                  width: CARD_W, height: CARD_H,
+                                  background: 'linear-gradient(160deg, #0f2744 0%, #1a4fa8 55%, #1565c0 100%)',
+                                  borderRadius: '12px', overflow: 'hidden',
+                                  fontFamily: 'Arial, Helvetica, sans-serif',
+                                  boxShadow: '0 8px 24px rgba(15,39,68,0.35)',
+                                  color: '#fff', flexShrink: 0,
+                                  display: 'flex', flexDirection: 'column',
+                                  position: 'relative',
+                                }}>
+                                  {/* Decorative bg ring */}
+                                  <div style={{ position: 'absolute', top: '-30px', right: '-30px', width: '130px', height: '130px', borderRadius: '50%', border: '16px solid rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
+
+                                  {/* ── HEADER BAND ── */}
+                                  <div style={{ background: 'rgba(0,0,0,0.4)', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.15)', flexShrink: 0 }}>
+                                    <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                                      <span style={{ fontSize: '10px', fontWeight: 900, color: '#1a4fa8', letterSpacing: '-0.5px' }}>TN</span>
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div style={{ fontSize: '7.5px', fontWeight: 700, color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '0.08em', lineHeight: 1.1 }}>Tamil Nadu School Education Department</div>
+                                      <div style={{ fontSize: '11.5px', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.25, marginTop: '1px' }}>{schoolName}</div>
+                                    </div>
+                                    <div style={{ background: '#ef4444', color: '#ffffff', fontSize: '7.5px', fontWeight: 900, padding: '2px 6px', borderRadius: '4px', letterSpacing: '0.08em', flexShrink: 0 }}>STUDENT</div>
+                                  </div>
+
+                                  {/* ── LOCATION / ACADEMIC YEAR ROW ── */}
+                                  <div style={{ background: 'rgba(255,255,255,0.09)', padding: '3px 12px', fontSize: '8.5px', color: '#bfdbfe', fontWeight: 700, borderBottom: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                    📍 {formattedLocation} &nbsp;|&nbsp; Academic Year: {newAcademicYear || '2024-25'}
+                                  </div>
+
+                                  {/* ── BODY ── */}
+                                  <div style={{ display: 'flex', padding: '10px 12px', gap: '12px', alignItems: 'flex-start', flex: 1, overflow: 'hidden' }}>
+                                    {/* Photo */}
+                                    <div style={{ flexShrink: 0, width: '84px', height: '106px', borderRadius: '8px', overflow: 'hidden', border: '2.5px solid rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.15)', boxShadow: '0 3px 10px rgba(0,0,0,0.3)' }}>
+                                      {newPhoto
+                                        ? <img src={newPhoto} alt={newName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', fontWeight: 900, color: 'rgba(255,255,255,0.9)', background: 'linear-gradient(135deg,#1a4fa8,#0e9f6e)' }}>{newName.charAt(0).toUpperCase()}</div>
+                                      }
+                                    </div>
+
+                                    {/* Info Column */}
+                                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+                                      <div>
+                                        <div style={{ fontSize: '15px', fontWeight: 900, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.15 }}>{newName}</div>
+                                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#93c5fd', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px', marginBottom: '6px' }}>
+                                          {newClass}{newSection ? ` · SECTION ${newSection}` : ''}{newGroup ? ` · GRP ${newGroup}` : ''}
+                                        </div>
+                                      </div>
+
+                                      {/* 4-Grid Data fields */}
+                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px 8px' }}>
+                                        {[
+                                          { lbl: 'ROLL NO.', val: newRollNumber || '—' },
+                                          { lbl: 'ADMISSION NO.', val: newAdmissionNumber || '—' },
+                                          { lbl: 'EMIS NO.', val: newEmisNumber || '—' },
+                                          { lbl: 'DATE OF BIRTH', val: newDob || '—' },
+                                        ].map(({ lbl, val }) => (
+                                          <div key={lbl} style={{ background: 'rgba(255,255,255,0.08)', padding: '3px 6px', borderRadius: '5px' }}>
+                                            <div style={{ fontSize: '7px', color: '#7dd3fc', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{lbl}</div>
+                                            <div style={{ fontSize: '10.5px', fontWeight: 900, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{val}</div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* ── FOOTER ── */}
+                                  <div style={{ background: 'rgba(0,0,0,0.45)', padding: '5px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
+                                    <div style={{ fontSize: '8.5px', color: '#bfdbfe', fontWeight: 700 }}>Issued by: School Headmaster &nbsp;|&nbsp; Valid: {newAcademicYear || 'Current Year'}</div>
+                                    <div style={{ fontSize: '7.5px', color: '#ffffff', fontWeight: 900, background: '#dc2626', padding: '2px 6px', borderRadius: '4px', letterSpacing: '0.05em' }}>IF FOUND, RETURN TO SCHOOL</div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* ── BACK SIDE ── */}
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1"><i className="fi fi-rr-rotate-right" /> Back Side</p>
+                              <div className="flex justify-center py-1">
+                                <div ref={idCardBackRef} style={{
+                                  width: CARD_W, height: CARD_H,
+                                  background: '#ffffff',
+                                  borderRadius: '12px', overflow: 'hidden',
+                                  fontFamily: 'Arial, Helvetica, sans-serif',
+                                  boxShadow: '0 8px 24px rgba(15,39,68,0.2)',
+                                  color: '#0f2744', flexShrink: 0,
+                                  display: 'flex', flexDirection: 'column',
+                                  border: '1px solid #cbd5e1',
+                                  position: 'relative',
+                                }}>
+                                  {/* Top accent bar */}
+                                  <div style={{ background: 'linear-gradient(90deg, #0f2744 0%, #1a4fa8 50%, #0e9f6e 100%)', height: '6px', flexShrink: 0 }} />
+
+                                  {/* ── SCHOOL HEADER ── */}
+                                  <div style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #e2e8f0', flexShrink: 0, background: '#ffffff' }}>
+                                    <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#1a4fa8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>
+                                      <span style={{ fontSize: '9.5px', fontWeight: 900, color: '#ffffff' }}>TN</span>
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div style={{ fontSize: '11px', fontWeight: 900, color: '#0f2744', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2 }}>{schoolName}</div>
+                                      <div style={{ fontSize: '7.5px', color: '#64748b', fontWeight: 700, marginTop: '1px' }}>Tamil Nadu School Education · Student Identity Card (Back)</div>
+                                    </div>
+                                    {/* Blood Group badge */}
+                                    <div style={{ background: '#dc2626', color: '#ffffff', borderRadius: '6px', padding: '3px 8px', textAlign: 'center', flexShrink: 0, boxShadow: '0 2px 4px rgba(220,38,38,0.25)' }}>
+                                      <div style={{ fontSize: '13px', fontWeight: 900, lineHeight: 1 }}>{newBloodGroup || '—'}</div>
+                                      <div style={{ fontSize: '6.5px', fontWeight: 800, color: '#fecaca', letterSpacing: '0.05em', marginTop: '1px' }}>BLOOD GROUP</div>
+                                    </div>
+                                  </div>
+
+                                  {/* ── BODY (Symmetrical 2 Columns & 3 Rows) ── */}
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', flex: 1, overflow: 'hidden', background: '#f8fafc', padding: '8px 12px', gap: '8px' }}>
+                                    
+                                    {/* Left Column */}
+                                    <div style={{ borderRight: '1px solid #e2e8f0', paddingRight: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                      <div>
+                                        <div style={{ fontSize: '8px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '2px' }}>Student Address</div>
+                                        <div style={{ fontSize: '9.5px', fontWeight: 700, color: '#0f2744', lineHeight: 1.35 }}>
+                                          {studentAddress || 'Not Provided'}
+                                        </div>
+                                      </div>
+
+                                      <div>
+                                        <div style={{ fontSize: '8px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '1px' }}>Gender</div>
+                                        <div style={{ fontSize: '9.5px', fontWeight: 800, color: '#0f2744' }}>{newGender || 'Not Specified'}</div>
+                                      </div>
+
+                                      <div>
+                                        <div style={{ fontSize: '8px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '1px' }}>Medium of Instruction</div>
+                                        <div style={{ fontSize: '9.5px', fontWeight: 800, color: '#0f2744' }}>{newMediumOfInstruction || 'English'}</div>
+                                      </div>
+                                    </div>
+
+                                    {/* Right Column */}
+                                    <div style={{ paddingLeft: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                      <div>
+                                        <div style={{ fontSize: '8px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '1px' }}>Father Name</div>
+                                        <div style={{ fontSize: '10px', fontWeight: 900, color: '#0f2744' }}>{newFatherName || parentDisplayName}</div>
+                                      </div>
+
+                                      <div>
+                                        <div style={{ fontSize: '8px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '1px' }}>Mother Name</div>
+                                        <div style={{ fontSize: '10px', fontWeight: 900, color: '#0f2744' }}>{newMotherName || '—'}</div>
+                                      </div>
+
+                                      <div>
+                                        <div style={{ fontSize: '8px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '1px' }}>Parent Contact Number</div>
+                                        <div style={{ fontSize: '10.5px', fontWeight: 900, color: '#1a4fa8', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                          📞 {newPhone || 'Not Provided'}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                  </div>
+
+                                  {/* ── HELPLINE FOOTER (Maximum High Contrast) ── */}
+                                  <div style={{ background: 'linear-gradient(90deg, #0f2744 0%, #1a4fa8 50%, #064e3b 100%)', padding: '6px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+                                    <div style={{ fontSize: '9px', lineHeight: 1.3 }}>
+                                      <span style={{ color: '#ffffff', fontWeight: 900 }}>📞 Helpline: 14417</span>
+                                      <span style={{ color: '#93c5fd', margin: '0 5px' }}>|</span>
+                                      <span style={{ color: '#ffffff', fontWeight: 700 }}>TN Edu Dept: </span>
+                                      <span style={{ color: '#fde047', fontWeight: 900 }}>044-28268852</span>
+                                    </div>
+                                    <div style={{ fontSize: '8.5px', color: '#7dd3fc', fontWeight: 800, textAlign: 'right' }}>www.tnschools.gov.in</div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <p className="text-[10px] text-center text-slate-400 font-medium">Both sides are exported as separate pages in the PDF. Print double-sided for a physical card.</p>
+                          </div>
+                        );
+                        })()}
+                      </div>
                     </div>
                   ) : (
                     /* ── REGULAR ADD / EDIT STUDENT MANUAL FORM ── */
-                    <form onSubmit={handleManualSubmit} className="space-y-4">
+                    <form onSubmit={handleManualSubmit} className="space-y-4 [&_label]:text-slate-600 [&_label]:dark:text-slate-400 [&_h4]:text-slate-700 [&_h4]:dark:text-slate-300 [&_.border-b]:border-slate-200 [&_.border-b]:dark:border-slate-800">
                       <fieldset disabled={isViewMode}>
                         <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Manual Entry</div>
 

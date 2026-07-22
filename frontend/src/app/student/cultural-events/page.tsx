@@ -5,8 +5,6 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 
-// Removed lucide-react imports to use Flaticons exclusively
-
 type CulturalEvent = {
   id: string;
   title: string;
@@ -14,6 +12,291 @@ type CulturalEvent = {
   location: string;
   description: string;
   status: string;
+};
+
+// ==========================================
+// 🎨 CATEGORY FLAT SVG ICONS (Vector Style)
+// ==========================================
+const ArtCraftIcon = ({ className = "w-16 h-16" }: { className?: string }) => (
+  <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="32" r="30" fill="#F3E8FF" />
+    <path d="M46 32C46 39.732 39.732 46 32 46C27.5 46 25 43 21 43C17 43 14 40 14 32C14 22 22 16 32 16C42 16 46 24.268 46 32Z" fill="#C084FC" opacity="0.3"/>
+    <path d="M44 32C44 38.6274 38.6274 44 32 44C28.2 44 26.5 41.5 22 41.5C17.5 41.5 15 39 15 32C15 23.5 21.5 18 32 18C42.5 18 44 25.3726 44 32Z" fill="#DDB088" />
+    <circle cx="21" cy="32" r="3.5" fill="#F3E8FF" />
+    <circle cx="28" cy="24" r="3" fill="#EF4444" />
+    <circle cx="36" cy="26" r="3" fill="#3B82F6" />
+    <circle cx="38" cy="34" r="3" fill="#10B981" />
+    <circle cx="31" cy="37" r="3" fill="#F59E0B" />
+    <path d="M47 15L43 19L45 21L49 17L47 15Z" fill="#1F2937" />
+    <rect x="37" y="27" width="3" height="15" transform="rotate(-45 37 27)" fill="#9CA3AF" />
+    <path d="M30 36L26 40C25 41 23.5 40.5 23 39.5C22.5 38.5 22 37 23 36L27 32" stroke="#4B5563" strokeWidth="2" strokeLinecap="round" />
+    <path d="M26 40C25.5 40.5 24.5 40.5 24 40C23.5 39.5 23.5 38.5 24 38L27 35" stroke="#EC4899" strokeWidth="3" strokeLinecap="round" />
+  </svg>
+);
+
+const MusicDanceIcon = ({ className = "w-16 h-16" }: { className?: string }) => (
+  <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="32" r="30" fill="#DBEAFE" />
+    <rect x="28" y="32" width="8" height="14" rx="4" fill="#9CA3AF" />
+    <path d="M24 24C24 19.5817 27.5817 16 32 16C36.4183 16 40 19.5817 40 24V28C40 32.4183 36.4183 36 32 36C27.5817 36 24 32.4183 24 28V24Z" fill="#374151" />
+    <path d="M24 24C24 21.5 27.5 20 32 20C36.5 20 40 21.5 40 24V26H24V24Z" fill="#D1D5DB" />
+    <path d="M20 26C20 32 25 38 32 38C39 38 44 32 44 26" stroke="#4B5563" strokeWidth="3" strokeLinecap="round" />
+    <line x1="32" y1="38" x2="32" y2="48" stroke="#4B5563" strokeWidth="3" />
+    <line x1="26" y1="48" x2="38" y2="48" stroke="#4B5563" strokeWidth="3" strokeLinecap="round" />
+    <path d="M46 16V24M46 18L52 16" stroke="#EC4899" strokeWidth="2.5" strokeLinecap="round" />
+    <circle cx="43" cy="24" r="2.5" fill="#EC4899" />
+    <path d="M16 18V26M16 20L22 18" stroke="#3B82F6" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+    <circle cx="13" cy="26" r="2.5" fill="#3B82F6" />
+  </svg>
+);
+
+const TraditionalIcon = ({ className = "w-16 h-16" }: { className?: string }) => (
+  <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="32" r="30" fill="#FEF3C7" />
+    <path d="M22 46L38 14" stroke="#059669" strokeWidth="4" strokeLinecap="round" />
+    <path d="M38 14C35 12 30 11 26 15" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+    <path d="M38 14C41 12 43 15 42 19" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+    <ellipse cx="32" cy="36" rx="14" ry="12" fill="#D97706" />
+    <path d="M20 32C20 32 23 24 32 24C41 24 44 32 44 32" fill="#B45309" />
+    <ellipse cx="32" cy="24" rx="9" ry="2.5" fill="#FBBF24" />
+    <path d="M22 26C24 23 27 21 32 21C37 21 40 23 42 26C44 29 41 30 39 28C37 26 34 25 32 25C30 25 27 26 25 28C23 30 20 29 22 26Z" fill="#FFFDF5" />
+    <path d="M20 36H44" stroke="#FFF" strokeWidth="1.5" strokeDasharray="3 3" />
+    <polygon points="32,28 35,32 29,32" fill="#FFF" />
+    <polygon points="26,32 29,36 23,36" fill="#FBBF24" />
+    <polygon points="38,32 41,36 35,36" fill="#FBBF24" />
+  </svg>
+);
+
+const DramaLiteraryIcon = ({ className = "w-16 h-16" }: { className?: string }) => (
+  <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="32" r="30" fill="#D1FAE5" />
+    <path d="M16 22C16 18.5 21.5 17.5 26 19.5C30.5 21.5 31.5 27 30 32.5C28.5 38 22 41.5 17.5 39.5C13 37.5 16 25.5 16 22Z" fill="#10B981" />
+    <circle cx="21" cy="26" r="1.5" fill="#FFF" />
+    <circle cx="27" cy="28.5" r="1.5" fill="#FFF" />
+    <path d="M20 33C21.5 35 24.5 35 26 33.5" stroke="#FFF" strokeWidth="2.5" strokeLinecap="round" />
+    <path d="M48 26C48 22.5 42.5 21.5 38 23.5C33.5 25.5 32.5 31 34 36.5C35.5 42 42 45.5 46.5 43.5C51 41.5 48 29.5 48 26Z" fill="#3B82F6" />
+    <circle cx="39" cy="30" r="1.5" fill="#FFF" />
+    <circle cx="45" cy="32.5" r="1.5" fill="#FFF" />
+    <path d="M43 39C41.5 37.5 39.5 37.5 38 38.5" stroke="#FFF" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
+);
+
+const SportsFunIcon = ({ className = "w-16 h-16" }: { className?: string }) => (
+  <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="32" r="30" fill="#FFE4E6" />
+    <rect x="25" y="44" width="14" height="6" rx="1" fill="#4B5563" />
+    <path d="M29 38H35V44H29V38Z" fill="#9CA3AF" />
+    <path d="M18 20H46V32C46 39.732 39.732 40 32 40C24.268 40 18 39.732 18 32V20Z" fill="#FBBF24" />
+    <path d="M18 24H14V30H18" stroke="#F59E0B" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+    <path d="M46 24H50V30H46" stroke="#F59E0B" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+    <polygon points="32,25 34,29 39,29 35,32 36,37 32,34 28,37 29,32 25,29 30,29" fill="#FFF" />
+    <path d="M32 40L25 47H39L32 40Z" fill="#EF4444" />
+  </svg>
+);
+
+const ScienceExhibitionIcon = ({ className = "w-16 h-16" }: { className?: string }) => (
+  <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="32" r="30" fill="#E0F2FE" />
+    <ellipse cx="32" cy="30" rx="15" ry="5" transform="rotate(30 32 30)" stroke="#0ea5e9" strokeWidth="1.5" fill="none" opacity="0.5" />
+    <ellipse cx="32" cy="30" rx="15" ry="5" transform="rotate(-30 32 30)" stroke="#0ea5e9" strokeWidth="1.5" fill="none" opacity="0.5" />
+    <path d="M32 14C23.7157 14 18 19.7157 18 28C18 33 21 37 23.5 39C25.5 40.5 26 42.5 26 44.5V47H38V44.5C38 42.5 38.5 40.5 40.5 39C43 37 46 33 46 28C46 19.7157 40.2843 14 32 14Z" fill="#FBBF24" opacity="0.2" />
+    <path d="M32 14C23.7157 14 18 19.7157 18 28C18 33 21 37 23.5 39C25.5 40.5 26 42.5 26 44.5V47H38V44.5C38 42.5 38.5 40.5 40.5 39C43 37 46 33 46 28C46 19.7157 40.2843 14 32 14Z" stroke="#0284c7" strokeWidth="3.5" strokeLinejoin="round" />
+    <path d="M28 28L30 32H34L36 28" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+    <rect x="28" y="47" width="8" height="3" fill="#9CA3AF" />
+    <rect x="29" y="50" width="6" height="2.5" fill="#4B5563" />
+  </svg>
+);
+
+const DefaultIcon = ({ className = "w-16 h-16" }: { className?: string }) => (
+  <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="32" r="30" fill="#F4F6F7" />
+    <circle cx="32" cy="32" r="16" fill="#3b82f6" />
+    <circle cx="32" cy="32" r="8" fill="#60a5fa" />
+    <circle cx="32" cy="32" r="4" fill="#FFFFFF" />
+  </svg>
+);
+
+// Helper to choose the flat icon component
+const renderFlatIcon = (category: string, className = "w-16 h-16") => {
+  switch (category) {
+    case "Art & Craft":
+      return <ArtCraftIcon className={className} />;
+    case "Music & Dance":
+      return <MusicDanceIcon className={className} />;
+    case "Traditional":
+      return <TraditionalIcon className={className} />;
+    case "Drama & Literary":
+      return <DramaLiteraryIcon className={className} />;
+    case "Sports & Fun":
+      return <SportsFunIcon className={className} />;
+    case "Science & Exhibition":
+      return <ScienceExhibitionIcon className={className} />;
+    default:
+      return <DefaultIcon className={className} />;
+  }
+};
+
+const getEventCategory = (title: string, description: string, locationStr: string): string => {
+  try {
+    const parsed = JSON.parse(locationStr);
+    if (parsed.category) {
+      const cat = parsed.category.toLowerCase();
+      if (cat.includes("science") || cat.includes("tech") || cat.includes("expo") || cat.includes("exhibit")) return "Science & Exhibition";
+      if (cat.includes("sport") || cat.includes("game") || cat.includes("fun")) return "Sports & Fun";
+      if (cat.includes("art") || cat.includes("paint") || cat.includes("draw") || cat.includes("craft")) return "Art & Craft";
+      if (cat.includes("music") || cat.includes("dance") || cat.includes("song") || cat.includes("choir")) return "Music & Dance";
+      if (cat.includes("traditional") || cat.includes("heritage") || cat.includes("culture") || cat.includes("festival")) return "Traditional";
+      if (cat.includes("drama") || cat.includes("theatre") || cat.includes("debate") || cat.includes("quiz")) return "Drama & Literary";
+    }
+  } catch (e) {}
+
+  const text = `${title} ${description}`.toLowerCase();
+  if (text.includes("science") || text.includes("tech") || text.includes("expo") || text.includes("robotics") || text.includes("innovat") || text.includes("experiment") || text.includes("math") || text.includes("exhibition") || text.includes("exhibit")) {
+    return "Science & Exhibition";
+  }
+  if (text.includes("art") || text.includes("paint") || text.includes("draw") || text.includes("craft") || text.includes("design") || text.includes("kala") || text.includes("utsav")) {
+    return "Art & Craft";
+  }
+  if (text.includes("music") || text.includes("dance") || text.includes("song") || text.includes("choir") || text.includes("singing") || text.includes("concert") || text.includes("drum") || text.includes("instrument") || text.includes("classical") || text.includes("performance") || strokeHasDance(text)) {
+    return "Music & Dance";
+  }
+  if (text.includes("pongal") || text.includes("heritage") || text.includes("diwali") || text.includes("harvest") || text.includes("tamil") || text.includes("culture") || text.includes("traditional") || text.includes("festival")) {
+    return "Traditional";
+  }
+  if (text.includes("drama") || text.includes("theatre") || text.includes("play") || text.includes("skit") || text.includes("acting") || text.includes("debate") || text.includes("quiz") || text.includes("literary") || text.includes("speech") || text.includes("elocution") || text.includes("poetry") || text.includes("write") || text.includes("reading")) {
+    return "Drama & Literary";
+  }
+  if (text.includes("sports") || text.includes("game") || text.includes("run") || text.includes("athletic") || text.includes("football") || text.includes("cricket") || text.includes("chess") || text.includes("fun") || text.includes("celebration")) {
+    return "Sports & Fun";
+  }
+  return "General";
+};
+
+const strokeHasDance = (text: string) => text.includes("dance") || text.includes("choir") || text.includes("music");
+
+// Dynamic visual themes using ONLY safelisted and standard classes to prevent stripping
+type VisualTheme = {
+  accentColor: string;
+  cardBg: string;
+  cardBorder: string;
+  cardHoverBorder: string;
+  iconContainerBg: string;
+  badgeBg: string;
+  badgeBorder: string;
+  badgeText: string;
+  btnBg: string;
+  btnHoverBg: string;
+  btnText: string;
+  pillBg: string;
+  accentText: string;
+};
+
+const THEMES: Record<string, VisualTheme> = {
+  "Art & Craft": {
+    accentColor: "violet",
+    cardBg: "bg-violet-50 hover:bg-violet-100 dark:bg-slate-900/60 dark:hover:bg-slate-900/80",
+    cardBorder: "border-slate-200 dark:border-slate-800",
+    cardHoverBorder: "hover:border-violet-400 dark:hover:border-violet-500",
+    iconContainerBg: "bg-violet-100 dark:bg-violet-500/20",
+    badgeBg: "bg-violet-100 dark:bg-violet-500/25",
+    badgeBorder: "border-violet-400 dark:border-violet-500",
+    badgeText: "text-violet-600 dark:text-violet-400",
+    btnBg: "bg-violet-600 hover:bg-opacity-90 text-white",
+    btnHoverBg: "hover:bg-violet-600",
+    btnText: "text-white",
+    pillBg: "bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400",
+    accentText: "text-violet-600 dark:text-violet-400"
+  },
+  "Music & Dance": {
+    accentColor: "indigo",
+    cardBg: "bg-indigo-50 hover:bg-indigo-100 dark:bg-slate-900/60 dark:hover:bg-slate-900/80",
+    cardBorder: "border-slate-200 dark:border-slate-800",
+    cardHoverBorder: "hover:border-indigo-400 dark:hover:border-indigo-500",
+    iconContainerBg: "bg-indigo-100 dark:bg-indigo-500/20",
+    badgeBg: "bg-indigo-100 dark:bg-indigo-500/25",
+    badgeBorder: "border-indigo-400 dark:border-indigo-500",
+    badgeText: "text-indigo-600 dark:text-indigo-400",
+    btnBg: "bg-indigo-600 hover:bg-opacity-90 text-white",
+    btnHoverBg: "hover:bg-indigo-600",
+    btnText: "text-white",
+    pillBg: "bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400",
+    accentText: "text-indigo-600 dark:text-indigo-400"
+  },
+  "Traditional": {
+    accentColor: "amber",
+    cardBg: "bg-amber-50 hover:bg-amber-100 dark:bg-slate-900/60 dark:hover:bg-slate-900/80",
+    cardBorder: "border-slate-200 dark:border-slate-800",
+    cardHoverBorder: "hover:border-amber-400 dark:hover:border-amber-500",
+    iconContainerBg: "bg-amber-100 dark:bg-amber-500/20",
+    badgeBg: "bg-amber-100 dark:bg-amber-500/25",
+    badgeBorder: "border-amber-400 dark:border-amber-500",
+    badgeText: "text-amber-600 dark:text-amber-400",
+    btnBg: "bg-amber-500 hover:bg-opacity-90 text-slate-900",
+    btnHoverBg: "hover:bg-amber-500",
+    btnText: "text-slate-900",
+    pillBg: "bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400",
+    accentText: "text-amber-600 dark:text-amber-400"
+  },
+  "Drama & Literary": {
+    accentColor: "emerald",
+    cardBg: "bg-emerald-50 hover:bg-emerald-100 dark:bg-slate-900/60 dark:hover:bg-slate-900/80",
+    cardBorder: "border-slate-200 dark:border-slate-800",
+    cardHoverBorder: "hover:border-emerald-400 dark:hover:border-emerald-500",
+    iconContainerBg: "bg-emerald-100 dark:bg-emerald-500/20",
+    badgeBg: "bg-emerald-100 dark:bg-emerald-500/25",
+    badgeBorder: "border-emerald-400 dark:border-emerald-500",
+    badgeText: "text-emerald-600 dark:text-emerald-400",
+    btnBg: "bg-emerald-600 hover:bg-opacity-90 text-white",
+    btnHoverBg: "hover:bg-emerald-600",
+    btnText: "text-white",
+    pillBg: "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
+    accentText: "text-emerald-600 dark:text-emerald-400"
+  },
+  "Sports & Fun": {
+    accentColor: "rose",
+    cardBg: "bg-rose-50 hover:bg-rose-100 dark:bg-slate-900/60 dark:hover:bg-slate-900/80",
+    cardBorder: "border-slate-200 dark:border-slate-800",
+    cardHoverBorder: "hover:border-rose-400 dark:hover:border-rose-500",
+    iconContainerBg: "bg-rose-100 dark:bg-rose-500/20",
+    badgeBg: "bg-rose-100 dark:bg-rose-500/25",
+    badgeBorder: "border-rose-400 dark:border-rose-500",
+    badgeText: "text-rose-600 dark:text-rose-400",
+    btnBg: "bg-rose-600 hover:bg-opacity-90 text-white",
+    btnHoverBg: "hover:bg-rose-600",
+    btnText: "text-white",
+    pillBg: "bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400",
+    accentText: "text-rose-600 dark:text-rose-400"
+  },
+  "Science & Exhibition": {
+    accentColor: "sky",
+    cardBg: "bg-sky-50 hover:bg-sky-100 dark:bg-slate-900/60 dark:hover:bg-slate-900/80",
+    cardBorder: "border-slate-200 dark:border-slate-800",
+    cardHoverBorder: "hover:border-sky-400 dark:hover:border-sky-500",
+    iconContainerBg: "bg-sky-100 dark:bg-sky-500/20",
+    badgeBg: "bg-sky-100 dark:bg-sky-500/25",
+    badgeBorder: "border-sky-400 dark:border-sky-500",
+    badgeText: "text-sky-600 dark:text-sky-400",
+    btnBg: "bg-sky-600 hover:bg-opacity-90 text-white",
+    btnHoverBg: "hover:bg-sky-600",
+    btnText: "text-white",
+    pillBg: "bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400",
+    accentText: "text-sky-600 dark:text-sky-400"
+  },
+  "General": {
+    accentColor: "teal",
+    cardBg: "bg-teal-50 hover:bg-teal-100 dark:bg-slate-900/60 dark:hover:bg-slate-900/80",
+    cardBorder: "border-slate-200 dark:border-slate-800",
+    cardHoverBorder: "hover:border-teal-400 dark:hover:border-teal-500",
+    iconContainerBg: "bg-teal-100 dark:bg-teal-500/20",
+    badgeBg: "bg-teal-100 dark:bg-teal-500/25",
+    badgeBorder: "border-teal-400 dark:border-teal-500",
+    badgeText: "text-teal-600 dark:text-teal-400",
+    btnBg: "bg-teal-600 hover:bg-opacity-90 text-white",
+    btnHoverBg: "hover:bg-teal-600",
+    btnText: "text-white",
+    pillBg: "bg-teal-100 text-teal-600 dark:bg-teal-500/15 dark:text-teal-400",
+    accentText: "text-teal-600 dark:text-teal-400"
+  }
 };
 
 const getApiBase = () => {
@@ -33,7 +316,30 @@ export default function StudentCulturalEventsPage() {
 
   const [events, setEvents] = useState<CulturalEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Registration and search states
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<CulturalEvent | null>(null);
+  const [registrations, setRegistrations] = useState<Record<string, any>>({});
+  const [registrationType, setRegistrationType] = useState<"individual" | "group">("individual");
+  const [isRepAuthorized, setIsRepAuthorized] = useState(false);
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [sortBy, setSortBy] = useState("soonest");
+  const [showRegisteredOnly, setShowRegisteredOnly] = useState(false);
+
+  // Sync with LocalStorage on client mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("cultural_registrations");
+      if (stored) {
+        setRegistrations(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error("Error loading localStorage registrations:", e);
+    }
+  }, []);
 
   const fetchEvents = useCallback(async () => {
     if (!schoolId) return;
@@ -45,7 +351,7 @@ export default function StudentCulturalEventsPage() {
         setEvents(json.data);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load events:", err);
     } finally {
       setLoading(false);
     }
@@ -55,176 +361,688 @@ export default function StudentCulturalEventsPage() {
     fetchEvents();
   }, [fetchEvents]);
 
-  const handleRegister = (e: React.FormEvent) => {
+  // Handle Registration Modal Submission
+  const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedEvent) return;
+
+    if (registrationType === "group" && !isRepAuthorized) {
+      Swal.fire({
+        title: "Representative Authority Required",
+        text: "Please verify that you are the Class Representative or an authorized Student Leader to register a group/class.",
+        icon: "warning",
+        confirmButtonText: "Okay",
+        confirmButtonColor: "#4f46e5"
+      });
+      return;
+    }
+
     const formData = new FormData(e.target as HTMLFormElement);
-    const eventName = formData.get("event") as string;
-    const cls = formData.get("class") as string;
-    const count = formData.get("count") as string;
+    
+    let cls = "";
+    let count = 1;
+    let participantName = "";
+
+    if (registrationType === "individual") {
+      cls = studentClass;
+      count = 1;
+      participantName = formData.get("studentName") as string || (session?.user?.name || "Student");
+    } else {
+      cls = formData.get("class") as string || studentClass;
+      count = parseInt(formData.get("count") as string) || 1;
+    }
+
+    const regItem = {
+      type: registrationType,
+      class: cls,
+      count: count,
+      participantName: participantName,
+      registeredAt: new Date().toISOString(),
+      eventId: selectedEvent.id,
+      eventTitle: selectedEvent.title
+    };
+
+    const newRegistrations = {
+      ...registrations,
+      [selectedEvent.id]: regItem,
+      [selectedEvent.title]: regItem
+    };
+
+    setRegistrations(newRegistrations);
+    localStorage.setItem("cultural_registrations", JSON.stringify(newRegistrations));
+
+    // Persist to server database
+    try {
+      fetch(`${API_BASE}/api/teacher/cultural-events/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: selectedEvent.id,
+          eventTitle: selectedEvent.title,
+          participantName: participantName,
+          class: cls,
+          count: count,
+          type: registrationType,
+          schoolId: schoolId,
+          studentId: (session?.user as any)?.id || ""
+        })
+      }).catch(err => console.error("Database register error", err));
+    } catch (e) {
+      console.error("Failed to post registration to server database", e);
+    }
 
     setRegisterModalOpen(false);
 
     Swal.fire({
       title: "Successfully Registered!",
-      text: `Yay! You registered class ${cls} with ${count} students for the event "${eventName}"! 🎉`,
+      text: registrationType === "individual"
+        ? `Awesome! You have successfully registered for the event "${selectedEvent.title}"! 🎉`
+        : `Yay! You registered class "${cls}" with ${count} students for the event "${selectedEvent.title}"! 🎉`,
       icon: "success",
       confirmButtonText: "Awesome!",
-      confirmButtonColor: "#f43f5e"
+      confirmButtonColor: "#4f46e5"
     });
   };
 
-  // Helper to pick icon and color based on title or status
-  const getEventStyle = (title: string) => {
-    const t = title.toLowerCase();
-    if (t.includes("art") || t.includes("paint")) return { icon: <i className="fi fi-rr-palette text-xl" />, color: "purple" };
-    if (t.includes("music") || t.includes("choir")) return { icon: <i className="fi fi-rr-music text-xl" />, color: "blue" };
-    if (t.includes("pongal") || t.includes("heritage")) return { icon: <i className="fi fi-rr-shop text-xl" />, color: "orange" };
-    return { icon: <i className="fi fi-rr-star text-xl" />, color: "rose" };
+  // Handle Cancellation of Registration
+  const handleCancelRegistration = (eventId: string, eventTitle: string) => {
+    Swal.fire({
+      title: "Cancel Registration?",
+      text: `Are you sure you want to cancel your class registration for "${eventTitle}"?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, cancel it"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const newRegistrations = { ...registrations };
+        delete newRegistrations[eventId];
+        setRegistrations(newRegistrations);
+        localStorage.setItem("cultural_registrations", JSON.stringify(newRegistrations));
+        Swal.fire({
+          title: "Cancelled",
+          text: "Your registration has been cancelled successfully.",
+          icon: "success",
+          confirmButtonColor: "#4f46e5"
+        });
+      }
+    });
   };
+
+  // Open register modal helper
+  const openRegisterModal = (evt: CulturalEvent) => {
+    setSelectedEvent(evt);
+    setRegistrationType("individual");
+    setIsRepAuthorized(false);
+    setRegisterModalOpen(true);
+  };
+
+  // Parse location utility
+  const parseLocation = (locString: string) => {
+    try {
+      const parsed = JSON.parse(locString);
+      return {
+        coordinator: parsed.coordinator || "",
+        category: parsed.category || "School Event",
+        venue: parsed.venue || ""
+      };
+    } catch {
+      return {
+        coordinator: "",
+        category: "School Event",
+        venue: locString || ""
+      };
+    }
+  };
+
+  // Filters, Search and Sorter
+  const filteredEvents = events
+    .filter(evt => {
+      const cat = getEventCategory(evt.title, evt.description, evt.location);
+      const locDetails = parseLocation(evt.location);
+      const matchesSearch =
+        evt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        evt.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        locDetails.coordinator.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        locDetails.venue.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = selectedCategory === "All" || cat === selectedCategory;
+      const matchesRegistered = !showRegisteredOnly || !!registrations[evt.id];
+
+      return matchesSearch && matchesCategory && matchesRegistered;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.eventDate).getTime();
+      const dateB = new Date(b.eventDate).getTime();
+      return sortBy === "soonest" ? dateA - dateB : dateB - dateA;
+    });
+
+  // Calculate stats
+  const totalEventsCount = events.length;
+  const registeredEventsCount = Object.keys(registrations).length;
+  
+  // Find soonest upcoming event
+  const soonestEvent = events
+    .filter(e => new Date(e.eventDate).getTime() >= new Date().getTime())
+    .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime())[0];
+
+  const categoriesSet = new Set(events.map(e => getEventCategory(e.title, e.description, e.location)));
+  const uniqueCategoriesCount = categoriesSet.size;
+
+  // Pick dynamic Featured Hero Event (upcoming) filter-aware
+  const categoryFilteredEvents = events.filter(e => {
+    if (selectedCategory === "All") return true;
+    return getEventCategory(e.title, e.description, e.location) === selectedCategory;
+  });
+
+  const categorySoonestEvent = categoryFilteredEvents
+    .filter(e => new Date(e.eventDate).getTime() >= new Date().getTime())
+    .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime())[0];
+
+  const heroEvent = categorySoonestEvent || (categoryFilteredEvents.length > 0 ? categoryFilteredEvents[0] : null);
+  const heroCategory = heroEvent ? getEventCategory(heroEvent.title, heroEvent.description, heroEvent.location) : "Traditional";
 
   return (
     <PortalLayout
-      title="Culture & Fun! "
+      title="Culture & Fun!"
       subtitle="Join the dance, art, and music festivals!"
     >
-      <div className="flex flex-col gap-6 sm:gap-8 text-left">
+      <div className="flex flex-col gap-8 max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 w-full text-left">
+        
+        {/* Dynamic & Premium Hero Banner */}
+        {heroEvent ? (
+          <div className="relative overflow-hidden rounded-[2rem] shadow-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-6 sm:p-10 lg:p-12 transition-all duration-300">
+            {/* Blurry Ambient Background Elements */}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-rose-500/10 dark:bg-rose-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
 
-        {/* Clean White Card Featured Event Hero */}
-        <div className="relative rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-xl bg-white dark:bg-slate-800 border-4 border-slate-100 dark:border-slate-700 min-h-[300px] sm:min-h-[350px] flex flex-col justify-end p-6 sm:p-12">
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
+              {/* Left Details Panel */}
+              <div className="lg:col-span-3 space-y-4">
+                <div className="inline-flex items-center gap-2 bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-400 px-3 py-1.5 font-bold tracking-wider text-xs uppercase rounded-xl border border-yellow-200 dark:border-yellow-900/30 shadow-sm">
+                  <i className="fi fi-sr-star text-xs" /> Featured Event
+                </div>
+                
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-800 dark:text-white tracking-tight leading-tight">
+                  {heroEvent.title}
+                </h2>
+                
+                <p className="text-slate-600 dark:text-slate-350 text-sm sm:text-base font-medium leading-relaxed max-w-2xl">
+                  {heroEvent.description}
+                </p>
+
+                {/* Info pill list */}
+                <div className="flex flex-wrap gap-3 pt-2 text-xs sm:text-sm font-semibold text-slate-650 dark:text-slate-400">
+                  <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/60 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <i className="fi fi-rr-calendar-lines text-indigo-550" />
+                    <span>{new Date(heroEvent.eventDate).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}</span>
+                  </div>
+                  {(() => {
+                    const loc = parseLocation(heroEvent.location);
+                    const displayLocStr = loc.venue && loc.coordinator 
+                      ? `${loc.venue} (Coord: ${loc.coordinator})`
+                      : (loc.venue || (loc.coordinator ? `Coord: ${loc.coordinator}` : ""));
+                    if (!displayLocStr) return null;
+                    return (
+                      <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/60 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <i className="fi fi-rr-marker text-rose-500" />
+                        <span>{displayLocStr}</span>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                <div className="pt-4 flex flex-wrap gap-4">
+                  {registrations[heroEvent.id] ? (
+                    <button
+                      onClick={() => handleCancelRegistration(heroEvent.id, heroEvent.title)}
+                      className="px-6 py-3 rounded-2xl text-sm font-black border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-50 hover:bg-emerald-100 transition-all flex items-center gap-2 active:scale-95 shadow-sm"
+                    >
+                      <i className="fi fi-sr-checkbox text-sm" /> Registered ({registrations[heroEvent.id]?.type === "individual" ? "Individual" : "Group"})
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => openRegisterModal(heroEvent)}
+                      className="px-6 py-3 rounded-2xl text-sm font-black text-white bg-primary hover:bg-opacity-95 shadow-md shadow-indigo-500/20 active:scale-95 transition-all flex items-center gap-2"
+                    >
+                      <i className="fi fi-sr-ticket text-sm" /> Register to Participate
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Illustration Panel */}
+              <div className="lg:col-span-2 flex justify-center lg:justify-end">
+                <div className="relative group p-4 bg-slate-50 dark:bg-slate-900/40 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-inner">
+                  {renderFlatIcon(heroCategory, "w-44 h-44 sm:w-56 sm:h-56 transform group-hover:scale-105 group-hover:rotate-3 transition-transform duration-300 drop-shadow-lg")}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Default Heritage Month Fallback if no database events */
+          <div className="relative overflow-hidden rounded-[2rem] shadow-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-6 sm:p-10 lg:p-12 transition-all duration-300">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 dark:bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-rose-500/10 dark:bg-rose-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
+
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
+              <div className="lg:col-span-3 space-y-4">
+                <div className="inline-flex items-center gap-2 bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-400 px-3 py-1.5 font-bold tracking-wider text-xs uppercase rounded-xl border border-yellow-200 dark:border-yellow-900/30 shadow-sm">
+                  <i className="fi fi-sr-star text-xs" /> Featured Festival
+                </div>
+                
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-800 dark:text-white tracking-tight leading-tight flex items-center gap-2">
+                  Tamil Heritage & Arts Month <i className="fi fi-sr-magic-wand text-pink-500 text-2xl lg:text-3xl" />
+                </h2>
+                
+                <p className="text-slate-650 dark:text-slate-355 text-sm sm:text-base font-semibold leading-relaxed max-w-2xl">
+                  Let's celebrate our rich culture together! Join the state-wide celebrations featuring traditional games, art expos, folk dances, musical plays, and delicious traditional food!
+                </p>
+
+                <div className="flex flex-wrap gap-3 pt-2 text-xs sm:text-sm font-semibold text-slate-650 dark:text-slate-400">
+                  <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/60 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <i className="fi fi-rr-calendar-lines text-indigo-500" />
+                    <span>August 1 – August 31, 2026</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/60 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <i className="fi fi-rr-marker text-rose-500" />
+                    <span>School Campus & Auditorium</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="lg:col-span-2 flex justify-center lg:justify-end">
+                <div className="relative p-4 bg-amber-50/50 dark:bg-slate-950/20 rounded-3xl border border-amber-100 dark:border-slate-800 shadow-inner">
+                  <TraditionalIcon className="w-44 h-44 sm:w-56 sm:h-56 drop-shadow-lg" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 📊 Interactive Stats Overview Panel */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           
-          {/* Subtle Decorative Background Elements */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-rose-50 dark:bg-rose-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 z-0"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-50 dark:bg-amber-900/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 z-0"></div>
-
-          <div className="absolute top-10 right-10 rotate-12 opacity-85 z-10 hidden sm:block">
-            <i className="fi fi-rr-camera text-slate-100 dark:text-slate-700/50 text-[120px]" />
+          <div className="bg-white dark:bg-slate-800/80 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+            <div className="space-y-1">
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Scheduled</span>
+              <h4 className="text-2xl font-black text-slate-800 dark:text-white">{totalEventsCount}</h4>
+              <p className="text-[11px] text-slate-500 font-semibold">School festivals & events</p>
+            </div>
+            <div className="p-3 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-2xl">
+              <i className="fi fi-rr-calendar text-2xl" />
+            </div>
           </div>
 
-          <div className="relative z-20 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-3 py-1.5 sm:px-4 sm:py-2 mb-3 sm:mb-4 font-black tracking-widest text-[10px] sm:text-xs uppercase rounded-xl sm:rounded-2xl shadow-sm rotate-[-2deg] border-2 border-yellow-200 dark:border-yellow-700/50">
-              <i className="fi fi-rr-star text-xs" /> The Big Event!
+          <div className="bg-white dark:bg-slate-800/80 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+            <div className="space-y-1">
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">My Registrations</span>
+              <h4 className="text-2xl font-black text-slate-800 dark:text-white">{registeredEventsCount}</h4>
+              <p className="text-[11px] text-slate-500 font-semibold">Registered class programs</p>
             </div>
-            <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-800 dark:text-white mb-3 sm:mb-4 tracking-tight drop-shadow-sm flex items-center gap-2">
-              Tamil Heritage Month <i className="fi fi-rr-magic-wand text-pink-500 text-xl sm:text-2xl" />
-            </h2>
-            <p className="text-slate-650 dark:text-slate-350 font-bold mb-6 sm:mb-8 text-xs sm:text-sm md:text-base leading-relaxed">
-              Let's celebrate our rich culture together! There will be yummy food, beautiful dances, traditional games, and lots of fun!
-            </p>
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-2xl">
+              <i className="fi fi-rr-ticket text-2xl" />
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-slate-800/80 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+            <div className="space-y-1">
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Soonest Event</span>
+              <h4 className="text-sm font-black text-slate-800 dark:text-white truncate max-w-[140px]">
+                {soonestEvent ? soonestEvent.title : "None Scheduled"}
+              </h4>
+              <p className="text-[11px] text-slate-500 font-semibold">
+                {soonestEvent ? (
+                  `${Math.max(0, Math.ceil((new Date(soonestEvent.eventDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days remaining`
+                ) : (
+                  "Plan new programs"
+                )}
+              </p>
+            </div>
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-2xl">
+              <i className="fi fi-rr-clock text-2xl" />
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-slate-800/80 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+            <div className="space-y-1">
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Diverse Tracks</span>
+              <h4 className="text-2xl font-black text-slate-800 dark:text-white">{uniqueCategoriesCount}</h4>
+              <p className="text-[11px] text-slate-500 font-semibold">Specialized event fields</p>
+            </div>
+            <div className="p-3 bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 rounded-2xl">
+              <i className="fi fi-rr-palette text-2xl" />
+            </div>
+          </div>
+
+        </div>
+
+        {/* 🔍 Search & Interactive Filters */}
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] border border-slate-200 dark:border-slate-700 shadow-sm">
+          {/* Search bar */}
+          <div className="relative w-full md:max-w-xs">
+            <i className="fi fi-rr-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+            <input
+              type="text"
+              placeholder="Search festivals, staff..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-400"
+            />
+          </div>
+
+          {/* Controls */}
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl py-2.5 px-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="soonest">Sort by: Soonest</option>
+              <option value="latest">Sort by: Latest</option>
+            </select>
+
+            <button
+              onClick={() => setShowRegisteredOnly(!showRegisteredOnly)}
+              className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 border ${
+                showRegisteredOnly
+                  ? "bg-emerald-500 text-white border-emerald-500"
+                  : "bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-350 border-slate-200 dark:border-slate-700"
+              }`}
+            >
+              <i className="fi fi-rr-ticket text-xs" />
+              <span>Registered Only</span>
+            </button>
           </div>
         </div>
 
-        {/* Upcoming Events Grid */}
-        <div className="bg-white dark:bg-slate-800 p-5 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-xl border-4 border-purple-100 dark:border-slate-700">
-          <div className="flex items-center justify-between mb-6 sm:mb-8">
-            <h3 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-3">
-              <div className="p-2 sm:p-3 bg-purple-100 text-purple-600 rounded-xl sm:rounded-2xl rotate-[-5deg]">
-                <i className="fi fi-rr-calendar-heart text-base sm:text-xl" />
+        {/* Categories Horizontal Scrolling Pill List */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+          {["All", "Art & Craft", "Music & Dance", "Traditional", "Drama & Literary", "Sports & Fun", "Science & Exhibition"].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all border ${
+                selectedCategory === cat
+                  ? "bg-slate-800 text-white dark:bg-white dark:text-slate-900 border-slate-800 dark:border-white shadow-sm"
+                  : "bg-white text-slate-650 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 hover:bg-slate-55 dark:hover:bg-slate-900"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* 🗓️ Grid list of Event Cards */}
+        <div>
+          {loading ? (
+            <div className="text-center py-20 font-bold text-slate-400 dark:text-slate-500 flex flex-col items-center justify-center gap-3">
+              <i className="fi fi-rr-hourglass text-4xl animate-spin text-indigo-500" />
+              <span className="text-sm">Fetching upcoming cultural events...</span>
+            </div>
+          ) : filteredEvents.length === 0 ? (
+            <div className="text-center py-16 px-4 bg-white dark:bg-slate-850/40 rounded-3xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-3">
+              <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-1 shadow-inner">
+                <i className="fi fi-rr-party-horn text-3xl text-slate-400 dark:text-slate-600 animate-bounce" />
               </div>
-              Cool Upcoming Stuff
-            </h3>
-          </div>
+              <h4 className="text-lg font-black text-slate-800 dark:text-slate-100">No events found</h4>
+              <p className="text-xs text-slate-400 font-semibold max-w-sm">
+                Try modifying your filters, search terms, or check back later for newly scheduled cultural activities!
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {filteredEvents.map((evt) => {
+                const category = getEventCategory(evt.title, evt.description, evt.location);
+                const theme = THEMES[category] || THEMES["General"];
+                const loc = parseLocation(evt.location);
+                const isRegistered = !!registrations[evt.id];
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {loading ? (
-              <div className="col-span-1 lg:col-span-3 text-center py-10 font-bold text-slate-500">
-                Loading events... <i className="fi fi-rr-hourglass text-sm animate-spin inline-block ml-1" />
-              </div>
-            ) : events.length === 0 ? (
-              <div className="col-span-1 lg:col-span-3 text-center py-10 font-bold text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-3xl border-4 border-dashed border-slate-200 dark:border-slate-700">
-                No events scheduled. <i className="fi fi-rr-party-horn text-sm inline-block ml-1 animate-bounce" />
-              </div>
-            ) : events.map((evt, i) => {
-              const { icon, color } = getEventStyle(evt.title);
-              return (
-                <div key={i} className={`p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border-4 border-${color}-100 dark:border-slate-700 hover:border-${color}-300 bg-${color}-50/50 hover:bg-${color}-50 dark:bg-slate-900/50 hover:-translate-y-2 hover:shadow-xl transition-all duration-300 flex flex-col h-full group relative`}>
-
-                  <div className="flex justify-between items-start mb-4 sm:mb-6">
-                    <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-${color}-200 text-${color}-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-transform shadow-inner`}>
-                      {icon}
-                    </div>
-                    <span className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider rounded-lg sm:rounded-xl border-2 bg-white dark:bg-slate-800 text-${color}-600 border-${color}-200 shadow-sm rotate-3`}>
-                      {evt.status}
-                    </span>
-                  </div>
-
-                  <h4 className="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100 mb-3 sm:mb-4 pr-16">{evt.title}</h4>
-                  <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 mb-4 line-clamp-2 leading-relaxed">{evt.description}</p>
-
-                  <div className="space-y-2 sm:space-y-3 mt-auto text-xs sm:text-sm font-bold text-slate-500 bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-slate-100 dark:border-slate-700">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-1.5 bg-${color}-100 rounded-lg text-${color}-600`}>
-                        <i className="fi fi-rr-calendar-heart text-xs sm:text-sm" />
+                return (
+                  <div
+                    key={evt.id}
+                    className={`flex flex-col h-full rounded-3xl border ${theme.cardBorder} ${theme.cardBg} ${theme.cardHoverBorder} hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 group overflow-hidden bg-white dark:bg-slate-800`}
+                  >
+                    {/* Card Banner / Icon Wrapper */}
+                    <div className="relative p-6 flex justify-between items-start pb-4">
+                      <div className={`p-1.5 rounded-2xl ${theme.iconContainerBg} transform group-hover:scale-105 group-hover:rotate-3 transition-transform duration-300 shadow-sm`}>
+                        {renderFlatIcon(category, "w-14 h-14 drop-shadow-sm")}
                       </div>
-                      {new Date(evt.eventDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className={`p-1.5 bg-${color}-100 rounded-lg text-${color}-600`}>
-                        <i className="fi fi-rr-marker text-xs sm:text-sm" />
-                      </div>
-                      {(() => {
-                        try {
-                          const parsed = JSON.parse(evt.location);
-                          return parsed.coordinator ? `Coord: ${parsed.coordinator}` : (parsed.category || "School");
-                        } catch {
-                          return evt.location;
-                        }
-                      })()}
-                    </div>
-                  </div>
 
-                  <div className="mt-4 sm:mt-6 text-center text-xs font-bold text-slate-500 bg-slate-50 dark:bg-slate-800/80 p-3 rounded-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center gap-1.5 shadow-sm">
-                    <i className="fi fi-rr-info text-blue-500 text-sm" />
-                    <span>Contact Staff to register & get tickets</span>
+                      {/* Top-right Status & Category Badge */}
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg border ${theme.badgeBorder} ${theme.badgeBg} ${theme.badgeText} shadow-sm`}>
+                          {evt.status}
+                        </span>
+                        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                          {category}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Middle Text Info */}
+                    <div className="px-6 pb-4 space-y-2 flex-grow">
+                      <h4 className="text-lg font-black text-slate-800 dark:text-white leading-tight group-hover:text-indigo-600 dark:group-hover:text-emerald-400 transition-colors">
+                        {evt.title}
+                      </h4>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">
+                        {evt.description}
+                      </p>
+                    </div>
+
+                    {/* Event Meta Pills */}
+                    <div className="px-6 pb-5 space-y-2.5">
+                      <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-650 dark:text-slate-350">
+                        <div className="flex items-center gap-2">
+                          <i className="fi fi-rr-calendar-lines text-indigo-500 text-sm" />
+                          <span>
+                            {new Date(evt.eventDate).toLocaleDateString(undefined, {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric"
+                            })}
+                          </span>
+                        </div>
+                        {loc.venue && (
+                          <>
+                            <span className="text-slate-300 dark:text-slate-700">|</span>
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <i className="fi fi-rr-marker text-rose-500 text-sm shrink-0" />
+                              <span className="truncate">{loc.venue}</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Coordinator Detail If Exists */}
+                      {loc.coordinator && (
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 px-1 truncate">
+                          <i className="fi fi-rr-user text-slate-400" />
+                          <span className="truncate">Coord: {loc.coordinator}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Button at bottom */}
+                    <div className="px-6 pb-6 pt-1 border-t border-slate-100 dark:border-slate-850/80 mt-auto bg-slate-50/20 dark:bg-slate-900/10">
+                      {isRegistered ? (
+                        <button
+                          onClick={() => handleCancelRegistration(evt.id, evt.title)}
+                          className="w-full py-3 rounded-2xl text-xs font-black border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-50 hover:bg-emerald-100 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-sm"
+                        >
+                          <i className="fi fi-sr-checkbox text-sm" />
+                          <span>Registered ({registrations[evt.id]?.type === "individual" ? "Individual" : "Group"})</span>
+                        </button>
+                      ) : evt.status.toLowerCase().includes("completed") ? (
+                        <button
+                          disabled
+                          className="w-full py-3 rounded-2xl text-xs font-black bg-slate-100 text-slate-455 dark:bg-slate-900 dark:text-slate-650 cursor-not-allowed flex items-center justify-center gap-1.5 border border-slate-200 dark:border-slate-800"
+                        >
+                          <i className="fi fi-rr-ban text-sm" />
+                          <span>Completed Program</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => openRegisterModal(evt)}
+                          className={`w-full py-3 rounded-2xl text-xs font-black ${theme.btnBg} ${theme.btnText} hover:shadow-lg transition-all flex items-center justify-center gap-1.5 active:scale-95 border-b-4 border-black/20`}
+                        >
+                          <i className="fi fi-sr-ticket text-sm" />
+                          <span>Register to Participate</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
       </div>
 
-      {/* Fun Register Students Modal */}
-      {registerModalOpen && (
-        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-[2rem] sm:rounded-[3rem] w-full max-w-md shadow-2xl border-4 border-rose-200 dark:border-slate-700 animate-in zoom-in-95 p-3">
-            <div className="flex justify-between items-center p-4 sm:p-6 bg-rose-50 dark:bg-slate-900 rounded-[1.5rem] sm:rounded-[2.5rem] mb-4 sm:mb-6">
-              <h3 className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400">Join the Party!</h3>
-              <button onClick={() => setRegisterModalOpen(false)} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-full text-slate-400 hover:text-rose-500 hover:scale-110 transition-all shadow-sm">
-                <i className="fi fi-rr-cross-small text-base sm:text-lg" />
+      {/* 🎟️ Register Class Modal */}
+      {registerModalOpen && selectedEvent && (
+        <div className="fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 p-5">
+            
+            {/* Modal Header */}
+            <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl mb-5 border border-slate-100 dark:border-slate-800">
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Enrollment Panel</span>
+                <h3 className="text-lg font-black text-indigo-600 dark:text-indigo-400">Register to Participate</h3>
+              </div>
+              <button
+                onClick={() => setRegisterModalOpen(false)}
+                className="w-9 h-9 flex items-center justify-center bg-white dark:bg-slate-800 rounded-full text-slate-400 hover:text-rose-500 hover:scale-105 transition-all shadow-sm border border-slate-200 dark:border-slate-700"
+              >
+                <i className="fi fi-rr-cross-small text-xl" />
               </button>
             </div>
-            <form onSubmit={handleRegister} className="p-2 sm:p-4 space-y-4 sm:space-y-6">
+
+            {/* Form */}
+            <form onSubmit={handleRegisterSubmit} className="space-y-5 px-1">
               <div>
-                <label className="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
-                  Which Event? <i className="fi fi-rr-ticket text-xs sm:text-sm inline-block ml-1" />
+                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
+                  Event Selection
                 </label>
-                <select required name="event" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-3 sm:py-4 sm:px-4 text-xs sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-rose-300 transition-all">
-                  {events.map((e) => (
-                    <option key={e.id} value={e.title}>{e.title}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
-                    Class <i className="fi fi-rr-briefcase text-xs sm:text-sm inline-block ml-1" />
-                  </label>
-                  <input required name="class" type="text" defaultValue={studentClass} placeholder="e.g., 9th A" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-3 sm:py-4 sm:px-4 text-xs sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-rose-300 transition-all" />
-                </div>
-                <div>
-                  <label className="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
-                    How Many? <i className="fi fi-rr-user text-xs sm:text-sm inline-block ml-1" />
-                  </label>
-                  <input required name="count" type="number" min="1" max="60" placeholder="10" className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-3 sm:py-4 sm:px-4 text-xs sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-rose-300 transition-all" />
+                <div className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-4 text-xs font-bold shadow-inner">
+                  {selectedEvent.title}
                 </div>
               </div>
-              <div className="pt-4 sm:pt-6 flex gap-4">
-                <button type="button" onClick={() => setRegisterModalOpen(false)} className="flex-1 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border-2 border-slate-200 dark:border-slate-700">
+
+              {/* Participation Mode Toggle */}
+              <div>
+                <label className="block text-[10px] font-black text-slate-450 dark:text-slate-500 uppercase tracking-widest mb-2">
+                  Participation Mode
+                </label>
+                <div className="grid grid-cols-2 gap-2 p-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                  <button
+                    type="button"
+                    onClick={() => setRegistrationType("individual")}
+                    className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                      registrationType === "individual"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-slate-500 dark:text-slate-450 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <i className="fi fi-rr-user text-xs" />
+                    <span>Individual</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRegistrationType("group")}
+                    className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                      registrationType === "group"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-slate-500 dark:text-slate-450 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <i className="fi fi-rr-users-alt text-xs" />
+                    <span>Group / Class</span>
+                  </button>
+                </div>
+              </div>
+
+              {registrationType === "individual" ? (
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
+                    Student Name
+                  </label>
+                  <input
+                    required
+                    name="studentName"
+                    type="text"
+                    defaultValue={session?.user?.name || "Karthik S."}
+                    placeholder="e.g., Karthik S."
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-4 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
+                        Class & Section
+                      </label>
+                      <input
+                        required
+                        name="class"
+                        type="text"
+                        defaultValue={studentClass}
+                        placeholder="e.g., 9th A"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-4 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
+                        Student Count
+                      </label>
+                      <input
+                        required
+                        name="count"
+                        type="number"
+                        min="2"
+                        max="60"
+                        placeholder="15"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-3 px-4 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Representative Authorization Checkbox */}
+                  <label className="flex items-start gap-3 p-3 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-2xl cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all select-none">
+                    <input
+                      type="checkbox"
+                      checked={isRepAuthorized}
+                      onChange={(e) => setIsRepAuthorized(e.target.checked)}
+                      className="mt-0.5 w-4.5 h-4.5 text-indigo-650 border-slate-300 rounded focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900"
+                    />
+                    <div className="text-[11px] font-bold text-indigo-950 dark:text-indigo-200 leading-snug">
+                      I confirm that I am the Class Representative or an authorized student representative for this class/group.
+                    </div>
+                  </label>
+                </div>
+              )}
+
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRegisterModalOpen(false)}
+                  className="flex-1 py-3.5 rounded-2xl text-xs font-black text-slate-550 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors border border-slate-200 dark:border-slate-700"
+                >
                   Cancel
                 </button>
-                <button type="submit" className="flex-1 py-3 sm:py-4 rounded-2xl text-xs sm:text-sm font-black text-grey bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 transition-all shadow-lg shadow-rose-500/30 active:scale-95 border-b-4 border-rose-700 flex items-center justify-center gap-2">
-                  Register! <i className="fi fi-rr-party-horn text-xs sm:text-sm" />
+                <button
+                  type="submit"
+                  disabled={registrationType === "group" && !isRepAuthorized}
+                  className={`flex-1 py-3.5 rounded-2xl text-xs font-black text-white transition-all shadow-lg active:scale-95 border-b-4 border-black/20 flex items-center justify-center gap-2 ${
+                    registrationType === "group" && !isRepAuthorized
+                      ? "bg-slate-300 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed shadow-none hover:bg-opacity-100 border-slate-400/20"
+                      : "bg-primary hover:bg-opacity-95 shadow-indigo-500/20"
+                  }`}
+                >
+                  Confirm Registration
                 </button>
               </div>
             </form>

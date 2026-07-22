@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -31,6 +32,7 @@ function resolveAsset(url: string | null | undefined): string {
 }
 
 export default function HeadmasterPortalPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId as string | undefined;
   const schoolDise = (session?.user as any)?.schoolDise as string | undefined;
@@ -165,7 +167,10 @@ export default function HeadmasterPortalPage() {
   const galleryImages = portal?.gallery || [];
 
   return (
-    <PortalLayout title="Public School Portal" themeClass="theme-headmaster" accentColor="#3b82f6">
+    <PortalLayout
+      title={lang === "தமிழ்" ? "பொது பள்ளி தளம்" : "Public School Portal"}
+      themeClass="theme-headmaster"
+      accentColor="#3b82f6">
       {toast && (
         <div
           className={`mb-6 p-4 rounded-xl text-xs font-semibold border shadow-lg ${
@@ -180,9 +185,9 @@ export default function HeadmasterPortalPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h2 className="text-base font-bold text-slate-800 dark:text-white">🌐 Manage your school&apos;s public landing page</h2>
+          <h2 className="text-base font-bold text-slate-800 dark:text-white">🌐 {lang === "தமிழ்" ? "பள்ளியின் பொது முகப்புப் பக்கத்தை நிர்வகிக்கவும்" : "Manage your school's public landing page"}</h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Edit the banner, tagline, gallery and login options that visitors see.
+            {lang === "தமிழ்" ? "பார்வையாளர்கள் காணும் பன்னர், தல்பப்புவரி, தொகுப்பகம் மற்றும் உள்நுழைவு விருப்பங்களை திருத்தவும்." : "Edit the banner, tagline, gallery and login options that visitors see."}
           </p>
         </div>
         {schoolDise && (

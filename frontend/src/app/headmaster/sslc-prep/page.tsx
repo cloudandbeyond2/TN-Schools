@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import {
   Users, BookOpen, ClipboardList, TrendingUp, AlertTriangle, RefreshCw,
   Award, BarChart2, FileText, Eye, EyeOff, GraduationCap, Target,
@@ -28,6 +29,7 @@ const SUBJECT_COLORS: Record<string, string> = {
 };
 
 export default function HeadmasterSSLCPrepPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const sessionUser = session?.user as any;
   const schoolId = sessionUser?.schoolId || "";
@@ -77,13 +79,13 @@ export default function HeadmasterSSLCPrepPage() {
 
   return (
     <PortalLayout
-      title="SSLC Board Prep Oversight"
-      subtitle="School-wide readiness for Classes 9 & 10 board preparation."
+      title={lang === "தமிழ்" ? "SSLC வாரியத் தயாரிப்பு மேற்பார்வை" : "SSLC Board Prep Oversight"}
+      subtitle={lang === "தமிழ்" ? "9 & 10 ஆம் வகுப்புகளுக்கான வாரியத் தயாரிப்பு பள்ளி அளவிலான தயார்நிலை." : "School-wide readiness for Classes 9 & 10 board preparation."}
     >
       {/* Grade filter + refresh */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700">
-          {([["", "Both Classes"], ["9", "Class 9"], ["10", "Class 10"]] as const).map(([val, label]) => (
+          {([["", lang === "தமிழ்" ? "இரு வகுப்புகளும்" : "Both Classes"], ["9", lang === "தமிழ்" ? "வகுப்பு 9" : "Class 9"], ["10", lang === "தமிழ்" ? "வகுப்பு 10" : "Class 10"]] as const).map(([val, label]) => (
             <button
               key={val}
               onClick={() => setSelectedGrade(val)}

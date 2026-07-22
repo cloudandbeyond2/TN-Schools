@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useStudentGroup } from "@/lib/useStudentGroup";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { HS_GROUP_SUBJECTS, HS_GROUP_LABELS } from "@/data/hsGroups";
 
 /* ────────────────────────────────────────────────────────────
@@ -65,27 +66,25 @@ interface SyllabusUnit {
   url?: string;
 }
 
-
-
 /* ────────────────────────────────────────────────────────────
    Category metadata for tabs & overview cards (flaticon names)
 ──────────────────────────────────────────────────────────── */
-const CATEGORIES: {
+const getCategories = (lang: string): {
   key: CategoryKey;
   label: string;
   icon: string;
   gradient: string;
   blurb: string;
-}[] = [
-  { key: "overview", label: "Overview", icon: "apps", gradient: "from-slate-500 to-slate-600", blurb: "" },
-  { key: "subjects", label: "Class Subjects", icon: "graduation-cap", gradient: "from-indigo-500 to-violet-500", blurb: "Your subjects, teachers and progress at a glance" },
-  { key: "syllabus", label: "Syllabus", icon: "book-alt", gradient: "from-emerald-500 to-teal-500", blurb: "Term-wise units with completion tracking" },
-  { key: "textbooks", label: "Textbooks", icon: "book", gradient: "from-amber-500 to-orange-500", blurb: "Official Samacheer Kalvi textbooks & eBooks" },
-  { key: "materials", label: "Study Materials", icon: "document", gradient: "from-blue-500 to-sky-500", blurb: "Question banks, worksheets & revision charts" },
-  { key: "notes", label: "Teacher Notes", icon: "notebook", gradient: "from-pink-500 to-rose-500", blurb: "Class notes and tips shared by your teachers" },
-  { key: "videos", label: "Video Lessons", icon: "play-alt", gradient: "from-red-500 to-orange-500", blurb: "Recorded lessons with resume support" },
-  { key: "digital", label: "Digital Content", icon: "computer", gradient: "from-purple-500 to-violet-500", blurb: "Interactive sims, audio lessons & more" },
-  { key: "reference", label: "Reference Materials", icon: "books", gradient: "from-cyan-500 to-sky-500", blurb: "Past papers, glossaries & handbooks" },
+}[] => [
+  { key: "overview", label: lang === "தமிழ்" ? "மேலோட்டம்" : "Overview", icon: "apps", gradient: "from-slate-500 to-slate-600", blurb: "" },
+  { key: "subjects", label: lang === "தமிழ்" ? "வகுப்பு பாடங்கள்" : "Class Subjects", icon: "graduation-cap", gradient: "from-indigo-500 to-violet-500", blurb: lang === "தமிழ்" ? "உங்கள் பாடங்கள், ஆசிரியர்கள் மற்றும் முன்னேற்றம் ஒரே பார்வையில்" : "Your subjects, teachers and progress at a glance" },
+  { key: "syllabus", label: lang === "தமிழ்" ? "பாடத்திட்டம்" : "Syllabus", icon: "book-alt", gradient: "from-emerald-500 to-teal-500", blurb: lang === "தமிழ்" ? "பருவம் வாரியாக அலகுகள் மற்றும் நிறைவு கண்காணிப்பு" : "Term-wise units with completion tracking" },
+  { key: "textbooks", label: lang === "தமிழ்" ? "பாடப்புத்தகங்கள்" : "Textbooks", icon: "book", gradient: "from-amber-500 to-orange-500", blurb: lang === "தமிழ்" ? "அதிகாரப்பூர்வ சமச்சீர் கல்வி பாடப்புத்தகங்கள் & மின்னூல்கள்" : "Official Samacheer Kalvi textbooks & eBooks" },
+  { key: "materials", label: lang === "தமிழ்" ? "படிப்புப் பொருட்கள்" : "Study Materials", icon: "document", gradient: "from-blue-500 to-sky-500", blurb: lang === "தமிழ்" ? "வினா வங்கி, வேலைத்தாள்கள் & திருப்புதல் வரைபடங்கள்" : "Question banks, worksheets & revision charts" },
+  { key: "notes", label: lang === "தமிழ்" ? "ஆசிரியர் குறிப்புகள்" : "Teacher Notes", icon: "notebook", gradient: "from-pink-500 to-rose-500", blurb: lang === "தமிழ்" ? "வகுப்பு குறிப்புகள் மற்றும் ஆசிரியர்கள் பகிர்ந்த உதவிக்குறிப்புகள்" : "Class notes and tips shared by your teachers" },
+  { key: "videos", label: lang === "தமிழ்" ? "வீடியோ பாடங்கள்" : "Video Lessons", icon: "play-alt", gradient: "from-red-500 to-orange-500", blurb: lang === "தமிழ்" ? "தொடர்ந்து பார்க்கும் வசதியுடன் பதிவுசெய்யப்பட்ட பாடங்கள்" : "Recorded lessons with resume support" },
+  { key: "digital", label: lang === "தமிழ்" ? "டிஜிட்டல் உள்ளடக்கம்" : "Digital Content", icon: "computer", gradient: "from-purple-500 to-violet-500", blurb: lang === "தமிழ்" ? "செயல்முறை மாதிரிகள், ஆடியோ பாடங்கள் & மேலும்" : "Interactive sims, audio lessons & more" },
+  { key: "reference", label: lang === "தமிழ்" ? "குறிப்புப் பொருட்கள்" : "Reference Materials", icon: "books", gradient: "from-cyan-500 to-sky-500", blurb: lang === "தமிழ்" ? "முந்தைய வினாத்தாள்கள், கலைச்சொற்கள் & கையேடுகள்" : "Past papers, glossaries & handbooks" },
 ];
 
 const TYPE_ICONS: Record<Resource["type"], string> = {
@@ -115,6 +114,9 @@ const BOOKMARK_KEY = "academics-bookmarks";
 ──────────────────────────────────────────────────────────── */
 export default function AcademicsHubPage() {
   const { data: session } = useSession();
+  const { lang } = usePortalLanguage();
+  const CATEGORIES = useMemo(() => getCategories(lang), [lang]);
+
   const [activeTab, setActiveTab] = useState<CategoryKey>("overview");
   const [selectedSubject, setSelectedSubject] = useState<string>("All");
   const [search, setSearch] = useState("");
@@ -246,13 +248,13 @@ export default function AcademicsHubPage() {
         color: gs.color,
         gradient: `from-[${gs.color}] to-slate-600`,
         icon: gs.icon,
-        teacher: "Class Teacher",
+        teacher: lang === "தமிழ்" ? "வகுப்பு ஆசிரியர்" : "Class Teacher",
         progress: 0,
         units: syllabusData[gs.name]?.length || 0,
         unitsDone: 0,
       };
     });
-  }, [dbSubjects, syllabusData, isHigherSecondary, studentGroup]);
+  }, [dbSubjects, syllabusData, isHigherSecondary, studentGroup, lang]);
 
   // Load / persist bookmarks
   useEffect(() => {
@@ -312,7 +314,7 @@ export default function AcademicsHubPage() {
 
   const handleDownload = async (resource: Resource) => {
     if (!resource.url) {
-      alert("No download URL available for this resource.");
+      alert(lang === "தமிழ்" ? "இந்த வளத்திற்கு பதிவிறக்க இணைப்பு இல்லை." : "No download URL available for this resource.");
       return;
     }
     const downloadUrl = getFileUrl(resource.url);
@@ -366,7 +368,7 @@ export default function AcademicsHubPage() {
       color: "#64748b",
       gradient: "from-slate-500 to-slate-600",
       icon: "📚",
-      teacher: "Class Teacher",
+      teacher: lang === "தமிழ்" ? "வகுப்பு ஆசிரியர்" : "Class Teacher",
       progress: 0,
       units: 0,
       unitsDone: 0
@@ -433,12 +435,12 @@ export default function AcademicsHubPage() {
           <div className="flex items-center gap-1.5">
             {r.isNew && (
               <span className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-full">
-                New
+                {lang === "தமிழ்" ? "புதியது" : "New"}
               </span>
             )}
             {r.popular && (
               <span className="text-[9px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-1 rounded-full flex items-center gap-0.5">
-                <Fi name="star" className="text-[10px]" /> Popular
+                <Fi name="star" className="text-[10px]" /> {lang === "தமிழ்" ? "பிரபலம்" : "Popular"}
               </span>
             )}
             <button
@@ -448,7 +450,7 @@ export default function AcademicsHubPage() {
                   ? "text-amber-500 bg-amber-500/10"
                   : "text-[var(--text-muted)] hover:text-amber-500 hover:bg-amber-500/10"
               }`}
-              title={saved ? "Remove bookmark" : "Bookmark for later"}
+              title={saved ? (lang === "தமிழ்" ? "புக்மார்க்கை நீக்கு" : "Remove bookmark") : (lang === "தமிழ்" ? "புக்மார்க் செய்" : "Bookmark for later")}
             >
               <Fi name={saved ? "bookmark" : "bookmark"} className={`text-base ${saved ? "" : "opacity-70"}`} />
             </button>
@@ -481,7 +483,7 @@ export default function AcademicsHubPage() {
               className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md active:scale-95 transition-all"
               style={{ background: `linear-gradient(135deg, ${t.color}, ${t.color}cc)`, color: "#fff" }}
             >
-              <Fi name="eye" className="text-xs" /> {r.category === "videos" ? "Watch" : "Open"}
+              <Fi name="eye" className="text-xs" /> {lang === "தமிழ்" ? (r.category === "videos" ? "பார்" : "திற") : (r.category === "videos" ? "Watch" : "Open")}
             </button>
           </div>
         </div>
@@ -542,19 +544,19 @@ export default function AcademicsHubPage() {
           <div className="mt-auto flex items-center justify-between">
             {r.progress === 100 ? (
               <span className="text-[10px] font-bold text-emerald-500 flex items-center gap-1">
-                <Fi name="check" className="text-[10px]" /> Completed
+                <Fi name="check" className="text-[10px]" /> {lang === "தமிழ்" ? "முடிக்கப்பட்டது" : "Completed"}
               </span>
             ) : (r.progress || 0) > 0 ? (
-              <span className="text-[10px] font-bold text-orange-500">{r.progress}% watched</span>
+              <span className="text-[10px] font-bold text-orange-500">{r.progress}% {lang === "தமிழ்" ? "பார்க்கப்பட்டது" : "watched"}</span>
             ) : (
-              <span className="text-[10px] font-semibold text-[var(--text-muted)]">Not started</span>
+              <span className="text-[10px] font-semibold text-[var(--text-muted)]">{lang === "தமிழ்" ? "தொடங்கப்படவில்லை" : "Not started"}</span>
             )}
             <button
               onClick={() => setPreviewResource(r)}
               className="text-[11px] font-bold flex items-center gap-1 hover:gap-1.5 transition-all"
               style={{ color: t.color }}
             >
-              {(r.progress || 0) > 0 && r.progress !== 100 ? "Resume" : "Watch"}{" "}
+              {(r.progress || 0) > 0 && r.progress !== 100 ? (lang === "தமிழ்" ? "தொடர்க" : "Resume") : (lang === "தமிழ்" ? "பார்" : "Watch")}{" "}
               <Fi name="arrow-small-right" className="text-xs" />
             </button>
           </div>
@@ -567,8 +569,8 @@ export default function AcademicsHubPage() {
   if (loading) {
     return (
       <PortalLayout
-        title="Academics & Subjects"
-        subtitle="Everything you need to learn — subjects, syllabus, books, notes and videos in one place."
+        title={lang === "தமிழ்" ? "பாடங்கள் & பாடப்பிரிவுகள்" : "Academics & Subjects"}
+        subtitle={lang === "தமிழ்" ? "நீங்கள் கற்க வேண்டிய அனைத்தும் — பாடங்கள், பாடத்திட்டம், புத்தகங்கள், குறிப்புகள் மற்றும் வீடியோக்கள் ஒரே இடத்தில்." : "Everything you need to learn — subjects, syllabus, books, notes and videos in one place."}
         themeClass="theme-student"
       >
         <div className="flex items-center justify-center min-h-[50vh]">
@@ -580,8 +582,8 @@ export default function AcademicsHubPage() {
 
   return (
     <PortalLayout
-      title="Academics & Subjects"
-      subtitle="Everything you need to learn — subjects, syllabus, books, notes and videos in one place."
+      title={lang === "தமிழ்" ? "பாடங்கள் & பாடப்பிரிவுகள்" : "Academics & Subjects"}
+      subtitle={lang === "தமிழ்" ? "நீங்கள் கற்க வேண்டிய அனைத்தும் — பாடங்கள், பாடத்திட்டம், புத்தகங்கள், குறிப்புகள் மற்றும் வீடியோக்கள் ஒரே இடத்தில்." : "Everything you need to learn — subjects, syllabus, books, notes and videos in one place."}
       themeClass="theme-student"
     >
       {/* ── Hero banner ─────────────────────────────────── */}
@@ -601,24 +603,25 @@ export default function AcademicsHubPage() {
                 className="text-[11px] font-black uppercase tracking-widest"
                 style={{ color: "rgba(255,255,255,0.85)" }}
               >
-                Class {studentClass} · Tamil Nadu State Board
+                {lang === "தமிழ்" ? `வகுப்பு ${studentClass} · தமிழ்நாடு மாநிலப் பாடத்திட்டம்` : `Class ${studentClass} · Tamil Nadu State Board`}
                 {isHigherSecondary ? ` · ${HS_GROUP_LABELS[studentGroup]}` : ""}
               </span>
             </div>
             <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#fff" }}>
-              Academics & Subjects Hub
+              {lang === "தமிழ்" ? "பாடங்கள் & பாடப்பிரிவுகள் மையம்" : "Academics & Subjects Hub"}
             </div>
             <p className="text-sm max-w-xl" style={{ color: "rgba(255,255,255,0.9)" }}>
-              Browse your class subjects, follow the syllabus, and open textbooks, study materials,
-              teacher notes, video lessons and reference content — all from one place.
+              {lang === "தமிழ்"
+                ? "உங்கள் வகுப்பு பாடங்களை ஆராயுங்கள், பாடத்திட்டத்தைப் பின்பற்றுங்கள், பாடப்புத்தகங்கள், படிப்புப் பொருட்கள், ஆசிரியர் குறிப்புகள், வீடியோ பாடங்கள் மற்றும் குறிப்பு உள்ளடக்கங்களைத் திறக்கவும் — அனைத்தும் ஒரே இடத்தில்."
+                : "Browse your class subjects, follow the syllabus, and open textbooks, study materials, teacher notes, video lessons and reference content — all from one place."}
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
             {[
-              { label: "Subjects", value: subjects.length, icon: "graduation-cap" },
-              { label: "Resources", value: resources.length, icon: "document" },
-              { label: "Videos", value: resources.filter((r) => r.category === "videos").length, icon: "play-alt" },
-              { label: "Saved", value: bookmarks.length, icon: "bookmark" },
+              { label: lang === "தமிழ்" ? "பாடங்கள்" : "Subjects", value: subjects.length, icon: "graduation-cap" },
+              { label: lang === "தமிழ்" ? "வளங்கள்" : "Resources", value: resources.length, icon: "document" },
+              { label: lang === "தமிழ்" ? "வீடியோக்கள்" : "Videos", value: resources.filter((r) => r.category === "videos").length, icon: "play-alt" },
+              { label: lang === "தமிழ்" ? "சேமித்தவை" : "Saved", value: bookmarks.length, icon: "bookmark" },
             ].map((s) => (
               <div
                 key={s.label}
@@ -646,7 +649,7 @@ export default function AcademicsHubPage() {
           }`}
           style={selectedSubject === "All" ? { color: "#fff" } : undefined}
         >
-          <Fi name="apps" className="text-sm" /> All Subjects
+          <Fi name="apps" className="text-sm" /> {lang === "தமிழ்" ? "அனைத்து பாடங்களும்" : "All Subjects"}
         </button>
         {subjects.map((s) => {
           const active = selectedSubject === s.name;
@@ -714,7 +717,7 @@ export default function AcademicsHubPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={`Search ${CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
+              placeholder={lang === "தமிழ்" ? `தேடு (${CATEGORIES.find((c) => c.key === activeTab)?.label})...` : `Search ${CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
               className="w-full pl-10 pr-4 py-2.5 glass border border-[var(--border)] rounded-xl text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all"
             />
             {search && (
@@ -736,7 +739,7 @@ export default function AcademicsHubPage() {
             style={showSavedOnly ? { color: "#fff" } : undefined}
           >
             <Fi name="bookmark" className="text-sm" />
-            Saved only {bookmarks.length > 0 && `(${bookmarks.length})`}
+            {lang === "தமிழ்" ? "சேமித்தவை மட்டும்" : "Saved only"} {bookmarks.length > 0 && `(${bookmarks.length})`}
           </button>
         </div>
       )}
@@ -777,7 +780,7 @@ export default function AcademicsHubPage() {
                   </h3>
                   <p className="text-[11px] text-[var(--text-muted)] leading-relaxed mb-2">{c.blurb}</p>
                   <span className="text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)]">
-                    {count} {c.key === "subjects" ? "subjects" : c.key === "syllabus" ? "units" : "items"}
+                    {count} {c.key === "subjects" ? (lang === "தமிழ்" ? "பாடங்கள்" : "subjects") : c.key === "syllabus" ? (lang === "தமிழ்" ? "அலகுகள்" : "units") : (lang === "தமிழ்" ? "பொருட்கள்" : "items")}
                   </span>
                 </button>
               );
@@ -789,13 +792,13 @@ export default function AcademicsHubPage() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-base font-black text-[var(--text-heading)] flex items-center gap-2">
-                  <Fi name="play-alt" className="text-base text-red-500" /> Continue Watching
+                  <Fi name="play-alt" className="text-base text-red-500" /> {lang === "தமிழ்" ? "தொடர்ந்து பாருங்கள்" : "Continue Watching"}
                 </h2>
                 <button
                   onClick={() => setActiveTab("videos")}
                   className="text-xs font-bold text-indigo-500 hover:text-indigo-400 flex items-center gap-1"
                 >
-                  All videos <Fi name="angle-small-right" className="text-sm" />
+                  {lang === "தமிழ்" ? "அனைத்து வீடியோக்களும்" : "All videos"} <Fi name="angle-small-right" className="text-sm" />
                 </button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -810,7 +813,7 @@ export default function AcademicsHubPage() {
           {newThisWeek.length > 0 && (
             <div>
               <h2 className="text-base font-black text-[var(--text-heading)] flex items-center gap-2 mb-3">
-                <Fi name="sparkles" className="text-base text-emerald-500" /> New This Week
+                <Fi name="sparkles" className="text-base text-emerald-500" /> {lang === "தமிழ்" ? "இந்த வாரம் புதியவை" : "New This Week"}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {newThisWeek.slice(0, 6).map((r) => (
@@ -823,14 +826,14 @@ export default function AcademicsHubPage() {
           {/* Quick links to deeper tools */}
           <div className="glass rounded-2xl border border-[var(--border)] p-5">
             <h2 className="text-sm font-black text-[var(--text-heading)] mb-3 flex items-center gap-2">
-              <Fi name="chart-histogram" className="text-base text-indigo-500" /> Go Deeper
+              <Fi name="chart-histogram" className="text-base text-indigo-500" /> {lang === "தமிழ்" ? "மேலும் அறிய" : "Go Deeper"}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { label: "Full Syllabus Board", href: "/student/syllabus-board", icon: "apps" },
-                { label: "Learning Hub", href: "/student/centralized-content", icon: "brain" },
-                { label: "Digital Library", href: "/student/digital-library", icon: "books" },
-                { label: "AI Lessons", href: "/student/lessons", icon: "sparkles" },
+                { label: lang === "தமிழ்" ? "முழு பாடத்திட்ட பலகை" : "Full Syllabus Board", href: "/student/syllabus-board", icon: "apps" },
+                { label: lang === "தமிழ்" ? "கற்றல் மையம்" : "Learning Hub", href: "/student/centralized-content", icon: "brain" },
+                { label: lang === "தமிழ்" ? "டிஜிட்டல் நூலகம்" : "Digital Library", href: "/student/digital-library", icon: "books" },
+                { label: lang === "தமிழ்" ? "AI பாடங்கள்" : "AI Lessons", href: "/student/lessons", icon: "sparkles" },
               ].map((l) => (
                 <Link
                   key={l.href}
@@ -872,7 +875,7 @@ export default function AcademicsHubPage() {
                   <div className="text-right">
                     <span className="text-2xl font-black text-[var(--text-heading)]">{s.progress}%</span>
                     <span className="block text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-wider">
-                      Syllabus done
+                      {lang === "தமிழ்" ? "பாடத்திட்டம் முடிந்தது" : "Syllabus done"}
                     </span>
                   </div>
                 </div>
@@ -882,7 +885,7 @@ export default function AcademicsHubPage() {
                 <div className="mb-4 relative z-10">
                   <div className="flex justify-between text-[10px] font-bold text-[var(--text-muted)] mb-1.5">
                     <span>
-                      {s.unitsDone} of {s.units} units completed
+                      {lang === "தமிழ்" ? `${s.units} அலகுகளில் ${s.unitsDone} முடிந்தது` : `${s.unitsDone} of ${s.units} units completed`}
                     </span>
                   </div>
                   <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -899,10 +902,10 @@ export default function AcademicsHubPage() {
                 {/* Per-subject resource shortcuts */}
                 <div className="grid grid-cols-4 gap-2 mt-auto relative z-10">
                   {[
-                    { key: "textbooks" as CategoryKey, icon: "book", label: "Books" },
-                    { key: "materials" as CategoryKey, icon: "document", label: "Notes" },
-                    { key: "videos" as CategoryKey, icon: "play-alt", label: "Videos" },
-                    { key: "syllabus" as CategoryKey, icon: "book-alt", label: "Units" },
+                    { key: "textbooks" as CategoryKey, icon: "book", label: lang === "தமிழ்" ? "புத்தகங்கள்" : "Books" },
+                    { key: "materials" as CategoryKey, icon: "document", label: lang === "தமிழ்" ? "குறிப்புகள்" : "Notes" },
+                    { key: "videos" as CategoryKey, icon: "play-alt", label: lang === "தமிழ்" ? "வீடியோக்கள்" : "Videos" },
+                    { key: "syllabus" as CategoryKey, icon: "book-alt", label: lang === "தமிழ்" ? "அலகுகள்" : "Units" },
                   ].map((a) => (
                     <button
                       key={a.key}
@@ -944,9 +947,11 @@ export default function AcademicsHubPage() {
                       {s.icon}
                     </span>
                     <div>
-                      <h2 className="text-sm font-black text-[var(--text-heading)]">{s.name} Syllabus</h2>
+                      <h2 className="text-sm font-black text-[var(--text-heading)]">{lang === "தமிழ்" ? `${s.name} பாடத்திட்டம்` : `${s.name} Syllabus`}</h2>
                       <p className="text-[10px] text-[var(--text-muted)] font-semibold">
-                        Class {studentClass} · TN State Board · {units.length} units this year
+                        {lang === "தமிழ்"
+                          ? `வகுப்பு ${studentClass} · தமிழ்நாடு மாநில பாடத்திட்டம் · இந்த ஆண்டு ${units.length} அலகுகள்`
+                          : `Class ${studentClass} · TN State Board · ${units.length} units this year`}
                       </p>
                     </div>
                   </div>
@@ -955,7 +960,7 @@ export default function AcademicsHubPage() {
                     className="text-[11px] font-bold flex items-center gap-1 hover:gap-1.5 transition-all"
                     style={{ color: s.color }}
                   >
-                    Full syllabus <Fi name="arrow-small-right" className="text-xs" />
+                    {lang === "தமிழ்" ? "முழு பாடத்திட்டம்" : "Full syllabus"} <Fi name="arrow-small-right" className="text-xs" />
                   </Link>
                 </div>
                 <div className="divide-y divide-[var(--border)]">
@@ -992,10 +997,10 @@ export default function AcademicsHubPage() {
                             <span className="block text-[10px] text-[var(--text-muted)] font-semibold">
                               {u.term} ·{" "}
                               {u.status === "completed"
-                                ? "Completed"
+                                ? (lang === "தமிழ்" ? "முடிக்கப்பட்டது" : "Completed")
                                 : u.status === "in-progress"
-                                ? "In progress — current unit"
-                                : "Upcoming"}
+                                ? (lang === "தமிழ்" ? "நடப்பில் — தற்போதைய அலகு" : "In progress — current unit")
+                                : (lang === "தமிழ்" ? "வரவிருப்பது" : "Upcoming")}
                             </span>
                           </div>
                           <Fi
@@ -1033,7 +1038,7 @@ export default function AcademicsHubPage() {
                                   }}
                                   className="text-[10px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white"
                                 >
-                                  <Fi name="document" className="text-[9px]" /> View Syllabus
+                                  <Fi name="document" className="text-[9px]" /> {lang === "தமிழ்" ? "பாடத்திட்டம் பார்" : "View Syllabus"}
                                 </button>
                               )}
                               <button
@@ -1044,7 +1049,7 @@ export default function AcademicsHubPage() {
                                 className="text-[10px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all inline-flex items-center gap-1"
                                 style={{ background: s.color, color: "#fff" }}
                               >
-                                <Fi name="play" className="text-[9px]" /> Watch lessons
+                                <Fi name="play" className="text-[9px]" /> {lang === "தமிழ்" ? "பாடங்களைப் பார்" : "Watch lessons"}
                               </button>
                               <button
                                 onClick={() => {
@@ -1053,7 +1058,7 @@ export default function AcademicsHubPage() {
                                 }}
                                 className="text-[10px] font-bold px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] active:scale-95 transition-all inline-flex items-center gap-1"
                               >
-                                <Fi name="document" className="text-[9px]" /> Study materials
+                                <Fi name="document" className="text-[9px]" /> {lang === "தமிழ்" ? "படிப்புப் பொருட்கள்" : "Study materials"}
                               </button>
                             </div>
                           </div>
@@ -1071,7 +1076,7 @@ export default function AcademicsHubPage() {
       {/* ══ VIDEO LESSONS TAB ════════════════════════════ */}
       {activeTab === "videos" &&
         (filteredResources.length === 0 ? (
-          <EmptyState saved={showSavedOnly} />
+          <EmptyState saved={showSavedOnly} lang={lang} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredResources.map((r) => (
@@ -1083,7 +1088,7 @@ export default function AcademicsHubPage() {
       {/* ══ RESOURCE GRID TABS (textbooks / materials / notes / digital / reference) ══ */}
       {["textbooks", "materials", "notes", "digital", "reference"].includes(activeTab) &&
         (filteredResources.length === 0 ? (
-          <EmptyState saved={showSavedOnly} />
+          <EmptyState saved={showSavedOnly} lang={lang} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredResources.map((r) => (
@@ -1174,7 +1179,7 @@ export default function AcademicsHubPage() {
               </p>
               {previewResource.addedBy && (
                 <p className="text-xs text-[var(--text-muted)] mb-4">
-                  Shared by <span className="font-bold">{previewResource.addedBy}</span> ·{" "}
+                  {lang === "தமிழ்" ? "பகிர்ந்தவர்" : "Shared by"} <span className="font-bold">{previewResource.addedBy}</span> ·{" "}
                   {previewResource.date}
                 </p>
               )}
@@ -1199,12 +1204,12 @@ export default function AcademicsHubPage() {
                     <>
                       <Fi name="play" className="text-sm" />
                       {(previewResource.progress || 0) > 0 && previewResource.progress !== 100
-                        ? `Resume at ${previewResource.progress}%`
-                        : "Play lesson"}
+                        ? (lang === "தமிழ்" ? `${previewResource.progress}% இல் தொடர்க` : `Resume at ${previewResource.progress}%`)
+                        : (lang === "தமிழ்" ? "பாடத்தை இயக்கு" : "Play lesson")}
                     </>
                   ) : (
                     <>
-                      <Fi name="eye" className="text-sm" /> Open full view
+                      <Fi name="eye" className="text-sm" /> {lang === "தமிழ்" ? "முழுப்பார்வையில் திற" : "Open full view"}
                     </>
                   )}
                 </button>
@@ -1217,19 +1222,19 @@ export default function AcademicsHubPage() {
                   }`}
                 >
                   <Fi name="bookmark" className="text-sm" />
-                  {bookmarks.includes(previewResource.id) ? "Saved" : "Save"}
+                  {bookmarks.includes(previewResource.id) ? (lang === "தமிழ்" ? "சேமிக்கப்பட்டது" : "Saved") : (lang === "தமிழ்" ? "சேமி" : "Save")}
                 </button>
                 <button 
                   onClick={() => handleDownload(previewResource)}
                   className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] active:scale-95 transition-all"
                 >
-                  <Fi name="download" className="text-sm" /> Download
+                  <Fi name="download" className="text-sm" /> {lang === "தமிழ்" ? "பதிவிறக்கு" : "Download"}
                 </button>
                 <Link
                   href={`/student/ai-tutor?subject=${encodeURIComponent(previewResource.subject)}&question=${encodeURIComponent(`Can you explain the concepts and key details covered in the lesson "${previewResource.title}" under ${previewResource.subject}?`)}`}
                   className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border border-indigo-500/40 text-indigo-500 hover:bg-indigo-500/10 active:scale-95 transition-all"
                 >
-                  <Fi name="comment-alt" className="text-sm" /> Ask AI Tutor
+                  <Fi name="comment-alt" className="text-sm" /> {lang === "தமிழ்" ? "AI ஆசிரியரிடம் கேள்" : "Ask AI Tutor"}
                 </Link>
               </div>
             </div>
@@ -1258,7 +1263,7 @@ export default function AcademicsHubPage() {
                     {activeMedia.title}
                   </h3>
                   <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
-                    {activeMedia.type === "video" ? "Video Lesson" : "Document / PDF View"}
+                    {activeMedia.type === "video" ? (lang === "தமிழ்" ? "வீடியோ பாடம்" : "Video Lesson") : (lang === "தமிழ்" ? "ஆவணம் / PDF பார்வை" : "Document / PDF View")}
                   </p>
                 </div>
               </div>
@@ -1312,19 +1317,21 @@ export default function AcademicsHubPage() {
 }
 
 /* ── Empty state ─────────────────────────────────────── */
-function EmptyState({ saved }: { saved: boolean }) {
+function EmptyState({ saved, lang }: { saved: boolean; lang?: string }) {
   return (
     <div className="glass rounded-3xl border border-[var(--border)] p-12 text-center">
       <div className="text-5xl mb-4 text-[var(--text-muted)]">
         <Fi name={saved ? "bookmark" : "search"} className="text-5xl" />
       </div>
       <h3 className="text-base font-black text-[var(--text-heading)] mb-1">
-        {saved ? "No saved items here yet" : "Nothing matches your search"}
+        {saved 
+          ? (lang === "தமிழ்" ? "இங்கு சேமிக்கப்பட்ட பொருட்கள் எதுவும் இல்லை" : "No saved items here yet")
+          : (lang === "தமிழ்" ? "உங்கள் தேடலுக்குப் பொருந்தும் எதுவும் இல்லை" : "Nothing matches your search")}
       </h3>
       <p className="text-sm text-[var(--text-muted)]">
         {saved
-          ? "Tap the bookmark icon on any resource to keep it handy here."
-          : "Try a different keyword, or pick another subject from the chips above."}
+          ? (lang === "தமிழ்" ? "எந்தவொரு பாடப் பொருளிலும் உள்ள புக்மார்க் ஐகானைத் தட்டி சேமித்து வைக்கலாம்." : "Tap the bookmark icon on any resource to keep it handy here.")
+          : (lang === "தமிழ்" ? "வேறு முக்கியச் சொல்லை முயலுங்கள், அல்லது மேலே உள்ள பாடங்களில் ஒன்றைத் தேர்ந்தெடுக்கவும்." : "Try a different keyword, or pick another subject from the chips above.")}
       </p>
     </div>
   );

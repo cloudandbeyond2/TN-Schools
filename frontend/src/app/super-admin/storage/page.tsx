@@ -30,8 +30,8 @@ const PROVIDERS: { key: Provider; label: string; icon: string; desc: string }[] 
 ];
 
 export default function ExternalStorage() {
-  const { data: session } = useSession();
-  const token = (session as any)?.backendToken;
+  const { data: session, status } = useSession();
+  const token = (session?.user as any)?.backendToken;
 
   const [state, setState] = useState<StorageState>({ provider: "LOCAL", isEnabled: false, config: {}, secrets: {} });
   const [loading, setLoading] = useState(true);
@@ -51,7 +51,12 @@ export default function ExternalStorage() {
   };
 
   useEffect(() => {
-    if (!token) return;
+    if (status === "loading") return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    
     let cancelled = false;
 
     (async () => {
@@ -79,7 +84,7 @@ export default function ExternalStorage() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, status]);
 
   const setConfig = (key: string, value: string) =>
     setState((s) => ({ ...s, config: { ...s.config, [key]: value } }));

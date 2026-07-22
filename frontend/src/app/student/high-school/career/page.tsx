@@ -187,21 +187,21 @@
 //     duration: "3 Years",
 //     admission: "Based on Class 10 Marks",
 //     details: "Practical engineering training in Mechanical, Civil, Electrical, or Computer Engineering. Allows direct lateral entry into the 2nd year of B.E/B.Tech engineering programs afterwards.",
-//     icon: "⚙️"
+//     icon: <i className="fi fi-sr-settings" />
 //   },
 //   {
 //     title: "ITI (Industrial Training Institutes)",
 //     duration: "1 to 2 Years",
 //     admission: "Class 10 Pass / Direct Entry",
 //     details: "Skill-based technical trade certificates (e.g., Electrician, Fitter, Welder, Machinist). Ideal for securing immediate technical employment in state departments, railways, or private industries.",
-//     icon: "🔧"
+//     icon: <i className="fi fi-sr-wrench" />
 //   },
 //   {
 //     title: "Vocational Board Streams (11th & 12th)",
 //     duration: "2 Years",
 //     admission: "Offered in select Govt Higher Sec Schools",
 //     details: "Combines fundamental academics with direct occupational subjects (e.g., Agricultural Practices, Office Management, Electrical Equipment Maintenance). Gives extra weightage in select vocational college quotas.",
-//     icon: "🌾"
+//     icon: <i className="fi fi-sr-leaf" />
 //   }
 // ];
 
@@ -210,25 +210,25 @@
 //     title: "Pudhumai Penn Scheme",
 //     benefit: "₹1,000 per month financial assistance",
 //     eligibility: "For girl students who studied from Class 6 to 12 in Government Schools, upon enrolling in higher education (degrees/diplomas).",
-//     icon: "👩‍🎓"
+//     icon: <i className="fi fi-sr-graduation-cap" />
 //   },
 //   {
 //     title: "Tamil Puthalvan Scheme",
 //     benefit: "₹1,000 per month financial assistance",
 //     eligibility: "For boy students who studied from Class 6 to 12 in Government Schools, upon enrolling in higher education courses.",
-//     icon: "👨‍🎓"
+//     icon: <i className="fi fi-sr-graduation-cap" />
 //   },
 //   {
 //     title: "Naan Mudhalvan Career Guidance",
 //     benefit: "Free career counseling & skill training",
 //     eligibility: "All government school students. Provides access to dynamic career courses, coding academies, and interview training portals.",
-//     icon: "✨"
+//     icon: <i className="fi fi-sr-sparkles" />
 //   },
 //   {
 //     title: "7.5% Govt School Reservation",
 //     benefit: "Free professional college seats (Medical/Engineering)",
 //     eligibility: "7.5% preferential quota for government school students in professional college admissions (TNEA/TNEB/NEET counseling). Covers tuition & hostel fees.",
-//     icon: "🏛️"
+//     icon: <i className="fi fi-sr-building" />
 //   }
 // ];
 
@@ -368,7 +368,7 @@
 //       themeClass="theme-student"
 //       accentColor="#ef4444"
 //     >
-//       <div className="max-w-7xl mx-auto space-y-8 mt-6 px-4 sm:px-6">
+//       <div className="w-full space-y-8 mt-6 px-4 sm:px-6">
         
 //         {/* Dynamic Hero Section */}
 //         <div className="relative bg-gradient-to-r from-red-600 to-rose-500 rounded-[2rem] p-6 md:p-12 overflow-hidden text-white shadow-xl shadow-red-500/20">
@@ -378,18 +378,18 @@
 //           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
 //             <div className="max-w-2xl">
 //               <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-md mb-4 border border-white/30">
-//                 <Compass className="w-3.5 h-3.5 text-yellow-300" /> Class 10 Transition Center
+//                 <i className="fi fi-sr-compass w-3.5 h-3.5 text-yellow-300" /> Class 10 Transition Center
 //               </div>
 //               <h1 className="text-2xl md:text-5xl font-black mb-4 leading-tight">
 //                 Decide Your Next Steps <br /> With Confidence
 //               </h1>
-//               <p className="text-red-100 text-sm md:text-lg font-medium leading-relaxed">
+//               <p className="text-red-100 text-xs md:text-sm md:text-xs md:text-sm md:text-base md:text-lg font-medium leading-relaxed">
 //                 Explore Class 11 State Board streams, calculate your vocational interest matches, and plan your transition after the SSLC Board Exams.
 //               </p>
 //             </div>
 //             <div className="shrink-0 hidden md:block">
 //               <div className="w-28 h-28 md:w-36 md:h-36 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-2xl">
-//                 <Compass className="w-14 h-14 md:w-20 md:h-20 text-white" />
+//                 <i className="fi fi-sr-compass w-14 h-14 md:w-20 md:h-20 text-white" />
 //               </div>
 //             </div>
 //           </div>
@@ -402,8 +402,8 @@
 //           <div className="lg:col-span-2 bg-card rounded-2xl p-6 border border-border flex flex-col justify-between shadow-theme-card">
 //             <div>
 //               <div className="flex items-center justify-between mb-5">
-//                 <h2 className="text-lg font-bold text-text-heading flex items-center gap-2">
-//                   <HelpCircle className="w-5 h-5 text-red-500" /> Class 11 Stream Suggester
+//                 <h2 className="text-xs md:text-sm md:text-base md:text-lg font-bold text-text-heading flex items-center gap-2">
+//                   <i className="fi fi-sr-interrogation w-5 h-5 text-red-500" /> Class 11 Stream Suggester
 //                 </h2>
 //                 {!quizFinished && quizStarted && (
 //                   <span className="text-xs text-text-main bg-secondary border border-border rounded-lg px-2.5 py-1">
@@ -415,19 +415,19 @@
 //               {!quizStarted && !quizFinished ? (
 //                 <div className="text-center py-10 px-4 space-y-6">
 //                   <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto">
-//                     <Sparkles className="w-8 h-8 text-red-400" />
+//                     <i className="fi fi-sr-sparkles w-8 h-8 text-red-400" />
 //                   </div>
 //                   <div className="max-w-md mx-auto">
-//                     <h3 className="text-base font-semibold text-text-heading mb-2">Unsure which stream to pick in 11th Standard?</h3>
-//                     <p className="text-sm text-muted">
+//                     <h3 className="text-xs md:text-sm md:text-base font-semibold text-text-heading mb-2">Unsure which stream to pick in 11th Standard?</h3>
+//                     <p className="text-xs md:text-sm text-muted">
 //                       Answer 4 simple, school-focused questions about your strengths, favorite subjects, and long-term career goals. Our engine will match your interests to the state board stream groups.
 //                     </p>
 //                   </div>
 //                   <button
 //                     onClick={() => setQuizStarted(true)}
-//                     className="px-6 py-2.5 bg-red-50 hover:bg-red-600 text-white font-bold rounded-xl text-sm transition-colors shadow-md shadow-red-500/20 inline-flex items-center gap-2"
+//                     className="px-6 py-2.5 bg-red-50 hover:bg-red-600 text-white font-bold rounded-xl text-xs md:text-sm transition-colors shadow-md shadow-red-500/20 inline-flex items-center gap-2"
 //                   >
-//                     Start Stream Finder <ArrowRight className="w-4 h-4" />
+//                     Start Stream Finder <i className="fi fi-sr-arrow-right w-4 h-4" />
 //                   </button>
 //                 </div>
 //               ) : quizStarted && !quizFinished ? (
@@ -441,7 +441,7 @@
 //                   </div>
                   
 //                   <div className="bg-secondary/40 border border-border rounded-xl p-5">
-//                     <h3 className="text-base font-semibold text-text-heading mb-4">
+//                     <h3 className="text-xs md:text-sm md:text-base font-semibold text-text-heading mb-4">
 //                       {quizQuestions[currentQuestionIdx].question}
 //                     </h3>
                     
@@ -450,7 +450,7 @@
 //                         <button
 //                           key={idx}
 //                           onClick={() => handleAnswerSelect(option.points)}
-//                           className="w-full text-left p-4 rounded-xl border border-border bg-card hover:bg-secondary dark:hover:bg-slate-800 hover:border-red-500/40 text-sm text-text-main hover:text-text-heading transition-all group flex items-start gap-3"
+//                           className="w-full text-left p-4 rounded-xl border border-border bg-card hover:bg-secondary dark:hover:bg-slate-800 hover:border-red-500/40 text-xs md:text-sm text-text-main hover:text-text-heading transition-all group flex items-start gap-3"
 //                         >
 //                           <span className="w-6 h-6 rounded-full bg-secondary dark:bg-slate-900 border border-border flex items-center justify-center text-xs text-text-main group-hover:border-red-500/50 group-hover:text-red-500 font-bold shrink-0">
 //                             {String.fromCharCode(65 + idx)}
@@ -465,10 +465,10 @@
 //                 <div className="space-y-6">
 //                   <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
 //                     <div className="flex items-center gap-3 mb-2">
-//                       <span className="text-xl">🏆</span>
-//                       <h3 className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Quiz Completed! Your Recommendation:</h3>
+//                       <span className="text-xl"><i className="fi fi-sr-trophy" /></span>
+//                       <h3 className="text-xs md:text-sm font-semibold text-emerald-600 dark:text-emerald-400">Quiz Completed! Your Recommendation:</h3>
 //                     </div>
-//                     <div className="text-lg font-bold text-text-heading mb-2">{recommendedStream}</div>
+//                     <div className="text-xs md:text-sm md:text-base md:text-lg font-bold text-text-heading mb-2">{recommendedStream}</div>
 //                     <p className="text-xs text-muted leading-relaxed">
 //                       This calculation represents your dynamic interest fit. Discuss this result with your teachers and high school counselor to finalize stream selections in the school EMIS form.
 //                     </p>
@@ -514,10 +514,10 @@
 //             <div className="bg-card rounded-2xl p-6 border border-red-500/30 bg-gradient-to-br from-red-500/5 to-rose-500/5 flex flex-col justify-between shadow-theme-card">
 //               <div>
 //                 <div className="flex items-center gap-2 mb-3">
-//                   <span className="text-red-500 text-xl">🤖</span>
-//                   <h3 className="text-base font-semibold text-text-heading">AI Stream Prediction</h3>
+//                   <span className="text-red-500 text-xl"><i className="fi fi-sr-robot" /></span>
+//                   <h3 className="text-xs md:text-sm md:text-base font-semibold text-text-heading">AI Stream Prediction</h3>
 //                 </div>
-//                 <p className="text-sm text-text-main leading-relaxed mb-4">
+//                 <p className="text-xs md:text-sm text-text-main leading-relaxed mb-4">
 //                   Based on your Class 10 mock test performance, showing strong analytical capacity in <strong className="text-red-500">Mathematics (78%)</strong> and consistent scores in <strong className="text-red-500">Science (65%)</strong>.
 //                 </p>
 //                 <div className="border-t border-border pt-4 mb-4">
@@ -531,10 +531,10 @@
 //               <div className="bg-secondary/60 dark:bg-slate-900/60 rounded-xl p-3.5 border border-border flex justify-between items-center">
 //                 <div>
 //                   <div className="text-[10px] text-muted uppercase font-bold">Top Stream Match</div>
-//                   <div className="text-sm text-text-heading font-bold">Group II CS-Maths</div>
+//                   <div className="text-xs md:text-sm text-text-heading font-bold">Group II CS-Maths</div>
 //                 </div>
 //                 <div className="text-right">
-//                   <div className="text-xl font-black text-red-500">82%</div>
+//                   <div className="text-lg md:text-xl font-black text-red-500">82%</div>
 //                   <div className="text-[9px] text-muted">Confidence</div>
 //                 </div>
 //               </div>
@@ -543,7 +543,7 @@
 //             {/* Counsel Note */}
 //             <div className="bg-card rounded-2xl p-6 border border-border shadow-theme-card bg-secondary/10">
 //               <div className="flex gap-3">
-//                 <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
+//                 <i className="fi fi-sr-exclamation w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
 //                 <div className="space-y-1">
 //                   <h4 className="text-xs font-semibold text-text-heading">Did You Know?</h4>
 //                   <p className="text-xs text-muted leading-relaxed">
@@ -559,8 +559,8 @@
 //         <div className="bg-card rounded-2xl p-6 border border-border shadow-theme-card">
 //           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
 //             <div>
-//               <h2 className="text-xl font-bold text-text-heading flex items-center gap-2">
-//                 <BookOpen className="w-5 h-5 text-red-500" /> Class 11 Stream Directory (HSC)
+//               <h2 className="text-lg md:text-xl font-bold text-text-heading flex items-center gap-2">
+//                 <i className="fi fi-sr-book-alt w-5 h-5 text-red-500" /> Class 11 Stream Directory (HSC)
 //               </h2>
 //               <p className="text-xs text-muted mt-1">Official Tamil Nadu State Board high school groups and career pipelines</p>
 //             </div>
@@ -579,7 +579,7 @@
 //                   <div className={`bg-gradient-to-r ${stream.color} text-white text-[10px] font-bold px-2.5 py-0.5 rounded-md inline-block uppercase mb-3`}>
 //                     HSC Group
 //                   </div>
-//                   <h3 className="font-bold text-text-heading text-base mb-1.5 leading-tight">{stream.title}</h3>
+//                   <h3 className="font-bold text-text-heading text-xs md:text-sm md:text-base mb-1.5 leading-tight">{stream.title}</h3>
 //                   <div className="text-xs text-text-main mb-3">
 //                     <strong className="text-text-heading">Core Subjects:</strong> {stream.subjects}
 //                   </div>
@@ -607,8 +607,8 @@
 //         {/* Alternative Post-10th Pathways */}
 //         <div className="bg-card rounded-2xl p-6 border border-border shadow-theme-card">
 //           <div className="mb-6">
-//             <h2 className="text-xl font-bold text-text-heading flex items-center gap-2">
-//               <TrendingUp className="w-5 h-5 text-red-500" /> Alternative Pathways After Class 10
+//             <h2 className="text-lg md:text-xl font-bold text-text-heading flex items-center gap-2">
+//               <i className="fi fi-sr-stats w-5 h-5 text-red-500" /> Alternative Pathways After Class 10
 //             </h2>
 //             <p className="text-xs text-muted mt-1">If you wish to pursue technical skills or join immediate employment instead of standard 11th & 12th academics</p>
 //           </div>
@@ -621,7 +621,7 @@
 //                     {path.icon}
 //                   </div>
 //                   <div>
-//                     <h3 className="text-sm font-semibold text-text-heading">{path.title}</h3>
+//                     <h3 className="text-xs md:text-sm font-semibold text-text-heading">{path.title}</h3>
 //                     <span className="text-[10px] text-red-500 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full font-medium mt-0.5 inline-block">
 //                       Duration: {path.duration}
 //                     </span>
@@ -643,8 +643,8 @@
 //         {/* Tamil Nadu Govt Schemes & 7.5% Reservation */}
 //         <div className="bg-card rounded-2xl p-6 border border-border shadow-theme-card">
 //           <div className="mb-6">
-//             <h2 className="text-xl font-bold text-text-heading flex items-center gap-2">
-//               <Award className="w-5 h-5 text-red-500" /> Government Support Schemes & Reservations
+//             <h2 className="text-lg md:text-xl font-bold text-text-heading flex items-center gap-2">
+//               <i className="fi fi-sr-medal w-5 h-5 text-red-500" /> Government Support Schemes & Reservations
 //             </h2>
 //             <p className="text-xs text-muted mt-1">Special financial packages and admission quotas designed by the Government of Tamil Nadu for government school students</p>
 //           </div>
@@ -654,7 +654,7 @@
 //               <div key={idx} className="bg-secondary/20 dark:bg-slate-900/40 border border-border p-5 rounded-2xl flex flex-col justify-between hover:border-red-500/20 hover:bg-secondary/40 dark:hover:bg-slate-900 transition-all">
 //                 <div>
 //                   <div className="text-2xl mb-3">{scheme.icon}</div>
-//                   <h3 className="text-sm font-semibold text-text-heading mb-1">{scheme.title}</h3>
+//                   <h3 className="text-xs md:text-sm font-semibold text-text-heading mb-1">{scheme.title}</h3>
 //                   <div className="text-xs font-bold text-red-500 mb-3">{scheme.benefit}</div>
 //                   <p className="text-xs text-muted leading-relaxed">
 //                     {scheme.eligibility}
@@ -669,8 +669,8 @@
 //         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 //           {/* Top Polytechnics */}
 //           <div className="lg:col-span-2 bg-card rounded-2xl p-6 border border-border shadow-theme-card">
-//             <h2 className="text-base font-semibold text-text-heading mb-4 flex items-center gap-2">
-//               🏢 Top Government Polytechnic Colleges in TN
+//             <h2 className="text-xs md:text-sm md:text-base font-semibold text-text-heading mb-4 flex items-center gap-2">
+//               <i className="fi fi-sr-building" /> Top Government Polytechnic Colleges in TN
 //             </h2>
 //             <div className="overflow-x-auto">
 //               <table className="w-full text-left text-xs text-text-main">
@@ -696,7 +696,7 @@
 //             </div>
 //             <div className="mt-4 p-3 bg-secondary/40 dark:bg-slate-900/50 rounded-xl border border-border text-center">
 //               <p className="text-[11px] text-muted">
-//                 💡 Admissions are processed through the <strong>Directorate of Technical Education (DoTE)</strong> online portal after Class 10 results.
+//                 <i className="fi fi-sr-bulb" /> Admissions are processed through the <strong>Directorate of Technical Education (DoTE)</strong> online portal after Class 10 results.
 //               </p>
 //             </div>
 //           </div>
@@ -704,8 +704,8 @@
 //           {/* Allocation & Cutoff Guidelines */}
 //           <div className="bg-card rounded-2xl p-6 border border-border shadow-theme-card flex flex-col justify-between">
 //             <div>
-//               <h2 className="text-base font-semibold text-text-heading mb-3 flex items-center gap-2">
-//                 📋 Class 11 Stream Cutoff Guidelines
+//               <h2 className="text-xs md:text-sm md:text-base font-semibold text-text-heading mb-3 flex items-center gap-2">
+//                 <i className="fi fi-sr-clipboard-list" /> Class 11 Stream Cutoff Guidelines
 //               </h2>
 //               <p className="text-xs text-text-main leading-relaxed mb-4">
 //                 Since seat availability is limited in certain school groups, stream allocation in Government Higher Secondary Schools follows these norms:
@@ -732,8 +732,8 @@
 //         <div className="bg-card rounded-2xl p-6 border border-border shadow-theme-card">
 //           <div className="flex items-center justify-between mb-5 border-b border-border pb-4">
 //             <div>
-//               <h2 className="text-lg font-bold text-text-heading flex items-center gap-2">
-//                 <CheckCircle2 className="w-5 h-5 text-red-500" /> Your Class 10 Transition Checklist
+//               <h2 className="text-xs md:text-sm md:text-base md:text-lg font-bold text-text-heading flex items-center gap-2">
+//                 <i className="fi fi-sr-check-circle w-5 h-5 text-red-500" /> Your Class 10 Transition Checklist
 //               </h2>
 //               <p className="text-xs text-muted mt-0.5">Stay on track before the high-school session finishes</p>
 //             </div>
@@ -758,7 +758,7 @@
 //                     ? "bg-emerald-500/20 border-emerald-500 text-emerald-500" 
 //                     : "border-slate-400 dark:border-slate-650"
 //                 }`}>
-//                   {task.completed && <CheckCircle2 className="w-3.5 h-3.5 fill-current" />}
+//                   {task.completed && <i className="fi fi-sr-check-circle w-3.5 h-3.5 fill-current" />}
 //                 </div>
 //                 <div className="flex-1">
 //                   <p className={`text-xs font-semibold ${task.completed ? "line-through text-muted" : "text-text-main"}`}>
@@ -777,6 +777,8 @@
 
 
 "use client";
+
+export const dynamic = "force-dynamic";
 
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
@@ -1000,21 +1002,21 @@ const alternativePaths = [
     duration: "3 Years",
     admission: "Based on Class 10 Marks",
     details: "Practical engineering training in Mechanical, Civil, Electrical, or Computer Engineering. Allows direct lateral entry into the 2nd year of B.E/B.Tech engineering programs afterwards.",
-    icon: "⚙️"
+    icon: <i className="fi fi-sr-settings" />
   },
   {
     title: "ITI (Industrial Training Institutes)",
     duration: "1 to 2 Years",
     admission: "Class 10 Pass / Direct Entry",
     details: "Skill-based technical trade certificates (e.g., Electrician, Fitter, Welder, Machinist). Ideal for securing immediate technical employment in state departments, railways, or private industries.",
-    icon: "🔧"
+    icon: <i className="fi fi-sr-wrench" />
   },
   {
     title: "Vocational Board Streams (11th & 12th)",
     duration: "2 Years",
     admission: "Offered in select Govt Higher Sec Schools",
     details: "Combines fundamental academics with direct occupational subjects (e.g., Agricultural Practices, Office Management, Electrical Equipment Maintenance). Gives extra weightage in select vocational college quotas.",
-    icon: "🌾"
+    icon: <i className="fi fi-sr-leaf" />
   }
 ];
 
@@ -1023,25 +1025,25 @@ const govtSchemes = [
     title: "Pudhumai Penn Scheme",
     benefit: "₹1,000 per month financial assistance",
     eligibility: "For girl students who studied from Class 6 to 12 in Government Schools, upon enrolling in higher education (degrees/diplomas).",
-    icon: "👩‍🎓"
+    icon: <i className="fi fi-sr-graduation-cap" />
   },
   {
     title: "Tamil Puthalvan Scheme",
     benefit: "₹1,000 per month financial assistance",
     eligibility: "For boy students who studied from Class 6 to 12 in Government Schools, upon enrolling in higher education courses.",
-    icon: "👨‍🎓"
+    icon: <i className="fi fi-sr-graduation-cap" />
   },
   {
     title: "Naan Mudhalvan Career Guidance",
     benefit: "Free career counseling & skill training",
     eligibility: "All government school students. Provides access to dynamic career courses, coding academies, and interview training portals.",
-    icon: "✨"
+    icon: <i className="fi fi-sr-sparkles" />
   },
   {
     title: "7.5% Govt School Reservation",
     benefit: "Free professional college seats (Medical/Engineering)",
     eligibility: "7.5% preferential quota for government school students in professional college admissions (TNEA/TNEB/NEET counseling). Covers tuition & hostel fees.",
-    icon: "🏛️"
+    icon: <i className="fi fi-sr-building" />
   }
 ];
 
@@ -1298,7 +1300,7 @@ export default function HighSchoolCareerPage() {
       themeClass="theme-student"
       accentColor="#ef4444"
     >
-      <div className="max-w-7xl mx-auto space-y-8 mt-6 px-4 sm:px-6">
+      <div className="w-full space-y-8 mt-6 px-4 sm:px-6">
 
         {/* Dynamic Hero Section */}
         <div className="relative bg-gradient-to-r from-red-600 to-rose-500 rounded-[2rem] p-6 md:p-12 overflow-hidden text-white shadow-xl shadow-red-500/20">
@@ -1308,18 +1310,18 @@ export default function HighSchoolCareerPage() {
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-md mb-4 border border-white/30">
-                <Compass className="w-3.5 h-3.5 text-yellow-300" /> Class 10 Transition Center
+                <i className="fi fi-sr-compass w-3.5 h-3.5 text-yellow-300" /> Class 10 Transition Center
               </div>
               <h1 className="text-2xl md:text-5xl font-black mb-4 leading-tight">
                 Decide Your Next Steps <br /> With Confidence
               </h1>
-              <p className="text-red-100 text-sm md:text-lg font-medium leading-relaxed">
+              <p className="text-red-100 text-xs md:text-sm md:text-xs md:text-sm md:text-base md:text-lg font-medium leading-relaxed">
                 Explore Class 11 State Board streams, calculate your vocational interest matches, and plan your transition after the SSLC Board Exams.
               </p>
             </div>
             <div className="shrink-0 hidden md:block">
               <div className="w-28 h-28 md:w-36 md:h-36 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-2xl">
-                <Compass className="w-14 h-14 md:w-20 md:h-20 text-white" />
+                <i className="fi fi-sr-compass w-14 h-14 md:w-20 md:h-20 text-white" />
               </div>
             </div>
           </div>
@@ -1332,8 +1334,8 @@ export default function HighSchoolCareerPage() {
           <div className="lg:col-span-2 bg-card rounded-2xl p-6 border border-border flex flex-col justify-between shadow-theme-card">
             <div>
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-lg font-bold text-text-heading flex items-center gap-2">
-                  <HelpCircle className="w-5 h-5 text-red-500" /> Class 11 Stream Suggester
+                <h2 className="text-xs md:text-sm md:text-base md:text-lg font-bold text-text-heading flex items-center gap-2">
+                  <i className="fi fi-sr-interrogation w-5 h-5 text-red-500" /> Class 11 Stream Suggester
                 </h2>
                 {!quizFinished && quizStarted && (
                   <span className="text-xs text-text-main bg-secondary border border-border rounded-lg px-2.5 py-1">
@@ -1345,19 +1347,19 @@ export default function HighSchoolCareerPage() {
               {!quizStarted && !quizFinished ? (
                 <div className="text-center py-10 px-4 space-y-6">
                   <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto">
-                    <Sparkles className="w-8 h-8 text-red-400" />
+                    <i className="fi fi-sr-sparkles w-8 h-8 text-red-400" />
                   </div>
                   <div className="max-w-md mx-auto">
-                    <h3 className="text-base font-semibold text-text-heading mb-2">Unsure which stream to pick in 11th Standard?</h3>
-                    <p className="text-sm text-muted">
+                    <h3 className="text-xs md:text-sm md:text-base font-semibold text-text-heading mb-2">Unsure which stream to pick in 11th Standard?</h3>
+                    <p className="text-xs md:text-sm text-muted">
                       Answer 4 simple, school-focused questions about your strengths, favorite subjects, and long-term career goals. Our engine will match your interests to the state board stream groups.
                     </p>
                   </div>
                   <button
                     onClick={() => setQuizStarted(true)}
-                    className="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-sm transition-colors shadow-md shadow-red-500/20 inline-flex items-center gap-2"
+                    className="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-xs md:text-sm transition-colors shadow-md shadow-red-500/20 inline-flex items-center gap-2"
                   >
-                    Start Stream Finder <ArrowRight className="w-4 h-4" />
+                    Start Stream Finder <i className="fi fi-sr-arrow-right w-4 h-4" />
                   </button>
                 </div>
               ) : quizStarted && !quizFinished ? (
@@ -1378,7 +1380,7 @@ export default function HighSchoolCareerPage() {
                   </div>
 
                   <div className="bg-secondary/40 border border-border rounded-xl p-5">
-                    <h3 className="text-base font-semibold text-text-heading mb-4">
+                    <h3 className="text-xs md:text-sm md:text-base font-semibold text-text-heading mb-4">
                       {quizQuestions[currentQuestionIdx].question}
                     </h3>
 
@@ -1387,7 +1389,7 @@ export default function HighSchoolCareerPage() {
                         <button
                           key={idx}
                           onClick={() => handleAnswerSelect(option.points)}
-                          className="w-full text-left p-4 rounded-xl border border-border bg-card hover:bg-secondary dark:hover:bg-slate-800 hover:border-red-500/40 text-sm text-text-main hover:text-text-heading transition-all group flex items-start gap-3"
+                          className="w-full text-left p-4 rounded-xl border border-border bg-card hover:bg-secondary dark:hover:bg-slate-800 hover:border-red-500/40 text-xs md:text-sm text-text-main hover:text-text-heading transition-all group flex items-start gap-3"
                         >
                           <span className="w-6 h-6 rounded-full bg-secondary dark:bg-slate-900 border border-border flex items-center justify-center text-xs text-text-main group-hover:border-red-500/50 group-hover:text-red-500 font-bold shrink-0">
                             {String.fromCharCode(65 + idx)}
@@ -1403,7 +1405,7 @@ export default function HighSchoolCareerPage() {
                       onClick={handleGoBack}
                       className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-text-heading transition-colors"
                     >
-                      <ArrowLeft className="w-3.5 h-3.5" /> Back to previous question
+                      <i className="fi fi-sr-arrow-left w-3.5 h-3.5" /> Back to previous question
                     </button>
                   )}
                 </div>
@@ -1411,13 +1413,13 @@ export default function HighSchoolCareerPage() {
                 <div className="space-y-6">
                   <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-xl">🏆</span>
-                      <h3 className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Quiz Completed! Your Recommendation:</h3>
+                      <span className="text-xl"><i className="fi fi-sr-trophy" /></span>
+                      <h3 className="text-xs md:text-sm font-semibold text-emerald-600 dark:text-emerald-400">Quiz Completed! Your Recommendation:</h3>
                     </div>
-                    <div className="text-lg font-bold text-text-heading mb-2">{recommendedStream}</div>
+                    <div className="text-xs md:text-sm md:text-base md:text-lg font-bold text-text-heading mb-2">{recommendedStream}</div>
                     {isCloseMatch && (
                       <div className="flex items-start gap-2 mb-2 text-amber-600 dark:text-amber-400 text-xs bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                        <i className="fi fi-sr-exclamation w-3.5 h-3.5 shrink-0 mt-0.5" />
                         <span>Your top two interest areas are closely matched — it's worth exploring both options below before deciding.</span>
                       </div>
                     )}
@@ -1450,7 +1452,7 @@ export default function HighSchoolCareerPage() {
                     onClick={shareResult}
                     className="w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl text-xs font-semibold transition-colors inline-flex items-center justify-center gap-2"
                   >
-                    <Share2 className="w-3.5 h-3.5" />
+                    <i className="fi fi-sr-share w-3.5 h-3.5" />
                     {shareCopied ? "Copied to clipboard!" : "Share My Result"}
                   </button>
                 </div>
@@ -1462,7 +1464,7 @@ export default function HighSchoolCareerPage() {
                 onClick={resetQuiz}
                 className="mt-6 w-full py-2 bg-secondary border border-border hover:bg-secondary/80 text-text-main rounded-xl text-xs font-semibold transition-colors inline-flex items-center justify-center gap-2"
               >
-                <RefreshCw className="w-3.5 h-3.5" /> Retake Aptitude Quiz
+                <i className="fi fi-sr-refresh w-3.5 h-3.5" /> Retake Aptitude Quiz
               </button>
             )}
           </div>
@@ -1474,21 +1476,21 @@ export default function HighSchoolCareerPage() {
             <div className="bg-card rounded-2xl p-6 border border-red-500/30 bg-gradient-to-br from-red-500/5 to-rose-500/5 flex flex-col justify-between shadow-theme-card">
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-red-500 text-xl">🤖</span>
-                  <h3 className="text-base font-semibold text-text-heading">AI Stream Prediction</h3>
+                  <span className="text-red-500 text-xl"><i className="fi fi-sr-robot" /></span>
+                  <h3 className="text-xs md:text-sm md:text-base font-semibold text-text-heading">AI Stream Prediction</h3>
                 </div>
                 {studentLoading ? (
                   <div className="flex items-center gap-2 text-xs text-muted py-2">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading your academic profile...
+                    <i className="fi fi-rr-spinner w-3.5 h-3.5 animate-spin" /> Loading your academic profile...
                   </div>
                 ) : student?.marks ? (
-                  <p className="text-sm text-text-main leading-relaxed mb-4">
+                  <p className="text-xs md:text-sm text-text-main leading-relaxed mb-4">
                     Based on your Class 10 mock test performance, showing strong analytical capacity in{" "}
                     <strong className="text-red-500">Mathematics ({student.marks.mathematics}%)</strong> and consistent scores in{" "}
                     <strong className="text-red-500">Science ({student.marks.science}%)</strong>.
                   </p>
                 ) : (
-                  <p className="text-sm text-text-main leading-relaxed mb-4">
+                  <p className="text-xs md:text-sm text-text-main leading-relaxed mb-4">
                     Sample insight — connect your Class 10 mock test scores to see a personalized prediction here.{" "}
                     <span className="text-[10px] uppercase tracking-wide text-muted font-bold">(Demo data below)</span>
                   </p>
@@ -1504,10 +1506,10 @@ export default function HighSchoolCareerPage() {
               <div className="bg-secondary/60 dark:bg-slate-900/60 rounded-xl p-3.5 border border-border flex justify-between items-center">
                 <div>
                   <div className="text-[10px] text-muted uppercase font-bold">Top Stream Match</div>
-                  <div className="text-sm text-text-heading font-bold">Group II CS-Maths</div>
+                  <div className="text-xs md:text-sm text-text-heading font-bold">Group II CS-Maths</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-black text-red-500">82%</div>
+                  <div className="text-lg md:text-xl font-black text-red-500">82%</div>
                   <div className="text-[9px] text-muted">Confidence</div>
                 </div>
               </div>
@@ -1516,7 +1518,7 @@ export default function HighSchoolCareerPage() {
             {/* Counsel Note */}
             <div className="bg-card rounded-2xl p-6 border border-border shadow-theme-card bg-secondary/10">
               <div className="flex gap-3">
-                <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
+                <i className="fi fi-sr-exclamation w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <h4 className="text-xs font-semibold text-text-heading">Did You Know?</h4>
                   <p className="text-xs text-muted leading-relaxed">
@@ -1532,8 +1534,8 @@ export default function HighSchoolCareerPage() {
         <div className="bg-card rounded-2xl p-6 border border-border shadow-theme-card">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-xl font-bold text-text-heading flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-red-500" /> Class 11 Stream Directory (HSC)
+              <h2 className="text-lg md:text-xl font-bold text-text-heading flex items-center gap-2">
+                <i className="fi fi-sr-book-alt w-5 h-5 text-red-500" /> Class 11 Stream Directory (HSC)
               </h2>
               <p className="text-xs text-muted mt-1">Official Tamil Nadu State Board high school groups and career pipelines</p>
             </div>
@@ -1552,7 +1554,7 @@ export default function HighSchoolCareerPage() {
                   <div className={`bg-gradient-to-r ${stream.color} text-white text-[10px] font-bold px-2.5 py-0.5 rounded-md inline-block uppercase mb-3`}>
                     HSC Group
                   </div>
-                  <h3 className="font-bold text-text-heading text-base mb-1.5 leading-tight">{stream.title}</h3>
+                  <h3 className="font-bold text-text-heading text-xs md:text-sm md:text-base mb-1.5 leading-tight">{stream.title}</h3>
                   <div className="text-xs text-text-main mb-3">
                     <strong className="text-text-heading">Core Subjects:</strong> {stream.subjects}
                   </div>
@@ -1580,8 +1582,8 @@ export default function HighSchoolCareerPage() {
         {/* Alternative Post-10th Pathways */}
         <div className="bg-card rounded-2xl p-6 border border-border shadow-theme-card">
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-text-heading flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-red-500" /> Alternative Pathways After Class 10
+            <h2 className="text-lg md:text-xl font-bold text-text-heading flex items-center gap-2">
+              <i className="fi fi-sr-stats w-5 h-5 text-red-500" /> Alternative Pathways After Class 10
             </h2>
             <p className="text-xs text-muted mt-1">If you wish to pursue technical skills or join immediate employment instead of standard 11th & 12th academics</p>
           </div>
@@ -1594,7 +1596,7 @@ export default function HighSchoolCareerPage() {
                     {path.icon}
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-text-heading">{path.title}</h3>
+                    <h3 className="text-xs md:text-sm font-semibold text-text-heading">{path.title}</h3>
                     <span className="text-[10px] text-red-500 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full font-medium mt-0.5 inline-block">
                       Duration: {path.duration}
                     </span>
@@ -1616,8 +1618,8 @@ export default function HighSchoolCareerPage() {
         {/* Tamil Nadu Govt Schemes & 7.5% Reservation */}
         <div className="bg-card rounded-2xl p-6 border border-border shadow-theme-card">
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-text-heading flex items-center gap-2">
-              <Award className="w-5 h-5 text-red-500" /> Government Support Schemes & Reservations
+            <h2 className="text-lg md:text-xl font-bold text-text-heading flex items-center gap-2">
+              <i className="fi fi-sr-medal w-5 h-5 text-red-500" /> Government Support Schemes & Reservations
             </h2>
             <p className="text-xs text-muted mt-1">Special financial packages and admission quotas designed by the Government of Tamil Nadu for government school students</p>
           </div>
@@ -1627,7 +1629,7 @@ export default function HighSchoolCareerPage() {
               <div key={idx} className="bg-secondary/20 dark:bg-slate-900/40 border border-border p-5 rounded-2xl flex flex-col justify-between hover:border-red-500/20 hover:bg-secondary/40 dark:hover:bg-slate-900 transition-all">
                 <div>
                   <div className="text-2xl mb-3">{scheme.icon}</div>
-                  <h3 className="text-sm font-semibold text-text-heading mb-1">{scheme.title}</h3>
+                  <h3 className="text-xs md:text-sm font-semibold text-text-heading mb-1">{scheme.title}</h3>
                   <div className="text-xs font-bold text-red-500 mb-3">{scheme.benefit}</div>
                   <p className="text-xs text-muted leading-relaxed">
                     {scheme.eligibility}
@@ -1642,8 +1644,8 @@ export default function HighSchoolCareerPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Top Polytechnics */}
           <div className="lg:col-span-2 bg-card rounded-2xl p-6 border border-border shadow-theme-card">
-            <h2 className="text-base font-semibold text-text-heading mb-4 flex items-center gap-2">
-              🏢 Top Government Polytechnic Colleges in TN
+            <h2 className="text-xs md:text-sm md:text-base font-semibold text-text-heading mb-4 flex items-center gap-2">
+              <i className="fi fi-sr-building" /> Top Government Polytechnic Colleges in TN
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-text-main">
@@ -1669,7 +1671,7 @@ export default function HighSchoolCareerPage() {
             </div>
             <div className="mt-4 p-3 bg-secondary/40 dark:bg-slate-900/50 rounded-xl border border-border text-center">
               <p className="text-[11px] text-muted">
-                💡 Admissions are processed through the <strong>Directorate of Technical Education (DoTE)</strong> online portal after Class 10 results.
+                <i className="fi fi-sr-bulb" /> Admissions are processed through the <strong>Directorate of Technical Education (DoTE)</strong> online portal after Class 10 results.
               </p>
             </div>
           </div>
@@ -1677,8 +1679,8 @@ export default function HighSchoolCareerPage() {
           {/* Allocation & Cutoff Guidelines */}
           <div className="bg-card rounded-2xl p-6 border border-border shadow-theme-card flex flex-col justify-between">
             <div>
-              <h2 className="text-base font-semibold text-text-heading mb-3 flex items-center gap-2">
-                📋 Class 11 Stream Cutoff Guidelines
+              <h2 className="text-xs md:text-sm md:text-base font-semibold text-text-heading mb-3 flex items-center gap-2">
+                <i className="fi fi-sr-clipboard-list" /> Class 11 Stream Cutoff Guidelines
               </h2>
               <p className="text-xs text-text-main leading-relaxed mb-4">
                 Since seat availability is limited in certain school groups, stream allocation in Government Higher Secondary Schools follows these norms:
@@ -1705,8 +1707,8 @@ export default function HighSchoolCareerPage() {
         <div className="bg-card rounded-2xl p-6 border border-border shadow-theme-card">
           <div className="flex items-center justify-between mb-5 border-b border-border pb-4">
             <div>
-              <h2 className="text-lg font-bold text-text-heading flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-red-500" /> Your Class 10 Transition Checklist
+              <h2 className="text-xs md:text-sm md:text-base md:text-lg font-bold text-text-heading flex items-center gap-2">
+                <i className="fi fi-sr-check-circle w-5 h-5 text-red-500" /> Your Class 10 Transition Checklist
               </h2>
               <p className="text-xs text-muted mt-0.5">Stay on track before the high-school session finishes</p>
             </div>
@@ -1731,7 +1733,7 @@ export default function HighSchoolCareerPage() {
                     ? "bg-emerald-500/20 border-emerald-500 text-emerald-500"
                     : "border-slate-400 dark:border-slate-650"
                 }`}>
-                  {task.completed && <CheckCircle2 className="w-3.5 h-3.5 fill-current" />}
+                  {task.completed && <i className="fi fi-sr-check-circle w-3.5 h-3.5 fill-current" />}
                 </div>
                 <div className="flex-1">
                   <p className={`text-xs font-semibold ${task.completed ? "line-through text-muted" : "text-text-main"}`}>

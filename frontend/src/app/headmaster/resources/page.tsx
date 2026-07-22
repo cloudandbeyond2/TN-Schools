@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -262,6 +263,7 @@ const getComputedCounts = (cat: ResourceCategory, det: any, formTotal: string, f
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ResourcesPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId: string = (session?.user as any)?.schoolId || "";
   const API_BASE = getApiBase();
@@ -1132,8 +1134,8 @@ export default function ResourcesPage() {
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
     <PortalLayout
-      title="School Resource Management"
-      subtitle="Monitor · Infrastructure · Escalation to Officials"
+      title={lang === "தமிழ்" ? "பள்ளி வள மேலாண்மை" : "School Resource Management"}
+      subtitle={lang === "தமிழ்" ? "கண்காணிப்பு · உள்கட்டமைப்பு · அதிகாரிகளுக்கு பரிந்துரை" : "Monitor · Infrastructure · Escalation to Officials"}
       avatarLetter="R"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
@@ -1152,11 +1154,11 @@ export default function ResourcesPage() {
       {/* ── KPI Strip + Health Ring ────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
         {[
-          { label: "Total Resources", value: total,       icon: "fi fi-rr-apps",             color: "text-blue-400",    glow: "from-blue-500/10" },
-          { label: "Functional",      value: functional,  icon: "fi fi-rr-check-circle",     color: "text-emerald-400", glow: "from-emerald-500/10" },
-          { label: "Needs Repair",    value: needsRepair, icon: "fi fi-rr-triangle-warning", color: "text-amber-400",   glow: "from-amber-500/10" },
-          { label: "Critical",        value: critical,    icon: "fi fi-rr-exclamation",      color: "text-rose-400",    glow: "from-rose-500/10" },
-          { label: "Open Reports",    value: openReports, icon: "fi fi-rr-paper-plane",      color: "text-violet-400",  glow: "from-violet-500/10" },
+          { label: lang === "தமிழ்" ? "மொத்த வளங்கள்" : "Total Resources", value: total,       icon: "fi fi-rr-apps",             color: "text-blue-400",    glow: "from-blue-500/10" },
+          { label: lang === "தமிழ்" ? "செயல்பாட்டு" : "Functional",      value: functional,  icon: "fi fi-rr-check-circle",     color: "text-emerald-400", glow: "from-emerald-500/10" },
+          { label: lang === "தமிழ்" ? "பழுது தேவை" : "Needs Repair",    value: needsRepair, icon: "fi fi-rr-triangle-warning", color: "text-amber-400",   glow: "from-amber-500/10" },
+          { label: lang === "தமிழ்" ? "முக்கியமான" : "Critical",        value: critical,    icon: "fi fi-rr-exclamation",      color: "text-rose-400",    glow: "from-rose-500/10" },
+          { label: lang === "தமிழ்" ? "திறந்த அறிக்கைகள்" : "Open Reports",    value: openReports, icon: "fi fi-rr-paper-plane",      color: "text-violet-400",  glow: "from-violet-500/10" },
         ].map(k => (
           <div key={k.label}
             className={`relative overflow-hidden glass p-4 rounded-2xl border border-slate-800 bg-gradient-to-br ${k.glow} to-transparent transition-transform hover:scale-[1.02]`}>
@@ -1254,9 +1256,9 @@ export default function ResourcesPage() {
       {/* ── Tab Bar ────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-1 p-1 bg-slate-900/80 border border-slate-800 rounded-2xl mb-4 w-full sm:w-fit">
         {[
-          { id: "monitor" as ViewTab, label: "Monitor",         icon: "fi fi-rr-grid" },
-          { id: "table"   as ViewTab, label: "Total Resources", icon: "fi fi-rr-table-list" },
-          { id: "reports" as ViewTab, label: "Official Reports",icon: "fi fi-rr-paper-plane", badge: openReports },
+          { id: "monitor" as ViewTab, label: lang === "தமிழ்" ? "கண்காணிப்பகம்" : "Monitor",         icon: "fi fi-rr-grid" },
+          { id: "table"   as ViewTab, label: lang === "தமிழ்" ? "மொத்த வளங்கள்" : "Total Resources", icon: "fi fi-rr-table-list" },
+          { id: "reports" as ViewTab, label: lang === "தமிழ்" ? "அதிகாரபூர்வ அறிக்கைகள்" : "Official Reports",icon: "fi fi-rr-paper-plane", badge: openReports },
         ].map(t => (
           <button
             key={t.id}

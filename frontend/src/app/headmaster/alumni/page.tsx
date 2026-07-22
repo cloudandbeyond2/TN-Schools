@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
 import { 
@@ -71,6 +72,7 @@ interface ParsedPreviewAlumni {
 }
 
 export default function AlumniPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
   
@@ -739,8 +741,8 @@ export default function AlumniPage() {
 
   return (
     <PortalLayout
-      title="Alumni Management Portal"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
+      title={lang === "தமிழ்" ? "முன்னாள் மாணவர்கள் மேலாண்மை போர்டல்" : "Alumni Management Portal"}
+      subtitle={lang === "தமிழ்" ? "முன்னாள் மாணவர்களின் அடைவு, சாதனைகள் மற்றும் ஈடுபாட்டை நிர்வகிக்கவும்." : "Track and manage alumni directory, achievements, and engagements."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import PortalLayout from "@/components/PortalLayout";
 import ScholarshipTrackingHub from "@/components/student/ScholarshipTrackingHub";
 

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import { Calendar, Users, Shield, Plus, Edit2, Trash2, HelpCircle, Check, AlertCircle, Grid, List, CheckCircle, Clock } from "lucide-react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface Teacher {
   id: string;
@@ -69,6 +70,7 @@ const PERIOD_TIMES: Record<number, { start: string; end: string }> = {
 };
 
 export default function HeadmasterTimetablePage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const user = session?.user as any;
   const schoolId = user?.schoolId || "";
@@ -460,8 +462,8 @@ export default function HeadmasterTimetablePage() {
 
   return (
     <PortalLayout
-      title="Master Timetable & Proxies"
-      subtitle={user?.name ? `${user.name} · School Admin Dashboard` : "School Headmaster Portal"}
+      title={lang === "தமிழ்" ? "மாஸ்டர் நேர அட்டவணை & மாற்று பணியாளர்கள்" : "Master Timetable & Proxies"}
+      subtitle={user?.name ? `${user.name} · ${lang === "தமிழ்" ? "பள்ளி நிர்வாக தளம்" : "School Admin Dashboard"}` : (lang === "தமிழ்" ? "பள்ளி தலைமை தளம்" : "School Headmaster Portal")}
       avatarLetter={user?.name ? user.name.charAt(0) : "H"}
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
@@ -472,10 +474,10 @@ export default function HeadmasterTimetablePage() {
         <div className="md:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
           <div>
             <h2 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
-              <span>📅 Select Operation Date</span>
+              <span>📅 {lang === "தமிழ்" ? "இயக்கம் தேதியை தேர்வு செய்" : "Select Operation Date"}</span>
             </h2>
             <p className="text-[11px] text-slate-500 mt-1">
-              Check daily school-wide schedules and assign teacher proxies.
+              {lang === "தமிழ்" ? "தினசரி பள்ளி அளவிலான நேர அட்டவணைகளை சரிபார்த்தி மாற்று பணியாளர்களை கள்ளமிடவும்." : "Check daily school-wide schedules and assign teacher proxies."}
             </p>
           </div>
           <input
@@ -488,13 +490,13 @@ export default function HeadmasterTimetablePage() {
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-center shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500 font-semibold">Proxy Substitutions Today</span>
+            <span className="text-xs text-slate-500 font-semibold">{lang === "தமிழ்" ? "இன்று மாற்று பணியாளர்கள்" : "Proxy Substitutions Today"}</span>
             <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2.5 py-0.5 rounded-full text-[10px] font-black">
-              {proxies.length} Active
+              {proxies.length} {lang === "தமிழ்" ? "உள்ளன" : "Active"}
             </span>
           </div>
           <div className="text-2xl font-black text-slate-800 dark:text-white mt-1">
-            {proxies.length > 0 ? `🤝 Substitution Active` : `✅ Normal Schedules`}
+            {proxies.length > 0 ? `🤝 ${lang === "தமிழ்" ? "மாற்று பணி உள்ளது" : "Substitution Active"}` : `✅ ${lang === "தமிழ்" ? "இயற்பு நேர அட்டவணைகள்" : "Normal Schedules"}`}
           </div>
         </div>
       </div>
@@ -507,7 +509,7 @@ export default function HeadmasterTimetablePage() {
             <div className="flex flex-col gap-4 border-b border-slate-100 dark:border-slate-800 pb-5 mb-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-sm font-bold text-slate-800 dark:text-white">🗓️ Weekly Class Period Mappings</h2>
+                  <h2 className="text-sm font-bold text-slate-800 dark:text-white">🗓️ {lang === "தமிழ்" ? "வாராந்திர வகுப்பு நேரம் விளக்கம்" : "Weekly Class Period Mappings"}</h2>
                   
                   {/* View Toggles */}
                   <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200/50 dark:border-slate-850">
@@ -518,9 +520,9 @@ export default function HeadmasterTimetablePage() {
                           ? "bg-blue-600 text-white shadow-sm" 
                           : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
                       }`}
-                      title="Timeline List View"
+                      title={lang === "தமிழ்" ? "காலரேகை பட்டியல் பார்வை" : "Timeline List View"}
                     >
-                      <List className="w-3.5 h-3.5" /> Timeline
+                      <List className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "காலரேகை" : "Timeline"}
                     </button>
                     <button
                       onClick={() => setViewMode("grid")}
@@ -529,9 +531,9 @@ export default function HeadmasterTimetablePage() {
                           ? "bg-blue-600 text-white shadow-sm" 
                           : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
                       }`}
-                      title="Master Grid Matrix View"
+                      title={lang === "தமிழ்" ? "மாஸ்டர் கேரி௷ன் மாத்ரிகை பார்வை" : "Master Grid Matrix View"}
                     >
-                      <Grid className="w-3.5 h-3.5" /> Master Grid
+                      <Grid className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "மாஸ்டர் கேரி௻" : "Master Grid"}
                     </button>
                   </div>
                 </div>
@@ -954,7 +956,7 @@ export default function HeadmasterTimetablePage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-150 dark:border-slate-900 flex justify-between items-center bg-slate-50/50 dark:bg-slate-955">
+            <div className="px-6 py-4 border-b border-slate-150 dark:border-slate-900 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950">
               <div>
                 <h3 className="text-sm font-bold text-slate-850 dark:text-white">
                   {editingSlot ? "✏️ Edit Timetable Slot" : "➕ Add Weekly Class Slot"}

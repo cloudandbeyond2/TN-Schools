@@ -686,7 +686,7 @@ export default function StudentNEETPrepPage() {
                   placeholder="e.g. Molecular Basis of Inheritance, Chemical Kinetics, Ray Optics..."
                   value={aiTopic}
                   onChange={(e) => setAiTopic(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:border-violet-500 transition-colors"
                 />
               </div>
 
@@ -695,7 +695,7 @@ export default function StudentNEETPrepPage() {
                 <select
                   value={aiDifficulty}
                   onChange={(e) => setAiDifficulty(e.target.value as Difficulty)}
-                  className="bg-slate-50 dark:bg-slate-955 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-700 dark:text-white focus:outline-none focus:border-violet-500"
+                  className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-700 dark:text-white focus:outline-none focus:border-violet-500"
                 >
                   <option value="Easy">Easy</option>
                   <option value="Medium">Medium</option>

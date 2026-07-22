@@ -1,22 +1,14 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import { 
-  Zap, 
-  Timer, 
-  BrainCircuit, 
-  BookOpen, 
-  Coffee, 
-  Play, 
-  Pause, 
-  RotateCcw,
-  Sparkles,
-  Award,
-  ChevronRight,
-  BookOpenCheck
-} from "lucide-react";
+// Removed lucide-react imports, using Flaticon instead
+const Icon = ({ name, className = "" }: { name: string; className?: string }) => (
+  <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} />
+);
 
 // Syllabus presets for 9th and 10th Standard students (Tamil Nadu State Board context)
 const CLASS_SPECIFIC_CONTENT: Record<string, {
@@ -74,6 +66,12 @@ export default function StudyBoostPage() {
   const [aiSummary, setAiSummary] = useState("");
   const [generating, setGenerating] = useState(false);
 
+  // Brain Breaks state
+  const [activeBreak, setActiveBreak] = useState<{ title: string; desc: string; duration: number } | null>(null);
+  const [breakTimeLeft, setBreakTimeLeft] = useState(0);
+  const [breakTimerRunning, setBreakTimerRunning] = useState(false);
+  const [streakDays, setStreakDays] = useState(['M', 'T', 'W', 'T', 'F']);
+
   // Focus timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -88,6 +86,34 @@ export default function StudyBoostPage() {
       if (interval) clearInterval(interval);
     };
   }, [timerRunning, timeLeft]);
+
+  // Break timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (breakTimerRunning && breakTimeLeft > 0) {
+      interval = setInterval(() => {
+        setBreakTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (breakTimeLeft === 0 && breakTimerRunning) {
+      setBreakTimerRunning(false);
+      alert("Brain break finished! Good job.");
+      setActiveBreak(null);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [breakTimerRunning, breakTimeLeft]);
+
+  const startBreak = (title: string, desc: string, duration: number) => {
+    setActiveBreak({ title, desc, duration });
+    setBreakTimeLeft(duration);
+    setBreakTimerRunning(true);
+  };
+
+  const closeBreak = () => {
+    setActiveBreak(null);
+    setBreakTimerRunning(false);
+  };
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -170,7 +196,7 @@ export default function StudyBoostPage() {
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-sm font-bold backdrop-blur-md mb-4 border border-white/30">
-                <Zap className="w-4 h-4 text-yellow-300 fill-yellow-300" /> Class {studentClass} Board Mode
+                <Icon name="bolt" className="text-yellow-300 text-sm" /> Class {studentClass} Board Mode
               </div>
               <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight">
                 Unlock Your Brain's <br /> Full Potential
@@ -181,31 +207,30 @@ export default function StudyBoostPage() {
             </div>
             <div className="shrink-0">
               <div className="w-32 h-32 md:w-48 md:h-48 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-2xl">
-                <BrainCircuit className="w-16 h-16 md:w-24 md:h-24 text-white drop-shadow-md" />
+                <Icon name="brain" className="text-white text-6xl md:text-8xl drop-shadow-md" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Tools Tabs */}
         <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
           <button 
             onClick={() => setActiveTab("focus")}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold whitespace-nowrap transition-all ${activeTab === "focus" ? "bg-red-500 text-white shadow-md shadow-red-500/20" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
           >
-            <Timer className="w-5 h-5" /> Focus Timer
+            <Icon name="stopwatch" className="text-lg" /> Focus Timer
           </button>
           <button 
             onClick={() => { setActiveTab("flashcards"); setIsFlipped(false); }}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold whitespace-nowrap transition-all ${activeTab === "flashcards" ? "bg-rose-500 text-white shadow-md shadow-rose-500/20" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
           >
-            <BookOpen className="w-5 h-5" /> Syllabus Flashcards
+            <Icon name="book-alt" className="text-lg" /> Syllabus Flashcards
           </button>
           <button 
             onClick={() => setActiveTab("ai")}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold whitespace-nowrap transition-all ${activeTab === "ai" ? "bg-violet-500 text-white shadow-md shadow-violet-500/20" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
           >
-            <Sparkles className="w-5 h-5" /> AI Quick Summaries
+            <Icon name="stars" className="text-lg" /> AI Quick Summaries
           </button>
         </div>
 
@@ -244,13 +269,13 @@ export default function StudyBoostPage() {
                     onClick={toggleTimer}
                     className="w-16 h-16 bg-red-600 hover:bg-red-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-red-600/30 transition-all hover:scale-105 active:scale-95"
                   >
-                    {timerRunning ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
+                    {timerRunning ? <Icon name="pause" className="text-3xl" /> : <Icon name="play" className="text-3xl ml-1" />}
                   </button>
                   <button 
                     onClick={resetTimer}
                     className="w-16 h-16 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-2xl flex items-center justify-center transition-all"
                   >
-                    <RotateCcw className="w-6 h-6" />
+                    <Icon name="refresh" className="text-xl" />
                   </button>
                 </div>
               </div>
@@ -300,7 +325,7 @@ export default function StudyBoostPage() {
               <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 rounded-xl bg-violet-100 dark:bg-violet-900/50 flex items-center justify-center text-violet-600 dark:text-violet-400">
-                    <Sparkles className="w-6 h-6" />
+                    <Icon name="stars" className="text-xl" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white">AI Quick Summaries</h2>
@@ -336,7 +361,7 @@ export default function StudyBoostPage() {
                     disabled={generating || !aiText.trim()}
                     className="px-6 py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-violet-600/20 transition-all hover:-translate-y-0.5"
                   >
-                    <Zap className="w-4 h-4 fill-current" /> 
+                    <Icon name="bolt" className="text-sm" /> 
                     {generating ? "Summarizing..." : "Generate Summary"}
                   </button>
                 </div>
@@ -358,7 +383,7 @@ export default function StudyBoostPage() {
             <div className="bg-red-50 dark:bg-red-950/15 p-6 rounded-3xl border-2 border-red-100 dark:border-red-900/20">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-xl flex items-center justify-center text-red-600 dark:text-red-400">
-                  <BookOpenCheck className="w-5 h-5" />
+                  <Icon name="book-bookmark" className="text-lg" />
                 </div>
                 <h3 className="font-black text-red-800 dark:text-red-400">Class {studentClass} Board Tips</h3>
               </div>
@@ -367,7 +392,7 @@ export default function StudyBoostPage() {
                 {currentData.examTips.map((tip, idx) => (
                   <div key={idx} className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-red-100 dark:border-slate-700/50">
                     <h4 className="font-bold text-slate-850 dark:text-white text-sm flex items-center gap-1.5">
-                      <Award className="w-4 h-4 text-amber-500" /> {tip.title}
+                      <Icon name="award" className="text-amber-500 text-sm" /> {tip.title}
                     </h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium leading-relaxed">{tip.desc}</p>
                   </div>
@@ -379,34 +404,46 @@ export default function StudyBoostPage() {
             <div className="bg-emerald-50 dark:bg-emerald-900/10 p-6 rounded-3xl border-2 border-emerald-100 dark:border-emerald-800/30">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                  <Coffee className="w-5 h-5" />
+                  <Icon name="mug-hot" className="text-lg" />
                 </div>
                 <h3 className="font-black text-emerald-800 dark:text-emerald-400">Brain Breaks</h3>
               </div>
               
               <div className="space-y-3">
-                <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-emerald-100 dark:border-slate-700 cursor-pointer hover:border-emerald-300 transition-colors">
+                <div 
+                  onClick={() => startBreak("4-7-8 Breathing", "Inhale for 4s, hold for 7s, exhale for 8s.", 180)}
+                  className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-emerald-100 dark:border-slate-700 cursor-pointer hover:border-emerald-300 transition-colors"
+                >
                   <h4 className="font-bold text-slate-800 dark:text-white text-sm">4-7-8 Breathing</h4>
                   <p className="text-xs text-slate-500 mt-1 font-medium">Calm your nerves before an exam (3 mins)</p>
                 </div>
-                <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-emerald-100 dark:border-slate-700 cursor-pointer hover:border-emerald-300 transition-colors">
+                <div 
+                  onClick={() => startBreak("Eye Strain Relief", "Look at something 20 feet away.", 60)}
+                  className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-emerald-100 dark:border-slate-700 cursor-pointer hover:border-emerald-300 transition-colors"
+                >
                   <h4 className="font-bold text-slate-800 dark:text-white text-sm">Eye Strain Relief</h4>
                   <p className="text-xs text-slate-500 mt-1 font-medium">The 20-20-20 rule for digital screens (1 min)</p>
                 </div>
               </div>
             </div>
 
-            {/* Daily Streak */}
             <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
                <div className="text-4xl mb-2">🔥</div>
-               <h3 className="font-black text-slate-800 dark:text-white text-xl">5 Day Streak!</h3>
+               <h3 className="font-black text-slate-800 dark:text-white text-xl">{streakDays.length} Day Streak!</h3>
                <p className="text-sm text-slate-500 font-medium mb-4">You're building great study habits.</p>
                
                <div className="flex justify-center gap-2">
                  {['M','T','W','T','F','S','S'].map((day, i) => (
-                   <div key={i} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${i < 5 ? 'bg-orange-100 text-orange-600 border border-orange-200' : 'bg-slate-50 dark:bg-slate-700 text-slate-400'}`}>
+                   <button 
+                     key={i} 
+                     onClick={() => {
+                        if (!streakDays.includes(day) && streakDays.length <= i) {
+                          setStreakDays([...streakDays, day]);
+                        }
+                     }}
+                     className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all hover:scale-110 ${streakDays.length > i ? 'bg-orange-100 text-orange-600 border border-orange-200' : 'bg-slate-50 dark:bg-slate-700 text-slate-400 hover:bg-orange-50'}`}>
                      {day}
-                   </div>
+                   </button>
                  ))}
                </div>
             </div>
@@ -416,6 +453,33 @@ export default function StudyBoostPage() {
         </div>
 
       </div>
+
+      {/* Break Timer Modal */}
+      {activeBreak && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl text-center relative">
+            <button onClick={closeBreak} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+              <Icon name="cross" className="text-xl" />
+            </button>
+            <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-500">
+              <Icon name="mug-hot" className="text-3xl" />
+            </div>
+            <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">{activeBreak.title}</h2>
+            <p className="text-slate-500 mb-6 font-medium">{activeBreak.desc}</p>
+            
+            <div className="text-5xl font-black font-mono tracking-tighter text-emerald-600 dark:text-emerald-400 mb-8">
+              {formatTime(breakTimeLeft)}
+            </div>
+            
+            <button 
+              onClick={closeBreak}
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all"
+            >
+              End Break Early
+            </button>
+          </div>
+        </div>
+      )}
     </PortalLayout>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import BoardStage from "@/components/smart-class/BoardStage";
 import type {
   BoardMcq,
@@ -99,6 +100,7 @@ const normalizeMcqs = (raw: unknown): BoardMcq[] => {
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 
 export default function TeacherSmartClassPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const user = session?.user as any;
   const schoolId = user?.schoolId || "";
@@ -302,8 +304,8 @@ export default function TeacherSmartClassPage() {
 
   return (
     <PortalLayout
-      title="Smart Class"
-      subtitle="Conduct your class live from the smart board — lesson, media and quiz in one screen."
+      title={lang === "தமிழ்" ? "ஸ்மார்ட் வகுப்பு" : "Smart Class"}
+      subtitle={lang === "தமிழ்" ? "ஸ்மார்ட் போர்டிலிருந்து உங்கள் வகுப்பை நேரடியாக நடத்துங்கள் — பாடம், ஊடகம் மற்றும் வினாடி வினா அனைத்தும் ஒரே திரையில்." : "Conduct your class live from the smart board — lesson, media and quiz in one screen."}
       avatarLetter="S"
       avatarColor="#f59e0b"
       themeClass="theme-teacher"
@@ -313,16 +315,15 @@ export default function TeacherSmartClassPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
         <div>
           <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1">
-            Prepare the Board
+            {lang === "தமிழ்" ? "போர்டைத் தயார் செய்யவும்" : "Prepare the Board"}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Pick your class, subject and unit — then project it fullscreen with annotation and quiz
-            tools.
+            {lang === "தமிழ்" ? "உங்கள் வகுப்பு, பாடம் மற்றும் அலகைத் தேர்ந்தெடுக்கவும் — பின்னர் குறிப்பு மற்றும் வினாடி வினா கருவிகளுடன் முழுத் திரையில் காண்பிக்கவும்." : "Pick your class, subject and unit — then project it fullscreen with annotation and quiz tools."}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-            Class
+            {lang === "தமிழ்" ? "வகுப்பு" : "Class"}
           </span>
           <select
             value={selectedClass}
@@ -331,7 +332,7 @@ export default function TeacherSmartClassPage() {
           >
             {classOptions.map((c) => (
               <option key={c} value={c}>
-                Class {c}
+                {lang === "தமிழ்" ? `வகுப்பு ${c}` : `Class ${c}`}
               </option>
             ))}
           </select>
@@ -342,17 +343,17 @@ export default function TeacherSmartClassPage() {
         <div className="flex flex-col items-center justify-center py-16">
           <div className="w-10 h-10 rounded-full border-4 border-amber-200 border-t-amber-600 animate-spin mb-3" />
           <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider animate-pulse">
-            Loading...
+            {lang === "தமிழ்" ? "ஏற்றப்படுகிறது..." : "Loading..."}
           </p>
         </div>
       ) : subjects.length === 0 ? (
         <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
           <Presentation className="w-10 h-10 mx-auto mb-4 text-slate-400" />
           <p className="text-lg font-bold text-slate-700 dark:text-slate-300">
-            No syllabus content yet for Class {selectedClass}
+            {lang === "தமிழ்" ? `வகுப்பு ${selectedClass}-க்கு இன்னும் பாடத்திட்ட உள்ளடக்கம் இல்லை` : `No syllabus content yet for Class ${selectedClass}`}
           </p>
           <p className="text-xs text-slate-500 mt-2">
-            Units from the centralized syllabus appear here once published.
+            {lang === "தமிழ்" ? "மத்திய பாடத்திட்டத்திலிருந்து வெளியிடப்பட்ட அலகுகள் இங்கே தோன்றும்." : "Units from the centralized syllabus appear here once published."}
           </p>
         </div>
       ) : (
@@ -389,14 +390,14 @@ export default function TeacherSmartClassPage() {
             <div className="flex flex-col items-center justify-center py-16">
               <div className="w-10 h-10 rounded-full border-4 border-amber-200 border-t-amber-600 animate-spin mb-3" />
               <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider animate-pulse">
-                Loading units...
+                {lang === "தமிழ்" ? "அலகுகள் ஏற்றப்படுகின்றன..." : "Loading units..."}
               </p>
             </div>
           ) : units.length === 0 ? (
             <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
               <BookOpen className="w-10 h-10 mx-auto mb-4 text-slate-400" />
               <p className="text-lg font-bold text-slate-700 dark:text-slate-300">
-                No units found for this subject yet.
+                {lang === "தமிழ்" ? "இந்த பாடத்திற்கு இன்னும் அலகுகள் எதுவும் இல்லை." : "No units found for this subject yet."}
               </p>
             </div>
           ) : (
@@ -417,17 +418,20 @@ export default function TeacherSmartClassPage() {
                       className="text-xs font-black uppercase tracking-wider"
                       style={{ color: accent }}
                     >
-                      Unit {unit.unitNumber}
+                      {lang === "தமிழ்" ? `அலகு ${unit.unitNumber}` : `Unit ${unit.unitNumber}`}
                     </span>
                     {unit.isApproved && (
                       <span className="text-[9px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-emerald-600 text-white">
-                        Published
+                        {lang === "தமிழ்" ? "வெளியிடப்பட்டது" : "Published"}
                       </span>
                     )}
                   </div>
                   <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{unit.name}</p>
                   <p className="text-xs text-slate-500 mt-1">
-                    {unit.topics.length} topic{unit.topics.length === 1 ? "" : "s"}
+                    {lang === "தமிழ்" 
+                      ? `${unit.topics.length} தலைப்பு${unit.topics.length === 1 ? "" : "கள்"}` 
+                      : `${unit.topics.length} topic${unit.topics.length === 1 ? "" : "s"}`
+                    }
                   </p>
                 </button>
               ))}
@@ -441,7 +445,7 @@ export default function TeacherSmartClassPage() {
                 <div className="flex items-center gap-3">
                   <div className="w-6 h-6 rounded-full border-4 border-amber-200 border-t-amber-600 animate-spin" />
                   <p className="text-sm font-bold text-slate-600 dark:text-slate-300">
-                    Preparing board content...
+                    {lang === "தமிழ்" ? "போர்டு உள்ளடக்கம் தயாரிக்கப்படுகிறது..." : "Preparing board content..."}
                   </p>
                 </div>
               ) : payload ? (
@@ -455,7 +459,10 @@ export default function TeacherSmartClassPage() {
                       }`}
                     >
                       <BookOpen className="w-4 h-4" />
-                      {payload.detail ? "Lesson insights ready" : "No lesson insights"}
+                      {payload.detail 
+                        ? (lang === "தமிழ்" ? "பாட நுண்ணறிவு தயார்" : "Lesson insights ready") 
+                        : (lang === "தமிழ்" ? "பாட நுண்ணறிவு இல்லை" : "No lesson insights")
+                      }
                     </span>
                     <span
                       className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-extrabold border ${
@@ -465,18 +472,24 @@ export default function TeacherSmartClassPage() {
                       }`}
                     >
                       <FileText className="w-4 h-4" />
-                      {payload.pdfs.length} PDF{payload.pdfs.length === 1 ? "" : "s"}
-                      {payload.infographicUrl ? " + infographic" : ""}
+                      {lang === "தமிழ்" 
+                        ? `${payload.pdfs.length} PDF கோப்பு${payload.pdfs.length === 1 ? "" : "கள்"}` 
+                        : `${payload.pdfs.length} PDF${payload.pdfs.length === 1 ? "" : "s"}`
+                      }
+                      {payload.infographicUrl ? (lang === "தமிழ்" ? " + தகவல் வரைபடம்" : " + infographic") : ""}
                     </span>
                     <span
                       className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-extrabold border ${
                         payload.mcqs.length > 0
-                          ? "bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border-amber-200/30"
+                          ? "bg-amber-50 dark:bg-amber-955/30 text-amber-700 dark:text-amber-400 border-amber-200/30"
                           : "bg-slate-100 dark:bg-slate-800/50 text-slate-500 border-slate-200/30"
                       }`}
                     >
                       <HelpCircle className="w-4 h-4" />
-                      {payload.mcqs.length} quiz question{payload.mcqs.length === 1 ? "" : "s"}
+                      {lang === "தமிழ்" 
+                        ? `${payload.mcqs.length} வினாடி வினா வினா${payload.mcqs.length === 1 ? "" : "க்கள்"}` 
+                        : `${payload.mcqs.length} quiz question${payload.mcqs.length === 1 ? "" : "s"}`
+                      }
                     </span>
                   </div>
                   <button
@@ -484,12 +497,12 @@ export default function TeacherSmartClassPage() {
                     className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-black text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
                     style={{ background: `linear-gradient(135deg, ${accent}, ${accent}dd)` }}
                   >
-                    <MonitorPlay className="w-5 h-5" /> Enter Board Mode
+                    <MonitorPlay className="w-5 h-5" /> {lang === "தமிழ்" ? "போர்டு பயன்முறையில் நுழையவும்" : "Enter Board Mode"}
                   </button>
                 </>
               ) : (
                 <p className="text-sm font-bold text-red-600 dark:text-red-400">
-                  Could not load this unit&apos;s content. Please try again.
+                  {lang === "தமிழ்" ? "இந்த அலகின் உள்ளடக்கத்தை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்." : "Could not load this unit's content. Please try again."}
                 </p>
               )}
             </div>

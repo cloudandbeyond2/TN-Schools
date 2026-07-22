@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import PortalLayout from "@/components/PortalLayout";
 import { useState, useEffect } from "react";
 import { Clock, Brain, FileText, Timer, Bot, Award, Target, Calendar, CheckSquare, Sparkles } from "lucide-react";

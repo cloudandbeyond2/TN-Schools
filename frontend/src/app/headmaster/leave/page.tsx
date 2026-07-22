@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 // Lucide icon imports removed in favor of Flaticon classes
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -28,6 +29,7 @@ interface LeaveRequest {
 }
 
 export default function HeadmasterLeavePage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId: string = (session?.user as any)?.schoolId || "";
 
@@ -126,8 +128,8 @@ export default function HeadmasterLeavePage() {
 
   return (
     <PortalLayout
-      title="Leave Management"
-      subtitle="Review and approve student and staff leave requests for your school"
+      title={lang === "தமிழ்" ? "விடுபு மேலாண்மை" : "Leave Management"}
+      subtitle={lang === "தமிழ்" ? "மாணவர்கள் மற்றும் பணியாளர்களின் விடுமுறை கோரிக்கைகளை மதிப்பிட்டு அனுமதிக்கவும்" : "Review and approve student and staff leave requests for your school"}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
@@ -258,7 +260,7 @@ export default function HeadmasterLeavePage() {
                   activeRoleTab === "Student" ? "active-student" : ""
                 }`}
               >
-                Student Leaves
+                {lang === "தமிழ்" ? "மாணவர் விடுபுகள்" : "Student Leaves"}
               </button>
               <button
                 onClick={() => setActiveRoleTab("Teacher")}
@@ -266,7 +268,7 @@ export default function HeadmasterLeavePage() {
                   activeRoleTab === "Teacher" ? "active-teacher" : ""
                 }`}
               >
-                Teacher Leaves
+                {lang === "தமிழ்" ? "ஆசிரியர் விடுபுகள்" : "Teacher Leaves"}
               </button>
             </div>
 
@@ -278,7 +280,7 @@ export default function HeadmasterLeavePage() {
                   activeTab === "Pending" ? "active-status" : ""
                 }`}
               >
-                Pending
+                {lang === "தமிழ்" ? "விடுபு கோரிக்கைகள்" : "Pending"}
               </button>
               <button
                 onClick={() => setActiveTab("History")}
@@ -286,7 +288,7 @@ export default function HeadmasterLeavePage() {
                   activeTab === "History" ? "active-status" : ""
                 }`}
               >
-                History
+                {lang === "தமிழ்" ? "வரலாறு" : "History"}
               </button>
             </div>
           </div>
@@ -296,7 +298,7 @@ export default function HeadmasterLeavePage() {
             <i className="fi fi-rr-search absolute left-3.5 top-1/2 -translate-y-1/2 text-xs custom-text-muted" />
             <input
               type="text"
-              placeholder="Search by name or reason..."
+              placeholder={lang === "தமிழ்" ? "பெயர் அல்லது காரணத்தின்மூலம் தேடுக..." : "Search by name or reason..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 rounded-xl text-xs custom-search focus:outline-none focus:border-blue-500 transition-colors"

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface Milestone {
   id: number | string;
@@ -24,6 +25,7 @@ const getApiBase = () => {
 const API_BASE = getApiBase();
 
 export default function HistoryPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId: string = (session?.user as any)?.schoolId || "";
 
@@ -176,7 +178,7 @@ export default function HistoryPage() {
 
   return (
     <PortalLayout
-      title="School History & Archival Timeline"
+      title={lang === "தமிழ்" ? "பள்ளி வரலாறு & காலவரிசை காலக்கோற்" : "School History & Archival Timeline"}
       subtitle={`${schoolName || "GHS Coimbatore"} · DISE: ${schoolDise || "33012345"}`}
       avatarLetter="V"
       avatarColor="#3b82f6"
@@ -188,17 +190,17 @@ export default function HistoryPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800">
             <h2 className="text-sm sm:text-base font-semibold text-white mb-1 flex items-center gap-2">
-              <i className="fi fi-rr-calendar-clock text-blue-500" /> Milestone Timeline (Since 1955)
+              <i className="fi fi-rr-calendar-clock text-blue-500" /> {lang === "தமிழ்" ? "மைல்கல் காலவரிசை (1955 முதல்)" : "Milestone Timeline (Since 1955)"}
             </h2>
             <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
-              Historical evolution of school infrastructure, enrollment benchmarks, and major academic milestones.
+              {lang === "தமிழ்" ? "பள்ளி கட்டமைப்பு, சேர்க்கை இலக்குகள் மற்றும் முக்கிய கல்வி மைல்கல்களின் வரலாறு வளர்ச்சி." : "Historical evolution of school infrastructure, enrollment benchmarks, and major academic milestones."}
             </p>
           </div>
 
           <div className="relative border-l-2 border-slate-800 ml-4 pl-6 space-y-8">
             {loading ? (
               <div className="text-center py-6 text-slate-500 font-bold text-xs">
-                Loading milestones... <i className="fi fi-rr-hourglass text-sm animate-spin inline-block ml-1" />
+                {lang === "தமிழ்" ? "மைல்கல்கள் ஏற்றப்படுகின்றன..." : "Loading milestones..."} <i className="fi fi-rr-hourglass text-sm animate-spin inline-block ml-1" />
               </div>
             ) : milestones.map((ms) => (
               <div key={ms.id} className="relative group">

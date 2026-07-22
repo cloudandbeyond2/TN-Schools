@@ -319,7 +319,7 @@ export default function SuperadminAcademicsPage() {
     } else {
       setEditResourceId(null);
       setResourceForm({
-        title: "", subjectId: subjects[0]?.id || "", type: "PDF", url: "", meta: "", description: "", addedBy: "Super Admin",
+        title: "", subjectId: "", type: "PDF", url: "", meta: "", description: "", addedBy: "Super Admin",
         class: filterClass || "", section: filterSection || "", group: "", term: "", chapterNumber: "", topicName: "",
         learningOutcomes: "", medium: "", bookVersion: "", publisher: "", language: "",
         coverImage: "", materialType: "", downloadAllowed: true, chapter: "", lessonTitle: "",
@@ -571,7 +571,7 @@ export default function SuperadminAcademicsPage() {
               placeholder={`Search ${CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-slate-50 dark:bg-slate-955 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-slate-700 dark:text-slate-200 transition-all"
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-slate-700 dark:text-slate-200 transition-all"
             />
             {searchQuery && (
               <button
@@ -589,7 +589,7 @@ export default function SuperadminAcademicsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-55 dark:bg-slate-955 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+              className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
             >
               <option value="All">All Statuses</option>
               <option value="Active">Approved</option>
@@ -600,7 +600,7 @@ export default function SuperadminAcademicsPage() {
             <select
               value={filterClass}
               onChange={(e) => setFilterClass(e.target.value)}
-              className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-55 dark:bg-slate-955 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+              className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
             >
               <option value="">All Classes</option>
               {[...Array(12)].map((_, i) => (
@@ -612,7 +612,7 @@ export default function SuperadminAcademicsPage() {
             <select
               value={filterSection}
               onChange={(e) => setFilterSection(e.target.value)}
-              className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-55 dark:bg-slate-955 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+              className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
             >
               <option value="">All Sections</option>
               {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(s => (
@@ -1061,14 +1061,14 @@ export default function SuperadminAcademicsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
-                    <select required value={subjectForm.class} onChange={e => setSubjectForm({ ...subjectForm, class: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none">
+                    <select required value={subjectForm.class} onChange={e => setSubjectForm({ ...subjectForm, class: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="">Select Class</option>
                       {[...Array(12)].map((_, i) => <option key={i} value={String(i + 1)}>Class {i + 1}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Section (Optional)</label>
-                    <select value={subjectForm.section} onChange={e => setSubjectForm({ ...subjectForm, section: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none">
+                    <select value={subjectForm.section} onChange={e => setSubjectForm({ ...subjectForm, section: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="">Any</option>
                       {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
@@ -1078,13 +1078,13 @@ export default function SuperadminAcademicsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="relative">
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject Name *</label>
-                    <div onClick={() => setIsSubjectDropdownOpen(!isSubjectDropdownOpen)} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 cursor-pointer flex justify-between items-center outline-none">
+                    <div onClick={() => setIsSubjectDropdownOpen(!isSubjectDropdownOpen)} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 cursor-pointer flex justify-between items-center outline-none">
                       <span className={subjectForm.name ? "" : "text-slate-400"}>{subjectForm.name || "Select"}</span>
                       <span className="text-xs text-slate-400">▼</span>
                     </div>
                     <AnimatePresence>
                       {isSubjectDropdownOpen && (
-                        <motion.div className="absolute z-55 w-full mt-1 bg-white dark:bg-slate-955 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                        <motion.div className="absolute z-55 w-full mt-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-48 overflow-y-auto">
                           {ALL_SUBJECTS.map((subject) => (
                             <div key={subject} onClick={() => { setSubjectForm({ ...subjectForm, name: subject }); setIsSubjectDropdownOpen(false); }} className="px-4 py-2 cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-slate-700 dark:text-slate-200 font-medium border-b border-slate-100 dark:border-slate-800/40">{subject}</div>
                           ))}
@@ -1094,14 +1094,14 @@ export default function SuperadminAcademicsPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject Code</label>
-                    <input type="text" value={subjectForm.subjectCode} onChange={e => setSubjectForm({ ...subjectForm, subjectCode: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                    <input type="text" value={subjectForm.subjectCode} onChange={e => setSubjectForm({ ...subjectForm, subjectCode: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Medium</label>
-                    <select value={subjectForm.medium} onChange={e => setSubjectForm({ ...subjectForm, medium: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none">
+                    <select value={subjectForm.medium} onChange={e => setSubjectForm({ ...subjectForm, medium: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="">Select Medium</option>
                       <option value="Tamil">Tamil</option>
                       <option value="English">English</option>
@@ -1109,7 +1109,7 @@ export default function SuperadminAcademicsPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Status</label>
-                    <select value={subjectForm.status} onChange={e => setSubjectForm({ ...subjectForm, status: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none">
+                    <select value={subjectForm.status} onChange={e => setSubjectForm({ ...subjectForm, status: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="Active">Approved (Active)</option>
                       <option value="Inactive">Rejected (Inactive)</option>
                     </select>
@@ -1119,17 +1119,17 @@ export default function SuperadminAcademicsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Color Theme</label>
-                    <input type="color" value={subjectForm.color} onChange={e => setSubjectForm({ ...subjectForm, color: e.target.value })} className="w-full h-10 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 cursor-pointer outline-none p-1" />
+                    <input type="color" value={subjectForm.color} onChange={e => setSubjectForm({ ...subjectForm, color: e.target.value })} className="w-full h-10 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 cursor-pointer outline-none p-1" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Emoji Icon</label>
-                    <input type="text" placeholder="📚" value={subjectForm.icon} onChange={e => setSubjectForm({ ...subjectForm, icon: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                    <input type="text" placeholder="📚" value={subjectForm.icon} onChange={e => setSubjectForm({ ...subjectForm, icon: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Description</label>
-                  <textarea rows={2} value={subjectForm.description} onChange={e => setSubjectForm({ ...subjectForm, description: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none resize-none"></textarea>
+                  <textarea rows={2} value={subjectForm.description} onChange={e => setSubjectForm({ ...subjectForm, description: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none resize-none"></textarea>
                 </div>
 
                 <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -1174,16 +1174,32 @@ export default function SuperadminAcademicsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
-                    <select required value={resourceForm.class} onChange={e => setResourceForm({ ...resourceForm, class: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none">
+                    <select 
+                      required 
+                      value={resourceForm.class} 
+                      onChange={e => {
+                        const newClass = e.target.value;
+                        const filtered = newClass ? subjects.filter(s => String(s.class) === String(newClass)) : subjects;
+                        const isStillValid = filtered.some(s => String(s.id) === String(resourceForm.subjectId));
+                        setResourceForm({
+                          ...resourceForm,
+                          class: newClass,
+                          subjectId: isStillValid ? resourceForm.subjectId : ""
+                        });
+                      }} 
+                      className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none"
+                    >
                       <option value="">Select Class</option>
                       {[...Array(12)].map((_, i) => <option key={i} value={String(i + 1)}>Class {i + 1}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject *</label>
-                    <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none">
+                    <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="" disabled>Select subject</option>
-                      {subjects.map(s => <option key={s.id} value={s.id}>{s.name} (Class {s.class})</option>)}
+                      {subjects
+                        .filter(s => !resourceForm.class || String(s.class) === String(resourceForm.class))
+                        .map(s => <option key={s.id} value={s.id}>{s.name} (Class {s.class})</option>)}
                     </select>
                   </div>
                 </div>
@@ -1192,7 +1208,7 @@ export default function SuperadminAcademicsPage() {
                 {activeTab === "overview" && (
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Target Category *</label>
-                    <select required value={resourceForm.contentType || "materials"} onChange={e => setResourceForm({ ...resourceForm, contentType: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none">
+                    <select required value={resourceForm.contentType || "materials"} onChange={e => setResourceForm({ ...resourceForm, contentType: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       {CATEGORIES.filter(c => c.key !== "overview" && c.key !== "subjects").map(c => (
                         <option key={c.key} value={c.key}>{c.label}</option>
                       ))}
@@ -1206,7 +1222,7 @@ export default function SuperadminAcademicsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Term</label>
-                        <select value={resourceForm.term} onChange={e => setResourceForm({ ...resourceForm, term: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none">
+                        <select value={resourceForm.term} onChange={e => setResourceForm({ ...resourceForm, term: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                           <option value="">Select Term</option>
                           <option value="Term 1">Term 1</option>
                           <option value="Term 2">Term 2</option>
@@ -1215,22 +1231,22 @@ export default function SuperadminAcademicsPage() {
                       </div>
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Unit / Chapter</label>
-                        <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter Number</label>
-                        <input type="text" value={resourceForm.chapterNumber} onChange={e => setResourceForm({ ...resourceForm, chapterNumber: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input type="text" value={resourceForm.chapterNumber} onChange={e => setResourceForm({ ...resourceForm, chapterNumber: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Topic Name</label>
-                        <input type="text" value={resourceForm.topicName} onChange={e => setResourceForm({ ...resourceForm, topicName: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input type="text" value={resourceForm.topicName} onChange={e => setResourceForm({ ...resourceForm, topicName: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                     </div>
                     <div>
                       <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Learning Outcomes</label>
-                      <textarea rows={2} value={resourceForm.learningOutcomes} onChange={e => setResourceForm({ ...resourceForm, learningOutcomes: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none resize-none"></textarea>
+                      <textarea rows={2} value={resourceForm.learningOutcomes} onChange={e => setResourceForm({ ...resourceForm, learningOutcomes: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none resize-none"></textarea>
                     </div>
                   </>
                 )}
@@ -1240,11 +1256,11 @@ export default function SuperadminAcademicsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Book Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Medium</label>
-                        <select value={resourceForm.medium} onChange={e => setResourceForm({ ...resourceForm, medium: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none">
+                        <select value={resourceForm.medium} onChange={e => setResourceForm({ ...resourceForm, medium: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                           <option value="">Select Medium</option>
                           <option value="Tamil">Tamil</option>
                           <option value="English">English</option>
@@ -1254,21 +1270,21 @@ export default function SuperadminAcademicsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Version / Edition</label>
-                        <input type="text" value={resourceForm.bookVersion} onChange={e => setResourceForm({ ...resourceForm, bookVersion: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input type="text" value={resourceForm.bookVersion} onChange={e => setResourceForm({ ...resourceForm, bookVersion: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Publisher</label>
-                        <input type="text" value={resourceForm.publisher} onChange={e => setResourceForm({ ...resourceForm, publisher: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" placeholder="SCERT / NCERT" />
+                        <input type="text" value={resourceForm.publisher} onChange={e => setResourceForm({ ...resourceForm, publisher: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" placeholder="SCERT / NCERT" />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Language</label>
-                        <input type="text" value={resourceForm.language} onChange={e => setResourceForm({ ...resourceForm, language: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input type="text" value={resourceForm.language} onChange={e => setResourceForm({ ...resourceForm, language: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Cover Image URL</label>
-                        <input type="text" value={resourceForm.coverImage} onChange={e => setResourceForm({ ...resourceForm, coverImage: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input type="text" value={resourceForm.coverImage} onChange={e => setResourceForm({ ...resourceForm, coverImage: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                     </div>
                   </>
@@ -1279,11 +1295,11 @@ export default function SuperadminAcademicsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Material Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Material Type</label>
-                        <select value={resourceForm.materialType} onChange={e => setResourceForm({ ...resourceForm, materialType: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none">
+                        <select value={resourceForm.materialType} onChange={e => setResourceForm({ ...resourceForm, materialType: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                           <option value="">Select Type</option>
                           <option value="PDF">PDF</option>
                           <option value="PPT">PPT</option>
@@ -1306,11 +1322,11 @@ export default function SuperadminAcademicsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter</label>
-                        <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Lesson Title *</label>
-                        <input required type="text" value={resourceForm.lessonTitle} onChange={e => setResourceForm({ ...resourceForm, lessonTitle: e.target.value, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input required type="text" value={resourceForm.lessonTitle} onChange={e => setResourceForm({ ...resourceForm, lessonTitle: e.target.value, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                     </div>
                   </>
@@ -1321,21 +1337,21 @@ export default function SuperadminAcademicsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Chapter</label>
-                        <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input type="text" value={resourceForm.chapter} onChange={e => setResourceForm({ ...resourceForm, chapter: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Video Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">YouTube URL</label>
-                        <input type="text" value={resourceForm.youtubeUrl} onChange={e => setResourceForm({ ...resourceForm, youtubeUrl: e.target.value, url: e.target.value, type: "Video" })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input type="text" value={resourceForm.youtubeUrl} onChange={e => setResourceForm({ ...resourceForm, youtubeUrl: e.target.value, url: e.target.value, type: "Video" })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Duration</label>
-                        <input type="text" value={resourceForm.videoDuration} onChange={e => setResourceForm({ ...resourceForm, videoDuration: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" placeholder="e.g. 15 Mins" />
+                        <input type="text" value={resourceForm.videoDuration} onChange={e => setResourceForm({ ...resourceForm, videoDuration: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" placeholder="e.g. 15 Mins" />
                       </div>
                     </div>
                   </>
@@ -1346,11 +1362,11 @@ export default function SuperadminAcademicsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Content Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Content Type</label>
-                        <select value={resourceForm.contentType} onChange={e => setResourceForm({ ...resourceForm, contentType: e.target.value, type: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none">
+                        <select value={resourceForm.contentType} onChange={e => setResourceForm({ ...resourceForm, contentType: e.target.value, type: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                           <option value="">Select Type</option>
                           <option value="PDF">PDF</option>
                           <option value="Video">Video</option>
@@ -1368,21 +1384,21 @@ export default function SuperadminAcademicsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Reference Title *</label>
-                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input required type="text" value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Author</label>
-                        <input type="text" value={resourceForm.author} onChange={e => setResourceForm({ ...resourceForm, author: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input type="text" value={resourceForm.author} onChange={e => setResourceForm({ ...resourceForm, author: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Publisher</label>
-                        <input type="text" value={resourceForm.publisher} onChange={e => setResourceForm({ ...resourceForm, publisher: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input type="text" value={resourceForm.publisher} onChange={e => setResourceForm({ ...resourceForm, publisher: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-400 mb-1">ISBN (Optional)</label>
-                        <input type="text" value={resourceForm.isbn} onChange={e => setResourceForm({ ...resourceForm, isbn: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" />
+                        <input type="text" value={resourceForm.isbn} onChange={e => setResourceForm({ ...resourceForm, isbn: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
                       </div>
                     </div>
                   </>
@@ -1396,14 +1412,14 @@ export default function SuperadminAcademicsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Attachment Type</label>
-                    <select value={resourceForm.attachmentType || "Link"} onChange={e => setResourceForm({ ...resourceForm, attachmentType: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none">
+                    <select value={resourceForm.attachmentType || "Link"} onChange={e => setResourceForm({ ...resourceForm, attachmentType: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="Link">Link (URL)</option>
                       <option value="Upload">File Upload</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Status</label>
-                    <select value={resourceForm.status} onChange={e => setResourceForm({ ...resourceForm, status: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
+                    <select value={resourceForm.status} onChange={e => setResourceForm({ ...resourceForm, status: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-905 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="Active">Approved (Active)</option>
                       <option value="Inactive">Rejected (Inactive)</option>
                     </select>
@@ -1414,7 +1430,7 @@ export default function SuperadminAcademicsPage() {
                   {resourceForm.attachmentType === "Upload" ? (
                     <>
                       <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Upload File</label>
-                      <div className="relative w-full px-4 py-2 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl flex items-center justify-center bg-slate-50 dark:bg-slate-955 cursor-pointer overflow-hidden min-h-[48px]">
+                      <div className="relative w-full px-4 py-2 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl flex items-center justify-center bg-slate-50 dark:bg-slate-950 cursor-pointer overflow-hidden min-h-[48px]">
                         <input type="file" onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
@@ -1452,14 +1468,14 @@ export default function SuperadminAcademicsPage() {
                   ) : (
                     <>
                       <label className="block text-xs font-bold uppercase text-slate-400 mb-1">URL / Link</label>
-                      <input type="text" value={resourceForm.url} onChange={e => setResourceForm({ ...resourceForm, url: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none" placeholder="https://..." />
+                      <input type="text" value={resourceForm.url} onChange={e => setResourceForm({ ...resourceForm, url: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" placeholder="https://..." />
                     </>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Description</label>
-                  <textarea rows={2} value={resourceForm.description} onChange={e => setResourceForm({ ...resourceForm, description: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-955 text-slate-700 dark:text-slate-200 outline-none resize-none"></textarea>
+                  <textarea rows={2} value={resourceForm.description} onChange={e => setResourceForm({ ...resourceForm, description: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none resize-none"></textarea>
                 </div>
 
                 <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">

@@ -79,4 +79,70 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
+// GET registrations for cultural events
+router.get('/registrations/all', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    const registrations = await (prisma as any).culturalRegistration.findMany({
+      where: schoolId ? { schoolId: schoolId as string } : undefined,
+      orderBy: { registeredAt: 'desc' }
+    });
+    res.json({ success: true, data: registrations });
+  } catch (error) {
+    console.error('Failed to fetch cultural registrations:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch registrations' });
+  }
+});
+
+// POST a student/class registration
+router.post('/register', async (req: Request, res: Response) => {
+  try {
+    const { eventId, eventTitle, participantName, class: className, count, type, schoolId, studentId } = req.body;
+    
+    let targetEventId = eventId;
+    if (eventId) {
+      const existing = await prisma.culturalEvent.findUnique({ where: { id: eventId } }).catch(() => null);
+      if (!existing && eventTitle) {
+        const byTitle = await prisma.culturalEvent.findFirst({
+          where: { title: { equals: eventTitle, mode: 'insensitive' } }
+        }).catch(() => null);
+        if (byTitle) targetEventId = byTitle.id;
+      }
+    }
+
+    const registration = await (prisma as any).culturalRegistration.create({
+      data: {
+        id: randomUUID(),
+        eventId: targetEventId,
+        eventTitle: eventTitle || "Cultural Event",
+        participantName: participantName || "Student",
+        class: className || "Class All",
+        count: count ? parseInt(count) : 1,
+        type: type || "individual",
+        schoolId,
+        studentId
+      }
+    });
+
+    res.status(201).json({ success: true, data: registration });
+  } catch (error) {
+    console.error('Failed to create registration:', error);
+    res.status(500).json({ success: false, error: 'Failed to register' });
+  }
+});
+
+// DELETE a registration
+router.delete('/register/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await (prisma as any).culturalRegistration.delete({
+      where: { id }
+    });
+    res.json({ success: true, message: 'Registration cancelled' });
+  } catch (error) {
+    console.error('Failed to delete registration:', error);
+    res.status(500).json({ success: false, error: 'Failed to cancel registration' });
+  }
+});
+
 export default router;

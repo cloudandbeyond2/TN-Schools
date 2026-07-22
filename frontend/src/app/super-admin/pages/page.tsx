@@ -20,7 +20,7 @@ const PORTAL_ORDER = Object.keys(PORTAL_LABELS);
 
 export default function PageManagement() {
   const { data: session } = useSession();
-  const token = (session as any)?.backendToken;
+  const token = (session?.user as any)?.backendToken;
   const authHeaders = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,

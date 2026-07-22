@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import Swal from 'sweetalert2';
+import { usePortalLanguage } from '@/lib/usePortalLanguage';
 
 interface ActivityLog {
   id: string;
@@ -39,6 +40,7 @@ interface AnalyticsData {
 }
 
 export default function HeadmasterSocialActivitiesPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -110,8 +112,8 @@ export default function HeadmasterSocialActivitiesPage() {
 
   return (
     <PortalLayout 
-      title="Social Responsibility Analytics" 
-      subtitle="School-wide community hours dashboard, class leaderboards, and monthly social service audits."
+      title={lang === "தமிழ்" ? "சமூக பொறுப்பு பகுப்பாய்வு" : "Social Responsibility Analytics"} 
+      subtitle={lang === "தமிழ்" ? "பள்ளி அளவிலான சமூக சேவை நேரங்கள் டாஷ்போர்டு மற்றும் வகுப்புகள் லீடர்போர்டு." : "School-wide community hours dashboard, class leaderboards, and monthly social service audits."}
       avatarLetter="H"
       avatarColor="#059669"
       accentColor="#059669"
@@ -129,8 +131,8 @@ export default function HeadmasterSocialActivitiesPage() {
                 <BarChart2 className="w-8 h-8" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-black text-black dark:text-white">Community Service & Social Audit</h1>
-                <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">Review environmental, cleanup, and educational volunteering impacts school-wide.</p>
+                <h1 className="text-xl sm:text-2xl font-black text-black dark:text-white">{lang === "தமிழ்" ? "சமூக சேவை & சமூக தணிக்கை" : "Community Service & Social Audit"}</h1>
+                <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">{lang === "தமிழ்" ? "சுற்றுச்சூழல், தூய்மைப்பணி மற்றும் கல்வி சேவை தாக்கங்களை பள்ளி முழுவதும் மதிப்பாய்வு செய்யவும்." : "Review environmental, cleanup, and educational volunteering impacts school-wide."}</p>
               </div>
             </div>
             <button

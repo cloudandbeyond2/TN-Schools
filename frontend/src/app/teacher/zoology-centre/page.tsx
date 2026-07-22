@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { Bug, Dna, Leaf, Microscope, Info, Search, Grid3X3, X, Fish, Bird, PawPrint, Tractor, Globe, Package, Smile, Activity } from "lucide-react";
 
 type Specimen = {
@@ -22,6 +23,7 @@ export default function ZoologyCentrePage() {
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+  const { lang } = usePortalLanguage();
   const [specimens, setSpecimens] = useState<Specimen[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -176,8 +178,8 @@ export default function ZoologyCentrePage() {
 
   return (
     <PortalLayout
-      title="Animal & Nature Centre! "
-      subtitle="Explore bugs, DNA, frogs, and cool biology stuff!"
+      title={lang === "தமிழ்" ? "விலங்கு & இயற்கை மையம்!" : "Animal & Nature Centre!"}
+      subtitle={lang === "தமிழ்" ? "புழுக்கள், DNA, தவளை மற்றும் குளிர் அறிவியல் கண்டுபிடியுங்கள்!" : "Explore bugs, DNA, frogs, and cool biology stuff!"}
     >
       <div className="flex flex-col gap-8">
 
@@ -193,17 +195,17 @@ export default function ZoologyCentrePage() {
           <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
             <div>
               <div className="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-450 px-3 py-1.5 rounded-xl font-black tracking-wider text-xs uppercase mb-4 border-2 border-emerald-100 dark:border-emerald-900/50">
-                <Leaf className="w-4 h-4 text-emerald-600" /> Nature Explorers
+                <Leaf className="w-4 h-4 text-emerald-600" /> {lang === "தமிழ்" ? "இயற்கை ஆய்வாளர்கள்" : "Nature Explorers"}
               </div>
-              <h2 className="text-4xl font-black tracking-tight mb-3 text-slate-900 dark:text-white">The Bio Zone!</h2>
+              <h2 className="text-4xl font-black tracking-tight mb-3 text-slate-900 dark:text-white">{lang === "தமிழ்" ? "உயிர் மண்டலம்!" : "The Bio Zone!"}</h2>
               <p className="text-slate-500 dark:text-slate-400 font-bold max-w-xl text-base leading-relaxed">
-                Welcome to the jungle! Check out our collection of bugs, models, and DNA kits. Get ready for some wild science!
+                {lang === "தமிழ்" ? "காட்டிற்கு வருக! புழுக்கள், மாதிரிகள் மற்றும் DNA கருவிகளின் தொகுப்பைப் பாருங்கள். சில காட்டு அறிவியலுக்குத் தயாராகுங்கள்!" : "Welcome to the jungle! Check out our collection of bugs, models, and DNA kits. Get ready for some wild science!"}
               </p>
             </div>
 
             <div className="shrink-0 flex gap-3">
               <button onClick={handleOpenCreate} className="px-6 py-4 bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-black text-sm rounded-2xl transition-all shadow-lg shadow-yellow-500/40 hover:scale-105 active:scale-95 flex items-center gap-3 border-4 border-yellow-250">
-                <Microscope className="w-6 h-6" /> I want a new specimen!
+                <Microscope className="w-6 h-6" /> {lang === "தமிழ்" ? "ஒரு புதிய உயிரினம் வேண்டும்!" : "I want a new specimen!"}
               </button>
             </div>
           </div>
@@ -216,14 +218,14 @@ export default function ZoologyCentrePage() {
               <div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl rotate-12">
                  <Bug className="w-6 h-6" />
               </div>
-              Creature Collection
+              {lang === "தமிழ்" ? "உயிரின சேகரிப்பு" : "Creature Collection"}
             </h3>
 
             <div className="relative w-full sm:w-72">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400 font-bold" />
               <input
                 type="text"
-                placeholder="Search for frogs, bugs..."
+                placeholder={lang === "தமிழ்" ? "தவளைகள், புழுக்கள் தேடுங்கள்..." : "Search for frogs, bugs..."}
                 className="w-full bg-slate-50 dark:bg-slate-900 border-4 border-emerald-100 dark:border-slate-700 text-slate-800 dark:text-white rounded-3xl py-3 pl-12 pr-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-200 transition-all shadow-inner"
               />
             </div>
@@ -232,7 +234,7 @@ export default function ZoologyCentrePage() {
           {loading ? (
             <div className="text-center py-20 text-slate-500 text-xs">
               <div className="w-8 h-8 rounded-full border-2 border-emerald-500/30 border-t-emerald-500 animate-spin mx-auto mb-4" />
-              <span>Finding creatures in the database...</span>
+              <span>{lang === "தமிழ்" ? "சிறப்பு உயிரினங்களை கண்டுபிடிக்கிறது..." : "Finding creatures in the database..."}</span>
             </div>
           ) : specimens.length > 0 ? (
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -277,7 +279,7 @@ export default function ZoologyCentrePage() {
                         {specimen.slide || specimen.type}
                       </span>
                       <button onClick={() => setInspectSpec(specimen)} className={`px-4 py-2 ${s.btnBg} text-white text-xs font-black rounded-xl transition-colors shadow-md active:scale-95`}>
-                        Inspect
+                        {lang === "தமிழ்" ? "ஆய்வு" : "Inspect"}
                       </button>
                     </div>
                   </div>
@@ -286,13 +288,13 @@ export default function ZoologyCentrePage() {
             </div>
           ) : (
             <div className="text-center py-20 text-slate-500 text-sm font-bold bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] border-4 border-dashed border-slate-200 dark:border-slate-700">
-              No creatures found yet! Go catch some. <Bug className="w-4 h-4 inline-block mr-1 text-inherit" />
+              {lang === "தமிழ்" ? "இன்று உயிரினங்கள் இல்லை! பிடிக்க எடுத்துச் செல்லுங்கள்." : "No creatures found yet! Go catch some."} <Bug className="w-4 h-4 inline-block mr-1 text-inherit" />
             </div>
           )}
 
           <div className="mt-8 flex justify-center">
             <button className="text-sm font-black text-emerald-600 bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-300 px-8 py-3 rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-sm">
-              Show Everything! <Globe className="w-4 h-4 inline-block mr-1 text-inherit" />
+              {lang === "தமிழ்" ? "அனைத்தையும் காட்டு!" : "Show Everything!"} <Globe className="w-4 h-4 inline-block mr-1 text-inherit" />
             </button>
           </div>
         </div>
@@ -307,30 +309,30 @@ export default function ZoologyCentrePage() {
             </button>
             
             <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-8 pr-12">
-              {isEdit ? "Update Creature!" : "Ask for a Creature!"}
+              {isEdit ? (lang === "தமிழ்" ? "உயிரினத்தை புதுப்பிக்கவும்!" : "Update Creature!") : (lang === "தமிழ்" ? "உயிரினம் கோருங்கள்!" : "Ask for a Creature!")}
             </h3>
 
             <form onSubmit={handleRequest} className="space-y-6">
               <div>
-                <label className="block text-sm font-black text-slate-600 uppercase tracking-wider mb-2">What is it called? <Bug className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
+                <label className="block text-sm font-black text-slate-600 uppercase tracking-wider mb-2">{lang === "தமிழ்" ? "பெயர் என்ன?" : "What is it called?"} <Bug className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <input required name="name" type="text" defaultValue={currentSpec?.name || ""} placeholder="e.g., Giant Beetle" className="w-full bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-5 text-base font-bold focus:outline-none focus:border-emerald-400 transition-all shadow-sm" />
               </div>
               
               <div>
-                <label className="block text-sm font-black text-slate-600 uppercase tracking-wider mb-2">What kind is it? <Package className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
+                <label className="block text-sm font-black text-slate-600 uppercase tracking-wider mb-2">{lang === "தமிழ்" ? "அது என்ன வகை?" : "What kind is it?"} <Package className="w-4 h-4 inline-block mr-1 text-inherit" /></label>
                 <select required name="type" defaultValue={currentSpec?.type || "Permanent"} className="w-full bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl py-4 px-5 text-base font-bold focus:outline-none focus:border-emerald-400 transition-all shadow-sm">
-                  <option value="Permanent">Microscope Slide <Microscope className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
-                  <option value="Live Prep">Live Creature! <Bug className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
-                  <option value="3D Model">Plastic Model <Smile className="w-4 h-4 inline-block mr-1 text-inherit" /></option>
+                  <option value="Permanent">{lang === "தமிழ்" ? "நுண்ணோக்கி ஸ்லைடு" : "Microscope Slide"}</option>
+                  <option value="Live Prep">{lang === "தமிழ்" ? "உயிருள்ள உயிரினம்!" : "Live Creature!"}</option>
+                  <option value="3D Model">{lang === "தமிழ்" ? "பிளாஸ்டிக் மாதிரி" : "Plastic Model"}</option>
                 </select>
               </div>
 
               <div className="pt-4 flex gap-4">
                 <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-4 rounded-2xl text-base font-black text-slate-600 bg-white hover:bg-slate-50 transition-colors border-2 border-slate-200 dark:border-slate-700 shadow-sm">
-                  Nevermind
+                  திரும்பிச் செல்லும்
                 </button>
                 <button type="submit" className="flex-1 py-4 rounded-2xl text-base font-black text-slate-900 bg-emerald-400 hover:bg-emerald-300 transition-all shadow-lg shadow-emerald-500/30 active:scale-95">
-                  Get It! <Activity className="w-4 h-4 inline-block mr-1 text-inherit" /> 
+                  பெறுங்கள்! <Activity className="w-4 h-4 inline-block mr-1 text-inherit" />
                 </button>
               </div>
             </form>
@@ -396,7 +398,7 @@ export default function ZoologyCentrePage() {
               <div className="w-full bg-slate-50 dark:bg-slate-900 rounded-3xl p-6 text-left border-2 border-slate-100 dark:border-slate-800">
                 <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Bio Facts</h4>
                 <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed text-base">
-                  This <strong>{inspectSpec.name}</strong> is currently kept in the {inspectSpec.category} section. It is a {inspectSpec.type || inspectSpec.slide} perfect for students to examine up close during their biology labs!
+                  இந்த <strong>{inspectSpec.name}</strong> தற்போது {inspectSpec.category} பாகத்தில் நிர்வாகமாக உள்ளது. இது {inspectSpec.type || inspectSpec.slide} ஆகும், மற்றும் மாணவர்கள் உங்களின் உயிரியல் ஆய்வுகளில் அருகில் தேர்வு செய்யும்.
                 </p>
                 
                 <div className="mt-6 pt-5 border-t-2 border-slate-200 dark:border-slate-800 grid grid-cols-2 gap-4">

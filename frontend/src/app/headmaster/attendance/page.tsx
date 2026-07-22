@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { 
   Users, 
   Calendar, 
@@ -110,6 +111,7 @@ interface StatsData {
 }
 
 export default function HeadmasterAttendancePage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
 
@@ -402,8 +404,8 @@ export default function HeadmasterAttendancePage() {
 
   return (
     <PortalLayout
-      title="School Attendance Hub"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
+      title={lang === "தமிழ்" ? "பள்ளி வருகைப்பதிவு மையம்" : "School Attendance Hub"}
+      subtitle={lang === "தமிழ்" ? "மாணவர்கள் மற்றும் ஆசிரியர்களின் தினசரி வருகைப்பதிவை நிர்வகிக்கவும் கண்காணிக்கவும்." : "Manage and track daily attendance of students and teachers."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"

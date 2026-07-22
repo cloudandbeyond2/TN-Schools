@@ -34,8 +34,8 @@ const SERVICE_CATALOG: Omit<AIService, "isEnabled" | "apiKeyMasked">[] = [
 ];
 
 export default function AIConfig() {
-  const { data: session } = useSession();
-  const token = (session as any)?.backendToken;
+  const { data: session, status } = useSession();
+  const token = (session?.user as any)?.backendToken || (session as any)?.backendToken;
 
   const [services, setServices] = useState<AIService[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +57,12 @@ export default function AIConfig() {
   };
 
   useEffect(() => {
-    if (!token) return;
+    if (status === "loading") return;
+    if (!token) {
+      setLoading(false);
+      showToast("err", "Not authenticated. Missing token.");
+      return;
+    }
     let cancelled = false;
 
     (async () => {
@@ -102,7 +107,7 @@ export default function AIConfig() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, status]);
 
   const putService = async (key: string, body: Record<string, unknown>) => {
     const res = await fetch(`${API_URL}/api/superadmin/integrations/ai/${key}`, {

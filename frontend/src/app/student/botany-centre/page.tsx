@@ -17,6 +17,17 @@ const C: Record<string, { chip: string; ring: string; soft: string; text: string
 };
 const col = (k?: string) => C[k || "lime"] || C.lime;
 
+const getFlaticon = (emoji: string, textCol: string) => {
+  const map: Record<string, string> = {
+    "🌿": "fi-sr-leaf",
+    "🌾": "fi-sr-tree",
+    "☀️": "fi-sr-sun",
+    "💧": "fi-sr-drop",
+    "🌱": "fi-sr-flower",
+  };
+  return <i className={`fi ${map[emoji] || 'fi-sr-book-alt'} ${textCol}`}></i>;
+};
+
 export default function BotanyCentrePage() {
   const { data: session } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -38,6 +49,7 @@ export default function BotanyCentrePage() {
     }
     return bilingualText;
   };
+
 
   useEffect(() => {
     (async () => {
@@ -120,11 +132,11 @@ export default function BotanyCentrePage() {
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-lime-600 to-green-700 p-5 sm:p-7 shadow-lg">
           <i className="fi fi-sr-leaf absolute right-6 top-1/2 -translate-y-1/2 text-[8rem] sm:text-[10rem] text-white opacity-10"></i>
           <div className="relative z-10 max-w-3xl">
-            <span className="inline-flex items-center gap-2 bg-white/20 text-white px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider mb-3">
+            <span className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider mb-3" style={{ color: 'white' }}>
               <i className="fi fi-sr-sparkles text-sm"></i> {t(data.label)} · {data.medium === "Tamil" ? (lang === "EN" ? "Tamil" : "தமிழ்") : (lang === "EN" ? "English" : "ஆங்கிலம்")} {lang === "EN" ? "medium" : "வழி"}
             </span>
-            <h2 className="text-2xl text-white font-black mb-2">{t(data.book)}</h2>
-            <p className="text-white/90 text-sm font-medium leading-relaxed">{t(data.intro)}</p>
+            <h2 className="text-2xl font-black mb-2" style={{ color: 'white' }}>{t(data.book)}</h2>
+            <p className="text-sm font-medium leading-relaxed" style={{ color: 'white', opacity: 0.9 }}>{t(data.intro)}</p>
           </div>
         </div>
 
@@ -136,7 +148,7 @@ export default function BotanyCentrePage() {
               <button key={u.id} onClick={() => setOpen(u)}
                 className={`text-left group bg-white dark:bg-slate-800 rounded-3xl p-6 border-2 ${s.ring} dark:border-slate-700 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col`}>
                 <div className="flex items-start justify-between mb-4">
-                  <span className="text-4xl">{u.emoji}</span>
+                  <span className="text-4xl">{getFlaticon(u.emoji, s.text)}</span>
                   <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${s.chip}`}>{t(u.textbookRef).split("·").pop()?.trim()}</span>
                 </div>
                 <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 leading-tight">{t(u.title)}</h3>
@@ -179,9 +191,9 @@ function BotanyStudy({ lang, unit, onClose }: { lang: "EN" | "TA"; unit: BotanyU
   return (
     <div className="fixed inset-0 bg-black/60 z-[100] flex items-start justify-center p-4 overflow-y-auto">
       <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-3xl my-2 sm:my-6 shadow-2xl">
-        <div className={`sticky top-0 z-20 rounded-t-3xl px-5 py-4 sm:px-7 sm:py-5 ${s.soft} dark:bg-slate-900 border-b-2 border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4`}>
-          <div className="flex items-center gap-4">
-            <span className="text-4xl">{unit.emoji}</span>
+        <div className={`sticky top-0 z-20 rounded-t-3xl px-5 py-4 sm:px-7 sm:py-5 ${s.soft} dark:bg-slate-900 border-b-2 border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative`}>
+          <div className="flex items-center gap-4 pr-10 sm:pr-0">
+            <span className="text-4xl">{getFlaticon(unit.emoji, s.text)}</span>
             <div>
               <h3 className="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100 leading-tight">{t(unit.title)}</h3>
               <p className="text-[11px] font-bold text-slate-400 mt-0.5">📘 {t(unit.textbookRef)}</p>

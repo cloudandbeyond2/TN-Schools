@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface ScholarshipRecord {
   id: string;
@@ -16,6 +17,7 @@ interface ScholarshipRecord {
 }
 
 export default function ScholarshipsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -39,7 +41,6 @@ export default function ScholarshipsPage() {
       const res = await fetch(`${API_URL}/api/teacher/scholarships${schoolId ? `?schoolId=${schoolId}` : ""}`);
       const data = await res.json();
       if (data.success && data.data) {
-        // Map the backend structure to frontend structure
         const mapped: ScholarshipRecord[] = data.data.map((item: any) => {
           let statusText: ScholarshipRecord["status"] = "Pending";
           if (item.status === "APPROVED") statusText = "Approved";
@@ -59,7 +60,6 @@ export default function ScholarshipsPage() {
 
         setRecords(mapped);
 
-        // Compute stats
         const eligibleCount = mapped.length;
         const approvedCount = mapped.filter((r) => r.status === "Approved" || r.status === "Disbursed").length;
         const pendingCount = mapped.filter((r) => r.status === "Needs Verification" || r.status === "Pending").length;
@@ -98,15 +98,15 @@ export default function ScholarshipsPage() {
         const studentName = records.find((rec) => rec.id === id)?.name;
         Swal.fire({
           icon: "success",
-          title: "Verified!",
+          title: lang === "தமிழ்" ? "சரிபார்க்கப்பட்டது!" : "Verified!",
           text: `${studentName}'s EMIS profile and Bank Details successfully verified! Status updated to Approved.`,
           confirmButtonColor: "#10b981",
         });
-        fetchScholarships(); // Reload list to recalculate everything
+        fetchScholarships();
       } else {
         Swal.fire({
           icon: "error",
-          title: "Verification Failed",
+          title: lang === "தமிழ்" ? "சரிபார்ப்பு தோல்வி" : "Verification Failed",
           text: data.error || "Failed to verify EMIS profile.",
           confirmButtonColor: "#ef4444",
         });
@@ -125,14 +125,14 @@ export default function ScholarshipsPage() {
   };
 
   return (
-    <PortalLayout title="Scholarship & Govt Schemes" subtitle="Verify candidate records and monitor disbursal statuses.">
+    <PortalLayout title={lang === "தமிழ்" ? "உதவித்தொகை & அரசு திட்டங்கள்" : "Scholarship & Govt Schemes"} subtitle={lang === "தமிழ்" ? "வேட்பாளர் பதிவுகள் சரிபார்த்து விதரண நிலைகள் கண்காணிக்கவும்." : "Verify candidate records and monitor disbursal statuses."}>
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6 fade-in">
         {[
-          { label: "Eligible Students", value: String(stats.eligible), icon: <Users className="w-5 h-5 text-inherit" />, color: "text-amber-400", sub: "Across all classes" },
-          { label: "Approved Grants", value: String(stats.approved), icon: <CheckCircle className="w-5 h-5 text-inherit" />, color: "text-emerald-400", sub: "Disbursals active" },
-          { label: "Action Needed", value: String(stats.actionNeeded), icon: <AlertTriangle className="w-5 h-5 text-inherit" />, color: "text-red-400", sub: "Pending verifications" },
-          { label: "Fund Value Rate", value: `₹${stats.funds.toLocaleString()}`, icon: <Coins className="w-5 h-5 text-inherit" />, color: "text-cyan-400", sub: "Estimated Monthly" },
+          { label: lang === "தமிழ்" ? "தகுதியான மாணவர்கள்" : "Eligible Students", value: String(stats.eligible), icon: <Users className="w-5 h-5 text-inherit" />, color: "text-amber-400", sub: lang === "தமிழ்" ? "அனைத்து வகுப்புகளிலும்" : "Across all classes" },
+          { label: lang === "தமிழ்" ? "அனுமதிக்கப்பட்ட மகளிப்பளிகள்" : "Approved Grants", value: String(stats.approved), icon: <CheckCircle className="w-5 h-5 text-inherit" />, color: "text-emerald-400", sub: lang === "தமிழ்" ? "விதரணங்கள் சுற்றும்" : "Disbursals active" },
+          { label: lang === "தமிழ்" ? "செயல் தேவையானது" : "Action Needed", value: String(stats.actionNeeded), icon: <AlertTriangle className="w-5 h-5 text-inherit" />, color: "text-red-400", sub: lang === "தமிழ்" ? "சரிபார்த்தல் நிலுவ்ச்சிகள்" : "Pending verifications" },
+          { label: lang === "தமிழ்" ? "நிதி மதிப்பு" : "Fund Value Rate", value: `₹${stats.funds.toLocaleString()}`, icon: <Coins className="w-5 h-5 text-inherit" />, color: "text-cyan-400", sub: lang === "தமிழ்" ? "மதிப்பிடப்பட்ட மாதா மதிப்பு" : "Estimated Monthly" },
         ].map((kpi) => (
           <div key={kpi.label} className="kpi-card">
             <div className="flex items-center justify-between mb-3">
@@ -148,9 +148,9 @@ export default function ScholarshipsPage() {
       {/* Main content table */}
       <div className="theme-card p-6 border border-[var(--border)] mb-6">
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-base font-semibold text-[var(--text-heading)]"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> Scheme Applicants & Verifications</h2>
+          <h2 className="text-base font-semibold text-[var(--text-heading)]"><Clipboard className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "திட்ட விண்ணப்பதாரர்கள் & சரிபார்ப்புகள்" : "Scheme Applicants & Verifications"}</h2>
           <button className="px-3.5 py-1.5 bg-[var(--bg-card)] hover:bg-slate-700 text-[var(--text-heading)] rounded-lg text-xs font-semibold transition-colors">
-            Export Roster Details
+            {lang === "தமிழ்" ? "பட்டியல் விவரங்கள் ஏற்றுமதி" : "Export Roster Details"}
           </button>
         </div>
 
@@ -161,20 +161,20 @@ export default function ScholarshipsPage() {
         )}
 
         {loading ? (
-          <div className="text-center py-8 text-xs text-[var(--text-muted)]">Loading scheme records...</div>
+          <div className="text-center py-8 text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "திட்ட பதிவுகள் ஏற்றுகிறது..." : "Loading scheme records..."}</div>
         ) : records.length === 0 ? (
-          <div className="text-center py-8 text-xs text-[var(--text-muted)]">No scholarship candidates found.</div>
+          <div className="text-center py-8 text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "உதவித்தொகை விண்ணப்பதாரர்கள் இல்லை." : "No scholarship candidates found."}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Student Name</th>
-                  <th>Class</th>
-                  <th>Government Scheme</th>
-                  <th>Disbursal Amount</th>
-                  <th>EMIS Verification Status</th>
-                  <th>Action</th>
+                  <th>{lang === "தமிழ்" ? "மாணவர் பெயர்" : "Student Name"}</th>
+                  <th>{lang === "தமிழ்" ? "வகுப்பு" : "Class"}</th>
+                  <th>{lang === "தமிழ்" ? "அரசு திட்டம்" : "Government Scheme"}</th>
+                  <th>{lang === "தமிழ்" ? "விதரண தொகை" : "Disbursal Amount"}</th>
+                  <th>{lang === "தமிழ்" ? "EMIS சரிபார்ப்பு நிலை" : "EMIS Verification Status"}</th>
+                  <th>{lang === "தமிழ்" ? "செயல்" : "Action"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -212,10 +212,10 @@ export default function ScholarshipsPage() {
                           disabled={verifyingId === rec.id}
                           className="px-2.5 py-1 bg-[var(--primary)] hover:bg-amber-600 disabled:bg-[var(--bg-card)] disabled:text-[var(--text-muted)] text-slate-950 font-bold rounded-lg text-[10px] transition-colors"
                         >
-                          {verifyingId === rec.id ? "Checking EMIS..." : "Verify EMIS"}
+                          {verifyingId === rec.id ? (lang === "தமிழ்" ? "EMIS சரிபார்க்கிறது..." : "Checking EMIS...") : (lang === "தமிழ்" ? "EMIS சரிபார்" : "Verify EMIS")}
                         </button>
                       ) : (
-                        <span className="text-[10px] text-[var(--text-muted)] italic">Verified ✓</span>
+                        <span className="text-[10px] text-[var(--text-muted)] italic">{lang === "தமிழ்" ? "சரிபார்க்கப்பட்டது ✓" : "Verified ✓"}</span>
                       )}
                     </td>
                   </tr>
@@ -228,7 +228,7 @@ export default function ScholarshipsPage() {
 
       {/* Guidelines details */}
       <div className="theme-card p-6 border border-[var(--border)]">
-        <h2 className="text-base font-semibold text-[var(--text-heading)] mb-3"><Landmark className="w-4 h-4 inline-block mr-1 text-inherit" /> Tamil Nadu Government Scheme Notes</h2>
+        <h2 className="text-base font-semibold text-[var(--text-heading)] mb-3"><Landmark className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "தமிழ்நாடு அரசு திட்ட குறிப்புகள்" : "Tamil Nadu Government Scheme Notes"}</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 text-xs text-[var(--text-muted)]">
           <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-xl border border-[var(--border)]">
             <h4 className="text-sm font-bold text-[var(--text-heading)] mb-1">Pudhumai Penn Scheme</h4>
@@ -247,4 +247,3 @@ export default function ScholarshipsPage() {
     </PortalLayout>
   );
 }
-

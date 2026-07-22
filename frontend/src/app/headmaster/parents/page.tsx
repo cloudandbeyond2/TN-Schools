@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -92,6 +93,7 @@ interface Grievance {
 }
 
 export default function ParentsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   // Headmaster's own school — derived directly from session, never changes
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
@@ -536,8 +538,8 @@ export default function ParentsPage() {
 
   return (
     <PortalLayout
-      title="Parents & PTA Committee"
-      subtitle="Mr. Venkatesh R. · GHS Coimbatore · DISE: 33012345"
+      title={lang === "தமிழ்" ? "பரிசுகள் & பிடியெ கமிட்டி" : "Parents & PTA Committee"}
+      subtitle={lang === "தமிழ்" ? "படிக்கம் முகாம் மேலாண்மை மற்றும் பெற்றோர் தொடர்பு களம்." : "PTA Committee management and parent engagement platform."}
       avatarLetter="V"
       avatarColor="#3b82f6"
       themeClass="theme-headmaster"
@@ -782,10 +784,10 @@ export default function ParentsPage() {
       {/* Add Parent Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-4xl rounded-3xl p-6 space-y-6 relative transition-all duration-300" style={{ background: "#ffffff", boxShadow: "0 20px 50px rgba(0, 0, 0, 0.15)" }}>
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-slate-800">👪 Register PTA Committee Member</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-slate-800 text-xs font-semibold">✕ Close</button>
+          <div className="w-full max-w-4xl rounded-3xl p-6 space-y-6 relative transition-all duration-300 bg-slate-900 border border-slate-800 shadow-2xl text-white">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-white">👪 Register PTA Committee Member</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white text-xs font-semibold">✕ Close</button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -794,28 +796,28 @@ export default function ParentsPage() {
                 <div className="text-xs font-bold text-blue-650 uppercase tracking-wider mb-1">Manual Entry</div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Parent Name</label>
+                    <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Parent Name</label>
                     <input type="text" required value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800" />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Committee Role</label>
+                    <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Committee Role</label>
                     <input type="text" required value={newRole} onChange={(e) => setNewRole(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Phone Number</label>
+                    <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Phone Number</label>
                     <input type="text" required value={newPhone} onChange={(e) => setNewPhone(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800" />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Email Address</label>
+                    <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Email Address</label>
                     <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Link Student (Optional but recommended)</label>
+                  <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Link Student (Optional but recommended)</label>
                   <select
                     value={selectedStudentId}
                     onChange={e => setSelectedStudentId(e.target.value)}
@@ -830,11 +832,11 @@ export default function ParentsPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Committee Term</label>
+                    <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Committee Term</label>
                     <input type="text" required value={newTerm} onChange={(e) => setNewTerm(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800" />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Portal Password</label>
+                    <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Portal Password</label>
                     <input type="text" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800" />
                   </div>
                 </div>
@@ -845,16 +847,16 @@ export default function ParentsPage() {
               </form>
 
               {/* Excel Import */}
-              <div className="border-l border-slate-200 pl-6 flex flex-col justify-between">
+              <div className="border-l border-slate-800 pl-6 flex flex-col justify-between">
                 <div className="space-y-4">
                   <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex justify-between items-center">
                     <span>Excel Import</span>
-                    <button onClick={downloadExcelTemplate} type="button" className="text-[10px] text-blue-600 font-bold underline">📥 Template</button>
+                    <button onClick={downloadExcelTemplate} type="button" className="text-[10px] text-blue-400 font-bold underline">📥 Template</button>
                   </div>
-                  <div onClick={() => fileInputRef.current?.click()} className="rounded-2xl p-6 text-center cursor-pointer min-h-[160px] border-2 border-dashed border-slate-300 hover:border-emerald-500 flex flex-col items-center justify-center space-y-3">
+                  <div onClick={() => fileInputRef.current?.click()} className="rounded-2xl p-6 text-center cursor-pointer min-h-[160px] border-2 border-dashed border-slate-700 bg-slate-950/20 hover:border-emerald-500 flex flex-col items-center justify-center space-y-3">
                     <span className="text-4xl">📊</span>
-                    <span className="text-xs font-bold text-slate-800">Import PTA Roster</span>
-                    <span className="text-[9px] text-slate-500">Drag & drop Excel or click</span>
+                    <span className="text-xs font-bold text-white">Import PTA Roster</span>
+                    <span className="text-[9px] text-slate-400">Drag & drop Excel or click</span>
                   </div>
                   <input type="file" ref={fileInputRef} onChange={(e) => { const file = e.target.files?.[0]; if (file) parseFile(file); }} accept=".xlsx,.xls,.csv" className="hidden" />
                 </div>
@@ -906,11 +908,11 @@ export default function ParentsPage() {
       {/* Delete Confirmation Modal Parent */}
       {parentToDelete && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl relative">
-            <h3 className="text-lg font-bold text-slate-800 text-center mb-2">Remove PTA Officer?</h3>
-            <p className="text-sm text-slate-500 text-center mb-6">Are you sure you want to remove <span className="font-bold text-slate-700">{parentToDelete.name}</span>?</p>
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative text-white">
+            <h3 className="text-lg font-bold text-white text-center mb-2">Remove PTA Officer?</h3>
+            <p className="text-sm text-slate-400 text-center mb-6">Are you sure you want to remove <span className="font-bold text-white">{parentToDelete.name}</span>?</p>
             <div className="flex gap-3">
-              <button onClick={() => setParentToDelete(null)} className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">Cancel</button>
+              <button onClick={() => setParentToDelete(null)} className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs">Cancel</button>
               <button onClick={confirmDeleteParent} className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs">Yes, Remove</button>
             </div>
           </div>
@@ -920,11 +922,11 @@ export default function ParentsPage() {
       {/* Delete Confirmation Modal Meeting */}
       {meetingToDelete && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl relative">
-            <h3 className="text-lg font-bold text-slate-800 text-center mb-2">Delete Meeting?</h3>
-            <p className="text-sm text-slate-500 text-center mb-6">Are you sure you want to delete <span className="font-bold text-slate-700">{meetingToDelete.title}</span>?</p>
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative text-white">
+            <h3 className="text-lg font-bold text-white text-center mb-2">Delete Meeting?</h3>
+            <p className="text-sm text-slate-400 text-center mb-6">Are you sure you want to delete <span className="font-bold text-white">{meetingToDelete.title}</span>?</p>
             <div className="flex gap-3">
-              <button onClick={() => setMeetingToDelete(null)} className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">Cancel</button>
+              <button onClick={() => setMeetingToDelete(null)} className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs">Cancel</button>
               <button onClick={confirmDeleteMeeting} className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs">Yes, Delete</button>
             </div>
           </div>

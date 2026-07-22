@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import {
   Users,
   Send,
@@ -57,6 +58,7 @@ function StatusIcon({ status }: { status: string }) {
 }
 
 export default function TeacherPersonalGuidePage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const teacherId = (session?.user as any)?.id;
@@ -276,10 +278,10 @@ export default function TeacherPersonalGuidePage() {
             </div>
             <div>
               <h1 className="text-lg font-black text-slate-900 dark:text-white">
-                Personal Guide
+                {lang === "தமிழ்" ? "தனிப்பட்ட வழிகாட்டி" : "Personal Guide"}
               </h1>
               <p className="text-xs text-slate-500">
-                Send tasks to students and track their responses
+                {lang === "தமிழ்" ? "மாணவர்களுக்கு பணிகள் அனுப்பி மறும௻வினைகள் கண்டறி" : "Send tasks to students and track their responses"}
               </p>
             </div>
           </div>
@@ -294,7 +296,7 @@ export default function TeacherPersonalGuidePage() {
                 <div className="flex items-center gap-2 mb-3">
                   <Users className="w-4 h-4 text-indigo-500" />
                   <h2 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
-                    Students
+                    {lang === "தமிழ்" ? "மாணவர்கள்" : "Students"}
                   </h2>
                   <span className="ml-auto text-xs bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-bold border border-indigo-100 dark:border-indigo-900">
                     {students.length}
@@ -303,7 +305,7 @@ export default function TeacherPersonalGuidePage() {
                 <input
                   value={searchStudents}
                   onChange={(e) => setSearchStudents(e.target.value)}
-                  placeholder="Search student..."
+                  placeholder={lang === "தமிழ்" ? "மாணவரை தேடு..." : "Search student..."}
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-400"
                 />
               </div>
@@ -311,11 +313,11 @@ export default function TeacherPersonalGuidePage() {
               <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                 {loadingStudents ? (
                   <div className="py-12 text-center text-slate-400 text-xs">
-                    Loading...
+                    {lang === "தமிழ்" ? "ஏற்றுகிறது..." : "Loading..."}
                   </div>
                 ) : filteredStudents.length === 0 ? (
                   <div className="py-12 text-center text-slate-400 text-xs">
-                    No students found
+                    {lang === "தமிழ்" ? "மாணவர்கள் இல்லை" : "No students found"}
                   </div>
                 ) : (
                   filteredStudents.map((s) => {

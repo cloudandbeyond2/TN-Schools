@@ -1,9 +1,12 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useMemo } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
-import { FileText, Download, Clock, Filter, Award, Sparkles } from "lucide-react";
+import { FcDocument, FcDownload, FcClock, FcFilledFilter, FcGraduationCap, FcIdea } from "react-icons/fc";
+import { motion, AnimatePresence } from "framer-motion";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -57,7 +60,12 @@ export default function QuestionPapersPage() {
             : null;
           const matched = myStudent || json.data[0];
           setStudent(matched);
-          if (matched && String(matched.class) === "9") setSelectedGrade("9");
+          if (matched && matched.class) {
+            const g = String(matched.class);
+            if (g === "9" || g === "10") {
+              setSelectedGrade(g as "9" | "10");
+            }
+          }
         }
       })
       .catch((err) => console.error(err));
@@ -117,25 +125,41 @@ export default function QuestionPapersPage() {
       subtitle="Board and model exam papers — the fastest way to learn the exam pattern."
     >
       {/* Stats strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
+      >
         {[
-          { label: "Papers Available", value: String(visiblePapers.length), icon: FileText, color: "text-red-400" },
-          { label: "Years Covered", value: String(years.length), icon: Clock, color: "text-blue-400" },
-          { label: "Subjects", value: String(new Set(visiblePapers.map((p) => p.subject)).size), icon: Award, color: "text-emerald-400" },
-          { label: "Total Opens", value: String(visiblePapers.reduce((s, p) => s + (p.downloads || 0), 0)), icon: Download, color: "text-purple-400" },
-        ].map((kpi) => (
-          <div key={kpi.label} className="kpi-card border border-slate-700">
-            <kpi.icon className={`h-5 w-5 ${kpi.color} mb-2`} />
+          { label: "Papers Available", value: String(visiblePapers.length), icon: FcDocument, color: "text-red-400" },
+          { label: "Years Covered", value: String(years.length), icon: FcClock, color: "text-blue-400" },
+          { label: "Subjects", value: String(new Set(visiblePapers.map((p) => p.subject)).size), icon: FcGraduationCap, color: "text-emerald-400" },
+          { label: "Total Opens", value: String(visiblePapers.reduce((s, p) => s + (p.downloads || 0), 0)), icon: FcDownload, color: "text-purple-400" },
+        ].map((kpi, idx) => (
+          <motion.div 
+            key={kpi.label}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: idx * 0.1, duration: 0.3 }}
+            className="kpi-card border border-slate-700"
+          >
+            <kpi.icon className="h-6 w-6 mb-2" />
             <div className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</div>
             <div className="text-xs text-slate-400 mt-1">{kpi.label}</div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Filters */}
-      <div className="glass rounded-2xl p-4 mb-6 border border-slate-700/50 flex flex-col lg:flex-row lg:items-center gap-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="glass rounded-2xl p-4 mb-6 border border-slate-700/50 flex flex-col lg:flex-row lg:items-center gap-4"
+      >
         <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
-          <Filter className="w-4 h-4" /> Filters
+          <FcFilledFilter className="w-5 h-5" /> Filters
         </div>
         <div className="flex flex-wrap gap-2">
           {SUBJECTS.map((s) => (
@@ -162,25 +186,16 @@ export default function QuestionPapersPage() {
               <option key={t} value={t}>{t === "All" ? "All Paper Types" : t}</option>
             ))}
           </select>
-          <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700">
-            {(["9", "10"] as const).map((g) => (
-              <button
-                key={g}
-                onClick={() => setSelectedGrade(g)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                  selectedGrade === g ? "bg-red-500 text-white" : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Class {g}
-              </button>
-            ))}
+          <div className="flex bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-700 items-center gap-2">
+            <span className="text-xs font-bold text-slate-300">Class {selectedGrade}</span>
+            <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-black uppercase tracking-wider">Auto-detected</span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {usingFallback && (
         <div className="mb-6 text-xs text-amber-300/90 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 shrink-0" />
+          <FcIdea className="w-5 h-5 shrink-0" />
           Showing the sample paper library — papers uploaded by your teachers will appear here automatically.
         </div>
       )}
@@ -191,13 +206,21 @@ export default function QuestionPapersPage() {
         </div>
       ) : years.length === 0 ? (
         <div className="glass rounded-2xl p-10 border border-slate-700/50 text-center">
-          <FileText className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+          <FcDocument className="w-12 h-12 mx-auto mb-3 opacity-80" />
           <p className="text-slate-400 text-sm">No question papers match these filters yet.</p>
         </div>
       ) : (
-        <div className="space-y-8">
-          {years.map((year) => (
-            <div key={year} className="fade-in">
+        <motion.div layout className="space-y-8">
+          <AnimatePresence>
+          {years.map((year, yIdx) => (
+            <motion.div 
+              key={year}
+              layout
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ delay: yIdx * 0.1, duration: 0.4 }}
+            >
               <div className="flex items-center gap-3 mb-4">
                 <h3 className="text-lg font-bold text-white">{year}</h3>
                 <div className="flex-1 h-px bg-slate-700/60" />
@@ -205,13 +228,19 @@ export default function QuestionPapersPage() {
                   {visiblePapers.filter((p) => p.year === year).length} papers
                 </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <AnimatePresence>
                 {visiblePapers
                   .filter((p) => p.year === year)
                   .map((paper) => {
                     const color = SUBJECT_COLORS[paper.subject] || "#ef4444";
                     return (
-                      <div
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.2 }}
                         key={paper._id}
                         className="glass rounded-2xl p-5 border border-slate-700/50 hover:border-red-500/50 hover:-translate-y-1 transition-all group flex flex-col"
                       >
@@ -220,7 +249,7 @@ export default function QuestionPapersPage() {
                             className="w-10 h-10 rounded-xl flex items-center justify-center"
                             style={{ backgroundColor: `${color}22`, border: `1px solid ${color}55` }}
                           >
-                            <FileText className="w-5 h-5" style={{ color }} />
+                            <FcDocument className="w-6 h-6" />
                           </div>
                           <span
                             className="text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider"
@@ -235,7 +264,7 @@ export default function QuestionPapersPage() {
                         </p>
                         <div className="mt-auto flex items-center justify-between">
                           <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                            <Download className="w-3 h-3" /> {paper.downloads || 0} opens
+                            <FcDownload className="w-4 h-4" /> {paper.downloads || 0} opens
                           </span>
                           <button
                             onClick={() => handleOpen(paper)}
@@ -244,13 +273,15 @@ export default function QuestionPapersPage() {
                             {paper.fileUrl ? "Open Paper" : "View Details"}
                           </button>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
-              </div>
-            </div>
+                </AnimatePresence>
+              </motion.div>
+            </motion.div>
           ))}
-        </div>
+          </AnimatePresence>
+        </motion.div>
       )}
     </PortalLayout>
   );

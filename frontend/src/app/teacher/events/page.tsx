@@ -4,8 +4,18 @@ import { Calendar } from "lucide-react";
 
 import PortalLayout from "@/components/PortalLayout";
 import { useState, useEffect } from "react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+const renderEventIcon = (iconStr: string) => {
+  const s = iconStr || "";
+  if (s.startsWith("fi ") || s.startsWith("fi-")) {
+    const cls = s.startsWith("fi ") ? s : `fi ${s}`;
+    return <i className={`${cls} text-sm`} />;
+  }
+  return <span className="text-sm">{s}</span>;
+};
 
 interface Club {
   id: string;
@@ -26,6 +36,7 @@ interface ClubEvent {
 }
 
 export default function TeacherEventsPage() {
+  const { lang } = usePortalLanguage();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [events, setEvents] = useState<ClubEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -91,17 +102,17 @@ export default function TeacherEventsPage() {
 
   return (
     <PortalLayout 
-      title="Club Events Management" 
-      subtitle="Schedule and manage extracurricular events for clubs" 
+      title={lang === "தமிழ்" ? "மன்ற நிகழ்வுகள் மேலாண்மை" : "Club Events Management"} 
+      subtitle={lang === "தமிழ்" ? "மன்றங்களுக்கான கூடுதல் பாடநெறி நிகழ்வுகளை திட்டமிட்டு நிர்வகிக்கவும்" : "Schedule and manage extracurricular events for clubs"} 
       themeClass="theme-teacher"
     >
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 text-left">
         {/* Create Event Form */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <h2 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Calendar className="w-4 h-4 inline-block mr-1 text-inherit" /> Schedule New Event</h2>
+          <h2 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Calendar className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "புதிய நிகழ்வை திட்டமிடு" : "Schedule New Event"}</h2>
           <form onSubmit={handleCreateEvent} className="space-y-4">
             <div>
-              <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">Event Title *</label>
+              <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "நிகழ்வின் தலைப்பு *" : "Event Title *"}</label>
               <input 
                 required 
                 type="text" 
@@ -112,7 +123,7 @@ export default function TeacherEventsPage() {
               />
             </div>
             <div>
-              <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">Event Date *</label>
+              <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "நிகழ்வின் தேதி *" : "Event Date *"}</label>
               <input 
                 required 
                 type="date" 
@@ -122,7 +133,7 @@ export default function TeacherEventsPage() {
               />
             </div>
             <div>
-              <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">Associated Club *</label>
+              <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "தொடர்புடைய மன்றம் *" : "Associated Club *"}</label>
               <select 
                 required
                 value={clubId} 
@@ -136,20 +147,20 @@ export default function TeacherEventsPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">Event Type</label>
+                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "நிகழ்வு வகை" : "Event Type"}</label>
                   <select 
                     value={type} 
                     onChange={(e) => setType(e.target.value)}
                     className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                   >
-                    <option value="School-wide" className="dark:bg-slate-900">School-wide</option>
-                    <option value="Competition" className="dark:bg-slate-900">Competition</option>
-                    <option value="Showcase" className="dark:bg-slate-900">Showcase</option>
-                    <option value="Workshop" className="dark:bg-slate-900">Workshop</option>
+                    <option value="School-wide" className="dark:bg-slate-900">{lang === "தமிழ்" ? "பள்ளி தழுவியது" : "School-wide"}</option>
+                    <option value="Competition" className="dark:bg-slate-900">{lang === "தமிழ்" ? "போட்டி" : "Competition"}</option>
+                    <option value="Showcase" className="dark:bg-slate-900">{lang === "தமிழ்" ? "காட்சிப்படுத்துதல்" : "Showcase"}</option>
+                    <option value="Workshop" className="dark:bg-slate-900">{lang === "தமிழ்" ? "பயிலரங்கம்" : "Workshop"}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">Icon (Emoji) *</label>
+                  <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "சின்னம் (ஈமோஜி) *" : "Icon (Emoji) *"}</label>
                   <input 
                     required 
                     type="text" 
@@ -164,45 +175,74 @@ export default function TeacherEventsPage() {
               disabled={isSubmitting || clubs.length === 0}
               className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-bold rounded-xl text-xs transition-colors shadow-md mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Scheduling..." : "Schedule Event"}
+              {isSubmitting 
+                ? (lang === "தமிழ்" ? "திட்டமிடப்படுகிறது..." : "Scheduling...") 
+                : (lang === "தமிழ்" ? "நிகழ்வைத் திட்டமிடு" : "Schedule Event")
+              }
             </button>
-            {clubs.length === 0 && <p className="text-[10px] text-red-500 text-center font-bold">A club must be created before scheduling events.</p>}
+            {clubs.length === 0 && <p className="text-[10px] text-red-500 text-center font-bold">{lang === "தமிழ்" ? "நிகழ்வுகளைத் திட்டமிடுவதற்கு முன் ஒரு மன்றத்தை உருவாக்க வேண்டும்." : "A club must be created before scheduling events."}</p>}
           </form>
         </div>
 
         {/* List of Events */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
-          <h2 className="text-xl font-bold mb-4">Upcoming Events ({events.length})</h2>
+          <h2 className="text-xl font-bold mb-4">{lang === "தமிழ்" ? `வரவிருக்கும் நிகழ்வுகள் (${events.length})` : `Upcoming Events (${events.length})`}</h2>
           {isLoading ? (
             <div className="flex justify-center p-8"><div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div></div>
           ) : (
             <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1 max-h-[500px]">
               {events.map((event, idx) => {
                 const club = clubs.find(c => c.id === event.clubId);
+                const typeTranslated =
+                  event.type === "School-wide" ? (lang === "தமிழ்" ? "பள்ளி தழுவியது" : "School-wide") :
+                  event.type === "Competition" ? (lang === "தமிழ்" ? "போட்டி" : "Competition") :
+                  event.type === "Showcase" ? (lang === "தமிழ்" ? "காட்சிப்படுத்துதல்" : "Showcase") :
+                  event.type === "Workshop" ? (lang === "தமிழ்" ? "பயிலரங்கம்" : "Workshop") : event.type;
+                
+                // Color configuration based on event type
+                const colorConfig = 
+                  event.type === "Competition" ? { bg: "bg-rose-500/10 dark:bg-rose-950/30", text: "text-rose-600 dark:text-rose-450", border: "border-rose-500/25 dark:border-rose-900/50", glow: "shadow-rose-500/20" } :
+                  event.type === "Showcase" ? { bg: "bg-emerald-500/10 dark:bg-emerald-950/30", text: "text-emerald-600 dark:text-emerald-450", border: "border-emerald-500/25 dark:border-emerald-900/50", glow: "shadow-emerald-500/20" } :
+                  event.type === "Workshop" ? { bg: "bg-purple-500/10 dark:bg-purple-950/30", text: "text-purple-600 dark:text-purple-400", border: "border-purple-500/25 dark:border-purple-900/50", glow: "shadow-purple-500/20" } :
+                  { bg: "bg-amber-500/10 dark:bg-amber-950/30", text: "text-amber-600 dark:text-amber-400", border: "border-amber-500/25 dark:border-amber-900/50", glow: "shadow-amber-500/20" };
+
                 return (
-                <div key={event.id || idx} className="relative flex gap-4 pb-4">
-                  {idx !== events.length - 1 && (
-                    <div className="absolute left-[15px] top-8 bottom-0 w-[2px] bg-slate-200 dark:bg-slate-800"></div>
-                  )}
-                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 z-10 text-sm">
-                    {event.icon}
-                  </div>
-                  <div className="pt-1.5 bg-slate-50 dark:bg-slate-800/50 flex-1 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                    <h4 className="text-sm font-bold text-black dark:text-white leading-tight mb-1">{event.title}</h4>
-                    <p className="text-xs text-slate-500 flex items-center gap-2 mb-2">
-                      <span>{new Date(event.eventDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                      <span className="w-1 h-1 rounded-full bg-slate-400"></span>
-                      <span className="font-semibold text-amber-600 dark:text-amber-400">{event.type}</span>
-                    </p>
-                    {club && (
-                       <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-white dark:bg-slate-700 text-[10px] font-bold border border-slate-200 dark:border-slate-600">
-                         <span>{club.icon}</span> {club.name}
-                       </div>
+                  <div key={event.id || idx} className="relative flex gap-5 pb-5 group">
+                    {/* Timeline line */}
+                    {idx !== events.length - 1 && (
+                      <div className="absolute left-[17px] top-9 bottom-0 w-[3px] bg-gradient-to-b from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900"></div>
                     )}
+                    
+                    {/* Glowing Icon Circle */}
+                    <div className={`w-9 h-9 rounded-full bg-slate-50 dark:bg-slate-950 border-2 ${colorConfig.border} flex items-center justify-center shrink-0 z-10 shadow-sm group-hover:scale-110 transition-transform duration-300 ${colorConfig.text} ${colorConfig.glow}`}>
+                      {renderEventIcon(event.icon)}
+                    </div>
+                    
+                    {/* Event Details Card */}
+                    <div className="flex-1 p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-900/40 border border-slate-150/40 dark:border-slate-800/80 hover:bg-white dark:hover:bg-slate-850 hover:shadow-lg hover:shadow-slate-500/5 dark:hover:shadow-black/20 hover:-translate-y-0.5 transition-all duration-300 text-left">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                        <h4 className="text-sm font-bold text-slate-850 dark:text-slate-100 group-hover:text-amber-500 transition-colors leading-snug">{event.title}</h4>
+                        <span className={`inline-flex self-start sm:self-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${colorConfig.bg} ${colorConfig.text} ${colorConfig.border}`}>
+                          {typeTranslated}
+                        </span>
+                      </div>
+                      
+                      <p className="text-[11px] text-slate-550 dark:text-slate-400 font-semibold mb-3 flex items-center gap-2">
+                        <i className="fi fi-rr-calendar text-[12px] opacity-75" />
+                        <span>{new Date(event.eventDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      </p>
+                      
+                      {club && (
+                         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 text-[10px] font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                           <span className="text-xs">{club.icon}</span> 
+                           <span>{club.name}</span>
+                         </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )})}
-              {events.length === 0 && <p className="text-sm text-slate-500 text-center py-8">No upcoming events scheduled.</p>}
+                );
+              })}
+              {events.length === 0 && <p className="text-sm text-slate-550 text-center py-8">{lang === "தமிழ்" ? "வரவிருக்கும் நிகழ்வுகள் எதுவும் திட்டமிடப்படவில்லை." : "No upcoming events scheduled."}</p>}
             </div>
           )}
         </div>

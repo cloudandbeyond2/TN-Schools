@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import InteractiveInfographic from "@/components/InteractiveInfographic";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 const syllabusOptions = [
   "TN State Board (Samacheer Kalvi)",
@@ -95,6 +96,7 @@ function SectionHeader({ icon, tint, soft, kicker, title }: { icon: string; tint
 }
 
 export default function LessonPlannerPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -688,8 +690,8 @@ export default function LessonPlannerPage() {
 
   return (
     <PortalLayout
-      title="AI Lesson Studio"
-      subtitle="Bilingual AI chapter sources, real-time doc chatting, and visual studio output synthesis"
+      title={lang === "தமிழ்" ? "AI பாட தயாரிப்பு" : "AI Lesson Studio"}
+      subtitle={lang === "தமிழ்" ? "ஈருமொழி AI பாடு மூலங்கள், நிகழ்நிலை ஆவண உரையாடல், மற்றும் காட்சி முன்னிலை வெளியீடு" : "Bilingual AI chapter sources, real-time doc chatting, and visual studio output synthesis"}
     >
       <div className={`grid grid-cols-1 xl:grid-cols-4 min-h-[500px] transition-colors duration-300 relative`}>
 
@@ -703,12 +705,12 @@ export default function LessonPlannerPage() {
                 <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 text-sm">
                   <i className="fi fi-sr-folder leading-none" />
                 </span>
-                Document Sources
+                {lang === "தமிழ்" ? "ஆவண மூலங்கள்" : "Document Sources"}
               </h2>
 
               <form onSubmit={handleGenerate} className="space-y-4">
                 <div>
-                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>Syllabus Standard</label>
+                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>{lang === "தமிழ்" ? "பாட திட்டம்" : "Syllabus Standard"}</label>
                   <select
                     value={syllabus}
                     onChange={(e) => setSyllabus(e.target.value)}
@@ -720,7 +722,7 @@ export default function LessonPlannerPage() {
 
                 {/* Content Language Toggle */}
                 <div>
-                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>Content Language</label>
+                  <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>{lang === "தமிழ்" ? "உள்ளடக்க மொழி" : "Content Language"}</label>
                   <div className={`flex rounded-xl border ${theme.border} overflow-hidden`}>
                     <button
                       type="button"
@@ -752,7 +754,7 @@ export default function LessonPlannerPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>Grade</label>
+                    <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>{lang === "தமிழ்" ? "தரம்" : "Grade"}</label>
                     <select
                       value={grade}
                       onChange={(e) => setGrade(e.target.value)}

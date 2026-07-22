@@ -5,6 +5,7 @@ import { BarChart, Edit, Clipboard, Trophy, Target, Globe, BookOpen, Archive, X 
 import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import Swal from "sweetalert2";
 
 interface CompetitiveExam {
@@ -89,6 +90,7 @@ const emptyForm = {
 };
 
 export default function CompetitiveExamsPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const teacherId = (session?.user as any)?.id;
@@ -228,15 +230,18 @@ export default function CompetitiveExamsPage() {
   const successRate = totalEnrolled > 0 ? Math.round((totalCleared / totalEnrolled) * 100) : 0;
 
   return (
-    <PortalLayout title="Competitive Exams" subtitle="Track competitive exam schedules, student enrollments and success rates">
+    <PortalLayout
+      title={lang === "தமிழ்" ? "போட்டித் தேர்வுகள் மையம்" : "Competitive Exams"}
+      subtitle={lang === "தமிழ்" ? "போட்டித் தேர்வு அட்டவணைகள், மாணவர்கள் சேர்க்கை மற்றும் தேர்ச்சி விகிதங்களைக் கண்காணியுங்கள்" : "Track competitive exam schedules, student enrollments and success rates"}
+    >
 
       {/* ── KPI Cards ─────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Exams Tracked", value: examsList.length, icon: <Clipboard className="w-5 h-5" />, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950/20" },
-          { label: "Registration Open", value: registrationOpenCount, icon: <Edit className="w-5 h-5" />, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20" },
-          { label: "Students Enrolled", value: totalEnrolled, icon: "", color: "text-violet-500", bg: "bg-violet-50 dark:bg-violet-950/20" },
-          { label: "Clearance Rate", value: `${successRate}%`, icon: <Trophy className="w-5 h-5" />, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
+          { label: lang === "தமிழ்" ? "மொத்த தேர்வுகள்" : "Total Exams Tracked", value: examsList.length, icon: <Clipboard className="w-5 h-5" />, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950/20" },
+          { label: lang === "தமிழ்" ? "பதிவு ஆரம்பம்" : "Registration Open", value: registrationOpenCount, icon: <Edit className="w-5 h-5" />, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20" },
+          { label: lang === "தமிழ்" ? "மாணவர்கள் சேர்க்கை" : "Students Enrolled", value: totalEnrolled, icon: "", color: "text-violet-500", bg: "bg-violet-50 dark:bg-violet-950/20" },
+          { label: lang === "தமிழ்" ? "தேர்ச்சி விகிதம்" : "Clearance Rate", value: `${successRate}%`, icon: <Trophy className="w-5 h-5" />, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
             <div className={`w-9 h-9 ${kpi.bg} rounded-xl flex items-center justify-center text-lg mb-3`}>{kpi.icon}</div>
@@ -248,10 +253,18 @@ export default function CompetitiveExamsPage() {
 
       {/* ── Category Quick Filter ─────────────────────────────── */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 mb-5 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Target className="w-4 h-4 inline-block mr-1 text-inherit" /> Exam Categories</h3>
+        <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Target className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "தேர்வு வகைகள்" : "Exam Categories"}</h3>
         <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
           {(["All", "Medical", "Engineering", "Civil Services", "Defence", "Law", "Banking"] as const).map((cat) => {
             const isAll = cat === "All";
+            const catTranslated =
+              cat === "All" ? (lang === "தமிழ்" ? "அனைத்தும்" : "All") :
+              cat === "Medical" ? (lang === "தமிழ்" ? "மருத்துவம்" : "Medical") :
+              cat === "Engineering" ? (lang === "தமிழ்" ? "பொறியியல்" : "Engineering") :
+              cat === "Civil Services" ? (lang === "தமிழ்" ? "குடிமைப் பணிகள்" : "Civil Services") :
+              cat === "Defence" ? (lang === "தமிழ்" ? "பாதுகாப்புத் துறை" : "Defence") :
+              cat === "Law" ? (lang === "தமிழ்" ? "சட்டம்" : "Law") :
+              (lang === "தமிழ்" ? "வங்கித் துறை" : "Banking");
             return (
               <button
                 key={cat}
@@ -262,7 +275,7 @@ export default function CompetitiveExamsPage() {
                 }`}
               >
                 <span className="text-xl mb-0.5">{isAll ? "" : categoryIcon[cat]}</span>
-                <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300 text-center leading-tight">{cat}</span>
+                <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300 text-center leading-tight">{catTranslated}</span>
               </button>
             );
           })}
@@ -271,14 +284,14 @@ export default function CompetitiveExamsPage() {
 
       {/* ── Tabs ──────────────────────────────────────────────── */}
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-900 rounded-xl p-1 mb-5 w-fit">
-        {([
-          { key: "exams", label: " All Exams" },
-          { key: "materials", label: " Study Materials" },
-          { key: "results", label: " Results Summary" },
-        ] as const).map((tab) => (
+        {[
+          { key: "exams", label: lang === "தமிழ்" ? "அனைத்து தேர்வுகள்" : "All Exams" },
+          { key: "materials", label: lang === "தமிழ்" ? "பாடப் பொருட்கள்" : "Study Materials" },
+          { key: "results", label: lang === "தமிழ்" ? "முடிவுகள் சுருக்கம்" : "Results Summary" },
+        ].map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => setActiveTab(tab.key as any)}
             className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === tab.key
               ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm"
               : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
@@ -297,7 +310,7 @@ export default function CompetitiveExamsPage() {
             <div className="flex flex-wrap items-center gap-3">
               <input
                 type="text"
-                placeholder="Search exam name, board..."
+                placeholder={lang === "தமிழ்" ? "தேர்வு பெயர், போர்டு தேடு..." : "Search exam name, board..."}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-700 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 flex-1 min-w-48 transition-colors"
@@ -307,16 +320,25 @@ export default function CompetitiveExamsPage() {
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-white focus:outline-none focus:border-amber-500"
               >
-                {["All", "Upcoming", "Registration Open", "Ongoing", "Results Out", "Completed"].map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
+                {["All", "Upcoming", "Registration Open", "Ongoing", "Results Out", "Completed"].map((s) => {
+                  const sTranslated =
+                    s === "All" ? (lang === "தமிழ்" ? "அனைத்தும்" : s) :
+                    s === "Upcoming" ? (lang === "தமிழ்" ? "வரவிருப்பவை" : s) :
+                    s === "Registration Open" ? (lang === "தமிழ்" ? "பதிவு திறக்கப்பட்டுள்ளது" : s) :
+                    s === "Ongoing" ? (lang === "தமிழ்" ? "நடைபெறுகிறது" : s) :
+                    s === "Results Out" ? (lang === "தமிழ்" ? "முடிவுகள் வெளியீடு" : s) :
+                    (lang === "தமிழ்" ? "முடிவடைந்தது" : s);
+                  return (
+                    <option key={s} value={s}>{sTranslated}</option>
+                  );
+                })}
               </select>
               <div className="flex-1" />
               <button
                 onClick={handleOpenAdd}
                 className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-md whitespace-nowrap"
               >
-                + Add Exam
+                {lang === "தமிழ்" ? "+ தேர்வைச் சேர்" : "+ Add Exam"}
               </button>
             </div>
           </div>
@@ -325,13 +347,28 @@ export default function CompetitiveExamsPage() {
           {loading ? (
             <div className="flex justify-center py-16"><div className="w-8 h-8 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin" /></div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-16 text-slate-400 text-sm">No competitive exams tracked yet.</div>
+            <div className="text-center py-16 text-slate-400 text-sm">{lang === "தமிழ்" ? "போட்டித் தேர்வுகள் எதுவும் இன்னும் கண்காணிக்கப்படவில்லை." : "No competitive exams tracked yet."}</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {filtered.map((exam) => {
                 const clearRate = exam.studentsEnrolled > 0
                   ? Math.round((exam.studentsCleared / exam.studentsEnrolled) * 100)
                   : 0;
+                const catTranslated = 
+                  exam.category === "Medical" ? (lang === "தமிழ்" ? "மருத்துவம்" : "Medical") :
+                  exam.category === "Engineering" ? (lang === "தமிழ்" ? "பொறியியல்" : "Engineering") :
+                  exam.category === "Civil Services" ? (lang === "தமிழ்" ? "குடிமைப் பணிகள்" : "Civil Services") :
+                  exam.category === "Defence" ? (lang === "தமிழ்" ? "பாதுகாப்புத் துறை" : "Defence") :
+                  exam.category === "Law" ? (lang === "தமிழ்" ? "சட்டம்" : "Law") :
+                  exam.category === "Banking" ? (lang === "தமிழ்" ? "வங்கித் துறை" : "Banking") : exam.category;
+                
+                const statusTranslated =
+                  exam.status === "Upcoming" ? (lang === "தமிழ்" ? "வரவிருப்பவை" : "Upcoming") :
+                  exam.status === "Registration Open" ? (lang === "தமிழ்" ? "பதிவு திறக்கப்பட்டுள்ளது" : "Registration Open") :
+                  exam.status === "Ongoing" ? (lang === "தமிழ்" ? "நடைபெறுகிறது" : "Ongoing") :
+                  exam.status === "Results Out" ? (lang === "தமிழ்" ? "முடிவுகள் வெளியீடு" : "Results Out") :
+                  exam.status === "Completed" ? (lang === "தமிழ்" ? "முடிவடைந்தது" : "Completed") : exam.status;
+                
                 return (
                   <div key={exam.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all group">
                     {/* Header */}
@@ -341,29 +378,29 @@ export default function CompetitiveExamsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-bold text-slate-800 dark:text-white group-hover:text-amber-500 transition-colors leading-tight">{exam.examName}</h4>
-                        <p className="text-[10px] text-slate-400 mt-0.5">By {exam.conductedBy}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{lang === "தமிழ்" ? `நடத்துபவர்: ${exam.conductedBy}` : `By ${exam.conductedBy}`}</p>
                       </div>
                     </div>
 
                     {/* Badges */}
                     <div className="flex items-center gap-2 mb-3">
                       <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-semibold ${categoryColor[exam.category] || "bg-slate-100 text-slate-600"}`}>
-                        {exam.category}
+                        {catTranslated}
                       </span>
                       <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold border inline-flex items-center gap-1 ${statusColor[exam.status] || ""}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${statusDot[exam.status] || "bg-slate-400"}`} />
-                        {exam.status}
+                        {statusTranslated}
                       </span>
                     </div>
 
                     {/* Dates */}
                     <div className="grid grid-cols-2 gap-2 mb-3">
                       <div className="bg-slate-50 dark:bg-slate-950 rounded-lg p-2">
-                        <div className="text-[9px] text-slate-400 font-semibold mb-0.5">Registration</div>
+                        <div className="text-[9px] text-slate-400 font-semibold mb-0.5">{lang === "தமிழ்" ? "பதிவு" : "Registration"}</div>
                         <div className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{exam.registrationDeadline}</div>
                       </div>
                       <div className="bg-slate-50 dark:bg-slate-950 rounded-lg p-2">
-                        <div className="text-[9px] text-slate-400 font-semibold mb-0.5">Exam Date</div>
+                        <div className="text-[9px] text-slate-400 font-semibold mb-0.5">{lang === "தமிழ்" ? "தேர்வு தேதி" : "Exam Date"}</div>
                         <div className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{exam.examDate}</div>
                       </div>
                     </div>
@@ -372,17 +409,17 @@ export default function CompetitiveExamsPage() {
                     <div className="flex justify-between items-center mb-3">
                       <div className="text-center">
                         <div className="text-base font-black text-blue-500">{exam.studentsEnrolled}</div>
-                        <div className="text-[9px] text-slate-400">Enrolled</div>
+                        <div className="text-[9px] text-slate-400">{lang === "தமிழ்" ? "சேர்க்கப்பட்டனர்" : "Enrolled"}</div>
                       </div>
                       <div className="flex-1 mx-3">
                         <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                           <div className="h-full bg-emerald-500 rounded-full animate-pulse" style={{ width: `${clearRate}%` }} />
                         </div>
-                        <div className="text-[9px] text-slate-400 text-center mt-0.5">{clearRate}% cleared</div>
+                        <div className="text-[9px] text-slate-400 text-center mt-0.5">{clearRate}% {lang === "தமிழ்" ? "தேர்ச்சி" : "cleared"}</div>
                       </div>
                       <div className="text-center">
                         <div className="text-base font-black text-emerald-500">{exam.studentsCleared}</div>
-                        <div className="text-[9px] text-slate-400">Cleared</div>
+                        <div className="text-[9px] text-slate-400">{lang === "தமிழ்" ? "தேர்ச்சி பெற்றனர்" : "Cleared"}</div>
                       </div>
                     </div>
 
@@ -401,11 +438,11 @@ export default function CompetitiveExamsPage() {
                           <Globe className="w-4 h-4 inline-block mr-1 text-inherit" /> {exam.website}
                         </a>
                       ) : (
-                        <span className="text-[10px] text-slate-400">No URL</span>
+                        <span className="text-[10px] text-slate-400">{lang === "தமிழ்" ? "வலைத்தளம் இல்லை" : "No URL"}</span>
                       )}
                       <div className="flex gap-1">
-                        <button onClick={() => handleOpenEdit(exam)} className="px-2 py-0.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded font-bold text-[10px] transition-all">Edit</button>
-                        <button onClick={() => handleDelete(exam.id, exam.examName)} className="px-2 py-0.5 bg-red-500/10 hover:bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/20 rounded font-bold text-[10px] transition-all">Remove</button>
+                        <button onClick={() => handleOpenEdit(exam)} className="px-2 py-0.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded font-bold text-[10px] transition-all">{lang === "தமிழ்" ? "திருத்து" : "Edit"}</button>
+                        <button onClick={() => handleDelete(exam.id, exam.examName)} className="px-2 py-0.5 bg-red-500/10 hover:bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/20 rounded font-bold text-[10px] transition-all">{lang === "தமிழ்" ? "நீக்கு" : "Remove"}</button>
                       </div>
                     </div>
                   </div>
@@ -420,17 +457,17 @@ export default function CompetitiveExamsPage() {
       {activeTab === "materials" && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-sm font-bold text-slate-700 dark:text-white"><BookOpen className="w-4 h-4 inline-block mr-1 text-inherit" /> Exam Study Materials</h3>
+            <h3 className="text-sm font-bold text-slate-700 dark:text-white"><BookOpen className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "தேர்வு பாடப் பொருட்கள்" : "Exam Study Materials"}</h3>
           </div>
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    <th className="px-5 py-3">Title</th>
-                    <th className="px-5 py-3">Exam</th>
-                    <th className="px-5 py-3">Type</th>
-                    <th className="px-5 py-3">Downloads</th>
+                    <th className="px-5 py-3">{lang === "தமிழ்" ? "தலைப்பு" : "Title"}</th>
+                    <th className="px-5 py-3">{lang === "தமிழ்" ? "தேர்வு" : "Exam"}</th>
+                    <th className="px-5 py-3">{lang === "தமிழ்" ? "வகை" : "Type"}</th>
+                    <th className="px-5 py-3">{lang === "தமிழ்" ? "பதிவிறக்கங்கள்" : "Downloads"}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -462,7 +499,7 @@ export default function CompetitiveExamsPage() {
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><BarChart className="w-4 h-4 inline mr-1 text-emerald-500" /> Exam-wise Clearance Rate</h4>
+              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><BarChart className="w-4 h-4 inline mr-1 text-emerald-500" /> {lang === "தமிழ்" ? "தேர்வு வாரியாக தேர்ச்சி விகிதம்" : "Exam-wise Clearance Rate"}</h4>
               {examsList.filter((e) => e.studentsEnrolled > 0).map((e) => {
                 const rate = Math.round((e.studentsCleared / e.studentsEnrolled) * 100);
                 return (
@@ -483,17 +520,23 @@ export default function CompetitiveExamsPage() {
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Archive className="w-4 h-4 inline-block mr-1 text-inherit" /> Category Breakdown</h4>
+              <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Archive className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "பிரிவு வாரியான விவரம்" : "Category Breakdown"}</h4>
               {["Medical", "Engineering", "Civil Services", "Defence", "Law"].map((cat) => {
                 const catExams = examsList.filter((e) => e.category === cat);
                 const enrolled = catExams.reduce((a, e) => a + e.studentsEnrolled, 0);
+                const catTranslated = 
+                  cat === "Medical" ? (lang === "தமிழ்" ? "மருத்துவம்" : cat) :
+                  cat === "Engineering" ? (lang === "தமிழ்" ? "பொறியியல்" : cat) :
+                  cat === "Civil Services" ? (lang === "தமிழ்" ? "குடிமைப் பணிகள்" : cat) :
+                  cat === "Defence" ? (lang === "தமிழ்" ? "பாதுகாப்புத் துறை" : cat) :
+                  (lang === "தமிழ்" ? "சட்டம்" : cat);
                 return (
                   <div key={cat} className="flex items-center gap-3 mb-3">
                     <span className="text-lg">{categoryIcon[cat]}</span>
                     <div className="flex-1">
                       <div className="flex justify-between text-[10px] mb-0.5">
-                        <span className="font-semibold text-slate-600 dark:text-slate-300">{cat}</span>
-                        <span className="text-slate-400">{enrolled} students</span>
+                        <span className="font-semibold text-slate-600 dark:text-slate-300">{catTranslated}</span>
+                        <span className="text-slate-400">{enrolled} {lang === "தமிழ்" ? "மாணவர்கள்" : "students"}</span>
                       </div>
                       <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div
@@ -516,73 +559,101 @@ export default function CompetitiveExamsPage() {
           <div className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 px-6 py-4">
               <div>
-                <h3 className="text-sm font-bold text-slate-800 dark:text-white">{editId ? " Edit Competitive Exam" : " Add Competitive Exam"}</h3>
-                <p className="text-[10px] text-slate-400 mt-0.5">Track a competitive exam for your students</p>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+                  {editId 
+                    ? (lang === "தமிழ்" ? " போடித் தேர்வை திருத்து" : " Edit Competitive Exam") 
+                    : (lang === "தமிழ்" ? " போடித் தேர்வைச் சேர்" : " Add Competitive Exam")
+                  }
+                </h3>
+                <p className="text-[10px] text-slate-400 mt-0.5">{lang === "தமிழ்" ? "உங்கள் மாணவர்களுக்கான போட்டித் தேர்வை கண்காணிக்கவும்" : "Track a competitive exam for your students"}</p>
               </div>
               <button
                 onClick={() => setShowModal(false)}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
               >
-                <X className="w-4 h-4 inline-block mr-1 text-inherit" /> Close
+                <X className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "மூடு" : "Close"}
               </button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Exam Name *</label>
+                <label className="block text-[10px] text-slate-500 mb-1 font-semibold">{lang === "தமிழ்" ? "தேர்வு பெயர் *" : "Exam Name *"}</label>
                 <input value={form.examName} onChange={(e) => setForm({ ...form, examName: e.target.value })} type="text" placeholder="e.g. NEET UG 2026" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Category *</label>
+                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">{lang === "தமிழ்" ? "வகை *" : "Category *"}</label>
                   <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none">
-                    {["Medical", "Engineering", "Civil Services", "Banking", "Defence", "Law", "Other"].map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
+                    {["Medical", "Engineering", "Civil Services", "Banking", "Defence", "Law", "Other"].map((c) => {
+                      const cTranslated =
+                        c === "Medical" ? (lang === "தமிழ்" ? "மருத்துவம்" : c) :
+                        c === "Engineering" ? (lang === "தமிழ்" ? "பொறியியல்" : c) :
+                        c === "Civil Services" ? (lang === "தமிழ்" ? "குடிமைப் பணிகள்" : c) :
+                        c === "Banking" ? (lang === "தமிழ்" ? "வங்கித் துறை" : c) :
+                        c === "Defence" ? (lang === "தமிழ்" ? "பாதுகாப்புத் துறை" : c) :
+                        c === "Law" ? (lang === "தமிழ்" ? "சட்டம்" : c) :
+                        (lang === "தமிழ்" ? "மற்றவை" : c);
+                      return (
+                        <option key={c} value={c}>{cTranslated}</option>
+                      );
+                    })}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Conducted By *</label>
+                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">{lang === "தமிழ்" ? "நடத்துபவர் *" : "Conducted By *"}</label>
                   <input value={form.conductedBy} onChange={(e) => setForm({ ...form, conductedBy: e.target.value })} type="text" placeholder="e.g. NTA, UPSC" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Registration Deadline *</label>
+                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">{lang === "தமிழ்" ? "பதிவு செய்வதற்கான கடைசி தேதி *" : "Registration Deadline *"}</label>
                   <input value={form.registrationDeadline} onChange={(e) => setForm({ ...form, registrationDeadline: e.target.value })} type="date" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Exam Date *</label>
+                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">{lang === "தமிழ்" ? "தேர்வு தேதி *" : "Exam Date *"}</label>
                   <input value={form.examDate} onChange={(e) => setForm({ ...form, examDate: e.target.value })} type="date" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none" />
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Eligibility</label>
+                <label className="block text-[10px] text-slate-500 mb-1 font-semibold">{lang === "தமிழ்" ? "தகுதி" : "Eligibility"}</label>
                 <input value={form.eligibility} onChange={(e) => setForm({ ...form, eligibility: e.target.value })} type="text" placeholder="e.g. Class 12 with PCB" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none" />
               </div>
               <div>
-                <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Website URL</label>
+                <label className="block text-[10px] text-slate-500 mb-1 font-semibold">{lang === "தமிழ்" ? "வலைத்தள முகவரி" : "Website URL"}</label>
                 <input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} type="text" placeholder="neet.nta.nic.in" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Students Enrolled</label>
+                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">{lang === "தமிழ்" ? "பதிவு செய்த மாணவர்கள்" : "Students Enrolled"}</label>
                   <input value={form.studentsEnrolled} onChange={(e) => setForm({ ...form, studentsEnrolled: e.target.value })} type="number" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Students Cleared</label>
+                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">{lang === "தமிழ்" ? "தேர்ச்சி பெற்ற மாணவர்கள்" : "Students Cleared"}</label>
                   <input value={form.studentsCleared} onChange={(e) => setForm({ ...form, studentsCleared: e.target.value })} type="number" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white" />
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] text-slate-500 mb-1 font-semibold">Status</label>
+                <label className="block text-[10px] text-slate-500 mb-1 font-semibold">{lang === "தமிழ்" ? "நிலை" : "Status"}</label>
                 <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none">
-                  {["Upcoming", "Registration Open", "Ongoing", "Results Out", "Completed"].map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
+                  {["Upcoming", "Registration Open", "Ongoing", "Results Out", "Completed"].map((s) => {
+                    const sTranslated =
+                      s === "Upcoming" ? (lang === "தமிழ்" ? "வரவிருப்பவை" : s) :
+                      s === "Registration Open" ? (lang === "தமிழ்" ? "பதிவு திறக்கப்பட்டுள்ளது" : s) :
+                      s === "Ongoing" ? (lang === "தமிழ்" ? "நடைபெறுகிறது" : s) :
+                      s === "Results Out" ? (lang === "தமிழ்" ? "முடிவுகள் வெளியீடு" : s) :
+                      (lang === "தமிழ்" ? "முடிவடைந்தது" : s);
+                    return (
+                      <option key={s} value={s}>{sTranslated}</option>
+                    );
+                  })}
                 </select>
               </div>
               <button onClick={handleSave} disabled={saving} className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white font-bold rounded-xl text-xs transition-colors shadow-md">
-                {saving ? "Saving..." : editId ? "Save Changes" : " Add Exam to Tracker"}
+                {saving 
+                  ? (lang === "தமிழ்" ? "சேமிக்கப்படுகிறது..." : "Saving...") 
+                  : editId 
+                    ? (lang === "தமிழ்" ? "மாற்றங்களைச் சேமி" : "Save Changes") 
+                    : (lang === "தமிழ்" ? "தேர்வைக் கண்காணிப்பில் சேர்" : " Add Exam to Tracker")
+                }
               </button>
             </div>
           </div>

@@ -173,7 +173,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
       { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
       { label: "Chemistry Lab", href: "/student/chemistry-lab", icon: "FlaskConical" },
-      { label: "Zoology Centre", href: "/student/zoology-centre", icon: "Target" },
+      // { label: "Zoology Centre", href: "/student/zoology-centre", icon: "Target" },
       { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
 
       // ── Extracurricular & Wellbeing ───────────────────
@@ -372,7 +372,6 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "---", href: "#", icon: "" },
       { label: "School & Career", href: "#", icon: "" },
       { label: "Announcements", href: "/student/announcements", icon: "Megaphone" },
-      // { label: "College Admissions", href: "/student/higher-secondary/admissions", icon: "GraduationCap" },
       { label: "Career Guidance", href: "/student/career", icon: "Compass" },
       { label: "Scholarships", href: "/student/higher-secondary/scholarships", icon: "ScrollText" },
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },

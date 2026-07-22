@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface Question {
   id: string;
@@ -22,6 +23,7 @@ interface Question {
 }
 
 export default function QuestionGeneratorPage() {
+  const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -435,8 +437,8 @@ export default function QuestionGeneratorPage() {
 
   return (
     <PortalLayout
-      title="Question Generator"
-      subtitle="Create high-quality exam and quiz questions using AI"
+      title={lang === "தமிழ்" ? "வினா உருவாக்கி" : "Question Generator"}
+      subtitle={lang === "தமிழ்" ? "AI மூலம் தரமான தேர்வு மற்றும் வினாட்டல் வினாக்கள் உருவாக்கு" : "Create high-quality exam and quiz questions using AI"}
     >
       {/* Instructions Banner */}
       <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4 mb-6 flex gap-3">
@@ -462,7 +464,7 @@ export default function QuestionGeneratorPage() {
           className={`py-3 px-6 text-xs font-semibold border-b-2 transition-all ${activeView === "generator" ? "border-[var(--primary)] text-amber-550" : "border-transparent text-[var(--text-muted)]"
             }`}
         >
-          <Zap className="w-4 h-4 inline-block mr-1 text-inherit" /> AI Question Generator
+          <Zap className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "AI வினா உருவாக்கி" : "AI Question Generator"}
         </button>
         <button
           onClick={() => {
@@ -472,7 +474,7 @@ export default function QuestionGeneratorPage() {
           className={`py-3 px-6 text-xs font-semibold border-b-2 transition-all ${activeView === "bank" ? "border-[var(--primary)] text-amber-550" : "border-transparent text-[var(--text-muted)]"
             }`}
         >
-          <FolderOpen className="w-4 h-4 inline-block mr-1 text-inherit" /> Question Bank DB ({dbQuestions.length})
+          <FolderOpen className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "வினா வங்கி" : "Question Bank DB"} ({dbQuestions.length})
         </button>
       </div>
 

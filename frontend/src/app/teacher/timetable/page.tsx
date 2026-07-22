@@ -22,6 +22,8 @@ import {
   Save
 } from "lucide-react";
 import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface TimetableSlot {
   id: string;
@@ -71,7 +73,8 @@ export default function TeacherTimetablePage() {
   const [timetable, setTimetable] = useState<TimetableSlot[]>([]);
   const [proxies, setProxies] = useState<ProxyAssignment[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+const [loading, setLoading] = useState<boolean>(false);
+  const { lang } = usePortalLanguage();
   const [viewMode, setViewMode] = useState<"daily" | "weekly">("weekly");
 
   // Add Class Modal States
@@ -455,8 +458,8 @@ export default function TeacherTimetablePage() {
 
   return (
     <PortalLayout
-      title="Timetable & Proxies"
-      subtitle={user?.name ? `${user.name} · Teacher Schedule Dashboard` : "Teacher Portal"}
+      title={lang === "தமிழ்" ? "அட்டவணை & ப்ராக்சிகள்" : "Timetable & Proxies"}
+      subtitle={user?.name ? `${user.name} · ஆசிரியர் அட்டவணை டாஷ்போர்ட்` : "ஆசிரியர் போர்டல்"}
       avatarLetter={user?.name ? user.name.charAt(0) : "T"}
       avatarColor="#f59e0b"
       themeClass="theme-teacher"
@@ -466,10 +469,10 @@ export default function TeacherTimetablePage() {
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
         <div>
           <h2 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <span>📅 Selected Date View</span>
+            <span>📅 {lang === "தமிழ்" ? "தேர்ந்தெடுக்கப்பட்ட தேதி பார்வை" : "Selected Date View"}</span>
           </h2>
           <p className="text-[11px] text-slate-500 mt-1">
-            Check your schedule, free periods, and proxy duties for this date.
+            {lang === "தமிழ்" ? "இந்த தேதிக்கான உங்கள் அட்டவணை, காலியிடங்கள், ப்ராக்சி கடமைகளை பார்க்கவும்." : "Check your schedule, free periods, and proxy duties for this date."}
           </p>
         </div>
         <input
@@ -514,9 +517,9 @@ export default function TeacherTimetablePage() {
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5 mb-6">
           <div>
-            <h2 className="text-sm font-bold text-slate-800 dark:text-white">🗓️ Weekly Schedule & Active Period Mappings</h2>
+            <h2 className="text-sm font-bold text-slate-800 dark:text-white">🗓️ {lang === "தமிழ்" ? "வார அட்டவணை & செயலில் காலங்கள்" : "Weekly Schedule & Active Period Mappings"}</h2>
             <p className="text-[10px] text-slate-500 mt-1">
-              {viewMode === "weekly" ? "View your full weekly schedule." : "Select a weekday to load your schedule timeline."}
+              {viewMode === "weekly" ? (lang === "தமிழ்" ? "உங்கள் முழு வார அட்டவணையைப் பார்க்கவும்." : "View your full weekly schedule.") : (lang === "தமிழ்" ? "நாள் தேர்வு செய்து உங்கள் அட்டவணை நேரவரிசையை ஏற்றவும்." : "Select a weekday to load your schedule timeline.")}
             </p>
           </div>
 
@@ -552,7 +555,7 @@ export default function TeacherTimetablePage() {
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
               >
                 <Save className="w-3.5 h-3.5" />
-                {isSaving ? "Saving..." : `Save Total Schedule (${pendingSlots.length})`}
+                {isSaving ? (lang === "தமிழ்" ? "சேமிக்கிறது..." : "Saving...") : `${lang === "தமிழ்" ? "மொத்த அட்டவணை சேமி" : "Save Total Schedule"} (${pendingSlots.length})`}
               </button>
             )}
 
@@ -688,9 +691,9 @@ export default function TeacherTimetablePage() {
                                 }}
                                 className="w-full h-full flex items-center justify-center text-[10px] text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium opacity-60 hover:opacity-100 bg-slate-50/50 hover:bg-emerald-50 dark:bg-slate-950/20 dark:hover:bg-emerald-900/10 rounded-lg border border-dashed border-slate-200 hover:border-emerald-300 dark:border-slate-800 dark:hover:border-emerald-700/50 transition-all group"
                               >
-                                <span className="group-hover:hidden">Free</span>
+                                <span className="group-hover:hidden">{lang === "தமிழ்" ? "இலவச" : "Free"}</span>
                                 <span className="hidden group-hover:flex items-center gap-1 font-bold">
-                                  <Plus className="w-3 h-3" /> Add Class
+                                  <Plus className="w-3 h-3" /> {lang === "தமிழ்" ? "பாடம் சேர்க்க" : "Add Class"}
                                 </span>
                               </button>
                             )}
