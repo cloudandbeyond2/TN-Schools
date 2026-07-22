@@ -20,6 +20,7 @@ export default function MinisterLivePage() {
   const [paused, setPaused] = useState(false);
   const [liveStats, setLiveStats] = useState<LiveStat[]>([]);
   const [alerts, setAlerts] = useState<AlertFeed[]>([]);
+  const [coverage, setCoverage] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -31,6 +32,7 @@ export default function MinisterLivePage() {
         if (json.success) {
           setLiveStats(json.data.liveStats);
           setAlerts(json.data.alerts);
+          setCoverage(json.data.coverage || []);
         }
       })
       .catch(() => {})
@@ -94,12 +96,12 @@ export default function MinisterLivePage() {
             <div className="glass rounded-2xl p-6 border border-slate-800">
               <h2 className="text-base font-semibold text-white mb-4">📡 State Coverage Map</h2>
               <div className="grid grid-cols-2 gap-3">
-                {[
+                {(coverage.length > 0 ? coverage : [
                   { region: "Northern TN", coverage: 88, districts: 12 },
                   { region: "Southern TN", coverage: 82, districts: 10 },
                   { region: "Western TN", coverage: 85, districts: 8 },
                   { region: "Eastern TN", coverage: 86, districts: 8 }
-                ].map(r => (
+                ]).map(r => (
                   <div key={r.region} className="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
                     <div className="text-xs font-bold text-white mb-1">{r.region}</div>
                     <div className="text-[10px] text-slate-500 mb-2">{r.districts} districts reporting</div>
