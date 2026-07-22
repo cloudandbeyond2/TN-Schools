@@ -24,7 +24,9 @@ import {
   Lightbulb,
   Wrench,
   Layers,
-  Eye
+  Eye,
+  Flame,
+  Gauge
 } from "lucide-react";
 
 const getApiBase = () => {
@@ -70,14 +72,14 @@ const DEFAULT_LAB_EXPERIMENTS: Experiment[] = [
     subject: "Physics",
     category: "Electricity & Circuits",
     duration: "25 mins",
-    level: "Class 10",
+    level: "Class 10 Practical",
     icon: "Atom",
-    color: "from-blue-600 to-cyan-600",
+    color: "from-blue-600 via-cyan-600 to-indigo-700",
     stream: "Science",
     objective: "Determine the ratio of Potential Difference (V) to Current (I) across a resistor and verify Ohm's Law (V = I * R).",
-    equipment: ["Variable DC Power Supply", "Ammeter", "Voltmeter", "Nichrome Resistor Wire", "Connecting Wires", "Switch"],
+    equipment: ["Variable DC Power Supply", "Digital Ammeter", "Digital Voltmeter", "Nichrome Resistor Wire", "Connecting Wires", "Key Switch"],
     instructions: [
-      "Set the circuit switch to ON.",
+      "Set the circuit key switch to ON.",
       "Adjust the DC voltage source slider from 0V up to 12V.",
       "Observe the Ammeter (I) and Voltmeter (V) digital readings.",
       "Calculate V/I ratio to confirm constant resistance R."
@@ -105,9 +107,9 @@ const DEFAULT_LAB_EXPERIMENTS: Experiment[] = [
     subject: "Physics",
     category: "Optics & Light",
     duration: "20 mins",
-    level: "Class 10",
+    level: "Class 10 Practical",
     icon: "Eye",
-    color: "from-sky-600 to-blue-700",
+    color: "from-sky-600 via-blue-600 to-indigo-700",
     stream: "Science",
     objective: "Find the focal length of a convex lens using distant object and u-v lens formula method.",
     equipment: ["Optical Bench", "Convex Lens Holder", "Illuminated Target Object", "Screen", "Measuring Scale"],
@@ -134,9 +136,9 @@ const DEFAULT_LAB_EXPERIMENTS: Experiment[] = [
     subject: "Chemistry",
     category: "Acids, Bases & Salts",
     duration: "20 mins",
-    level: "Class 10",
+    level: "Class 10 Practical",
     icon: "FlaskConical",
-    color: "from-emerald-600 to-teal-600",
+    color: "from-emerald-600 via-teal-600 to-cyan-700",
     stream: "Science",
     objective: "Test the pH level of household solutions using Universal Indicator paper and determine acidity/alkalinity.",
     equipment: ["pH Indicator Paper", "Test Tubes", "Lemon Juice", "Dilute HCl", "Sodium Hydroxide", "Distilled Water"],
@@ -159,13 +161,13 @@ const DEFAULT_LAB_EXPERIMENTS: Experiment[] = [
   {
     id: "exp-10-reaction",
     cls: 10,
-    title: "Gas Evolution in Chemical Displacement Reaction",
+    title: "Gas Evolution in Displacement Reaction",
     subject: "Chemistry",
     category: "Chemical Reactions",
     duration: "25 mins",
-    level: "Class 10",
+    level: "Class 10 Practical",
     icon: "FlaskConical",
-    color: "from-teal-600 to-green-600",
+    color: "from-teal-600 via-green-600 to-emerald-700",
     stream: "Science",
     objective: "Observe the displacement reaction between Zinc granules and Dilute Sulfuric Acid to test for Hydrogen gas.",
     equipment: ["Conical Flask", "Zinc Granules", "Dilute H2SO4", "Delivery Tube", "Soap Solution", "Burning Splint"],
@@ -192,9 +194,9 @@ const DEFAULT_LAB_EXPERIMENTS: Experiment[] = [
     subject: "Biology",
     category: "Plant Physiology & Life Processes",
     duration: "20 mins",
-    level: "Class 10",
+    level: "Class 10 Practical",
     icon: "Dna",
-    color: "from-lime-600 to-emerald-700",
+    color: "from-lime-600 via-emerald-600 to-teal-700",
     stream: "Science",
     objective: "Prepare a temporary mount of a leaf peel to observe stomatal pores and guard cells under a compound microscope.",
     equipment: ["Fresh Tradescantia/Rheo Leaf", "Compound Microscope", "Safranin Stain", "Glass Slide", "Coverslip"],
@@ -221,9 +223,9 @@ const DEFAULT_LAB_EXPERIMENTS: Experiment[] = [
     subject: "Biology",
     category: "Human Anatomy",
     duration: "20 mins",
-    level: "Class 10",
+    level: "Class 10 Practical",
     icon: "Dna",
-    color: "from-rose-600 to-red-700",
+    color: "from-rose-600 via-pink-600 to-red-700",
     stream: "Science",
     objective: "Examine double circulation, heart chambers, and valve contraction cycles in human circulatory system.",
     equipment: ["3D Interactive Heart Anatomy Model", "Flow Pathway Indicators", "Heart Rate Pulse Simulator"],
@@ -252,7 +254,7 @@ const DEFAULT_LAB_EXPERIMENTS: Experiment[] = [
     duration: "25 mins",
     level: "Class 10",
     icon: "Code",
-    color: "from-purple-600 to-indigo-700",
+    color: "from-purple-600 via-indigo-600 to-pink-700",
     stream: "ComputerScience",
     objective: "Execute interactive Python control structures (If-Else conditions, For loops) and inspect memory state variables.",
     equipment: ["Virtual Python REPL Console", "Variable State Inspector", "Step Executor"],
@@ -283,7 +285,7 @@ const DEFAULT_LAB_EXPERIMENTS: Experiment[] = [
     duration: "15 mins",
     level: "Class 8",
     icon: "Atom",
-    color: "from-amber-600 to-orange-600",
+    color: "from-amber-600 via-orange-600 to-red-600",
     stream: "Science",
     objective: "Compare friction forces across smooth glass, wood, and sandpaper surfaces using a spring balance.",
     equipment: ["Wooden Block", "Spring Balance", "Smooth Glass Board", "Sandpaper Surface"],
@@ -311,7 +313,7 @@ const DEFAULT_LAB_EXPERIMENTS: Experiment[] = [
     duration: "15 mins",
     level: "Class 7",
     icon: "Atom",
-    color: "from-yellow-600 to-amber-700",
+    color: "from-amber-500 via-orange-600 to-red-600",
     stream: "Science",
     objective: "Assemble a simple electric circuit with battery, bulb, and key switch to observe open vs closed circuits.",
     equipment: ["1.5V Cell", "Mini Bulb", "Key Switch", "Copper Wires"],
@@ -339,7 +341,7 @@ const DEFAULT_LAB_EXPERIMENTS: Experiment[] = [
     duration: "30 mins",
     level: "Class 12",
     icon: "FlaskConical",
-    color: "from-fuchsia-600 to-purple-700",
+    color: "from-fuchsia-600 via-purple-600 to-pink-700",
     stream: "Science",
     objective: "Determine the strength and molarity of Potassium Permanganate solution against standard Oxalic Acid.",
     equipment: ["Burette", "Pipette", "Conical Flask", "Hot Plate", "KMnO4 Solution", "Oxalic Acid"],
@@ -426,7 +428,7 @@ export default function VirtualLabsPage() {
                 duration: "20 mins",
                 level: `Class ${clsNum}`,
                 icon: subj.includes("Physic") ? "Atom" : subj.includes("Chemi") ? "FlaskConical" : subj.includes("Comp") ? "Code" : "Dna",
-                color: subj.includes("Physic") ? "from-blue-600 to-cyan-600" : subj.includes("Chemi") ? "from-emerald-600 to-teal-600" : subj.includes("Comp") ? "from-purple-600 to-indigo-600" : "from-lime-600 to-green-600",
+                color: subj.includes("Physic") ? "from-blue-600 via-cyan-600 to-indigo-700" : subj.includes("Chemi") ? "from-emerald-600 via-teal-600 to-cyan-700" : subj.includes("Comp") ? "from-purple-600 via-indigo-600 to-pink-700" : "from-lime-600 via-emerald-600 to-teal-700",
                 objective: exp.description || exp.objective || "Perform virtual experiment and observe output.",
                 equipment: ["Virtual Equipment Kit", "Digital Sensor", "Measuring Tool"],
                 instructions: ["Inspect equipment setup.", "Adjust parameters using sliders.", "Record findings and submit report."],
@@ -456,11 +458,11 @@ export default function VirtualLabsPage() {
   }, []);
 
   const categories = useMemo(() => [
-    "All",
-    "Physics",
-    "Chemistry",
-    "Biology",
-    "Computer Science"
+    { name: "All", icon: Sparkles, activeGradient: "from-indigo-600 via-purple-600 to-blue-600" },
+    { name: "Physics", icon: Atom, activeGradient: "from-blue-600 via-cyan-600 to-indigo-700" },
+    { name: "Chemistry", icon: FlaskConical, activeGradient: "from-emerald-600 via-teal-600 to-cyan-700" },
+    { name: "Biology", icon: Dna, activeGradient: "from-lime-600 via-emerald-600 to-teal-700" },
+    { name: "Computer Science", icon: Code, activeGradient: "from-purple-600 via-indigo-600 to-pink-700" }
   ], []);
 
   // Filter visible labs based on selected category & selected class grade
@@ -513,92 +515,157 @@ export default function VirtualLabsPage() {
       title="Virtual Science & Technology Labs"
       subtitle="Interactive 3D experiments, circuit builders & lab practicals for Classes 6–12"
       avatarLetter="V"
-      avatarColor="#06b6d4"
+      avatarColor="#6366f1"
       themeClass="theme-student"
-      accentColor="#06b6d4"
+      accentColor="#6366f1"
     >
-      <div className="w-full space-y-6 animate-in fade-in duration-300">
+      <div className="w-full space-y-8 animate-in fade-in duration-300">
         
-        {/* Top Control Bar: Subject Tabs & Action Buttons */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        {/* ========================================================================= */}
+        {/* 1. STUNNING HERO BANNER (DEEP INDIGO-PURPLE GRADIENT WITH WHITE TEXT) */}
+        {/* ========================================================================= */}
+        <div className="w-full bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 text-white rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden border border-purple-500/30">
           
-          {/* Subject Filter Tabs */}
-          <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 w-full md:w-auto overflow-x-auto gap-1">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                  activeCategory === cat
-                    ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/20 scale-[1.02]"
-                    : "text-slate-700 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+          {/* Glowing Ambient Particles */}
+          <div className="absolute -right-10 -top-10 w-80 h-80 bg-cyan-500/20 blur-3xl rounded-full pointer-events-none"></div>
+          <div className="absolute left-1/3 -bottom-10 w-64 h-64 bg-pink-500/20 blur-3xl rounded-full pointer-events-none"></div>
 
-          {/* Action Tools */}
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setShowArModal(true)}
-              className="px-3.5 py-2 border border-cyan-500/40 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
-            >
-              <Box className="w-4 h-4 text-cyan-500" />
-              <span>Launch AR Viewer</span>
-            </button>
+          <div className="relative z-10 space-y-6 max-w-4xl">
+            
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-widest px-3.5 py-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md flex items-center gap-1.5 border border-cyan-400/40">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-100" />
+                3D Interactive Science Ecosystem
+              </span>
+              <span className="text-xs font-black px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-pink-200 shadow-sm">
+                100% Curriculum Mapped
+              </span>
+            </div>
 
-            <button
-              onClick={() => setShowSandboxModal(true)}
-              className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
-            >
-              <Zap className="w-4 h-4 text-amber-200" />
-              <span>Circuit Sandbox</span>
-            </button>
+            <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight text-white drop-shadow-sm">
+              Virtual Science & Technology Laboratory
+            </h1>
+
+            <p className="text-purple-100 text-sm sm:text-base max-w-2xl leading-relaxed font-medium">
+              Perform safe, interactive 3D experiments in <strong className="text-cyan-300 font-black">Physics</strong>, <strong className="text-emerald-300 font-black">Chemistry</strong>, <strong className="text-lime-300 font-black">Biology</strong>, and <strong className="text-pink-300 font-black">Computer Science</strong> right from your screen!
+            </p>
+
+            {/* Quick Stats Badges */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <div className="bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-2xl border border-white/20 flex items-center gap-2 shadow-sm">
+                <Flame className="w-4 h-4 text-amber-400" />
+                <span className="text-xs font-extrabold text-white">{labs.length} Virtual Practicals</span>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-2xl border border-white/20 flex items-center gap-2 shadow-sm">
+                <Award className="w-4 h-4 text-emerald-400" />
+                <span className="text-xs font-extrabold text-white">SSLC Board Approved</span>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-2xl border border-white/20 flex items-center gap-2 shadow-sm">
+                <Zap className="w-4 h-4 text-cyan-400" />
+                <span className="text-xs font-extrabold text-white">Real-Time Circuit Simulator</span>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        {/* Grade / Class Filter Selector Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <span className="text-xs font-black uppercase text-slate-400 dark:text-slate-500 shrink-0 flex items-center gap-1">
-            <Layers className="w-3.5 h-3.5" /> Grade Filter:
-          </span>
-          {[6, 7, 8, 9, 10, 11, 12, "All"].map((cls) => {
-            const isSelected = selectedClass === cls;
-            const isStudentGrade = studentClass === cls;
-            return (
+        {/* ========================================================================= */}
+        {/* 2. SUBJECT & GRADE CATEGORY CONTROLS (VIBRANT LIGHT & DARK MODE PALETTE) */}
+        {/* ========================================================================= */}
+        <div className="space-y-4">
+          
+          {/* Subject Filter Pill Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            {categories.map((cat) => {
+              const IconComp = cat.icon;
+              const isActive = activeCategory === cat.name;
+              return (
+                <button
+                  key={cat.name}
+                  onClick={() => setActiveCategory(cat.name)}
+                  className={`p-3.5 rounded-2xl font-black text-xs sm:text-sm flex items-center gap-2.5 transition-all duration-200 border shadow-sm ${
+                    isActive
+                      ? `bg-gradient-to-r ${cat.activeGradient} text-white border-transparent scale-105 shadow-xl`
+                      : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-800/80 hover:border-indigo-300"
+                  }`}
+                >
+                  <IconComp className={`w-4 h-4 shrink-0 ${isActive ? "text-amber-300" : "text-indigo-600 dark:text-indigo-400"}`} />
+                  <span className={isActive ? "text-white font-black" : "text-slate-800 dark:text-slate-100 font-extrabold"}>
+                    {cat.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Action Button Bar & Grade Selectors */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            
+            {/* Grade Selector Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+              <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 shrink-0 flex items-center gap-1">
+                <Layers className="w-3.5 h-3.5 text-indigo-600" /> Grade:
+              </span>
+              {[6, 7, 8, 9, 10, 11, 12, "All"].map((cls) => {
+                const isSelected = selectedClass === cls;
+                const isStudentGrade = studentClass === cls;
+                return (
+                  <button
+                    key={String(cls)}
+                    onClick={() => setSelectedClass(cls as any)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all shrink-0 border ${
+                      isSelected
+                        ? "bg-indigo-600 text-white border-indigo-500 shadow-md scale-105"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
+                    }`}
+                  >
+                    {cls === "All" ? "All Grades" : `Class ${cls}`}
+                    {isStudentGrade && <span className="ml-1 text-[10px] text-amber-400 font-black">★</span>}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Action Tools */}
+            <div className="flex items-center gap-2 shrink-0">
               <button
-                key={String(cls)}
-                onClick={() => setSelectedClass(cls as any)}
-                className={`px-3 py-1 rounded-xl text-xs font-extrabold transition-all shrink-0 ${
-                  isSelected
-                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm"
-                    : "bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
-                }`}
+                onClick={() => setShowArModal(true)}
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-md border border-purple-500 hover:scale-105"
               >
-                {cls === "All" ? "All Grades" : `Class ${cls}`}
-                {isStudentGrade && <span className="ml-1 text-[10px] text-amber-400">★ My Grade</span>}
+                <Box className="w-4 h-4 text-purple-200" />
+                <span>AR Viewer</span>
               </button>
-            );
-          })}
+
+              <button
+                onClick={() => setShowSandboxModal(true)}
+                className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-md border border-amber-400 hover:scale-105"
+              >
+                <Zap className="w-4 h-4 text-slate-950" />
+                <span>Circuit Sandbox</span>
+              </button>
+            </div>
+
+          </div>
+
         </div>
 
-        {/* Main Grid: Experiments & Sidebar */}
+        {/* ========================================================================= */}
+        {/* 3. EXPERIMENT CARDS GRID & REPORT CARD */}
+        {/* ========================================================================= */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Left Column (2 Cols): Recommended Experiments */}
+          {/* Left Column (2 Cols): Experiment Cards */}
           <div className="lg:col-span-2 space-y-6">
             
-            <div className="bg-white dark:bg-slate-900/60 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               
               <div className="flex items-center justify-between">
                 <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-amber-500" />
+                  <Flame className="w-5 h-5 text-amber-500" />
                   <span>Virtual Practicals & Lab Experiments</span>
                 </h2>
-                <span className="text-xs font-bold text-slate-400">
-                  {filteredLabs.length} {filteredLabs.length === 1 ? "Experiment" : "Experiments"} Found
+                <span className="text-xs font-extrabold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800">
+                  {filteredLabs.length} {filteredLabs.length === 1 ? "Experiment" : "Experiments"}
                 </span>
               </div>
 
@@ -614,7 +681,7 @@ export default function VirtualLabsPage() {
                   <p>No virtual experiments found for this filter combination.</p>
                   <button
                     onClick={() => { setActiveCategory("All"); setSelectedClass("All"); }}
-                    className="px-4 py-1.5 bg-cyan-600 text-white text-xs font-bold rounded-lg"
+                    className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg"
                   >
                     Reset Filters
                   </button>
@@ -629,26 +696,26 @@ export default function VirtualLabsPage() {
                       <div
                         key={lab.id}
                         onClick={() => openExperiment(lab)}
-                        className="bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-1 hover:border-cyan-500/50 transition-all group flex flex-col cursor-pointer shadow-sm relative"
+                        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-1.5 hover:shadow-xl hover:border-indigo-400 transition-all duration-300 group flex flex-col cursor-pointer shadow-sm relative"
                       >
-                        {/* Lab Hero Header */}
-                        <div className={`h-28 bg-gradient-to-br ${lab.color} relative flex items-center justify-center text-white p-4`}>
-                          <div className="absolute inset-0 bg-black/20"></div>
+                        {/* Lab Card Header */}
+                        <div className={`h-28 bg-gradient-to-br ${lab.color} text-white relative flex items-center justify-center p-4 shadow-inner`}>
+                          <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]"></div>
                           
-                          <div className="relative z-10 flex items-center gap-3">
+                          <div className="relative z-10 flex items-center gap-3 transform group-hover:scale-110 transition-transform duration-300">
                             {lab.subject.includes("Physic") ? (
-                              <Atom className="w-10 h-10 stroke-[2] text-cyan-200" />
+                              <Atom className="w-10 h-10 stroke-[2.2] text-cyan-200 drop-shadow" />
                             ) : lab.subject.includes("Chemi") ? (
-                              <FlaskConical className="w-10 h-10 stroke-[2] text-emerald-200" />
+                              <FlaskConical className="w-10 h-10 stroke-[2.2] text-emerald-200 drop-shadow" />
                             ) : lab.subject.includes("Comp") ? (
-                              <Code className="w-10 h-10 stroke-[2] text-purple-200" />
+                              <Code className="w-10 h-10 stroke-[2.2] text-pink-200 drop-shadow" />
                             ) : (
-                              <Dna className="w-10 h-10 stroke-[2] text-lime-200" />
+                              <Dna className="w-10 h-10 stroke-[2.2] text-lime-200 drop-shadow" />
                             )}
                           </div>
 
                           {isDone && (
-                            <span className="absolute top-3 right-3 z-10 bg-emerald-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md">
+                            <span className="absolute top-3 right-3 z-10 bg-emerald-500 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-md">
                               <CheckCircle2 className="w-3 h-3" /> Completed
                             </span>
                           )}
@@ -658,30 +725,30 @@ export default function VirtualLabsPage() {
                         <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                           <div className="space-y-1.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] uppercase font-black tracking-widest text-cyan-700 dark:text-cyan-300 bg-cyan-100 dark:bg-cyan-950 px-2 py-0.5 rounded border border-cyan-300 dark:border-cyan-800">
+                              <span className="text-[10px] uppercase font-black tracking-widest text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
                                 {lab.subject}
                               </span>
-                              <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                              <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
                                 {lab.level}
                               </span>
                             </div>
 
-                            <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base leading-tight group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                            <h3 className="font-black text-slate-900 dark:text-white text-sm sm:text-base leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                               {lab.title}
                             </h3>
 
-                            <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
+                            <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 font-medium">
                               {lab.objective}
                             </p>
                           </div>
 
-                          <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
-                            <span className="text-slate-700 dark:text-slate-200 flex items-center gap-1 font-bold">
-                              <Clock className="w-3.5 h-3.5 text-slate-400" /> {lab.duration}
+                          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                            <span className="text-slate-600 dark:text-slate-300 flex items-center gap-1 font-bold">
+                              <Clock className="w-3.5 h-3.5 text-indigo-500" /> {lab.duration}
                             </span>
                             <button
                               onClick={(e) => { e.stopPropagation(); openExperiment(lab); }}
-                              className="px-3.5 py-1.5 bg-slate-900 dark:bg-white hover:bg-cyan-600 dark:hover:bg-cyan-400 text-white dark:text-slate-900 rounded-xl text-xs font-extrabold transition-colors flex items-center gap-1 shadow-sm"
+                              className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1 shadow-md hover:scale-105"
                             >
                               <Play className="w-3 h-3 fill-current" />
                               <span>{isDone ? "Re-Run Lab" : "Start Lab"}</span>
@@ -696,20 +763,20 @@ export default function VirtualLabsPage() {
             </div>
 
             {/* Circuit Builder Teaser Banner */}
-            <div className="bg-gradient-to-r from-cyan-600 via-teal-600 to-indigo-700 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6 border border-purple-500/30">
               <div className="relative z-10 space-y-3 max-w-md">
-                <span className="inline-block px-3 py-1 bg-white/20 text-white text-[10px] font-black uppercase tracking-widest rounded-full border border-white/30">
+                <span className="inline-block px-3 py-1 bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-widest rounded-full shadow-sm">
                   Interactive Sandbox
                 </span>
-                <h2 className="text-xl sm:text-2xl font-black">Virtual Electronics & Circuit Builder</h2>
-                <p className="text-xs sm:text-sm text-cyan-100 leading-relaxed">
+                <h2 className="text-xl sm:text-2xl font-black text-white">Virtual Electronics & Circuit Builder</h2>
+                <p className="text-xs sm:text-sm text-purple-100 leading-relaxed font-medium">
                   Drag and drop batteries, resistors, switches, and LEDs to test real Ohm&apos;s Law electrical current formulas ($I = V/R$) in real-time!
                 </p>
                 <button
                   onClick={() => setShowSandboxModal(true)}
-                  className="px-5 py-2.5 bg-white text-cyan-950 hover:bg-cyan-100 rounded-xl text-xs font-black transition-all shadow-lg flex items-center gap-2"
+                  className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl text-xs font-black transition-all shadow-lg flex items-center gap-2 hover:scale-105"
                 >
-                  <Zap className="w-4 h-4 text-cyan-600" />
+                  <Zap className="w-4 h-4 text-slate-950" />
                   <span>Launch Circuit Sandbox</span>
                 </button>
               </div>
@@ -723,28 +790,28 @@ export default function VirtualLabsPage() {
           <div className="lg:col-span-1 space-y-6">
             
             {/* Lab Evaluation Report Card */}
-            <div className="bg-white dark:bg-slate-900/60 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-              <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-base">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+              <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2 text-base">
                 <Activity className="w-5 h-5 text-emerald-500" />
                 <span>My Lab Report Card</span>
               </h3>
 
-              <div className="bg-emerald-50 dark:bg-emerald-950/30 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-900 text-center space-y-1">
-                <span className="block text-3xl font-black text-emerald-600 dark:text-emerald-400">
+              <div className="bg-emerald-50 dark:bg-emerald-950/40 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-900 text-center space-y-1">
+                <span className="block text-3xl font-black text-emerald-700 dark:text-emerald-300">
                   {completedLabs.length}
                 </span>
-                <span className="text-xs uppercase font-extrabold text-emerald-800 dark:text-emerald-300 tracking-wider">
+                <span className="text-xs uppercase font-extrabold text-emerald-800 dark:text-emerald-400 tracking-wider">
                   Experiments Completed
                 </span>
               </div>
 
-              <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">
+              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">
                 Recent Evaluations
               </h4>
 
               <div className="space-y-2.5 max-h-60 overflow-y-auto">
                 {completedLabs.length === 0 && (
-                  <div className="text-xs text-slate-400 italic text-center py-4">
+                  <div className="text-xs text-slate-500 italic text-center py-4">
                     No completed virtual labs yet. Select any lab on the left to get started!
                   </div>
                 )}
@@ -752,9 +819,9 @@ export default function VirtualLabsPage() {
                   <div key={idx} className="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
                     <div className="space-y-0.5">
                       <h5 className="font-bold text-slate-900 dark:text-white line-clamp-1">{lab.title}</h5>
-                      <span className="text-[10px] text-slate-400">{lab.date}</span>
+                      <span className="text-[10px] text-slate-500">{lab.date}</span>
                     </div>
-                    <div className="text-emerald-600 dark:text-emerald-400 font-black text-xs bg-emerald-100 dark:bg-emerald-950 px-2 py-1 rounded border border-emerald-300 dark:border-emerald-800 shrink-0">
+                    <div className="text-emerald-700 dark:text-emerald-300 font-black text-xs bg-emerald-100 dark:bg-emerald-950 px-2 py-1 rounded border border-emerald-300 dark:border-emerald-800 shrink-0">
                       {lab.score}
                     </div>
                   </div>
@@ -763,21 +830,21 @@ export default function VirtualLabsPage() {
             </div>
 
             {/* School Tinkering Lab Kit Availability */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-6 border border-slate-700 shadow-md space-y-4">
+            <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 border border-indigo-500/30 shadow-md space-y-4">
               <div className="flex items-center gap-2">
                 <Wrench className="w-5 h-5 text-amber-400" />
-                <h3 className="font-bold text-base">Tinkering Hardware Kit</h3>
+                <h3 className="font-black text-base text-white">Tinkering Hardware Kit</h3>
               </div>
 
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <p className="text-xs text-indigo-100 leading-relaxed font-medium">
                 Request physical Arduino, Sensor, or Microscope kits from your school&apos;s Atal Tinkering Lab for weekend practical projects!
               </p>
 
               <button
                 onClick={() => setShowKitModal(true)}
-                className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1.5 hover:scale-105"
               >
-                <Wrench className="w-4 h-4" />
+                <Wrench className="w-4 h-4 text-slate-950" />
                 <span>Check Hardware Availability</span>
               </button>
             </div>
@@ -799,7 +866,7 @@ export default function VirtualLabsPage() {
             <div className="flex items-start justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300">
+                  <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-300">
                     {activeExpModal.subject} • {activeExpModal.level}
                   </span>
                 </div>
@@ -816,14 +883,14 @@ export default function VirtualLabsPage() {
             </div>
 
             {/* Workflow Navigation Steps */}
-            <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-800 p-2 rounded-2xl text-xs font-bold">
+            <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-800 p-2 rounded-2xl text-xs font-bold gap-2">
               {["1. Objective & Setup", "2. Interactive Simulator", "3. Quiz & Submit Report"].map((stepTitle, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveStep(idx)}
-                  className={`flex-1 py-2 text-center rounded-xl transition-all ${
+                  className={`flex-1 py-2.5 text-center rounded-xl transition-all ${
                     activeStep === idx
-                      ? "bg-cyan-600 text-white shadow-md font-extrabold"
+                      ? "bg-indigo-600 text-white shadow-md font-black scale-105"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
                   }`}
                 >
@@ -836,7 +903,7 @@ export default function VirtualLabsPage() {
             {activeStep === 0 && (
               <div className="space-y-4">
                 <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
-                  <h4 className="text-xs font-black uppercase text-cyan-600 dark:text-cyan-400 tracking-wider">
+                  <h4 className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider">
                     Experiment Objective
                   </h4>
                   <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
@@ -872,7 +939,7 @@ export default function VirtualLabsPage() {
 
                 <button
                   onClick={() => setActiveStep(1)}
-                  className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-black rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2"
                 >
                   <span>Proceed to Interactive Simulator</span>
                   <ChevronRight className="w-4 h-4" />
@@ -886,26 +953,26 @@ export default function VirtualLabsPage() {
                 
                 {/* 1. OHM'S LAW SIMULATION */}
                 {activeExpModal.simulationType === "physics_ohm" && (
-                  <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 space-y-6">
+                  <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 space-y-6 shadow-2xl">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                       <span className="text-xs font-black uppercase text-cyan-400 tracking-wider">
                         Virtual Ammeter & Voltmeter Circuit Bench
                       </span>
-                      <span className="text-xs font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
+                      <span className="text-xs font-bold text-emerald-400 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800">
                         Ohm&apos;s Law Formula: V = I × R
                       </span>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                      <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 space-y-1">
+                      <div className="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-1 shadow-inner">
                         <span className="text-[10px] font-extrabold uppercase text-slate-400">Voltage (V)</span>
                         <div className="text-3xl font-black text-cyan-400">{ohmVolts} V</div>
                       </div>
-                      <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 space-y-1">
+                      <div className="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-1 shadow-inner">
                         <span className="text-[10px] font-extrabold uppercase text-slate-400">Resistance (R)</span>
                         <div className="text-3xl font-black text-amber-400">{ohmResistance} Ω</div>
                       </div>
-                      <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 space-y-1">
+                      <div className="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-1 shadow-inner">
                         <span className="text-[10px] font-extrabold uppercase text-slate-400">Calculated Current (I)</span>
                         <div className="text-3xl font-black text-emerald-400">{currentAmpere} A</div>
                       </div>
@@ -954,7 +1021,7 @@ export default function VirtualLabsPage() {
 
                 {/* 2. pH VALUE TESTING SIMULATION */}
                 {activeExpModal.simulationType === "chemistry_ph" && (
-                  <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 space-y-6">
+                  <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 space-y-6 shadow-2xl">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                       <span className="text-xs font-black uppercase text-emerald-400 tracking-wider">
                         Universal pH Indicator Bench
@@ -971,7 +1038,7 @@ export default function VirtualLabsPage() {
                           onClick={() => setPhSolution(sol)}
                           className={`px-4 py-2 rounded-xl text-xs font-black transition-all uppercase ${
                             phSolution === sol
-                              ? "bg-emerald-500 text-white scale-105 shadow-md"
+                              ? "bg-emerald-500 text-white scale-105 shadow-lg"
                               : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                           }`}
                         >
@@ -993,7 +1060,7 @@ export default function VirtualLabsPage() {
 
                 {/* 3. MICROSCOPE SIMULATION */}
                 {activeExpModal.simulationType === "biology_microscope" && (
-                  <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 space-y-6">
+                  <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 space-y-6 shadow-2xl">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                       <span className="text-xs font-black uppercase text-lime-400 tracking-wider">
                         Compound Microscope Viewport
@@ -1034,10 +1101,10 @@ export default function VirtualLabsPage() {
 
                 {/* DEFAULT GENERIC SIMULATION VIEW */}
                 {activeExpModal.simulationType !== "physics_ohm" && activeExpModal.simulationType !== "chemistry_ph" && activeExpModal.simulationType !== "biology_microscope" && (
-                  <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 text-center space-y-4">
-                    <FlaskConical className="w-16 h-16 text-cyan-400 mx-auto animate-bounce" />
+                  <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 text-center space-y-4 shadow-2xl">
+                    <FlaskConical className="w-16 h-16 text-indigo-400 mx-auto animate-bounce" />
                     <h3 className="text-lg font-black">{activeExpModal.title} — Active Workbench</h3>
-                    <p className="text-xs text-slate-300 max-w-md mx-auto">
+                    <p className="text-xs text-slate-300 max-w-md mx-auto font-medium">
                       All virtual tools calibrated. Parameters loaded for {activeExpModal.level}.
                     </p>
                   </div>
@@ -1045,7 +1112,7 @@ export default function VirtualLabsPage() {
 
                 <button
                   onClick={() => setActiveStep(2)}
-                  className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-black rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2"
                 >
                   <span>Proceed to Quiz & Submit Lab Report</span>
                   <ChevronRight className="w-4 h-4" />
@@ -1057,7 +1124,7 @@ export default function VirtualLabsPage() {
             {activeStep === 2 && (
               <div className="space-y-6">
                 <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
-                  <h4 className="text-xs font-black uppercase text-cyan-600 dark:text-cyan-400 tracking-wider">
+                  <h4 className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider">
                     Post-Lab Assessment Quiz
                   </h4>
 
@@ -1073,8 +1140,8 @@ export default function VirtualLabsPage() {
                             onClick={() => setQuizSelected(optIdx)}
                             className={`p-3 rounded-xl text-xs font-bold text-left transition-all border ${
                               quizSelected === optIdx
-                                ? "bg-cyan-600 text-white border-cyan-500 shadow-md"
-                                : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-cyan-400"
+                                ? "bg-indigo-600 text-white border-indigo-500 shadow-md font-black"
+                                : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-indigo-400"
                             }`}
                           >
                             {opt}
@@ -1108,7 +1175,7 @@ export default function VirtualLabsPage() {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-amber-400" />
-                <h3 className="text-lg font-black">Breadboard & Circuit Simulator Sandbox</h3>
+                <h3 className="text-lg font-black text-white">Breadboard & Circuit Simulator Sandbox</h3>
               </div>
               <button onClick={() => setShowSandboxModal(false)} className="p-1 text-slate-400 hover:text-white">
                 <X className="w-6 h-6" />
@@ -1116,15 +1183,15 @@ export default function VirtualLabsPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-              <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700">
+              <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700 shadow-inner">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Battery (V)</span>
                 <span className="text-2xl font-black text-amber-400">{sandboxBattery}V DC</span>
               </div>
-              <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700">
+              <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700 shadow-inner">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Resistor (R)</span>
                 <span className="text-2xl font-black text-cyan-400">{sandboxResistor} Ω</span>
               </div>
-              <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700">
+              <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700 shadow-inner">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Current (I)</span>
                 <span className="text-2xl font-black text-emerald-400">{sandboxAmpere} mA</span>
               </div>
@@ -1165,12 +1232,12 @@ export default function VirtualLabsPage() {
       {showArModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-slate-900 text-white border border-slate-800 rounded-3xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl">
-            <Box className="w-16 h-16 text-cyan-400 mx-auto animate-bounce" />
-            <h3 className="text-lg font-black">3D Augmented Reality Camera Holo-Viewer</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <Box className="w-16 h-16 text-purple-400 mx-auto animate-bounce" />
+            <h3 className="text-lg font-black text-white">3D Augmented Reality Camera Holo-Viewer</h3>
+            <p className="text-xs text-slate-300 leading-relaxed font-medium">
               AR Mode active. Point your camera at a flat surface or desk to project 3D interactive molecules, organs, and circuit components in your physical classroom!
             </p>
-            <button onClick={() => setShowArModal(false)} className="w-full py-2.5 bg-cyan-600 text-white font-black text-xs rounded-xl">
+            <button onClick={() => setShowArModal(false)} className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs rounded-xl shadow-lg">
               Close AR Viewer
             </button>
           </div>
@@ -1184,7 +1251,7 @@ export default function VirtualLabsPage() {
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-slate-900 text-white border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-black flex items-center gap-2">
+              <h3 className="text-base font-black flex items-center gap-2 text-white">
                 <Wrench className="w-5 h-5 text-amber-400" />
                 <span>Atal Tinkering Lab Inventory</span>
               </h3>
