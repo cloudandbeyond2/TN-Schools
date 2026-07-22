@@ -231,8 +231,9 @@ export default function StaffManagementPage() {
       const leaveRes = await fetch(`${API_BASE}/api/teacher/leave?schoolId=${mySchoolId}`);
       const leaveJson = await leaveRes.json();
 
+      let formattedStaff: StaffMember[] = [];
       if (staffJson.success) {
-        const formattedStaff: StaffMember[] = staffJson.data.map((s: StaffMember) => {
+        formattedStaff = staffJson.data.map((s: StaffMember) => {
           const parsedMeta = parseStaffAddress(s.address, s.subject);
           return {
             ...s,
@@ -260,7 +261,7 @@ export default function StaffManagementPage() {
         // Find teacher names from the staff list for leave items
         const rawLeaves = leaveJson.data || [];
         const formattedLeaves = rawLeaves.map((l: any) => {
-          const teacher = staffList.find((s: any) => s.id === l.staffId || s.emisId === l.staffId);
+          const teacher = formattedStaff.find((s: any) => s.id === l.staffId || s.emisId === l.staffId);
           return {
             ...l,
             teacherName: teacher ? teacher.name : l.studentName || "Staff Member",
@@ -276,11 +277,13 @@ export default function StaffManagementPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [mySchoolId, staffList]);
+  }, [mySchoolId]);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (mySchoolId) {
+      fetchData();
+    }
+  }, [mySchoolId, fetchData]);
 
   // Handle manual additions
   const handleSaveStaff = async (e: React.FormEvent) => {
@@ -1127,7 +1130,7 @@ export default function StaffManagementPage() {
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search staff by Name or EMIS ID..."
+                placeholder="Search staff by Name or Staff ID..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 className="w-full bg-slate-950/60 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
