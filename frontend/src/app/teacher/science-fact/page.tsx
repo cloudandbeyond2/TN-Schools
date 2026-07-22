@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { useSession } from "next-auth/react";
 import {
   Sparkles,
   Waves,
@@ -56,25 +57,51 @@ interface FactTopic {
   }[];
 }
 
+const HANDLED_CLASSES = [
+  "Class 6-A",
+  "Class 6-B",
+  "Class 7-A",
+  "Class 7-B",
+  "Class 8-A",
+  "Class 8-B",
+  "Class 9-A",
+  "Class 9-B",
+  "Class 10-A",
+  "Class 10-B",
+  "Class 11-A",
+  "Class 12-A"
+];
+
 export default function TeacherScienceFactPage() {
+  const { data: session } = useSession();
+  const loggedInUserName = session?.user?.name || (session?.user as any)?.name || (session?.user as any)?.teacherName || "Linga";
+
   const [publishedFact, setPublishedFact] = useState<FactTopic | null>(null);
   const [allTopics, setAllTopics] = useState<FactTopic[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [generating, setGenerating] = useState<boolean>(false);
   const [targetClass, setTargetClass] = useState<string>("Class 7-B");
-  const [teacherName, setTeacherName] = useState<string>("Mrs. Sumathi Devi");
+  const [teacherName, setTeacherName] = useState<string>("");
   const [promptTopic, setPromptTopic] = useState<string>("");
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Fetch current today fact on mount
+  // Auto-populate logged-in teacher's name from session
   useEffect(() => {
-    fetchFactData();
-  }, []);
+    if (loggedInUserName) {
+      setTeacherName(loggedInUserName);
+    }
+  }, [loggedInUserName]);
 
-  const fetchFactData = async () => {
+  // Fetch current today fact on mount & class change
+  useEffect(() => {
+    fetchFactData(targetClass);
+  }, [targetClass]);
+
+  const fetchFactData = async (cls?: string) => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/api/teacher/science-fact/today`);
+      const queryClass = cls || targetClass;
+      const res = await fetch(`${API_BASE}/api/teacher/science-fact/today?targetClass=${encodeURIComponent(queryClass)}`);
       const json = await res.json();
       if (json.success) {
         setPublishedFact(json.data);
@@ -93,11 +120,13 @@ export default function TeacherScienceFactPage() {
       setGenerating(true);
       setSuccessMsg(null);
 
+      const activeTeacher = teacherName || loggedInUserName || "Linga";
+
       const res = await fetch(`${API_BASE}/api/teacher/science-fact/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          teacherName,
+          teacherName: activeTeacher,
           targetClass,
           topicId: selectedTopicId,
           promptTopic: promptTopic || undefined,
@@ -148,30 +177,40 @@ export default function TeacherScienceFactPage() {
               Clicking <strong className="text-white">&quot;Generate Today Fact&quot;</strong> uses Gemini AI to generate a complete, engaging science fact with an activity, curiosity reflection, and quiz for middle school students!
             </p>
 
-            {/* Target Class, Teacher & AI Prompt Input Controls */}
+            {/* Target Class Dropdown, Teacher Name & AI Prompt Input Controls */}
             <div className="flex flex-wrap items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
+              
+              {/* Class Dropdown */}
               <div className="flex items-center gap-2 text-xs font-bold text-amber-100">
                 <Users className="w-4 h-4 text-amber-200" />
                 <span>Class:</span>
-                <input
-                  type="text"
+                <select
                   value={targetClass}
                   onChange={(e) => setTargetClass(e.target.value)}
-                  className="bg-white/20 border border-white/30 text-white text-xs rounded-lg px-2.5 py-1 font-bold focus:outline-none focus:ring-2 focus:ring-amber-300"
-                />
+                  className="bg-slate-900/90 text-white border border-white/30 text-xs rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-amber-300 cursor-pointer shadow-inner"
+                >
+                  {HANDLED_CLASSES.map((cls) => (
+                    <option key={cls} value={cls} className="bg-slate-900 text-white font-bold">
+                      {cls}
+                    </option>
+                  ))}
+                </select>
               </div>
 
+              {/* Logged in Teacher Name */}
               <div className="flex items-center gap-2 text-xs font-bold text-amber-100">
                 <User className="w-4 h-4 text-amber-200" />
                 <span>Teacher:</span>
                 <input
                   type="text"
-                  value={teacherName}
+                  value={teacherName || loggedInUserName}
                   onChange={(e) => setTeacherName(e.target.value)}
-                  className="bg-white/20 border border-white/30 text-white text-xs rounded-lg px-2.5 py-1 font-bold focus:outline-none focus:ring-2 focus:ring-amber-300"
+                  placeholder="Teacher Name"
+                  className="bg-slate-900/90 text-white placeholder-white/60 border border-white/30 text-xs rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-amber-300 shadow-inner"
                 />
               </div>
 
+              {/* AI Topic Focus */}
               <div className="flex items-center gap-2 text-xs font-bold text-amber-100 flex-1 min-w-[200px]">
                 <Sparkles className="w-4 h-4 text-amber-200" />
                 <span>AI Topic Focus (Optional):</span>
@@ -180,7 +219,7 @@ export default function TeacherScienceFactPage() {
                   placeholder="e.g. Magnetism, Volcanoes, Gravity"
                   value={promptTopic}
                   onChange={(e) => setPromptTopic(e.target.value)}
-                  className="w-full bg-white/20 border border-white/30 text-white placeholder-white/60 text-xs rounded-lg px-2.5 py-1 font-bold focus:outline-none focus:ring-2 focus:ring-amber-300"
+                  className="w-full bg-slate-900/90 text-white placeholder-white/60 border border-white/30 text-xs rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-amber-300 shadow-inner"
                 />
               </div>
 

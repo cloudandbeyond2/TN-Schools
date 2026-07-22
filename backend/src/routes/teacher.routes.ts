@@ -1771,10 +1771,32 @@ const DEFAULT_SCIENCE_FACTS = [
   }
 ];
 
-function getStoredFact() {
+const SCIENCE_FACT_CLASSES_FILE = path.join(__dirname, '../../data/science_fact_by_class.json');
+
+function getStoredFact(targetClass?: string, classNum?: string) {
   try {
-    const dir = path.dirname(SCIENCE_FACT_FILE);
+    const dir = path.dirname(SCIENCE_FACT_CLASSES_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+    if (targetClass && fs.existsSync(SCIENCE_FACT_CLASSES_FILE)) {
+      const rawMap = fs.readFileSync(SCIENCE_FACT_CLASSES_FILE, 'utf8');
+      const classMap: Record<string, any> = JSON.parse(rawMap);
+
+      const normClass = targetClass.trim();
+      if (classMap[normClass]) return classMap[normClass];
+
+      // Fuzzy matching by class substring or class number (e.g. "Class 7-B" vs "7")
+      for (const [key, fact] of Object.entries(classMap)) {
+        if (
+          key.toLowerCase().includes(normClass.toLowerCase()) ||
+          normClass.toLowerCase().includes(key.toLowerCase()) ||
+          (classNum && key.includes(classNum))
+        ) {
+          return fact;
+        }
+      }
+    }
+
     if (fs.existsSync(SCIENCE_FACT_FILE)) {
       const raw = fs.readFileSync(SCIENCE_FACT_FILE, 'utf8');
       return JSON.parse(raw);
@@ -1789,7 +1811,21 @@ function saveStoredFact(factData: any) {
   try {
     const dir = path.dirname(SCIENCE_FACT_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+    // Save as latest global fallback
     fs.writeFileSync(SCIENCE_FACT_FILE, JSON.stringify(factData, null, 2), 'utf8');
+
+    // Save under class key in science_fact_by_class.json
+    if (factData.targetClass) {
+      let classMap: Record<string, any> = {};
+      if (fs.existsSync(SCIENCE_FACT_CLASSES_FILE)) {
+        try {
+          classMap = JSON.parse(fs.readFileSync(SCIENCE_FACT_CLASSES_FILE, 'utf8'));
+        } catch (err) {}
+      }
+      classMap[factData.targetClass] = factData;
+      fs.writeFileSync(SCIENCE_FACT_CLASSES_FILE, JSON.stringify(classMap, null, 2), 'utf8');
+    }
   } catch (e) {
     console.error('Error writing science fact file:', e);
   }
@@ -1923,7 +1959,8 @@ Return ONLY raw valid JSON (no markdown formatting, no codeblocks):
 
 // GET /api/teacher/science-fact/today
 router.get('/science-fact/today', (req: Request, res: Response) => {
-  const currentFact = getStoredFact();
+  const { targetClass, classNum } = req.query || {};
+  const currentFact = getStoredFact(targetClass ? String(targetClass) : undefined, classNum ? String(classNum) : undefined);
   res.json({ success: true, data: currentFact, allTopics: DEFAULT_SCIENCE_FACTS });
 });
 

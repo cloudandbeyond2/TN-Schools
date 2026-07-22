@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import { useSession } from "next-auth/react";
 import {
   Sparkles,
   Waves,
@@ -184,6 +185,11 @@ const getApiBase = () => {
 const API_BASE = getApiBase();
 
 export default function ScienceFactPage() {
+  const { data: session } = useSession();
+  const studentClassStr = (session?.user as any)?.class || "7";
+  const studentSection = (session?.user as any)?.section || "B";
+  const studentFullClass = `Class ${studentClassStr}-${studentSection}`;
+
   const [topics, setTopics] = useState<FactTopic[]>(FACT_TOPICS);
   const [activeTopicId, setActiveTopicId] = useState<string>("sound-water");
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
@@ -194,11 +200,13 @@ export default function ScienceFactPage() {
 
   useEffect(() => {
     fetchTodayFact();
-  }, []);
+  }, [studentFullClass, studentClassStr]);
 
   const fetchTodayFact = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/teacher/science-fact/today`);
+      const res = await fetch(
+        `${API_BASE}/api/teacher/science-fact/today?targetClass=${encodeURIComponent(studentFullClass)}&classNum=${studentClassStr}`
+      );
       const json = await res.json();
       if (json.success && json.data) {
         const publishedFact = json.data;
@@ -278,21 +286,23 @@ export default function ScienceFactPage() {
             <span>Select Science Topic:</span>
           </div>
           <div className="flex flex-wrap items-center gap-2 flex-1">
-            {FACT_TOPICS.map((topic) => {
+            {topics.map((topic) => {
               const isActive = topic.id === activeTopicId;
-              const IconComp = topic.icon;
+              const IconComp = topic.icon || Waves;
               return (
                 <button
                   key={topic.id}
                   onClick={() => handleTopicSwitch(topic.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all ${
                     isActive
-                      ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md scale-[1.02]"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                      ? "bg-teal-600 text-white shadow-md scale-[1.02] border border-teal-500 font-extrabold"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold border border-transparent"
                   }`}
                 >
-                  <IconComp className={`w-4 h-4 ${isActive ? "text-amber-400 dark:text-amber-600" : "text-slate-400"}`} />
-                  <span>{topic.title}</span>
+                  <IconComp className={`w-4 h-4 shrink-0 ${isActive ? "text-amber-300" : "text-slate-400"}`} />
+                  <span className={isActive ? "text-white font-extrabold" : "text-slate-700 dark:text-slate-200"}>
+                    {topic.title}
+                  </span>
                 </button>
               );
             })}
