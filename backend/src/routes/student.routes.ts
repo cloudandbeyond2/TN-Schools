@@ -133,8 +133,13 @@ router.get("/announcements", async (req: Request, res: Response) => {
 // GET /api/students/:id — Get student profile with marks & attendance
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const student = await prisma.student.findUnique({
-      where: { id: req.params.id },
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id: req.params.id },
+          { userId: req.params.id }
+        ]
+      },
       include: {
         school: { select: { name: true, district: true } },
         marks: { orderBy: { createdAt: 'desc' }, take: 20 },
