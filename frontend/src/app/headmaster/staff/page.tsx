@@ -1816,45 +1816,17 @@ export default function StaffManagementPage() {
                 )}
               </div>
 
-              {/* Subject specialty or role selection */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                    {formType === "Teaching" ? "Subject Specialty" : formType === "Non-Teaching" ? "Designation / Role" : "Assigned Duty Role"}
-                  </label>
-                  {formType === "Teaching" ? (
-                    <select
-                      value={formSubjectOrRole}
-                      onChange={e => setFormSubjectOrRole(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
-                    >
-                      {subjectsList.map(sub => (
-                        <option key={sub} value={sub}>{sub}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      required
-                      value={formSubjectOrRole}
-                      onChange={e => setFormSubjectOrRole(e.target.value)}
-                      placeholder={formType === "Temporary" ? "e.g. Security, Midday helper" : "e.g. Clerk, Librarian, Office Assistant"}
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
-                    />
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Phone Number *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formPhone}
-                    onChange={e => setFormPhone(e.target.value)}
-                    placeholder="10 digit mobile"
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
+              {/* Phone Number */}
+              <div>
+                <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Phone Number *</label>
+                <input
+                  type="text"
+                  required
+                  value={formPhone}
+                  onChange={e => setFormPhone(e.target.value)}
+                  placeholder="10 digit mobile"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                />
               </div>
 
               {/* Temporary Staff specific fields */}
@@ -1952,38 +1924,8 @@ export default function StaffManagementPage() {
                 </>
               )}
 
-              {/* Work Allocation & Address */}
+              {/* Address */}
               <div className="grid grid-cols-1 gap-3">
-                {formType !== "Temporary" && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Assigned Class</label>
-                      <select
-                        value={formAssignedClass}
-                        onChange={e => setFormAssignedClass(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
-                      >
-                        <option value="">Select Class</option>
-                        {["Pre-KG", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"].map(cls => (
-                          <option key={cls} value={cls}>{cls}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Assigned Section</label>
-                      <select
-                        value={formAssignedSection}
-                        onChange={e => setFormAssignedSection(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-blue-500"
-                      >
-                        <option value="">Select Section</option>
-                        {["A", "B", "C", "D", "E", "F"].map(sec => (
-                          <option key={sec} value={sec}>{sec}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                )}
                 <div>
                   <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Residential Address</label>
                   <textarea
@@ -2114,43 +2056,16 @@ export default function StaffManagementPage() {
                 </div>
               </div>
 
-              {/* Subject specialty or role selection */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">
-                    {formType === "Teaching" ? "Subject Specialty" : "Designation / Role"}
-                  </label>
-                  {formType === "Teaching" ? (
-                    <select
-                      value={formSubjectOrRole}
-                      onChange={e => setFormSubjectOrRole(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                    >
-                      {subjectsList.map(sub => (
-                        <option key={sub} value={sub}>{sub}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      required
-                      value={formSubjectOrRole}
-                      onChange={e => setFormSubjectOrRole(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
-                    />
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Phone Number *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formPhone}
-                    onChange={e => setFormPhone(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
-                  />
-                </div>
+              {/* Phone Number */}
+              <div>
+                <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Phone Number *</label>
+                <input
+                  type="text"
+                  required
+                  value={formPhone}
+                  onChange={e => setFormPhone(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                />
               </div>
 
               {/* Temporary Staff specific fields */}
@@ -2244,38 +2159,8 @@ export default function StaffManagementPage() {
                 </>
               )}
 
-              {/* Work Allocation & Address */}
+              {/* Address */}
               <div className="grid grid-cols-1 gap-3">
-                {formType !== "Temporary" && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Assigned Class</label>
-                      <select
-                        value={formAssignedClass}
-                        onChange={e => setFormAssignedClass(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                      >
-                        <option value="">Select Class</option>
-                        {["Pre-KG", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"].map(cls => (
-                          <option key={cls} value={cls}>{cls}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Assigned Section</label>
-                      <select
-                        value={formAssignedSection}
-                        onChange={e => setFormAssignedSection(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                      >
-                        <option value="">Select Section</option>
-                        {["A", "B", "C", "D", "E", "F"].map(sec => (
-                          <option key={sec} value={sec}>{sec}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                )}
                 <div>
                   <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Residential Address</label>
                   <textarea
