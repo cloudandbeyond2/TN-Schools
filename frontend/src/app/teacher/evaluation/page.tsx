@@ -308,7 +308,12 @@ export default function EvaluationPage() {
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider"><File className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "சமர்ப்பிப்புகள்" : "Submissions"}</h3>
                 <button
-                  onClick={() => setIsUploadModalOpen(true)}
+                  onClick={() => {
+                    setUploadStudentName("");
+                    setUploadRollNo("");
+                    setUploadFile(null);
+                    setIsUploadModalOpen(true);
+                  }}
                   className="px-2 py-1 bg-[var(--primary)] hover:opacity-90 text-white rounded text-[10px] font-bold flex items-center gap-1 shadow-sm transition-opacity"
                 >
                   <Upload className="w-3 h-3" /> {lang === "தமிழ்" ? "பதிவேற்று" : "Upload"}
@@ -325,6 +330,9 @@ export default function EvaluationPage() {
                       key={sub.id}
                       onClick={() => {
                         setSelectedSubId(sub.id);
+                        setUploadStudentName(sub.studentName);
+                        setUploadRollNo(sub.rollNo);
+                        setIsUploadModalOpen(true);
                       }}
                       className={`text-left p-3 rounded-xl border transition-all text-xs ${
                         isSelected
@@ -463,7 +471,12 @@ export default function EvaluationPage() {
         <div className="text-center py-12 text-xs text-[var(--text-muted)] italic flex flex-col items-center justify-center border-2 border-dashed border-[var(--border)] rounded-2xl bg-[var(--bg-card)]/50 min-h-[300px]">
           <p className="mb-4 text-sm">{lang === "தமிழ்" ? "இந்தப் பள்ளிக்கு நிலுவையில் உள்ள மதிப்பீடுகள் எதுவும் இல்லை." : "No evaluations pending for this school."}</p>
           <button
-            onClick={() => setIsUploadModalOpen(true)}
+            onClick={() => {
+              setUploadStudentName("");
+              setUploadRollNo("");
+              setUploadFile(null);
+              setIsUploadModalOpen(true);
+            }}
             className="px-4 py-2 bg-[var(--primary)] hover:opacity-90 text-white rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition-opacity not-italic"
           >
             <Upload className="w-4 h-4" /> {lang === "தமிழ்" ? "விடைத்தாளைப் பதிவேற்று" : "Upload Answer Sheet"}
