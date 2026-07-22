@@ -1,95 +1,95 @@
 {
   "Class 7-B": {
-    "id": "fact-1784705939594",
-    "title": "Volcanoes Erupt When Underground Trapped Gas Escapes",
-    "category": "Earth Science & Geology",
-    "targetClass": "Class 7-B",
-    "generatedAt": "2026-07-22T07:38:59.594Z",
-    "generatedBy": "Linga",
-    "scienceFact": "Deep inside the Earth, it is so hot that solid rocks melt into a thick liquid called magma. This magma contains trapped gases like carbon dioxide and water vapor. Because hot magma is lighter than the solid rocks surrounding it, it pushes its way up toward the Earth's surface through cracks. As magma gets closer to the surface, the trapped gas bubbles expand rapidly, just like when you shake a bottle of fizzy soda and open the cap. When the pressure gets too high, the volcano erupts, blasting out red-hot lava, ash, and gases into the sky.",
-    "whyItHappens": "Melting underground rocks release gases that build intense pressure beneath Earth's crust. When crustal pressure becomes unbearable, magma is forced upward through vents, erupting onto the surface as liquid lava.",
-    "didYouKnow": "The largest active volcano in our solar system is Olympus Mons on Mars, which is nearly three times taller than Mount Everest!",
+    "title": "Bats' Superpower: Seeing with Sound!",
+    "category": "Biology",
+    "scienceFact": "Bats are not blind; they have an incredible superpower called echolocation! Imagine you're in a dark room and can't see anything. Instead of sight, bats use sound to 'see.' They send out high-pitched squeaks, often too high for humans to hear. These sounds travel through the air, bounce off objects like insects or trees, and then echo back to the bat's super-sensitive ears. By listening to how long it takes for the echo to return and which ear it hits first, bats create a detailed sound map of their surroundings, allowing them to fly in complete darkness and catch tiny flying insects!",
+    "whyItHappens": "Echolocation works because sound waves travel, reflect off surfaces, and return as echoes. The bat's brain processes these echoes to determine the distance, size, speed, and even texture of objects around it, forming a sonic picture.",
+    "didYouKnow": "Some whales and dolphins also use echolocation to navigate and hunt for food deep underwater!",
     "tryItSteps": [
-      "Place a small plastic cup on a tray, add 2 tablespoons of baking soda, 1 teaspoon of dish soap, and red food coloring.",
-      "Slowly pour 1/4 cup of vinegar into the cup.",
-      "Observe how carbon dioxide gas bubbles create a thick foaming red lava flow that overflows the cup, simulating a volcanic eruption."
+      "Close your eyes in a quiet room, or try this at night when it's dark.",
+      "Clap your hands loudly just once, then listen carefully.",
+      "Did you notice the sound bouncing off walls or furniture? That's a tiny bit like an echo, helping you sense your surroundings with sound!"
     ],
-    "thinkAboutIt": "Why do you think some volcanoes erupt with giant explosive blasts while others slowly ooze liquid lava like warm honey?",
-    "thinkHint": "Thick sticky magma traps gas bubbles until they explode violently, while runny magma allows gas bubbles to escape easily without big explosions!",
+    "thinkAboutIt": "If humans developed the ability to echolocate, what might be some new jobs or everyday activities we could do more easily?",
+    "thinkHint": "Think about situations where sight is limited or impossible.",
     "quiz": [
       {
         "id": 1,
-        "question": "What is melted rock called when it is still deep underground?",
+        "question": "What superpower do bats use to 'see' in the dark?",
         "options": [
           {
             "key": "A",
-            "text": "Lava"
+            "text": "X-ray vision"
           },
           {
             "key": "B",
-            "text": "Magma"
+            "text": "Echolocation"
           },
           {
             "key": "C",
-            "text": "Pumice"
+            "text": "Super smell"
           },
           {
             "key": "D",
-            "text": "Basalt"
+            "text": "Night vision goggles"
           }
         ],
         "correct": "B",
-        "explanation": "Melted rock underground is called magma; once it erupts onto the surface, it is called lava."
+        "explanation": "Echolocation is the process bats use to navigate and hunt using sound waves."
       },
       {
         "id": 2,
-        "question": "What happens to magma once it erupts onto Earth's surface?",
+        "question": "What kind of sounds do bats send out to echolocate?",
         "options": [
           {
             "key": "A",
-            "text": "It is called lava"
+            "text": "Low-pitched roars"
           },
           {
             "key": "B",
-            "text": "It turns into ice"
+            "text": "Loud claps"
           },
           {
             "key": "C",
-            "text": "It disappears"
+            "text": "High-pitched squeaks"
           },
           {
             "key": "D",
-            "text": "It turns into water"
+            "text": "Silent waves"
           }
         ],
-        "correct": "A",
-        "explanation": "Once magma breaks through the Earth's crust and reaches the surface, scientists refer to it as lava."
+        "correct": "C",
+        "explanation": "Bats emit high-frequency, high-pitched sounds that are mostly beyond human hearing range."
       },
       {
         "id": 3,
-        "question": "Which factor plays a key role in building up pressure inside a volcano?",
+        "question": "What do bats primarily use echolocation for?",
         "options": [
           {
             "key": "A",
-            "text": "Cold water"
+            "text": "Talking to other bats"
           },
           {
             "key": "B",
-            "text": "Trapped gas bubbles expanding in magma"
+            "text": "Changing colors"
           },
           {
             "key": "C",
-            "text": "Moonlight"
+            "text": "Finding food and navigating"
           },
           {
             "key": "D",
-            "text": "Wind speed"
+            "text": "Sleeping upside down"
           }
         ],
-        "correct": "B",
-        "explanation": "Expanding gas bubbles trapped in magma build up extreme pressure that triggers volcanic eruptions."
+        "correct": "C",
+        "explanation": "Echolocation is crucial for bats to locate prey and avoid obstacles while flying in the dark."
       }
     ],
-    "isAiGenerated": false
+    "id": "fact-1784708533046",
+    "generatedAt": "2026-07-22T08:22:13.046Z",
+    "generatedBy": "Linga (Generated by AI Science Assistant)",
+    "targetClass": "Class 7-B",
+    "isAiGenerated": true
   }
 }
