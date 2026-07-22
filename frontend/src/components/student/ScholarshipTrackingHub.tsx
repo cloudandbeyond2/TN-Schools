@@ -125,7 +125,7 @@ export default function ScholarshipTrackingHub({
   const [calcClass, setCalcClass] = useState<number>(classLevel || 10);
   const [calcIncome, setCalcIncome] = useState<number>(180000);
   const [calcMarks, setCalcMarks] = useState<number>(85);
-  const [calcCommunity, setCalcCommunity] = useState<string>("MBC");
+  const [calcCommunity, setCalcCommunity] = useState<string>("BC");
 
   // Document Locker state
   const [uploadedDocs, setUploadedDocs] = useState<Record<string, { status: "Verified" | "Pending Approval", file: string }>>({
@@ -172,15 +172,18 @@ export default function ScholarshipTrackingHub({
           if (currentStudent.community) {
             setCalcCommunity(currentStudent.community);
           }
+          if (currentStudent.income) {
+            setCalcIncome(currentStudent.income);
+          }
 
           await fetchApplications(currentStudent.id);
-          await fetchScholarships(currentStudent.class || classLevel, currentStudent.community || "MBC");
+          await fetchScholarships(currentStudent.class || classLevel, currentStudent.community || "BC");
         } else {
-          await fetchScholarships(classLevel, "MBC");
+          await fetchScholarships(classLevel, "BC");
         }
       } catch (err) {
         console.error("Error resolving student profile", err);
-        await fetchScholarships(classLevel, "MBC");
+        await fetchScholarships(classLevel, "BC");
       } finally {
         setLoading(false);
       }
@@ -232,22 +235,37 @@ export default function ScholarshipTrackingHub({
   // Dynamic Eligibility Calculator Logic
   const calculatedEligibleSchemes = useMemo(() => {
     return scholarships.filter((s) => {
+      // 1. Class level check
       const classMatch = s.classes ? s.classes.includes(calcClass) : true;
+
+      // 2. Community category match
+      let communityMatch = true;
+      const commUpper = calcCommunity.toUpperCase();
+      if (s.type === "Category Based" || s.id === "sc-st-prepost") {
+        communityMatch = ["SC", "ST"].includes(commUpper);
+      } else if (s.type === "Minority Community" || s.id === "minority") {
+        communityMatch = ["MINORITY"].includes(commUpper);
+      } else if (s.id === "obc-scholarship") {
+        communityMatch = ["OBC", "BC", "MBC"].includes(commUpper);
+      }
+
+      // 3. Income limit check
       let incomeLimit = 350000;
       if (s.eligibility.includes("2.5 lakh")) incomeLimit = 250000;
       if (s.eligibility.includes("1.5 lakh")) incomeLimit = 150000;
       if (s.eligibility.includes("1 lakh")) incomeLimit = 100000;
       const incomeMatch = calcIncome <= incomeLimit;
       
+      // 4. Marks threshold check
       let markReq = 50;
       if (s.eligibility.includes("80%+")) markReq = 80;
       if (s.eligibility.includes("75%+")) markReq = 75;
       if (s.eligibility.includes("55%+")) markReq = 55;
       const markMatch = calcMarks >= markReq;
 
-      return classMatch && incomeMatch && markMatch;
+      return classMatch && communityMatch && incomeMatch && markMatch;
     });
-  }, [scholarships, calcClass, calcIncome, calcMarks]);
+  }, [scholarships, calcClass, calcCommunity, calcIncome, calcMarks]);
 
   const calculatedTotalBenefit = useMemo(() => {
     return calculatedEligibleSchemes.reduce((sum, item) => {
@@ -563,7 +581,7 @@ export default function ScholarshipTrackingHub({
                 </div>
                 <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800/40">
                   <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{t("Community", "சமூகம்")}</span>
-                  <span className="text-xs font-black text-indigo-600 dark:text-amber-300">{studentProfile.community || "MBC"}</span>
+                  <span className="text-xs font-black text-indigo-600 dark:text-amber-300">{studentProfile.community || "BC"}</span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800/40">
                   <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{t("Parent Income", "வருமானம்")}</span>
@@ -796,8 +814,10 @@ export default function ScholarshipTrackingHub({
                     onChange={(e) => setCalcCommunity(e.target.value)}
                     className="w-full bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white font-bold p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none"
                   >
-                    <option value="SC">SC / ST Community</option>
-                    <option value="MBC">MBC / BC Community</option>
+                    <option value="BC">BC Community</option>
+                    <option value="MBC">MBC Community</option>
+                    <option value="SC">SC Community</option>
+                    <option value="ST">ST Community</option>
                     <option value="MINORITY">Minority Community</option>
                     <option value="GENERAL">General Category</option>
                   </select>
