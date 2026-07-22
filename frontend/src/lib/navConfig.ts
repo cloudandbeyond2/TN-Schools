@@ -150,7 +150,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       // { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
-      { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
+      // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
       // ── Test Preparation ──────────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -229,7 +229,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
-      { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
+      // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
       // ── Test Preparation ──────────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -319,7 +319,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
-      { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
+      // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
       // ── Test Preparation ──────────────────────────────
       { label: "---", href: "#", icon: "" },
