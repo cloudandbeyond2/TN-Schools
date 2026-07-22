@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import translations from "./teacher-translations.json";
 
+
 export function usePortalLanguage() {
   const [lang, setLang] = useState<"English" | "தமிழ்">("English");
 
