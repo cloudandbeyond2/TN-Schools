@@ -307,7 +307,7 @@ export default function AnnouncementsPage() {
     } else if (text.includes("exam") || text.includes("test") || text.includes("marks") || text.includes("grade")) {
       router.push(`/student/exams`);
     } else if (text.includes("badge") || text.includes("portfolio")) {
-      router.push(`/student/${studentLevelPath}/portfolio`);
+      router.push('/student/portfolio');
     } else if (text.includes("scholarship")) {
       router.push(`/student/scholarships`);
     } else if (text.includes("attendance") || text.includes("present")) {

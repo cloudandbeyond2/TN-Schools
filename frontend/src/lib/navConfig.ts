@@ -150,7 +150,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       // { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
-      { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
+      // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
       // ── Test Preparation ──────────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -182,7 +182,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Announcements", href: "/student/announcements", icon: "Megaphone" },
       // { label: "My Badges", href: "/student/middle-school/badges", icon: "Award" },
       { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
-      { label: "Digital Portfolio", href: "/student/middle-school/portfolio", icon: "FolderOpen" },
+      { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       { label: "Learning Platform", href: "/student/middle-school/learning-platform", icon: "Monitor" },
       { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
@@ -229,7 +229,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
-      { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
+      // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
       // ── Test Preparation ──────────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -319,7 +319,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
-      { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
+      // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
       // ── Test Preparation ──────────────────────────────
       { label: "---", href: "#", icon: "" },

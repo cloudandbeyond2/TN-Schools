@@ -716,7 +716,7 @@ export default function ExtracurricularsPage() {
                 <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Track your extracurricular achievements.</p>
               </div>
             </div>
-            <Link href="/student/middle-school/portfolio" className="block text-center w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-purple-500/20">
+            <Link href="/student/portfolio" className="block text-center w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-purple-500/20">
               View Portfolio
             </Link>
           </div>

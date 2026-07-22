@@ -1503,7 +1503,8 @@ router.get('/model-exams', async (req: Request, res: Response) => {
     const { schoolId, class: cls, academicYear, group } = req.query;
     if (!schoolId) return res.status(400).json({ success: false, error: 'schoolId required.' });
 
-    const where: any = { schoolId: String(schoolId) };
+    const sId = String(schoolId);
+    const where: any = { schoolId: sId };
     if (cls) where.class = String(cls);
     if (academicYear) where.academicYear = String(academicYear);
     if (group) where.group = String(group);
@@ -1799,7 +1800,16 @@ router.delete('/model-exams/:id', async (req: Request, res: Response) => {
 // GET /api/headmaster/model-exams/student/:studentId — Get locked model exam results for a student
 router.get('/model-exams/student/:studentId', async (req: Request, res: Response) => {
   try {
-    const { studentId } = req.params;
+    let { studentId } = req.params;
+
+    const student = await prisma.student.findFirst({
+      where: { OR: [{ id: studentId }, { userId: studentId }] },
+    });
+
+    if (student) {
+      studentId = student.id;
+    }
+
     const results = await prisma.modelExamResult.findMany({
       where: {
         studentId,
