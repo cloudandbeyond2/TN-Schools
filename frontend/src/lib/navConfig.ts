@@ -144,13 +144,12 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
       { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
-      // ── Exams & Assessments ───────────────────────────
-      { label: "---", href: "#", icon: "" },
+      
       { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
-      { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
+      // { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
       { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
       // ── Test Preparation ──────────────────────────────
