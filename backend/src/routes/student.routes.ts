@@ -324,15 +324,25 @@ router.get('/:id/homework', async (req: Request, res: Response) => {
       }
 
       // Check if it was a late submission
-      let submissionStatus = submission ? 'submitted' : 'not_submitted';
-      if (submission && h.dueDate) {
-        const due = new Date(h.dueDate);
-        due.setHours(23, 59, 59, 999);
-        const isLateString = submission.date && submission.date.includes('Late');
-        const isLateTime = submission.createdAt && new Date(submission.createdAt) > due;
-        if (isLateString || isLateTime) {
-          submissionStatus = 'late_submission';
+      let submissionStatus = 'not_submitted';
+      if (submission && submission.status !== 'pending') {
+        submissionStatus = 'submitted';
+        if (h.dueDate) {
+          const due = new Date(h.dueDate);
+          due.setHours(23, 59, 59, 999);
+          const isLateString = submission.date && submission.date.includes('Late');
+          const isLateTime = submission.createdAt && new Date(submission.createdAt) > due;
+          if (isLateString || isLateTime) {
+            submissionStatus = 'late_submission';
+          }
         }
+      } else if (submission && submission.status === 'graded') {
+        submissionStatus = 'graded';
+      }
+      
+      // Override to graded if the submission explicitly has a graded status
+      if (submission && submission.status === 'graded') {
+        submissionStatus = 'graded';
       }
 
       // Dynamically select color based on subject

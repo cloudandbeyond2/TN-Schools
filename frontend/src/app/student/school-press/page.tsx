@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import { Camera, Send, CheckCircle, Upload, Star, Calendar } from "lucide-react";
+import { Camera, Send, CheckCircle, Upload, Star, Calendar, Clock, Filter } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function SchoolPressPage() {
@@ -14,6 +14,7 @@ export default function SchoolPressPage() {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [recentActivities, setRecentActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [feedFilter, setFeedFilter] = useState<"all" | "mine" | "pending">("all");
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -27,8 +28,8 @@ export default function SchoolPressPage() {
         const profile = json.data.find((s: any) => s.userId === (session.user as any).id);
         if (profile) {
           setStudentProfile(profile);
-          // 2. Fetch class-filtered activities
-          const actRes = await fetch(`${API_URL}/api/teacher/school-press?schoolId=${profile.schoolId}&class=${profile.class}&approvedOnly=true`);
+          // 2. Fetch class-filtered activities + student's own pending submissions
+          const actRes = await fetch(`${API_URL}/api/teacher/school-press?schoolId=${profile.schoolId}&class=${profile.class}&approvedOnly=true&studentId=${profile.id}`);
           const actData = await actRes.json();
           if (actData.success) {
             setRecentActivities(actData.data);
@@ -91,9 +92,9 @@ export default function SchoolPressPage() {
         setDescription("");
         setPhotos([]);
         Swal.fire({
-          title: "Published!",
-          text: "Your achievement has been published to the School Press! 📰",
-          icon: "success",
+          title: "Submitted for Approval! 📰",
+          text: "Your post has been submitted. It will be reviewed by your teacher before public publication.",
+          icon: "info",
           confirmButtonColor: "#10b981"
         });
         fetchProfileAndActivities();
@@ -106,6 +107,21 @@ export default function SchoolPressPage() {
       setSubmitStatus("error");
     }
   };
+
+  const mySubmissions = useMemo(() => {
+    if (!studentProfile) return [];
+    return recentActivities.filter((a) => a.studentId === studentProfile.id || a.student?.id === studentProfile.id);
+  }, [recentActivities, studentProfile]);
+
+  const pendingSubmissions = useMemo(() => {
+    return mySubmissions.filter((a) => !a.isApproved);
+  }, [mySubmissions]);
+
+  const filteredActivities = useMemo(() => {
+    if (feedFilter === "mine") return mySubmissions;
+    if (feedFilter === "pending") return pendingSubmissions;
+    return recentActivities;
+  }, [feedFilter, recentActivities, mySubmissions, pendingSubmissions]);
 
   return (
     <PortalLayout title="School Press 📰" subtitle="Publish student activities and achievements" accentColor="#10b981">
@@ -226,12 +242,12 @@ export default function SchoolPressPage() {
                 ) : submitStatus === "success" ? (
                   <>
                     <CheckCircle className="w-5 h-5" />
-                    Published Successfully!
+                    Submitted for Approval!
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    Publish to School Press
+                    Submit to School Press
                   </>
                 )}
               </button>
@@ -239,13 +255,50 @@ export default function SchoolPressPage() {
           </div>
         </div>
 
-        {/* Right Column - Recent Activity Feed */}
+        {/* Right Column - Recent Activity Feed & Status Tracker */}
         <div className="space-y-6">
           <div className="bg-[var(--bg-card)] border-2 md:border-4 border-slate-100 dark:border-slate-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 shadow-sm flex flex-col h-auto lg:h-[calc(100vh-140px)] lg:sticky lg:top-24">
-            <h3 className="text-base font-bold text-[var(--text-heading)] mb-4 flex items-center gap-2">
-              <span className="text-xl">📰</span>
-              Recent Publications
-            </h3>
+            
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <h3 className="text-base font-bold text-[var(--text-heading)] flex items-center gap-2">
+                <span className="text-xl">📰</span>
+                School Press Feed
+              </h3>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl mb-4 gap-1">
+              <button
+                onClick={() => setFeedFilter("all")}
+                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  feedFilter === "all"
+                    ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-xs"
+                    : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                }`}
+              >
+                All Feed ({recentActivities.length})
+              </button>
+              <button
+                onClick={() => setFeedFilter("mine")}
+                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  feedFilter === "mine"
+                    ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-xs"
+                    : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                }`}
+              >
+                My Posts ({mySubmissions.length})
+              </button>
+              <button
+                onClick={() => setFeedFilter("pending")}
+                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all relative ${
+                  feedFilter === "pending"
+                    ? "bg-amber-500 text-white shadow-xs"
+                    : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                }`}
+              >
+                Pending ({pendingSubmissions.length})
+              </button>
+            </div>
 
             <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
               {loading ? (
@@ -253,42 +306,77 @@ export default function SchoolPressPage() {
                   <div className="w-8 h-8 rounded-full border-2 border-emerald-500/30 border-t-emerald-500 animate-spin mx-auto mb-4" />
                   <span>Loading feed...</span>
                 </div>
-              ) : recentActivities.length === 0 ? (
+              ) : filteredActivities.length === 0 ? (
                 <div className="text-center py-10 text-[var(--text-muted)] text-sm italic">
-                  No activities published yet.
+                  {feedFilter === "pending"
+                    ? "No pending submissions awaiting approval."
+                    : feedFilter === "mine"
+                    ? "You haven't submitted any activities yet."
+                    : "No activities published yet."}
                 </div>
               ) : (
-                recentActivities.map((act) => (
-                  <div key={act.id} className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 hover:border-emerald-500/20 transition-all group">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-8 h-8 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-xs shadow-sm">
-                        {act.student?.user?.name?.charAt(0) || "S"}
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-[var(--text-heading)] leading-none">{act.student?.user?.name || "Unknown Student"}</div>
-                        <div className="text-[10px] text-[var(--text-muted)] mt-1">
-                          Class {act.student?.class} - {act.student?.section}
+                filteredActivities.map((act) => {
+                  const isMyPost = studentProfile && (act.studentId === studentProfile.id || act.student?.id === studentProfile.id);
+
+                  return (
+                    <div 
+                      key={act.id} 
+                      className={`p-4 rounded-2xl border transition-all group ${
+                        !act.isApproved 
+                          ? "bg-amber-500/10 border-amber-500/30 dark:bg-amber-900/20 dark:border-amber-700/50" 
+                          : "bg-emerald-500/5 border-emerald-500/10 hover:border-emerald-500/20"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
+                        <div className="w-8 h-8 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-xs shadow-sm">
+                          {act.student?.user?.name?.charAt(0) || "S"}
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-[var(--text-heading)] leading-none flex items-center gap-1.5">
+                            {act.student?.user?.name || "Unknown Student"}
+                            {isMyPost && <span className="text-[10px] px-1.5 py-0.2 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 rounded font-black">YOU</span>}
+                          </div>
+                          <div className="text-[10px] text-[var(--text-muted)] mt-1">
+                            Class {act.student?.class} - {act.student?.section}
+                          </div>
+                        </div>
+
+                        <div className="ml-auto flex items-center gap-2">
+                          {/* Approval Status Badge */}
+                          {isMyPost && (
+                            !act.isApproved ? (
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300/50 flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-amber-600 animate-pulse" /> Pending Approval
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border border-emerald-300/50 flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3 text-emerald-600" /> Published
+                              </span>
+                            )
+                          )}
+                          <div className="text-[9px] text-[var(--text-muted)] flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-emerald-500" />
+                            {new Date(act.createdAt).toLocaleDateString()}
+                          </div>
                         </div>
                       </div>
-                      <div className="ml-auto text-[9px] text-[var(--text-muted)] flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-emerald-500" />
-                        {new Date(act.createdAt).toLocaleDateString()}
-                      </div>
+
+                      <p className="text-xs text-[var(--text-main)] leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-xl shadow-sm border border-[var(--border)]">
+                        "{act.description}"
+                      </p>
+                      
+                      {act.photos && act.photos.length > 0 && (
+                        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                          {act.photos.map((p: string, i: number) => (
+                            <div key={i} className="w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-[var(--border)]">
+                              <img src={p} alt="Activity" className="w-full h-full object-cover" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <p className="text-xs text-[var(--text-main)] leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-xl shadow-sm border border-[var(--border)]">
-                      "{act.description}"
-                    </p>
-                    {act.photos && act.photos.length > 0 && (
-                      <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-                        {act.photos.map((p: string, i: number) => (
-                          <div key={i} className="w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-[var(--border)]">
-                            <img src={p} alt="Activity" className="w-full h-full object-cover" />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

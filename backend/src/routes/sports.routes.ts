@@ -185,9 +185,22 @@ router.get('/:studentId', async (req: Request, res: Response) => {
       orderBy: { updatedAt: 'desc' }
     });
 
-    const petEvents = await prisma.petSportsEvent.findMany({
+    const petEventsRaw = await prisma.petSportsEvent.findMany({
+      where: profile.student.schoolId ? {
+        OR: [
+          { schoolId: profile.student.schoolId },
+          { schoolId: null }
+        ]
+      } : undefined,
       orderBy: { date: 'desc' }
     });
+
+    // Check which events the student is registered for
+    const registeredTitles = new Set((profile.events || []).map(e => e.title.toLowerCase()));
+    const petEvents = petEventsRaw.map(ev => ({
+      ...ev,
+      isRegistered: registeredTitles.has(ev.name.toLowerCase())
+    }));
 
     const awards = await prisma.portfolioAchievement.findMany({
       where: { portfolio: { studentId } },
@@ -406,6 +419,71 @@ router.post('/profile/:studentId/events', async (req: Request, res: Response) =>
     res.json({ success: true, data: event });
   } catch (err) {
     console.error('Error scheduling sports event:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// 5.3 POST /api/sports/events/:eventId/register - Student registers for a PET sports event
+router.post('/events/:eventId/register', async (req: Request, res: Response) => {
+  try {
+    const { eventId } = req.params;
+    const { studentId } = req.body;
+
+    if (!studentId) {
+      return res.status(400).json({ success: false, error: 'studentId is required' });
+    }
+
+    const petEvent = await prisma.petSportsEvent.findUnique({ where: { id: eventId } });
+    if (!petEvent) {
+      return res.status(404).json({ success: false, error: 'Event not found' });
+    }
+
+    let resolvedStudentId = studentId;
+    let sportsProfile = await prisma.sportsProfile.findUnique({ where: { studentId: resolvedStudentId } });
+
+    if (!sportsProfile) {
+      const studentByUserId = await prisma.student.findFirst({
+        where: { userId: studentId }
+      });
+      if (studentByUserId) {
+        resolvedStudentId = studentByUserId.id;
+        sportsProfile = await prisma.sportsProfile.findUnique({ where: { studentId: resolvedStudentId } });
+      }
+    }
+
+    if (!sportsProfile) {
+      sportsProfile = await prisma.sportsProfile.create({ data: { studentId: resolvedStudentId } });
+    }
+
+    // Check if already registered
+    const existing = await prisma.sportsEvent.findFirst({
+      where: {
+        sportsProfileId: sportsProfile.id,
+        title: petEvent.name
+      }
+    });
+
+    if (!existing) {
+      await prisma.sportsEvent.create({
+        data: {
+          sportsProfileId: sportsProfile.id,
+          title: petEvent.name,
+          date: petEvent.date,
+          type: petEvent.kind,
+          icon: petEvent.kind === 'Competition' ? '🏆' : '⚽'
+        }
+      });
+
+      // Increment participants count on petSportsEvent
+      await prisma.petSportsEvent.update({
+        where: { id: eventId },
+        data: { participants: { increment: 1 } }
+      });
+    }
+
+    res.json({ success: true, message: 'Successfully registered for event', isRegistered: true });
+  } catch (err) {
+    console.error('Error registering for event:', err);
     res.status(500).json({ success: false, error: String(err) });
   }
 });

@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { useState, useEffect, useMemo } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
-import { FcDocument, FcDownload, FcClock, FcFilledFilter, FcGraduationCap, FcIdea } from "react-icons/fc";
+import { FcDocument, FcDownload, FcClock, FcFilledFilter, FcGraduationCap } from "react-icons/fc";
 import { motion, AnimatePresence } from "framer-motion";
 
 const getApiBase = () => {
@@ -29,17 +29,6 @@ const SUBJECT_COLORS: Record<string, string> = {
   "Social Science": "#8b5cf6",
 };
 
-// Sample library shown until teachers upload real papers.
-const FALLBACK_PAPERS = [
-  { _id: "f1", class: "10", subject: "Mathematics", year: "2024", paperType: "Board", title: "SSLC Mathematics Public Exam 2024", durationMinutes: 180, maxMarks: 100, downloads: 128 },
-  { _id: "f2", class: "10", subject: "Science", year: "2024", paperType: "Board", title: "SSLC Science Public Exam 2024", durationMinutes: 180, maxMarks: 100, downloads: 96 },
-  { _id: "f3", class: "10", subject: "Tamil", year: "2023", paperType: "Board", title: "SSLC Tamil Public Exam 2023", durationMinutes: 180, maxMarks: 100, downloads: 87 },
-  { _id: "f4", class: "10", subject: "English", year: "2023", paperType: "Board", title: "SSLC English Public Exam 2023", durationMinutes: 180, maxMarks: 100, downloads: 74 },
-  { _id: "f5", class: "10", subject: "Social Science", year: "2024", paperType: "Model", title: "PTA Model Paper — Social Science", durationMinutes: 180, maxMarks: 100, downloads: 51 },
-  { _id: "f6", class: "9", subject: "Mathematics", year: "2024", paperType: "Annual", title: "Class 9 Mathematics Annual Exam 2024", durationMinutes: 150, maxMarks: 100, downloads: 42 },
-  { _id: "f7", class: "9", subject: "Science", year: "2024", paperType: "Half-Yearly", title: "Class 9 Science Half-Yearly 2024", durationMinutes: 150, maxMarks: 100, downloads: 35 },
-];
-
 export default function QuestionPapersPage() {
   const { data: session } = useSession();
   const [student, setStudent] = useState<any>(null);
@@ -48,7 +37,6 @@ export default function QuestionPapersPage() {
   const [subjectFilter, setSubjectFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const [loading, setLoading] = useState(true);
-  const [usingFallback, setUsingFallback] = useState(false);
 
   useEffect(() => {
     fetch(`${API_BASE}/api/students`)
@@ -78,18 +66,16 @@ export default function QuestionPapersPage() {
     fetch(`${API_BASE}/api/sslc-prep/papers?${params.toString()}`)
       .then((res) => res.json())
       .then((json) => {
-        if (json.success && json.data.length > 0) {
+        if (json.success && Array.isArray(json.data)) {
           setPapers(json.data);
-          setUsingFallback(false);
         } else {
-          setPapers(FALLBACK_PAPERS.filter((p) => p.class === selectedGrade));
-          setUsingFallback(true);
+          setPapers([]);
         }
         setLoading(false);
       })
-      .catch(() => {
-        setPapers(FALLBACK_PAPERS.filter((p) => p.class === selectedGrade));
-        setUsingFallback(true);
+      .catch((err) => {
+        console.error("Failed to load question papers:", err);
+        setPapers([]);
         setLoading(false);
       });
   }, [student, selectedGrade]);
@@ -110,12 +96,10 @@ export default function QuestionPapersPage() {
   );
 
   const handleOpen = (paper: any) => {
-    if (!usingFallback) {
-      fetch(`${API_BASE}/api/sslc-prep/papers/${paper._id}/download`, { method: "POST" }).catch(() => {});
-      setPapers((prev) =>
-        prev.map((p) => (p._id === paper._id ? { ...p, downloads: (p.downloads || 0) + 1 } : p))
-      );
-    }
+    fetch(`${API_BASE}/api/sslc-prep/papers/${paper._id}/download`, { method: "POST" }).catch(() => {});
+    setPapers((prev) =>
+      prev.map((p) => (p._id === paper._id ? { ...p, downloads: (p.downloads || 0) + 1 } : p))
+    );
     if (paper.fileUrl) window.open(paper.fileUrl, "_blank");
   };
 
@@ -192,13 +176,6 @@ export default function QuestionPapersPage() {
           </div>
         </div>
       </motion.div>
-
-      {usingFallback && (
-        <div className="mb-6 text-xs text-amber-300/90 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 flex items-center gap-2">
-          <FcIdea className="w-5 h-5 shrink-0" />
-          Showing the sample paper library — papers uploaded by your teachers will appear here automatically.
-        </div>
-      )}
 
       {loading ? (
         <div className="flex items-center justify-center h-64">

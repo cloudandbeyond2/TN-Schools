@@ -530,7 +530,7 @@ function AssignmentDetail({
   const [loadingTips, setLoadingTips] = useState(false);
   const [answerText, setAnswerText] = useState("");
   const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [submitted, setSubmitted] = useState(assignment.status === "submitted" || assignment.status === "late_submission");
+  const [submitted, setSubmitted] = useState(assignment.status === "submitted" || assignment.status === "late_submission" || assignment.status === "graded");
   const [doubt, setDoubt] = useState("");
   const [doubtAnswer, setDoubtAnswer] = useState<string | null>(null);
   const [doubtLoading, setDoubtLoading] = useState(false);
@@ -547,7 +547,7 @@ function AssignmentDetail({
     } else {
       setFiles([]);
     }
-    setSubmitted(assignment.status === "submitted" || assignment.status === "late_submission");
+    setSubmitted(assignment.status === "submitted" || assignment.status === "late_submission" || assignment.status === "graded");
   }, [assignment]);
 
   const aiRef = useRef<HTMLDivElement>(null);
@@ -727,7 +727,7 @@ function AssignmentDetail({
               <span className="text-lg">🍎</span> Teacher Evaluation & Feedback
             </h3>
             
-            {assignment.status !== "not_submitted" ? (
+            {submitted ? (
               <div className="mt-4 space-y-4">
                 <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.05]">
                   <div>

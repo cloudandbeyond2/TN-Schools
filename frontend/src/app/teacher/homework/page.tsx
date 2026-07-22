@@ -311,7 +311,7 @@ export default function HomeworkPage() {
     }
   };
 
-  const handleViewAnswer = (sub: Submission) => {
+  const handleViewAnswer = async (sub: Submission) => {
     let displayText = sub.answerText || "No written response provided.";
     let filesHTML = "";
 
@@ -327,7 +327,7 @@ export default function HomeworkPage() {
                 <ul style="list-style: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
                   ${parsed.files.map((file: any) => `
                     <li style="display: flex; align-items: center; gap: 8px; font-size: 13px; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; border: 1px dashed #cbd5e1;">
-                      <span style="font-size: 16px;">${file.kind === 'pdf' ? '' : ''}</span>
+                      <span style="font-size: 16px;">${file.kind === 'pdf' ? '📄' : '🖼️'}</span>
                       <a href="${file.url}" target="_blank" rel="noopener noreferrer" style="text-decoration: underline; color: #0d9488; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                         ${file.name}
                       </a>
@@ -344,22 +344,76 @@ export default function HomeworkPage() {
       }
     }
 
-    Swal.fire({
+    const { value: formValues, isConfirmed } = await Swal.fire({
       title: `${sub.name}'s Submission`,
+      width: '600px',
       html: `
         <div style="text-align: left; padding: 10px;">
-          <p style="margin-bottom: 8px;"><strong>Turned In:</strong> ${sub.date}</p>
-          <p style="margin-bottom: 12px;"><strong>Score:</strong> ${sub.score}</p>
-          <p style="margin-bottom: 8px; font-weight: bold; font-size: 14px; color: #1e293b;">Your notes:</p>
+          <p style="margin-bottom: 12px;"><strong>Turned In:</strong> ${sub.date}</p>
+          <div style="margin-bottom: 8px; font-weight: bold; font-size: 14px; color: #1e293b;">Student's Notes:</div>
           <div style="padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-family: sans-serif; white-space: pre-wrap; color: #1e293b; max-height: 250px; overflow-y: auto; font-size: 13.5px; line-height: 1.5;">
             ${displayText}
           </div>
           ${filesHTML}
+          
+          <hr style="margin: 24px 0; border: none; border-top: 1px solid #e2e8f0;" />
+          
+          <h4 style="margin-bottom: 15px; font-size: 16px; font-weight: bold; color: #0d9488;">Teacher Evaluation</h4>
+          
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #475569;">Score (e.g. 9/10)</label>
+          <input id="swal-score" class="swal2-input" style="width: 100%; box-sizing: border-box; margin: 0 0 15px 0; font-size: 14px; padding: 8px;" placeholder="e.g. 9/10" value="${sub.score && sub.score !== '—' ? sub.score : ''}">
+          
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #475569;">Feedback / Remarks</label>
+          <textarea id="swal-feedback" class="swal2-textarea" style="width: 100%; box-sizing: border-box; margin: 0; font-size: 14px; height: 80px;" placeholder="Great analysis! Keep it up.">${sub.feedback || ''}</textarea>
         </div>
       `,
-      confirmButtonText: "Close",
-      confirmButtonColor: "#f59e0b",
+      showCancelButton: true,
+      cancelButtonText: "Close",
+      confirmButtonText: "Save Grade",
+      confirmButtonColor: "#0d9488",
+      preConfirm: () => {
+        const scoreVal = (document.getElementById('swal-score') as HTMLInputElement).value;
+        const feedbackVal = (document.getElementById('swal-feedback') as HTMLTextAreaElement).value;
+        if (!scoreVal.trim()) {
+          Swal.showValidationMessage('Please assign a score before saving.');
+          return false;
+        }
+        return { score: scoreVal, feedback: feedbackVal };
+      }
     });
+
+    if (isConfirmed && formValues) {
+      try {
+        const res = await fetch(`${API_URL}/api/teacher/homework/submissions/${sub.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            score: formValues.score,
+            feedback: formValues.feedback,
+            status: "graded",
+          }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          setSubmissions(
+            submissions.map((s) => (s.id === sub.id ? result.data : s))
+          );
+          fetchHomework();
+          Swal.fire({
+            icon: "success",
+            title: "Graded!",
+            text: `Score saved for ${sub.name}.`,
+            timer: 2000,
+            showConfirmButton: false,
+          });
+        } else {
+          Swal.fire("Error", result.error || "Failed to submit score.", "error");
+        }
+      } catch (err) {
+        console.error("Error grading submission:", err);
+        Swal.fire("Error", "An unexpected error occurred.", "error");
+      }
+    }
   };
 
   const triggerAIRecipes = async () => {

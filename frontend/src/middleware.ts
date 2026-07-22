@@ -47,6 +47,12 @@ export async function middleware(req: NextRequest) {
   }
 
   const role = String((token as any).role || "");
+  if (pathname.startsWith("/student/portfolio")) {
+    if (["STUDENT", "TEACHER", "HEADMASTER", "SUPERADMIN"].includes(role)) {
+      return NextResponse.next();
+    }
+  }
+
   if (role === "SUPERADMIN" || portal[1].includes(role)) {
     return NextResponse.next();
   }
