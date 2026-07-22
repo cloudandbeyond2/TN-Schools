@@ -6,7 +6,8 @@ import { useSession } from "next-auth/react";
 import { 
   Trophy, Activity, Award, Calendar, Heart, 
   MapPin, Clock, Target,
-  Users, ChevronRight, AlertTriangle, ChevronLeft, Shield
+  Users, ChevronRight, AlertTriangle, ChevronLeft, Shield,
+  Search, CheckCircle, X, Info
 } from "lucide-react";
 import { petLoad, AWARDS_KEY, DEFAULT_AWARDS } from "@/lib/petData";
 
@@ -39,8 +40,14 @@ export default function StudentSportsPortal() {
   // Filters & Pagination for Events
   const [eventFilter, setEventFilter] = useState("All");
   const [eventKindFilter, setEventKindFilter] = useState("All");
+  const [eventLevelFilter, setEventLevelFilter] = useState("All");
+  const [eventSearchQuery, setEventSearchQuery] = useState("");
   const [eventPage, setEventPage] = useState(1);
   const eventsPerPage = 5;
+
+  // Selected Event Modal & Registering Loading State
+  const [selectedEventModal, setSelectedEventModal] = useState<any | null>(null);
+  const [registeringId, setRegisteringId] = useState<string | null>(null);
 
   // Filters & Pagination for Awards
   const [awardPage, setAwardPage] = useState(1);
@@ -76,6 +83,42 @@ export default function StudentSportsPortal() {
     fetchSportsData();
   }, [session, status]);
 
+  async function handleRegisterEvent(eventId: string) {
+    if (!data || registeringId) return;
+    try {
+      setRegisteringId(eventId);
+      const res = await fetch(`${API_BASE}/api/sports/events/${eventId}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId: data.studentId })
+      });
+      const json = await res.json();
+      if (json.success) {
+        // Dynamically update state
+        setData(prev => {
+          if (!prev || !prev.petEvents) return prev;
+          return {
+            ...prev,
+            petEvents: prev.petEvents.map(e => 
+              e.id === eventId ? { ...e, isRegistered: true, participants: (e.participants || 0) + 1 } : e
+            )
+          };
+        });
+        if (selectedEventModal && selectedEventModal.id === eventId) {
+          setSelectedEventModal((prev: any) => ({
+            ...prev,
+            isRegistered: true,
+            participants: (prev.participants || 0) + 1
+          }));
+        }
+      }
+    } catch (err) {
+      console.error("Failed to register for event:", err);
+    } finally {
+      setRegisteringId(null);
+    }
+  }
+
   const filteredEvents = useMemo(() => {
     if (!data?.petEvents) return [];
     let list = data.petEvents;
@@ -86,13 +129,35 @@ export default function StudentSportsPortal() {
     if (eventKindFilter !== "All") {
       list = list.filter((e: any) => e.kind === eventKindFilter);
     }
+    if (eventLevelFilter !== "All") {
+      list = list.filter((e: any) => e.level === eventLevelFilter);
+    }
+    if (eventSearchQuery.trim() !== "") {
+      const q = eventSearchQuery.toLowerCase();
+      list = list.filter((e: any) => 
+        (e.name && e.name.toLowerCase().includes(q)) ||
+        (e.sport && e.sport.toLowerCase().includes(q)) ||
+        (e.venue && e.venue.toLowerCase().includes(q))
+      );
+    }
     return list;
-  }, [data?.petEvents, eventFilter, eventKindFilter]);
+  }, [data?.petEvents, eventFilter, eventKindFilter, eventLevelFilter, eventSearchQuery]);
 
   const paginatedEvents = useMemo(() => {
     const start = (eventPage - 1) * eventsPerPage;
     return filteredEvents.slice(start, start + eventsPerPage);
   }, [filteredEvents, eventPage]);
+
+  // Event KPI statistics based strictly on backend dynamic data
+  const eventStats = useMemo(() => {
+    const eventsList = data?.petEvents || [];
+    return {
+      total: eventsList.length,
+      upcoming: eventsList.filter((e: any) => e.status === "Upcoming").length,
+      registered: eventsList.filter((e: any) => e.isRegistered).length,
+      completed: eventsList.filter((e: any) => e.status === "Completed" && e.result).length
+    };
+  }, [data?.petEvents]);
 
   const paginatedAwards = useMemo(() => {
     if (!awardsPageData) return [];
@@ -226,72 +291,183 @@ export default function StudentSportsPortal() {
         {/* TAB 2: EVENTS & COMPETITIONS */}
         {activeTab === "events" && (
           <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-                <Calendar className="text-blue-500" /> Events & Competitions
-              </h2>
-              
-              {/* Filters */}
-              <div className="flex gap-2">
+            {/* KPI Cards for Events */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center shrink-0">
+                  <Calendar size={20} />
+                </div>
+                <div>
+                  <div className="text-xl font-black text-slate-800 dark:text-white">{eventStats.total}</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Events</div>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-500 flex items-center justify-center shrink-0">
+                  <Clock size={20} />
+                </div>
+                <div>
+                  <div className="text-xl font-black text-slate-800 dark:text-white">{eventStats.upcoming}</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Upcoming</div>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center shrink-0">
+                  <CheckCircle size={20} />
+                </div>
+                <div>
+                  <div className="text-xl font-black text-slate-800 dark:text-white">{eventStats.registered}</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">My Registrations</div>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-500 flex items-center justify-center shrink-0">
+                  <Trophy size={20} />
+                </div>
+                <div>
+                  <div className="text-xl font-black text-slate-800 dark:text-white">{eventStats.completed}</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Completed & Medals</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter and Search Bar */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+              <div className="relative flex-1">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search events by name, sport, venue..."
+                  value={eventSearchQuery}
+                  onChange={(e) => { setEventSearchQuery(e.target.value); setEventPage(1); }}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
                 <select 
                   value={eventKindFilter} 
                   onChange={(e) => { setEventKindFilter(e.target.value); setEventPage(1); }}
-                  className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
+                  className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
                 >
                   <option value="All">All Types</option>
                   <option value="Event">Events</option>
                   <option value="Competition">Competitions</option>
                 </select>
+
+                <select 
+                  value={eventLevelFilter} 
+                  onChange={(e) => { setEventLevelFilter(e.target.value); setEventPage(1); }}
+                  className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
+                >
+                  <option value="All">All Levels</option>
+                  <option value="Intra-School">Intra-School</option>
+                  <option value="Inter-School">Inter-School</option>
+                  <option value="District">District</option>
+                  <option value="State">State</option>
+                  <option value="National">National</option>
+                </select>
+
                 <select 
                   value={eventFilter} 
                   onChange={(e) => { setEventFilter(e.target.value); setEventPage(1); }}
-                  className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
+                  className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
                 >
                   <option value="All">All Status</option>
                   <option value="Upcoming">Upcoming</option>
+                  <option value="Ongoing">Ongoing</option>
                   <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
                 </select>
               </div>
             </div>
 
+            {/* Events List */}
             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
               <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
                 {paginatedEvents.map(ev => (
                   <div key={ev.id} className="p-5 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center shrink-0">
-                      <Trophy size={20} />
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                      ev.kind === "Competition" 
+                        ? "bg-amber-50 dark:bg-amber-900/20 text-amber-500" 
+                        : "bg-blue-50 dark:bg-blue-900/20 text-blue-500"
+                    }`}>
+                      {ev.kind === "Competition" ? <Trophy size={20} /> : <Calendar size={20} />}
                     </div>
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <h4 className="font-extrabold text-slate-800 dark:text-white truncate">{ev.name}</h4>
+                        <h4 className="font-extrabold text-slate-800 dark:text-white text-base truncate">{ev.name}</h4>
+                        
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
-                          ev.status === "Completed" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                          ev.status === "Completed" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                          ev.status === "Ongoing" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" :
+                          ev.status === "Cancelled" ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" :
+                          "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                         }`}>
                           {ev.status}
                         </span>
+
                         <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
                           {ev.level}
                         </span>
+
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-cyan-50 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400">
+                          {ev.kind}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-4 text-xs font-semibold text-slate-500">
+
+                      <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 flex-wrap">
                         <span className="flex items-center gap-1"><MapPin size={12} /> {ev.venue}</span>
                         <span className="flex items-center gap-1"><Clock size={12} /> {ev.date}</span>
                         <span className="flex items-center gap-1"><Target size={12} /> {ev.sport}</span>
+                        <span className="flex items-center gap-1"><Users size={12} /> {ev.participants || 0} participants</span>
                       </div>
                     </div>
+
                     {ev.result && (
                       <div className="shrink-0 px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/50 rounded-lg text-xs font-bold text-yellow-700 dark:text-yellow-500 flex items-center gap-1.5">
                         <Award size={14} />
                         {ev.result}
                       </div>
                     )}
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => setSelectedEventModal(ev)}
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1"
+                      >
+                        <Info size={14} /> Details
+                      </button>
+
+                      {(ev.status === "Upcoming" || ev.status === "Ongoing") && (
+                        ev.isRegistered ? (
+                          <span className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-bold flex items-center gap-1">
+                            <CheckCircle size={14} /> Registered
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleRegisterEvent(ev.id)}
+                            disabled={registeringId === ev.id}
+                            className="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-extrabold shadow-sm transition-all disabled:opacity-50"
+                          >
+                            {registeringId === ev.id ? "Registering..." : "Register Now"}
+                          </button>
+                        )
+                      )}
+                    </div>
                   </div>
                 ))}
                 
                 {filteredEvents.length === 0 && (
                   <div className="p-12 text-center">
-                    <Calendar size={32} className="mx-auto text-slate-300 mb-3" />
-                    <p className="text-slate-500 font-bold">No events found.</p>
+                    <Calendar size={36} className="mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+                    <h3 className="font-extrabold text-slate-700 dark:text-slate-300 text-base">No Events & Competitions Found</h3>
+                    <p className="text-slate-400 text-xs mt-1">No events recorded in database matching the current filter criteria.</p>
                   </div>
                 )}
               </div>
@@ -402,6 +578,117 @@ export default function StudentSportsPortal() {
         )}
 
       </div>
+
+      {/* Event Details Modal */}
+      {selectedEventModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden p-6 space-y-5">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                  selectedEventModal.kind === "Competition" 
+                    ? "bg-amber-50 dark:bg-amber-900/20 text-amber-500" 
+                    : "bg-blue-50 dark:bg-blue-900/20 text-blue-500"
+                }`}>
+                  {selectedEventModal.kind === "Competition" ? <Trophy size={22} /> : <Calendar size={22} />}
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white leading-snug">{selectedEventModal.name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded text-[10px] font-bold uppercase">
+                      {selectedEventModal.kind}
+                    </span>
+                    <span className="px-2 py-0.5 bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded text-[10px] font-bold uppercase">
+                      {selectedEventModal.level}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedEventModal(null)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Event Specs Grid */}
+            <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+              <div>
+                <span className="text-slate-400 font-semibold block text-[10px] uppercase">Sport Category</span>
+                <span className="font-extrabold text-slate-800 dark:text-white">{selectedEventModal.sport}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 font-semibold block text-[10px] uppercase">Scheduled Date</span>
+                <span className="font-extrabold text-slate-800 dark:text-white">{selectedEventModal.date}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 font-semibold block text-[10px] uppercase">Venue Location</span>
+                <span className="font-extrabold text-slate-800 dark:text-white">{selectedEventModal.venue}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 font-semibold block text-[10px] uppercase">Total Participants</span>
+                <span className="font-extrabold text-slate-800 dark:text-white">{selectedEventModal.participants || 0} Students</span>
+              </div>
+              {selectedEventModal.targetClasses && (
+                <div>
+                  <span className="text-slate-400 font-semibold block text-[10px] uppercase">Target Classes</span>
+                  <span className="font-extrabold text-slate-800 dark:text-white">{selectedEventModal.targetClasses}</span>
+                </div>
+              )}
+              {selectedEventModal.ageGroup && (
+                <div>
+                  <span className="text-slate-400 font-semibold block text-[10px] uppercase">Age Category</span>
+                  <span className="font-extrabold text-slate-800 dark:text-white">{selectedEventModal.ageGroup}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Coach Notes */}
+            {selectedEventModal.notes && (
+              <div className="p-3.5 bg-blue-50/60 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl text-xs">
+                <span className="font-bold text-blue-700 dark:text-blue-400 block mb-0.5">PET Coach Instructions:</span>
+                <p className="text-slate-600 dark:text-slate-300 font-medium">{selectedEventModal.notes}</p>
+              </div>
+            )}
+
+            {/* Results */}
+            {selectedEventModal.result && (
+              <div className="p-3.5 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/50 rounded-2xl text-xs flex items-center gap-2 text-yellow-800 dark:text-yellow-400 font-bold">
+                <Award size={18} />
+                <span>Result: {selectedEventModal.result}</span>
+              </div>
+            )}
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={() => setSelectedEventModal(null)}
+                className="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-extrabold transition-colors"
+              >
+                Close
+              </button>
+
+              {(selectedEventModal.status === "Upcoming" || selectedEventModal.status === "Ongoing") && (
+                selectedEventModal.isRegistered ? (
+                  <span className="px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-bold flex items-center gap-1.5">
+                    <CheckCircle size={14} /> Registered for Event
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => handleRegisterEvent(selectedEventModal.id)}
+                    disabled={registeringId === selectedEventModal.id}
+                    className="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-extrabold shadow-md transition-all disabled:opacity-50"
+                  >
+                    {registeringId === selectedEventModal.id ? "Registering..." : "Register Now"}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </PortalLayout>
   );
 }
