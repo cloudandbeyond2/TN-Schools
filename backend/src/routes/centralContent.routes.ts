@@ -897,12 +897,14 @@ router.delete('/subjects/:id', async (req: Request, res: Response) => {
 router.put('/units/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, unitNumber } = req.body;
+    const { name, unitNumber, isApproved, isAiMapped } = req.body;
     const unit = await prisma.centralUnit.update({
       where: { id },
       data: {
         name,
-        unitNumber: unitNumber !== undefined ? Number(unitNumber) : undefined
+        unitNumber: unitNumber !== undefined ? Number(unitNumber) : undefined,
+        isApproved: isApproved !== undefined ? Boolean(isApproved) : undefined,
+        isAiMapped: isAiMapped !== undefined ? Boolean(isAiMapped) : undefined
       }
     });
     res.json({ success: true, data: unit });
