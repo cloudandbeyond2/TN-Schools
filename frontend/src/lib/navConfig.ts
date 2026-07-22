@@ -219,8 +219,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
       { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
-      // ── Exams & Assessments ───────────────────────────
-      { label: "---", href: "#", icon: "" },
+
       { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Board Prep", href: "/student/high-school/board-prep", icon: "Target" },
