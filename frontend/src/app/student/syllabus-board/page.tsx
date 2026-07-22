@@ -53,15 +53,20 @@ export default function StudentSyllabusBoardPage() {
   const [loadingUnits, setLoadingUnits] = useState<boolean>(false);
 
   useEffect(() => {
+    if (status === "loading") return;
     if (status === "authenticated" && session?.user) {
       const userClass = (session?.user as any)?.class;
       if (userClass) {
-        setSelectedClass(String(userClass));
-      } else {
-        setSelectedClass("8");
+        const num = String(userClass).match(/\d+/)?.[0] || String(userClass);
+        setSelectedClass(num);
+        return;
       }
     }
-  }, [session, status]);
+    // Fallback if not authenticated or class is missing
+    if (!selectedClass) {
+      setSelectedClass("10"); // default to 10
+    }
+  }, [session, status, selectedClass]);
 
   useEffect(() => {
     if (!selectedClass) return;
@@ -103,7 +108,7 @@ export default function StudentSyllabusBoardPage() {
     setLoadingUnits(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/centralized-content/subjects/${sub.id}/units?approvedOnly=true`);
+      const res = await fetch(`${API_URL}/api/centralized-content/subjects/${sub.id}/units`);
       const json = await res.json();
       if (!json.success) return;
 
@@ -136,7 +141,7 @@ export default function StudentSyllabusBoardPage() {
   return (
     <PortalLayout
       title="Class Syllabus Board"
-      subtitle="Unit-by-unit visual summaries your teacher has published for your class."
+      subtitle="Unit-by-unit visual summaries published for your class standard."
       avatarLetter="A"
       avatarColor="#6366f1"
       themeClass="theme-student"
@@ -145,11 +150,13 @@ export default function StudentSyllabusBoardPage() {
       <div className="flex items-center justify-between gap-4 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
         <div>
           <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1">Syllabus Board</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Only units your teacher has published appear here.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">All centralized units published for your curriculum standard.</p>
         </div>
-        <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm">
-          Class {selectedClass}th Standard
-        </span>
+        {selectedClass && (
+          <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+            Class {selectedClass}th Standard
+          </span>
+        )}
       </div>
 
       {loadingSubjects ? (
@@ -193,8 +200,8 @@ export default function StudentSyllabusBoardPage() {
           ) : unitCards.length === 0 ? (
             <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
               <span className="text-5xl block mb-4">🕓</span>
-              <p className="text-lg font-bold text-slate-700 dark:text-slate-300">Your teacher hasn&apos;t published any units yet.</p>
-              <p className="text-xs text-slate-500 mt-2">Check back once your teacher shares this subject&apos;s syllabus board.</p>
+              <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No units have been published yet for this subject.</p>
+              <p className="text-xs text-slate-500 mt-2">Check back once the syllabus board is updated.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">

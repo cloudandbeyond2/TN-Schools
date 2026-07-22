@@ -43,17 +43,20 @@ export default function StudentSyllabusPage() {
 
   // Determine student class from session, default to "10"
   useEffect(() => {
+    if (status === "loading") return;
     if (status === "authenticated" && session?.user) {
       const userClass = (session?.user as any)?.class;
       if (userClass) {
-        setStudentClass(String(userClass));
-      } else {
-        setStudentClass("10"); // Fallback standard
+        const num = String(userClass).match(/\d+/)?.[0] || String(userClass);
+        setStudentClass(num);
+        return;
       }
-    } else if (status === "unauthenticated") {
+    }
+    // Fallback if not authenticated or class is missing
+    if (!studentClass) {
       setStudentClass("10"); // Fallback standard
     }
-  }, [session, status]);
+  }, [session, status, studentClass]);
 
   // Fetch subjects when studentClass is set
   useEffect(() => {
@@ -129,15 +132,17 @@ export default function StudentSyllabusPage() {
       <div className="flex items-center justify-between gap-4 mb-6 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
         <div>
           <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1">
-            📖 My Class Syllabus
+            📖 Class Syllabus
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Browse chapters, topics, and lessons assigned to your standard.
           </p>
         </div>
-        <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm">
-          Class {studentClass}th Standard
-        </span>
+        {studentClass && (
+          <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+            Class {studentClass}th Standard
+          </span>
+        )}
       </div>
 
       {/* Main Grid Layout */}
@@ -193,7 +198,7 @@ export default function StudentSyllabusPage() {
                     {selectedSubject.icon || "📚"} {selectedSubject.name} — Class {studentClass}
                   </h3>
                   <p className="text-[10px] text-slate-500 mt-0.5">
-                    {units.length} units listed · {units.filter((u) => u.isApproved).length} approved
+                    {units.length} units listed
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -223,8 +228,7 @@ export default function StudentSyllabusPage() {
                       <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider text-slate-400 font-bold">
                         <th className="py-3 px-4 w-16">No</th>
                         <th className="py-3 px-4">Chapter / Unit Title</th>
-                        <th className="py-3 px-4 w-28">Topics</th>
-                        <th className="py-3 px-4 w-28 text-right">Status</th>
+                        <th className="py-3 px-4 w-28 text-right">Topics</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-850">
@@ -247,26 +251,15 @@ export default function StudentSyllabusPage() {
                                   {u.name}
                                 </span>
                               </td>
-                              <td className="py-4 px-4 text-xs text-slate-400 font-medium">
+                              <td className="py-4 px-4 text-right text-xs text-slate-400 font-medium">
                                 {realLessons.length} topic{realLessons.length !== 1 ? "s" : ""}
-                              </td>
-                              <td className="py-4 px-4 text-right">
-                                <span
-                                  className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
-                                    u.isApproved
-                                      ? "text-emerald-600 bg-emerald-500/10 border-emerald-500/20 dark:text-emerald-400"
-                                      : "text-amber-600 bg-amber-500/10 border-amber-500/20 dark:text-amber-400"
-                                  }`}
-                                >
-                                  {u.isApproved ? "Published" : "Draft"}
-                                </span>
                               </td>
                             </tr>
 
                             {/* Subtopics Nested View */}
                             {isExpanded && (
                               <tr>
-                                <td colSpan={4} className="bg-slate-50/50 dark:bg-slate-950/30 p-4 border-b border-slate-200 dark:border-slate-800">
+                                <td colSpan={3} className="bg-slate-50/50 dark:bg-slate-950/30 p-4 border-b border-slate-200 dark:border-slate-800">
                                   <div className="pl-6 space-y-3">
                                     <h4 className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest flex items-center gap-1.5">
                                       <span>📚</span> Lessons & Subtopics inside Unit {u.unitNumber}
