@@ -21,6 +21,11 @@ export interface KpiData {
   dropouts: { transferred: number };
   teachers: { total: number };
   totalSchools?: number;
+  sports?: {
+    totalAthletes: number;
+    stateReps: number;
+    districtMedals: number;
+  };
   bySchool?: Array<{
     schoolId: string;
     name: string;

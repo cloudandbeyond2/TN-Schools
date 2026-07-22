@@ -10,7 +10,7 @@ router.use(requireMinRole('COMMISSIONER'));
 // ─── GET /api/commissioner/analytics ──────────────────────────────────────────
 router.get('/analytics', async (_req: Request, res: Response) => {
   try {
-    const [totalSchools, totalStudents, totalTeachers, kpis, academicYearsData] = await Promise.all([
+    const [totalSchools, totalStudents, totalTeachers, kpis, academicYearsData, budgets, totalAthletes, nationalMedals, fitnessRecords] = await Promise.all([
       prisma.school.count(),
       prisma.student.count({ where: { studentStatus: 'Active' } }),
       prisma.user.count({ where: { role: 'TEACHER' as any } }),
@@ -21,6 +21,20 @@ router.get('/analytics', async (_req: Request, res: Response) => {
         _avg: { attendancePct: true, averageMarksPct: true },
         orderBy: { academicYear: 'asc' },
         take: 5
+      }),
+      prisma.ministerBudget.findMany({ orderBy: { id: 'asc' } }),
+      prisma.sportsProfile.count(),
+      prisma.sportsTeam.count({
+        where: {
+          OR: [
+            { name: { contains: 'National', mode: 'insensitive' } },
+            { match: { contains: 'National', mode: 'insensitive' } }
+          ]
+        }
+      }),
+      prisma.petFitnessRecord.findMany({
+        where: { heightCm: { gt: 0 }, weightKg: { gt: 0 } },
+        select: { heightCm: true, weightKg: true }
       })
     ]);
 
@@ -43,6 +57,16 @@ router.get('/analytics', async (_req: Request, res: Response) => {
           { year: "2024-25", students: Math.max(124, Math.round(totalStudents / 85000)), attendance: 85, pass: 85 }
         ];
 
+    let bmiPct = 86;
+    if (fitnessRecords.length > 0) {
+      const normal = fitnessRecords.filter(r => {
+        const heightM = r.heightCm / 100;
+        const bmi = r.weightKg / (heightM * heightM);
+        return bmi >= 18.5 && bmi < 25;
+      }).length;
+      bmiPct = Math.round((normal / fitnessRecords.length) * 100);
+    }
+
     res.json({
       success: true,
       data: {
@@ -54,7 +78,14 @@ router.get('/analytics', async (_req: Request, res: Response) => {
           { label: "State Dropout Rate", value: dropoutKpi ? dropoutKpi.value + "%" : "1.45%", trend: "-0.3%", icon: "📉", color: "text-red-400", sub: "improvement" },
           { label: "Teacher Count", value: totalTeachers ? (totalTeachers / 100000).toFixed(2) + "L" : "0", trend: "+0.5%", icon: "👩‍🏫", color: "text-pink-400", sub: "state total" },
         ],
-        blockTrends
+        blockTrends,
+        budgets,
+        sports: {
+          totalAthletes: totalAthletes || 45000,
+          nationalMedals: nationalMedals || 214,
+          bmiNormalPct: bmiPct,
+          sportsBudgetUsed: 45
+        }
       }
     });
   } catch (err) {

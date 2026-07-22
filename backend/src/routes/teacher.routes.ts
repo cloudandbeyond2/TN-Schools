@@ -3,6 +3,8 @@ import { prisma } from '../config/prisma';
 import { resolveUserId } from '../config/userResolver';
 import fs from 'fs';
 import path from 'path';
+import https from 'https';
+import { getGeminiApiKey } from '../services/aiConfig.service';
 import { sendMockSMS, getStudentParents } from '../utils/sms';
 
 const router = Router();
@@ -1534,4 +1536,521 @@ router.delete('/maths-formulas/:id', async (req: Request, res: Response) => {
   }
 });
 
+// =========================================================================
+// Science Fact Management (Teacher & Student Shared)
+// =========================================================================
+
+const SCIENCE_FACT_FILE = path.join(__dirname, '../../data/science_fact_today.json');
+
+const DEFAULT_SCIENCE_FACTS = [
+  {
+    id: "fact-sound-water",
+    title: "Sound Travels Four Times Faster In Water",
+    category: "Physics & Waves",
+    targetClass: "Class 7-B",
+    generatedAt: new Date().toISOString(),
+    generatedBy: "Mrs. Sumathi Devi (Science Teacher)",
+    scienceFact: "Have you ever tried calling out to a friend across a swimming pool versus shouting through the air? In air, sound moves fast, but in water, it travels nearly four times faster. When you speak in air, sound waves bump into gas molecules, which are spread far apart. Water is a liquid, so its molecules are packed much closer together. Because of this tight packing, water molecules quickly pass energy to their neighbors like a game of tag. This allows sound to zoom through oceans and lakes at incredible speeds, which is why whales can communicate across hundreds of miles underwater.",
+    whyItHappens: "Sound is a wave of energy that relies on particles to travel from one point to another. Since particles in liquids like water are much closer together than in gases like air, sound energy transfers from one particle to the next much more quickly. Therefore, materials with closely packed molecules allow sound waves to travel at significantly higher speeds.",
+    didYouKnow: "In solid materials like iron or steel, where molecules are packed even tighter than in water, sound travels nearly fifteen times faster than it does in open air!",
+    tryItSteps: [
+      "Tap two plastic spoons together in open air and listen carefully to the loudness of the sound.",
+      "Next, fill a large bowl with clean tap water.",
+      "Place your ear gently against the outside wall of the bowl, submerge the two spoons completely in the water, and tap them together again.",
+      "Notice how much louder, sharper, and clearer the tapping sound feels when it travels through the water and the container wall compared to open air."
+    ],
+    thinkAboutIt: "If sound travels so well through water, how do you think marine animals like dolphins use sound to explore their environment and locate objects in dark ocean waters?",
+    thinkHint: "Dolphins send out high-pitched clicking sounds that bounce off fish and rocks. Because sound moves fast in water, the echo returns quickly, giving them a clear 'sound map' of their surroundings!",
+    quiz: [
+      {
+        id: 1,
+        question: "How much faster does sound travel in water compared to air?",
+        options: [
+          { key: "A", text: "Two times faster" },
+          { key: "B", text: "Four times faster" },
+          { key: "C", text: "Ten times faster" },
+          { key: "D", text: "It travels at the exact same speed" }
+        ],
+        correct: "B",
+        explanation: "Sound travels nearly four times faster through liquid water than through gas in the air."
+      },
+      {
+        id: 2,
+        question: "Why does sound travel faster through water than through air?",
+        options: [
+          { key: "A", text: "Water is colder than air" },
+          { key: "B", text: "Water molecules are packed closer together than air molecules" },
+          { key: "C", text: "Air molecules are heavier than water molecules" },
+          { key: "D", text: "Water eliminates gravity" }
+        ],
+        correct: "B",
+        explanation: "The denser packing of liquid molecules allows mechanical energy to transfer faster between neighboring particles."
+      },
+      {
+        id: 3,
+        question: "In which of the following states of matter does sound travel the fastest?",
+        options: [
+          { key: "A", text: "Gas" },
+          { key: "B", text: "Liquid" },
+          { key: "C", text: "Solid" },
+          { key: "D", text: "Vacuum" }
+        ],
+        correct: "C",
+        explanation: "Solids have the most tightly packed particles, allowing sound waves to travel fastest of all."
+      }
+    ]
+  },
+  {
+    id: "fact-venus-heat",
+    title: "Venus Is Hotter Than Mercury Despite Being Further",
+    category: "Space & Astronomy",
+    targetClass: "Class 7-B",
+    generatedAt: new Date().toISOString(),
+    generatedBy: "Mrs. Sumathi Devi (Science Teacher)",
+    scienceFact: "Mercury is the closest planet to the Sun, so you might think it would be the hottest planet in our solar system. However, Venus takes the crown as the hottest planet, even though it is twice as far from the Sun! This happens because Mercury has almost no atmosphere to trap heat, meaning its night side freezes while its day side bakes. Venus, on the other hand, is wrapped in a thick blanket of clouds made of carbon dioxide. This thick atmosphere traps solar heat just like a car with closed windows on a sunny summer day.",
+    whyItHappens: "The thick layer of carbon dioxide surrounding Venus causes an extreme greenhouse effect. Heat from the Sun passes through the upper cloud layer but gets trapped underneath, unable to escape back into space. This continuous heat trapping creates scorching surface temperatures of nearly 465 degrees Celsius both day and night.",
+    didYouKnow: "A single day on Venus is longer than a year on Venus because the planet rotates extremely slowly on its axis while orbiting the Sun!",
+    tryItSteps: [
+      "Place two identical small cups of room-temperature water on a sunny windowsill.",
+      "Cover one cup tightly with clear plastic wrap or a transparent glass jar, and leave the second cup uncovered in open air.",
+      "Wait 20 minutes, then dip your fingertip into both cups to compare their temperatures.",
+      "Notice how the covered cup becomes significantly warmer because trapped air cannot carry the heat away, mimicking a planetary greenhouse effect."
+    ],
+    thinkAboutIt: "How does understanding the atmospheric heat trapping on Venus help scientists protect Earth's climate and environment?",
+    thinkHint: "Studying Venus teaches scientists how greenhouse gases trap thermal energy in an atmosphere, highlighting why keeping Earth's atmospheric gases balanced is vital for life!",
+    quiz: [
+      {
+        id: 1,
+        question: "Which planet is the hottest in our solar system?",
+        options: [
+          { key: "A", text: "Mercury" },
+          { key: "B", text: "Venus" },
+          { key: "C", text: "Mars" },
+          { key: "D", text: "Jupiter" }
+        ],
+        correct: "B",
+        explanation: "Venus is the hottest planet in our solar system with surface temperatures around 465 degrees Celsius."
+      },
+      {
+        id: 2,
+        question: "Why is Venus hotter than Mercury despite being further from the Sun?",
+        options: [
+          { key: "A", text: "Venus is closer to the Earth" },
+          { key: "B", text: "Venus has a thick atmosphere that traps heat like a blanket" },
+          { key: "C", text: "Mercury is made entirely of ice" },
+          { key: "D", text: "Venus generates its own light" }
+        ],
+        correct: "B",
+        explanation: "Venus has a dense atmosphere rich in carbon dioxide that creates a powerful heat-trapping greenhouse effect."
+      },
+      {
+        id: 3,
+        question: "What is the process called when an atmosphere traps solar thermal energy?",
+        options: [
+          { key: "A", text: "The greenhouse effect" },
+          { key: "B", text: "Photosynthesis" },
+          { key: "C", text: "Evaporation" },
+          { key: "D", text: "Condensation" }
+        ],
+        correct: "A",
+        explanation: "The greenhouse effect occurs when atmospheric gases trap heat from solar radiation."
+      }
+    ]
+  },
+  {
+    id: "fact-ice-floats",
+    title: "Ice Floats Because Water Expands When It Freezes",
+    category: "Chemistry & States of Matter",
+    targetClass: "Class 7-B",
+    generatedAt: new Date().toISOString(),
+    generatedBy: "Mrs. Sumathi Devi (Science Teacher)",
+    scienceFact: "Most liquids shrink and get denser when they cool down and turn solid. But liquid water is special! When water freezes into ice, its molecules arrange themselves into open hexagonal rings that take up more space than liquid water. Because the same amount of water now takes up a larger volume, ice becomes less dense than liquid water. This unique property causes ice cubes to float on top of your glass of water, and ice sheets to float on lakes during winter.",
+    whyItHappens: "As liquid water cools below 4 degrees Celsius, hydrogen bonds force water molecules into a crystal lattice with lots of empty space between them. This expansion decreases the density of ice relative to liquid water, making ice lighter per unit volume.",
+    didYouKnow: "If ice sank instead of floating, lakes and oceans would freeze solid from the bottom up, killing all marine life underneath every winter!",
+    tryItSteps: [
+      "Fill a clear plastic bottle completely to the top with tap water and mark the liquid height with a marker.",
+      "Place the bottle upright in the freezer overnight.",
+      "Check the bottle the next morning and notice how the ice has pushed past your marker line, proving that water expands as it freezes."
+    ],
+    thinkAboutIt: "Why is floating ice crucial for fish and sea plants living in frozen lakes during freezing cold winters?",
+    thinkHint: "The floating ice layer acts like an insulating blanket at the top of the lake, protecting the liquid water below from cold winter air so fish can survive!",
+    quiz: [
+      {
+        id: 1,
+        question: "Why does ice float on liquid water?",
+        options: [
+          { key: "A", text: "Ice is warmer than water" },
+          { key: "B", text: "Water expands when it freezes, making ice less dense" },
+          { key: "C", text: "Air gets pushed out of ice" },
+          { key: "D", text: "Ice contains salt" }
+        ],
+        correct: "B",
+        explanation: "Water molecules expand into a crystal lattice when freezing, lowering the density of ice."
+      },
+      {
+        id: 2,
+        question: "At what temperature does liquid water reach its maximum density?",
+        options: [
+          { key: "A", text: "0 degrees Celsius" },
+          { key: "B", text: "4 degrees Celsius" },
+          { key: "C", text: "100 degrees Celsius" },
+          { key: "D", text: "-10 degrees Celsius" }
+        ],
+        correct: "B",
+        explanation: "Liquid water reaches its maximum density at 4 degrees Celsius before expanding as it freezes toward 0 degrees."
+      },
+      {
+        id: 3,
+        question: "How does floating ice help aquatic animals during winter?",
+        options: [
+          { key: "A", text: "It provides food for fish" },
+          { key: "B", text: "It acts as an insulating blanket keeping water underneath liquid" },
+          { key: "C", text: "It heats the water to boiling point" },
+          { key: "D", text: "It increases water salinity" }
+        ],
+        correct: "B",
+        explanation: "Surface ice insulates the water underneath from extreme cold air, preventing lakes from freezing solid."
+      }
+    ]
+  },
+  {
+    id: "fact-volcano",
+    title: "Volcanoes Erupt When Underground Trapped Gas Escapes",
+    category: "Earth Science & Geology",
+    targetClass: "Class 7-B",
+    generatedAt: new Date().toISOString(),
+    generatedBy: "Mrs. Sumathi Devi (Science Teacher)",
+    scienceFact: "Deep inside the Earth, it is so hot that solid rocks melt into a thick liquid called magma. This magma contains trapped gases like carbon dioxide and water vapor. Because hot magma is lighter than the solid rocks surrounding it, it pushes its way up toward the Earth's surface through cracks. As magma gets closer to the surface, the trapped gas bubbles expand rapidly, just like when you shake a bottle of fizzy soda and open the cap. When the pressure gets too high, the volcano erupts, blasting out red-hot lava, ash, and gases into the sky.",
+    whyItHappens: "Melting underground rocks release gases that build intense pressure beneath Earth's crust. When crustal pressure becomes unbearable, magma is forced upward through vents, erupting onto the surface as liquid lava.",
+    didYouKnow: "The largest active volcano in our solar system is Olympus Mons on Mars, which is nearly three times taller than Mount Everest!",
+    tryItSteps: [
+      "Place a small plastic cup on a tray, add 2 tablespoons of baking soda, 1 teaspoon of dish soap, and red food coloring.",
+      "Slowly pour 1/4 cup of vinegar into the cup.",
+      "Observe how carbon dioxide gas bubbles create a thick foaming red lava flow that overflows the cup, simulating a volcanic eruption."
+    ],
+    thinkAboutIt: "Why do you think some volcanoes erupt with giant explosive blasts while others slowly ooze liquid lava like warm honey?",
+    thinkHint: "Thick sticky magma traps gas bubbles until they explode violently, while runny magma allows gas bubbles to escape easily without big explosions!",
+    quiz: [
+      {
+        id: 1,
+        question: "What is melted rock called when it is still deep underground?",
+        options: [
+          { key: "A", text: "Lava" },
+          { key: "B", text: "Magma" },
+          { key: "C", text: "Pumice" },
+          { key: "D", text: "Basalt" }
+        ],
+        correct: "B",
+        explanation: "Melted rock underground is called magma; once it erupts onto the surface, it is called lava."
+      },
+      {
+        id: 2,
+        question: "What happens to magma once it erupts onto Earth's surface?",
+        options: [
+          { key: "A", text: "It is called lava" },
+          { key: "B", text: "It turns into ice" },
+          { key: "C", text: "It disappears" },
+          { key: "D", text: "It turns into water" }
+        ],
+        correct: "A",
+        explanation: "Once magma breaks through the Earth's crust and reaches the surface, scientists refer to it as lava."
+      },
+      {
+        id: 3,
+        question: "Which factor plays a key role in building up pressure inside a volcano?",
+        options: [
+          { key: "A", text: "Cold water" },
+          { key: "B", text: "Trapped gas bubbles expanding in magma" },
+          { key: "C", text: "Moonlight" },
+          { key: "D", text: "Wind speed" }
+        ],
+        correct: "B",
+        explanation: "Expanding gas bubbles trapped in magma build up extreme pressure that triggers volcanic eruptions."
+      }
+    ]
+  }
+];
+
+const SCIENCE_FACT_CLASSES_FILE = path.join(__dirname, '../../data/science_fact_by_class.json');
+
+function getStoredFact(targetClass?: string, classNum?: string) {
+  try {
+    const dir = path.dirname(SCIENCE_FACT_CLASSES_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+    if (targetClass && fs.existsSync(SCIENCE_FACT_CLASSES_FILE)) {
+      const rawMap = fs.readFileSync(SCIENCE_FACT_CLASSES_FILE, 'utf8');
+      const classMap: Record<string, any> = JSON.parse(rawMap);
+
+      const normClass = targetClass.trim();
+      if (classMap[normClass]) return classMap[normClass];
+
+      // Fuzzy matching by class substring or class number (e.g. "Class 7-B" vs "7")
+      for (const [key, fact] of Object.entries(classMap)) {
+        if (
+          key.toLowerCase().includes(normClass.toLowerCase()) ||
+          normClass.toLowerCase().includes(key.toLowerCase()) ||
+          (classNum && key.includes(classNum))
+        ) {
+          return fact;
+        }
+      }
+    }
+
+    if (fs.existsSync(SCIENCE_FACT_FILE)) {
+      const raw = fs.readFileSync(SCIENCE_FACT_FILE, 'utf8');
+      return JSON.parse(raw);
+    }
+  } catch (e) {
+    console.error('Error reading science fact file:', e);
+  }
+  return DEFAULT_SCIENCE_FACTS[0];
+}
+
+function saveStoredFact(factData: any) {
+  try {
+    const dir = path.dirname(SCIENCE_FACT_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+    // Save as latest global fallback
+    fs.writeFileSync(SCIENCE_FACT_FILE, JSON.stringify(factData, null, 2), 'utf8');
+
+    // Save under class key in science_fact_by_class.json
+    if (factData.targetClass) {
+      let classMap: Record<string, any> = {};
+      if (fs.existsSync(SCIENCE_FACT_CLASSES_FILE)) {
+        try {
+          classMap = JSON.parse(fs.readFileSync(SCIENCE_FACT_CLASSES_FILE, 'utf8'));
+        } catch (err) {}
+      }
+      classMap[factData.targetClass] = factData;
+      fs.writeFileSync(SCIENCE_FACT_CLASSES_FILE, JSON.stringify(classMap, null, 2), 'utf8');
+    }
+  } catch (e) {
+    console.error('Error writing science fact file:', e);
+  }
+}
+
+async function generateScienceFactWithAI(promptTopic?: string): Promise<any> {
+  try {
+    const apiKey = await getGeminiApiKey();
+    if (!apiKey || apiKey.trim() === '') {
+      console.log('[Science Fact AI] No GEMINI_API_KEY found; falling back to curated pool.');
+      return null;
+    }
+
+    const systemInstructions = `You are an engaging science educator creating a "Science Fact" page for middle school students (Classes 6–8, ages 11–14). Generate ONE fascinating science fact that is accurate, age-appropriate, and easy to understand. Do NOT use emojis.`;
+
+    const userPrompt = `
+Generate a middle school science fact page.
+${promptTopic ? `Topic Focus: ${promptTopic}` : 'Choose a random exciting topic in Physics, Chemistry, Biology, Environmental Science, or Space Astronomy.'}
+
+Return ONLY raw valid JSON (no markdown formatting, no codeblocks):
+{
+  "title": "A short, catchy heading (5-8 words)",
+  "category": "Physics & Waves / Space & Astronomy / Chemistry / Biology / Earth Science",
+  "scienceFact": "Explain the fact in 80-120 words using simple, clear language and relatable everyday examples.",
+  "whyItHappens": "Briefly explain the science behind the fact in 2-3 sentences.",
+  "didYouKnow": "One surprising or fun related fact.",
+  "tryItSteps": [
+    "Step 1 simple observation or activity",
+    "Step 2...",
+    "Step 3..."
+  ],
+  "thinkAboutIt": "One open-ended curiosity question.",
+  "thinkHint": "A short helpful hint for the question.",
+  "quiz": [
+    {
+      "id": 1,
+      "question": "Question 1?",
+      "options": [
+        { "key": "A", "text": "Option A" },
+        { "key": "B", "text": "Option B" },
+        { "key": "C", "text": "Option C" },
+        { "key": "D", "text": "Option D" }
+      ],
+      "correct": "B",
+      "explanation": "Reason for correct answer."
+    },
+    {
+      "id": 2,
+      "question": "Question 2?",
+      "options": [
+        { "key": "A", "text": "Option A" },
+        { "key": "B", "text": "Option B" },
+        { "key": "C", "text": "Option C" },
+        { "key": "D", "text": "Option D" }
+      ],
+      "correct": "A",
+      "explanation": "Reason for correct answer."
+    },
+    {
+      "id": 3,
+      "question": "Question 3?",
+      "options": [
+        { "key": "A", "text": "Option A" },
+        { "key": "B", "text": "Option B" },
+        { "key": "C", "text": "Option C" },
+        { "key": "D", "text": "Option D" }
+      ],
+      "correct": "C",
+      "explanation": "Reason for correct answer."
+    }
+  ]
+}
+`;
+
+    const payload = {
+      contents: [{ parts: [{ text: `${systemInstructions}\n\n${userPrompt}` }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        maxOutputTokens: 2048,
+      },
+    };
+
+    return await new Promise((resolve) => {
+      const postData = JSON.stringify(payload);
+      const options = {
+        hostname: 'generativelanguage.googleapis.com',
+        port: 443,
+        path: '/v1beta/models/gemini-2.5-flash:generateContent',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData),
+          'x-goog-api-key': apiKey,
+        },
+      };
+
+      const req = https.request(options, (res) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => {
+          try {
+            const bodyStr = Buffer.concat(chunks).toString('utf8');
+            const parsed = JSON.parse(bodyStr);
+            const rawText = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (rawText) {
+              const cleanJson = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+              const factObj = JSON.parse(cleanJson);
+              resolve(factObj);
+              return;
+            }
+          } catch (e) {
+            console.error('[Science Fact AI Parse Error]', e);
+          }
+          resolve(null);
+        });
+      });
+
+      req.on('error', (err) => {
+        console.error('[Science Fact AI Network Error]', err);
+        resolve(null);
+      });
+
+      req.write(postData);
+      req.end();
+    });
+  } catch (err) {
+    console.error('[generateScienceFactWithAI error]', err);
+    return null;
+  }
+}
+
+// GET /api/teacher/science-fact/today
+router.get('/science-fact/today', (req: Request, res: Response) => {
+  const { targetClass, classNum } = req.query || {};
+  const currentFact = getStoredFact(targetClass ? String(targetClass) : undefined, classNum ? String(classNum) : undefined);
+  res.json({ success: true, data: currentFact, allTopics: DEFAULT_SCIENCE_FACTS });
+});
+
+// POST /api/teacher/science-fact/generate — Teacher triggers AI science fact generation!
+router.post('/science-fact/generate', async (req: Request, res: Response) => {
+  try {
+    const { teacherName, targetClass, topicId, promptTopic } = req.body || {};
+
+    let factPayload: any = null;
+    let isAiGenerated = false;
+
+    const searchTerm = (promptTopic || topicId || '').toLowerCase().trim();
+
+    // 1. Try Gemini AI generation first
+    const aiResult = await generateScienceFactWithAI(searchTerm || undefined);
+    if (aiResult && aiResult.title && aiResult.scienceFact) {
+      factPayload = aiResult;
+      isAiGenerated = true;
+    } else {
+      // 2. Keyword & ID matching fallback
+      const matchedFact = DEFAULT_SCIENCE_FACTS.find((f) => 
+        f.id === topicId ||
+        f.title.toLowerCase().includes(searchTerm) ||
+        f.category.toLowerCase().includes(searchTerm) ||
+        ((searchTerm.includes('volcano') || searchTerm.includes('valcano') || searchTerm.includes('magma') || searchTerm.includes('lava')) && f.id === 'fact-volcano')
+      );
+
+      if (matchedFact) {
+        factPayload = matchedFact;
+      } else {
+        const current = getStoredFact();
+        const currentIdx = DEFAULT_SCIENCE_FACTS.findIndex((f) => f.id === current.id);
+        const nextIdx = (currentIdx + 1) % DEFAULT_SCIENCE_FACTS.length;
+        factPayload = DEFAULT_SCIENCE_FACTS[nextIdx];
+      }
+    }
+
+    const newTodayFact = {
+      ...factPayload,
+      id: `fact-${Date.now()}`,
+      generatedAt: new Date().toISOString(),
+      generatedBy: isAiGenerated
+        ? `${teacherName || 'Mrs. Sumathi Devi'} (Generated by AI Science Assistant)`
+        : (teacherName || 'Mrs. Sumathi Devi (Science Teacher)'),
+      targetClass: targetClass || 'Class 7-B',
+      isAiGenerated,
+    };
+
+    saveStoredFact(newTodayFact);
+
+    res.json({
+      success: true,
+      message: isAiGenerated
+        ? 'AI generated & published new Science Fact for students!'
+        : 'Science Fact updated & published for students!',
+      data: newTodayFact,
+      isAiGenerated,
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/teacher/science-fact/publish — Teacher manually customizes & publishes fact
+router.post('/science-fact/publish', async (req: Request, res: Response) => {
+  try {
+    const customFact = req.body;
+    if (!customFact.title || !customFact.scienceFact) {
+      return res.status(400).json({ success: false, error: 'title and scienceFact are required' });
+    }
+
+    const factToPublish = {
+      ...customFact,
+      id: customFact.id || `fact-${Date.now()}`,
+      generatedAt: new Date().toISOString(),
+      generatedBy: customFact.generatedBy || 'Mrs. Sumathi Devi',
+      targetClass: customFact.targetClass || 'Class 7-B',
+    };
+
+    saveStoredFact(factToPublish);
+
+    res.json({
+      success: true,
+      message: 'Custom Science Fact published successfully!',
+      data: factToPublish
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 export default router;
+
