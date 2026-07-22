@@ -322,23 +322,55 @@ router.get('/minister/live', async (req: Request, res: Response) => {
       take: 10
     });
 
-    // Compute basic live metrics from active tables
-    const [totalStudents, totalSchools, activeTeachers] = await Promise.all([
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Compute live metrics from database tables
+    const [
+      totalStudents,
+      totalSchools,
+      activeTeachers,
+      todayTotalAtt,
+      todayPresentAtt,
+      recentTotalAtt,
+      recentPresentAtt,
+      weeklyDropouts,
+      totalDropouts,
+      pendingGrievances
+    ] = await Promise.all([
       prisma.student.count({ where: { studentStatus: 'Active' } }),
       prisma.school.count(),
-      prisma.user.count({ where: { role: 'TEACHER' as any } })
+      prisma.user.count({ where: { role: 'TEACHER' as any } }),
+      prisma.attendance.count({ where: { date: { gte: startOfToday } } }),
+      prisma.attendance.count({ where: { date: { gte: startOfToday }, status: { in: ['PRESENT', 'LATE'] } } }),
+      prisma.attendance.count({ where: { date: { gte: thirtyDaysAgo } } }),
+      prisma.attendance.count({ where: { date: { gte: thirtyDaysAgo }, status: { in: ['PRESENT', 'LATE'] } } }),
+      prisma.dropoutRecord.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+      prisma.dropoutRecord.count(),
+      prisma.ministerGrievance.count({ where: { status: { in: ['Pending', 'Under Review', 'Intervention Pending'] } } })
     ]);
+
+    let attendanceStr = "86.4%";
+    if (todayTotalAtt > 0) {
+      attendanceStr = (Math.round((todayPresentAtt / todayTotalAtt) * 1000) / 10) + "%";
+    } else if (recentTotalAtt > 0) {
+      attendanceStr = (Math.round((recentPresentAtt / recentTotalAtt) * 1000) / 10) + "%";
+    }
+
+    const dropoutsCount = weeklyDropouts > 0 ? weeklyDropouts : totalDropouts;
 
     res.json({
       success: true,
       data: {
         liveStats: [
-          { label: "Students Online Now", value: totalStudents ? totalStudents.toLocaleString("en-IN") : "4,28,190", icon: "👨‍🎓", color: "text-red-400", pulse: true },
-          { label: "Schools Reporting", value: totalSchools ? totalSchools.toLocaleString("en-IN") : "47,812", icon: "🏫", color: "text-emerald-400", pulse: true },
-          { label: "State Attendance Today", value: "86.4%", icon: "📅", color: "text-amber-400", pulse: false },
-          { label: "Active Teachers", value: activeTeachers ? activeTeachers.toLocaleString("en-IN") : "2,81,440", icon: "👩‍🏫", color: "text-violet-400", pulse: true },
-          { label: "Dropouts This Week", value: "142", icon: "⚠️", color: "text-orange-400", pulse: false },
-          { label: "Grievances Pending", value: "38", icon: "⚖️", color: "text-pink-400", pulse: false }
+          { label: "Students Online Now", value: totalStudents ? totalStudents.toLocaleString("en-IN") : "0", icon: "👨‍🎓", color: "text-red-400", pulse: true },
+          { label: "Schools Reporting", value: totalSchools ? totalSchools.toLocaleString("en-IN") : "0", icon: "🏫", color: "text-emerald-400", pulse: true },
+          { label: "State Attendance Today", value: attendanceStr, icon: "📅", color: "text-amber-400", pulse: false },
+          { label: "Active Teachers", value: activeTeachers ? activeTeachers.toLocaleString("en-IN") : "0", icon: "👩‍🏫", color: "text-violet-400", pulse: true },
+          { label: "Dropouts This Week", value: String(dropoutsCount), icon: "⚠️", color: "text-orange-400", pulse: false },
+          { label: "Grievances Pending", value: String(pendingGrievances), icon: "⚖️", color: "text-pink-400", pulse: false }
         ],
         alerts: alerts.map(a => ({
           type: a.type,
