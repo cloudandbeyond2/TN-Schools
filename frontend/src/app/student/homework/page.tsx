@@ -27,7 +27,7 @@ type OpenIntent = "view" | "ai" | "submit";
 /*  Data                                                              */
 /* ------------------------------------------------------------------ */
 
-type Status = "not_submitted" | "submitted" | "late_submission";
+type Status = "not_submitted" | "submitted" | "late_submission" | "graded";
 
 interface Assignment {
   id: string;
