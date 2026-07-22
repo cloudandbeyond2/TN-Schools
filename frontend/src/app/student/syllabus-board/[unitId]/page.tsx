@@ -123,7 +123,7 @@ export default function StudentUnitDetailPage() {
   return (
     <PortalLayout
       title="Unit Study Guide"
-      subtitle="Visual summary and key points published by your teacher"
+      subtitle="Visual summary and key points published for your class standard"
       avatarLetter="A"
       avatarColor="#6366f1"
       themeClass="theme-student"
