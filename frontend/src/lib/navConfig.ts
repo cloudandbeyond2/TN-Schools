@@ -182,7 +182,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Announcements", href: "/student/announcements", icon: "Megaphone" },
       // { label: "My Badges", href: "/student/middle-school/badges", icon: "Award" },
       { label: "Story Books", href: "/student/middle-school/stories", icon: "Book" },
-      { label: "Digital Portfolio", href: "/student/middle-school/portfolio", icon: "FolderOpen" },
+      { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       { label: "Learning Platform", href: "/student/middle-school/learning-platform", icon: "Monitor" },
       { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
       { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
