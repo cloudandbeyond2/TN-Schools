@@ -52,8 +52,44 @@ router.get('/block', async (req: Request, res: Response) => {
     const ids = schools.map((s) => s.id);
 
     const year = resolveYear(req);
-    const [kpis, bySchool] = await Promise.all([computeKpis(ids, year), perSchoolBreakdown(ids, year)]);
-    res.json({ success: true, data: { ...kpis, totalSchools: ids.length, bySchool } });
+    const [kpis, bySchool, totalAthletes, stateReps, districtMedals] = await Promise.all([
+      computeKpis(ids, year),
+      perSchoolBreakdown(ids, year),
+      prisma.sportsProfile.count({
+        where: { student: { schoolId: { in: ids } } }
+      }),
+      prisma.sportsTeam.count({
+        where: {
+          sportsProfile: { student: { schoolId: { in: ids } } },
+          OR: [
+            { name: { contains: 'State', mode: 'insensitive' } },
+            { match: { contains: 'State', mode: 'insensitive' } }
+          ]
+        }
+      }),
+      prisma.sportsTeam.count({
+        where: {
+          sportsProfile: { student: { schoolId: { in: ids } } },
+          OR: [
+            { name: { contains: 'District', mode: 'insensitive' } },
+            { match: { contains: 'District', mode: 'insensitive' } }
+          ]
+        }
+      })
+    ]);
+    res.json({
+      success: true,
+      data: {
+        ...kpis,
+        totalSchools: ids.length,
+        bySchool,
+        sports: {
+          totalAthletes,
+          stateReps,
+          districtMedals
+        }
+      }
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

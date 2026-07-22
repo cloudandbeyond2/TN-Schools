@@ -136,15 +136,21 @@ export default function BEODashboard() {
         </div>
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-2xl font-black text-white">1,250</div>
+             <div className="text-2xl font-black text-white">
+               {loading || !kpis ? "…" : (kpis.sports?.totalAthletes ?? 0).toLocaleString()}
+             </div>
              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Total Athletes</div>
           </div>
           <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-2xl font-black text-emerald-400">45</div>
+             <div className="text-2xl font-black text-emerald-400">
+               {loading || !kpis ? "…" : (kpis.sports?.stateReps ?? 0).toLocaleString()}
+             </div>
              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">State Level Reps</div>
           </div>
           <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-2xl font-black text-amber-400">120</div>
+             <div className="text-2xl font-black text-amber-400">
+               {loading || !kpis ? "…" : (kpis.sports?.districtMedals ?? 0).toLocaleString()}
+             </div>
              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">District Medals</div>
           </div>
         </div>
