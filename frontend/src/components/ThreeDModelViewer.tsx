@@ -781,59 +781,60 @@ export default function ThreeDModelViewer({
     >
       {/* Title / Info overlay */}
       <div className="hidden lg:block absolute top-24 left-6 z-30 max-w-xs pointer-events-none">
-        <h4 className={`text-lg font-black drop-shadow-md mb-1 ${theme === "light" ? "text-slate-800" : "text-white"}`}>{name}</h4>
+        <div className="text-lg font-black mb-1" style={{ color: "#ffffff", textShadow: "0 2px 6px rgba(0,0,0,0.9)", fontWeight: 900 }}>{name}</div>
         {description && !selectedShape && (
-          <p className={`text-xs drop-shadow-md leading-relaxed line-clamp-3 ${theme === "light" ? "text-slate-600" : "text-slate-300"}`}>
+          <div className="text-xs leading-relaxed line-clamp-3 p-3 rounded-xl" style={{ backgroundColor: "#0f172a", color: "#f8fafc", border: "1px solid rgba(255, 255, 255, 0.25)", boxShadow: "0 10px 25px rgba(0, 0, 0, 0.7)" }}>
             {description}
-          </p>
+          </div>
         )}
       </div>
 
       {/* Selected Shape / Click-to-Explain HUD popup */}
       {selectedShape && !quizMode && (
-        <div className={`absolute bottom-20 lg:bottom-auto lg:top-24 left-4 right-4 lg:right-auto lg:left-6 z-40 max-w-sm lg:max-w-xs backdrop-blur-md border p-4 lg:p-5 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-left-4 duration-300 ${theme === "light" ? "bg-white/95 border-blue-200" : "bg-slate-950/95 border-indigo-500/70"}`}>
+        <div className="absolute bottom-20 lg:bottom-auto lg:top-24 left-4 right-4 lg:right-auto lg:left-6 z-40 max-w-sm lg:max-w-xs p-4 lg:p-5 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-left-4 duration-300" style={{ backgroundColor: "#0f172a", border: "2px solid rgba(99, 102, 241, 0.8)", color: "#ffffff" }}>
           <button
             onClick={() => setSelectedShape(null)}
-            className="absolute top-3 right-3 text-slate-400 hover:text-blue-500 transition-colors"
+            className="absolute top-3 right-3 text-slate-400 hover:text-indigo-400 transition-colors"
             title="Close Description"
           >
             <X className="w-4 h-4" />
           </button>
           <div className="flex justify-between items-start mb-2 pr-6">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Part Explanation</span>
+              <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+              <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#818cf8" }}>Part Explanation</span>
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => speakText(`${selectedShape.label}. ${selectedShape.description || ""}`)} className="p-1.5 bg-blue-100 dark:bg-indigo-900/50 text-blue-600 dark:text-indigo-400 rounded-lg hover:bg-blue-200 transition-colors" title="Read Aloud">
+              <button onClick={() => speakText(`${selectedShape.label}. ${selectedShape.description || ""}`)} className="p-1.5 bg-indigo-900/60 text-indigo-300 rounded-lg hover:bg-indigo-800 transition-colors" title="Read Aloud">
                 <Volume2 className="w-3.5 h-3.5" />
               </button>
-              <button onClick={handleSaveFlashcard} className="p-1.5 bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-200 transition-colors" title="Save to Flashcards">
+              <button onClick={handleSaveFlashcard} className="p-1.5 bg-rose-900/60 text-rose-300 rounded-lg hover:bg-rose-800 transition-colors" title="Save to Flashcards">
                 <Bookmark className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
-          <h5 className={`text-base font-black mb-2 pr-4 ${theme === "light" ? "text-slate-800" : "text-white"}`}>{selectedShape.label}</h5>
-          <p className={`text-xs leading-relaxed ${theme === "light" ? "text-slate-600" : "text-slate-300"}`}>
+          <div className="text-base font-black mb-2 pr-4" style={{ color: "#ffffff", fontWeight: 900 }}>{selectedShape.label}</div>
+          <div className="text-xs leading-relaxed" style={{ color: "#cbd5e1" }}>
             {selectedShape.description || "Interactive structural detail of this model."}
-          </p>
+          </div>
         </div>
       )}
 
       {/* Quiz HUD */}
       {quizMode && quizTarget && (
-        <div className={`absolute bottom-20 lg:bottom-auto lg:top-24 left-4 right-4 lg:right-auto lg:left-6 z-40 max-w-sm lg:max-w-xs backdrop-blur-md border p-4 lg:p-5 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-left-4 duration-300 ${theme === "light" ? "bg-white/95 border-amber-300" : "bg-slate-950/95 border-amber-500/70"}`}>
+        <div className="absolute bottom-20 lg:bottom-auto lg:top-24 left-4 right-4 lg:right-auto lg:left-6 z-40 max-w-sm lg:max-w-xs p-4 lg:p-5 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-left-4 duration-300" style={{ backgroundColor: "#0f172a", border: "2px solid rgba(245, 158, 11, 0.8)", color: "#ffffff" }}>
           <div className="flex items-center gap-2 mb-3">
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-            <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Quiz Mode</span>
+            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "#fbbf24" }}>Quiz Mode</span>
           </div>
-          <h5 className={`text-sm font-black mb-4 ${theme === "light" ? "text-slate-800" : "text-white"}`}>{quizMessage}</h5>
+          <div className="text-sm font-black mb-4" style={{ color: "#ffffff", fontWeight: 900 }}>{quizMessage}</div>
           <div className="flex flex-col gap-2">
             {quizOptions.map((opt, i) => (
               <button
                 key={i}
                 onClick={() => handleQuizAnswer(opt)}
-                className={`py-2 px-3 text-xs font-bold rounded-xl text-left transition-all ${theme === "light" ? "bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-700" : "bg-slate-900 hover:bg-amber-900/50 text-slate-300 hover:text-amber-400"}`}
+                className="py-2 px-3 text-xs font-bold rounded-xl text-left transition-all border border-slate-700"
+                style={{ backgroundColor: "#1e293b", color: "#f8fafc" }}
               >
                 {opt}
               </button>
@@ -843,7 +844,7 @@ export default function ThreeDModelViewer({
       )}
 
       {/* Floating control buttons */}
-      <div className={`absolute bottom-6 right-6 z-30 flex items-center gap-2 backdrop-blur-md px-3 py-2 rounded-2xl border shadow-lg ${theme === "light" ? "bg-white/90 border-slate-200" : "bg-slate-900/90 border-white/10"}`}>
+      <div className="absolute bottom-6 right-6 z-30 flex items-center gap-2 backdrop-blur-md px-3 py-2 rounded-2xl border shadow-lg bg-slate-950/90 border-white/20 text-white">
         <button
           onClick={toggleQuizMode}
           className={`p-2 rounded-xl transition-all ${quizMode ? "bg-amber-500 text-white" : (theme === "light" ? "hover:bg-slate-100 text-amber-500" : "hover:bg-amber-500/20 text-amber-400")}`}
