@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 /* Flaticon (uicons) glyph — the app loads uicons-regular-rounded globally */
 const Fi = ({ name, className = "" }: { name: string; className?: string }) => (
@@ -115,6 +116,7 @@ const daysUntil = (d: string | Date) => {
 ──────────────────────────────────────────────────────────── */
 export default function StudentDailyOverview() {
   const { data: session } = useSession();
+  const { lang } = usePortalLanguage();
 
   const [timetable, setTimetable] = useState<TimetableSlot[] | null>(null);
   const [homework, setHomework] = useState<HomeworkItem[] | null>(null);
@@ -460,12 +462,12 @@ export default function StudentDailyOverview() {
 
   const attendanceToday =
     attendance?.today === "PRESENT"
-      ? { label: "Present today", color: "#10b981", icon: "check" }
+      ? { label: lang === "தமிழ்" ? "இன்று வருகை" : "Present today", color: "#10b981", icon: "check" }
       : attendance?.today === "ABSENT"
-      ? { label: "Absent today", color: "#ef4444", icon: "cross-small" }
+      ? { label: lang === "தமிழ்" ? "இன்று வரவில்லை" : "Absent today", color: "#ef4444", icon: "cross-small" }
       : attendance?.today === "LATE"
-      ? { label: "Marked late today", color: "#f59e0b", icon: "clock" }
-      : { label: "Not marked yet", color: "#64748b", icon: "clock" };
+      ? { label: lang === "தமிழ்" ? "இன்று தாமதம்" : "Marked late today", color: "#f59e0b", icon: "clock" }
+      : { label: lang === "தமிழ்" ? "இன்னும் குறிக்கப்படவில்லை" : "Not marked yet", color: "#64748b", icon: "clock" };
 
   return (
     <div className="mb-6 space-y-4">
@@ -473,7 +475,7 @@ export default function StudentDailyOverview() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-bold text-[var(--text-heading)] flex items-center gap-2">
-            <Fi name="calendar" className="text-base text-indigo-500" /> Today at a Glance
+            <Fi name="calendar" className="text-base text-indigo-500" /> {lang === "தமிழ்" ? "இன்றைய பார்வையில்" : "Today at a Glance"}
           </h2>
           <p className="text-[11px] text-[var(--text-muted)]">{todayLabel}</p>
         </div>
@@ -481,7 +483,7 @@ export default function StudentDailyOverview() {
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10">
             <Fi name="bell-school" className="text-xs text-indigo-500" />
             <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
-              Next class: {nextPeriods[0].subject} at {fmtTime(nextPeriods[0].startTime)}
+              {lang === "தமிழ்" ? `அடுத்த வகுப்பு: ${nextPeriods[0].subject} (${fmtTime(nextPeriods[0].startTime)})` : `Next class: ${nextPeriods[0].subject} at ${fmtTime(nextPeriods[0].startTime)}`}
             </span>
           </div>
         )}
@@ -493,11 +495,11 @@ export default function StudentDailyOverview() {
         <div className="lg:col-span-2 glass rounded-2xl p-5 border border-[var(--border)]">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
-              <Fi name="calendar-lines" className="text-sm text-indigo-500" /> Today&apos;s Timetable
+              <Fi name="calendar-lines" className="text-sm text-indigo-500" /> {lang === "தமிழ்" ? "இன்றைய பாட அட்டவணை" : "Today's Timetable"}
             </h3>
             {timetable?.[0]?.sample && (
               <span className="text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-full">
-                Sample — timetable not published yet
+                {lang === "தமிழ்" ? "மாதிரி — அட்டவணை இன்னும் வெளியிடப்படவில்லை" : "Sample — timetable not published yet"}
               </span>
             )}
           </div>
@@ -505,7 +507,7 @@ export default function StudentDailyOverview() {
           {timetable === null ? (
             <CardLoading />
           ) : timetable.length === 0 ? (
-            <EmptyNote icon="moon-stars" text="No classes scheduled today. Enjoy your holiday — or revise a unit you found hard!" />
+            <EmptyNote icon="moon-stars" text={lang === "தமிழ்" ? "இன்று வகுப்புகள் எதுவும் திட்டமிடப்படவில்லை." : "No classes scheduled today. Enjoy your holiday — or revise a unit you found hard!"} />
           ) : (
             <div className="space-y-1.5">
               {timetable.map((slot) => {
@@ -537,12 +539,12 @@ export default function StudentDailyOverview() {
                     </div>
                     {isNow && (
                       <span className="text-[9px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-2 py-1 rounded-full flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Now
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> {lang === "தமிழ்" ? "இப்போது" : "Now"}
                       </span>
                     )}
                     {isNext && (
                       <span className="text-[9px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 px-2 py-1 rounded-full">
-                        Up next
+                        {lang === "தமிழ்" ? "அடுத்து" : "Up next"}
                       </span>
                     )}
                     {done && <Fi name="check" className="text-xs text-[var(--text-muted)]" />}
@@ -558,7 +560,7 @@ export default function StudentDailyOverview() {
           {/* Attendance status */}
           <div className="glass rounded-2xl p-5 border border-[var(--border)]">
             <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2 mb-3">
-              <Fi name="calendar-check" className="text-sm text-emerald-500" /> Attendance Status
+              <Fi name="calendar-check" className="text-sm text-emerald-500" /> {lang === "தமிழ்" ? "வருகைப்பதிவு நிலை" : "Attendance Status"}
             </h3>
             {attendance === null ? (
               <CardLoading />
@@ -578,9 +580,9 @@ export default function StudentDailyOverview() {
                 {attendance.pct !== null ? (
                   <div>
                     <div className="flex justify-between text-[10px] font-bold text-[var(--text-muted)] mb-1.5">
-                      <span>This month</span>
+                      <span>{lang === "தமிழ்" ? "இந்த மாதம்" : "This month"}</span>
                       <span>
-                        {attendance.present}/{attendance.total} days · {attendance.pct}%
+                        {attendance.present}/{attendance.total} {lang === "தமிழ்" ? "நாட்கள்" : "days"} · {attendance.pct}%
                       </span>
                     </div>
                     <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -594,13 +596,13 @@ export default function StudentDailyOverview() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-[11px] text-[var(--text-muted)] italic">No attendance recorded this month yet.</p>
+                  <p className="text-[11px] text-[var(--text-muted)] italic">{lang === "தமிழ்" ? "இந்த மாதம் இதுவரை வருகைப்பதிவு இல்லை." : "No attendance recorded this month yet."}</p>
                 )}
                 <Link
                   href="/student/leave"
                   className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
                 >
-                  Leave requests & history <Fi name="arrow-small-right" className="text-xs" />
+                  {lang === "தமிழ்" ? "விடுப்பு கோரிக்கைகள் & வரலாறு" : "Leave requests & history"} <Fi name="arrow-small-right" className="text-xs" />
                 </Link>
               </div>
             )}
@@ -610,7 +612,7 @@ export default function StudentDailyOverview() {
           <div className="glass rounded-2xl p-5 border border-[var(--border)]">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
-                <Fi name="pencil" className="text-sm text-blue-500" /> Pending Homework
+                <Fi name="pencil" className="text-sm text-blue-500" /> {lang === "தமிழ்" ? "நிலுவையில் உள்ள வீட்டுப்பாடம்" : "Pending Homework"}
               </h3>
               {homework && homework.length > 0 && (
                 <span className="text-[10px] font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full">
@@ -621,7 +623,7 @@ export default function StudentDailyOverview() {
             {homework === null ? (
               <CardLoading />
             ) : homework.length === 0 ? (
-              <EmptyNote icon="check" text="No pending homework — you're all caught up!" />
+              <EmptyNote icon="check" text={lang === "தமிழ்" ? "நிலுவையில் வீட்டுப்பாடம் இல்லை — அனைத்தும் முடிந்தது!" : "No pending homework — you're all caught up!"} />
             ) : (
               <div className="space-y-2">
                 {homework.slice(0, 3).map((h) => {
@@ -642,7 +644,7 @@ export default function StudentDailyOverview() {
                         <div className={`text-[10px] font-semibold ${overdue ? "text-red-500" : "text-[var(--text-muted)]"}`}>
                           {h.subject}
                           {d !== null &&
-                            ` · ${overdue ? `Overdue by ${Math.abs(d)} day${Math.abs(d) === 1 ? "" : "s"}` : d === 0 ? "Due today" : d === 1 ? "Due tomorrow" : `Due in ${d} days`}`}
+                            ` · ${overdue ? (lang === "தமிழ்" ? `${Math.abs(d)} நாட்கள் தாமதம்` : `Overdue by ${Math.abs(d)} day${Math.abs(d) === 1 ? "" : "s"}`) : d === 0 ? (lang === "தமிழ்" ? "இன்று கடைசி நாள்" : "Due today") : d === 1 ? (lang === "தமிழ்" ? "நாளை கடைசி நாள்" : "Due tomorrow") : (lang === "தமிழ்" ? `${d} நாட்களில் கடைசி நாள்` : `Due in ${d} days`)}`}
                         </div>
                       </div>
                       <Fi name="angle-small-right" className="text-sm text-[var(--text-muted)]" />
@@ -653,7 +655,7 @@ export default function StudentDailyOverview() {
                   href="/student/homework"
                   className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
                 >
-                  All homework <Fi name="arrow-small-right" className="text-xs" />
+                  {lang === "தமிழ்" ? "அனைத்து வீட்டுப்பாடங்களும்" : "All homework"} <Fi name="arrow-small-right" className="text-xs" />
                 </Link>
               </div>
             )}
@@ -667,16 +669,16 @@ export default function StudentDailyOverview() {
         <div className="glass rounded-2xl p-5 border border-[var(--border)]">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
-              <Fi name="diploma" className="text-sm text-purple-500" /> Upcoming Exams
+              <Fi name="diploma" className="text-sm text-purple-500" /> {lang === "தமிழ்" ? "வரவிருக்கும் தேர்வுகள்" : "Upcoming Exams"}
             </h3>
             <Link href="/student/exams" className="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline">
-              Full schedule
+              {lang === "தமிழ்" ? "முழு அட்டவணை" : "Full schedule"}
             </Link>
           </div>
           {exams === null ? (
             <CardLoading />
           ) : exams.length === 0 ? (
-            <EmptyNote icon="calendar" text="No exams scheduled yet. Keep revising — the schedule will appear here." />
+            <EmptyNote icon="calendar" text={lang === "தமிழ்" ? "தேர்வுகள் எதுவும் இன்னும் திட்டமிடப்படவில்லை." : "No exams scheduled yet. Keep revising — the schedule will appear here."} />
           ) : (
             <div className="space-y-2">
               {exams.slice(0, 4).map((e) => {
@@ -706,7 +708,7 @@ export default function StudentDailyOverview() {
                         d <= 3 ? "bg-red-500/10 text-red-500" : "bg-purple-500/10 text-purple-600 dark:text-purple-400"
                       }`}
                     >
-                      {d <= 0 ? "Today" : d === 1 ? "Tomorrow" : `${d} days`}
+                      {d <= 0 ? (lang === "தமிழ்" ? "இன்று" : "Today") : d === 1 ? (lang === "தமிழ்" ? "நாளை" : "Tomorrow") : `${d} ${lang === "தமிழ்" ? "நாட்கள்" : "days"}`}
                     </span>
                   </div>
                 );
@@ -719,19 +721,19 @@ export default function StudentDailyOverview() {
         <div className="glass rounded-2xl p-5 border border-[var(--border)]">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
-              <Fi name="megaphone" className="text-sm text-amber-500" /> Teacher Announcements
+              <Fi name="megaphone" className="text-sm text-amber-500" /> {lang === "தமிழ்" ? "ஆசிரியர் அறிவிப்புகள்" : "Teacher Announcements"}
             </h3>
             <Link
               href="/student/announcements"
               className="text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:underline"
             >
-              View all
+              {lang === "தமிழ்" ? "அனைத்தையும் பார்" : "View all"}
             </Link>
           </div>
           {announcements === null ? (
             <CardLoading />
           ) : announcements.length === 0 ? (
-            <EmptyNote icon="bell" text="No announcements right now. New messages from your teachers will appear here." />
+            <EmptyNote icon="bell" text={lang === "தமிழ்" ? "இப்போது புதிய அறிவிப்புகள் இல்லை." : "No announcements right now. New messages from your teachers will appear here."} />
           ) : (
             <div className="space-y-2">
               {announcements.slice(0, 3).map((a) => (
@@ -759,11 +761,11 @@ export default function StudentDailyOverview() {
           <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-15 bg-gradient-to-br from-indigo-500 to-fuchsia-500" />
           <div className="flex items-center justify-between mb-1 relative z-10">
             <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
-              <Fi name="sparkles" className="text-sm text-indigo-500" /> AI Study Suggestions
+              <Fi name="sparkles" className="text-sm text-indigo-500" /> {lang === "தமிழ்" ? "AI கற்றல் பரிந்துரைகள்" : "AI Study Suggestions"}
             </h3>
           </div>
           <p className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-3 relative z-10">
-            Generated from your marks, homework & attendance
+            {lang === "தமிழ்" ? "மதிப்பெண்கள், வீட்டுப்பாடம் மற்றும் வருகைப் பதிவிலிருந்து உருவாக்கப்பட்டது" : "Generated from your marks, homework & attendance"}
           </p>
           <div className="space-y-2 relative z-10">
             {suggestions.map((s, i) => (
@@ -794,7 +796,7 @@ export default function StudentDailyOverview() {
           {/* Learning recommendations */}
           <div className="mt-3 pt-3 border-t border-[var(--border)] relative z-10">
             <div className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-2">
-              Recommended for you
+              {lang === "தமிழ்" ? "உங்களுக்காக பரிந்துரைக்கப்பட்டவை" : "Recommended for you"}
             </div>
             <div className="space-y-1.5">
               {recommendations.map((r) => (
