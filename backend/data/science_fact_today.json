@@ -1,93 +1,93 @@
 {
-  "title": "Volcanic Lightning: Nature's Fiery Light Show",
-  "category": "Earth Science",
-  "scienceFact": "Did you know that volcanoes don't just erupt with lava and ash, but sometimes with spectacular lightning storms right above them? Imagine a massive cloud of ash, like a giant, dark thundercloud. As the volcano blasts ash and rock high into the sky, these tiny particles rub against each other at incredible speeds. This friction builds up static electricity, just like when you shuffle your feet across a carpet and then touch a doorknob to get a small shock! But on a volcanic scale, this electricity becomes so powerful it creates dazzling bolts of lightning, illuminating the dark ash plumes with fiery streaks. It's an amazing and powerful display of nature's forces.",
-  "whyItHappens": "Volcanic eruptions release huge amounts of ash, gas, and rock fragments into the atmosphere. The rapid collision and friction between these particles generate an electric charge. When this charge becomes strong enough, it discharges as lightning, trying to balance the electrical differences in the ash cloud.",
-  "didYouKnow": "Some volcanic lightning can be even more powerful and frequent than lightning in regular thunderstorms!",
+  "id": "fact-1784705939594",
+  "title": "Volcanoes Erupt When Underground Trapped Gas Escapes",
+  "category": "Earth Science & Geology",
+  "targetClass": "Class 7-B",
+  "generatedAt": "2026-07-22T07:38:59.594Z",
+  "generatedBy": "Linga",
+  "scienceFact": "Deep inside the Earth, it is so hot that solid rocks melt into a thick liquid called magma. This magma contains trapped gases like carbon dioxide and water vapor. Because hot magma is lighter than the solid rocks surrounding it, it pushes its way up toward the Earth's surface through cracks. As magma gets closer to the surface, the trapped gas bubbles expand rapidly, just like when you shake a bottle of fizzy soda and open the cap. When the pressure gets too high, the volcano erupts, blasting out red-hot lava, ash, and gases into the sky.",
+  "whyItHappens": "Melting underground rocks release gases that build intense pressure beneath Earth's crust. When crustal pressure becomes unbearable, magma is forced upward through vents, erupting onto the surface as liquid lava.",
+  "didYouKnow": "The largest active volcano in our solar system is Olympus Mons on Mars, which is nearly three times taller than Mount Everest!",
   "tryItSteps": [
-    "Rub a balloon vigorously against your hair or a wool sweater for about 10-15 seconds.",
-    "Hold the charged balloon close to a wall, and watch it stick, showing static electricity.",
-    "Now, try to bring the balloon near tiny pieces of paper; they will jump to the balloon, demonstrating charge attraction."
+    "Place a small plastic cup on a tray, add 2 tablespoons of baking soda, 1 teaspoon of dish soap, and red food coloring.",
+    "Slowly pour 1/4 cup of vinegar into the cup.",
+    "Observe how carbon dioxide gas bubbles create a thick foaming red lava flow that overflows the cup, simulating a volcanic eruption."
   ],
-  "thinkAboutIt": "If volcanic eruptions create new land over time, what might the Earth look like millions of years from now if volcanoes continue to erupt in the same patterns?",
-  "thinkHint": "Consider how islands are formed and reshaped by volcanic activity.",
+  "thinkAboutIt": "Why do you think some volcanoes erupt with giant explosive blasts while others slowly ooze liquid lava like warm honey?",
+  "thinkHint": "Thick sticky magma traps gas bubbles until they explode violently, while runny magma allows gas bubbles to escape easily without big explosions!",
   "quiz": [
     {
       "id": 1,
-      "question": "What causes the lightning during a volcanic eruption?",
+      "question": "What is melted rock called when it is still deep underground?",
       "options": [
         {
           "key": "A",
-          "text": "The heat from the lava."
+          "text": "Lava"
         },
         {
           "key": "B",
-          "text": "Friction between ash particles."
+          "text": "Magma"
         },
         {
           "key": "C",
-          "text": "Water vapor in the ash cloud."
+          "text": "Pumice"
         },
         {
           "key": "D",
-          "text": "High winds around the volcano."
+          "text": "Basalt"
         }
       ],
       "correct": "B",
-      "explanation": "The rapid rubbing and collision of ash particles create static electricity, leading to lightning."
+      "explanation": "Melted rock underground is called magma; once it erupts onto the surface, it is called lava."
     },
     {
       "id": 2,
-      "question": "What category of science does the study of volcanoes primarily fall under?",
+      "question": "What happens to magma once it erupts onto Earth's surface?",
       "options": [
         {
           "key": "A",
-          "text": "Earth Science"
+          "text": "It is called lava"
         },
         {
           "key": "B",
-          "text": "Biology"
+          "text": "It turns into ice"
         },
         {
           "key": "C",
-          "text": "Chemistry"
+          "text": "It disappears"
         },
         {
           "key": "D",
-          "text": "Physics"
+          "text": "It turns into water"
         }
       ],
       "correct": "A",
-      "explanation": "Volcanoes are a geological phenomenon, making them a core topic within Earth Science."
+      "explanation": "Once magma breaks through the Earth's crust and reaches the surface, scientists refer to it as lava."
     },
     {
       "id": 3,
-      "question": "What everyday experience is used to help explain how volcanic lightning forms?",
+      "question": "Which factor plays a key role in building up pressure inside a volcano?",
       "options": [
         {
           "key": "A",
-          "text": "Boiling water on a stove."
+          "text": "Cold water"
         },
         {
           "key": "B",
-          "text": "Running fast on a track."
+          "text": "Trapped gas bubbles expanding in magma"
         },
         {
           "key": "C",
-          "text": "Shuffling feet on a carpet."
+          "text": "Moonlight"
         },
         {
           "key": "D",
-          "text": "Blowing bubbles."
+          "text": "Wind speed"
         }
       ],
-      "correct": "C",
-      "explanation": "Shuffling feet on a carpet demonstrates static electricity generated by friction, similar to ash particles."
+      "correct": "B",
+      "explanation": "Expanding gas bubbles trapped in magma build up extreme pressure that triggers volcanic eruptions."
     }
   ],
-  "id": "fact-1784705118835",
-  "generatedAt": "2026-07-22T07:25:18.835Z",
-  "generatedBy": "Mrs. Sumathi Devi (Generated by AI Science Assistant)",
-  "targetClass": "Class 7-B",
-  "isAiGenerated": true
+  "isAiGenerated": false
 }
