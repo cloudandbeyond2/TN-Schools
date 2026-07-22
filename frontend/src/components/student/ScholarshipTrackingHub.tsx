@@ -67,6 +67,7 @@ interface ScholarshipScheme {
   daysLeft: number | null;
   isExpired: boolean;
   isUrgent: boolean;
+  classes?: number[];
 }
 
 interface Application {
