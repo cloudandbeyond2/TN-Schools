@@ -44,7 +44,7 @@ const SUBJECTS = [
 
 const CLASS_NUMS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 const SECTIONS = ["A", "B", "C", "D", "E", "F", "G", "H"];
-const YEARS = ["2023-24", "2024-25", "2025-26"];
+const YEARS = ["2023-24", "2024-25", "2025-26", "2026-27"];
 
 // ─── Helpers ───────────────────────────────────────────────────
 const subjectColors: Record<string, string> = {
