@@ -1,3 +1,5 @@
+"use client";
+
 import { Search, X, MessageCircle, Award } from "lucide-react";
 import Link from "next/link";
 
