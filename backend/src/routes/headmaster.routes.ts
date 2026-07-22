@@ -1497,143 +1497,6 @@ router.post('/model-exams', async (req: Request, res: Response) => {
   }
 });
 
-async function ensureDefaultModelExams(schoolId: string, targetClass: string = "10") {
-  try {
-    const count = await prisma.modelExam.count({
-      where: { schoolId, class: targetClass }
-    });
-
-    if (count > 0) return;
-
-    const students = await prisma.student.findMany({
-      where: { schoolId, class: targetClass },
-      include: { user: true }
-    });
-
-    // Create 4 model exam sessions
-    const exam1 = await prisma.modelExam.create({
-      data: {
-        schoolId,
-        examName: "Quarterly Examination 2025",
-        examType: "Quarterly",
-        class: targetClass,
-        academicYear: "2025-26",
-        examDate: new Date("2025-10-10"),
-        isLocked: true,
-        lockedAt: new Date("2025-10-15")
-      }
-    });
-
-    const exam2 = await prisma.modelExam.create({
-      data: {
-        schoolId,
-        examName: "Half Yearly Examination 2025",
-        examType: "Half Yearly",
-        class: targetClass,
-        academicYear: "2025-26",
-        examDate: new Date("2025-12-18"),
-        isLocked: true,
-        lockedAt: new Date("2025-12-22")
-      }
-    });
-
-    const exam3 = await prisma.modelExam.create({
-      data: {
-        schoolId,
-        examName: "SSLC Revision Test 1",
-        examType: "Unit Test",
-        class: targetClass,
-        academicYear: "2025-26",
-        examDate: new Date("2026-02-05"),
-        isLocked: true,
-        lockedAt: new Date("2026-02-10")
-      }
-    });
-
-    await prisma.modelExam.create({
-      data: {
-        schoolId,
-        examName: "SSLC First Model Exam 2026",
-        examType: "Model",
-        class: targetClass,
-        academicYear: "2025-26",
-        examDate: new Date("2026-08-15"),
-        isLocked: false
-      }
-    });
-
-    // Seed student results for locked exams
-    for (const student of students) {
-      const name = student.user?.name || "Student";
-      const roll = student.rollNumber || "HM1001";
-
-      // Quarterly Result
-      await prisma.modelExamResult.create({
-        data: {
-          examId: exam1.id,
-          studentId: student.id,
-          studentName: name,
-          rollNumber: roll,
-          tamil: 84,
-          english: 88,
-          mathematics: 92,
-          science: 86,
-          socialScience: 90,
-          total: 440,
-          maxTotal: 500,
-          percentage: 88.0,
-          grade: "A+",
-          isPassed: true
-        }
-      });
-
-      // Half Yearly Result
-      await prisma.modelExamResult.create({
-        data: {
-          examId: exam2.id,
-          studentId: student.id,
-          studentName: name,
-          rollNumber: roll,
-          tamil: 88,
-          english: 90,
-          mathematics: 95,
-          science: 91,
-          socialScience: 92,
-          total: 456,
-          maxTotal: 500,
-          percentage: 91.2,
-          grade: "A+",
-          isPassed: true
-        }
-      });
-
-      // Revision Test 1 Result
-      await prisma.modelExamResult.create({
-        data: {
-          examId: exam3.id,
-          studentId: student.id,
-          studentName: name,
-          rollNumber: roll,
-          tamil: 90,
-          english: 92,
-          mathematics: 96,
-          science: 94,
-          socialScience: 95,
-          total: 467,
-          maxTotal: 500,
-          percentage: 93.4,
-          grade: "A+",
-          isPassed: true
-        }
-      });
-    }
-
-    console.log(`Auto-seeded default model exams and student results for school ${schoolId}, class ${targetClass}`);
-  } catch (err) {
-    console.error('Error auto-seeding default model exams:', err);
-  }
-}
-
 // GET /api/headmaster/model-exams — List exams for school (optionally filter by class/group)
 router.get('/model-exams', async (req: Request, res: Response) => {
   try {
@@ -1641,10 +1504,6 @@ router.get('/model-exams', async (req: Request, res: Response) => {
     if (!schoolId) return res.status(400).json({ success: false, error: 'schoolId required.' });
 
     const sId = String(schoolId);
-    const targetClass = cls ? String(cls) : '10';
-
-    await ensureDefaultModelExams(sId, targetClass);
-
     const where: any = { schoolId: sId };
     if (cls) where.class = String(cls);
     if (academicYear) where.academicYear = String(academicYear);
@@ -1945,11 +1804,9 @@ router.get('/model-exams/student/:studentId', async (req: Request, res: Response
 
     const student = await prisma.student.findFirst({
       where: { OR: [{ id: studentId }, { userId: studentId }] },
-      include: { user: true }
     });
 
     if (student) {
-      await ensureDefaultModelExams(student.schoolId, student.class || '10');
       studentId = student.id;
     }
 
