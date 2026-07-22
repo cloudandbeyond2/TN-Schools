@@ -160,6 +160,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
       { label: "Maths Formulas", href: "/student/maths-formulas", icon: "Calculator" },
       { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
+      { label: "Science Fact", href: "/student/science-fact", icon: "Sparkles" },
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
       { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
@@ -448,6 +449,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // Interactive Modules & Centers
       { label: "Interactive Modules", href: "#", icon: "" },
       { label: "Science Draw Mat", href: "/teacher/science-draw-mat", icon: "Microscope" },
+      { label: "Science Fact", href: "/teacher/science-fact", icon: "Sparkles" },
       { label: "Maths Formulas", href: "/teacher/maths-formulas", icon: "Calculator" },
       { label: "Language Coaching", href: "/teacher/language-coaching", icon: "MessageSquare" },
       { label: "Science Lab Support", href: "/teacher/science-lab-support", icon: "FlaskConical" },
