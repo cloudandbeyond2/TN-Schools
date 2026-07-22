@@ -144,7 +144,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
       { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
-      
+
       { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
@@ -265,7 +265,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
       { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
-      { label: "Wellness", href: "/student/wellness", icon: "Smile" },
+      // { label: "Wellness", href: "/student/wellness", icon: "Smile" },
 
       // ── School & Career ───────────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -355,7 +355,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
       { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
-      { label: "Wellness", href: "/student/wellness", icon: "Smile" },
+      // { label: "Wellness", href: "/student/wellness", icon: "Smile" },
 
       // ── School & Career ───────────────────────────────
       { label: "---", href: "#", icon: "" },
