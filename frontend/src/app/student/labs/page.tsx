@@ -23,7 +23,8 @@ import {
   Activity,
   Lightbulb,
   Wrench,
-  Layers
+  Layers,
+  Eye
 } from "lucide-react";
 
 const getApiBase = () => {
