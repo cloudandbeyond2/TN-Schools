@@ -1485,7 +1485,7 @@ export default function AlumniPage() {
             <form onSubmit={handleSaveAlumnus} className="space-y-4">
               
               {/* Basic Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-[10px] text-slate-500 font-bold uppercase mb-1">Full Name</label>
                   <input
@@ -1518,9 +1518,6 @@ export default function AlumniPage() {
                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-[10px] text-slate-500 font-bold uppercase mb-1">Phone Number</label>
                   <input
@@ -1574,7 +1571,7 @@ export default function AlumniPage() {
                 />
               </div>
 
-              <div className="border-t border-slate-100 dark:border-slate-850 pt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="border-t border-slate-100 dark:border-slate-850 pt-4 grid grid-cols-1 gap-6">
                 
                 {/* Modal Ach list */}
                 <div className="space-y-3">
