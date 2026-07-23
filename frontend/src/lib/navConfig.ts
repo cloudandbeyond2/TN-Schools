@@ -228,7 +228,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Question Papers (PYQ)", href: "/student/high-school/question-papers", icon: "FileText" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
-      { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
+      // { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
       // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
       // ── Test Preparation ──────────────────────────────
