@@ -269,7 +269,7 @@ export default function ExtracurricularsPage() {
   const fetchActivities = useCallback(async () => {
     if (!schoolId) return;
     try {
-      const res = await fetch(`${API_BASE}/api/activities?schoolId=${schoolId}`);
+      const res = await fetch(`${API_BASE}/api/activities?schoolId=${schoolId}&studentId=${(session?.user as any)?.id}`);
       const json = await res.json();
 
       if (json.success && json.data) {
@@ -434,7 +434,7 @@ export default function ExtracurricularsPage() {
     });
   };
 
-  const getMockEventsForClub = (clubName: string) => {
+  function getMockEventsForClub(clubName: string) {
     const name = clubName.toLowerCase();
     if (name.includes("service scheme") || name.includes("nss")) {
       return {

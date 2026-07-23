@@ -6,7 +6,7 @@ const router = Router();
 // GET /api/activities — Fetch all clubs and events
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { schoolId } = req.query;
+    const { schoolId, studentId } = req.query;
 
     let clubs = await prisma.club.findMany({
       where: schoolId ? { schoolId: String(schoolId) } : undefined,
@@ -64,12 +64,10 @@ router.get('/', async (req: Request, res: Response) => {
       };
     });
 
-    // For demo purposes, fetch the first student's joined clubs
-    const demoStudent = await prisma.student.findFirst();
     let formattedMyClubs: any[] = [];
-    if (demoStudent) {
+    if (studentId && studentId !== 'undefined') {
       const myClubs = await prisma.clubMember.findMany({
-        where: { studentId: demoStudent.id },
+        where: { studentId: String(studentId) },
         include: { club: true }
       });
       formattedMyClubs = myClubs.map(member => ({

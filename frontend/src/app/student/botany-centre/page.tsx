@@ -29,7 +29,7 @@ const getFlaticon = (emoji: string, textCol: string) => {
 };
 
 export default function BotanyCentrePage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   const [grade, setGrade] = useState(8);
   const [detected, setDetected] = useState<number | null>(null);
@@ -52,6 +52,8 @@ export default function BotanyCentrePage() {
 
 
   useEffect(() => {
+    if (status === "loading") return;
+
     (async () => {
       try {
         if (!session?.user) {
@@ -69,7 +71,7 @@ export default function BotanyCentrePage() {
         setIsLoading(false);
       }
     })();
-  }, [session, API_URL]);
+  }, [session, status, API_URL]);
 
   const data = BOTANY_SYLLABUS[grade];
 
@@ -112,16 +114,13 @@ export default function BotanyCentrePage() {
           <div className="p-2.5 bg-lime-100 text-lime-600 rounded-2xl"><i className="fi fi-sr-leaf text-2xl"></i></div>
           <div className="w-full">
             <p className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-              {detected
-                ? (lang === "EN" ? "Your class" : "உங்களது வகுப்பு")
-                : (lang === "EN" ? "Choose your class" : "வகுப்பைத் தேர்ந்தெடுக்கவும்")}
+              {lang === "EN" ? "Your class" : "உங்களது வகுப்பு"}
             </p>
             <div className="flex flex-wrap items-center gap-2 mt-2">
-              {(detected ? [detected] : BOTANY_GRADES).map((g) => (
-                <button key={g} onClick={() => !detected && setGrade(g)} disabled={!!detected}
-                  className={`px-3.5 py-1.5 rounded-xl text-sm font-black transition-all ${grade === g ? "bg-lime-500 text-white shadow" : "bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200"} ${detected ? "cursor-default" : ""}`}>
+              {[grade].map((g) => (
+                <button key={g} disabled
+                  className="px-3.5 py-1.5 rounded-xl text-sm font-black transition-all bg-lime-500 text-white shadow cursor-default">
                   {lang === "EN" ? `Class ${g}` : `${g}ஆம் வகுப்பு`}
-                  {detected === g && <span className="ml-1 text-[10px]">· {lang === "EN" ? "your class" : "உங்களது வகுப்பு"}</span>}
                 </button>
               ))}
             </div>
@@ -135,8 +134,8 @@ export default function BotanyCentrePage() {
             <span className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider mb-3" style={{ color: 'white' }}>
               <i className="fi fi-sr-sparkles text-sm"></i> {t(data.label)} · {data.medium === "Tamil" ? (lang === "EN" ? "Tamil" : "தமிழ்") : (lang === "EN" ? "English" : "ஆங்கிலம்")} {lang === "EN" ? "medium" : "வழி"}
             </span>
-            <h2 className="text-2xl font-black mb-2" style={{ color: 'white' }}>{t(data.book)}</h2>
-            <p className="text-sm font-medium leading-relaxed" style={{ color: 'white', opacity: 0.9 }}>{t(data.intro)}</p>
+            <p className="text-2xl font-black mb-2 !text-white">{t(data.book)}</p>
+            <p className="text-sm font-medium !text-white leading-relaxed" style={{ opacity: 0.9 }}>{t(data.intro)}</p>
           </div>
         </div>
 
@@ -204,7 +203,7 @@ function BotanyStudy({ lang, unit, onClose }: { lang: "EN" | "TA"; unit: BotanyU
         <div className="p-5 sm:p-7 flex flex-col gap-6 text-left">
           <section>
             <h4 className="flex items-center gap-2 text-sm font-black text-slate-800 dark:text-slate-100 mb-3">
-              <i className={`fi fi-sr-bullseye text-sm ${s.text}`}></i> 
+              <i className={`fi fi-sr-bullseye text-sm ${s.text}`}></i>
               {lang === "EN" ? "What you'll be able to do" : "உங்களால் என்ன செய்ய முடியும் (கற்றல் விளைவுகள்)"}
             </h4>
             <ul className="space-y-2">
@@ -221,9 +220,9 @@ function BotanyStudy({ lang, unit, onClose }: { lang: "EN" | "TA"; unit: BotanyU
               {unit.figure.src
                 ? <img src={unit.figure.src} alt={t(unit.figure.caption)} className="w-full max-h-96 object-contain bg-white" />
                 : <div className="flex flex-col items-center justify-center py-10 text-slate-400">
-                    <i className="fi fi-sr-microscope text-5xl mb-2"></i>
-                    <span className="text-xs font-bold text-center px-4">{lang === "EN" ? `Diagram in textbook ${unit.figure.page}` : `பாடப்புத்தகம் பக்கம் ${unit.figure.page}-ல் உள்ள வரைபடம்`}</span>
-                  </div>}
+                  <i className="fi fi-sr-microscope text-5xl mb-2"></i>
+                  <span className="text-xs font-bold text-center px-4">{lang === "EN" ? `Diagram in textbook ${unit.figure.page}` : `பாடப்புத்தகம் பக்கம் ${unit.figure.page}-ல் உள்ள வரைபடம்`}</span>
+                </div>}
               <figcaption className="px-4 py-2.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 border-t-2 border-slate-100 dark:border-slate-700">{t(unit.figure.caption)}</figcaption>
             </figure>
           )}

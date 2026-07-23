@@ -447,7 +447,7 @@ const modelColorStyles: Record<string, {
 };
 
 export default function ThreeDPreviewPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [student, setStudent] = useState<any>(null);
   const [studentGrade, setStudentGrade] = useState<string>("10"); // Default grade fallback
   const [loadingStudent, setLoadingStudent] = useState<boolean>(true);
@@ -574,6 +574,8 @@ export default function ThreeDPreviewPage() {
 
   // Fetch logged-in student profile dynamically from backend
   useEffect(() => {
+    if (status === "loading") return;
+    
     const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
     let url = API_BASE;
     if (url && !url.startsWith("http://") && !url.startsWith("https://")) {
@@ -611,15 +613,7 @@ export default function ThreeDPreviewPage() {
   }, [session]);
 
   const categories = [
-    { id: "My Grade", label: `My Grade (Class ${studentGrade})` },
-    { id: "All", label: "All Models" },
-    { id: "Class 6", label: "Class 6" },
-    { id: "Class 7", label: "Class 7" },
-    { id: "Class 8", label: "Class 8" },
-    { id: "Class 9", label: "Class 9" },
-    { id: "Class 10", label: "Class 10" },
-    { id: "Class 11", label: "Class 11" },
-    { id: "Class 12", label: "Class 12" },
+    { id: "My Grade", label: `My Grade (Class ${studentGrade})` }
   ];
 
   const filteredModels = models.filter((m) => {
@@ -717,6 +711,16 @@ export default function ThreeDPreviewPage() {
   const subtitle = student
     ? `Personalized 3D Learning Hub for ${userName} · Class ${studentGrade} Curriculum · Interactive Holograms & Real 3D Models`
     : `Spin, zoom, and explore interactive 3D models curated for Class ${studentGrade}!`;
+
+  if (loadingStudent || status === "loading") {
+    return (
+      <PortalLayout title="Magic 3D Viewer 👓" subtitle="Loading...">
+        <div className="flex items-center justify-center py-32">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+        </div>
+      </PortalLayout>
+    );
+  }
 
   return (
     <PortalLayout
