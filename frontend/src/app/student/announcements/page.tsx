@@ -327,7 +327,7 @@ export default function AnnouncementsPage() {
       <div className="flex flex-col gap-6 w-full text-left">
         
         {/* 🌟 Modern Hero Banner with Flat Icon Styling */}
-        <div className="relative overflow-hidden rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-6 sm:p-8 lg:p-10 shadow-xl transition-all w-full">
+        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-5 sm:p-6 shadow-xl transition-all w-full">
           <div className="absolute top-0 right-0 w-72 h-72 bg-amber-500/10 dark:bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-72 h-72 bg-sky-500/10 dark:bg-sky-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
 
