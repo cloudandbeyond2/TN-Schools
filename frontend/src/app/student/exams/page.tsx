@@ -329,8 +329,16 @@ export default function StudentExamsPage() {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const res = await fetch(`${API_URL}/api/headmaster/model-exams/student/${studentId}`);
       const json = await res.json();
-      if (json.success) {
-        setStudentResults(json.data);
+      if (json.success && Array.isArray(json.data)) {
+        const uniqueMap = new Map();
+        for (const item of json.data) {
+          const ex = item.exam || {};
+          const key = `${ex.examName || ""}_${ex.academicYear || ""}_${ex.class || ""}_${ex.section || ""}_${ex.examType || ""}`;
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, item);
+          }
+        }
+        setStudentResults(Array.from(uniqueMap.values()));
       }
     } catch (err) {
       console.error("Failed to fetch student results:", err);
@@ -508,12 +516,12 @@ export default function StudentExamsPage() {
       themeClass="theme-student"
       accentColor="#6366f1"
     >
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-4 print:hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-4 sm:mb-6 gap-3 print:hidden">
         {/* Navigation tabs */}
-        <div className="flex flex-col sm:flex-row bg-slate-950 border border-slate-800 p-1.5 rounded-2xl w-full sm:w-fit">
+        <div className="flex bg-slate-950 border border-slate-800 p-1 sm:p-1.5 rounded-2xl w-full sm:w-fit">
           <button
             onClick={() => setActiveTab("calendar")}
-            className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-black transition-all ${
               activeTab === "calendar"
                 ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
                 : "text-slate-400 hover:text-white"
@@ -523,7 +531,7 @@ export default function StudentExamsPage() {
           </button>
           <button
             onClick={() => setActiveTab("marks")}
-            className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-black transition-all ${
               activeTab === "marks"
                 ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
                 : "text-slate-400 hover:text-white"
@@ -534,16 +542,16 @@ export default function StudentExamsPage() {
         </div>
         
         {/* Language Toggle */}
-        <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-xl w-fit">
+        <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-xl w-fit self-end sm:self-auto">
           <button
             onClick={() => setLang("en")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${lang === "en" ? "bg-indigo-500 text-white" : "text-slate-400 hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all ${lang === "en" ? "bg-indigo-500 text-white" : "text-slate-400 hover:text-white"}`}
           >
             English
           </button>
           <button
             onClick={() => setLang("ta")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${lang === "ta" ? "bg-indigo-500 text-white" : "text-slate-400 hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all ${lang === "ta" ? "bg-indigo-500 text-white" : "text-slate-400 hover:text-white"}`}
           >
             தமிழ்
           </button>
@@ -555,16 +563,16 @@ export default function StudentExamsPage() {
         <div>
           {/* Countdown Panel for Next Upcoming Exam */}
           {nextExam && (
-            <div className="rounded-2xl p-6 bg-slate-900 border border-slate-800 mb-6 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl">
-              <div className="space-y-2">
+            <div className="rounded-2xl p-3.5 sm:p-6 bg-slate-900 border border-slate-800 mb-4 sm:mb-6 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6 shadow-xl">
+              <div className="space-y-1.5 sm:space-y-2 w-full md:w-auto">
                 <div className="flex items-center gap-2">
                   <span className="p-1 bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-indigo-400 flex items-center justify-center">
-                    <i className="fi fi-rr-stopwatch text-sm leading-none"></i>
+                    <i className="fi fi-rr-stopwatch text-xs sm:text-sm leading-none"></i>
                   </span>
-                  <span className="text-[10px] text-indigo-450 font-extrabold uppercase tracking-wider">{t.nextUpcoming}</span>
+                  <span className="text-[9px] sm:text-[10px] text-indigo-450 font-extrabold uppercase tracking-wider">{t.nextUpcoming}</span>
                 </div>
-                <h2 className="text-lg font-black text-white">{nextExam.name} ({getSubjectTranslation(nextExam.subject, lang)})</h2>
-                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400 font-semibold">
+                <h2 className="text-sm sm:text-base md:text-lg font-black text-white leading-tight">{nextExam.name} ({getSubjectTranslation(nextExam.subject, lang)})</h2>
+                <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-[11px] sm:text-xs text-slate-400 font-semibold">
                   <span className="flex items-center gap-1">
                     <i className="fi fi-rr-calendar text-slate-500"></i> {formatStudentFriendlyDate(nextExam.date)}
                   </span>
@@ -574,7 +582,7 @@ export default function StudentExamsPage() {
                   <span className="flex items-center gap-1 text-purple-300">
                     <i className="fi fi-rr-marker text-purple-400"></i> {t.room}: {nextExam.hall.split(" (")[0]}
                   </span>
-                  <span className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] ${getModeBadgeStyle(nextExam.examMode)}`}>
+                  <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] sm:text-[10px] ${getModeBadgeStyle(nextExam.examMode)}`}>
                     {getModeIcon(nextExam.examMode)}
                     {lang === "ta" ? (nextExam.examMode === "Theory" ? t.theory : nextExam.examMode === "Practical" ? t.practical : nextExam.examMode === "Both" ? t.both : t.theory) : (nextExam.examMode || "Theory")} {t.mode}
                   </span>
@@ -585,29 +593,29 @@ export default function StudentExamsPage() {
               </div>
 
               {/* Countdown Clock Widget */}
-              <div className="flex items-center gap-2 bg-slate-950 border border-slate-850 p-3 rounded-2xl">
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2 bg-slate-950 border border-slate-850 p-2 sm:p-3 rounded-xl sm:rounded-2xl w-full sm:w-auto mt-1 sm:mt-0">
                 {(() => {
                   const { days, hours, minutes, seconds } = getCountdownData(nextExam.targetDateTime);
                   return (
                     <>
-                      <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-800 rounded-xl">
-                        <div className="text-xl font-black text-white">{days.toString().padStart(2, "0")}</div>
-                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.days}</div>
+                      <div className="text-center min-w-[38px] sm:min-w-[50px] p-1 sm:p-2 bg-slate-900 border border-slate-800 rounded-lg sm:rounded-xl">
+                        <div className="text-base sm:text-xl font-black text-white">{days.toString().padStart(2, "0")}</div>
+                        <div className="text-[7px] sm:text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.days}</div>
                       </div>
-                      <div className="text-xl font-bold text-slate-800">:</div>
-                      <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-800 rounded-xl">
-                        <div className="text-xl font-black text-white">{hours.toString().padStart(2, "0")}</div>
-                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.hours}</div>
+                      <div className="text-base sm:text-xl font-bold text-slate-800">:</div>
+                      <div className="text-center min-w-[38px] sm:min-w-[50px] p-1 sm:p-2 bg-slate-900 border border-slate-800 rounded-lg sm:rounded-xl">
+                        <div className="text-base sm:text-xl font-black text-white">{hours.toString().padStart(2, "0")}</div>
+                        <div className="text-[7px] sm:text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.hours}</div>
                       </div>
-                      <div className="text-xl font-bold text-slate-800">:</div>
-                      <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-800 rounded-xl">
-                        <div className="text-xl font-black text-white">{minutes.toString().padStart(2, "0")}</div>
-                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.mins}</div>
+                      <div className="text-base sm:text-xl font-bold text-slate-800">:</div>
+                      <div className="text-center min-w-[38px] sm:min-w-[50px] p-1 sm:p-2 bg-slate-900 border border-slate-800 rounded-lg sm:rounded-xl">
+                        <div className="text-base sm:text-xl font-black text-white">{minutes.toString().padStart(2, "0")}</div>
+                        <div className="text-[7px] sm:text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.mins}</div>
                       </div>
-                      <div className="text-xl font-bold text-slate-800">:</div>
-                      <div className="text-center min-w-[50px] p-2 bg-slate-900 border border-slate-850 rounded-xl">
-                        <div className="text-xl font-black text-indigo-400">{seconds.toString().padStart(2, "0")}</div>
-                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.secs}</div>
+                      <div className="text-base sm:text-xl font-bold text-slate-800">:</div>
+                      <div className="text-center min-w-[38px] sm:min-w-[50px] p-1 sm:p-2 bg-slate-900 border border-slate-850 rounded-lg sm:rounded-xl">
+                        <div className="text-base sm:text-xl font-black text-indigo-400">{seconds.toString().padStart(2, "0")}</div>
+                        <div className="text-[7px] sm:text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.secs}</div>
                       </div>
                     </>
                   );
@@ -618,11 +626,11 @@ export default function StudentExamsPage() {
 
           <div className="mb-6">
             {/* Exam Schedule List */}
-            <div className="glass rounded-2xl p-6 flex flex-col min-h-[400px] w-full">
-              <div className="flex items-center gap-2 mb-5">
-                <i className="fi fi-rr-calendar text-xl text-indigo-400 leading-none"></i>
-                <h2 className="text-sm font-bold text-white">{t.dateSheet}</h2>
-                <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black px-2 py-0.5 rounded-md">
+            <div className="glass rounded-2xl p-3.5 sm:p-6 flex flex-col min-h-[300px] sm:min-h-[400px] w-full">
+              <div className="flex items-center gap-2 mb-3.5 sm:mb-5">
+                <i className="fi fi-rr-calendar text-lg sm:text-xl text-indigo-400 leading-none"></i>
+                <h2 className="text-xs sm:text-sm font-bold text-white">{t.dateSheet}</h2>
+                <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-md">
                   {studentExams.length}
                 </span>
               </div>
@@ -633,68 +641,68 @@ export default function StudentExamsPage() {
                   <div className="text-xs font-semibold text-slate-400">Loading your assessments...</div>
                 </div>
               ) : studentExams.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-slate-800 rounded-xl bg-slate-900/10">
-                  <div className="p-4 bg-slate-900/40 rounded-full text-slate-500 border border-slate-800 mb-3 flex items-center justify-center">
-                    <i className="fi fi-rr-info text-2xl leading-none"></i>
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-6 sm:p-8 border border-dashed border-slate-800 rounded-xl bg-slate-900/10">
+                  <div className="p-3 sm:p-4 bg-slate-900/40 rounded-full text-slate-500 border border-slate-800 mb-3 flex items-center justify-center">
+                    <i className="fi fi-rr-info text-xl sm:text-2xl leading-none"></i>
                   </div>
-                  <h3 className="text-sm font-bold text-white mb-1">{t.noSchedules}</h3>
-                  <p className="text-xs text-slate-500 max-w-sm">
+                  <h3 className="text-xs sm:text-sm font-bold text-white mb-1">{t.noSchedules}</h3>
+                  <p className="text-[11px] sm:text-xs text-slate-500 max-w-sm">
                     {t.noSchedulesDesc}
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto w-full rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="overflow-x-auto w-full rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-sm">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-black uppercase tracking-wider">
-                        <th className="p-4 align-middle whitespace-nowrap">{t.thStandardMode}</th>
-                        <th className="p-4 align-middle whitespace-nowrap">{t.thExamDetails}</th>
-                        <th className="p-4 align-middle whitespace-nowrap">{t.thDateTime}</th>
-                        <th className="p-4 align-middle whitespace-nowrap">{t.thRoomInvigilator}</th>
-                        <th className="p-4 align-middle text-right whitespace-nowrap">{t.thSeatingStatus}</th>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-[9px] sm:text-[10px] text-slate-500 font-black uppercase tracking-wider">
+                        <th className="p-2.5 sm:p-4 align-middle whitespace-nowrap">{t.thStandardMode}</th>
+                        <th className="p-2.5 sm:p-4 align-middle whitespace-nowrap">{t.thExamDetails}</th>
+                        <th className="p-2.5 sm:p-4 align-middle whitespace-nowrap">{t.thDateTime}</th>
+                        <th className="p-2.5 sm:p-4 align-middle whitespace-nowrap">{t.thRoomInvigilator}</th>
+                        <th className="p-2.5 sm:p-4 align-middle text-right whitespace-nowrap">{t.thSeatingStatus}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {studentExams.map((ex) => (
                         <tr 
                           key={ex.id}
-                          className={`hover:bg-slate-50/30 transition-colors text-xs text-slate-800 font-medium border-b border-slate-100 last:border-b-0 ${
+                          className={`hover:bg-slate-50/30 transition-colors text-[11px] sm:text-xs text-slate-800 font-medium border-b border-slate-100 last:border-b-0 ${
                             ex.status === "Completed" ? "border-l-4 border-l-rose-400" :
                             ex.status === "In Progress" ? "border-l-4 border-l-amber-400" :
                             "border-l-4 border-l-emerald-400"
                           }`}
                         >
-                          <td className="p-4 align-middle whitespace-nowrap">
+                          <td className="p-2.5 sm:p-4 align-middle whitespace-nowrap">
                             <div className="flex flex-col gap-1">
-                              <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md w-max">
+                              <span className="text-[9px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md w-max">
                                 {ex.classSection}
                               </span>
-                              <span className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-md w-max flex items-center gap-0.5 ${getModeBadgeStyle(ex.examMode || "Theory")}`}>
+                              <span className={`text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 border rounded-md w-max flex items-center gap-0.5 ${getModeBadgeStyle(ex.examMode || "Theory")}`}>
                                 {getModeIcon(ex.examMode || "Theory")}
                                 {ex.examMode || "Theory"}
                               </span>
                             </div>
                           </td>
 
-                          <td className="p-4 align-middle min-w-[200px]">
-                            <div className="flex items-start gap-2.5">
-                              <span className="mt-1.5 flex-shrink-0">
-                                <span className={`relative flex h-2.5 w-2.5`}>
+                          <td className="p-2.5 sm:p-4 align-middle min-w-[180px] sm:min-w-[200px]">
+                            <div className="flex items-start gap-2 sm:gap-2.5">
+                              <span className="mt-1 flex-shrink-0">
+                                <span className={`relative flex h-2 w-2 sm:h-2.5 sm:w-2.5`}>
                                   {ex.status === "Scheduled" && (
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                   )}
-                                  <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                                  <span className={`relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 ${
                                     ex.status === "Completed" ? "bg-rose-500" :
                                     ex.status === "In Progress" ? "bg-amber-400" :
                                     "bg-emerald-500"
                                   }`}></span>
                                 </span>
                               </span>
-                              <div className="space-y-1">
-                                <div className="text-slate-900 font-extrabold text-sm leading-tight">{ex.subject}</div>
-                                <div className="flex items-center gap-2 flex-wrap text-slate-500 text-xs font-semibold">
+                              <div className="space-y-0.5 sm:space-y-1">
+                                <div className="text-slate-900 font-extrabold text-xs sm:text-sm leading-tight">{ex.subject}</div>
+                                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap text-slate-500 text-[11px] sm:text-xs font-semibold">
                                   <span>{ex.name}</span>
-                                  <span className={`text-[8px] font-extrabold px-1.5 py-0.5 border rounded uppercase ${getTypeBadgeStyle(ex.type)}`}>
+                                  <span className={`text-[8px] font-extrabold px-1 sm:px-1.5 py-0.5 border rounded uppercase ${getTypeBadgeStyle(ex.type)}`}>
                                     {ex.type}
                                   </span>
                                 </div>
@@ -702,35 +710,35 @@ export default function StudentExamsPage() {
                             </div>
                           </td>
 
-                          <td className="p-4 align-middle whitespace-nowrap">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-1.5 text-slate-750 font-bold text-[13px]">
+                          <td className="p-2.5 sm:p-4 align-middle whitespace-nowrap">
+                            <div className="space-y-0.5 sm:space-y-1">
+                              <div className="flex items-center gap-1.5 text-slate-750 font-bold text-xs sm:text-[13px]">
                                 <i className="fi fi-rr-calendar text-indigo-500"></i>
                                 <span>{formatStudentFriendlyDate(ex.date)}</span>
                               </div>
-                              <div className="flex items-center gap-1.5 text-slate-550 text-[11px] font-semibold">
+                              <div className="flex items-center gap-1.5 text-slate-550 text-[10px] sm:text-[11px] font-semibold">
                                 <i className="fi fi-rr-clock text-amber-500"></i>
                                 <span>{ex.timeSlot} <span className="text-slate-450">({ex.duration || "3 Hours"})</span></span>
                               </div>
                             </div>
                           </td>
 
-                          <td className="p-4 align-middle whitespace-nowrap">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-1.5 text-purple-700 font-bold">
+                          <td className="p-2.5 sm:p-4 align-middle whitespace-nowrap">
+                            <div className="space-y-0.5 sm:space-y-1">
+                              <div className="flex items-center gap-1.5 text-purple-700 font-bold text-xs sm:text-sm">
                                 <i className="fi fi-rr-marker text-purple-500"></i>
                                 <span>{ex.hall.split(" (")[0]}</span>
                               </div>
-                              <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
+                              <div className="flex items-center gap-1.5 text-slate-700 font-semibold text-[10px] sm:text-xs">
                                 <i className="fi fi-rr-user-check text-emerald-600"></i>
                                 <span>{ex.invigilator}</span>
                               </div>
                             </div>
                           </td>
 
-                          <td className="p-4 align-middle text-right whitespace-nowrap">
-                            <div className="flex flex-col items-end gap-1.5">
-                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[9px] font-black rounded-full border uppercase tracking-wider w-max ${
+                          <td className="p-2.5 sm:p-4 align-middle text-right whitespace-nowrap">
+                            <div className="flex flex-col items-end gap-1 sm:gap-1.5">
+                              <span className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[8px] sm:text-[9px] font-black rounded-full border uppercase tracking-wider w-max ${
                                 ex.status === "Completed"
                                   ? "bg-rose-50 border-rose-200 text-rose-700"
                                   : ex.status === "In Progress"
@@ -746,7 +754,7 @@ export default function StudentExamsPage() {
                                  ex.status === "In Progress" ? t.ongoing :
                                  t.upcoming}
                               </span>
-                              <div className="text-[9px] text-slate-500 font-semibold bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md w-max">
+                              <div className="text-[8px] sm:text-[9px] text-slate-500 font-semibold bg-slate-50 border border-slate-200 px-1.5 sm:px-2 py-0.5 rounded-md w-max">
                                 {t.deskAssigned}
                               </div>
                             </div>
@@ -759,26 +767,26 @@ export default function StudentExamsPage() {
               )}
 
               {/* Exam Instructions & Tips Section */}
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="glass rounded-2xl p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
+              <div className="mt-4 sm:mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div className="glass rounded-2xl p-3.5 sm:p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white mb-2 sm:mb-3 flex items-center gap-2">
                     <i className="fi fi-rr-stars text-indigo-500"></i>
                     {t.instructionsTitle}
                   </h3>
-                  <ul className="space-y-2.5 text-xs text-slate-650 dark:text-slate-400 font-medium">
-                    <li className="flex items-start gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                  <ul className="space-y-2 text-[11px] sm:text-xs text-slate-650 dark:text-slate-400 font-medium">
+                    <li className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1 flex-shrink-0" />
                       <span>{t.instructions1}</span>
                     </li>
-                    <li className="flex items-start gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                    <li className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1 flex-shrink-0" />
                       <span>{t.instructions2}</span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="glass rounded-2xl p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
+                <div className="glass rounded-2xl p-3.5 sm:p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white mb-2 sm:mb-3 flex items-center gap-2">
                     <i className="fi fi-rr-award text-amber-500"></i>
                     {t.tipsTitle}
                   </h3>
@@ -800,30 +808,30 @@ export default function StudentExamsPage() {
       ) : (
         /* ── Tab 2: Model Exam Results View ── */
         <div className="fade-in">
-          <div className="glass rounded-3xl border border-slate-250 bg-white p-6 shadow-xl dark:border-slate-850 dark:bg-slate-950">
-            <h2 className="text-base font-extrabold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-              <i className="fi fi-rr-award text-lg text-indigo-500 leading-none"></i>
+          <div className="glass rounded-2xl sm:rounded-3xl border border-slate-250 bg-white p-3.5 sm:p-6 shadow-xl dark:border-slate-850 dark:bg-slate-950">
+            <h2 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white mb-1.5 sm:mb-2 flex items-center gap-2">
+              <i className="fi fi-rr-award text-base sm:text-lg text-indigo-500 leading-none"></i>
               {t.marksTitle}
             </h2>
-            <p className="text-xs text-slate-500 leading-relaxed mb-6">
+            <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed mb-4 sm:mb-6">
               {t.marksDesc}
             </p>
 
             {loadingResults ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <div className="flex flex-col items-center justify-center py-12 sm:py-16 gap-3">
                 <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                 <div className="text-xs font-semibold text-slate-400 animate-pulse">{t.loadingReportCards}</div>
               </div>
             ) : studentResults.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-3 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/40 dark:bg-slate-950/20">
-                <i className="fi fi-rr-document text-4xl text-slate-300 dark:text-slate-800"></i>
-                <h3 className="text-sm font-bold text-slate-800 dark:text-white">{t.noResults}</h3>
-                <p className="text-xs text-slate-400 max-w-xs text-center leading-relaxed">
+              <div className="flex flex-col items-center justify-center py-12 sm:py-16 gap-3 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/40 dark:bg-slate-950/20">
+                <i className="fi fi-rr-document text-3xl sm:text-4xl text-slate-300 dark:text-slate-800"></i>
+                <h3 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white">{t.noResults}</h3>
+                <p className="text-[11px] sm:text-xs text-slate-400 max-w-xs text-center leading-relaxed">
                   {t.noResultsDesc}
                 </p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {studentResults.map((result) => {
                   const exam = result.exam;
                   const isHsc = exam.class === "11" || exam.class === "12";
@@ -833,49 +841,49 @@ export default function StudentExamsPage() {
                   return (
                     <div 
                       key={result.id} 
-                      className={`p-6 rounded-2xl border-2 transition-all duration-300 ${
+                      className={`p-3.5 sm:p-6 rounded-2xl border-2 transition-all duration-300 ${
                         isPassed 
                           ? "bg-slate-50/50 border-emerald-500/20 hover:border-emerald-500/35 dark:bg-slate-900/10" 
                           : "bg-slate-50/50 border-rose-500/20 hover:border-rose-500/35 dark:bg-slate-900/10"
                       }`}
                     >
                       {/* Card Header */}
-                      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/60 dark:border-slate-800 pb-4 mb-5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/60 dark:border-slate-800 pb-3 sm:pb-4 mb-3.5 sm:mb-5">
                         <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-sm font-black text-slate-900 dark:text-white">{getSubjectTranslation(exam.examName, lang)}</h3>
-                            <span className="text-[9px] bg-slate-100 border border-slate-250 px-2 py-0.5 rounded-full text-slate-500 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400">
+                          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                            <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">{getSubjectTranslation(exam.examName, lang)}</h3>
+                            <span className="text-[8px] sm:text-[9px] bg-slate-100 border border-slate-250 px-1.5 sm:px-2 py-0.5 rounded-full text-slate-500 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400">
                               {getSubjectTranslation(exam.examType, lang)}
                             </span>
                             {exam.group && (
-                              <span className="text-[9px] bg-indigo-50 border border-indigo-150 px-2 py-0.5 rounded-full text-indigo-650 dark:bg-indigo-950/20 dark:border-indigo-900 dark:text-indigo-400">
+                              <span className="text-[8px] sm:text-[9px] bg-indigo-50 border border-indigo-150 px-1.5 sm:px-2 py-0.5 rounded-full text-indigo-650 dark:bg-indigo-950/20 dark:border-indigo-900 dark:text-indigo-400">
                                 {t.emisGroup}: {exam.group}
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-slate-400 mt-1">
+                          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1">
                             {t.academicYear} {exam.academicYear} · {t.class} {exam.class} ({exam.section})
                             {exam.examDate ? ` · ${t.conductedOn} ${new Date(exam.examDate).toLocaleDateString("en-IN")}` : ""}
                           </p>
                         </div>
 
                         {/* Overall badge metrics */}
-                        <div className="flex items-center gap-3">
-                          <div className="text-right">
-                            <div className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">{t.finalScore}</div>
-                            <div className="text-lg font-black text-slate-800 dark:text-white leading-none mt-1">
+                        <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/50 dark:border-slate-850/50">
+                          <div className="text-left sm:text-right">
+                            <div className="text-[8px] sm:text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">{t.finalScore}</div>
+                            <div className="text-sm sm:text-lg font-black text-slate-800 dark:text-white leading-none mt-0.5 sm:mt-1">
                               {total}/{maxTotal}
                             </div>
                           </div>
-                          <div className="w-[1px] h-8 bg-slate-200 dark:bg-slate-850" />
-                          <div className="text-right">
-                            <div className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">{t.percentage}</div>
-                            <div className="text-lg font-black text-indigo-600 dark:text-indigo-400 leading-none mt-1">
+                          <div className="w-[1px] h-6 sm:h-8 bg-slate-200 dark:bg-slate-850" />
+                          <div className="text-center sm:text-right">
+                            <div className="text-[8px] sm:text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">{t.percentage}</div>
+                            <div className="text-sm sm:text-lg font-black text-indigo-600 dark:text-indigo-400 leading-none mt-0.5 sm:mt-1">
                               {pct}%
                             </div>
                           </div>
-                          <div className="w-[1px] h-8 bg-slate-200 dark:bg-slate-850" />
-                          <span className={`px-3 py-1 rounded-lg text-xs font-black tracking-wider ${
+                          <div className="w-[1px] h-6 sm:h-8 bg-slate-200 dark:bg-slate-850" />
+                          <span className={`px-2.5 py-1 sm:px-3 rounded-lg text-[10px] sm:text-xs font-black tracking-wider ${
                             isPassed 
                               ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400" 
                               : "bg-rose-500/10 border border-rose-500/25 text-rose-500 dark:text-rose-450"
@@ -886,7 +894,7 @@ export default function StudentExamsPage() {
                       </div>
 
                       {/* Marks breakdown grid */}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
                         {subjectsList.map((subj) => {
                           const markVal = (result as any)[subj.key];
                           const hasMark = markVal != null;
@@ -895,28 +903,28 @@ export default function StudentExamsPage() {
                           return (
                             <div 
                               key={subj.key} 
-                              className={`p-3.5 rounded-xl border flex flex-col items-center justify-center text-center relative ${
+                              className={`p-2.5 sm:p-3.5 rounded-xl border flex flex-col items-center justify-center text-center relative ${
                                 !hasMark ? "bg-slate-50/30 border-slate-200 dark:bg-slate-900/10 dark:border-slate-850" :
                                 isFailedSubj
                                   ? "bg-rose-500/5 border-rose-500/15 dark:bg-rose-950/10 dark:border-rose-900/30"
                                   : "bg-slate-50/80 border-slate-200 dark:bg-slate-900/40 dark:border-slate-850"
                               }`}
                             >
-                              <div className={`text-[10px] font-black uppercase tracking-wider ${subj.color}`}>
+                              <div className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider ${subj.color}`}>
                                 {getSubjectTranslation(subj.label, lang)}
                               </div>
-                              <div className="mt-2 flex items-baseline gap-0.5">
-                                <span className={`text-xl font-black ${
+                              <div className="mt-1.5 sm:mt-2 flex items-baseline gap-0.5">
+                                <span className={`text-base sm:text-xl font-black ${
                                   !hasMark ? "text-slate-350 dark:text-slate-700" :
                                   isFailedSubj ? "text-rose-500" : "text-slate-800 dark:text-slate-200"
                                 }`}>
                                   {hasMark ? markVal : "—"}
                                 </span>
-                                {hasMark && <span className="text-[10px] text-slate-400">/100</span>}
+                                {hasMark && <span className="text-[9px] sm:text-[10px] text-slate-400">/100</span>}
                               </div>
                               
                               {hasMark && (
-                                <span className={`text-[9px] font-extrabold mt-1.5 px-1.5 py-0.5 rounded-md ${
+                                <span className={`text-[8px] sm:text-[9px] font-extrabold mt-1 sm:mt-1.5 px-1.5 py-0.5 rounded-md ${
                                   isFailedSubj 
                                     ? "bg-rose-500/10 text-rose-500" 
                                     : "bg-slate-100 text-slate-600 dark:bg-slate-850 dark:text-slate-400"
