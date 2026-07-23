@@ -61,6 +61,7 @@ import sslcPrepRoutes from './routes/sslcPrep.routes';
 import scholarshipRoutes from './routes/scholarship.routes';
 import deoRoutes from './routes/deo.routes';
 import counsellorRoutes from './routes/counsellor.routes';
+import mockTestsRoutes from './routes/mock-tests.routes';
 // Trigger nodemon restart after prisma client generation
 dotenv.config();
 
@@ -247,6 +248,7 @@ app.use('/api/sslc-prep', sslcPrepRoutes);
 app.use('/api/scholarships', scholarshipRoutes);
 app.use('/api/deo', deoRoutes);
 app.use('/api/counsellor', counsellorRoutes);
+app.use('/api/mock-tests', mockTestsRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {

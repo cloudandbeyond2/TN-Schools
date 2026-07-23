@@ -153,6 +153,7 @@ model Student {
   academicHistory       StudentAcademicHistory[]
   riskAlerts            StudentRiskAlert[]
   school                School                     @relation(fields: [schoolId], references: [id])
+  mockTestSubmissions   MockTestSubmission[]
 
   @@index([classRoomId])
   @@index([schoolId])
@@ -2099,4 +2100,61 @@ model MathsFormula {
   mnemonicText    String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+// ─── Premium Mock Tests Management ─────────────────────────────────────────────
+model MockTest {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  grade         String
+  subject       String
+  duration      Int      @default(60) // minutes
+  totalMarks    Int      @default(100)
+  status        String   @default("DRAFT") // DRAFT, PUBLISHED
+  createdByRole String   // SUPER_ADMIN, HEADMASTER, TEACHER
+  createdById   String
+  schoolId      String?  // null if created by Super Admin (state-wide)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  questions     MockTestQuestion[]
+  assignments   MockTestAssignment[]
+}
+
+model MockTestQuestion {
+  id          String   @id @default(uuid())
+  mockTestId  String
+  mockTest    MockTest @relation(fields: [mockTestId], references: [id], onDelete: Cascade)
+  type        String   // mcq, short
+  text        String
+  options     String[]
+  answer      String
+  marks       Int
+  order       Int      @default(0)
+}
+
+model MockTestAssignment {
+  id          String   @id @default(uuid())
+  mockTestId  String
+  mockTest    MockTest @relation(fields: [mockTestId], references: [id], onDelete: Cascade)
+  schoolId    String?  // If assigned to a specific school
+  class       String?
+  section     String?
+  assignedAt  DateTime @default(now())
+  dueDate     DateTime?
+
+  submissions MockTestSubmission[]
+}
+
+model MockTestSubmission {
+  id           String   @id @default(uuid())
+  assignmentId String
+  assignment   MockTestAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  answers      Json     // Student's answers
+  score        Float?
+  status       String   @default("PENDING") // PENDING, GRADED
+  submittedAt  DateTime @default(now())
 }
