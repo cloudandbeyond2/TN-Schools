@@ -275,6 +275,64 @@ const DEFAULT_LAB_EXPERIMENTS: Experiment[] = [
     ]
   },
 
+  // --- CLASS 11 PRACTICALS ---
+  {
+    id: "exp-11-kinematics",
+    cls: 11,
+    title: "Kinematics & Projectile Motion Simulator",
+    subject: "Physics",
+    category: "Mechanics",
+    duration: "30 mins",
+    level: "Class 11 Practical",
+    icon: "Atom",
+    color: "from-blue-600 via-indigo-600 to-purple-700",
+    stream: "Science",
+    objective: "Analyze the parabolic path of a projectile and verify equations of motion.",
+    equipment: ["Virtual Launcher", "Velocity Slider", "Angle Measurer"],
+    instructions: [
+      "Set initial velocity and launch angle.",
+      "Launch projectile and observe trajectory.",
+      "Calculate maximum height and horizontal range."
+    ],
+    simulationType: "physics_ohm",
+    quiz: [
+      {
+        question: "Which angle provides the maximum horizontal range for a projectile?",
+        options: ["45 degrees", "30 degrees", "60 degrees", "90 degrees"],
+        answer: 0,
+        explanation: "In a vacuum, a projectile launched at 45 degrees covers the maximum horizontal distance."
+      }
+    ]
+  },
+  {
+    id: "exp-11-titration",
+    cls: 11,
+    title: "Acid-Base Titration (Class 11)",
+    subject: "Chemistry",
+    category: "Volumetric Analysis",
+    duration: "25 mins",
+    level: "Class 11 Practical",
+    icon: "FlaskConical",
+    color: "from-emerald-600 via-teal-600 to-cyan-700",
+    stream: "Science",
+    objective: "Determine the concentration of an unknown acid by titrating against a standard base.",
+    equipment: ["Burette", "Pipette", "Indicator", "Conical Flask"],
+    instructions: [
+      "Fill the burette with standard NaOH solution.",
+      "Add indicator to the acid in the conical flask.",
+      "Titrate until a persistent color change is observed."
+    ],
+    simulationType: "chemistry_ph",
+    quiz: [
+      {
+        question: "Which indicator is commonly used in strong acid - strong base titrations?",
+        options: ["Phenolphthalein", "Methyl Orange", "Litmus", "Universal Indicator"],
+        answer: 0,
+        explanation: "Phenolphthalein is suitable as its color change interval falls in the steep part of the titration curve."
+      }
+    ]
+  },
+
   // --- LOWER MIDDLE SCHOOL (CLASSES 6, 7, 8) & HIGHER SECONDARY (CLASSES 11, 12) ---
   {
     id: "exp-8-friction",
@@ -396,6 +454,13 @@ export default function VirtualLabsPage() {
   const [sandboxBattery, setSandboxBattery] = useState(9);
   const [sandboxResistor, setSandboxResistor] = useState(220);
   const [sandboxSwitch, setSandboxSwitch] = useState(true);
+
+  // Sync selectedClass when session loads
+  useEffect(() => {
+    if (studentClass && selectedClass !== studentClass && selectedClass !== "All") {
+      setSelectedClass(studentClass);
+    }
+  }, [studentClass]);
 
   // Load completed labs from localStorage on mount
   useEffect(() => {
@@ -602,11 +667,11 @@ export default function VirtualLabsPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
             
             {/* Grade Selector Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+            <div className="flex items-center gap-2">
               <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 shrink-0 flex items-center gap-1">
                 <Layers className="w-3.5 h-3.5 text-indigo-600" /> Grade:
               </span>
-              {[6, 7, 8, 9, 10, 11, 12, "All"].map((cls) => {
+              {[studentClass].map((cls) => {
                 const isSelected = selectedClass === cls;
                 const isStudentGrade = studentClass === cls;
                 return (
@@ -630,10 +695,10 @@ export default function VirtualLabsPage() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setShowArModal(true)}
-                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-md border border-purple-500 hover:scale-105"
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-slate-900 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-md border border-purple-500 hover:scale-105"
               >
-                <Box className="w-4 h-4 text-purple-200" />
-                <span>AR Viewer</span>
+                <Box className="w-4 h-4 text-slate-900" />
+                <span className="text-slate-900">AR Viewer</span>
               </button>
 
               <button
@@ -680,7 +745,7 @@ export default function VirtualLabsPage() {
                   <FlaskConical className="w-8 h-8 text-slate-400 mx-auto" />
                   <p>No virtual experiments found for this filter combination.</p>
                   <button
-                    onClick={() => { setActiveCategory("All"); setSelectedClass("All"); }}
+                    onClick={() => { setActiveCategory("All"); setSelectedClass(studentClass || 10); }}
                     className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg"
                   >
                     Reset Filters
@@ -1171,40 +1236,40 @@ export default function VirtualLabsPage() {
       {/* ========================================================================= */}
       {showSandboxModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-slate-900 text-white border border-slate-800 rounded-3xl max-w-2xl w-full p-6 space-y-6 shadow-2xl relative">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-white text-slate-900 border border-slate-200 rounded-3xl max-w-2xl w-full p-6 space-y-6 shadow-2xl relative">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-amber-400" />
-                <h3 className="text-lg font-black text-white">Breadboard & Circuit Simulator Sandbox</h3>
+                <Zap className="w-5 h-5 text-amber-500" />
+                <h3 className="text-lg font-black text-slate-900">Breadboard & Circuit Simulator Sandbox</h3>
               </div>
-              <button onClick={() => setShowSandboxModal(false)} className="p-1 text-slate-400 hover:text-white">
+              <button onClick={() => setShowSandboxModal(false)} className="p-1 text-slate-500 hover:text-slate-900">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-              <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700 shadow-inner">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Battery (V)</span>
-                <span className="text-2xl font-black text-amber-400">{sandboxBattery}V DC</span>
+              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-inner">
+                <span className="text-[10px] uppercase font-bold block text-slate-600">Battery (V)</span>
+                <span className="text-2xl font-black text-slate-900">{sandboxBattery}V DC</span>
               </div>
-              <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700 shadow-inner">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Resistor (R)</span>
-                <span className="text-2xl font-black text-cyan-400">{sandboxResistor} Ω</span>
+              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-inner">
+                <span className="text-[10px] uppercase font-bold block text-slate-600">Resistor (R)</span>
+                <span className="text-2xl font-black text-slate-900">{sandboxResistor} Ω</span>
               </div>
-              <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700 shadow-inner">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Current (I)</span>
-                <span className="text-2xl font-black text-emerald-400">{sandboxAmpere} mA</span>
+              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-inner">
+                <span className="text-[10px] uppercase font-bold block text-slate-600">Current (I)</span>
+                <span className="text-2xl font-black text-slate-900">{sandboxAmpere} mA</span>
               </div>
             </div>
 
             {/* LED Visual Output */}
-            <div className="flex flex-col items-center justify-center p-6 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-              <div className={`w-16 h-16 rounded-full transition-all duration-300 shadow-2xl flex items-center justify-center ${
-                sandboxSwitch ? "bg-amber-400 text-slate-950 shadow-amber-500/50 scale-110" : "bg-slate-800 text-slate-600"
+            <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <div className={`w-16 h-16 rounded-full transition-all duration-300 shadow-xl flex items-center justify-center ${
+                sandboxSwitch ? "bg-amber-400 text-slate-900 shadow-amber-500/50 scale-110" : "bg-slate-200 text-slate-400"
               }`}>
                 <Lightbulb className="w-8 h-8" />
               </div>
-              <span className="text-xs font-black uppercase text-amber-300">
+              <span className="text-xs font-black uppercase text-slate-900">
                 {sandboxSwitch ? "⚡ Circuit Active — LED Glowing Brightly!" : "Circuit Open — LED Off"}
               </span>
             </div>
@@ -1218,7 +1283,7 @@ export default function VirtualLabsPage() {
               >
                 {sandboxSwitch ? "Open Switch (Turn OFF)" : "Close Switch (Turn ON)"}
               </button>
-              <button onClick={() => setShowSandboxModal(false)} className="px-5 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold">
+              <button onClick={() => setShowSandboxModal(false)} className="px-5 py-2.5 bg-slate-200 text-slate-900 hover:bg-slate-300 rounded-xl text-xs font-bold transition-all">
                 Close Sandbox
               </button>
             </div>
