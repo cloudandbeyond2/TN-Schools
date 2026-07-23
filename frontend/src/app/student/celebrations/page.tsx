@@ -394,7 +394,7 @@ export default function CelebrationsPage() {
 
       {/* Calendar Modal */}
       {calendarModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-all duration-300">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-all duration-300">
           <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-4xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 relative flex flex-col max-h-[90vh]">
             
             {/* Close Button */}

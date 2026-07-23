@@ -20,10 +20,10 @@ export default function LanguageCoachingPage() {
   const { data: session } = useSession();
   const studentId = (session?.user as any)?.studentId || (session?.user as any)?.id;
   const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-  const LC  = `${API}/api/language-coaching`;
+  const LC = `${API}/api/language-coaching`;
 
   const [selectedLang, setSelectedLang] = useState<Lang>("English");
-  const [activeModal,  setActiveModal]  = useState<string | null>(null);
+  const [activeModal, setActiveModal] = useState<string | null>(null);
 
   // ─── Grade Tier Detection ─────────────────────────────────────────────────────
   type Tier = "explorer" | "communicator" | "orator";
@@ -34,12 +34,12 @@ export default function LanguageCoachingPage() {
     if (!studentId) return;
     const fetchTier = async () => {
       try {
-        const res  = await fetch(`${API}/api/students/${studentId}`);
+        const res = await fetch(`${API}/api/students/${studentId}`);
         const json = await res.json();
-        const cls  = parseInt(json?.data?.class || json?.class || "9", 10);
-        if (cls <= 8)       setGradeTier("explorer");
+        const cls = parseInt(json?.data?.class || json?.class || "9", 10);
+        if (cls <= 8) setGradeTier("explorer");
         else if (cls <= 10) setGradeTier("communicator");
-        else                setGradeTier("orator");
+        else setGradeTier("orator");
       } catch { /* keep default */ }
       finally { setTierLoading(false); }
     };
@@ -49,35 +49,35 @@ export default function LanguageCoachingPage() {
   // ─── Tier-based 6 Feature Cards ──────────────────────────────────────────────
   const TIER_CARDS: Record<Tier, Array<{ icon: React.ReactElement; title: string; desc: string; color: string; modal: string }>> = {
     explorer: [
-      { icon: <Mic2 />,         title: "AI Speaking Coach", desc: "Pronunciation test",    color: "rose",    modal: "AI Speaking Coach" },
-      { icon: <Search />,        title: "Vocab Builder",     desc: "AI Flashcards",         color: "emerald", modal: "Vocab Builder" },
-      { icon: <Book />,          title: "Story Reading",     desc: "AI-generated stories",  color: "purple",  modal: "Story Reading" },
-      { icon: <ListPlus />,      title: "Sentence Builder",  desc: "AI word puzzles",       color: "cyan",    modal: "Sentence Builder" },
-      { icon: <Sparkles />,      title: "Language Games",    desc: "Word Scramble fun",     color: "pink",    modal: "Language Games" },
-      { icon: <Target />,        title: "Daily Challenge",   desc: "AI XP tasks",           color: "blue",    modal: "Daily Challenge" },
+      { icon: <Mic2 />, title: "AI Speaking Coach", desc: "Pronunciation test", color: "rose", modal: "AI Speaking Coach" },
+      { icon: <Search />, title: "Vocab Builder", desc: "AI Flashcards", color: "emerald", modal: "Vocab Builder" },
+      { icon: <Book />, title: "Story Reading", desc: "AI-generated stories", color: "purple", modal: "Story Reading" },
+      { icon: <ListPlus />, title: "Sentence Builder", desc: "AI word puzzles", color: "cyan", modal: "Sentence Builder" },
+      { icon: <Sparkles />, title: "Language Games", desc: "Word Scramble fun", color: "pink", modal: "Language Games" },
+      { icon: <Target />, title: "Daily Challenge", desc: "AI XP tasks", color: "blue", modal: "Daily Challenge" },
     ],
     communicator: [
-      { icon: <Mic2 />,          title: "AI Speaking Coach", desc: "Pronunciation test",    color: "rose",    modal: "AI Speaking Coach" },
-      { icon: <Search />,        title: "Vocab Builder",     desc: "AI Flashcards",         color: "emerald", modal: "Vocab Builder" },
-      { icon: <Users />,         title: "Real-Life Convo",   desc: "Roleplay scenarios",    color: "indigo",  modal: "Real-Life Convo" },
-      { icon: <Book />,          title: "Story Reading",     desc: "AI-generated stories",  color: "purple",  modal: "Story Reading" },
-      { icon: <PenTool />,       title: "Writing Practice",  desc: "AI writing prompts",    color: "amber",   modal: "Writing Practice" },
-      { icon: <Target />,        title: "Daily Challenge",   desc: "AI XP tasks",           color: "blue",    modal: "Daily Challenge" },
+      { icon: <Mic2 />, title: "AI Speaking Coach", desc: "Pronunciation test", color: "rose", modal: "AI Speaking Coach" },
+      { icon: <Search />, title: "Vocab Builder", desc: "AI Flashcards", color: "emerald", modal: "Vocab Builder" },
+      { icon: <Users />, title: "Real-Life Convo", desc: "Roleplay scenarios", color: "indigo", modal: "Real-Life Convo" },
+      { icon: <Book />, title: "Story Reading", desc: "AI-generated stories", color: "purple", modal: "Story Reading" },
+      { icon: <PenTool />, title: "Writing Practice", desc: "AI writing prompts", color: "amber", modal: "Writing Practice" },
+      { icon: <Target />, title: "Daily Challenge", desc: "AI XP tasks", color: "blue", modal: "Daily Challenge" },
     ],
     orator: [
-      { icon: <Mic2 />,          title: "AI Speaking Coach", desc: "Pronunciation test",    color: "rose",    modal: "AI Speaking Coach" },
-      { icon: <MessageSquare />, title: "Debate Practice",   desc: "Argue your point",      color: "indigo",  modal: "Debate Practice" },
-      { icon: <MessageCircle />, title: "Public Speaking",   desc: "AI debate topics",      color: "purple",  modal: "Public Speaking" },
-      { icon: <Gamepad2 />,      title: "Grammar Games",     desc: "Grammar check & tips",  color: "pink",    modal: "Grammar Games" },
-      { icon: <PenTool />,       title: "Writing Practice",  desc: "AI writing prompts",    color: "amber",   modal: "Writing Practice" },
-      { icon: <Target />,        title: "Daily Challenge",   desc: "AI XP tasks",           color: "blue",    modal: "Daily Challenge" },
+      { icon: <Mic2 />, title: "AI Speaking Coach", desc: "Pronunciation test", color: "rose", modal: "AI Speaking Coach" },
+      { icon: <MessageSquare />, title: "Debate Practice", desc: "Argue your point", color: "indigo", modal: "Debate Practice" },
+      { icon: <MessageCircle />, title: "Public Speaking", desc: "AI debate topics", color: "purple", modal: "Public Speaking" },
+      { icon: <Gamepad2 />, title: "Grammar Games", desc: "Grammar check & tips", color: "pink", modal: "Grammar Games" },
+      { icon: <PenTool />, title: "Writing Practice", desc: "AI writing prompts", color: "amber", modal: "Writing Practice" },
+      { icon: <Target />, title: "Daily Challenge", desc: "AI XP tasks", color: "blue", modal: "Daily Challenge" },
     ],
   };
 
   const TIER_LABELS: Record<Tier, { label: string; badge: string; color: string; desc: string }> = {
-    explorer:     { label: "Explorer",     badge: "Classes 6–8",   color: "bg-emerald-500 from-emerald-400 to-teal-500", desc: "Interactive vocabulary, puzzles, and fun word matches." },
-    communicator: { label: "Communicator", badge: "Classes 9–10",  color: "bg-blue-500 from-blue-400 to-indigo-500", desc: "Interactive roleplay scenarios, reading, and formal writing." },
-    orator:       { label: "Orator",       badge: "Classes 11–12", color: "bg-purple-500 from-purple-400 to-fuchsia-500", desc: "Advanced public speaking topics, grammar mechanics, and debates." },
+    explorer: { label: "Explorer", badge: "Classes 6–8", color: "bg-emerald-500 from-emerald-400 to-teal-500", desc: "Interactive vocabulary, puzzles, and fun word matches." },
+    communicator: { label: "Communicator", badge: "Classes 9–10", color: "bg-blue-500 from-blue-400 to-indigo-500", desc: "Interactive roleplay scenarios, reading, and formal writing." },
+    orator: { label: "Orator", badge: "Classes 11–12", color: "bg-purple-500 from-purple-400 to-fuchsia-500", desc: "Advanced public speaking topics, grammar mechanics, and debates." },
   };
 
   // ── Fetch helper ─────────────────────────────────────────────────────────────
@@ -108,7 +108,7 @@ export default function LanguageCoachingPage() {
     loadProgressStats();
   }, [loadProgressStats]);
   // ─── AI Chat ─────────────────────────────────────────────────────────────────
-  const [chatInput,   setChatInput]   = useState("");
+  const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState([
     { role: "ai", content: "Hello! I am your AI Language Tutor. How can I help you improve today? 😊" }
   ]);
@@ -136,13 +136,13 @@ export default function LanguageCoachingPage() {
   };
 
   // ─── Speaking Coach ───────────────────────────────────────────────────────────
-  const [isRecording,   setIsRecording]   = useState(false);
-  const [isAnalyzing,   setIsAnalyzing]   = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [speakingScore, setSpeakingScore] = useState<any>(null);
-  const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
-  const recognitionRef    = useRef<any>(null);
-  const [transcript,    setTranscript]    = useState("");
-  const [speakingIndex,  setSpeakingIndex]  = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const [transcript, setTranscript] = useState("");
+  const [speakingIndex, setSpeakingIndex] = useState(0);
 
   const PRACTICE_SENTENCES: Record<Lang, string[]> = {
     English: [
@@ -173,9 +173,9 @@ export default function LanguageCoachingPage() {
       setTimeout(async () => {
         try {
           const spoken = transcript || targetSentence;
-          const data   = await apiFetch("pronunciation-check", {
+          const data = await apiFetch("pronunciation-check", {
             targetSentence: targetSentence,
-            transcript:     spoken
+            transcript: spoken
           });
           setSpeakingScore(data);
         } catch {
@@ -190,7 +190,7 @@ export default function LanguageCoachingPage() {
       setSpeakingScore(null);
       setTranscript("");
       try {
-        const stream   = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const recorder = new MediaRecorder(stream);
         recorder.start();
         mediaRecorderRef.current = recorder;
@@ -216,9 +216,9 @@ export default function LanguageCoachingPage() {
   };
 
   // ─── Vocab Flashcards ─────────────────────────────────────────────────────────
-  const [vocabCards,   setVocabCards]   = useState<any[]>([]);
-  const [vocabIndex,   setVocabIndex]   = useState(0);
-  const [showMeaning,  setShowMeaning]  = useState(false);
+  const [vocabCards, setVocabCards] = useState<any[]>([]);
+  const [vocabIndex, setVocabIndex] = useState(0);
+  const [showMeaning, setShowMeaning] = useState(false);
   const [vocabLoading, setVocabLoading] = useState(false);
 
   const loadVocab = async () => {
@@ -231,7 +231,7 @@ export default function LanguageCoachingPage() {
     } catch {
       setVocabCards([
         { word: "Equanimity", meaning: "Mental calmness, composure, especially in a difficult situation.", sentence: "She accepted both praise and criticism with equanimity." },
-        { word: "Pernicious", meaning: "Having a harmful effect, especially in a gradual or subtle way.",  sentence: "The pernicious influence of false rumours ruined their teamwork." }
+        { word: "Pernicious", meaning: "Having a harmful effect, especially in a gradual or subtle way.", sentence: "The pernicious influence of false rumours ruined their teamwork." }
       ]);
     } finally {
       setVocabLoading(false);
@@ -240,9 +240,9 @@ export default function LanguageCoachingPage() {
   };
 
   // ─── Sentence Builder ─────────────────────────────────────────────────────────
-  const [sentenceData,     setSentenceData]     = useState<any>(null);
-  const [currentSentence,  setCurrentSentence]  = useState<string[]>([]);
-  const [sentenceLoading,  setSentenceLoading]  = useState(false);
+  const [sentenceData, setSentenceData] = useState<any>(null);
+  const [currentSentence, setCurrentSentence] = useState<string[]>([]);
+  const [sentenceLoading, setSentenceLoading] = useState(false);
 
   const loadSentence = async () => {
     setSentenceLoading(true);
@@ -259,7 +259,7 @@ export default function LanguageCoachingPage() {
   };
 
   // ─── Story Reading ────────────────────────────────────────────────────────────
-  const [storyData,    setStoryData]    = useState<any>(null);
+  const [storyData, setStoryData] = useState<any>(null);
   const [storyLoading, setStoryLoading] = useState(false);
 
   const loadStory = async () => {
@@ -275,10 +275,10 @@ export default function LanguageCoachingPage() {
   };
 
   // ─── Roleplay ─────────────────────────────────────────────────────────────────
-  const [roleplayData,   setRoleplayData]   = useState<any>(null);
-  const [roleplayStep,   setRoleplayStep]   = useState(0);
+  const [roleplayData, setRoleplayData] = useState<any>(null);
+  const [roleplayStep, setRoleplayStep] = useState(0);
   const [selectedOption, setSelectedOption] = useState<any>(null);
-  const [roleplayLoading,setRoleplayLoading]= useState(false);
+  const [roleplayLoading, setRoleplayLoading] = useState(false);
 
   const loadRoleplay = async () => {
     setRoleplayLoading(true);
@@ -297,10 +297,10 @@ export default function LanguageCoachingPage() {
   };
 
   // ─── Debate Topic ─────────────────────────────────────────────────────────────
-  const [debateData,    setDebateData]    = useState<any>(null);
+  const [debateData, setDebateData] = useState<any>(null);
   const [debateLoading, setDebateLoading] = useState(false);
-  const [timeLeft,      setTimeLeft]      = useState(60);
-  const [timerRunning,  setTimerRunning]  = useState(false);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [timerRunning, setTimerRunning] = useState(false);
 
   useEffect(() => {
     let interval: any;
@@ -324,11 +324,11 @@ export default function LanguageCoachingPage() {
   };
 
   // ─── Writing Prompt ───────────────────────────────────────────────────────────
-  const [writingData,    setWritingData]    = useState<any>(null);
+  const [writingData, setWritingData] = useState<any>(null);
   const [writingLoading, setWritingLoading] = useState(false);
-  const [writingText,    setWritingText]    = useState("");
-  const [grammarFeedback,setGrammarFeedback]= useState<any>(null);
-  const [checkingGrammar,setCheckingGrammar]= useState(false);
+  const [writingText, setWritingText] = useState("");
+  const [grammarFeedback, setGrammarFeedback] = useState<any>(null);
+  const [checkingGrammar, setCheckingGrammar] = useState(false);
 
   const loadWritingPrompt = async () => {
     setWritingLoading(true);
@@ -359,9 +359,9 @@ export default function LanguageCoachingPage() {
   };
 
   // ─── Daily Challenge ─────────────────────────────────────────────────────────
-  const [dailyTasks,    setDailyTasks]    = useState<any[]>([]);
-  const [tasksDone,     setTasksDone]     = useState<boolean[]>([]);
-  const [dailyLoading,  setDailyLoading]  = useState(false);
+  const [dailyTasks, setDailyTasks] = useState<any[]>([]);
+  const [tasksDone, setTasksDone] = useState<boolean[]>([]);
+  const [dailyLoading, setDailyLoading] = useState(false);
 
   const loadDailyChallenge = async () => {
     setDailyLoading(true);
@@ -372,9 +372,9 @@ export default function LanguageCoachingPage() {
       setTasksDone(new Array(tasks.length).fill(false));
     } catch {
       setDailyTasks([
-        { title: "Say 3 Sentences",  description: "Tell someone 3 things you did today in English.",  type: "speaking", xp: 20 },
-        { title: "Word Detective",   description: "Find 2 new English words in a storybook today.",   type: "vocab",    xp: 15 },
-        { title: "Read Aloud",       description: "Read one paragraph from your textbook out loud.",  type: "reading",  xp: 15 }
+        { title: "Say 3 Sentences", description: "Tell someone 3 things you did today in English.", type: "speaking", xp: 20 },
+        { title: "Word Detective", description: "Find 2 new English words in a storybook today.", type: "vocab", xp: 15 },
+        { title: "Read Aloud", description: "Read one paragraph from your textbook out loud.", type: "reading", xp: 15 }
       ]);
       setTasksDone([false, false, false]);
     } finally {
@@ -383,14 +383,14 @@ export default function LanguageCoachingPage() {
   };
 
   // ─── Word of the Day (sidebar) ────────────────────────────────────────────────
-  const [wordOfDay,   setWordOfDay]   = useState<any>(null);
-  const [wodLoading,  setWodLoading]  = useState(true);
+  const [wordOfDay, setWordOfDay] = useState<any>(null);
+  const [wodLoading, setWodLoading] = useState(true);
 
   const loadWordOfDay = useCallback(async () => {
     if (!studentId) return;
     setWodLoading(true);
     try {
-      const id  = studentId || "demo";
+      const id = studentId || "demo";
       const res = await fetch(`${LC}/${id}/word-of-day?language=${selectedLang}`);
       const json = await res.json();
       if (json.success) setWordOfDay(json.data);
@@ -406,15 +406,15 @@ export default function LanguageCoachingPage() {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = selectedLang === "Tamil" ? "ta-IN" : "en-US";
-      
+
       const voices = window.speechSynthesis.getVoices();
       if (voices && voices.length > 0) {
         const target = selectedLang === "Tamil" ? "ta" : "en";
-        const match = voices.find(v => v.lang.toLowerCase().startsWith(target) && v.localService) 
-                   || voices.find(v => v.lang.toLowerCase().startsWith(target));
+        const match = voices.find(v => v.lang.toLowerCase().startsWith(target) && v.localService)
+          || voices.find(v => v.lang.toLowerCase().startsWith(target));
         if (match) u.voice = match;
       }
-      
+
       window.speechSynthesis.speak(u);
     } catch (e) {
       console.error("Speech Synthesis failed:", e);
@@ -432,13 +432,13 @@ export default function LanguageCoachingPage() {
     setActiveModal(name);
 
     // Auto-load content for each modal
-    if (name === "Vocab Builder")         loadVocab();
-    if (name === "Sentence Builder")      loadSentence();
-    if (name === "Story Reading")         loadStory();
+    if (name === "Vocab Builder") loadVocab();
+    if (name === "Sentence Builder") loadSentence();
+    if (name === "Story Reading") loadStory();
     if (name === "Real-Life Convo" || name === "Role Play") loadRoleplay();
     if (name === "Public Speaking" || name === "Debate Practice") loadDebate();
-    if (name === "Writing Practice" || name === "Grammar Games")  loadWritingPrompt();
-    if (name === "Daily Challenge")       loadDailyChallenge();
+    if (name === "Writing Practice" || name === "Grammar Games") loadWritingPrompt();
+    if (name === "Daily Challenge") loadDailyChallenge();
   };
 
   const closeModal = () => {
@@ -465,7 +465,7 @@ export default function LanguageCoachingPage() {
                 Government of Tamil Nadu
               </span>
               <h1 className="text-2xl md:text-3xl font-black tracking-tight leading-tight">
-                Language & <br className="hidden md:inline"/> Communication Hub
+                Language & <br className="hidden md:inline" /> Communication Hub
               </h1>
               <p className="text-indigo-100 text-xs md:text-sm font-medium">
                 Master communication, speaking fluency, and advanced vocabulary using custom grade-matched AI tools.
@@ -506,10 +506,10 @@ export default function LanguageCoachingPage() {
             <Calendar className="w-5 h-5 text-emerald-500" /> Today&apos;s Quick Practice
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <PracticeCard icon={<Mic />}        title="Speaking"  color="rose"    onClick={() => openModal("AI Speaking Coach")} />
-            <PracticeCard icon={<BookOpen />}   title="Reading"   color="blue"    onClick={() => openModal("Story Reading")} />
-            <PracticeCard icon={<Headphones />} title="Listening" color="amber"   onClick={() => openModal("Listening Ex.")} />
-            <PracticeCard icon={<PenTool />}    title="Writing"   color="emerald" onClick={() => openModal("Writing Practice")} />
+            <PracticeCard icon={<Mic />} title="Speaking" color="rose" onClick={() => openModal("AI Speaking Coach")} />
+            <PracticeCard icon={<BookOpen />} title="Reading" color="blue" onClick={() => openModal("Story Reading")} />
+            <PracticeCard icon={<Headphones />} title="Listening" color="amber" onClick={() => openModal("Listening Ex.")} />
+            <PracticeCard icon={<PenTool />} title="Writing" color="emerald" onClick={() => openModal("Writing Practice")} />
           </div>
         </section>
 
@@ -559,14 +559,14 @@ export default function LanguageCoachingPage() {
             <section>
               <div className="bg-gradient-to-br from-slate-900 to-indigo-950 p-6 rounded-3xl shadow-xl border-4 border-slate-800 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-3xl rounded-full" />
-                <h2 className="text-2xl font-black mb-8 flex items-center gap-3 relative z-10 text-white" style={{ color: "white" }}>
-                  <BarChart className="w-5 h-5 text-indigo-400" /> My Progress Dashboard
-                </h2>
+                <p className="text-2xl font-black mb-8 flex items-center gap-3 relative z-10 !text-white" style={{ color: "white" }}>
+                  <BarChart className="w-5 h-5 !text-white-400" /> My Progress Dashboard
+                </p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center relative z-10">
-                  <ProgressRing label="Speaking"  value={progressStats?.speaking || 45} color="#f43f5e" />
-                  <ProgressRing label="Reading"   value={progressStats?.reading || 60} color="#3b82f6" />
+                  <ProgressRing label="Speaking" value={progressStats?.speaking || 45} color="#f43f5e" />
+                  <ProgressRing label="Reading" value={progressStats?.reading || 60} color="#3b82f6" />
                   <ProgressRing label="Listening" value={progressStats?.listening || 55} color="#eab308" />
-                  <ProgressRing label="Writing"   value={progressStats?.writing || 50} color="#10b981" />
+                  <ProgressRing label="Writing" value={progressStats?.writing || 50} color="#10b981" />
                 </div>
               </div>
             </section>
@@ -1016,9 +1016,9 @@ function LoadingSpinner({ label }: { label: string }) {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 function PracticeCard({ icon, title, color, onClick }: any) {
   const colors: Record<string, string> = {
-    rose:    "bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-500 hover:text-white dark:bg-rose-950/20 dark:border-rose-900",
-    blue:    "bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-500 hover:text-white dark:bg-blue-950/20 dark:border-blue-900",
-    amber:   "bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-500 hover:text-white dark:bg-amber-955/20 dark:border-amber-900",
+    rose: "bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-500 hover:text-white dark:bg-rose-950/20 dark:border-rose-900",
+    blue: "bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-500 hover:text-white dark:bg-blue-950/20 dark:border-blue-900",
+    amber: "bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-500 hover:text-white dark:bg-amber-955/20 dark:border-amber-900",
     emerald: "bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-500 hover:text-white dark:bg-emerald-950/20 dark:border-emerald-900"
   };
   return (
@@ -1031,15 +1031,15 @@ function PracticeCard({ icon, title, color, onClick }: any) {
 
 function FeatureCard({ icon, title, desc, color, onClick }: any) {
   const bg: Record<string, string> = {
-    rose:    "bg-rose-50/50 hover:bg-rose-100 border-rose-100 text-rose-700 dark:bg-rose-955/10 dark:border-rose-950",
-    indigo:  "bg-indigo-50/50 hover:bg-indigo-100 border-indigo-100 text-indigo-700 dark:bg-indigo-955/10 dark:border-indigo-950",
+    rose: "bg-rose-50/50 hover:bg-rose-100 border-rose-100 text-rose-700 dark:bg-rose-955/10 dark:border-rose-950",
+    indigo: "bg-indigo-50/50 hover:bg-indigo-100 border-indigo-100 text-indigo-700 dark:bg-indigo-955/10 dark:border-indigo-950",
     emerald: "bg-emerald-50/50 hover:bg-emerald-100 border-emerald-100 text-emerald-700 dark:bg-emerald-955/10 dark:border-emerald-950",
-    blue:    "bg-blue-50/50 hover:bg-blue-100 border-blue-100 text-blue-700 dark:bg-blue-955/10 dark:border-blue-950",
-    amber:   "bg-amber-50/50 hover:bg-amber-100 border-amber-100 text-amber-700 dark:bg-amber-955/10 dark:border-amber-950",
-    purple:  "bg-purple-50/50 hover:bg-purple-100 border-purple-100 text-purple-700 dark:bg-purple-955/10 dark:border-purple-950",
-    pink:    "bg-pink-50/50 hover:bg-pink-100 border-pink-100 text-pink-700 dark:bg-pink-955/10 dark:border-pink-950",
-    cyan:    "bg-cyan-50/50 hover:bg-cyan-100 border-cyan-100 text-cyan-700 dark:bg-cyan-955/10 dark:border-cyan-950",
-    orange:  "bg-orange-50/50 hover:bg-orange-100 border-orange-100 text-orange-700 dark:bg-orange-955/10 dark:border-orange-950"
+    blue: "bg-blue-50/50 hover:bg-blue-100 border-blue-100 text-blue-700 dark:bg-blue-955/10 dark:border-blue-950",
+    amber: "bg-amber-50/50 hover:bg-amber-100 border-amber-100 text-amber-700 dark:bg-amber-955/10 dark:border-amber-950",
+    purple: "bg-purple-50/50 hover:bg-purple-100 border-purple-100 text-purple-700 dark:bg-purple-955/10 dark:border-purple-950",
+    pink: "bg-pink-50/50 hover:bg-pink-100 border-pink-100 text-pink-700 dark:bg-pink-955/10 dark:border-pink-950",
+    cyan: "bg-cyan-50/50 hover:bg-cyan-100 border-cyan-100 text-cyan-700 dark:bg-cyan-955/10 dark:border-cyan-950",
+    orange: "bg-orange-50/50 hover:bg-orange-100 border-orange-100 text-orange-700 dark:bg-orange-955/10 dark:border-orange-950"
   };
   return (
     <button onClick={onClick} className={`p-6 rounded-[2rem] border-2 transition-all flex flex-col gap-4 text-left shadow-sm hover:shadow-md hover:-translate-y-1 ${bg[color] || bg.indigo} dark:text-slate-300`}>

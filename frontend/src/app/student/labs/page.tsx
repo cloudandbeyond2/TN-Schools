@@ -467,7 +467,7 @@ export default function VirtualLabsPage() {
     try {
       const saved = localStorage.getItem("tn_completed_virtual_labs");
       if (saved) setCompletedLabs(JSON.parse(saved));
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   // Fetch dynamic labs from API & merge with default dataset
@@ -557,7 +557,7 @@ export default function VirtualLabsPage() {
     setCompletedLabs(updated);
     try {
       localStorage.setItem("tn_completed_virtual_labs", JSON.stringify(updated));
-    } catch (e) {}
+    } catch (e) { }
     setActiveExpModal(null);
   };
 
@@ -585,18 +585,18 @@ export default function VirtualLabsPage() {
       accentColor="#6366f1"
     >
       <div className="w-full space-y-8 animate-in fade-in duration-300">
-        
+
         {/* ========================================================================= */}
         {/* 1. STUNNING HERO BANNER (DEEP INDIGO-PURPLE GRADIENT WITH WHITE TEXT) */}
         {/* ========================================================================= */}
         <div className="w-full bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 text-white rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden border border-purple-500/30">
-          
+
           {/* Glowing Ambient Particles */}
           <div className="absolute -right-10 -top-10 w-80 h-80 bg-cyan-500/20 blur-3xl rounded-full pointer-events-none"></div>
           <div className="absolute left-1/3 -bottom-10 w-64 h-64 bg-pink-500/20 blur-3xl rounded-full pointer-events-none"></div>
 
           <div className="relative z-10 space-y-6 max-w-4xl">
-            
+
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-black uppercase tracking-widest px-3.5 py-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md flex items-center gap-1.5 border border-cyan-400/40">
                 <Sparkles className="w-3.5 h-3.5 text-cyan-100" />
@@ -638,7 +638,7 @@ export default function VirtualLabsPage() {
         {/* 2. SUBJECT & GRADE CATEGORY CONTROLS (VIBRANT LIGHT & DARK MODE PALETTE) */}
         {/* ========================================================================= */}
         <div className="space-y-4">
-          
+
           {/* Subject Filter Pill Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {categories.map((cat) => {
@@ -648,11 +648,10 @@ export default function VirtualLabsPage() {
                 <button
                   key={cat.name}
                   onClick={() => setActiveCategory(cat.name)}
-                  className={`p-3.5 rounded-2xl font-black text-xs sm:text-sm flex items-center gap-2.5 transition-all duration-200 border shadow-sm ${
-                    isActive
-                      ? `bg-gradient-to-r ${cat.activeGradient} text-white border-transparent scale-105 shadow-xl`
-                      : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-800/80 hover:border-indigo-300"
-                  }`}
+                  className={`p-3.5 rounded-2xl font-black text-xs sm:text-sm flex items-center gap-2.5 transition-all duration-200 border shadow-sm ${isActive
+                    ? `bg-gradient-to-r ${cat.activeGradient} text-white border-transparent scale-105 shadow-xl`
+                    : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-800/80 hover:border-indigo-300"
+                    }`}
                 >
                   <IconComp className={`w-4 h-4 shrink-0 ${isActive ? "text-amber-300" : "text-indigo-600 dark:text-indigo-400"}`} />
                   <span className={isActive ? "text-white font-black" : "text-slate-800 dark:text-slate-100 font-extrabold"}>
@@ -665,7 +664,7 @@ export default function VirtualLabsPage() {
 
           {/* Action Button Bar & Grade Selectors */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            
+
             {/* Grade Selector Pills */}
             <div className="flex items-center gap-2">
               <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 shrink-0 flex items-center gap-1">
@@ -677,14 +676,13 @@ export default function VirtualLabsPage() {
                 return (
                   <button
                     key={String(cls)}
-                    onClick={() => setSelectedClass(cls as any)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all shrink-0 border ${
-                      isSelected
-                        ? "bg-indigo-600 text-white border-indigo-500 shadow-md scale-105"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
-                    }`}
+                    onClick={() => setSelectedClass(cls)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all shrink-0 border ${isSelected
+                      ? "bg-indigo-600 text-white border-indigo-500 shadow-md scale-105"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
+                      }`}
                   >
-                    {cls === "All" ? "All Grades" : `Class ${cls}`}
+                    {`Class ${cls}`}
                     {isStudentGrade && <span className="ml-1 text-[10px] text-amber-400 font-black">★</span>}
                   </button>
                 );
@@ -718,12 +716,12 @@ export default function VirtualLabsPage() {
         {/* 3. EXPERIMENT CARDS GRID & REPORT CARD */}
         {/* ========================================================================= */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Left Column (2 Cols): Experiment Cards */}
           <div className="lg:col-span-2 space-y-6">
-            
+
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-              
+
               <div className="flex items-center justify-between">
                 <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <Flame className="w-5 h-5 text-amber-500" />
@@ -766,7 +764,7 @@ export default function VirtualLabsPage() {
                         {/* Lab Card Header */}
                         <div className={`h-28 bg-gradient-to-br ${lab.color} text-white relative flex items-center justify-center p-4 shadow-inner`}>
                           <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]"></div>
-                          
+
                           <div className="relative z-10 flex items-center gap-3 transform group-hover:scale-110 transition-transform duration-300">
                             {lab.subject.includes("Physic") ? (
                               <Atom className="w-10 h-10 stroke-[2.2] text-cyan-200 drop-shadow" />
@@ -853,7 +851,7 @@ export default function VirtualLabsPage() {
 
           {/* Right Column: Lab Report Card & School Hardware Kit */}
           <div className="lg:col-span-1 space-y-6">
-            
+
             {/* Lab Evaluation Report Card */}
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2 text-base">
@@ -895,13 +893,13 @@ export default function VirtualLabsPage() {
             </div>
 
             {/* School Tinkering Lab Kit Availability */}
-            <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 border border-indigo-500/30 shadow-md space-y-4">
+            <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 !text-white rounded-3xl p-6 border border-indigo-500/30 shadow-md space-y-4" style={{ color: 'white' }}>
               <div className="flex items-center gap-2">
                 <Wrench className="w-5 h-5 text-amber-400" />
-                <h3 className="font-black text-base text-white">Tinkering Hardware Kit</h3>
+                <p className="font-black text-base !text-white" >Tinkering Hardware Kit</p>
               </div>
 
-              <p className="text-xs text-indigo-100 leading-relaxed font-medium">
+              <p className="text-xs !text-indigo-50 leading-relaxed font-medium" style={{ color: '#eef2ff' }}>
                 Request physical Arduino, Sensor, or Microscope kits from your school&apos;s Atal Tinkering Lab for weekend practical projects!
               </p>
 
@@ -910,7 +908,7 @@ export default function VirtualLabsPage() {
                 className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1.5 hover:scale-105"
               >
                 <Wrench className="w-4 h-4 text-slate-950" />
-                <span>Check Hardware Availability</span>
+                <span className="text-slate-950" style={{ color: '#020617' }}>Check Hardware Availability</span>
               </button>
             </div>
 
@@ -926,7 +924,7 @@ export default function VirtualLabsPage() {
       {activeExpModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full p-6 space-y-6 shadow-2xl relative my-8 max-h-[90vh] overflow-y-auto">
-            
+
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
               <div className="space-y-1">
@@ -953,11 +951,10 @@ export default function VirtualLabsPage() {
                 <button
                   key={idx}
                   onClick={() => setActiveStep(idx)}
-                  className={`flex-1 py-2.5 text-center rounded-xl transition-all ${
-                    activeStep === idx
-                      ? "bg-indigo-600 text-white shadow-md font-black scale-105"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
-                  }`}
+                  className={`flex-1 py-2.5 text-center rounded-xl transition-all ${activeStep === idx
+                    ? "bg-indigo-600 text-white shadow-md font-black scale-105"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                    }`}
                 >
                   {stepTitle}
                 </button>
@@ -1015,7 +1012,7 @@ export default function VirtualLabsPage() {
             {/* STEP 2: Interactive Simulation Canvas */}
             {activeStep === 1 && (
               <div className="space-y-6">
-                
+
                 {/* 1. OHM'S LAW SIMULATION */}
                 {activeExpModal.simulationType === "physics_ohm" && (
                   <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 space-y-6 shadow-2xl">
@@ -1101,11 +1098,10 @@ export default function VirtualLabsPage() {
                         <button
                           key={sol}
                           onClick={() => setPhSolution(sol)}
-                          className={`px-4 py-2 rounded-xl text-xs font-black transition-all uppercase ${
-                            phSolution === sol
-                              ? "bg-emerald-500 text-white scale-105 shadow-lg"
-                              : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-                          }`}
+                          className={`px-4 py-2 rounded-xl text-xs font-black transition-all uppercase ${phSolution === sol
+                            ? "bg-emerald-500 text-white scale-105 shadow-lg"
+                            : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                            }`}
                         >
                           {sol === "lemon" ? "🍋 Lemon Juice" : sol === "water" ? "💧 Pure Water" : "🧪 NaOH Solution"}
                         </button>
@@ -1150,11 +1146,10 @@ export default function VirtualLabsPage() {
                           <button
                             key={zoom}
                             onClick={() => setMicroscopeZoom(zoom)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
-                              microscopeZoom === zoom
-                                ? "bg-lime-500 text-slate-950 font-black"
-                                : "bg-slate-800 text-slate-300"
-                            }`}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold ${microscopeZoom === zoom
+                              ? "bg-lime-500 text-slate-950 font-black"
+                              : "bg-slate-800 text-slate-300"
+                              }`}
                           >
                             {zoom}x Magnification
                           </button>
@@ -1203,11 +1198,10 @@ export default function VirtualLabsPage() {
                           <button
                             key={optIdx}
                             onClick={() => setQuizSelected(optIdx)}
-                            className={`p-3 rounded-xl text-xs font-bold text-left transition-all border ${
-                              quizSelected === optIdx
-                                ? "bg-indigo-600 text-white border-indigo-500 shadow-md font-black"
-                                : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-indigo-400"
-                            }`}
+                            className={`p-3 rounded-xl text-xs font-bold text-left transition-all border ${quizSelected === optIdx
+                              ? "bg-indigo-600 text-white border-indigo-500 shadow-md font-black"
+                              : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-indigo-400"
+                              }`}
                           >
                             {opt}
                           </button>
@@ -1264,9 +1258,8 @@ export default function VirtualLabsPage() {
 
             {/* LED Visual Output */}
             <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-              <div className={`w-16 h-16 rounded-full transition-all duration-300 shadow-xl flex items-center justify-center ${
-                sandboxSwitch ? "bg-amber-400 text-slate-900 shadow-amber-500/50 scale-110" : "bg-slate-200 text-slate-400"
-              }`}>
+              <div className={`w-16 h-16 rounded-full transition-all duration-300 shadow-xl flex items-center justify-center ${sandboxSwitch ? "bg-amber-400 text-slate-900 shadow-amber-500/50 scale-110" : "bg-slate-200 text-slate-400"
+                }`}>
                 <Lightbulb className="w-8 h-8" />
               </div>
               <span className="text-xs font-black uppercase text-slate-900">
@@ -1277,9 +1270,8 @@ export default function VirtualLabsPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setSandboxSwitch(!sandboxSwitch)}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all ${
-                  sandboxSwitch ? "bg-red-600 text-white" : "bg-emerald-600 text-white"
-                }`}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all ${sandboxSwitch ? "bg-red-600 text-white" : "bg-emerald-600 text-white"
+                  }`}
               >
                 {sandboxSwitch ? "Open Switch (Turn OFF)" : "Close Switch (Turn ON)"}
               </button>
