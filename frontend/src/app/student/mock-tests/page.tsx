@@ -261,16 +261,20 @@ export default function StudentMockTestsPage() {
           </div>
           <div className="relative z-10 max-w-2xl">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/30">
-              <Sparkles className="w-3.5 h-3.5" /> Examination Hall
+              <Sparkles className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "தேர்வுக் கூடம்" : "Examination Hall"}
             </span>
-            <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight">Ready, Set, Excel!</h1>
+            <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight">
+              {lang === "தமிழ்" ? "தயாராகுங்கள், சிறந்து விளங்குங்கள்!" : "Ready, Set, Excel!"}
+            </h1>
             <p className="text-amber-100 text-lg mb-0 leading-relaxed">
-              Take mock tests assigned by your teachers or the state board to check your preparation level and improve your scores.
+              {lang === "தமிழ்" ? "உங்கள் ஆசிரியர்கள் அல்லது மாநில வாரியத்தால் ஒதுக்கப்பட்ட மாதிரி தேர்வுகளை எழுதி உங்கள் மதிப்பெண்களை மேம்படுத்துங்கள்." : "Take mock tests assigned by your teachers or the state board to check your preparation level and improve your scores."}
             </p>
           </div>
         </div>
 
-        <h2 className="text-2xl font-black text-gray-800 dark:text-white mb-6">Assigned Tests</h2>
+        <h2 className="text-2xl font-black text-gray-800 dark:text-white mb-6">
+          {lang === "தமிழ்" ? "ஒதுக்கப்பட்ட தேர்வுகள்" : "Assigned Tests"}
+        </h2>
         
         {loading ? (
           <div className="text-center py-20 text-gray-500">Loading assignments...</div>

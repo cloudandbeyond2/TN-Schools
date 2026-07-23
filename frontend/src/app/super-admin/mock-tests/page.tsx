@@ -279,18 +279,20 @@ export default function SuperAdminMockTestsPage() {
           </div>
           <div className="relative z-10 max-w-2xl">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/30">
-              <Sparkles className="w-3.5 h-3.5" /> State Assessment Board
+              <Sparkles className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "மாநில மதிப்பீட்டு வாரியம்" : "State Assessment Board"}
             </span>
-            <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight !text-white">Statewide Excellence</h1>
+            <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight !text-white">
+              {lang === "தமிழ்" ? "மாநில அளவிலான சிறப்பு" : "Statewide Excellence"}
+            </h1>
             <p className="text-violet-200 !text-white text-lg mb-8 leading-relaxed">
-              Create standardized objective tests, use AI to scale question banks, and instantly deploy assessments to all schools across the state.
+              {lang === "தமிழ்" ? "தரப்படுத்தப்பட்ட கொள்குறி தேர்வுகளை உருவாக்கவும், AI ஐ பயன்படுத்தி வினா வங்கிகளை விரிவுபடுத்தவும்." : "Create standardized objective tests, use AI to scale question banks, and instantly deploy assessments to all schools across the state."}
             </p>
             <div className="flex gap-4">
               <button 
                 onClick={() => setActiveTab("create")}
                 className="px-6 py-3 bg-white text-violet-800 hover:bg-violet-50 transition-all rounded-2xl font-bold text-sm shadow-xl flex items-center gap-2"
               >
-                <Plus className="w-5 h-5" /> New State Assessment
+                <Plus className="w-5 h-5" /> {lang === "தமிழ்" ? "புதிய மாநில மதிப்பீடு" : "New State Assessment"}
               </button>
               {/* <button 
                 onClick={() => setActiveTab("repository")}
@@ -305,13 +307,13 @@ export default function SuperAdminMockTestsPage() {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
               <h2 className="text-2xl font-black text-gray-800 dark:text-white flex items-center gap-2">
-                <Layers className="w-6 h-6 text-violet-500" /> Test Repository
+                <Layers className="w-6 h-6 text-violet-500" /> {lang === "தமிழ்" ? "தேர்வு களஞ்சியம்" : "Test Repository"}
               </h2>
               <div className="relative w-full md:w-96">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input 
                   type="text" 
-                  placeholder="Search tests by title or subject..."
+                  placeholder={lang === "தமிழ்" ? "தலைப்பு அல்லது பாடம் மூலம் தேடவும்..." : "Search tests by title or subject..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 bg-white dark:bg-gray-800 border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-violet-500 transition-shadow text-sm font-medium"

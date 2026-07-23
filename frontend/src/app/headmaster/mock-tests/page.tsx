@@ -290,18 +290,20 @@ export default function HeadmasterMockTestsPage() {
           </div>
           <div className="relative z-10 max-w-2xl">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/30">
-              <Sparkles className="w-3.5 h-3.5" /> Assessment Center
+              <Sparkles className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "மதிப்பீட்டு மையம்" : "Assessment Center"}
             </span>
-            <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight !text-white">School Mock Exams</h1>
+            <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight !text-white">
+              {lang === "தமிழ்" ? "பள்ளி மாதிரி தேர்வுகள்" : "School Mock Exams"}
+            </h1>
             <p className="text-purple-100 !text-white text-lg mb-8 leading-relaxed">
-              Create rich objective assessments, leverage AI to auto-generate questions, and track real-time analytics across all classes in your institution.
+              {lang === "தமிழ்" ? "விரிவான கொள்குறி மதிப்பீடுகளை உருவாக்கவும், கேள்விகளை தானாக உருவாக்க AI-ஐப் பயன்படுத்தவும்." : "Create rich objective assessments, leverage AI to auto-generate questions, and track real-time analytics across all classes in your institution."}
             </p>
             <div className="flex gap-4">
               <button
                 onClick={() => setActiveTab("create")}
                 className="px-6 py-3 bg-white text-blue-700 hover:bg-blue-50 transition-all rounded-2xl font-bold text-sm shadow-xl flex items-center gap-2"
               >
-                <Plus className="w-5 h-5" /> New Assessment
+                <Plus className="w-5 h-5" /> {lang === "தமிழ்" ? "புதிய மதிப்பீடு" : "New Assessment"}
               </button>
               {/* <button 
                 onClick={() => setActiveTab("repository")}
@@ -316,13 +318,13 @@ export default function HeadmasterMockTestsPage() {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
             <h2 className="text-2xl font-black text-gray-800 dark:text-white flex items-center gap-2">
-              <Layers className="w-6 h-6 text-blue-500" /> Test Repository
+              <Layers className="w-6 h-6 text-blue-500" /> {lang === "தமிழ்" ? "தேர்வு களஞ்சியம்" : "Test Repository"}
             </h2>
             <div className="relative w-full md:w-96">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search tests by title or subject..."
+                placeholder={lang === "தமிழ்" ? "தலைப்பு அல்லது பாடம் மூலம் தேடவும்..." : "Search tests by title or subject..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-11 pr-4 py-3 bg-white dark:bg-gray-800 border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 transition-shadow text-sm font-medium"
