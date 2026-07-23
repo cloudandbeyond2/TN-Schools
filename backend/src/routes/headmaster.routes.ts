@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { hashPassword } from '../utils/password';
 import bcrypt from 'bcryptjs';
+import { randomUUID } from 'crypto';
 
 const router = Router();
 
@@ -1509,6 +1510,49 @@ router.get('/model-exams', async (req: Request, res: Response) => {
     if (academicYear) where.academicYear = String(academicYear);
     if (group) where.group = String(group);
 
+    // Auto-sync completed ExamSchedule items into ModelExam
+    try {
+      const now = new Date();
+      const completedSchedules = await prisma.examSchedule.findMany({
+        where: {
+          schoolId: sId,
+          OR: [
+            { status: 'Completed' },
+            { examDate: { lte: now } },
+          ],
+        },
+      });
+
+      for (const sched of completedSchedules) {
+        const clsClean = String(sched.class).replace(/class\s*/i, '').split(' ')[0].trim();
+        if (cls && String(cls) !== clsClean) continue;
+
+        const existingModel = await prisma.modelExam.findFirst({
+          where: {
+            schoolId: sId,
+            class: clsClean,
+            examName: sched.title,
+          },
+        });
+
+        if (!existingModel) {
+          await prisma.modelExam.create({
+            data: {
+              schoolId: sId,
+              examName: sched.title,
+              examType: sched.examType || 'Unit Test 1',
+              class: clsClean,
+              section: sched.section === 'All' ? 'A' : sched.section,
+              academicYear: sched.academicYear || '2024-25',
+              examDate: sched.examDate,
+            },
+          });
+        }
+      }
+    } catch (syncErr) {
+      console.warn('Sync examSchedule to modelExam warning:', syncErr);
+    }
+
     const exams = await prisma.modelExam.findMany({
       where,
       orderBy: [{ class: 'asc' }, { createdAt: 'desc' }],
@@ -1516,6 +1560,34 @@ router.get('/model-exams', async (req: Request, res: Response) => {
         _count: { select: { results: true } },
       },
     });
+
+    // Notify headmaster user for completed exams
+    try {
+      const headmasterUser = await prisma.user.findFirst({
+        where: { schoolId: sId, role: 'HEADMASTER' },
+      });
+
+      if (headmasterUser) {
+        const completedExams = exams.filter((e) => !e.examDate || new Date(e.examDate) <= new Date());
+        for (const ex of completedExams) {
+          const msg = `🔔 Exam Completed: ${ex.examName} for Class ${ex.class}-${ex.section} is completed in Exam Schedule. Please update & verify student marks.`;
+          const existingNotif: any[] = await prisma.$queryRaw`
+            SELECT id FROM "Notification" WHERE "userId" = ${headmasterUser.id} AND message = ${msg} LIMIT 1
+          `;
+          if (existingNotif.length === 0) {
+            const id = randomUUID();
+            const now = new Date();
+            await prisma.$queryRaw`
+              INSERT INTO "Notification" (id, "userId", message, "read", "createdAt")
+              VALUES (${id}, ${headmasterUser.id}, ${msg}, false, ${now})
+            `;
+          }
+        }
+      }
+    } catch (notifErr) {
+      console.warn('Could not create notification:', notifErr);
+    }
+
     res.json({ success: true, data: exams });
   } catch (err) {
     console.error('List model exams error:', err);

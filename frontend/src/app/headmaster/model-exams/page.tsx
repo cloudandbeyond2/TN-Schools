@@ -31,12 +31,13 @@ const EXAM_TYPES = [
   "Unit Test 1",
   "Unit Test 2",
   "Unit Test 3",
+  "Quarterly Exam",
   "Half Yearly Exam",
   "Model Exam 1",
   "Model Exam 2",
   "Annual Exam",
   "Revision Test",
-  "Quarterly Exam",
+  "Public Exam",
 ];
 const ACADEMIC_YEARS = ["2023-24","2024-25","2025-26"];
 
