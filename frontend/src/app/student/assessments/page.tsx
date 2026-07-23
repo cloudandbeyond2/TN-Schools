@@ -223,19 +223,19 @@ export default function StudentAssessmentsPage() {
         {!selectedTopic && !showInstructions && (
           <>
             {/* Banner */}
-            <div className="relative overflow-hidden rounded-2xl md:rounded-[2.5rem] bg-gradient-to-r from-indigo-500 to-blue-600 text-white p-6 md:p-8 shadow-xl border-2 md:border-4 border-indigo-100 dark:border-indigo-950">
-              <div className="absolute right-0 top-0 opacity-20 transform translate-x-1/4 -translate-y-1/4 scale-150 pointer-events-none mix-blend-overlay">
-                <Award className="w-64 h-64" />
+            <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-4 md:p-5 shadow-sm border border-slate-200 dark:border-slate-800">
+              <div className="absolute right-0 top-0 opacity-5 transform translate-x-1/4 -translate-y-1/4 scale-150 pointer-events-none mix-blend-overlay">
+                <Award className="w-48 h-48 text-slate-900 dark:text-white" />
               </div>
               
-              <div className="relative z-10 space-y-4">
-                <h2 className="text-2xl md:text-4xl font-black font-mono tracking-tight">Quiz & Test Center</h2>
+              <div className="relative z-10 space-y-1.5">
+                <h2 className="text-2xl font-black tracking-tight">Quiz & Test Center</h2>
                 {profile ? (
-                  <p className="text-indigo-100 font-bold max-w-xl text-xs md:text-sm">
-                    Showing assigned learning assessments for your class: <strong className="text-yellow-300">Grade {profile.class}</strong>.
+                  <p className="text-slate-500 dark:text-slate-400 font-bold max-w-xl text-xs md:text-sm">
+                    Showing assigned learning assessments for your class: <strong className="text-amber-500">Grade {profile.class}</strong>.
                   </p>
                 ) : (
-                  <p className="text-indigo-100 font-bold max-w-xl text-xs md:text-sm">
+                  <p className="text-slate-500 dark:text-slate-400 font-bold max-w-xl text-xs md:text-sm">
                     Select your assigned syllabus assessment folder to start practicing.
                   </p>
                 )}
