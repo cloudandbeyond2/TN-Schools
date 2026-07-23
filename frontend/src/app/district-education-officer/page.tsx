@@ -16,6 +16,8 @@ export default function DEODashboard() {
   
   const [totalAthletes, setTotalAthletes] = useState(4800);
   const [topSportsSchool, setTopSportsSchool] = useState("GHS Coimbatore South");
+  const [stateChampions, setStateChampions] = useState(18);
+  const [avgFitness, setAvgFitness] = useState(88);
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -31,6 +33,7 @@ export default function DEODashboard() {
         setLoading(true);
         let schools = [];
         let finalDistrict = targetDistrict;
+        let sportsStats = { stateChampions: 18, avgFitness: 88 };
 
         if (deoId) {
           // Fetch schools under this logged-in DEO's district
@@ -41,6 +44,9 @@ export default function DEODashboard() {
             if (json.data.district) {
               finalDistrict = json.data.district;
               setDistrict(finalDistrict);
+            }
+            if (json.data.sports) {
+              sportsStats = json.data.sports;
             }
           }
         } else {
@@ -59,7 +65,22 @@ export default function DEODashboard() {
 
             schools = allSchools.filter((s: any) => s.district === finalDistrict);
           }
+
+          if (finalDistrict) {
+            try {
+              const sportsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/deo/sports?district=${encodeURIComponent(finalDistrict)}`);
+              const sportsJson = await sportsRes.json();
+              if (sportsJson.success && sportsJson.data) {
+                sportsStats = sportsJson.data;
+              }
+            } catch (e) {
+              console.error("Error loading sports for guest district:", e);
+            }
+          }
         }
+
+        setStateChampions(sportsStats.stateChampions);
+        setAvgFitness(sportsStats.avgFitness);
 
         // Fetch actual database dropouts for this district
         let dropoutRecords: any[] = [];
@@ -211,19 +232,19 @@ export default function DEODashboard() {
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-2xl font-black text-white">{totalAthletes.toLocaleString()}</div>
+             <div className="text-2xl font-black text-white">{loading ? "…" : totalAthletes.toLocaleString()}</div>
              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Total Athletes</div>
           </div>
           <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-2xl font-black text-amber-400">18</div>
+             <div className="text-2xl font-black text-amber-400">{loading ? "…" : stateChampions}</div>
              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">State Champions</div>
           </div>
           <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-2xl font-black text-blue-400 truncate max-w-full block" title={topSportsSchool}>{topSportsSchool}</div>
+             <div className="text-2xl font-black text-blue-400 truncate max-w-full block" title={topSportsSchool}>{loading ? "…" : topSportsSchool}</div>
              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Top Sports School</div>
           </div>
           <div className="bg-slate-800/50 p-4 rounded-xl text-center border border-slate-700">
-             <div className="text-2xl font-black text-emerald-400">88%</div>
+             <div className="text-2xl font-black text-emerald-400">{loading ? "…" : `${avgFitness}%`}</div>
              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Dist. Avg Fitness</div>
           </div>
         </div>

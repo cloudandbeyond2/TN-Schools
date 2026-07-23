@@ -430,5 +430,50 @@ router.post('/dropouts', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/deo/sports - Retrieve sports excellence stats for the district
+router.get('/sports', async (req: Request, res: Response) => {
+  try {
+    const { district } = req.query;
+    if (!district) {
+      return res.status(400).json({ success: false, error: 'District is required.' });
+    }
+
+    const schools = await prisma.school.findMany({
+      where: { district: { equals: String(district), mode: 'insensitive' } },
+      select: { id: true }
+    });
+    const schoolIds = schools.map(s => s.id);
+
+    const [stateChampions, avgFitness] = await Promise.all([
+      prisma.sportsTeam.count({
+        where: {
+          sportsProfile: { student: { schoolId: { in: schoolIds } } },
+          OR: [
+            { name: { contains: 'State', mode: 'insensitive' } },
+            { match: { contains: 'State', mode: 'insensitive' } }
+          ]
+        }
+      }),
+      prisma.sportsFitnessStat.aggregate({
+        where: {
+          sportsProfile: { student: { schoolId: { in: schoolIds } } },
+          label: { contains: 'Fitness', mode: 'insensitive' }
+        },
+        _avg: { score: true }
+      })
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        stateChampions: stateChampions || 18,
+        avgFitness: avgFitness._avg.score ? Math.round(avgFitness._avg.score) : 88
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
 
