@@ -351,6 +351,35 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
       data: { status: String(status) },
     });
 
+    if (String(status) === 'Completed') {
+      try {
+        const clsClean = String(updated.class).replace(/class\s*/i, '').split(' ')[0].trim();
+        const existingModel = await prisma.modelExam.findFirst({
+          where: {
+            schoolId: updated.schoolId,
+            class: clsClean,
+            examName: updated.title,
+          },
+        });
+
+        if (!existingModel) {
+          await prisma.modelExam.create({
+            data: {
+              schoolId: updated.schoolId,
+              examName: updated.title,
+              examType: updated.examType || 'Unit Test 1',
+              class: clsClean,
+              section: updated.section === 'All' ? 'A' : updated.section,
+              academicYear: updated.academicYear || '2024-25',
+              examDate: updated.examDate,
+            },
+          });
+        }
+      } catch (syncErr) {
+        console.warn('Sync on status update failed:', syncErr);
+      }
+    }
+
     return res.json({ success: true, data: updated });
   } catch (err) {
     console.error('[ExamSchedule PATCH /:id/status]', err);

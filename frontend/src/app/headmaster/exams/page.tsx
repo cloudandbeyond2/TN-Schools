@@ -8,7 +8,30 @@ import { BookOpen, FlaskConical, Layers } from "lucide-react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 
-type ExamType = "Unit Test" | "Quarterly" | "Half-Yearly" | "Annual" | "Model" | "Public";
+type ExamType = 
+  | "Unit Test 1"
+  | "Unit Test 2"
+  | "Unit Test 3"
+  | "Quarterly Exam"
+  | "Half Yearly Exam"
+  | "Model Exam 1"
+  | "Model Exam 2"
+  | "Annual Exam"
+  | "Revision Test"
+  | "Public Exam";
+
+const EXAM_TYPES: ExamType[] = [
+  "Unit Test 1",
+  "Unit Test 2",
+  "Unit Test 3",
+  "Quarterly Exam",
+  "Half Yearly Exam",
+  "Model Exam 1",
+  "Model Exam 2",
+  "Annual Exam",
+  "Revision Test",
+  "Public Exam",
+];
 type ExamMode = "Theory" | "Practical" | "Both";
 
 interface ExamCalendar {
@@ -150,7 +173,7 @@ const SUBJECT_OPTIONS = [
   "Economics"
 ];
 
-const EXAM_TYPES: ExamType[] = ["Unit Test", "Quarterly", "Half-Yearly", "Annual", "Model", "Public"];
+
 
 // ── Derive total marks from mode ──────────────────────────────────────────────
 function getTotalMarks(exam: ExamCalendar): number {
@@ -1405,12 +1428,9 @@ export default function HeadmasterExamsPage() {
                     }}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
                   >
-                    <option value="Unit Test">Unit Test</option>
-                    <option value="Quarterly">Quarterly Exam</option>
-                    <option value="Half-Yearly">Half-Yearly Exam</option>
-                    <option value="Annual">Annual Exam</option>
-                    <option value="Model">Model Exam</option>
-                    <option value="Public">Public Exam</option>
+                    {EXAM_TYPES.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
                   </select>
                 </div>
 
