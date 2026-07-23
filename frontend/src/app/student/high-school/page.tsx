@@ -3,6 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import PortalLayout from "@/components/PortalLayout";
 import PersonalKpiStrip from "@/components/kpi/PersonalKpiStrip";
 import StudentDailyOverview from "@/components/student/StudentDailyOverview";
@@ -94,11 +95,24 @@ export default function HighSchoolDashboard() {
     { label: lang === "தமிழ்" ? "சுய படிப்பு மணிநேரம்" : "Study Boost Hrs", value: lang === "தமிழ்" ? "12 மணி" : "12 Hrs", icon: Zap, color: "text-purple-400", sub: lang === "தமிழ்" ? "இந்த வாரம் சுய படிப்பு" : "Self-study this week" },
   ];
 
-  const mockTestScoresList = [
-    { test: lang === "தமிழ்" ? "இடைப்பருவம்: கணிதம்" : "Midterm: Math", score: "62/100", status: "needs-work" },
-    { test: lang === "தமிழ்" ? "இடைப்பருவம்: அறிவியல்" : "Midterm: Science", score: "80/100", status: "good" },
-    { test: lang === "தமிழ்" ? "அலகு 4: தமிழ்" : "Unit 4: Tamil", score: "90/100", status: "excellent" },
-  ];
+  const [recentMarks, setRecentMarks] = useState<any[]>([]);
+  const [loadingMarks, setLoadingMarks] = useState(true);
+
+  useEffect(() => {
+    const studentId = student?.id || (session?.user as any)?.studentId || (session?.user as any)?.id;
+    if (!studentId) return;
+
+    setLoadingMarks(true);
+    fetch(`${API_BASE}/api/headmaster/model-exams/student/${studentId}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data)) {
+          setRecentMarks(json.data.slice(0, 3));
+        }
+      })
+      .catch((err) => console.error("Failed to fetch exam marks:", err))
+      .finally(() => setLoadingMarks(false));
+  }, [student, session]);
 
   return (
     <PortalLayout subtitle={subtitle}>
@@ -209,20 +223,64 @@ export default function HighSchoolDashboard() {
 
           {/* Recent Mock Tests */}
           <div className="glass rounded-2xl p-6 fade-in-4 border border-slate-700/50">
-            <h2 className="text-base font-semibold text-white mb-4">{lang === "தமிழ்" ? "சமீபத்திய மாதிரித் தேர்வுகள்" : "Recent Mock Tests"}</h2>
-            <div className="space-y-3">
-              {mockTestScoresList.map((m, i) => (
-                <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-slate-800/50 border border-slate-700">
-                  <span className="text-sm text-slate-300">{m.test}</span>
-                  <span className={`text-sm font-mono font-bold ${
-                    m.status === 'needs-work' ? 'text-red-400' : m.status === 'good' ? 'text-blue-400' : 'text-emerald-400'
-                  }`}>
-                    {m.score}
-                  </span>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-semibold text-white">{lang === "தமிழ்" ? "சமீபத்திய மாதிரித் தேர்வுகள்" : "Recent Mock Tests"}</h2>
+              <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full border border-slate-700 font-medium">
+                {lang === "தமிழ்" ? "சமீபத்திய 3 மதிப்பெண்கள்" : "Latest 3 Marks"}
+              </span>
             </div>
-            <button className="mt-4 text-xs text-center w-full text-slate-400 hover:text-white">{lang === "தமிழ்" ? "அனைத்து முடிவுகளையும் பார் →" : "View All Results →"}</button>
+
+            {loadingMarks ? (
+              <div className="py-6 text-center text-xs text-slate-400 animate-pulse">
+                {lang === "தமிழ்" ? "மதிப்பெண்கள் ஏற்றப்படுகின்றன..." : "Loading latest exam marks..."}
+              </div>
+            ) : recentMarks.length === 0 ? (
+              <div className="py-6 text-center text-xs text-slate-500 italic">
+                {lang === "தமிழ்" ? "சமீபத்திய தேர்வு முடிவுகள் எதுவும் இல்லை" : "No recent exam marks available yet."}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentMarks.map((m, i) => {
+                  const title = m.exam?.examName || `Exam #${i + 1}`;
+                  const totalScore = m.total != null ? `${m.total}/${m.maxTotal || 500}` : "—";
+                  const pct = m.percentage != null ? `${m.percentage}%` : "";
+                  const passed = m.isPassed;
+
+                  return (
+                    <div key={m.id || i} className="flex items-center justify-between p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition-colors">
+                      <div className="min-w-0 pr-2">
+                        <div className="text-xs font-bold text-slate-200 truncate">{title}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5 flex items-center gap-2">
+                          <span>{m.exam?.examType || "Model Exam"}</span>
+                          {pct && <span className="text-blue-400 font-semibold">{pct}</span>}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className={`text-sm font-mono font-black ${
+                          passed === false ? "text-red-400" : (m.percentage >= 80 ? "text-emerald-400" : "text-blue-400")
+                        }`}>
+                          {totalScore}
+                        </div>
+                        {passed != null && (
+                          <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${
+                            passed ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"
+                          }`}>
+                            {passed ? (lang === "தமிழ்" ? "தேர்ச்சி" : "PASS") : (lang === "தமிழ்" ? "தோல்வி" : "FAIL")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <Link 
+              href="/student/high-school/model-exams" 
+              className="block mt-4 text-xs text-center w-full text-slate-400 hover:text-white transition-colors font-medium"
+            >
+              {lang === "தமிழ்" ? "அனைத்து முடிவுகளையும் பார் →" : "View All Results →"}
+            </Link>
           </div>
 
           {/* Quick Links / Student Tools */}
