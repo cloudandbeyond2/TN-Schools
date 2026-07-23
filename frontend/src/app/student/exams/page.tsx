@@ -563,16 +563,16 @@ export default function StudentExamsPage() {
         <div>
           {/* Countdown Panel for Next Upcoming Exam */}
           {nextExam && (
-            <div className="rounded-2xl p-4 sm:p-6 bg-slate-900 border border-slate-800 mb-6 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl">
-              <div className="space-y-2">
+            <div className="rounded-2xl p-3.5 sm:p-6 bg-slate-900 border border-slate-800 mb-4 sm:mb-6 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6 shadow-xl">
+              <div className="space-y-1.5 sm:space-y-2 w-full md:w-auto">
                 <div className="flex items-center gap-2">
                   <span className="p-1 bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-indigo-400 flex items-center justify-center">
-                    <i className="fi fi-rr-stopwatch text-sm leading-none"></i>
+                    <i className="fi fi-rr-stopwatch text-xs sm:text-sm leading-none"></i>
                   </span>
-                  <span className="text-[10px] text-indigo-450 font-extrabold uppercase tracking-wider">{t.nextUpcoming}</span>
+                  <span className="text-[9px] sm:text-[10px] text-indigo-450 font-extrabold uppercase tracking-wider">{t.nextUpcoming}</span>
                 </div>
-                <h2 className="text-base sm:text-lg font-black text-white">{nextExam.name} ({getSubjectTranslation(nextExam.subject, lang)})</h2>
-                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400 font-semibold">
+                <h2 className="text-sm sm:text-base md:text-lg font-black text-white leading-tight">{nextExam.name} ({getSubjectTranslation(nextExam.subject, lang)})</h2>
+                <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-[11px] sm:text-xs text-slate-400 font-semibold">
                   <span className="flex items-center gap-1">
                     <i className="fi fi-rr-calendar text-slate-500"></i> {formatStudentFriendlyDate(nextExam.date)}
                   </span>
@@ -582,7 +582,7 @@ export default function StudentExamsPage() {
                   <span className="flex items-center gap-1 text-purple-300">
                     <i className="fi fi-rr-marker text-purple-400"></i> {t.room}: {nextExam.hall.split(" (")[0]}
                   </span>
-                  <span className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] ${getModeBadgeStyle(nextExam.examMode)}`}>
+                  <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] sm:text-[10px] ${getModeBadgeStyle(nextExam.examMode)}`}>
                     {getModeIcon(nextExam.examMode)}
                     {lang === "ta" ? (nextExam.examMode === "Theory" ? t.theory : nextExam.examMode === "Practical" ? t.practical : nextExam.examMode === "Both" ? t.both : t.theory) : (nextExam.examMode || "Theory")} {t.mode}
                   </span>
@@ -593,29 +593,29 @@ export default function StudentExamsPage() {
               </div>
 
               {/* Countdown Clock Widget */}
-              <div className="flex items-center gap-2 bg-slate-950 border border-slate-850 p-3 rounded-2xl">
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2 bg-slate-950 border border-slate-850 p-2 sm:p-3 rounded-xl sm:rounded-2xl w-full sm:w-auto mt-1 sm:mt-0">
                 {(() => {
                   const { days, hours, minutes, seconds } = getCountdownData(nextExam.targetDateTime);
                   return (
                     <>
-                      <div className="text-center min-w-[44px] sm:min-w-[50px] p-1.5 sm:p-2 bg-slate-900 border border-slate-800 rounded-xl">
-                        <div className="text-lg sm:text-xl font-black text-white">{days.toString().padStart(2, "0")}</div>
-                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.days}</div>
+                      <div className="text-center min-w-[38px] sm:min-w-[50px] p-1 sm:p-2 bg-slate-900 border border-slate-800 rounded-lg sm:rounded-xl">
+                        <div className="text-base sm:text-xl font-black text-white">{days.toString().padStart(2, "0")}</div>
+                        <div className="text-[7px] sm:text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.days}</div>
                       </div>
-                      <div className="text-lg sm:text-xl font-bold text-slate-800">:</div>
-                      <div className="text-center min-w-[44px] sm:min-w-[50px] p-1.5 sm:p-2 bg-slate-900 border border-slate-800 rounded-xl">
-                        <div className="text-lg sm:text-xl font-black text-white">{hours.toString().padStart(2, "0")}</div>
-                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.hours}</div>
+                      <div className="text-base sm:text-xl font-bold text-slate-800">:</div>
+                      <div className="text-center min-w-[38px] sm:min-w-[50px] p-1 sm:p-2 bg-slate-900 border border-slate-800 rounded-lg sm:rounded-xl">
+                        <div className="text-base sm:text-xl font-black text-white">{hours.toString().padStart(2, "0")}</div>
+                        <div className="text-[7px] sm:text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.hours}</div>
                       </div>
-                      <div className="text-lg sm:text-xl font-bold text-slate-800">:</div>
-                      <div className="text-center min-w-[44px] sm:min-w-[50px] p-1.5 sm:p-2 bg-slate-900 border border-slate-800 rounded-xl">
-                        <div className="text-lg sm:text-xl font-black text-white">{minutes.toString().padStart(2, "0")}</div>
-                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.mins}</div>
+                      <div className="text-base sm:text-xl font-bold text-slate-800">:</div>
+                      <div className="text-center min-w-[38px] sm:min-w-[50px] p-1 sm:p-2 bg-slate-900 border border-slate-800 rounded-lg sm:rounded-xl">
+                        <div className="text-base sm:text-xl font-black text-white">{minutes.toString().padStart(2, "0")}</div>
+                        <div className="text-[7px] sm:text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.mins}</div>
                       </div>
-                      <div className="text-lg sm:text-xl font-bold text-slate-800">:</div>
-                      <div className="text-center min-w-[44px] sm:min-w-[50px] p-1.5 sm:p-2 bg-slate-900 border border-slate-850 rounded-xl">
-                        <div className="text-lg sm:text-xl font-black text-indigo-400">{seconds.toString().padStart(2, "0")}</div>
-                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.secs}</div>
+                      <div className="text-base sm:text-xl font-bold text-slate-800">:</div>
+                      <div className="text-center min-w-[38px] sm:min-w-[50px] p-1 sm:p-2 bg-slate-900 border border-slate-850 rounded-lg sm:rounded-xl">
+                        <div className="text-base sm:text-xl font-black text-indigo-400">{seconds.toString().padStart(2, "0")}</div>
+                        <div className="text-[7px] sm:text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{t.secs}</div>
                       </div>
                     </>
                   );
@@ -626,11 +626,11 @@ export default function StudentExamsPage() {
 
           <div className="mb-6">
             {/* Exam Schedule List */}
-            <div className="glass rounded-2xl p-4 sm:p-6 flex flex-col min-h-[400px] w-full">
-              <div className="flex items-center gap-2 mb-5">
-                <i className="fi fi-rr-calendar text-xl text-indigo-400 leading-none"></i>
-                <h2 className="text-sm font-bold text-white">{t.dateSheet}</h2>
-                <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black px-2 py-0.5 rounded-md">
+            <div className="glass rounded-2xl p-3.5 sm:p-6 flex flex-col min-h-[300px] sm:min-h-[400px] w-full">
+              <div className="flex items-center gap-2 mb-3.5 sm:mb-5">
+                <i className="fi fi-rr-calendar text-lg sm:text-xl text-indigo-400 leading-none"></i>
+                <h2 className="text-xs sm:text-sm font-bold text-white">{t.dateSheet}</h2>
+                <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-md">
                   {studentExams.length}
                 </span>
               </div>
@@ -641,68 +641,68 @@ export default function StudentExamsPage() {
                   <div className="text-xs font-semibold text-slate-400">Loading your assessments...</div>
                 </div>
               ) : studentExams.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-slate-800 rounded-xl bg-slate-900/10">
-                  <div className="p-4 bg-slate-900/40 rounded-full text-slate-500 border border-slate-800 mb-3 flex items-center justify-center">
-                    <i className="fi fi-rr-info text-2xl leading-none"></i>
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-6 sm:p-8 border border-dashed border-slate-800 rounded-xl bg-slate-900/10">
+                  <div className="p-3 sm:p-4 bg-slate-900/40 rounded-full text-slate-500 border border-slate-800 mb-3 flex items-center justify-center">
+                    <i className="fi fi-rr-info text-xl sm:text-2xl leading-none"></i>
                   </div>
-                  <h3 className="text-sm font-bold text-white mb-1">{t.noSchedules}</h3>
-                  <p className="text-xs text-slate-500 max-w-sm">
+                  <h3 className="text-xs sm:text-sm font-bold text-white mb-1">{t.noSchedules}</h3>
+                  <p className="text-[11px] sm:text-xs text-slate-500 max-w-sm">
                     {t.noSchedulesDesc}
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto w-full rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="overflow-x-auto w-full rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-sm">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 font-black uppercase tracking-wider">
-                        <th className="p-4 align-middle whitespace-nowrap">{t.thStandardMode}</th>
-                        <th className="p-4 align-middle whitespace-nowrap">{t.thExamDetails}</th>
-                        <th className="p-4 align-middle whitespace-nowrap">{t.thDateTime}</th>
-                        <th className="p-4 align-middle whitespace-nowrap">{t.thRoomInvigilator}</th>
-                        <th className="p-4 align-middle text-right whitespace-nowrap">{t.thSeatingStatus}</th>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-[9px] sm:text-[10px] text-slate-500 font-black uppercase tracking-wider">
+                        <th className="p-2.5 sm:p-4 align-middle whitespace-nowrap">{t.thStandardMode}</th>
+                        <th className="p-2.5 sm:p-4 align-middle whitespace-nowrap">{t.thExamDetails}</th>
+                        <th className="p-2.5 sm:p-4 align-middle whitespace-nowrap">{t.thDateTime}</th>
+                        <th className="p-2.5 sm:p-4 align-middle whitespace-nowrap">{t.thRoomInvigilator}</th>
+                        <th className="p-2.5 sm:p-4 align-middle text-right whitespace-nowrap">{t.thSeatingStatus}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {studentExams.map((ex) => (
                         <tr 
                           key={ex.id}
-                          className={`hover:bg-slate-50/30 transition-colors text-xs text-slate-800 font-medium border-b border-slate-100 last:border-b-0 ${
+                          className={`hover:bg-slate-50/30 transition-colors text-[11px] sm:text-xs text-slate-800 font-medium border-b border-slate-100 last:border-b-0 ${
                             ex.status === "Completed" ? "border-l-4 border-l-rose-400" :
                             ex.status === "In Progress" ? "border-l-4 border-l-amber-400" :
                             "border-l-4 border-l-emerald-400"
                           }`}
                         >
-                          <td className="p-4 align-middle whitespace-nowrap">
+                          <td className="p-2.5 sm:p-4 align-middle whitespace-nowrap">
                             <div className="flex flex-col gap-1">
-                              <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md w-max">
+                              <span className="text-[9px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md w-max">
                                 {ex.classSection}
                               </span>
-                              <span className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-md w-max flex items-center gap-0.5 ${getModeBadgeStyle(ex.examMode || "Theory")}`}>
+                              <span className={`text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 border rounded-md w-max flex items-center gap-0.5 ${getModeBadgeStyle(ex.examMode || "Theory")}`}>
                                 {getModeIcon(ex.examMode || "Theory")}
                                 {ex.examMode || "Theory"}
                               </span>
                             </div>
                           </td>
 
-                          <td className="p-4 align-middle min-w-[200px]">
-                            <div className="flex items-start gap-2.5">
-                              <span className="mt-1.5 flex-shrink-0">
-                                <span className={`relative flex h-2.5 w-2.5`}>
+                          <td className="p-2.5 sm:p-4 align-middle min-w-[180px] sm:min-w-[200px]">
+                            <div className="flex items-start gap-2 sm:gap-2.5">
+                              <span className="mt-1 flex-shrink-0">
+                                <span className={`relative flex h-2 w-2 sm:h-2.5 sm:w-2.5`}>
                                   {ex.status === "Scheduled" && (
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                   )}
-                                  <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                                  <span className={`relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 ${
                                     ex.status === "Completed" ? "bg-rose-500" :
                                     ex.status === "In Progress" ? "bg-amber-400" :
                                     "bg-emerald-500"
                                   }`}></span>
                                 </span>
                               </span>
-                              <div className="space-y-1">
-                                <div className="text-slate-900 font-extrabold text-sm leading-tight">{ex.subject}</div>
-                                <div className="flex items-center gap-2 flex-wrap text-slate-500 text-xs font-semibold">
+                              <div className="space-y-0.5 sm:space-y-1">
+                                <div className="text-slate-900 font-extrabold text-xs sm:text-sm leading-tight">{ex.subject}</div>
+                                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap text-slate-500 text-[11px] sm:text-xs font-semibold">
                                   <span>{ex.name}</span>
-                                  <span className={`text-[8px] font-extrabold px-1.5 py-0.5 border rounded uppercase ${getTypeBadgeStyle(ex.type)}`}>
+                                  <span className={`text-[8px] font-extrabold px-1 sm:px-1.5 py-0.5 border rounded uppercase ${getTypeBadgeStyle(ex.type)}`}>
                                     {ex.type}
                                   </span>
                                 </div>
@@ -710,35 +710,35 @@ export default function StudentExamsPage() {
                             </div>
                           </td>
 
-                          <td className="p-4 align-middle whitespace-nowrap">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-1.5 text-slate-750 font-bold text-[13px]">
+                          <td className="p-2.5 sm:p-4 align-middle whitespace-nowrap">
+                            <div className="space-y-0.5 sm:space-y-1">
+                              <div className="flex items-center gap-1.5 text-slate-750 font-bold text-xs sm:text-[13px]">
                                 <i className="fi fi-rr-calendar text-indigo-500"></i>
                                 <span>{formatStudentFriendlyDate(ex.date)}</span>
                               </div>
-                              <div className="flex items-center gap-1.5 text-slate-550 text-[11px] font-semibold">
+                              <div className="flex items-center gap-1.5 text-slate-550 text-[10px] sm:text-[11px] font-semibold">
                                 <i className="fi fi-rr-clock text-amber-500"></i>
                                 <span>{ex.timeSlot} <span className="text-slate-450">({ex.duration || "3 Hours"})</span></span>
                               </div>
                             </div>
                           </td>
 
-                          <td className="p-4 align-middle whitespace-nowrap">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-1.5 text-purple-700 font-bold">
+                          <td className="p-2.5 sm:p-4 align-middle whitespace-nowrap">
+                            <div className="space-y-0.5 sm:space-y-1">
+                              <div className="flex items-center gap-1.5 text-purple-700 font-bold text-xs sm:text-sm">
                                 <i className="fi fi-rr-marker text-purple-500"></i>
                                 <span>{ex.hall.split(" (")[0]}</span>
                               </div>
-                              <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
+                              <div className="flex items-center gap-1.5 text-slate-700 font-semibold text-[10px] sm:text-xs">
                                 <i className="fi fi-rr-user-check text-emerald-600"></i>
                                 <span>{ex.invigilator}</span>
                               </div>
                             </div>
                           </td>
 
-                          <td className="p-4 align-middle text-right whitespace-nowrap">
-                            <div className="flex flex-col items-end gap-1.5">
-                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[9px] font-black rounded-full border uppercase tracking-wider w-max ${
+                          <td className="p-2.5 sm:p-4 align-middle text-right whitespace-nowrap">
+                            <div className="flex flex-col items-end gap-1 sm:gap-1.5">
+                              <span className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[8px] sm:text-[9px] font-black rounded-full border uppercase tracking-wider w-max ${
                                 ex.status === "Completed"
                                   ? "bg-rose-50 border-rose-200 text-rose-700"
                                   : ex.status === "In Progress"
@@ -754,7 +754,7 @@ export default function StudentExamsPage() {
                                  ex.status === "In Progress" ? t.ongoing :
                                  t.upcoming}
                               </span>
-                              <div className="text-[9px] text-slate-500 font-semibold bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md w-max">
+                              <div className="text-[8px] sm:text-[9px] text-slate-500 font-semibold bg-slate-50 border border-slate-200 px-1.5 sm:px-2 py-0.5 rounded-md w-max">
                                 {t.deskAssigned}
                               </div>
                             </div>
@@ -767,26 +767,26 @@ export default function StudentExamsPage() {
               )}
 
               {/* Exam Instructions & Tips Section */}
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="glass rounded-2xl p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
+              <div className="mt-4 sm:mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div className="glass rounded-2xl p-3.5 sm:p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white mb-2 sm:mb-3 flex items-center gap-2">
                     <i className="fi fi-rr-stars text-indigo-500"></i>
                     {t.instructionsTitle}
                   </h3>
-                  <ul className="space-y-2.5 text-xs text-slate-650 dark:text-slate-400 font-medium">
-                    <li className="flex items-start gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                  <ul className="space-y-2 text-[11px] sm:text-xs text-slate-650 dark:text-slate-400 font-medium">
+                    <li className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1 flex-shrink-0" />
                       <span>{t.instructions1}</span>
                     </li>
-                    <li className="flex items-start gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                    <li className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1 flex-shrink-0" />
                       <span>{t.instructions2}</span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="glass rounded-2xl p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
+                <div className="glass rounded-2xl p-3.5 sm:p-5 border border-slate-200/60 bg-white/50 dark:bg-slate-900/50 shadow-sm">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white mb-2 sm:mb-3 flex items-center gap-2">
                     <i className="fi fi-rr-award text-amber-500"></i>
                     {t.tipsTitle}
                   </h3>
