@@ -44,7 +44,7 @@ function CenterCard({ c }: { c: ScienceCenter }) {
   const Icon = ICONS[c.icon] || FlaskConical;
   const live = c.status === "live";
   const inner = (
-    <motion.div 
+    <motion.div
       variants={itemVariants}
       whileHover={live ? { y: -5, scale: 1.02 } : {}}
       whileTap={live ? { scale: 0.98 } : {}}
@@ -202,7 +202,7 @@ export default function ScienceCampusPage() {
       <div className="flex flex-col gap-7 text-left">
 
         {/* hero */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
@@ -229,13 +229,13 @@ export default function ScienceCampusPage() {
         {/* stream / group switcher - ONLY shown for Class 11-12 Higher Secondary students */}
         {isHigherSecondary && (
           <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 border-2 border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center gap-3">
-            <span className="text-xs font-black uppercase tracking-wider text-slate-400 shrink-0">Your group</span>
-            <div className="flex flex-wrap gap-2">
+            {/* <span className="text-xs font-black uppercase tracking-wider text-slate-400 shrink-0">Your group</span> */}
+            <div className="flex overflow-x-auto gap-2">
               {STREAMS.map((s) => {
                 const on = s.id === stream;
                 return (
                   <button key={s.id} onClick={() => pickStream(s.id)}
-                    className={`px-4 py-2 rounded-xl text-sm font-black transition-all border-2 ${on
+                    className={`shrink-0 px-4 py-2 rounded-xl text-sm font-black transition-all border-2 ${on
                       ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
                       : "bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300"}`}>
                     <span className="mr-1.5">{s.emoji}</span>{s.label}
@@ -244,9 +244,6 @@ export default function ScienceCampusPage() {
                 );
               })}
             </div>
-            <span className="sm:ml-auto text-[11px] font-bold text-slate-400">
-              Commerce & Computer Science students see a tailored set of centres.
-            </span>
           </div>
         )}
 
@@ -257,7 +254,7 @@ export default function ScienceCampusPage() {
           return (
             <section key={group}>
               <h3 className="text-sm font-black uppercase tracking-wider text-slate-400 mb-3">{group}</h3>
-              <motion.div 
+              <motion.div
                 initial="hidden"
                 animate="visible"
                 variants={{
