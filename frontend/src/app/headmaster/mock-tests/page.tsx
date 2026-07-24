@@ -512,36 +512,41 @@ export default function HeadmasterMockTestsPage() {
                         </div>
 
                         <div className="pl-12">
-                          <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-                            <div className="flex-1">
-                              <input
-                                type="text" required value={q.text} onChange={(e) => handleQuestionFieldChange(idx, "text", e.target.value)}
-                                placeholder="Enter your question statement here..."
-                                className="w-full bg-transparent border-none text-lg font-semibold placeholder-gray-300 dark:placeholder-gray-600 focus:ring-0 outline-none"
-                              />
-                            </div>
-                            <div className="flex items-center gap-3 shrink-0">
-                              <select
-                                value={q.type} onChange={(e) => handleQuestionFieldChange(idx, "type", e.target.value as any)}
-                                className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs font-bold outline-none"
-                              >
-                                <option value="mcq">Multiple Choice</option>
-                                <option value="short">Short Answer</option>
-                              </select>
-                              <div className="flex items-center bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2">
-                                <span className="text-xs font-bold text-gray-400 mr-2">Marks</span>
-                                <input
-                                  type="number" min="1" required value={q.marks} onChange={(e) => handleQuestionFieldChange(idx, "marks", parseInt(e.target.value) || 1)}
-                                  className="w-10 bg-transparent border-none text-xs font-bold text-center focus:ring-0 outline-none p-0"
-                                />
+                          <div className="flex flex-col gap-3 mb-4">
+                            <div className="flex items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-700/60 pb-3 flex-wrap">
+                              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Question #{idx + 1}</span>
+                              <div className="flex items-center gap-3 shrink-0">
+                                <select
+                                  value={q.type} onChange={(e) => handleQuestionFieldChange(idx, "type", e.target.value as any)}
+                                  className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5 text-xs font-bold outline-none"
+                                >
+                                  <option value="mcq">Multiple Choice</option>
+                                  <option value="short">Short Answer</option>
+                                </select>
+                                <div className="flex items-center bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5">
+                                  <span className="text-xs font-bold text-gray-400 mr-2">Marks</span>
+                                  <input
+                                    type="number" min="1" required value={q.marks} onChange={(e) => handleQuestionFieldChange(idx, "marks", parseInt(e.target.value) || 1)}
+                                    className="w-10 bg-transparent border-none text-xs font-bold text-center focus:ring-0 outline-none p-0"
+                                  />
+                                </div>
+                                <button
+                                  type="button" onClick={() => handleRemoveQuestion(idx)}
+                                  className="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
                               </div>
-                              <button
-                                type="button" onClick={() => handleRemoveQuestion(idx)}
-                                className="w-9 h-9 flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
                             </div>
+
+                            <textarea
+                              required
+                              rows={2}
+                              value={q.text}
+                              onChange={(e) => handleQuestionFieldChange(idx, "text", e.target.value)}
+                              placeholder="Enter your question statement here..."
+                              className="w-full bg-slate-50 dark:bg-slate-900/60 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 text-base font-semibold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 outline-none resize-y min-h-[70px] leading-relaxed"
+                            />
                           </div>
 
                           {q.type === "mcq" && (
