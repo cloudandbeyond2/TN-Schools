@@ -491,12 +491,6 @@ router.post('/:id/homework/:homeworkId/submit', upload.array('files'), async (re
 });
 
 
-/* ------------------- GET BOARD PREP DATA ------------------- */
-router.get('/:id/board-prep', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const selectedClass = String(req.query.class || "10"); // "9" or "10"
-
 /* Helper to get or fallback to a valid student so board prep never fails */
 async function getOrCreateStudent(id: string) {
   try {
@@ -514,15 +508,9 @@ async function getOrCreateStudent(id: string) {
     const anyStudent = await prisma.student.findFirst();
     if (anyStudent) return anyStudent;
 
-    return await prisma.student.create({
-      data: {
-        id: id && id !== "undefined" ? id : "student-default-1",
-        name: "Test Student",
-        class: "10",
-        section: "A",
-        rollNum: "1001"
-      }
-    });
+    // No student to fall back to. A Student row can't be created here — it
+    // requires a linked User and a schoolId — so signal "not found".
+    return null;
   } catch (e) {
     console.error("Error in getOrCreateStudent:", e);
     return null;
