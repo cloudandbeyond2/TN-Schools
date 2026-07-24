@@ -16,7 +16,7 @@ interface StudentProfile {
   emis: string;
   parentContact: string;
   avgGrade: string;
-  attendance: number;
+  attendance: number | null;
   strengths: string[];
   weaknesses: string[];
   gradesHistory: { exam: string; score: string }[];
@@ -70,10 +70,10 @@ export default function StudentProfilesPage() {
             class: `${st.class}${st.section}`,
             emis: st.rollNumber || `3301${String(idx + 1).padStart(6, '0')}`,
             parentContact: st.parentMobile || "+91 90000 00000",
-            avgGrade: idx % 3 === 0 ? "A" : idx % 3 === 1 ? "B" : "C",
-            attendance: 90 - (idx % 12),
-            strengths: ["Attentive", "Logical reasoning"],
-            weaknesses: ["Handwriting speed"],
+            avgGrade: "—",
+            attendance: null,
+            strengths: [],
+            weaknesses: [],
             gradesHistory: []
           }));
           setStudents(mapped);
@@ -99,7 +99,7 @@ export default function StudentProfilesPage() {
         
         // Calculate average grade based on marks
         let averageScore = 0;
-        let gradeLetter = "B";
+        let gradeLetter = "—";
         if (fullInfo.marks && fullInfo.marks.length > 0) {
           const sum = fullInfo.marks.reduce((acc: number, m: any) => acc + (m.scored / (m.maxMarks || 100)) * 100, 0);
           averageScore = Math.round(sum / fullInfo.marks.length);
@@ -109,13 +109,10 @@ export default function StudentProfilesPage() {
           else if (averageScore >= 60) gradeLetter = "B";
           else if (averageScore >= 50) gradeLetter = "C";
           else gradeLetter = "D";
-        } else {
-          // fallback to summary
-          gradeLetter = studentSummary.avgGrade;
         }
 
         // Calculate attendance percent
-        let attendancePct = studentSummary.attendance;
+        let attendancePct: number | null = null;
         if (fullInfo.attendance && fullInfo.attendance.length > 0) {
           const presentCount = fullInfo.attendance.filter((a: any) => a.status === "PRESENT").length;
           attendancePct = Math.round((presentCount / fullInfo.attendance.length) * 100);
@@ -128,12 +125,16 @@ export default function StudentProfilesPage() {
         })) : [];
 
         // Setup strengths & weaknesses based on marks
-        const strengths = averageScore >= 80 
-          ? ["Excellent Exam performance", "Curious Learner", "Logical thinking"]
-          : ["Engaged Class participation", "Strong Practical understanding"];
-        const weaknesses = averageScore < 70 
-          ? ["Requires practice in formulas", "Needs review before unit tests"]
-          : ["Needs more challenge in worksheets", "Handwriting presentation"];
+        const strengths = fullInfo.marks && fullInfo.marks.length > 0
+          ? (averageScore >= 80 
+            ? ["Excellent Exam performance", "Curious Learner", "Logical thinking"]
+            : ["Engaged Class participation", "Strong Practical understanding"])
+          : [];
+        const weaknesses = fullInfo.marks && fullInfo.marks.length > 0
+          ? (averageScore < 70 
+            ? ["Requires practice in formulas", "Needs review before unit tests"]
+            : ["Needs more challenge in worksheets", "Handwriting presentation"])
+          : [];
 
         setSelectedStudent({
           ...studentSummary,
@@ -142,10 +143,7 @@ export default function StudentProfilesPage() {
           attendance: attendancePct,
           strengths,
           weaknesses,
-          gradesHistory: marksHistory.length > 0 ? marksHistory : [
-            { exam: "Algebra Pop Quiz", score: "8/10" },
-            { exam: "Geometry Worksheet", score: "9/10" }
-          ]
+          gradesHistory: marksHistory
         });
       }
     } catch (err) {
@@ -292,8 +290,8 @@ export default function StudentProfilesPage() {
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-[var(--text-muted)]">{lang === "தமிழ்" ? "வருகைப்பதிவு:" : "Attendance:"}</span>
-                    <span className={`font-bold ${student.attendance >= 85 ? "text-emerald-400" : "text-amber-400"}`}>
-                      {student.attendance}%
+                    <span className={`font-bold ${student.attendance && student.attendance >= 85 ? "text-emerald-400" : "text-amber-400"}`}>
+                      {student.attendance !== null ? `${student.attendance}%` : "—"}
                     </span>
                   </div>
                 </div>
@@ -381,7 +379,7 @@ export default function StudentProfilesPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-[var(--text-muted)]">{lang === "தமிழ்" ? "வருகை விகிதம்:" : "Attendance Rate:"}</span>
-                        <strong className="text-[var(--text-heading)]">{selectedStudent.attendance}%</strong>
+                        <strong className="text-[var(--text-heading)]">{selectedStudent.attendance !== null ? `${selectedStudent.attendance}%` : "—"}</strong>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-[var(--text-muted)]">{lang === "தமிழ்" ? "பெற்றோர் தொடர்பு:" : "Parent Contact:"}</span>
@@ -392,11 +390,15 @@ export default function StudentProfilesPage() {
 
                   <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-2xl border border-[var(--border)] space-y-3">
                     <h3 className="text-xs uppercase font-extrabold text-emerald-400">{lang === "தமிழ்" ? "பலம்" : "Strengths"}</h3>
-                    <ul className="list-disc pl-4 text-xs text-[var(--text-main)] space-y-1">
-                      {selectedStudent.strengths?.map((str, i) => (
-                        <li key={i}>{str}</li>
-                      ))}
-                    </ul>
+                    {selectedStudent.strengths && selectedStudent.strengths.length > 0 ? (
+                      <ul className="list-disc pl-4 text-xs text-[var(--text-main)] space-y-1">
+                        {selectedStudent.strengths.map((str, i) => (
+                          <li key={i}>{str}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="text-xs text-[var(--text-muted)] italic">{lang === "தமிழ்" ? "பதிவுகள் இல்லை" : "No strengths recorded yet."}</span>
+                    )}
                   </div>
                 </div>
 
@@ -404,25 +406,33 @@ export default function StudentProfilesPage() {
                 <div className="space-y-5">
                   <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-2xl border border-[var(--border)] space-y-3">
                     <h3 className="text-xs uppercase font-extrabold text-red-400">{lang === "தமிழ்" ? "மேம்படுத்த வேண்டிய பகுதிகள்" : "Key Areas for Growth"}</h3>
-                    <ul className="list-disc pl-4 text-xs text-[var(--text-main)] space-y-1">
-                      {selectedStudent.weaknesses?.map((weak, i) => (
-                        <li key={i}>{weak}</li>
-                      ))}
-                    </ul>
+                    {selectedStudent.weaknesses && selectedStudent.weaknesses.length > 0 ? (
+                      <ul className="list-disc pl-4 text-xs text-[var(--text-main)] space-y-1">
+                        {selectedStudent.weaknesses.map((weak, i) => (
+                          <li key={i}>{weak}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="text-xs text-[var(--text-muted)] italic">{lang === "தமிழ்" ? "பதிவுகள் இல்லை" : "No growth areas recorded yet."}</span>
+                    )}
                   </div>
 
                   <div className="p-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] rounded-2xl border border-[var(--border)] space-y-3">
                     <h3 className="text-xs uppercase font-extrabold text-blue-400">{lang === "தமிழ்" ? "தேர்வு வரலாற்றுப் பதிவு" : "Exam History Log"}</h3>
-                    <table className="w-full text-xs">
-                      <tbody>
-                        {selectedStudent.gradesHistory?.map((item, i) => (
-                          <tr key={i} className="border-b border-[var(--border)] last:border-b-0">
-                            <td className="py-1.5 text-[var(--text-muted)] font-medium">{item.exam}</td>
-                            <td className="py-1.5 text-right font-bold text-[var(--text-heading)]">{item.score}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    {selectedStudent.gradesHistory && selectedStudent.gradesHistory.length > 0 ? (
+                      <table className="w-full text-xs">
+                        <tbody>
+                          {selectedStudent.gradesHistory.map((item, i) => (
+                            <tr key={i} className="border-b border-[var(--border)] last:border-b-0">
+                              <td className="py-1.5 text-[var(--text-muted)] font-medium">{item.exam}</td>
+                              <td className="py-1.5 text-right font-bold text-[var(--text-heading)]">{item.score}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <span className="text-xs text-[var(--text-muted)] italic">{lang === "தமிழ்" ? "பதிவுகள் இல்லை" : "No exam logs recorded yet."}</span>
+                    )}
                   </div>
                 </div>
               </div>
