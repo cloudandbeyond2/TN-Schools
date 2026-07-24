@@ -688,7 +688,7 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
     { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
   ],
   Commerce: [
-    { label: "Commerce Campus", href: "/student/science-campus", icon: "Sparkles" },
+    // { label: "Commerce Campus", href: "/student/science-campus", icon: "Sparkles" },
     // { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
     { label: "Book Library", href: "/student/science-library", icon: "BookOpen" },
     { label: "Commerce & Business Lab", href: "/student/science/commerce-lab", icon: "Briefcase" },
