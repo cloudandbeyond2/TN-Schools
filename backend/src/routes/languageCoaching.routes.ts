@@ -717,12 +717,12 @@ router.get('/:studentId/progress', async (req: Request, res: Response) => {
 
     const progress = await LanguageCoachingProgress.findOne({ studentId: resolved.student.id });
     
-    // Dynamic values
-    const speakingVal  = Math.min((progress?.sentencesSpoken || 0) * 10, 100) || 45;
-    const readingVal   = Math.min((progress?.newWordsCount || 0) * 5, 100) || 60;
-    const grammarVal   = progress?.grammarScore || 80;
-    const listeningVal = Math.min(Math.round(((speakingVal + readingVal) / 2) || 40), 100) || 55;
-    const writingVal   = Math.min(Math.round((grammarVal * 0.9) || 45), 100) || 50;
+    // Dynamic values based on actual student activity
+    const speakingVal  = Math.min((progress?.sentencesSpoken ?? 0) * 10, 100);
+    const readingVal   = Math.min((progress?.newWordsCount ?? 0) * 5, 100);
+    const grammarVal   = progress?.grammarScore ?? 0;
+    const listeningVal = Math.min(Math.round((speakingVal + readingVal) / 2), 100);
+    const writingVal   = Math.min(Math.round(grammarVal * 0.9), 100);
 
     return res.json({
       success: true,

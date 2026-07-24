@@ -187,10 +187,11 @@ export default function AnalyticsPage() {
           // 4. Grade Distribution
           const distCounts = { A: 0, B: 0, C: 0, D: 0, F: 0 };
           mappedStudents.forEach((s) => {
-            if (s.avgScore >= 90) distCounts.A++;
-            else if (s.avgScore >= 80) distCounts.B++;
-            else if (s.avgScore >= 70) distCounts.C++;
-            else if (s.avgScore >= 60) distCounts.D++;
+            const score = s.avgScore ?? 0;
+            if (score >= 90) distCounts.A++;
+            else if (score >= 80) distCounts.B++;
+            else if (score >= 70) distCounts.C++;
+            else if (score >= 60) distCounts.D++;
             else distCounts.F++;
           });
 
