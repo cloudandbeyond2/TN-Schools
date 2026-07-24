@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { Role } from '@prisma/client';
 import { BoardPrep, LanguageCoachingProgress } from '../models/mongo';
 import https from 'https';
 import multer from 'multer';
@@ -514,7 +515,7 @@ async function getOrCreateStudent(id: string) {
       user = await prisma.user.create({
         data: {
           name: "Test Student",
-          role: "STUDENT",
+          role: Role.STUDENT,
           email: "test.student@example.com"
         }
       });
