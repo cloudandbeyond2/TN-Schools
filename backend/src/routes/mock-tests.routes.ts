@@ -95,24 +95,46 @@ router.get('/student/:studentId', async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: 'Student not found' });
     }
 
+    // Support class name variations (e.g. "10" vs "Grade 10" vs "Class 10")
+    const classNum = student.class ? (student.class.match(/\d+/) || [])[0] : null;
+    const classVariants = student.class ? [
+      student.class,
+      student.class.toLowerCase(),
+      student.class.toUpperCase()
+    ] : [];
+    
+    if (classNum) {
+      classVariants.push(
+        classNum,
+        `Grade ${classNum}`,
+        `Class ${classNum}`,
+        `Grade${classNum}`,
+        `Class${classNum}`,
+        `${classNum}th`,
+        `Grade ${classNum}th`,
+        `Class ${classNum}th`
+      );
+    }
+    const uniqueClassVariants = Array.from(new Set(classVariants));
+
     // Find assignments matching student's school, class, section
     const assignments = await prisma.mockTestAssignment.findMany({
       where: {
         OR: [
           // State-wide assignments
-          { schoolId: null, class: student.class },
+          { schoolId: null, class: { in: uniqueClassVariants } },
           // School-wide assignments
           { schoolId: student.schoolId, class: null },
           // Class-specific assignments
-          { schoolId: student.schoolId, class: student.class, section: null },
+          { schoolId: student.schoolId, class: { in: uniqueClassVariants }, section: null },
           // Section-specific assignments
-          { schoolId: student.schoolId, class: student.class, section: student.section }
+          { schoolId: student.schoolId, class: { in: uniqueClassVariants }, section: student.section }
         ]
       },
       include: {
         mockTest: true,
         submissions: {
-          where: { studentId }
+          where: { studentId: student.id }
         }
       },
       orderBy: { assignedAt: 'desc' }
