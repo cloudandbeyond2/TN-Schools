@@ -36,9 +36,32 @@ const getCategoryColor = (catId: string) => {
   return "text-orange-600 bg-orange-100 border-orange-400";
 };
 
+const getFormulaBgStyle = (formula: any): React.CSSProperties => {
+  const bg = formula?.bg || "";
+  if (bg.includes("emerald")) return { background: "linear-gradient(135deg, #059669 0%, #047857 100%)" };
+  if (bg.includes("blue")) return { background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)" };
+  if (bg.includes("purple")) return { background: "linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)" };
+  if (bg.includes("amber")) return { background: "linear-gradient(135deg, #d97706 0%, #b45309 100%)" };
+  if (bg.includes("rose")) return { background: "linear-gradient(135deg, #e11d48 0%, #be123c 100%)" };
+  if (bg.includes("cyan")) return { background: "linear-gradient(135deg, #0891b2 0%, #0e7490 100%)" };
+  if (bg.includes("teal")) return { background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)" };
+  if (bg.includes("sky")) return { background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)" };
+  if (bg.includes("indigo")) return { background: "linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)" };
+  if (bg.includes("violet")) return { background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)" };
+  if (bg.includes("fuchsia")) return { background: "linear-gradient(135deg, #c026d3 0%, #a21caf 100%)" };
+  if (bg.includes("orange")) return { background: "linear-gradient(135deg, #ea580c 0%, #c2410c 100%)" };
+  if (bg.includes("red")) return { background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)" };
+
+  const cat = formula?.category;
+  if (cat === "measurements") return { background: "linear-gradient(135deg, #059669 0%, #047857 100%)" };
+  if (cat === "geometry") return { background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)" };
+  if (cat === "algebra") return { background: "linear-gradient(135deg, #ea580c 0%, #c2410c 100%)" };
+  return { background: "linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)" };
+};
+
 import { FormulaSandboxLoader } from "@/components/MathSandboxes";
 
-const FormulaQuizSection = ({ formulas }: { formulas: SamacheerFormula[] }) => {
+const FormulaQuizSection = ({ formulas, lang }: { formulas: SamacheerFormula[]; lang: "en" | "ta" }) => {
   const [currentQuiz, setCurrentQuiz] = useState<any>(null);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
@@ -71,18 +94,22 @@ const FormulaQuizSection = ({ formulas }: { formulas: SamacheerFormula[] }) => {
 
   if (!currentQuiz) return null;
 
+  const quizTitle = currentQuiz.formulaObj.title[lang] || currentQuiz.formulaObj.title.en;
+
   return (
-    <div className="mt-8 md:mt-12 bg-indigo-900 rounded-3xl md:rounded-[2.5rem] p-5 md:p-8 border-4 border-indigo-700 shadow-2xl relative overflow-hidden">
+    <div className="mt-8 md:mt-12 bg-indigo-900 rounded-3xl md:rounded-[2.5rem] p-5 md:p-8 border-4 border-indigo-700 shadow-2xl relative overflow-hidden text-left">
        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl"></div>
        <div className="relative z-10 flex flex-col md:flex-row gap-5 md:gap-8 items-center">
          <div className="flex-1 text-white">
-           <div className="flex items-center gap-2 text-indigo-300 font-black tracking-widest text-xs md:text-sm uppercase mb-2">
+           <div className="flex items-center gap-2 font-black tracking-widest text-xs md:text-sm uppercase mb-2" style={{ color: "#fde047", WebkitTextFillColor: "#fde047" }}>
              <Zap className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-yellow-400" />
              Fill in the Blanks
            </div>
-           <h2 className="text-xl md:text-3xl font-black mb-3 md:mb-4 leading-tight">{currentQuiz.formulaObj.title.en}</h2>
+           <h2 className="text-xl md:text-3xl font-black mb-3 md:mb-4 leading-tight !text-white" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+             {quizTitle}
+           </h2>
            <div className="bg-white/10 border-2 border-white/20 p-4 md:p-6 rounded-xl md:rounded-2xl text-center backdrop-blur-md">
-             <span className="font-mono text-2xl md:text-4xl font-black text-yellow-300 drop-shadow-md">
+             <span className="font-mono text-2xl md:text-4xl font-black text-yellow-300 drop-shadow-md" style={{ color: "#fde047", WebkitTextFillColor: "#fde047" }}>
                {currentQuiz.questionStr}
              </span>
            </div>
@@ -90,7 +117,9 @@ const FormulaQuizSection = ({ formulas }: { formulas: SamacheerFormula[] }) => {
            {feedback === "wrong" && <div className="text-rose-400 font-black mt-3 md:mt-4 text-sm md:text-base animate-pulse">Oops! Try again! 🤔</div>}
          </div>
          <div className="flex-1 w-full flex flex-col gap-3">
-           <div className="text-right text-indigo-300 font-black mb-2 text-sm md:text-base">Score: <span className="text-white text-lg md:text-xl">{score}</span></div>
+           <div className="text-right font-black mb-2 text-sm md:text-base" style={{ color: "#c7d2fe", WebkitTextFillColor: "#c7d2fe" }}>
+             Score: <span className="text-white text-lg md:text-xl font-mono" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>{score}</span>
+           </div>
            <div className="grid grid-cols-2 gap-2 md:gap-3">
              {currentQuiz.options.map((opt: string, i: number) => (
                <button 
@@ -130,16 +159,33 @@ export default function MathsFormulasPage() {
   useEffect(() => {
     async function fetchStudentClass() {
       if (!session?.user) return;
+
+      const availableStandards = new Set(samacheerFormulas.map(f => f.standard));
+
+      // 1. Check session user object first
+      const sessionClass = (session.user as any)?.classId || (session.user as any)?.class;
+      if (sessionClass) {
+        const match = String(sessionClass).match(/\d+/);
+        if (match) {
+          const std = availableStandards.has(match[0]) ? match[0] : "6";
+          setActiveStandard(std);
+          return;
+        }
+      }
+
+      // 2. Fetch student profile from API
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const res = await fetch(`${apiUrl}/api/students`);
+        const userId = (session.user as any).id;
+        const res = await fetch(`${apiUrl}/api/students?userId=${userId}`);
         const json = await res.json();
-        if (json.success) {
-          const profile = json.data.find((s: any) => s.userId === (session.user as any).id);
+        if (json.success && json.data && json.data.length > 0) {
+          const profile = json.data[0];
           if (profile && profile.class) {
             const match = profile.class.match(/\d+/);
             if (match) {
-              setActiveStandard(match[0]);
+              const std = availableStandards.has(match[0]) ? match[0] : "6";
+              setActiveStandard(std);
             }
           }
         }
@@ -238,12 +284,12 @@ export default function MathsFormulasPage() {
   return (
     <PortalLayout
       title="Maths Magic Formulas"
-      subtitle="Your super-powered interactive cheat sheet for math!"
+      subtitle={`Interactive syllabus formulas tailored for Standard ${activeStandard}`}
     >
       <div className="flex flex-col gap-8">
 
         {/* Playful Search and Categories Header */}
-        <div className="bg-white dark:bg-slate-800 p-6 flex flex-col xl:flex-row gap-6 justify-between items-center rounded-[2rem] border-4 border-indigo-100 dark:border-slate-700 shadow-xl shadow-indigo-500/10 relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 p-6 flex flex-col xl:flex-row gap-6 justify-between items-center rounded-[2rem] border-4 border-indigo-100 dark:border-slate-700 shadow-xl shadow-indigo-500/10 relative overflow-hidden text-left">
 
           <div className="absolute right-0 top-0 w-64 h-64 bg-yellow-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
 
@@ -259,25 +305,11 @@ export default function MathsFormulasPage() {
               />
             </div>
 
-            {/* Standard & Term Selector */}
-            <div className="relative flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto justify-between sm:justify-start">
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500">
-                  <GraduationCap className="w-5 h-5" />
-                </div>
-                <select
-                  value={activeStandard}
-                  onChange={(e) => {
-                    setActiveStandard(e.target.value);
-                    setActiveCat("all");
-                    showToast(`Viewing formulas for Standard ${e.target.value}`);
-                  }}
-                  className="appearance-none bg-white dark:bg-slate-900 border-4 border-indigo-100 dark:border-slate-700 text-indigo-900 dark:text-indigo-100 rounded-2xl py-3 pl-10 pr-8 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all shadow-sm cursor-pointer"
-                >
-                  <option value="6">Standard 6</option>
-                  <option value="7">Standard 7</option>
-                  <option value="8">Standard 8</option>
-                </select>
+            {/* Read-only Grade Indicator Badge & Term Filter */}
+            <div className="relative flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto items-center">
+              <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/60 border-4 border-indigo-100 dark:border-indigo-900/60 text-indigo-900 dark:text-indigo-200 px-4 py-3 rounded-2xl text-xs font-black shadow-sm shrink-0">
+                <GraduationCap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <span>Standard {activeStandard}</span>
               </div>
 
               <select
@@ -357,12 +389,13 @@ export default function MathsFormulasPage() {
                   <div
                     onClick={() => toggleReveal(formula.id)}
                     className={`w-full h-36 rounded-t-[2rem] rounded-b-2xl flex flex-col items-center justify-center p-6 cursor-pointer transition-all duration-300 ${revealed.has(formula.id)
-                        ? `bg-gradient-to-br ${formula.bg}`
+                        ? "shadow-md"
                         : "bg-slate-800 dark:bg-slate-900 border-2 border-dashed border-slate-600 hover:bg-slate-700"
                       }`}
+                    style={revealed.has(formula.id) ? getFormulaBgStyle(formula) : {}}
                   >
                     {revealed.has(formula.id) ? (
-                      <span className="font-mono text-2xl font-black text-white text-center drop-shadow-md animate-in zoom-in duration-300">
+                      <span className="font-mono text-2xl font-black !text-white text-center drop-shadow-md animate-in zoom-in duration-300" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
                         {formula.formula}
                       </span>
                     ) : (
@@ -375,8 +408,11 @@ export default function MathsFormulasPage() {
                     )}
                   </div>
                 ) : (
-                  <div className={`w-full h-36 rounded-t-[2rem] rounded-b-2xl bg-gradient-to-br ${formula.bg} flex items-center justify-center p-6 relative`}>
-                    <span className="font-mono text-2xl font-black text-white text-center drop-shadow-md">
+                  <div
+                    className="w-full h-36 rounded-t-[2rem] rounded-b-2xl flex items-center justify-center p-6 relative shadow-md"
+                    style={getFormulaBgStyle(formula)}
+                  >
+                    <span className="font-mono text-2xl sm:text-3xl font-black !text-white text-center drop-shadow-md" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
                       {formula.formula}
                     </span>
 
@@ -439,7 +475,7 @@ export default function MathsFormulasPage() {
 
         {/* Fill in the Blanks Section */}
         {filteredFormulas.length > 0 && (
-          <FormulaQuizSection formulas={filteredFormulas} />
+          <FormulaQuizSection formulas={filteredFormulas} lang={lang} />
         )}
 
       </div>
@@ -458,8 +494,11 @@ export default function MathsFormulasPage() {
           <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] w-full max-w-lg shadow-2xl border-4 border-slate-100 dark:border-slate-700 animate-in zoom-in-95 flex flex-col overflow-hidden">
 
             {/* Modal Header (Formula Display) */}
-            <div className={`w-full h-32 bg-gradient-to-br ${selectedFormula.bg} flex items-center justify-center p-6 relative shadow-inner`}>
-              <span className="font-mono text-3xl font-black text-white text-center drop-shadow-md">
+            <div
+              className="w-full h-32 flex items-center justify-center p-6 relative shadow-inner"
+              style={getFormulaBgStyle(selectedFormula)}
+            >
+              <span className="font-mono text-3xl font-black !text-white text-center drop-shadow-md" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
                 {selectedFormula.formula}
               </span>
 

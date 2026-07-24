@@ -10,9 +10,9 @@ import { usePortalLanguage } from "@/lib/usePortalLanguage";
 interface AnalyticsStudent {
   rollNo: string;
   name: string;
-  attendance: number;
-  homeworkRate: number;
-  avgScore: number;
+  attendance: number | null;
+  homeworkRate: number | null;
+  avgScore: number | null;
   weakTopics: string[];
   status: "Good" | "Average" | "Risk";
 }
@@ -68,14 +68,14 @@ export default function AnalyticsPage() {
           // 1. Process each student
           const mappedStudents: AnalyticsStudent[] = rawStudents.map((st: any, idx: number) => {
             // Calculate individual attendance
-            let attPct = 90 - (idx % 12);
+            let attPct: number | null = null;
             if (st.attendance && st.attendance.length > 0) {
-              const presentCount = st.attendance.filter((a: any) => a.status === "PRESENT" || a.status === "PRESENT").length;
+              const presentCount = st.attendance.filter((a: any) => a.status === "PRESENT").length;
               attPct = Math.round((presentCount / st.attendance.length) * 100);
             }
 
             // Calculate individual average score
-            let average = 70 - (idx % 15);
+            let average: number | null = null;
             if (st.marks && st.marks.length > 0) {
               const sum = st.marks.reduce((acc: number, m: any) => acc + (m.scored / (m.maxMarks || 100)) * 100, 0);
               average = Math.round(sum / st.marks.length);
@@ -92,14 +92,22 @@ export default function AnalyticsPage() {
             }
 
             let status: AnalyticsStudent["status"] = "Average";
-            if (average >= 80 && attPct >= 85) status = "Good";
-            else if (average < 60 || attPct < 80) status = "Risk";
+            if (average !== null && attPct !== null) {
+              if (average >= 80 && attPct >= 85) status = "Good";
+              else if (average < 60 || attPct < 80) status = "Risk";
+            } else if (average !== null) {
+              if (average >= 80) status = "Good";
+              else if (average < 60) status = "Risk";
+            } else if (attPct !== null) {
+              if (attPct >= 85) status = "Good";
+              else if (attPct < 80) status = "Risk";
+            }
 
             return {
               rollNo: st.rollNumber || `${clsNum}${secLetter}${String(idx + 1).padStart(2, "0")}`,
               name: st.user?.name || "Student Name",
               attendance: attPct,
-              homeworkRate: 90 - (idx % 10),
+              homeworkRate: null,
               avgScore: average,
               weakTopics: weak,
               status,
@@ -111,15 +119,24 @@ export default function AnalyticsPage() {
           // 2. Class Summary Metrics
           const totalStudentsCount = mappedStudents.length;
           if (totalStudentsCount > 0) {
-            const sumScores = mappedStudents.reduce((acc, s) => acc + s.avgScore, 0);
-            const sumAtt = mappedStudents.reduce((acc, s) => acc + s.attendance, 0);
-            const sumHw = mappedStudents.reduce((acc, s) => acc + s.homeworkRate, 0);
+            const scoredStudents = mappedStudents.filter(s => s.avgScore !== null);
+            const sumScores = scoredStudents.reduce((acc, s) => acc + (s.avgScore as number), 0);
+            const avgScore = scoredStudents.length > 0 ? Math.round(sumScores / scoredStudents.length) : null;
+
+            const attStudents = mappedStudents.filter(s => s.attendance !== null);
+            const sumAtt = attStudents.reduce((acc, s) => acc + (s.attendance as number), 0);
+            const avgAtt = attStudents.length > 0 ? Math.round(sumAtt / attStudents.length) : null;
+
+            const hwStudents = mappedStudents.filter(s => s.homeworkRate !== null);
+            const sumHw = hwStudents.reduce((acc, s) => acc + (s.homeworkRate as number), 0);
+            const avgHw = hwStudents.length > 0 ? Math.round(sumHw / hwStudents.length) : null;
+
             const riskCount = mappedStudents.filter((s) => s.status === "Risk").length;
 
             setSummary({
-              avgScore: Math.round(sumScores / totalStudentsCount),
-              attendance: Math.round(sumAtt / totalStudentsCount),
-              hwRate: Math.round(sumHw / totalStudentsCount),
+              avgScore: avgScore !== null ? avgScore : 0,
+              attendance: avgAtt !== null ? avgAtt : 0,
+              hwRate: avgHw !== null ? avgHw : 0,
               riskCount,
             });
           } else {
@@ -437,12 +454,12 @@ export default function AnalyticsPage() {
                         <td className="font-mono text-xs">{st.rollNo}</td>
                         <td className="font-semibold text-[var(--text-heading)]">{st.name}</td>
                         <td>
-                          <span className={`font-semibold ${st.attendance >= 90 ? "text-emerald-400" : "text-amber-400"}`}>
-                            {st.attendance}%
+                          <span className={`font-semibold ${st.attendance && st.attendance >= 90 ? "text-emerald-400" : "text-amber-400"}`}>
+                            {st.attendance !== null ? `${st.attendance}%` : "—"}
                           </span>
                         </td>
-                        <td>{st.homeworkRate}%</td>
-                        <td className="font-bold text-[var(--text-heading)]">{st.avgScore}%</td>
+                        <td>{st.homeworkRate !== null ? `${st.homeworkRate}%` : "—"}</td>
+                        <td className="font-bold text-[var(--text-heading)]">{st.avgScore !== null ? `${st.avgScore}%` : "—"}</td>
                         <td>
                           {st.weakTopics.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
