@@ -566,6 +566,8 @@ router.get('/:id/board-prep', async (req: Request, res: Response) => {
         class: prepDoc.class,
         syllabusProgress: prepDoc.syllabusProgress,
         goals: prepDoc.goals,
+        targetScore: prepDoc.targetScore || (selectedClass === "10" ? 480 : 475),
+        targetAmbition: prepDoc.targetAmbition || (selectedClass === "10" ? "Computer Science Engineering at Anna University" : "School Centum & SSLC Topper Goal"),
         marks: marks.map((m: any) => ({
           id: m.id,
           subject: m.subject,
@@ -633,6 +635,34 @@ router.post('/:id/board-prep/goals', async (req: Request, res: Response) => {
     const prepDoc = await BoardPrep.findOneAndUpdate(
       { studentId: student.id, class: selectedClass || "10" },
       { goals },
+      { new: true, upsert: true }
+    );
+
+    res.json({ success: true, data: prepDoc });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+/* ------------------- UPDATE TARGET SCORE & AMBITION ------------------- */
+router.post('/:id/board-prep/target', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { targetScore, targetAmbition, class: selectedClass } = req.body;
+
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id },
+          { userId: id }
+        ]
+      }
+    });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
+
+    const prepDoc = await BoardPrep.findOneAndUpdate(
+      { studentId: student.id, class: selectedClass || "10" },
+      { targetScore: Number(targetScore), targetAmbition: String(targetAmbition || "") },
       { new: true, upsert: true }
     );
 
