@@ -189,20 +189,40 @@ router.post('/:id/assign', async (req: Request, res: Response) => {
   try {
     const { schoolId, class: className, section, dueDate } = req.body;
     
+    // Find mock test first to resolve schoolId if not passed
+    const mockTest = await prisma.mockTest.findUnique({
+      where: { id: req.params.id }
+    });
+
+    if (!mockTest) {
+      return res.status(404).json({ success: false, error: 'Mock test not found' });
+    }
+
+    const resolvedSchoolId = schoolId || mockTest.schoolId || null;
+
+    // Safely parse dueDate
+    let parsedDueDate: Date | null = null;
+    if (dueDate && typeof dueDate === 'string' && dueDate.trim() !== '') {
+      const d = new Date(dueDate);
+      if (!isNaN(d.getTime())) {
+        parsedDueDate = d;
+      }
+    }
+
     const assignment = await prisma.mockTestAssignment.create({
       data: {
         mockTestId: req.params.id,
-        schoolId,
-        class: className,
-        section,
-        dueDate: dueDate ? new Date(dueDate) : null
+        schoolId: resolvedSchoolId,
+        class: className || mockTest.grade,
+        section: section ? String(section).trim() : null,
+        dueDate: parsedDueDate
       }
     });
 
     res.json({ success: true, data: assignment });
   } catch (error: any) {
     console.error('Error assigning mock test:', error);
-    res.status(500).json({ success: false, error: 'Failed to assign mock test' });
+    res.status(500).json({ success: false, error: error.message || 'Failed to assign mock test' });
   }
 });
 

@@ -206,23 +206,26 @@ export default function HeadmasterMockTestsPage() {
 
     if (formValues) {
       try {
+        const activeSchoolId = profile?.schoolId || (session?.user as any)?.schoolId;
         const res = await fetch(`${API_URL}/api/mock-tests/${id}/assign`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            schoolId: profile?.schoolId,
+            schoolId: activeSchoolId,
             class: formValues.class,
-            section: formValues.section || null,
-            dueDate: formValues.dueDate
+            section: formValues.section ? formValues.section.trim() : null,
+            dueDate: formValues.dueDate && formValues.dueDate.trim() !== "" ? formValues.dueDate : null
           })
         });
         const data = await res.json();
         if (data.success) {
           Swal.fire("Assigned!", "The test is now live for students.", "success");
           fetchProfileAndExistingTests();
+        } else {
+          Swal.fire("Error", data.error || "Assignment failed.", "error");
         }
       } catch (err) {
-        Swal.fire("Error", "Assignment failed.", "error");
+        Swal.fire("Error", "Assignment failed due to server error.", "error");
       }
     }
   };
@@ -281,21 +284,33 @@ export default function HeadmasterMockTestsPage() {
       subtitle={lang === "தமிழ்" ? "பள்ளி அளவிலான மாதிரி தேர்வுகளை நிர்வகிக்கவும்" : "Manage and deploy standard mock exams across your school"}
       accentColor="#3b82f6"
     >
+      <style>{`
+        :root .mock-tests-hero-banner,
+        :root .mock-tests-hero-banner h1,
+        :root .mock-tests-hero-banner p,
+        :root .mock-tests-hero-banner span:not(.text-blue-700),
+        :root:not(.dark) .main-content .mock-tests-hero-banner,
+        :root:not(.dark) .main-content .mock-tests-hero-banner h1,
+        :root:not(.dark) .main-content .mock-tests-hero-banner p,
+        :root:not(.dark) .main-content .mock-tests-hero-banner span:not(.text-blue-700) {
+          color: #ffffff !important;
+        }
+      `}</style>
       <div className="w-full max-w-7xl mx-auto mb-10">
 
         {/* Glassmorphism Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 p-8 md:p-12 mb-8 shadow-2xl shadow-blue-500/20 text-white">
+        <div className="mock-tests-hero-banner relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 p-8 md:p-12 mb-8 shadow-2xl shadow-blue-500/20 text-white">
           <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
             <GraduationCap className="w-64 h-64 text-white" />
           </div>
           <div className="relative z-10 max-w-2xl">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/30">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/30 text-white">
               <Sparkles className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "மதிப்பீட்டு மையம்" : "Assessment Center"}
             </span>
-            <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight !text-white">
+            <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight text-white">
               {lang === "தமிழ்" ? "பள்ளி மாதிரி தேர்வுகள்" : "School Mock Exams"}
             </h1>
-            <p className="text-purple-100 !text-white text-lg mb-8 leading-relaxed">
+            <p className="text-white text-lg mb-8 leading-relaxed opacity-90">
               {lang === "தமிழ்" ? "விரிவான கொள்குறி மதிப்பீடுகளை உருவாக்கவும், கேள்விகளை தானாக உருவாக்க AI-ஐப் பயன்படுத்தவும்." : "Create rich objective assessments, leverage AI to auto-generate questions, and track real-time analytics across all classes in your institution."}
             </p>
             <div className="flex gap-4">
@@ -305,12 +320,6 @@ export default function HeadmasterMockTestsPage() {
               >
                 <Plus className="w-5 h-5" /> {lang === "தமிழ்" ? "புதிய மதிப்பீடு" : "New Assessment"}
               </button>
-              {/* <button 
-                onClick={() => setActiveTab("repository")}
-                className="px-6 py-3 bg-blue-500/30 hover:bg-blue-500/40 backdrop-blur-md transition-all rounded-2xl font-bold text-sm border border-white/20 flex items-center gap-2"
-              >
-                <LayoutList className="w-5 h-5" /> View Repository
-              </button> */}
             </div>
           </div>
         </div>
