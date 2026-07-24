@@ -284,33 +284,30 @@ export default function HeadmasterMockTestsPage() {
       subtitle={lang === "தமிழ்" ? "பள்ளி அளவிலான மாதிரி தேர்வுகளை நிர்வகிக்கவும்" : "Manage and deploy standard mock exams across your school"}
       accentColor="#3b82f6"
     >
-      <style>{`
-        :root .mock-tests-hero-banner,
-        :root .mock-tests-hero-banner h1,
-        :root .mock-tests-hero-banner p,
-        :root .mock-tests-hero-banner span:not(.text-blue-700),
-        :root:not(.dark) .main-content .mock-tests-hero-banner,
-        :root:not(.dark) .main-content .mock-tests-hero-banner h1,
-        :root:not(.dark) .main-content .mock-tests-hero-banner p,
-        :root:not(.dark) .main-content .mock-tests-hero-banner span:not(.text-blue-700) {
-          color: #ffffff !important;
-        }
-      `}</style>
       <div className="w-full max-w-7xl mx-auto mb-10">
 
         {/* Glassmorphism Header */}
-        <div className="mock-tests-hero-banner relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 p-8 md:p-12 mb-8 shadow-2xl shadow-blue-500/20 text-white">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 p-8 md:p-12 mb-8 shadow-2xl shadow-blue-500/20">
           <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
             <GraduationCap className="w-64 h-64 text-white" />
           </div>
           <div className="relative z-10 max-w-2xl">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/30 text-white">
+            <span 
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/30"
+              style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
+            >
               <Sparkles className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "மதிப்பீட்டு மையம்" : "Assessment Center"}
             </span>
-            <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight text-white">
+            <h1 
+              className="text-3xl md:text-5xl font-black mb-4 leading-tight"
+              style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
+            >
               {lang === "தமிழ்" ? "பள்ளி மாதிரி தேர்வுகள்" : "School Mock Exams"}
             </h1>
-            <p className="text-white text-lg mb-8 leading-relaxed opacity-90">
+            <p 
+              className="text-lg mb-8 leading-relaxed opacity-90"
+              style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
+            >
               {lang === "தமிழ்" ? "விரிவான கொள்குறி மதிப்பீடுகளை உருவாக்கவும், கேள்விகளை தானாக உருவாக்க AI-ஐப் பயன்படுத்தவும்." : "Create rich objective assessments, leverage AI to auto-generate questions, and track real-time analytics across all classes in your institution."}
             </p>
             <div className="flex gap-4">
