@@ -166,35 +166,6 @@ export default function HigherSecondaryDashboard() {
       .finally(() => setLoading(false));
   }, [student]);
 
-  const handleStreamChange = async (newStream: string) => {
-    if (!student?.id) return;
-    try {
-      const res = await fetch(`${API_BASE}/api/students/${student.id}/stream`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stream: newStream }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        // Force refresh summary stream
-        setSummary((prev: any) => prev ? { ...prev, stream: newStream } : { stream: newStream });
-        
-        const group = mapStreamToGroup(newStream);
-        localStorage.setItem("studentGroup", group);
-        window.dispatchEvent(new Event("studentGroupChange"));
-        
-        // Reload dashboard-summary to get new subjects
-        fetch(`${API_BASE}/api/students/${student.id}/dashboard-summary`)
-          .then((res) => res.json())
-          .then((json) => {
-            if (json.success) setSummary(json.data);
-          });
-      }
-    } catch (err) {
-      console.error("Failed to update stream:", err);
-    }
-  };
-
   // 3. Load Library Progress
   useEffect(() => {
     if (!(session?.user as any)?.id) return;
@@ -228,45 +199,6 @@ export default function HigherSecondaryDashboard() {
     <PortalLayout subtitle={subtitle}>
       {/* Real academic-year KPIs */}
       <PersonalKpiStrip studentId={(session?.user as any)?.studentId || student?.id || null} />
-
-      {/* Stream Selector Card */}
-      <div className="glass rounded-3xl p-6 border border-slate-700/50 mb-6 bg-gradient-to-br from-slate-900/60 to-slate-950/80 fade-in">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <div>
-            <h3 className="text-lg font-black text-white">{lang === "தமிழ்" ? "உங்கள் பாடப்பிரிவு சிறப்பு" : "Your Stream Specialization"}</h3>
-            <p className="text-xs text-slate-400">{lang === "தமிழ்" ? "வலைவாசல் மெனுக்கள் மற்றும் கற்றல் வளங்கள் உங்கள் பாடப்பிரிவுக்கு ஏற்ப மாறும்." : "Portal menus and learning resources dynamically tailor to your stream."}</p>
-          </div>
-          <span className="text-[10px] uppercase font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-1.5 rounded border border-indigo-500/20 w-fit">
-            {lang === "தமிழ்" ? "வகுப்பு 11 & 12" : "Class 11 & 12"}
-          </span>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {streamKnowledge.map((s, idx) => {
-            const origStream = streamKnowledgeEn[idx].stream;
-            const isSelected = currentStream === origStream || currentStream === s.stream;
-            return (
-              <button
-                key={s.stream}
-                onClick={() => handleStreamChange(origStream)}
-                className={`p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] flex flex-col justify-between h-28 relative ${
-                  isSelected
-                    ? `${s.bgBorder} ring-2 ring-indigo-500 border-indigo-500/50 shadow-lg shadow-indigo-500/10`
-                    : "border-slate-800 bg-slate-950/40 hover:border-slate-700"
-                }`}
-              >
-                <span className="text-2xl">{s.icon}</span>
-                <div>
-                  <div className="text-xs font-black text-white leading-tight">{s.stream}</div>
-                  <div className="text-[9px] text-slate-500 font-medium mt-1 truncate">{s.subjects.split(",")[0]}</div>
-                </div>
-                {isSelected && (
-                  <span className="absolute top-2 right-2 text-indigo-400 text-xs">✓</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Daily timetable, homework, exams, attendance, announcements & AI suggestions */}
       <StudentDailyOverview />

@@ -34,6 +34,7 @@ const ALL_STREAMS: Stream[] = ["Science", "Commerce", "ComputerScience", "Arts",
 export const SCIENCE_CENTERS: ScienceCenter[] = [
   // --- Labs (Science stream) ---
   { id: "virtual-lab", name: "Virtual Science Lab", desc: "3D experiments — rotate, mix, measure and observe.", icon: "FlaskConical", route: "/student/labs", status: "live", accent: "emerald", group: "Labs", streams: ["Science"] },
+  { id: "3d-preview", name: "3D Preview", nameTa: "3D முன்னோட்டம்", desc: "Interactive 3D models — rotate, zoom, and inspect.", icon: "Box", route: "/student/3d-preview", status: "live", accent: "indigo", group: "Labs", streams: ALL_STREAMS },
   { id: "interactive-lab", name: "Interactive Laboratory", desc: "The virtual lab bench — shelves, tools and specimens.", icon: "FlaskConical", route: dyn("interactive-lab"), status: "live", accent: "emerald", group: "Labs", streams: ["Science"] },
   { id: "chemistry-lab", name: "Chemistry Center", nameTa: "வேதியியல் மையம்", desc: "Reactions, periodic table, molecule & atom viewers.", icon: "FlaskConical", route: "/student/chemistry-lab", status: "live", accent: "orange", group: "Labs", streams: ["Science"] },
   { id: "physics-lab", name: "Physics Center", desc: "Mechanics, optics, electricity & circuit builder.", icon: "Atom", route: dyn("physics-lab"), status: "live", accent: "sky", group: "Labs", streams: ["Science"] },

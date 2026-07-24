@@ -2158,3 +2158,4 @@ model MockTestSubmission {
   status       String   @default("PENDING") // PENDING, GRADED
   submittedAt  DateTime @default(now())
 }
+

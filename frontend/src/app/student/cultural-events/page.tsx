@@ -548,16 +548,16 @@ export default function StudentCulturalEventsPage() {
       title="Culture & Fun!"
       subtitle="Join the dance, art, and music festivals!"
     >
-      <div className="flex flex-col gap-8 max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 w-full text-left">
+      <div className="flex flex-col gap-8 w-full max-w-none px-4 sm:px-8 lg:px-12 text-left">
         
         {/* Dynamic & Premium Hero Banner */}
         {heroEvent ? (
-          <div className="relative overflow-hidden rounded-[2rem] shadow-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-6 sm:p-10 lg:p-12 transition-all duration-300">
+          <div className="relative overflow-hidden rounded-[2rem] shadow-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-6 sm:p-10 lg:p-12 min-h-[380px] sm:min-h-[420px] flex items-center transition-all duration-300">
             {/* Blurry Ambient Background Elements */}
             <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-80 h-80 bg-rose-500/10 dark:bg-rose-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
 
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-5 gap-8 items-center w-full">
               {/* Left Details Panel */}
               <div className="lg:col-span-3 space-y-4">
                 <div className="inline-flex items-center gap-2 bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-400 px-3 py-1.5 font-bold tracking-wider text-xs uppercase rounded-xl border border-yellow-200 dark:border-yellow-900/30 shadow-sm">
@@ -622,11 +622,11 @@ export default function StudentCulturalEventsPage() {
           </div>
         ) : (
           /* Default Heritage Month Fallback if no database events */
-          <div className="relative overflow-hidden rounded-[2rem] shadow-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-6 sm:p-10 lg:p-12 transition-all duration-300">
+          <div className="relative overflow-hidden rounded-[2rem] shadow-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-6 sm:p-10 lg:p-12 min-h-[380px] sm:min-h-[420px] flex items-center transition-all duration-300">
             <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 dark:bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-80 h-80 bg-rose-500/10 dark:bg-rose-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
 
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-5 gap-8 items-center w-full">
               <div className="lg:col-span-3 space-y-4">
                 <div className="inline-flex items-center gap-2 bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-400 px-3 py-1.5 font-bold tracking-wider text-xs uppercase rounded-xl border border-yellow-200 dark:border-yellow-900/30 shadow-sm">
                   <i className="fi fi-sr-star text-xs" /> Featured Festival

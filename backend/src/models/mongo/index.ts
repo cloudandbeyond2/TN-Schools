@@ -773,3 +773,50 @@ const Saved3DModelSchema = new Schema<ISaved3DModel>({
 
 export const Saved3DModel = mongoose.models.Saved3DModel || mongoose.model<ISaved3DModel>('Saved3DModel', Saved3DModelSchema);
 
+// ─── Language Coaching Progress ─
+
+export interface ILanguageCoachingProgress extends Document {
+  studentId: string;
+  sentencesSpoken: number;
+  newWordsCount: number;
+  grammarScore: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const LanguageCoachingProgressSchema = new Schema<ILanguageCoachingProgress>({
+  studentId:       { type: String, required: true, unique: true, index: true },
+  sentencesSpoken: { type: Number, default: 0 },
+  newWordsCount:   { type: Number, default: 0 },
+  grammarScore:    { type: Number, default: 75 },
+}, { timestamps: true });
+
+export const LanguageCoachingProgress = mongoose.models.LanguageCoachingProgress || mongoose.model<ILanguageCoachingProgress>('LanguageCoachingProgress', LanguageCoachingProgressSchema);
+
+// ─── Board Prep Model ─
+
+export interface IBoardPrep extends Document {
+  studentId: string;
+  class?: string;
+  subject?: string;
+  targetMarks?: number;
+  notes?: string;
+  syllabusProgress?: any[];
+  goals?: any[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const BoardPrepSchema = new Schema<IBoardPrep>({
+  studentId:        { type: String, required: true, index: true },
+  class:            { type: String, default: "10" },
+  subject:          { type: String },
+  targetMarks:      { type: Number, default: 100 },
+  notes:            { type: String },
+  syllabusProgress: { type: Schema.Types.Mixed, default: [] },
+  goals:            { type: Schema.Types.Mixed, default: [] },
+}, { timestamps: true });
+
+export const BoardPrep = mongoose.models.BoardPrep || mongoose.model<IBoardPrep>('BoardPrep', BoardPrepSchema);
+
+
