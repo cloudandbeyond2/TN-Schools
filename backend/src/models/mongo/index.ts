@@ -198,6 +198,8 @@ export interface IBoardPrep extends Document {
     task: string;
     done: boolean;
   }>;
+  targetScore?: number;
+  targetAmbition?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -213,7 +215,9 @@ const BoardPrepSchema = new Schema<IBoardPrep>({
   goals: [{
     task: { type: String, required: true },
     done: { type: Boolean, default: false }
-  }]
+  }],
+  targetScore: { type: Number },
+  targetAmbition: { type: String }
 }, { timestamps: true });
 
 BoardPrepSchema.index({ studentId: 1, class: 1 }, { unique: true });
