@@ -159,16 +159,33 @@ export default function MathsFormulasPage() {
   useEffect(() => {
     async function fetchStudentClass() {
       if (!session?.user) return;
+
+      const availableStandards = new Set(samacheerFormulas.map(f => f.standard));
+
+      // 1. Check session user object first
+      const sessionClass = (session.user as any)?.classId || (session.user as any)?.class;
+      if (sessionClass) {
+        const match = String(sessionClass).match(/\d+/);
+        if (match) {
+          const std = availableStandards.has(match[0]) ? match[0] : "6";
+          setActiveStandard(std);
+          return;
+        }
+      }
+
+      // 2. Fetch student profile from API
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const res = await fetch(`${apiUrl}/api/students`);
+        const userId = (session.user as any).id;
+        const res = await fetch(`${apiUrl}/api/students?userId=${userId}`);
         const json = await res.json();
-        if (json.success) {
-          const profile = json.data.find((s: any) => s.userId === (session.user as any).id);
+        if (json.success && json.data && json.data.length > 0) {
+          const profile = json.data[0];
           if (profile && profile.class) {
             const match = profile.class.match(/\d+/);
             if (match) {
-              setActiveStandard(match[0]);
+              const std = availableStandards.has(match[0]) ? match[0] : "6";
+              setActiveStandard(std);
             }
           }
         }
@@ -267,12 +284,12 @@ export default function MathsFormulasPage() {
   return (
     <PortalLayout
       title="Maths Magic Formulas"
-      subtitle="Your super-powered interactive cheat sheet for math!"
+      subtitle={`Interactive syllabus formulas tailored for Standard ${activeStandard}`}
     >
       <div className="flex flex-col gap-8">
 
         {/* Playful Search and Categories Header */}
-        <div className="bg-white dark:bg-slate-800 p-6 flex flex-col xl:flex-row gap-6 justify-between items-center rounded-[2rem] border-4 border-indigo-100 dark:border-slate-700 shadow-xl shadow-indigo-500/10 relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 p-6 flex flex-col xl:flex-row gap-6 justify-between items-center rounded-[2rem] border-4 border-indigo-100 dark:border-slate-700 shadow-xl shadow-indigo-500/10 relative overflow-hidden text-left">
 
           <div className="absolute right-0 top-0 w-64 h-64 bg-yellow-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
 
@@ -288,25 +305,11 @@ export default function MathsFormulasPage() {
               />
             </div>
 
-            {/* Standard & Term Selector */}
-            <div className="relative flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto justify-between sm:justify-start">
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500">
-                  <GraduationCap className="w-5 h-5" />
-                </div>
-                <select
-                  value={activeStandard}
-                  onChange={(e) => {
-                    setActiveStandard(e.target.value);
-                    setActiveCat("all");
-                    showToast(`Viewing formulas for Standard ${e.target.value}`);
-                  }}
-                  className="appearance-none bg-white dark:bg-slate-900 border-4 border-indigo-100 dark:border-slate-700 text-indigo-900 dark:text-indigo-100 rounded-2xl py-3 pl-10 pr-8 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all shadow-sm cursor-pointer"
-                >
-                  <option value="6">Standard 6</option>
-                  <option value="7">Standard 7</option>
-                  <option value="8">Standard 8</option>
-                </select>
+            {/* Read-only Grade Indicator Badge & Term Filter */}
+            <div className="relative flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto items-center">
+              <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/60 border-4 border-indigo-100 dark:border-indigo-900/60 text-indigo-900 dark:text-indigo-200 px-4 py-3 rounded-2xl text-xs font-black shadow-sm shrink-0">
+                <GraduationCap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <span>Standard {activeStandard}</span>
               </div>
 
               <select
