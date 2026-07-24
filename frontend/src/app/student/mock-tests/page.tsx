@@ -260,13 +260,22 @@ export default function StudentMockTestsPage() {
             <BookOpen className="w-64 h-64 text-white" />
           </div>
           <div className="relative z-10 max-w-2xl">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/30">
+            <span 
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/30"
+              style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
+            >
               <Sparkles className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "தேர்வுக் கூடம்" : "Examination Hall"}
             </span>
-            <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight">
+            <h1 
+              className="text-3xl md:text-5xl font-black mb-4 leading-tight"
+              style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
+            >
               {lang === "தமிழ்" ? "தயாராகுங்கள், சிறந்து விளங்குங்கள்!" : "Ready, Set, Excel!"}
             </h1>
-            <p className="text-amber-100 text-lg mb-0 leading-relaxed">
+            <p 
+              className="text-lg mb-0 leading-relaxed opacity-90"
+              style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
+            >
               {lang === "தமிழ்" ? "உங்கள் ஆசிரியர்கள் அல்லது மாநில வாரியத்தால் ஒதுக்கப்பட்ட மாதிரி தேர்வுகளை எழுதி உங்கள் மதிப்பெண்களை மேம்படுத்துங்கள்." : "Take mock tests assigned by your teachers or the state board to check your preparation level and improve your scores."}
             </p>
           </div>
