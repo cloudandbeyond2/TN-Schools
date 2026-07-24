@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { 
   Clock, Brain, FileText, Timer, Bot, Award, Target, Calendar, 
   CheckSquare, Sparkles, Edit3, X, Check, BookOpen, Lightbulb, 
-  BarChart3, Download, Play, ShieldAlert, Layers
+  BarChart3, Download, Play, ShieldAlert, Layers, ExternalLink
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 
@@ -114,16 +114,80 @@ const initialAiWeaknessData: Record<string, any[]> = {
 
 const defaultPaperData: Record<string, any[]> = {
   "9": [
-    { id: "p9-1", year: "2024", type: "Annual Exam Paper", status: "Untouched", duration: "2.5 Hrs", pdfUrl: "#" },
-    { id: "p9-2", year: "2023", type: "Annual Exam Paper", status: "Completed (78/100)", duration: "2.5 Hrs", pdfUrl: "#" },
-    { id: "p9-3", year: "2024", type: "Half-Yearly Paper", status: "Completed (85/100)", duration: "2.5 Hrs", pdfUrl: "#" },
-    { id: "p9-4", year: "2024", type: "Quarterly Paper", status: "Completed (90/100)", duration: "2.5 Hrs", pdfUrl: "#" },
+    {
+      id: "p9-1",
+      year: "2024",
+      type: "Annual Exam Paper Set (5 Subjects)",
+      status: "Not Attempted",
+      totalScored: null,
+      maxMarks: 500,
+      subjectMarks: { Tamil: 0, English: 0, Mathematics: 0, Science: 0, "Social Science": 0 }
+    },
+    {
+      id: "p9-2",
+      year: "2023",
+      type: "Annual Exam Paper Set (5 Subjects)",
+      status: "Completed (425/500)",
+      totalScored: 425,
+      maxMarks: 500,
+      subjectMarks: { Tamil: 82, English: 85, Mathematics: 88, Science: 84, "Social Science": 86 }
+    },
+    {
+      id: "p9-3",
+      year: "2024",
+      type: "Half-Yearly Exam Paper Set",
+      status: "Completed (435/500)",
+      totalScored: 435,
+      maxMarks: 500,
+      subjectMarks: { Tamil: 85, English: 87, Mathematics: 90, Science: 85, "Social Science": 88 }
+    },
+    {
+      id: "p9-4",
+      year: "2024",
+      type: "Quarterly Exam Paper Set",
+      status: "Completed (450/500)",
+      totalScored: 450,
+      maxMarks: 500,
+      subjectMarks: { Tamil: 88, English: 90, Mathematics: 92, Science: 88, "Social Science": 92 }
+    }
   ],
   "10": [
-    { id: "p10-1", year: "2024", type: "SSLC Board Public Paper", status: "Untouched", duration: "3 Hrs", pdfUrl: "#" },
-    { id: "p10-2", year: "2023", type: "SSLC Board Public Paper", status: "Completed (88/100)", duration: "3 Hrs", pdfUrl: "#" },
-    { id: "p10-3", year: "2022", type: "SSLC Board Public Paper", status: "Completed (92/100)", duration: "3 Hrs", pdfUrl: "#" },
-    { id: "p10-4", year: "2024 PTA", type: "Model Question Paper", status: "Untouched", duration: "3 Hrs", pdfUrl: "#" },
+    {
+      id: "p10-1",
+      year: "2024",
+      type: "SSLC Board Public Exam Papers (5 Core Subjects)",
+      status: "Not Attempted",
+      totalScored: null,
+      maxMarks: 500,
+      subjectMarks: { Tamil: 0, English: 0, Mathematics: 0, Science: 0, "Social Science": 0 }
+    },
+    {
+      id: "p10-2",
+      year: "2023",
+      type: "SSLC Board Public Exam Papers (5 Core Subjects)",
+      status: "Completed (445/500)",
+      totalScored: 445,
+      maxMarks: 500,
+      subjectMarks: { Tamil: 86, English: 90, Mathematics: 95, Science: 88, "Social Science": 86 }
+    },
+    {
+      id: "p10-3",
+      year: "2022",
+      type: "SSLC Board Public Exam Papers (5 Core Subjects)",
+      status: "Completed (460/500)",
+      totalScored: 460,
+      maxMarks: 500,
+      subjectMarks: { Tamil: 90, English: 92, Mathematics: 98, Science: 92, "Social Science": 88 }
+    },
+    {
+      id: "p10-4",
+      year: "2024 PTA",
+      type: "Model Public Question Papers (5 Core Subjects)",
+      status: "Not Attempted",
+      totalScored: null,
+      maxMarks: 500,
+      subjectMarks: { Tamil: 0, English: 0, Mathematics: 0, Science: 0, "Social Science": 0 }
+    }
   ]
 };
 
@@ -234,7 +298,7 @@ const boardBlueprint: Record<string, any[]> = {
 
 export default function BoardPrepPage() {
   const { data: session } = useSession();
-  const [student, setStudent] = useState<any>(null);
+  const [student, setStudent] = useState<any>({ id: "student-default-1", name: "Test Student", class: "10" });
   const [selectedGrade, setSelectedGrade] = useState<"9" | "10">("10");
   const [activeTab, setActiveTab] = useState<"overview" | "ai-analysis" | "pyq" | "blueprint">("overview");
 
@@ -259,10 +323,18 @@ export default function BoardPrepPage() {
   const [customGoalText, setCustomGoalText] = useState("");
   const [showAddGoal, setShowAddGoal] = useState(false);
 
+  // 5-Subject Board Marksheet state
   const [submittingPaper, setSubmittingPaper] = useState<any>(null);
-  const [mockScore, setMockScore] = useState<number>(85);
-  const [mockSubject, setMockSubject] = useState<string>("Mathematics");
+  const [marksheet, setMarksheet] = useState<{ [subject: string]: number }>({
+    Tamil: 86,
+    English: 90,
+    Mathematics: 95,
+    Science: 88,
+    "Social Science": 86
+  });
+  
   const [viewingPaperDetail, setViewingPaperDetail] = useState<any>(null);
+  const [successToast, setSuccessToast] = useState<string | null>(null);
 
   const [activePracticeModal, setActivePracticeModal] = useState<any>(null);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
@@ -270,6 +342,13 @@ export default function BoardPrepPage() {
   const [showExplanation, setShowExplanation] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
+
+  useEffect(() => {
+    if (successToast) {
+      const t = setTimeout(() => setSuccessToast(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [successToast]);
 
   useEffect(() => {
     const targetDateStr = selectedGrade === "10" ? "2027-03-26T09:30:00+05:30" : "2027-04-08T09:30:00+05:30";
@@ -312,42 +391,79 @@ export default function BoardPrepPage() {
           }
         }
       })
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("Error fetching student list:", err));
   }, [session]);
 
   useEffect(() => {
-    if (!student) return;
+    const studentId = student?.id || "student-default-1";
     setLoading(true);
-    fetch(`${API_BASE}/api/students/${student.id}/board-prep?class=${selectedGrade}`)
+
+    try {
+      const cachedPapers = localStorage.getItem(`tn_board_papers_${selectedGrade}`);
+      if (cachedPapers) setPapersList(JSON.parse(cachedPapers));
+      else setPapersList(defaultPaperData[selectedGrade]);
+
+      const cachedGoals = localStorage.getItem(`tn_board_goals_${selectedGrade}`);
+      if (cachedGoals) setActiveGoals(JSON.parse(cachedGoals));
+      else setActiveGoals(defaultGoals[selectedGrade]);
+
+      const cachedSyllabus = localStorage.getItem(`tn_board_syllabus_${selectedGrade}`);
+      if (cachedSyllabus) setSyllabus(JSON.parse(cachedSyllabus));
+      else setSyllabus(defaultSyllabusData[selectedGrade]);
+    } catch (e) {
+      console.warn("LocalStorage read warning:", e);
+    }
+
+    fetch(`${API_BASE}/api/students/${studentId}/board-prep?class=${selectedGrade}`)
       .then((res) => res.json())
       .then((json) => {
         if (json.success && json.data) {
-          setSyllabus(json.data.syllabusProgress || []);
-          setActiveGoals(json.data.goals || []);
+          if (json.data.syllabusProgress && json.data.syllabusProgress.length > 0) {
+            setSyllabus(json.data.syllabusProgress);
+          }
+          if (json.data.goals && json.data.goals.length > 0) {
+            setActiveGoals(json.data.goals);
+          }
 
           if (json.data.targetScore) setTargetScore(json.data.targetScore);
           if (json.data.targetAmbition) setTargetAmbition(json.data.targetAmbition);
 
           const serverMarks = json.data.marks || [];
           const basePapers = defaultPaperData[selectedGrade];
-          const updatedPapers = basePapers.map((paper: any) => {
-            const match = serverMarks.find(
-              (m: any) => m.paperName.toLowerCase() === `${paper.year} ${paper.type}`.toLowerCase()
-            );
-            return {
-              ...paper,
-              status: match ? `Completed (${match.scored}/${match.maxMarks})` : paper.status,
-              score: match ? match.scored : null,
-              grade: match ? match.grade : null
-            };
-          });
-          setPapersList(updatedPapers);
+          
+          if (serverMarks.length > 0) {
+            const updatedPapers = basePapers.map((paper: any) => {
+              const matchedServerMarks = serverMarks.filter((m: any) => 
+                m.paperName.toLowerCase().includes(paper.year.toLowerCase()) || 
+                paper.year.toLowerCase().includes(m.paperName.toLowerCase())
+              );
+
+              if (matchedServerMarks.length > 0) {
+                const newSubjectMarks: Record<string, number> = { ...paper.subjectMarks };
+                matchedServerMarks.forEach((m: any) => {
+                  if (m.subject) newSubjectMarks[m.subject] = m.scored;
+                });
+                const total = Object.values(newSubjectMarks).reduce((a, b) => a + b, 0);
+                return {
+                  ...paper,
+                  status: `Completed (${total}/500)`,
+                  totalScored: total,
+                  subjectMarks: newSubjectMarks
+                };
+              }
+              return paper;
+            });
+            setPapersList(updatedPapers);
+            try {
+              localStorage.setItem(`tn_board_papers_${selectedGrade}`, JSON.stringify(updatedPapers));
+            } catch(e) {}
+          }
         }
         setAiWeaknesses(initialAiWeaknessData[selectedGrade]);
         setLoading(false);
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Backend fetch board prep error:", err);
         setAiWeaknesses(initialAiWeaknessData[selectedGrade]);
         setLoading(false);
       });
@@ -387,12 +503,15 @@ export default function BoardPrepPage() {
   };
 
   const toggleGoal = (idx: number) => {
-    if (!student) return;
     const updated = [...activeGoals];
     updated[idx].done = !updated[idx].done;
     setActiveGoals(updated);
+    try {
+      localStorage.setItem(`tn_board_goals_${selectedGrade}`, JSON.stringify(updated));
+    } catch(e) {}
 
-    fetch(`${API_BASE}/api/students/${student.id}/board-prep/goals`, {
+    const studentId = student?.id || "student-default-1";
+    fetch(`${API_BASE}/api/students/${studentId}/board-prep/goals`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ goals: updated, class: selectedGrade })
@@ -401,13 +520,18 @@ export default function BoardPrepPage() {
 
   const addCustomGoal = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customGoalText.trim() || !student) return;
+    if (!customGoalText.trim()) return;
     const updated = [...activeGoals, { task: customGoalText, done: false }];
     setActiveGoals(updated);
     setCustomGoalText("");
     setShowAddGoal(false);
+    setSuccessToast("New Board Goal added successfully!");
+    try {
+      localStorage.setItem(`tn_board_goals_${selectedGrade}`, JSON.stringify(updated));
+    } catch(e) {}
 
-    fetch(`${API_BASE}/api/students/${student.id}/board-prep/goals`, {
+    const studentId = student?.id || "student-default-1";
+    fetch(`${API_BASE}/api/students/${studentId}/board-prep/goals`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ goals: updated, class: selectedGrade })
@@ -415,11 +539,14 @@ export default function BoardPrepPage() {
   };
 
   const handleSyllabusChange = (subject: string, completed: number) => {
-    if (!student) return;
     const updated = syllabus.map((s) => s.subject === subject ? { ...s, completed } : s);
     setSyllabus(updated);
+    try {
+      localStorage.setItem(`tn_board_syllabus_${selectedGrade}`, JSON.stringify(updated));
+    } catch(e) {}
 
-    fetch(`${API_BASE}/api/students/${student.id}/board-prep/syllabus`, {
+    const studentId = student?.id || "student-default-1";
+    fetch(`${API_BASE}/api/students/${studentId}/board-prep/syllabus`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ subject, completed, class: selectedGrade })
@@ -431,64 +558,78 @@ export default function BoardPrepPage() {
     setTargetScore(tempTargetScore);
     setTargetAmbition(tempTargetAmbition);
     setShowEditTargetModal(false);
+    setSuccessToast("Target Score & Career Goal updated!");
 
-    if (student) {
-      fetch(`${API_BASE}/api/students/${student.id}/board-prep/target`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          targetScore: tempTargetScore,
-          targetAmbition: tempTargetAmbition,
-          class: selectedGrade
-        })
-      }).catch((err) => console.error("Error updating target:", err));
-    }
-  };
-
-  const handleScoreSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!student || !submittingPaper) return;
-
-    const maxMarks = submittingPaper.duration.includes("3") ? 100 : 80;
-
-    fetch(`${API_BASE}/api/students/${student.id}/board-prep/submit-paper`, {
+    const studentId = student?.id || "student-default-1";
+    fetch(`${API_BASE}/api/students/${studentId}/board-prep/target`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        subject: mockSubject,
-        paperName: `${submittingPaper.year} ${submittingPaper.type}`,
-        scored: Number(mockScore),
-        maxMarks,
+        targetScore: tempTargetScore,
+        targetAmbition: tempTargetAmbition,
+        class: selectedGrade
+      })
+    }).catch((err) => console.error("Error updating target:", err));
+  };
+
+  // Open 5-Subject Board Marksheet Modal
+  const openMarksheetModal = (paper: any) => {
+    setSubmittingPaper(paper);
+    if (paper.subjectMarks) {
+      setMarksheet({ ...paper.subjectMarks });
+    } else {
+      setMarksheet({ Tamil: 85, English: 88, Mathematics: 92, Science: 90, "Social Science": 85 });
+    }
+  };
+
+  // Handle 5-Subject Marksheet Submit
+  const handleMarksheetSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!submittingPaper) return;
+
+    const totalScored = Object.values(marksheet).reduce((a, b) => Number(a) + Number(b), 0);
+    const paperNameFull = `${submittingPaper.year} ${submittingPaper.type}`;
+
+    // 1. Optimistic Local UI Update
+    const updatedPapers = papersList.map((p) => {
+      if (p.id === submittingPaper.id || p.year === submittingPaper.year) {
+        return {
+          ...p,
+          status: `Completed (${totalScored}/500)`,
+          totalScored: totalScored,
+          subjectMarks: { ...marksheet }
+        };
+      }
+      return p;
+    });
+
+    setPapersList(updatedPapers);
+    setSubmittingPaper(null);
+    setSuccessToast(`Logged 5-Subject Result: ${totalScored}/500 Marks for ${paperNameFull}!`);
+
+    // 2. Persist to LocalStorage Backup
+    try {
+      localStorage.setItem(`tn_board_papers_${selectedGrade}`, JSON.stringify(updatedPapers));
+    } catch(e) {}
+
+    // 3. Persist to Backend API
+    const studentId = student?.id || "student-default-1";
+    fetch(`${API_BASE}/api/students/${studentId}/board-prep/submit-paper`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        paperName: paperNameFull,
+        subjectMarks: marksheet,
         class: selectedGrade
       })
     })
       .then((res) => res.json())
       .then((json) => {
         if (json.success) {
-          fetch(`${API_BASE}/api/students/${student.id}/board-prep?class=${selectedGrade}`)
-            .then((res) => res.json())
-            .then((innerJson) => {
-              if (innerJson.success && innerJson.data) {
-                const serverMarks = innerJson.data.marks || [];
-                const basePapers = defaultPaperData[selectedGrade];
-                const updatedPapers = basePapers.map((paper: any) => {
-                  const match = serverMarks.find(
-                    (m: any) => m.paperName.toLowerCase() === `${paper.year} ${paper.type}`.toLowerCase()
-                  );
-                  return {
-                    ...paper,
-                    status: match ? `Completed (${match.scored}/${match.maxMarks})` : paper.status,
-                    score: match ? match.scored : null,
-                    grade: match ? match.grade : null
-                  };
-                });
-                setPapersList(updatedPapers);
-              }
-            });
+          console.log("5-Subject Board Marksheet persisted to backend database!");
         }
-        setSubmittingPaper(null);
       })
-      .catch((err) => console.error("Error submitting paper score:", err));
+      .catch((err) => console.error("Error submitting marksheet to backend:", err));
   };
 
   const openPracticeDrill = (item: any) => {
@@ -531,18 +672,37 @@ export default function BoardPrepPage() {
   const totalChaptersCount = currentSyllabus.reduce((acc, item) => acc + item.totalChapters, 0);
   const completedChaptersCount = currentSyllabus.reduce((acc, item) => acc + item.completed, 0);
   const syllabusPct = totalChaptersCount > 0 ? Math.round((completedChaptersCount / totalChaptersCount) * 100) : 70;
-  const estimatedBoardScore = Math.round((syllabusPct / 100) * (selectedGrade === "10" ? 500 : 500) * 0.95);
+  
+  // Accurate Board Score Predictor out of 500
+  const completedPapersWithScores = currentPapers.filter(p => p.totalScored != null && p.totalScored > 0);
+  const avgMockTotalScore = completedPapersWithScores.length > 0 
+    ? Math.round(completedPapersWithScores.reduce((a, b) => a + b.totalScored, 0) / completedPapersWithScores.length) 
+    : 440;
+  
+  const estimatedBoardScore = Math.round((syllabusPct / 100 * 250) + (avgMockTotalScore * 0.5));
 
-  const userName = session?.user?.name || student?.user?.name || "Student";
+  const userName = session?.user?.name || student?.name || "Student";
   const subtitle = selectedGrade === "10" 
     ? "Your ultimate command center for scoring Centum in 10th SSLC Public Board Exams."
     : "Build a rock-solid foundation in Class 9 annual exams for SSLC Board victory.";
+
+  // Calculate live total for marksheet modal
+  const liveMarksheetTotal = Object.values(marksheet).reduce((a, b) => Number(a || 0) + Number(b || 0), 0);
+  const livePct = ((liveMarksheetTotal / 500) * 100).toFixed(1);
 
   return (
     <PortalLayout
       title={selectedGrade === "10" ? "SSLC Board Preparation Hub" : "Class 9 Annual Exam Preparation Hub"}
       subtitle={subtitle}
     >
+      {/* Toast Notification Alert */}
+      {successToast && (
+        <div className="fixed top-20 right-6 z-50 bg-emerald-600 text-white font-extrabold text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-emerald-400 animate-bounce">
+          <Check className="w-4 h-4 stroke-[3]" />
+          <span>{successToast}</span>
+        </div>
+      )}
+
       {/* Grade / Class Switcher */}
       <div className="flex justify-between items-center mb-6">
         <div className="text-sm text-slate-800 dark:text-slate-200 font-bold flex items-center gap-2">
@@ -582,7 +742,7 @@ export default function BoardPrepPage() {
           </h2>
           <p className="text-slate-300 text-sm max-w-xl leading-relaxed font-medium">
             {selectedGrade === "10" 
-              ? `Stay consistent, ${userName}! Predicted Board Score: ${estimatedBoardScore}/500 based on syllabus & mock practice.`
+              ? `Stay consistent, ${userName}! Predicted Board Score: ${estimatedBoardScore}/500 based on 5-subject mock results & syllabus.`
               : `Great foundations lead to Centum scores, ${userName}. Master high-weightage chapters early!`}
           </p>
         </div>
@@ -808,56 +968,90 @@ export default function BoardPrepPage() {
               </div>
             )}
 
-            {/* TAB 3: PREVIOUS YEAR PAPERS (PYQ) & LOG MARKS */}
+            {/* TAB 3: PREVIOUS YEAR PAPERS (PYQ) & 5-SUBJECT MARKSHEET */}
             {activeTab === "pyq" && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="flex justify-between items-center mb-6">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                      {selectedGrade === "10" ? "Previous Year Board Question Papers (PYQ)" : "Practice & Term Exam Papers"}
+                    <h3 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-red-600" />
+                      {selectedGrade === "10" ? "SSLC Board Public Exam Papers (5 Core Subjects)" : "Class 9 Annual Exam Question Papers"}
                     </h3>
-                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mt-1">Practice under exam timing and log test marks.</p>
+                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mt-1">
+                      Download 5-subject question papers & log your full Board Public Exam mock results out of 500 marks.
+                    </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {currentPapers.map((paper, idx) => (
-                    <div key={idx} className="bg-slate-50 dark:bg-slate-800/80 p-5 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col justify-between shadow-sm hover:border-red-500 transition-all group">
-                      <div>
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="p-2 bg-red-100 dark:bg-red-950/60 rounded-lg border border-red-200 dark:border-red-800">
-                            <FileText className="w-6 h-6 text-red-600 dark:text-red-400" />
-                          </div>
-                          <span className={`text-xs font-bold px-2.5 py-1 rounded-md ${
-                            paper.status.includes('Completed') 
-                              ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700' 
-                              : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700'
-                          }`}>
-                            {paper.status}
-                          </span>
-                        </div>
-                        <h4 className="text-slate-900 dark:text-white font-extrabold text-base mb-1">{paper.year} {paper.type}</h4>
-                        <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-3 leading-relaxed">
-                          All 5 core subjects included. Standard exam duration: {paper.duration}.
-                        </p>
-                      </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  {currentPapers.map((paper, idx) => {
+                    const isAttempted = paper.totalScored != null && paper.totalScored > 0;
 
-                      <div className="space-y-2 mt-2">
-                        <button 
-                          onClick={() => setViewingPaperDetail(paper)}
-                          className="w-full py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-xs font-extrabold rounded-lg transition-colors border border-slate-300 dark:border-slate-600 flex items-center justify-center gap-1.5 shadow-sm"
-                        >
-                          <BookOpen className="w-3.5 h-3.5" /> View Paper Structure
-                        </button>
-                        <button 
-                          onClick={() => setSubmittingPaper(paper)}
-                          className="w-full py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold rounded-lg transition-all shadow-md flex items-center justify-center gap-1.5"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" /> {paper.status.includes('Completed') ? "Resubmit Test Score" : "Log Scored Marks"}
-                        </button>
+                    return (
+                      <div key={idx} className="bg-slate-50 dark:bg-slate-800/80 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col justify-between shadow-sm hover:border-red-500 transition-all group">
+                        <div>
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="p-2.5 bg-red-100 dark:bg-red-950/60 rounded-xl border border-red-200 dark:border-red-800">
+                              <Award className="w-6 h-6 text-red-600 dark:text-red-400" />
+                            </div>
+                            <span className={`text-xs font-extrabold px-3 py-1 rounded-full ${
+                              isAttempted 
+                                ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-400 dark:border-emerald-700' 
+                                : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700'
+                            }`}>
+                              {isAttempted ? `Scored: ${paper.totalScored}/500 (${Math.round((paper.totalScored/500)*100)}%)` : "Not Attempted"}
+                            </span>
+                          </div>
+
+                          <h4 className="text-slate-900 dark:text-white font-black text-base mb-1">{paper.year} {paper.type}</h4>
+                          <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-3 leading-relaxed">
+                            Contains 5 Subject Papers: Tamil, English, Math, Science & Social (100 Marks each = 500 Total).
+                          </p>
+
+                          {/* Subject Score Pills Breakdown if attempted */}
+                          {isAttempted && paper.subjectMarks && (
+                            <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700 mb-3 grid grid-cols-5 gap-1.5 text-center">
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-bold block">TAM</span>
+                                <span className="text-xs font-extrabold text-slate-900 dark:text-white">{paper.subjectMarks.Tamil || 0}</span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-bold block">ENG</span>
+                                <span className="text-xs font-extrabold text-slate-900 dark:text-white">{paper.subjectMarks.English || 0}</span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-bold block">MAT</span>
+                                <span className="text-xs font-extrabold text-red-600 dark:text-red-400">{paper.subjectMarks.Mathematics || 0}</span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-bold block">SCI</span>
+                                <span className="text-xs font-extrabold text-blue-600 dark:text-blue-400">{paper.subjectMarks.Science || 0}</span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-bold block">SOC</span>
+                                <span className="text-xs font-extrabold text-purple-600 dark:text-purple-400">{paper.subjectMarks["Social Science"] || 0}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2.5 mt-2">
+                          <button 
+                            onClick={() => setViewingPaperDetail(paper)}
+                            className="w-full py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-xs font-extrabold rounded-xl transition-colors border border-slate-300 dark:border-slate-600 flex items-center justify-center gap-2 shadow-sm"
+                          >
+                            <BookOpen className="w-4 h-4 text-red-600" /> View 5 Subject Papers & PDF Keys
+                          </button>
+                          <button 
+                            onClick={() => openMarksheetModal(paper)}
+                            className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                          >
+                            <Edit3 className="w-4 h-4" /> {isAttempted ? "Update 5-Subject Board Marksheet" : "Log Full 5-Subject Board Result"}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -962,7 +1156,7 @@ export default function BoardPrepPage() {
               {/* Progress towards target */}
               <div className="mb-3">
                 <div className="flex justify-between text-xs text-slate-700 dark:text-slate-300 font-bold mb-1">
-                  <span>Predicted Score: <strong className="text-slate-900 dark:text-white">{estimatedBoardScore}</strong></span>
+                  <span>Predicted Score: <strong className="text-slate-900 dark:text-white">{estimatedBoardScore}/500</strong></span>
                   <span>{Math.round((estimatedBoardScore / targetScore) * 100)}% of goal</span>
                 </div>
                 <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -1257,38 +1451,53 @@ export default function BoardPrepPage() {
         </div>
       )}
 
-      {/* PAPER STRUCTURE PREVIEW MODAL */}
+      {/* VIEW SUBJECT PAPERS & PDF PREVIEW MODAL */}
       {viewingPaperDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-lg p-6 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-2xl relative">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-xl p-6 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setViewingPaperDetail(null)}
               className="absolute top-4 right-4 text-slate-500 hover:text-slate-900 dark:hover:text-white"
             >
               <X className="w-5 h-5" />
             </button>
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mb-1">
-              {viewingPaperDetail.year} {viewingPaperDetail.type} Overview
-            </h3>
-            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-4">Official TN State Board Question Paper Guidelines.</p>
 
-            <div className="space-y-3 bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 mb-5 font-semibold">
-              <div className="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
-                <span>Duration:</span>
-                <strong className="text-slate-900 dark:text-white font-mono font-extrabold">{viewingPaperDetail.duration}</strong>
-              </div>
-              <div className="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
-                <span>Maximum Marks:</span>
-                <strong className="text-emerald-700 dark:text-emerald-400 font-mono font-extrabold">100 Marks</strong>
-              </div>
-              <div className="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
-                <span>Included Core Subjects:</span>
-                <span className="text-slate-900 dark:text-slate-100 font-bold">Tamil, English, Maths, Science, Social</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Status:</span>
-                <span className="text-amber-600 dark:text-amber-400 font-bold">{viewingPaperDetail.status}</span>
-              </div>
+            <div className="flex items-center gap-2 text-xs font-extrabold text-red-600 dark:text-red-400 uppercase tracking-wider mb-1">
+              <FileText className="w-4 h-4" /> Board Exam Question Papers Archive
+            </div>
+            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">
+              {viewingPaperDetail.year} {viewingPaperDetail.type}
+            </h3>
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-5">
+              Official TN State Board 5 Subject Question Papers & Answer Keys.
+            </p>
+
+            <div className="space-y-3 mb-6">
+              {[
+                { sub: "Tamil", lang: "தமிழ் (தாள் I & II)", time: "3 Hrs", icon: "📘", bg: "bg-amber-50 dark:bg-amber-950/40 border-amber-300" },
+                { sub: "English", lang: "English Paper I & II", time: "3 Hrs", icon: "📕", bg: "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300" },
+                { sub: "Mathematics", lang: "Mathematics (கணிதம்)", time: "3 Hrs", icon: "📐", bg: "bg-red-50 dark:bg-red-950/40 border-red-300" },
+                { sub: "Science", lang: "Science (அறிவியல் - Theory & Practical)", time: "3 Hrs", icon: "🔬", bg: "bg-blue-50 dark:bg-blue-950/40 border-blue-300" },
+                { sub: "Social Science", lang: "Social Science (சமூக அறிவியல்)", time: "3 Hrs", icon: "🌍", bg: "bg-purple-50 dark:bg-purple-950/40 border-purple-300" }
+              ].map((item, sIdx) => (
+                <div key={sIdx} className={`p-3.5 rounded-xl border flex items-center justify-between ${item.bg}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{item.icon}</span>
+                    <div>
+                      <h5 className="text-xs font-black text-slate-900 dark:text-white">{viewingPaperDetail.year} {item.sub} Question Paper</h5>
+                      <span className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">{item.lang} • {item.time}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => alert(`Downloading official ${viewingPaperDetail.year} ${item.sub} Board Question Paper & Answer Key PDF...`)}
+                      className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-xs font-extrabold rounded-lg border border-slate-300 dark:border-slate-600 flex items-center gap-1 shadow-sm"
+                    >
+                      <Download className="w-3.5 h-3.5" /> PDF
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
 
             <div className="flex justify-end gap-3">
@@ -1300,76 +1509,95 @@ export default function BoardPrepPage() {
               </button>
               <button
                 onClick={() => {
-                  setSubmittingPaper(viewingPaperDetail);
+                  openMarksheetModal(viewingPaperDetail);
                   setViewingPaperDetail(null);
                 }}
                 className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs shadow-md"
               >
-                Log Marks for this Paper
+                Log 5-Subject Result
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* SUBMIT PAPER MARKS MODAL */}
+      {/* LOG 5-SUBJECT BOARD MARKSHEET MODAL */}
       {submittingPaper && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-md p-6 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-lg p-6 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setSubmittingPaper(null)}
               className="absolute top-4 right-4 text-slate-500 hover:text-slate-900 dark:hover:text-white"
             >
               <X className="w-5 h-5" />
             </button>
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mb-1">
-              Log Exam Marks: {submittingPaper.year} {submittingPaper.type}
+
+            <div className="flex items-center gap-2 text-xs font-extrabold text-red-600 dark:text-red-400 uppercase tracking-wider mb-1">
+              <Award className="w-4 h-4" /> Official 5-Subject Board Marksheet
+            </div>
+            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-1">
+              Log Exam Results: {submittingPaper.year} {submittingPaper.type}
             </h3>
-            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-4">
-              Log your practice test scores to update your dynamic board score predictor.
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-5">
+              Enter your test marks for all 5 core subjects to calculate your total Board Exam score out of 500.
             </p>
-            <form onSubmit={handleScoreSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Select Subject</label>
-                <select 
-                  value={mockSubject} 
-                  onChange={(e) => setMockSubject(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl p-2.5 text-sm focus:outline-none focus:border-red-600 font-medium"
-                >
-                  <option value="Mathematics">Mathematics</option>
-                  <option value="Science">Science</option>
-                  <option value="Social Science">Social Science</option>
-                  <option value="English">English</option>
-                  <option value="Tamil">Tamil</option>
-                </select>
+
+            <form onSubmit={handleMarksheetSubmit} className="space-y-4">
+              
+              <div className="space-y-3 bg-slate-50 dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                {[
+                  { key: "Tamil", label: "📘 Tamil", color: "text-amber-600" },
+                  { key: "English", label: "📕 English", color: "text-emerald-600" },
+                  { key: "Mathematics", label: "📐 Mathematics", color: "text-red-600" },
+                  { key: "Science", label: "🔬 Science (Theory + Practical)", color: "text-blue-600" },
+                  { key: "Social Science", label: "🌍 Social Science", color: "text-purple-600" }
+                ].map((subObj, idx) => (
+                  <div key={idx} className="flex items-center justify-between bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <label className={`text-xs font-extrabold ${subObj.color}`}>{subObj.label}</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={marksheet[subObj.key] ?? 0}
+                        onChange={(e) => setMarksheet({ ...marksheet, [subObj.key]: Number(e.target.value) })}
+                        className="w-20 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white font-extrabold text-center rounded-lg p-1.5 text-xs focus:outline-none focus:border-red-600"
+                        required
+                      />
+                      <span className="text-xs font-bold text-slate-400">/ 100</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
-                  Scored Marks (out of {submittingPaper.duration.includes("3") ? "100" : "80"})
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max={submittingPaper.duration.includes("3") ? "100" : "80"}
-                  value={mockScore}
-                  onChange={(e) => setMockScore(Number(e.target.value))}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-extrabold rounded-xl p-2.5 text-sm focus:outline-none focus:border-red-600"
-                  required
-                />
+
+              {/* Total Scored Summary Card */}
+              <div className="bg-slate-900 text-white p-4 rounded-xl border-l-4 border-emerald-500 flex items-center justify-between">
+                <div>
+                  <span className="text-[11px] text-slate-400 font-bold uppercase block">TOTAL BOARD MOCK SCORE</span>
+                  <div className="text-xl font-black text-white font-mono">
+                    {liveMarksheetTotal} <span className="text-xs text-emerald-400 font-bold">/ 500 Marks ({livePct}%)</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-extrabold px-3 py-1 bg-emerald-600 text-white rounded-full inline-block">
+                    {liveMarksheetTotal >= 450 ? "Grade A1 (Distinction)" : liveMarksheetTotal >= 400 ? "Grade A2 (First Class)" : liveMarksheetTotal >= 350 ? "Grade B1" : "Grade B2"}
+                  </span>
+                </div>
               </div>
+
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setSubmittingPaper(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 transition-colors text-xs font-bold"
+                  className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold transition-all text-xs shadow-md"
+                  className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs shadow-md"
                 >
-                  Submit & Save
+                  Save Full Marksheet (500 Marks)
                 </button>
               </div>
             </form>
