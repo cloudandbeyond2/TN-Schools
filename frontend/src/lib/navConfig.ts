@@ -148,6 +148,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
+      { label: "Mock Tests", href: "/student/mock-tests", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
       // { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
       // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
@@ -321,7 +322,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Test Preparation ──────────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Test Preparation", href: "#", icon: "" },
-      { label: "Competitive Exam Prep", href: "/student/higher-secondary/competitive", icon: "Rocket" },
+      // { label: "Competitive Exam Prep", href: "/student/higher-secondary/competitive", icon: "Rocket" },
       { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
@@ -401,6 +402,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "My Classes", href: "/teacher/classes", icon: "Building" },
       { label: "Timetable & Proxies", href: "/teacher/timetable", icon: "Calendar" },
       { label: "Exam Schedule", href: "/teacher/exams", icon: "FileText" },
+      { label: "Manage Mock Tests", href: "/teacher/mock-tests", icon: "FileText" },
       { label: "Science Labs", href: "/teacher/labs", icon: "FlaskConical" },
       { label: "Subject Analytics", href: "/teacher/subject-analytics", icon: "Activity" },
 
@@ -639,6 +641,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       { label: "Academics & Content", href: "#", icon: "" },
       { label: "Academics Hub", href: "/super-admin/academics", icon: "GraduationCap" },
+      { label: "Manage Mock Tests", href: "/super-admin/mock-tests", icon: "FileText" },
       { label: "Learning Hub", href: "/super-admin/learning-hub", icon: "Book" },
       { label: "PDF Syllabus Upload", href: "/super-admin/syllabus-upload", icon: "Upload" },
       { label: "Syllabus Management", href: "/super-admin/syllabus", icon: "BookOpen" },

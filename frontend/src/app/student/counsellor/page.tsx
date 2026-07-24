@@ -365,21 +365,21 @@ export default function CounsellorPage() {
       </div>
 
       {/* ── Hero ── */}
-      <div className="relative rounded-3xl overflow-hidden mb-8 shadow-2xl bg-indigo-600">
+      <div className="relative rounded-2xl overflow-hidden mb-6 shadow-xl bg-indigo-600">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-800" />
         <div className="absolute top-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
 
-        <div className="relative z-10 p-8 md:p-10">
+        <div className="relative z-10 p-5 md:p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            <div className="w-20 h-20 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0 shadow-xl backdrop-blur-sm">
-              <User size={40} className="!text-white" />
+            <div className="w-16 h-16 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0 shadow-xl backdrop-blur-sm">
+              <User size={32} className="!text-white" />
             </div>
             <div className="flex-1 text-white">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-bold uppercase tracking-widest opacity-80">{L.supportCenter}</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">{L.supportCenter}</span>
               </div>
-              <p className="text-3xl font-black mb-2 leading-tight !text-white">{L.heroTitle}</p>
+              <p className="text-2xl font-black mb-1 leading-tight !text-white">{L.heroTitle}</p>
               <p className="!text-white text-sm max-w-xl leading-relaxed opacity-90">
                 {L.heroDesc}
               </p>

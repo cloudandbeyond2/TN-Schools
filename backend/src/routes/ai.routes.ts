@@ -1572,4 +1572,47 @@ router.delete('/saved-3d-models/:id', async (req: Request, res: Response) => {
   }
 });
 
+// ===========================================================================
+// POST /api/ai/generate-questions
+// ===========================================================================
+router.post('/generate-questions', async (req: Request, res: Response) => {
+  try {
+    const { grade, subject, topic, difficulty, mcqCount = 5 } = req.body;
+    
+    const prompt = `You are an expert educator. Create a mock test for ${grade} students on the subject of ${subject}. The specific topic is "${topic}". The difficulty level should be ${difficulty}.
+    
+Generate exactly ${mcqCount} multiple choice questions.
+Return ONLY a JSON array of objects.
+Each object must match this schema exactly:
+{
+  "type": "mcq",
+  "text": "The question text",
+  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "answer": "The correct option exactly as it appears in the options array",
+  "marks": 1
+}`;
+
+    const schema = {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          type: { type: "STRING" },
+          text: { type: "STRING" },
+          options: { type: "ARRAY", items: { type: "STRING" } },
+          answer: { type: "STRING" },
+          marks: { type: "INTEGER" }
+        },
+        required: ["type", "text", "options", "answer", "marks"]
+      }
+    };
+
+    const questions = await callGemini(prompt, true, schema);
+    res.json({ success: true, data: questions });
+  } catch (err) {
+    console.error('[POST /api/ai/generate-questions]', err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
