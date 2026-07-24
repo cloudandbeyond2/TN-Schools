@@ -164,11 +164,11 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
       { label: "Science Fact", href: "/student/science-fact", icon: "Sparkles" },
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
-      { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
       // ── Labs & Centers ────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Labs & Centers", href: "/student/science-campus", icon: "FlaskConical" },
+      //// { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
       // ── Extracurricular & Wellbeing ───────────────────
       { label: "---", href: "#", icon: "" },
@@ -249,11 +249,11 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // Maths Formulas (/student/maths-formulas) is Class-6 Samacheer data only — not shown for 9-10.
       { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
-      { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
       // ── Labs & Centers ────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Labs & Centers", href: "/student/science-campus", icon: "FlaskConical" },
+      // // { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
       // ── Extracurricular & Wellbeing ───────────────────
       { label: "---", href: "#", icon: "" },
@@ -332,11 +332,11 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Formula Bank", href: "/student/higher-secondary/formulae", icon: "Calculator" },
       { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
-      { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
       // ── Labs & Centers ────────────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Labs & Centers", href: "/student/science-campus", icon: "FlaskConical" },
+      // // { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
       // ── Extracurricular & Wellbeing ───────────────────
       { label: "---", href: "#", icon: "" },
@@ -448,7 +448,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Science Lab Support", href: "/teacher/science-lab-support", icon: "FlaskConical" },
       { label: "Chemistry Lab", href: "/teacher/chemistry-lab", icon: "FlaskConical" },
       { label: "Zoology Centre", href: "/teacher/zoology-centre", icon: "Target" },
-      { label: "3D Preview", href: "/teacher/3d-preview", icon: "Box" },
+      // { label: "3D Preview", href: "/teacher/3d-preview", icon: "Box" },
       { label: "Celebrations", href: "/teacher/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/teacher/cultural-events", icon: "Smile" },
       { label: "Computer Education", href: "/teacher/computer-education", icon: "Monitor" },
@@ -672,12 +672,13 @@ export const roleConfigs: Record<string, PortalConfig> = {
 export type StudentGroup = "Science" | "Commerce" | "ComputerScience" | "Arts" | "Vocational";
 
 // The section header label used to locate the block inside a nav config.
-const SCIENCE_SECTION_LABEL = "Science Labs & Centers";
+const SCIENCE_SECTION_LABEL = "Labs & Centers";
 
 // Items shown under the section for each group (header excluded).
 export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
   Science: [
     { label: "Science Campus", href: "/student/science-campus", icon: "Sparkles" },
+    // { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
     { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
     { label: "Botany Centre", href: "/student/botany-centre", icon: "Leaf" },
     { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
@@ -688,6 +689,7 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
   ],
   Commerce: [
     { label: "Commerce Campus", href: "/student/science-campus", icon: "Sparkles" },
+    // { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
     { label: "Book Library", href: "/student/science-library", icon: "BookOpen" },
     { label: "Commerce & Business Lab", href: "/student/science/commerce-lab", icon: "Briefcase" },
     { label: "Accountancy Practice", href: "/student/science/accountancy", icon: "Calculator" },
@@ -697,6 +699,7 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
   ],
   ComputerScience: [
     { label: "CS Campus", href: "/student/science-campus", icon: "Sparkles" },
+    // { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
     { label: "Book Library", href: "/student/science-library", icon: "BookOpen" },
     { label: "Programming Lab", href: "/student/science/programming-lab", icon: "Code" },
     { label: "Computer Science Lab", href: "/student/science/cs-lab", icon: "Cpu" },
@@ -708,6 +711,7 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
   ],
   Arts: [
     { label: "Arts Campus", href: "/student/science-campus", icon: "Sparkles" },
+    // { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
     { label: "Book Library", href: "/student/science-library", icon: "BookOpen" },
     { label: "Geography & Mapping", href: "/student/science/geography-lab", icon: "Globe" },
     { label: "History & Heritage Hub", href: "/student/science/history-hub", icon: "Landmark" },
@@ -716,6 +720,7 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
   ],
   Vocational: [
     { label: "Vocational Campus", href: "/student/science-campus", icon: "Sparkles" },
+    // { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
     { label: "Book Library", href: "/student/science-library", icon: "BookOpen" },
     { label: "Trades & Tech Hub", href: "/student/science/vocational-campus", icon: "Wrench" },
     { label: "Basic Electrical Lab", href: "/student/science/electrical-lab", icon: "Zap" },

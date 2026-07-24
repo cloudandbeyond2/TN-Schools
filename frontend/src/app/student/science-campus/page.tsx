@@ -9,7 +9,7 @@ import {
   FlaskConical, Atom, Dna, Wrench, Bug, Leaf, Globe, Rocket, HeartPulse,
   Brain, Landmark, BookOpen, Video, ListChecks, Bot, Lightbulb, Trophy,
   Compass, GraduationCap, Sparkles, ArrowRight, Lock, Sprout, Microscope,
-  Users, Briefcase, Calculator, TrendingUp, BarChart3, Code, Cpu, Database,
+  Users, Briefcase, Calculator, TrendingUp, BarChart3, Code, Cpu, Database, Box,
 } from "lucide-react";
 import {
   SCIENCE_CENTERS, CENTER_GROUPS, STREAMS, type ScienceCenter, type Stream,
@@ -19,7 +19,7 @@ const ICONS: Record<string, React.ElementType> = {
   FlaskConical, Atom, Dna, Wrench, Bug, Leaf, Globe, Rocket, HeartPulse,
   Brain, Landmark, BookOpen, Video, ListChecks, Bot, Lightbulb, Trophy,
   Compass, GraduationCap, Sprout, Microscope, Users, Briefcase, Calculator,
-  TrendingUp, BarChart3, Code, Cpu, Database,
+  TrendingUp, BarChart3, Code, Cpu, Database, Box,
 };
 
 const ACCENT: Record<string, { grad: string; text: string; soft: string; ring: string }> = {
@@ -158,26 +158,6 @@ export default function ScienceCampusPage() {
       .catch((err) => console.error("Error syncing stream with DB:", err));
   }, [studentId, isHigherSecondary]);
 
-  const pickStream = async (s: Stream) => {
-    setStream(s);
-    localStorage.setItem("studentGroup", s);
-    // Let the sidebar (PortalLayout) update its menu immediately.
-    window.dispatchEvent(new Event("studentGroupChange"));
-
-    if (studentId) {
-      const dbStream = mapStreamToDbStream(s);
-      try {
-        await fetch(`${API_BASE}/api/students/${studentId}/stream`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ stream: dbStream }),
-        });
-      } catch (err) {
-        console.error("Failed to persist stream update:", err);
-      }
-    }
-  };
-
   const visible = SCIENCE_CENTERS.filter((c) => {
     // Under Class 11, students don't have streams, so filter out specialized Commerce/CS modules
     if (!isHigherSecondary) {
@@ -225,27 +205,6 @@ export default function ScienceCampusPage() {
             </p>
           </div>
         </motion.div>
-
-        {/* stream / group switcher - ONLY shown for Class 11-12 Higher Secondary students */}
-        {isHigherSecondary && (
-          <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 border-2 border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center gap-3">
-            {/* <span className="text-xs font-black uppercase tracking-wider text-slate-400 shrink-0">Your group</span> */}
-            <div className="flex overflow-x-auto gap-2">
-              {STREAMS.map((s) => {
-                const on = s.id === stream;
-                return (
-                  <button key={s.id} onClick={() => pickStream(s.id)}
-                    className={`shrink-0 px-4 py-2 rounded-xl text-sm font-black transition-all border-2 ${on
-                      ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                      : "bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300"}`}>
-                    <span className="mr-1.5">{s.emoji}</span>{s.label}
-                    <span className="ml-1 hidden sm:inline text-[11px] font-bold opacity-70">· {s.labelTa}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* grouped centers */}
         {CENTER_GROUPS.map((group) => {

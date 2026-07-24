@@ -173,7 +173,7 @@ export default function TeacherCelebrationsPage() {
       title="School Celebrations"
       subtitle="Keep track of all the exciting events and school celebrations"
     >
-      <div className="flex flex-col gap-6 sm:gap-8 text-left max-w-6xl mx-auto w-full">
+      <div className="flex flex-col gap-6 sm:gap-8 text-left w-full">
 
         {/* Professional Banner */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-700 text-white p-6 sm:p-10 shadow-lg">

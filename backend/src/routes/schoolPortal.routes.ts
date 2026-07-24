@@ -63,7 +63,12 @@ router.get('/public/:dise', async (req: Request, res: Response) => {
         take: 12,
       }),
       prisma.celebration.findMany({
-        where: { schoolId: school.id },
+        where: {
+          OR: [
+            { schoolId: school.id },
+            { schoolId: null },
+          ]
+        },
         orderBy: { date: 'desc' },
         take: 6,
       }),

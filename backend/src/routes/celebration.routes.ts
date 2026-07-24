@@ -11,7 +11,12 @@ router.get('/', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'schoolId query parameter is required' });
     }
     const celebrations = await prisma.celebration.findMany({
-      where: { schoolId: String(schoolId) },
+      where: {
+        OR: [
+          { schoolId: String(schoolId) },
+          { schoolId: null },
+        ]
+      },
       orderBy: { date: 'asc' },
     });
     res.json({ success: true, count: celebrations.length, data: celebrations });

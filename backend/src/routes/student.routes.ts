@@ -491,11 +491,6 @@ router.post('/:id/homework/:homeworkId/submit', upload.array('files'), async (re
 });
 
 
-/* ------------------- GET BOARD PREP DATA ------------------- */
-router.get('/:id/board-prep', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const selectedClass = String(req.query.class || "10"); // "9" or "10"
 
 /* Helper to get or fallback to a valid student so board prep never fails */
 async function getOrCreateStudent(id: string) {
@@ -514,13 +509,36 @@ async function getOrCreateStudent(id: string) {
     const anyStudent = await prisma.student.findFirst();
     if (anyStudent) return anyStudent;
 
+    let user = await prisma.user.findFirst();
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          name: "Test Student",
+          role: "STUDENT",
+          email: "test.student@example.com"
+        }
+      });
+    }
+    let school = await prisma.school.findFirst();
+    if (!school) {
+      school = await prisma.school.create({
+        data: {
+          dise: "33012345",
+          name: "Government Higher Secondary School",
+          district: "Coimbatore",
+          block: "Coimbatore South"
+        }
+      });
+    }
+
     return await prisma.student.create({
       data: {
         id: id && id !== "undefined" ? id : "student-default-1",
-        name: "Test Student",
+        userId: user.id,
+        schoolId: school.id,
         class: "10",
         section: "A",
-        rollNum: "1001"
+        rollNumber: "1001"
       }
     });
   } catch (e) {

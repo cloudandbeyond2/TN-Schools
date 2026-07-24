@@ -2158,3 +2158,15 @@ model MockTestSubmission {
   status       String   @default("PENDING") // PENDING, GRADED
   submittedAt  DateTime @default(now())
 }
+
+model ScienceBook {
+  id        String   @id @default(uuid())
+  class     Int
+  subject   String
+  medium    String
+  year      String   @default("2024")
+  pdfUrl    String
+  chapters  String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
