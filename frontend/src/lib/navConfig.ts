@@ -137,6 +137,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
+      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
@@ -165,7 +166,9 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
       { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
-
+      // ── Labs & Centers ────────────────────────
+      { label: "---", href: "#", icon: "" },
+      { label: "Labs & Centers", href: "/student/science-campus", icon: "FlaskConical" },
 
       // ── Extracurricular & Wellbeing ───────────────────
       { label: "---", href: "#", icon: "" },
@@ -213,6 +216,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
+      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       //{ label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
@@ -247,11 +251,9 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
       { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
-      // ── Science Labs & Centers ────────────────────────
+      // ── Labs & Centers ────────────────────────
       { label: "---", href: "#", icon: "" },
-      { label: "Science Labs & Centers", href: "#", icon: "" },
-      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
-      { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
+      { label: "Labs & Centers", href: "/student/science-campus", icon: "FlaskConical" },
 
       // ── Extracurricular & Wellbeing ───────────────────
       { label: "---", href: "#", icon: "" },
@@ -300,6 +302,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
+      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
@@ -331,17 +334,9 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
       { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
 
-      // ── Science Labs & Centers ────────────────────────
+      // ── Labs & Centers ────────────────────────
       { label: "---", href: "#", icon: "" },
-      { label: "Science Labs & Centers", href: "#", icon: "" },
-      { label: "Science Campus", href: "/student/science-campus", icon: "Sparkles" },
-      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
-      { label: "Botany Centre", href: "/student/botany-centre", icon: "Leaf" },
-      { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
-      { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
-      { label: "Chemistry Lab", href: "/student/chemistry-lab", icon: "FlaskConical" },
-      { label: "Zoology Centre", href: "/student/zoology-centre", icon: "Target" },
-      { label: "Computer Education", href: "/student/computer-education", icon: "Monitor" },
+      { label: "Labs & Centers", href: "/student/science-campus", icon: "FlaskConical" },
 
       // ── Extracurricular & Wellbeing ───────────────────
       { label: "---", href: "#", icon: "" },

@@ -89,6 +89,7 @@ const translations = {
       "Science Draw Mat": "அறிவியல் வரைதல் விரிப்பு",
       "Language Coaching": "மொழி பயிற்சி",
       "3D Preview": "3D முன்னோட்டம்",
+      "Labs & Centers": "ஆய்வகங்கள் & மையங்கள்",
       "Science Labs & Centers": "அறிவியல் ஆய்வகங்கள் & மையங்கள்",
       "Virtual Labs": "மெய்நிகர் ஆய்வகங்கள்",
       "Science Lab Support": "அறிவியல் ஆய்வக ஆதரவு",
