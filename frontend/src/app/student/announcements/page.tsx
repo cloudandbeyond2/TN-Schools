@@ -214,10 +214,23 @@ export default function AnnouncementsPage() {
           allItems = [...allItems, ...mappedNotifs];
         }
 
+        // Deduplicate items by body & title to avoid twin cards
+        const seenKeys = new Set<string>();
+        const uniqueItems: Announcement[] = [];
+        for (const item of allItems) {
+          const normBody = (item.body || "").trim().toLowerCase();
+          const normTitle = (item.title || "").trim().toLowerCase();
+          const key = `${normTitle}:::${normBody}`;
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            uniqueItems.push(item);
+          }
+        }
+
         // Sort combined list by date descending
-        allItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        uniqueItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         
-        setAnnouncements(allItems);
+        setAnnouncements(uniqueItems);
       } catch (err) {
         console.error("Error fetching announcements/notifications:", err);
       } finally {

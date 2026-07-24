@@ -22,14 +22,26 @@ async function notifyExamScheduled(
       where: { schoolId, class: cls, section: section !== 'All' ? section : undefined }
     });
     
-    const studentUserIds = students.map(s => s.userId).filter(Boolean);
+    const studentUserIds = Array.from(new Set(students.map(s => s.userId).filter((id): id is string => Boolean(id))));
     if (studentUserIds.length > 0) {
-      await prisma.notification.createMany({
-        data: studentUserIds.map(userId => ({
-          userId,
+      const existingNotifs = await prisma.notification.findMany({
+        where: {
+          userId: { in: studentUserIds },
           message,
-        }))
+        },
+        select: { userId: true },
       });
+      const alreadyNotified = new Set(existingNotifs.map(n => n.userId));
+      const toNotify = studentUserIds.filter(id => !alreadyNotified.has(id));
+
+      if (toNotify.length > 0) {
+        await prisma.notification.createMany({
+          data: toNotify.map(userId => ({
+            userId,
+            message,
+          }))
+        });
+      }
     }
 
     // 2. Notify Parents
@@ -40,15 +52,27 @@ async function notifyExamScheduled(
         include: { parent: true }
       });
       
-      const parentUserIds = parentLinks.map(pl => pl.parent.userId).filter(Boolean);
+      const parentUserIds = Array.from(new Set(parentLinks.map(pl => pl.parent?.userId).filter((id): id is string => Boolean(id))));
       if (parentUserIds.length > 0) {
-        await prisma.notification.createMany({
-          data: parentUserIds.map(userId => ({
-            userId: userId as string,
+        const existingParentNotifs = await prisma.notification.findMany({
+          where: {
+            userId: { in: parentUserIds },
             message,
-          })),
-          skipDuplicates: true
+          },
+          select: { userId: true },
         });
+        const alreadyNotifiedParents = new Set(existingParentNotifs.map(n => n.userId));
+        const parentsToNotify = parentUserIds.filter(id => !alreadyNotifiedParents.has(id));
+
+        if (parentsToNotify.length > 0) {
+          await prisma.notification.createMany({
+            data: parentsToNotify.map(userId => ({
+              userId,
+              message,
+            })),
+            skipDuplicates: true
+          });
+        }
       }
       
       // Also add to ParentNotification table
@@ -69,25 +93,26 @@ async function notifyExamScheduled(
 
     // 3. Notify Invigilator (Staff)
     if (invigilatorName) {
+      const invigilatorMsg = `You are assigned as invigilator for ${subject} exam on ${formattedDate} at ${startTime}.`;
       const staffUser = await prisma.user.findFirst({
         where: { schoolId, name: invigilatorName, role: 'TEACHER' }
       });
-      if (staffUser) {
-        await prisma.notification.create({
-          data: {
-            userId: staffUser.id,
-            message: `You are assigned as invigilator for ${subject} exam on ${formattedDate} at ${startTime}.`,
-          }
-        });
-      } else {
+      let targetUserId = staffUser?.id;
+      if (!targetUserId) {
         const headmasterStaff = await prisma.headmasterStaff.findFirst({
           where: { schoolId, name: invigilatorName }
         });
-        if (headmasterStaff && headmasterStaff.userId) {
+        targetUserId = headmasterStaff?.userId || undefined;
+      }
+      if (targetUserId) {
+        const existing = await prisma.notification.findFirst({
+          where: { userId: targetUserId, message: invigilatorMsg }
+        });
+        if (!existing) {
           await prisma.notification.create({
             data: {
-              userId: headmasterStaff.userId,
-              message: `You are assigned as invigilator for ${subject} exam on ${formattedDate} at ${startTime}.`,
+              userId: targetUserId,
+              message: invigilatorMsg,
             }
           });
         }
