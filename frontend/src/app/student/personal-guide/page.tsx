@@ -449,69 +449,91 @@ export default function StudentPersonalGuidePage() {
   }
 
   return (
-    <PortalLayout>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-6">
-        <div className="max-w-7xl mx-auto space-y-5">
+    <PortalLayout title={t.personalGuide} subtitle={t.subtitle}>
+      <div className="w-full space-y-8 animate-in fade-in duration-300 pb-16 text-left">
 
-          {/* Top Controls */}
-          <div className="flex justify-end w-full">
-            {/* Language Toggle */}
-            <div className="flex bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 p-1 rounded-xl w-fit shadow-sm">
-              <button
-                onClick={() => setLang("en")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${lang === "en" ? "bg-indigo-500 text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
-              >
-                English
-              </button>
-              <button
-                onClick={() => setLang("ta")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${lang === "ta" ? "bg-indigo-500 text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
-              >
-                தமிழ்
-              </button>
-            </div>
-          </div>
+        {/* Full Width Dynamic & Premium Hero Banner */}
+        <div
+          className="hero-band relative w-full overflow-hidden rounded-3xl shadow-xl p-6 sm:p-8 lg:p-10 !text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all duration-300 group"
+          style={{
+            background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #9333ea 100%)",
+            color: "#ffffff"
+          }}
+        >
+          {/* Ambient Lighting Circles */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-black/20 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
 
-          {/* Header Banner */}
-          <div className="bg-gradient-to-r from-indigo-500 to-violet-600 rounded-2xl p-6 text-white shadow-lg relative">
-            <div className="flex items-center gap-3 mb-4 mt-2 sm:mt-0">
-              <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-white" />
+          <div className="relative z-10 space-y-4 max-w-3xl">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-sm">
+                <BookOpen className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-base font-black">{t.personalGuide}</h1>
-                <p className="text-indigo-200 text-xs">
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight !text-white drop-shadow-md" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+                  {t.personalGuide}
+                </h1>
+                <p className="text-indigo-100 text-xs sm:text-sm font-medium drop-shadow-sm">
                   {t.subtitle}
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-xl">
-              <div className="bg-white/10 rounded-xl p-2 sm:p-3 text-center border border-white/20 flex flex-col justify-center">
-                <p className="text-lg sm:text-xl font-black text-amber-300">{pendingCount}</p>
-                <p className="text-[10px] sm:text-xs text-indigo-200 leading-tight">{t.awaitingReply}</p>
+
+            <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-lg">
+              <div className="bg-black/25 backdrop-blur-md rounded-2xl p-3 text-center border border-white/20 flex flex-col justify-center shadow-sm">
+                <p className="text-xl sm:text-2xl font-black text-amber-300">{pendingCount}</p>
+                <p className="text-[10px] sm:text-xs text-indigo-100 font-bold leading-tight">{t.awaitingReply}</p>
               </div>
-              <div className="bg-white/10 rounded-xl p-2 sm:p-3 text-center border border-white/20 flex flex-col justify-center">
-                <p className="text-lg sm:text-xl font-black text-blue-200">{answeredCount}</p>
-                <p className="text-[10px] sm:text-xs text-indigo-200 leading-tight">{t.replied}</p>
+              <div className="bg-black/25 backdrop-blur-md rounded-2xl p-3 text-center border border-white/20 flex flex-col justify-center shadow-sm">
+                <p className="text-xl sm:text-2xl font-black text-blue-200">{answeredCount}</p>
+                <p className="text-[10px] sm:text-xs text-indigo-100 font-bold leading-tight">{t.replied}</p>
               </div>
-              <div className="bg-white/10 rounded-xl p-2 sm:p-3 text-center border border-white/20 flex flex-col justify-center">
-                <p className="text-lg sm:text-xl font-black text-emerald-300">{reviewedCount}</p>
-                <p className="text-[10px] sm:text-xs text-indigo-200 leading-tight">{t.feedbackReceived}</p>
+              <div className="bg-black/25 backdrop-blur-md rounded-2xl p-3 text-center border border-white/20 flex flex-col justify-center shadow-sm">
+                <p className="text-xl sm:text-2xl font-black text-emerald-300">{reviewedCount}</p>
+                <p className="text-[10px] sm:text-xs text-indigo-100 font-bold leading-tight">{t.feedbackReceived}</p>
               </div>
             </div>
           </div>
 
-          {/* Grid Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Scoped style to ensure active toggle button text is dark navy */}
+          <style>{`
+            .hero-band .active-lang-btn {
+              background-color: #ffffff !important;
+              color: #0f172a !important;
+              -webkit-text-fill-color: #0f172a !important;
+            }
+          `}</style>
 
-            {/* LEFT: Task Inbox */}
-            <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center gap-2 px-1">
-                <Inbox className="w-4 h-4 text-indigo-500" />
-                <h2 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                  {t.taskInbox}
-                </h2>
-              </div>
+          {/* Language Toggle */}
+          <div className="relative z-10 flex bg-black/30 backdrop-blur-md border border-white/30 p-1.5 rounded-2xl shadow-md">
+            <button
+              onClick={() => setLang("en")}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${lang === "en" ? "active-lang-btn shadow-md" : "!text-white hover:opacity-90"}`}
+              style={lang === "en" ? { backgroundColor: "#ffffff", color: "#0f172a", WebkitTextFillColor: "#0f172a" } : { color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
+            >
+              English
+            </button>
+            <button
+              onClick={() => setLang("ta")}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${lang === "ta" ? "active-lang-btn shadow-md" : "!text-white hover:opacity-90"}`}
+              style={lang === "ta" ? { backgroundColor: "#ffffff", color: "#0f172a", WebkitTextFillColor: "#0f172a" } : { color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
+            >
+              தமிழ்
+            </button>
+          </div>
+        </div>
+
+        {/* Grid Layout (Full Width) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 w-full">
+
+          {/* LEFT: Task Inbox */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center gap-2 px-1">
+              <Inbox className="w-4 h-4 text-indigo-500" />
+              <h2 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                {t.taskInbox}
+              </h2>
+            </div>
 
               {tasks.length === 0 ? (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center py-20 text-center">
@@ -836,7 +858,6 @@ export default function StudentPersonalGuidePage() {
           </div>
 
         </div>
-      </div>
     </PortalLayout>
   );
 }

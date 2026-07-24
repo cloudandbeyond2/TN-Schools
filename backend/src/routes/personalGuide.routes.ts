@@ -668,6 +668,25 @@ router.delete('/tasks/:taskId', async (req: Request, res: Response) => {
 });
 
 
+// GET /api/personal-guide/student/:studentId
+router.get('/student/:studentId', async (req: Request, res: Response) => {
+  try {
+    const { studentId } = req.params;
+    const item = await prisma.personalGuide.findFirst({
+      where: { studentId: String(studentId) },
+      orderBy: { updatedAt: 'desc' }
+    });
+    if (!item) {
+      return res.json({ success: true, data: null, message: 'No personal guide record assigned yet' });
+    }
+    return res.json({ success: true, data: item });
+  } catch (err: any) {
+    console.error('[GET /api/personal-guide/student/:studentId]', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to fetch student guide record' });
+  }
+});
+
+
 // ─── DYNAMIC /:id ROUTES AT THE BOTTOM TO PREVENT CONFLICTS ─────────
 
 // GET /api/personal-guide/:id
