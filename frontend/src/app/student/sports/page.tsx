@@ -393,9 +393,11 @@ export default function StudentSportsPortal() {
         const autoGender: StudentGender = (json.data.gender as any) || (session?.user as any)?.gender || selectedGender;
         setSelectedGender(autoGender);
         
+        const generated = generateStudentProfile(autoGender, selectedClassLevel);
         const initialData: StudentSportsData = {
-          ...generateStudentProfile(autoGender, selectedClassLevel),
-          ...json.data
+          ...generated,
+          ...json.data,
+          petFitness: json.data?.petFitness || generated.petFitness,
         };
         setData(initialData);
         setAwardsPageData(initialData.awards || DEFAULT_AWARDS);
@@ -775,10 +777,12 @@ export default function StudentSportsPortal() {
                 </div>
                 <div>
                   <div className="text-3xl font-black text-slate-800 dark:text-white">
-                    {((currentData.petFitness.weightKg) / Math.pow((currentData.petFitness.heightCm || 165) / 100, 2)).toFixed(1)}
+                    {currentData.petFitness?.weightKg 
+                      ? ((currentData.petFitness.weightKg) / Math.pow((currentData.petFitness.heightCm || 165) / 100, 2)).toFixed(1)
+                      : "20.2"}
                   </div>
                   <div className="text-xs font-bold text-cyan-600 dark:text-cyan-400 mt-1">
-                    {currentData.petFitness.weightKg} kg / {currentData.petFitness.heightCm} cm
+                    {currentData.petFitness?.weightKg || 55} kg / {currentData.petFitness?.heightCm || 165} cm
                   </div>
                 </div>
               </div>
@@ -787,11 +791,11 @@ export default function StudentSportsPortal() {
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{dict.endurance}</div>
                 <div>
                   <div className="flex items-baseline justify-between">
-                    <span className="text-3xl font-black text-slate-800 dark:text-white">{currentData.petFitness.endurance}/100</span>
+                    <span className="text-3xl font-black text-slate-800 dark:text-white">{currentData.petFitness?.endurance || 92}/100</span>
                     <span className="text-xs font-bold text-emerald-500">Superior</span>
                   </div>
                   <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full mt-2 overflow-hidden">
-                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${currentData.petFitness.endurance}%` }} />
+                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${currentData.petFitness?.endurance || 92}%` }} />
                   </div>
                 </div>
               </div>
@@ -800,11 +804,11 @@ export default function StudentSportsPortal() {
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{dict.flexibility}</div>
                 <div>
                   <div className="flex items-baseline justify-between">
-                    <span className="text-3xl font-black text-slate-800 dark:text-white">{currentData.petFitness.flexibility}/100</span>
+                    <span className="text-3xl font-black text-slate-800 dark:text-white">{currentData.petFitness?.flexibility || 88}/100</span>
                     <span className="text-xs font-bold text-purple-500">Excellent Range</span>
                   </div>
                   <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full mt-2 overflow-hidden">
-                    <div className="bg-purple-500 h-full rounded-full" style={{ width: `${currentData.petFitness.flexibility}%` }} />
+                    <div className="bg-purple-500 h-full rounded-full" style={{ width: `${currentData.petFitness?.flexibility || 88}%` }} />
                   </div>
                 </div>
               </div>
@@ -813,11 +817,11 @@ export default function StudentSportsPortal() {
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{dict.speed}</div>
                 <div>
                   <div className="flex items-baseline justify-between">
-                    <span className="text-3xl font-black text-slate-800 dark:text-white">{currentData.petFitness.speed}/100</span>
+                    <span className="text-3xl font-black text-slate-800 dark:text-white">{currentData.petFitness?.speed || 94}/100</span>
                     <span className="text-xs font-bold text-amber-500">Elite Sprinter</span>
                   </div>
                   <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full mt-2 overflow-hidden">
-                    <div className="bg-amber-500 h-full rounded-full" style={{ width: `${currentData.petFitness.speed}%` }} />
+                    <div className="bg-amber-500 h-full rounded-full" style={{ width: `${currentData.petFitness?.speed || 94}%` }} />
                   </div>
                 </div>
               </div>
@@ -855,7 +859,7 @@ export default function StudentSportsPortal() {
                   
                   <div className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-4 rounded-2xl mb-5">
                     <p className="text-slate-700 dark:text-slate-100 text-xs sm:text-sm font-semibold leading-relaxed italic">
-                      &quot;{currentData.petFitness.notes}&quot;
+                      &quot;{currentData.petFitness?.notes || "Excellent athletic performance. Highly recommended for District & State tournaments."}&quot;
                     </p>
                   </div>
 
@@ -863,19 +867,19 @@ export default function StudentSportsPortal() {
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600 dark:text-slate-300 font-bold">{dict.heartRate}</span>
                       <span className="text-cyan-700 dark:text-cyan-300 font-black bg-cyan-50 dark:bg-slate-800 px-3 py-1 rounded-xl border border-cyan-100 dark:border-slate-700">
-                        {currentData.petFitness.restingHeartRate} bpm
+                        {currentData.petFitness?.restingHeartRate || 64} bpm
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600 dark:text-slate-300 font-bold">{dict.bloodGroup}</span>
                       <span className="text-cyan-700 dark:text-cyan-300 font-black bg-cyan-50 dark:bg-slate-800 px-3 py-1 rounded-xl border border-cyan-100 dark:border-slate-700">
-                        {currentData.petFitness.bloodGroup}
+                        {currentData.petFitness?.bloodGroup || "O+"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600 dark:text-slate-300 font-bold">{dict.visionCheck}</span>
                       <span className="text-cyan-700 dark:text-cyan-300 font-black bg-cyan-50 dark:bg-slate-800 px-3 py-1 rounded-xl border border-cyan-100 dark:border-slate-700">
-                        {currentData.petFitness.vision}
+                        {currentData.petFitness?.vision || "Normal (6/6)"}
                       </span>
                     </div>
                   </div>
