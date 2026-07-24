@@ -94,7 +94,7 @@ export default function LanguageCoachingPage() {
     },
     [studentId, selectedLang, LC]
   );
-  const [progressStats, setProgressStats] = useState<any>({ speaking: 45, reading: 60, listening: 55, writing: 50 });
+  const [progressStats, setProgressStats] = useState<any>({ speaking: 0, reading: 0, listening: 0, writing: 0 });
 
   const loadProgressStats = useCallback(async () => {
     if (!studentId) return;
@@ -172,20 +172,40 @@ export default function LanguageCoachingPage() {
       setIsAnalyzing(true);
       setTimeout(async () => {
         try {
-          const spoken = transcript || targetSentence;
+          if (!transcript || transcript.trim().length < 2) {
+            setSpeakingScore({
+              accuracyScore: 0,
+              wordDiffs: targetSentence.split(/\s+/).map((w: string) => ({ word: w, status: "missed" })),
+              tip: "No speech was detected! Please make sure your microphone is unmuted and speak clearly into the mic."
+            });
+            return;
+          }
           const data = await apiFetch("pronunciation-check", {
             targetSentence: targetSentence,
-            transcript: spoken
+            transcript: transcript
           });
           setSpeakingScore(data);
         } catch {
-          setSpeakingScore({ accuracyScore: Math.floor(Math.random() * 20) + 78, wordDiffs: [], tip: "Great effort! Keep practicing." });
+          // If offline and student actually spoke:
+          const targetWords = targetSentence.toLowerCase().replace(/[^a-z0-9\s]/gi, "").split(/\s+/);
+          const spokenWords = transcript.toLowerCase().replace(/[^a-z0-9\s]/gi, "").split(/\s+/);
+          const wordDiffs = targetWords.map((w: string) => ({
+            word: w,
+            status: spokenWords.includes(w) ? "correct" : "missed"
+          }));
+          const correctCount = wordDiffs.filter((d: any) => d.status === "correct").length;
+          const score = Math.round((correctCount / Math.max(targetWords.length, 1)) * 100);
+          setSpeakingScore({
+            accuracyScore: score,
+            wordDiffs: wordDiffs,
+            tip: score > 70 ? "Good clear speech! Keep practicing." : "Try speaking a bit slower and clearer."
+          });
         } finally {
           setIsAnalyzing(false);
           setTranscript("");
           loadProgressStats();
         }
-      }, 1500);
+      }, 1000);
     } else {
       setSpeakingScore(null);
       setTranscript("");
@@ -261,9 +281,17 @@ export default function LanguageCoachingPage() {
   // ─── Story Reading ────────────────────────────────────────────────────────────
   const [storyData, setStoryData] = useState<any>(null);
   const [storyLoading, setStoryLoading] = useState(false);
+  const [isStoryRecording, setIsStoryRecording] = useState(false);
+  const [storyReadingScore, setStoryReadingScore] = useState<any>(null);
+  const [storyTranscript, setStoryTranscript] = useState("");
+  const storyRecorderRef = useRef<MediaRecorder | null>(null);
+  const storyRecognitionRef = useRef<any>(null);
 
   const loadStory = async () => {
     setStoryLoading(true);
+    setStoryReadingScore(null);
+    setStoryTranscript("");
+    setIsStoryRecording(false);
     try {
       const data = await apiFetch("story", {});
       setStoryData(data);
@@ -271,6 +299,76 @@ export default function LanguageCoachingPage() {
       setStoryData({ title: "The Thirsty Crow", passage: "Once a crow was very thirsty. It found a pot with very little water and used pebbles to raise it to drink. Smart thinking helped it survive!", comprehensionQuestion: "How did the crow get the water?" });
     } finally {
       setStoryLoading(false);
+    }
+  };
+
+  const toggleStoryRecording = async () => {
+    if (!storyData?.passage) return;
+    if (isStoryRecording) {
+      storyRecorderRef.current?.stop();
+      storyRecognitionRef.current?.stop();
+      setIsStoryRecording(false);
+      setIsAnalyzing(true);
+      setTimeout(async () => {
+        try {
+          if (!storyTranscript || storyTranscript.trim().length < 2) {
+            setStoryReadingScore({
+              accuracyScore: 0,
+              wordDiffs: [],
+              tip: "No speech detected! Please speak clearly into the microphone while reading the passage."
+            });
+            return;
+          }
+          const data = await apiFetch("pronunciation-check", {
+            targetSentence: storyData.passage,
+            transcript: storyTranscript
+          });
+          setStoryReadingScore(data);
+        } catch {
+          const targetWords = storyData.passage.toLowerCase().replace(/[^a-z0-9\s]/gi, "").split(/\s+/);
+          const spokenWords = storyTranscript.toLowerCase().replace(/[^a-z0-9\s]/gi, "").split(/\s+/);
+          const wordDiffs = targetWords.slice(0, 30).map((w: string) => ({
+            word: w,
+            status: spokenWords.includes(w) ? "correct" : "missed"
+          }));
+          const correctCount = wordDiffs.filter((d: any) => d.status === "correct").length;
+          const score = Math.round((correctCount / Math.max(wordDiffs.length, 1)) * 100);
+          setStoryReadingScore({
+            accuracyScore: score,
+            wordDiffs: wordDiffs,
+            tip: score > 60 ? "Great story reading! Work on your pacing and expression." : "Read out loud slowly and clearly into the mic."
+          });
+        } finally {
+          setIsAnalyzing(false);
+          setStoryTranscript("");
+          loadProgressStats();
+        }
+      }, 1000);
+    } else {
+      setStoryReadingScore(null);
+      setStoryTranscript("");
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream);
+        recorder.start();
+        storyRecorderRef.current = recorder;
+
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (SpeechRecognition) {
+          const recog = new SpeechRecognition();
+          recog.continuous = true;
+          recog.lang = selectedLang === "Tamil" ? "ta-IN" : "en-US";
+          recog.onresult = (e: any) => {
+            const t = Array.from(e.results).map((r: any) => r[0].transcript).join(" ");
+            setStoryTranscript(t);
+          };
+          recog.start();
+          storyRecognitionRef.current = recog;
+        }
+        setIsStoryRecording(true);
+      } catch {
+        Swal.fire("Error", "Microphone access denied or unavailable.", "error");
+      }
     }
   };
 
@@ -563,10 +661,10 @@ export default function LanguageCoachingPage() {
                   <BarChart className="w-5 h-5 !text-white-400" /> My Progress Dashboard
                 </p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center relative z-10">
-                  <ProgressRing label="Speaking" value={progressStats?.speaking || 45} color="#f43f5e" />
-                  <ProgressRing label="Reading" value={progressStats?.reading || 60} color="#3b82f6" />
-                  <ProgressRing label="Listening" value={progressStats?.listening || 55} color="#eab308" />
-                  <ProgressRing label="Writing" value={progressStats?.writing || 50} color="#10b981" />
+                  <ProgressRing label="Speaking" value={progressStats?.speaking ?? 0} color="#f43f5e" />
+                  <ProgressRing label="Reading" value={progressStats?.reading ?? 0} color="#3b82f6" />
+                  <ProgressRing label="Listening" value={progressStats?.listening ?? 0} color="#eab308" />
+                  <ProgressRing label="Writing" value={progressStats?.writing ?? 0} color="#10b981" />
                 </div>
               </div>
             </section>
@@ -777,11 +875,45 @@ export default function LanguageCoachingPage() {
                         <p className="text-xs font-bold text-blue-700 dark:text-blue-300 flex gap-1"><span>📝 Question:</span> {storyData.comprehensionQuestion}</p>
                       </div>
                     )}
-                    <div className="flex gap-3">
-                      <button onClick={() => speakWord(storyData.passage)} className="bg-blue-50 text-blue-600 font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-100 transition-colors"><Volume2 className="w-4 h-4" /> Listen Story</button>
-                      <button onClick={() => Swal.fire("Great Reading! 🎉", "+20 XP", "success")} className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-2.5 rounded-xl">Mark as Read</button>
-                      <button onClick={loadStory} className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-2.5 rounded-xl font-bold flex items-center gap-1"><RefreshCw className="w-4 h-4" /></button>
+                    <div className="flex flex-wrap gap-3 items-center justify-between">
+                      <div className="flex gap-2">
+                        <button onClick={() => speakWord(storyData.passage)} className="bg-blue-50 text-blue-600 font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-100 transition-colors text-xs">
+                          <Volume2 className="w-4 h-4" /> Listen Audio
+                        </button>
+                        <button onClick={toggleStoryRecording} className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all text-white ${isStoryRecording ? "bg-rose-500 animate-pulse" : "bg-indigo-600 hover:bg-indigo-700 shadow-sm"}`}>
+                          <Mic className="w-4 h-4" /> {isStoryRecording ? "Stop & Grade Speech" : "Read Aloud into Mic 🎤"}
+                        </button>
+                      </div>
+                      <button onClick={loadStory} className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-2.5 rounded-xl font-bold flex items-center gap-1.5 text-xs hover:bg-slate-200 transition-colors">
+                        <RefreshCw className="w-3.5 h-3.5" /> Next Story
+                      </button>
                     </div>
+
+                    {isStoryRecording && (
+                      <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-center animate-pulse">
+                        <p className="text-xs font-bold text-rose-600">🎙️ Recording your reading passage... Read the story out loud clearly into your mic!</p>
+                        {storyTranscript && <p className="text-xs italic text-slate-500 mt-2">&ldquo;{storyTranscript}&rdquo;</p>}
+                      </div>
+                    )}
+
+                    {storyReadingScore && (
+                      <div className="w-full bg-emerald-50 dark:bg-emerald-900/30 border-2 border-emerald-300 p-5 rounded-2xl text-left space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xl font-black text-emerald-700">{storyReadingScore.accuracyScore}% Reading Accuracy</h4>
+                          <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold">+25 XP</span>
+                        </div>
+                        {storyReadingScore.wordDiffs?.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-1">
+                            {storyReadingScore.wordDiffs.map((d: any, i: number) => (
+                              <span key={i} className={`px-2 py-0.5 rounded text-[11px] font-bold ${d.status === "correct" ? "bg-emerald-200 text-emerald-800" : "bg-rose-200 text-rose-800"}`}>
+                                {d.word} {d.status === "correct" ? "✓" : "✗"}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <p className="text-xs text-emerald-700 font-bold">💡 {storyReadingScore.tip}</p>
+                      </div>
+                    )}
                   </>
                 ) : null}
               </div>
