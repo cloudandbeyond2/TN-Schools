@@ -83,7 +83,7 @@ interface PortfolioData {
   skills: { id: string; name: string; level: number; color: string }[];
   projects: { id: string; title: string; category: string; date: string; image: string; tags: string[]; description: string }[];
   achievements: { id: string; title: string; year: string; icon: string; color: string; bg: string }[];
-  marksSummary: { subject: string; examName: string; marksObtained: number; maxMarks: number; remarks: string | null }[];
+  marksSummary?: { subject: string; examName: string; marksObtained: number; maxMarks: number; remarks: string | null }[];
   sports?: {
     stats: { label: string; value: string }[];
     teams: { name: string; role: string; match: string }[];
@@ -435,7 +435,7 @@ export default function TeacherDigitalPortfolioPage() {
   };
 
   // Helper to sync portfolio changes to state & localStorage across all student key aliases
-  const syncToLocalStorage = (updated: PortfolioData) => {
+  const syncToLocalStorage = (updated: any) => {
     setPortfolio(updated);
     if (typeof window !== 'undefined' && selectedStudent) {
       const jsonStr = JSON.stringify(updated);
@@ -484,14 +484,15 @@ export default function TeacherDigitalPortfolioPage() {
         },
         skills: [],
         projects: [],
-        achievements: []
+        achievements: [],
+        marksSummary: []
       };
 
       const updated = {
         ...basePortfolio,
         projects: [newProj, ...(basePortfolio.projects || [])]
       };
-      syncToLocalStorage(updated);
+      syncToLocalStorage(updated as PortfolioData);
 
       setIsAddProjectOpen(false);
       setProjectForm({ title: "", category: "Science & Tech", date: new Date().getFullYear().toString(), tags: "JavaScript, HTML", description: "" });
@@ -535,14 +536,15 @@ export default function TeacherDigitalPortfolioPage() {
         profile: { name: selectedStudent.name },
         skills: [],
         projects: [],
-        achievements: []
+        achievements: [],
+        marksSummary: []
       };
 
       const updated = {
         ...basePortfolio,
         achievements: [newAch, ...(basePortfolio.achievements || [])]
       };
-      syncToLocalStorage(updated);
+      syncToLocalStorage(updated as PortfolioData);
 
       setIsAddAchievementOpen(false);
       setAchievementForm({ title: "", year: new Date().getFullYear().toString(), icon: "trophy" });
@@ -585,7 +587,8 @@ export default function TeacherDigitalPortfolioPage() {
         profile: { name: selectedStudent.name },
         skills: [],
         projects: [],
-        achievements: []
+        achievements: [],
+        marksSummary: []
       };
 
       const updated = {
