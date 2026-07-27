@@ -1,7 +1,7 @@
 "use client";
 
-import { Search, X, MessageCircle, Award } from "lucide-react";
-import Link from "next/link";
+import { Search, X, MessageCircle } from "lucide-react";
+
 
 
 import React, { useState, useEffect } from "react";
@@ -446,13 +446,6 @@ export default function StudentProfilesPage() {
               >
                 {lang === "தமிழ்" ? "மூடுக" : "Close Profile"}
               </button>
-              <Link
-                href={`/student/portfolio?studentId=${selectedStudent.id}`}
-                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md shadow-indigo-600/10"
-              >
-                <Award className="w-4 h-4" />
-                {lang === "தமிழ்" ? "டிஜிட்டல் போர்ட்ஃபோலியோ" : "View Digital Portfolio"}
-              </Link>
               <button className="px-5 py-2.5 bg-[var(--primary)] hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition-colors">
                 <MessageCircle className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "பெற்றோருக்கு செய்தி அனுப்புக" : "Message Parent"}
               </button>

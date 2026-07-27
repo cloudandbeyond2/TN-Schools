@@ -187,6 +187,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   if (
     req.path === '/' ||
     req.path.startsWith('/uploads/') ||
+    req.path.startsWith('/api/portfolio') ||
     req.method === 'OPTIONS' ||
     PUBLIC_PATHS.includes(req.path)
   ) {

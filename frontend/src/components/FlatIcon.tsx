@@ -292,6 +292,66 @@ export function FlatIcon({ name, className = "w-10 h-10" }: FlatIconProps) {
         </svg>
       );
 
+    case "identity":
+    case "profile":
+      // User Profile & ID Card Icon
+      return (
+        <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" fill="#EEF2FF" />
+          <rect x="18" y="16" width="28" height="32" rx="4" fill="#6366F1" />
+          <circle cx="32" cy="28" r="6" fill="#EEF2FF" />
+          <path d="M22 42C22 37.5817 26.4772 34 32 34C37.5228 34 42 37.5817 42 42H22Z" fill="#A5B4FC" />
+        </svg>
+      );
+
+    case "learning":
+    case "academics":
+      // Open Book & Graduation Icon
+      return (
+        <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" fill="#ECFDF5" />
+          <path d="M16 22L32 14L48 22L32 30L16 22Z" fill="#10B981" />
+          <path d="M22 26V34C22 37 26.5 39 32 39C37.5 39 42 37 42 34V26" fill="#059669" />
+          <rect x="44" y="22" width="3" height="12" rx="1" fill="#F59E0B" />
+        </svg>
+      );
+
+    case "experience":
+    case "cocurricular":
+      // Star & Sports Medal Icon
+      return (
+        <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" fill="#FFFBEB" />
+          <circle cx="32" cy="32" r="16" fill="#F59E0B" />
+          <polygon points="32,20 35.5,27 43,28 37.5,33.5 39,41 32,37 25,41 26.5,33.5 21,28 28.5,27" fill="#FEF3C7" />
+        </svg>
+      );
+
+    case "portfoliotab":
+    case "projects":
+      // Folder & Projects Icon
+      return (
+        <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" fill="#F3E8FF" />
+          <path d="M16 24C16 21.7909 17.7909 20 20 20H28L32 24H44C46.2091 24 48 25.7909 48 28V42C48 44.2091 46.2091 46 44 46H20C17.7909 46 16 44.2091 16 42V24Z" fill="#8B5CF6" />
+          <path d="M16 28H48V42C48 44.2091 46.2091 46 44 46H20C17.7909 46 16 44.2091 16 42V28Z" fill="#A855F7" />
+        </svg>
+      );
+
+    case "growth":
+    case "growthjourney":
+    case "timeline":
+      // Ascending Growth Trend & Rocket Icon
+      return (
+        <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" fill="#EFF6FF" />
+          <rect x="18" y="38" width="6" height="12" rx="2" fill="#93C5FD" />
+          <rect x="28" y="30" width="6" height="20" rx="2" fill="#60A5FA" />
+          <rect x="38" y="20" width="6" height="30" rx="2" fill="#2563EB" />
+          <path d="M16 34L26 26L34 30L46 16" stroke="#3B82F6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+
     default:
       return (
         <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -46,7 +46,12 @@ const queryIncludes = {
           project: true
         }
       },
-      schoolPressActivities: true
+      schoolPressActivities: true,
+      parentLinks: {
+        include: {
+          parent: true
+        }
+      }
     }
   }
 };
@@ -56,18 +61,47 @@ router.get('/:studentId', async (req: Request, res: Response) => {
   try {
     const { studentId } = req.params;
 
-    let portfolio = await prisma.portfolio.findUnique({
+    let portfolio: any = await prisma.portfolio.findUnique({
       where: { studentId },
-      include: queryIncludes
+      include: queryIncludes as any
     });
+
+    // If studentId is not a direct portfolio ID, try searching by Student EMIS, Roll Number, or Name
+    if (!portfolio) {
+      const studentMatch = await prisma.student.findFirst({
+        where: {
+          OR: [
+            { id: studentId },
+            { emisNumber: studentId },
+            { rollNumber: studentId },
+            { user: { name: { contains: studentId, mode: 'insensitive' } } }
+          ]
+        }
+      });
+      if (studentMatch) {
+        portfolio = await prisma.portfolio.findUnique({
+          where: { studentId: studentMatch.id },
+          include: queryIncludes as any
+        });
+      }
+    }
 
     // If portfolio doesn't exist but student exists, initialize one automatically
     if (!portfolio && studentId !== 'demo-student') {
-      const studentExists = await prisma.student.findUnique({ where: { id: studentId } });
+      const studentExists = await prisma.student.findFirst({
+        where: {
+          OR: [
+            { id: studentId },
+            { emisNumber: studentId },
+            { rollNumber: studentId },
+            { user: { name: { contains: studentId, mode: 'insensitive' } } }
+          ]
+        }
+      });
       if (studentExists) {
         portfolio = await prisma.portfolio.create({
           data: {
-            studentId,
+            studentId: studentExists.id,
             bio: JSON.stringify({
               bioText: "Welcome to my digital portfolio!",
               strengths: ["Fast learner", "Team player"],
@@ -80,25 +114,14 @@ router.get('/:studentId', async (req: Request, res: Response) => {
               subjectInterests: ["Environmental Science", "Mathematics", "Tamil Literature"],
               talentPrep: ["NTSE Prep Active", "SSLC Target 95%+", "JEE Mock Target Active"],
               communicationRole: "Speaker / Lead",
-              teacherEndorsement: "Shows remarkable logical clarity and deep engagement in computer education. The programming model built for the science exhibition was excellent.",
-              teacherName: "Mrs. Abirami",
-              parentEndorsement: "Exhibits great dedication to self-study and maintains an excellent balance between sports and math homework goals.",
-              parentName: "Mr. Balasubramanian"
+              teacherEndorsement: "Shows remarkable logical clarity and deep engagement in computer education.",
+              teacherName: "M. Kalai",
+              parentEndorsement: "Exhibits great dedication to self-study.",
+              parentName: "DevanDevi"
             }),
             stream: "General"
           },
-          include: queryIncludes
-        });
-      }
-    }
-
-    // If a specific student's portfolio isn't found, try to fetch the first demo student's portfolio
-    if (!portfolio) {
-      const demoStudent = await prisma.student.findFirst();
-      if (demoStudent) {
-        portfolio = await prisma.portfolio.findUnique({
-          where: { studentId: demoStudent.id },
-          include: queryIncludes
+          include: queryIncludes as any
         });
       }
     }
@@ -111,13 +134,17 @@ router.get('/:studentId', async (req: Request, res: Response) => {
       where: { id: portfolio.student.userId }
     });
 
+    const student = portfolio.student as any;
+    const parentLinkUser = student.parentLinks?.[0]?.parent?.user?.name;
+    const dynamicParentName = student.parentName || student.fatherName || student.motherName || parentLinkUser || "Parent / Guardian";
+
     // Parse the JSON bio to extract SWOT, leadership, vocational, and language skills
     let bioData = {
       bioText: portfolio.bio || "Welcome to my digital portfolio!",
       strengths: [] as string[],
       areasOfGrowth: [] as string[],
       termGoals: [] as string[],
-      leadershipRoles: [] as string[],
+      leadershipRoles: ["Class Representative", "Science Club Secretary", "Sports House Captain", "Eco Club Member"] as string[],
       vocationalSkills: [] as string[],
       languageFluency: {} as Record<string, string>,
       careerGoal: "Engineering (Computer Science & AI)",
@@ -127,19 +154,20 @@ router.get('/:studentId', async (req: Request, res: Response) => {
       teacherEndorsement: "Shows remarkable logical clarity and deep engagement in computer education. The programming model built for the science exhibition was excellent.",
       teacherName: "Mrs. Abirami",
       parentEndorsement: "Exhibits great dedication to self-study and maintains an excellent balance between sports and math homework goals.",
-      parentName: "Mr. Balasubramanian"
+      parentName: dynamicParentName
     };
 
     if (portfolio.bio) {
       try {
         if (portfolio.bio.trim().startsWith('{')) {
           const parsed = JSON.parse(portfolio.bio);
+          const cleanParentName = (parsed.parentName && parsed.parentName !== "Mr. Balasubramanian") ? parsed.parentName : dynamicParentName;
           bioData = {
             bioText: parsed.bioText || "Welcome to my digital portfolio!",
             strengths: parsed.strengths || [],
             areasOfGrowth: parsed.areasOfGrowth || [],
             termGoals: parsed.termGoals || [],
-            leadershipRoles: parsed.leadershipRoles || [],
+            leadershipRoles: (Array.isArray(parsed.leadershipRoles) && parsed.leadershipRoles.length > 0) ? parsed.leadershipRoles : ["Class Representative", "Science Club Secretary", "Sports House Captain", "Eco Club Member"],
             vocationalSkills: parsed.vocationalSkills || [],
             languageFluency: parsed.languageFluency || {},
             careerGoal: parsed.careerGoal || "Engineering (Computer Science & AI)",
@@ -149,7 +177,7 @@ router.get('/:studentId', async (req: Request, res: Response) => {
             teacherEndorsement: parsed.teacherEndorsement || "Shows remarkable logical clarity and deep engagement in computer education. The programming model built for the science exhibition was excellent.",
             teacherName: parsed.teacherName || "Mrs. Abirami",
             parentEndorsement: parsed.parentEndorsement || "Exhibits great dedication to self-study and maintains an excellent balance between sports and math homework goals.",
-            parentName: parsed.parentName || "Mr. Balasubramanian"
+            parentName: cleanParentName
           };
         }
       } catch (e) {
@@ -160,7 +188,7 @@ router.get('/:studentId', async (req: Request, res: Response) => {
     // Calculate attendance percentage
     const attendanceRecords = portfolio.student.attendance || [];
     const totalDays = attendanceRecords.length;
-    const presentDays = attendanceRecords.filter(r => r.status === 'PRESENT').length;
+    const presentDays = attendanceRecords.filter((r: any) => r.status === 'PRESENT').length;
     const attendanceRate = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 92; // Default to 92 if no records
 
     // Format student record integrations
@@ -198,7 +226,7 @@ router.get('/:studentId', async (req: Request, res: Response) => {
       skills: portfolio.skills,
       projects: portfolio.projects,
       achievements: portfolio.achievements,
-      clubs: portfolio.student.clubMembers.map(cm => ({
+      clubs: portfolio.student.clubMembers.map((cm: any) => ({
         name: cm.club.name,
         role: cm.role,
         category: cm.club.category,
@@ -212,31 +240,31 @@ router.get('/:studentId', async (req: Request, res: Response) => {
         events: portfolio.student.sportsProfile.events
       } : null,
       socialActivities: portfolio.student.socialActivities,
-      marksSummary: portfolio.student.marks.map(m => ({
+      marksSummary: portfolio.student.marks.map((m: any) => ({
         subject: m.subject,
         examName: m.examType,
         marksObtained: m.scored,
         maxMarks: m.maxMarks,
         remarks: m.grade
       })),
-      scholarships: portfolio.student.scholarships.map(s => ({
+      scholarships: portfolio.student.scholarships.map((s: any) => ({
         name: s.scheme,
         amount: s.amount,
         status: s.status,
         academicYear: s.createdAt.getFullYear().toString()
       })),
-      labAttempts: portfolio.student.labAttempts.map(la => ({
+      labAttempts: portfolio.student.labAttempts.map((la: any) => ({
         experimentTitle: la.experiment.title,
         completed: la.completed,
         score: la.score,
         date: la.createdAt
       })),
-      readingProgress: portfolio.student.readingProgress.map(rp => ({
+      readingProgress: portfolio.student.readingProgress.map((rp: any) => ({
         chapterTitle: rp.chapter.title,
         pagesRead: rp.pagesRead,
         completed: rp.completed
       })),
-      schoolPress: portfolio.student.schoolPressActivities.map(sp => ({
+      schoolPress: portfolio.student.schoolPressActivities.map((sp: any) => ({
         activityType: "Press Article",
         description: sp.description,
         points: sp.isApproved ? 20 : 5,
@@ -254,34 +282,38 @@ router.get('/:studentId', async (req: Request, res: Response) => {
 // POST /api/portfolio — Create or update portfolio details (bio, stream, SWOT, extra fields)
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { studentId, bio, stream, strengths, areasOfGrowth, termGoals, leadershipRoles, vocationalSkills, languageFluency, careerGoal, subjectInterests, talentPrep, communicationRole, teacherEndorsement, teacherName, parentEndorsement, parentName } = req.body;
+    const { studentId, bio, stream, strengths, areasOfGrowth, termGoals, leadershipRoles, vocationalSkills, languageFluency, languages, careerGoal, subjectInterests, talentPrep, communicationRole, teacherEndorsement, teacherName, parentEndorsement, parentName } = req.body;
     
-    // Create the bio JSON if complex fields are provided
-    let bioString = bio;
-    if (strengths || areasOfGrowth || termGoals || leadershipRoles || vocationalSkills || languageFluency || careerGoal || subjectInterests || talentPrep || communicationRole || teacherEndorsement || teacherName || parentEndorsement || parentName) {
-      bioString = JSON.stringify({
-        bioText: bio || "Welcome to my digital portfolio!",
-        strengths: strengths || [],
-        areasOfGrowth: areasOfGrowth || [],
-        termGoals: termGoals || [],
-        leadershipRoles: leadershipRoles || [],
-        vocationalSkills: vocationalSkills || [],
-        languageFluency: languageFluency || {},
-        careerGoal: careerGoal || "Engineering (Computer Science & AI)",
-        subjectInterests: subjectInterests || ["Environmental Science", "Mathematics", "Tamil Literature"],
-        talentPrep: talentPrep || ["NTSE Prep Active", "SSLC Target 95%+", "JEE Mock Target Active"],
-        communicationRole: communicationRole || "Speaker / Lead",
-        teacherEndorsement: teacherEndorsement || "Shows remarkable logical clarity and deep engagement in computer education. The programming model built for the science exhibition was excellent.",
-        teacherName: teacherName || "Mrs. Abirami",
-        parentEndorsement: parentEndorsement || "Exhibits great dedication to self-study and maintains an excellent balance between sports and math homework goals.",
-        parentName: parentName || "Mr. Balasubramanian"
-      });
+    // Find existing portfolio to merge bio JSON cleanly
+    const existing = await prisma.portfolio.findUnique({ where: { studentId } });
+    let existingBioObj: any = {};
+    if (existing?.bio && existing.bio.trim().startsWith('{')) {
+      try { existingBioObj = JSON.parse(existing.bio); } catch {}
     }
+
+    const mergedBio = JSON.stringify({
+      bioText: bio !== undefined ? bio : (existingBioObj.bioText || "Welcome to my digital portfolio!"),
+      strengths: strengths !== undefined ? strengths : (existingBioObj.strengths || []),
+      areasOfGrowth: areasOfGrowth !== undefined ? areasOfGrowth : (existingBioObj.areasOfGrowth || []),
+      termGoals: termGoals !== undefined ? termGoals : (existingBioObj.termGoals || []),
+      leadershipRoles: leadershipRoles !== undefined ? leadershipRoles : (existingBioObj.leadershipRoles || ["Class Representative", "Science Club Secretary", "Sports House Captain", "Eco Club Member"]),
+      vocationalSkills: vocationalSkills !== undefined ? vocationalSkills : (existingBioObj.vocationalSkills || []),
+      languageFluency: languageFluency !== undefined ? languageFluency : (existingBioObj.languageFluency || {}),
+      languages: languages !== undefined ? languages : (existingBioObj.languages || []),
+      careerGoal: careerGoal !== undefined ? careerGoal : (existingBioObj.careerGoal || "Engineering (Computer Science & AI)"),
+      subjectInterests: subjectInterests !== undefined ? subjectInterests : (existingBioObj.subjectInterests || ["Environmental Science", "Mathematics", "Tamil Literature"]),
+      talentPrep: talentPrep !== undefined ? talentPrep : (existingBioObj.talentPrep || ["NTSE Prep Active", "SSLC Target 95%+", "JEE Mock Target Active"]),
+      communicationRole: communicationRole !== undefined ? communicationRole : (existingBioObj.communicationRole || "Speaker / Lead"),
+      teacherEndorsement: teacherEndorsement !== undefined ? teacherEndorsement : (existingBioObj.teacherEndorsement || "Shows remarkable logical clarity and deep engagement in computer education."),
+      teacherName: teacherName !== undefined ? teacherName : (existingBioObj.teacherName || "kalai"),
+      parentEndorsement: parentEndorsement !== undefined ? parentEndorsement : (existingBioObj.parentEndorsement || "Exhibits great dedication to self-study."),
+      parentName: parentName !== undefined ? parentName : (existingBioObj.parentName || "DevanDevi")
+    });
 
     const portfolio = await prisma.portfolio.upsert({
       where: { studentId },
-      update: { bio: bioString, stream },
-      create: { studentId, bio: bioString, stream }
+      update: { bio: mergedBio, stream },
+      create: { studentId, bio: mergedBio, stream }
     });
 
     res.json({ success: true, data: portfolio });
@@ -296,7 +328,36 @@ router.post('/:studentId/skills', async (req: Request, res: Response) => {
     const { studentId } = req.params;
     const { name, level, color } = req.body;
 
-    const portfolio = await prisma.portfolio.findUnique({ where: { studentId } });
+    let portfolio = await prisma.portfolio.findFirst({
+      where: {
+        OR: [
+          { studentId },
+          { student: { id: studentId } },
+          { student: { emisNumber: studentId } },
+          { student: { rollNumber: studentId } },
+          { student: { user: { name: { contains: studentId, mode: 'insensitive' } } } }
+        ]
+      }
+    });
+
+    if (!portfolio) {
+      const studentMatch = await prisma.student.findFirst({
+        where: {
+          OR: [
+            { id: studentId },
+            { emisNumber: studentId },
+            { rollNumber: studentId },
+            { user: { name: { contains: studentId, mode: 'insensitive' } } }
+          ]
+        }
+      });
+      if (studentMatch) {
+        portfolio = await prisma.portfolio.create({
+          data: { studentId: studentMatch.id, bio: JSON.stringify({ bioText: "Welcome to my digital portfolio!" }), stream: "General" }
+        });
+      }
+    }
+
     if (!portfolio) {
       return res.status(404).json({ success: false, error: 'Portfolio not found' });
     }
@@ -304,9 +365,9 @@ router.post('/:studentId/skills', async (req: Request, res: Response) => {
     const newSkill = await prisma.portfolioSkill.create({
       data: {
         portfolioId: portfolio.id,
-        name,
-        level: parseInt(level),
-        color
+        name: name || "General Competency",
+        level: parseInt(level) || 75,
+        color: color || "from-indigo-500 to-purple-500"
       }
     });
 
@@ -337,7 +398,36 @@ router.post('/:studentId/projects', async (req: Request, res: Response) => {
     const { studentId } = req.params;
     const { title, category, date, image, tags, description } = req.body;
 
-    const portfolio = await prisma.portfolio.findUnique({ where: { studentId } });
+    let portfolio = await prisma.portfolio.findFirst({
+      where: {
+        OR: [
+          { studentId },
+          { student: { id: studentId } },
+          { student: { emisNumber: studentId } },
+          { student: { rollNumber: studentId } },
+          { student: { user: { name: { contains: studentId, mode: 'insensitive' } } } }
+        ]
+      }
+    });
+
+    if (!portfolio) {
+      const studentMatch = await prisma.student.findFirst({
+        where: {
+          OR: [
+            { id: studentId },
+            { emisNumber: studentId },
+            { rollNumber: studentId },
+            { user: { name: { contains: studentId, mode: 'insensitive' } } }
+          ]
+        }
+      });
+      if (studentMatch) {
+        portfolio = await prisma.portfolio.create({
+          data: { studentId: studentMatch.id, bio: JSON.stringify({ bioText: "Welcome to my digital portfolio!" }), stream: "General" }
+        });
+      }
+    }
+
     if (!portfolio) {
       return res.status(404).json({ success: false, error: 'Portfolio not found' });
     }
@@ -345,12 +435,12 @@ router.post('/:studentId/projects', async (req: Request, res: Response) => {
     const newProject = await prisma.portfolioProject.create({
       data: {
         portfolioId: portfolio.id,
-        title,
-        category,
-        date,
-        image,
-        tags: Array.isArray(tags) ? tags : [tags],
-        description
+        title: title || "New Project",
+        category: category || "Science & Tech",
+        date: date || new Date().getFullYear().toString(),
+        image: image || "code",
+        tags: Array.isArray(tags) ? tags : (tags ? [tags] : ["Science"]),
+        description: description || ""
       }
     });
 

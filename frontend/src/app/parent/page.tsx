@@ -395,6 +395,36 @@ export default function ParentDashboard() {
         </div>
       )}
 
+      {/* ── Parent Digital Portfolio Banner ── */}
+      {activeChild && (
+        <div className="bg-white dark:bg-slate-900/60 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-5 md:p-6 mb-6 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0 border border-purple-500/20">
+              <i className="fi fi-rr-document-signed text-xl"></i>
+            </div>
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                Child Digital Portfolio & Parent Reflection
+                <span className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full font-bold border border-purple-500/20">
+                  NEW
+                </span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                View 360° achievements & log official Home Learning remarks & Verified Parent Signature Stamps.
+              </p>
+            </div>
+          </div>
+          <Link
+            href={`/parent/portfolio${activeChild?.studentId ? `?studentId=${activeChild.studentId}` : ""}`}
+            className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-extrabold rounded-xl text-xs flex items-center gap-2 transition-all shadow-md hover:shadow-purple-500/30 shrink-0"
+          >
+            <i className="fi fi-rr-portrait text-sm"></i>
+            <span>Open Portfolio & Sign Remarks</span>
+            <i className="fi fi-rr-arrow-right text-xs"></i>
+          </Link>
+        </div>
+      )}
+
       {/* ── Current Year Academic KPIs ────────────────────────────── */}
       {activeChild && (
         <div className="bg-slate-50 dark:bg-slate-950/20 border border-slate-205 dark:border-slate-800/80 rounded-2xl p-5 mb-6 shadow-md">

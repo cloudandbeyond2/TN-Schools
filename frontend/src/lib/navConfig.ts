@@ -421,6 +421,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // Student Management
       { label: "Student Management", href: "#", icon: "" },
       { label: "Student Profiles", href: "/teacher/student-profiles", icon: "User" },
+      { label: "Digital Portfolio", href: "/teacher/portfolio", icon: "FolderOpen" },
       { label: "Student Status", href: "/teacher/student-status", icon: "TrendingUp" },
       { label: "Homework Manager", href: "/teacher/homework", icon: "Check" },
       { label: "Scholarship Details", href: "/teacher/scholarships", icon: "GraduationCap" },
@@ -511,6 +512,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Govt Scheme Management", href: "/headmaster/gov-schemes", icon: "fi fi-rr-bank" },
 
       { label: "Extra Curricular & Info", href: "#", icon: "" },
+      { label: "Digital Portfolio", href: "/headmaster/portfolio", icon: "fi fi-rr-folder" },
       { label: "Public Portal Page", href: "/headmaster/portal", icon: "fi fi-rr-globe" },
       { label: "School Events", href: "/headmaster/events", icon: "fi fi-rr-party-horn" },
       { label: "Celebrations", href: "/headmaster/celebrations", icon: "fi fi-rr-party-horn" },
