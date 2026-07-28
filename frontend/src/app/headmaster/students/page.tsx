@@ -1928,14 +1928,7 @@ export default function StudentsMonitoringPage() {
                           </div>
                         </div>
 
-                        <Link
-                          href={`/student/portfolio?studentId=${editingStudentId}`}
-                          className="w-full mt-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5"
-                          onClick={() => setIsModalOpen(false)}
-                        >
-                          <GraduationCap className="w-4 h-4" />
-                          {lang === "தமிழ்" ? "டிஜிட்டல் போர்ட்ஃபோலியோ" : "View Digital Portfolio"}
-                        </Link>
+
                       </div>
 
                       {/* Right Column: Tabbed Details */}
