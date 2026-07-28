@@ -56,6 +56,16 @@ interface ChatMessage {
   content: string;
 }
 
+// Intelligence Studio tools — colorful Flaticon tiles
+const studioTools = [
+  { id: "slides", label: "Slide Deck", icon: "fi-sr-diagram-project", desc: "Interactive concept slides", chip: "from-blue-500 to-indigo-600" },
+  { id: "visualExplain", label: "Infographic", icon: "fi-sr-chart-histogram", desc: "Interactive visual mapping", chip: "from-emerald-500 to-teal-600" },
+  { id: "podcast", label: "Audio Podcast", icon: "fi-sr-comments", desc: "AI generated host summary", chip: "from-amber-500 to-orange-600" },
+  { id: "video", label: "Generate Video", icon: "fi-sr-film", desc: "Animated lecture simulation", chip: "from-rose-500 to-pink-600" },
+  { id: "bilingual", label: "Bilingual Glossary", icon: "fi-sr-globe", desc: "Tamil translation matrix", chip: "from-violet-500 to-purple-600" },
+  { id: "assessment", label: "Exit Tickets", icon: "fi-sr-checkbox", desc: "Quick assessment MCQs", chip: "from-sky-500 to-indigo-600" },
+] as const;
+
 export default function StudyPlanPage() {
   const { data: session } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -72,39 +82,9 @@ export default function StudyPlanPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<StudyPlan | null>(null);
 
-  // Intelligence Studio Tool Modals
-  const [activeStudioTool, setActiveStudioTool] = useState<
-    | "unit-infographic"
-    | "unit-audio"
-    | "unit-quiz"
-    | "visualExplain"
-    | "teacher-slides"
-    | "teacher-podcast"
-    | "teacher-video"
-    | "teacher-bilingual"
-    | "teacher-assessment"
-    | null
-  >(null);
-  const [activeUnit, setActiveUnit] = useState<Unit | null>(null);
-
-  // Audio Guide state
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [audioLineIndex, setAudioLineIndex] = useState(-1);
-
   // Teacher plan integration states
   const [teacherPlans, setTeacherPlans] = useState<any[]>([]);
   const [loadingTeacherPlans, setLoadingTeacherPlans] = useState(false);
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [slideFullscreen, setSlideFullscreen] = useState(false);
-  const [isPlayingPodcast, setIsPlayingPodcast] = useState(false);
-  const [podcastIndex, setPodcastIndex] = useState(-1);
-  const [videoScene, setVideoScene] = useState(0);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const videoIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Interactive Quiz state per unit-question
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({}); // "unitId-qIdx" -> chosen option
-  const [submittedQuizzes, setSubmittedQuizzes] = useState<Record<string, boolean>>({}); // "unitId-qIdx" -> true/false
 
   // Real-time Chat Tutor state (Middle panel)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -241,20 +221,8 @@ export default function StudyPlanPage() {
     setIsGenerating(true);
     setCurrentPlan(null);
     window.speechSynthesis.cancel();
-    setIsPlayingAudio(false);
-    setAudioLineIndex(-1);
-    setIsPlayingPodcast(false);
-    setPodcastIndex(-1);
-    setIsVideoPlaying(false);
-    if (videoIntervalRef.current) clearInterval(videoIntervalRef.current);
 
     // Reset active states, quiz answers, and chat logs
-    setActiveUnit(null);
-    setActiveStudioTool(null);
-    setActiveSlide(0);
-    setVideoScene(0);
-    setSelectedAnswers({});
-    setSubmittedQuizzes({});
     setChatInput("");
     setChatMessages([]);
 
@@ -291,20 +259,8 @@ export default function StudyPlanPage() {
 
   const loadTeacherPlan = (plan: any) => {
     window.speechSynthesis.cancel();
-    setIsPlayingAudio(false);
-    setAudioLineIndex(-1);
-    setIsPlayingPodcast(false);
-    setPodcastIndex(-1);
-    setIsVideoPlaying(false);
-    if (videoIntervalRef.current) clearInterval(videoIntervalRef.current);
 
     // Reset active unit, active tool modals, quiz states, and slides/video positions
-    setActiveUnit(null);
-    setActiveStudioTool(null);
-    setActiveSlide(0);
-    setVideoScene(0);
-    setSelectedAnswers({});
-    setSubmittedQuizzes({});
     setChatInput("");
 
     // Sync search configuration inputs in sidebar
@@ -355,138 +311,7 @@ export default function StudyPlanPage() {
     });
   };
 
-  // Intelligence Audio Podcast reader via browser SpeechSynthesis
-  const speakPodcast = (script: any[]) => {
-    if (isPlayingPodcast) {
-      window.speechSynthesis.cancel();
-      setIsPlayingPodcast(false);
-      setPodcastIndex(-1);
-      return;
-    }
 
-    setIsPlayingPodcast(true);
-    let index = 0;
-    setPodcastIndex(0);
-
-    const speakNext = () => {
-      if (index >= script.length || !isPlayingPodcast) {
-        setIsPlayingPodcast(false);
-        setPodcastIndex(-1);
-        return;
-      }
-
-      setPodcastIndex(index);
-      const line = script[index];
-      const utterance = new SpeechSynthesisUtterance(line.text);
-      
-      const voices = window.speechSynthesis.getVoices();
-      if (line.speaker.includes("Meera") || line.speaker.includes("Priya")) {
-        const tamilVoice = voices.find(v => v.lang.includes("ta"));
-        const femaleVoice = voices.find(v => v.name.toLowerCase().includes("female") || v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("google US English"));
-        utterance.voice = tamilVoice || femaleVoice || voices[0];
-        utterance.pitch = 1.15;
-        utterance.rate = 0.95;
-      } else {
-        const maleVoice = voices.find(v => v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("google UK English Male"));
-        utterance.voice = maleVoice || voices[0];
-        utterance.pitch = 0.95;
-        utterance.rate = 1.05;
-      }
-
-      utterance.onend = () => {
-        index++;
-        speakNext();
-      };
-
-      utterance.onerror = () => {
-        setIsPlayingPodcast(false);
-        setPodcastIndex(-1);
-      };
-
-      window.speechSynthesis.speak(utterance);
-    };
-
-    speakNext();
-  };
-
-  // Video Storyboard Playback Simulation
-  const toggleVideoPlayback = (storyboard: any[]) => {
-    if (isVideoPlaying) {
-      if (videoIntervalRef.current) clearInterval(videoIntervalRef.current);
-      setIsVideoPlaying(false);
-    } else {
-      setIsVideoPlaying(true);
-      if (videoScene >= storyboard.length) setVideoScene(0);
-      
-      const interval = setInterval(() => {
-        setVideoScene((prev) => {
-          if (prev < storyboard.length - 1) {
-            return prev + 1;
-          } else {
-            clearInterval(interval);
-            setIsVideoPlaying(false);
-            return prev;
-          }
-        });
-      }, 5000);
-      videoIntervalRef.current = interval;
-    }
-  };
-
-  // Web Speech synthesis for audio guides
-  const playAudioGuide = (script: { speaker: string; text: string; lang?: string }[]) => {
-    if (isPlayingAudio) {
-      window.speechSynthesis.cancel();
-      setIsPlayingAudio(false);
-      setAudioLineIndex(-1);
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    setIsPlayingAudio(true);
-    let index = 0;
-    setAudioLineIndex(0);
-
-    const speakNext = () => {
-      if (index >= script.length || !isPlayingAudio) {
-        setIsPlayingAudio(false);
-        setAudioLineIndex(-1);
-        return;
-      }
-
-      setAudioLineIndex(index);
-      const line = script[index];
-      const utterance = new SpeechSynthesisUtterance(line.text);
-      
-      const voices = window.speechSynthesis.getVoices();
-      if (line.speaker.includes("Priya")) {
-        const tamilVoice = voices.find(v => v.lang.includes("ta"));
-        const femaleVoice = voices.find(v => v.name.toLowerCase().includes("female") || v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("google US English"));
-        utterance.voice = tamilVoice || femaleVoice || voices[0];
-        utterance.pitch = 1.15;
-        utterance.rate = 0.95;
-      } else {
-        const maleVoice = voices.find(v => v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("google UK English Male"));
-        utterance.voice = maleVoice || voices[0];
-        utterance.pitch = 0.95;
-        utterance.rate = 1.0;
-      }
-
-      utterance.onend = () => {
-        index++;
-        speakNext();
-      };
-
-      utterance.onerror = () => {
-        setIsPlayingAudio(false);
-        setAudioLineIndex(-1);
-      };
-
-      window.speechSynthesis.speak(utterance);
-    };
-
-    speakNext();
-  };
 
   // AI Tutor chat interaction (Middle panel)
   const handleSendChat = async () => {
@@ -527,7 +352,6 @@ export default function StudyPlanPage() {
 
   useEffect(() => {
     return () => {
-      if (videoIntervalRef.current) clearInterval(videoIntervalRef.current);
       window.speechSynthesis.cancel();
     };
   }, []);
@@ -648,16 +472,44 @@ export default function StudyPlanPage() {
 
                   <hr className="border-slate-200 dark:border-slate-800" />
 
+                  {/* Global Studio Tools */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="text-xl">🎨</span>
+                      <h4 className="text-black dark:text-white font-bold text-sm md:text-base">Studio Tools for {currentPlan.topic}</h4>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {studioTools.map((tool) => (
+                        <div
+                          key={tool.id}
+                          onClick={() => {
+                            window.open(`/student/studio-view?planId=${currentPlan.id}&tool=${tool.id}`, '_blank');
+                          }}
+                          className="group relative p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden text-left flex flex-col cursor-pointer"
+                        >
+                          <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${tool.chip} opacity-5 group-hover:opacity-10 rounded-bl-full -mr-4 -mt-4 transition-all duration-500 group-hover:scale-110`} />
+                          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${tool.chip} flex items-center justify-center text-white text-lg mb-3 shadow-md group-hover:scale-110 transition-transform origin-left`}>
+                            <i className={`fi ${tool.icon} leading-none`} />
+                          </div>
+                          <h6 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1 group-hover:text-indigo-600 transition-colors">{tool.label}</h6>
+                          <p className="text-[10px] text-slate-500 font-medium leading-tight hidden md:block">{tool.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <hr className="border-slate-200 dark:border-slate-800" />
+
                   <div>
                     <h4 className="text-black dark:text-white font-bold text-sm md:text-base mb-4">📖 Course Units</h4>
                     <div className="space-y-3">
                       {currentPlan.units?.map((unit, idx) => (
-                        <div key={unit.id} className="p-4 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3">
-                          <div className="font-sans flex-1">
-                            <span className="font-bold text-slate-800 dark:text-slate-200 block text-sm md:text-base mb-1">{unit.title}</span>
-                            <span className="text-xs md:text-sm text-slate-500 leading-relaxed">{unit.summary.substring(0, 100)}...</span>
+                        <div key={unit.id} className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
+                          <div className="flex justify-between items-start gap-4 mb-2">
+                            <h5 className="font-bold text-slate-800 dark:text-slate-200 text-sm md:text-base">{unit.title}</h5>
+                            <span className="text-xs font-bold text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-md shrink-0">{unit.studyTime}</span>
                           </div>
-                          <span className="text-xs font-bold text-indigo-500 bg-indigo-500/10 px-3 py-1.5 rounded-lg shrink-0 self-start md:self-center">{unit.studyTime}</span>
+                          <p className="text-xs md:text-sm text-slate-500 leading-relaxed">{unit.summary}</p>
                         </div>
                       ))}
                     </div>
@@ -715,737 +567,7 @@ export default function StudyPlanPage() {
             </div>
           )}
         </div>
-
-        {/* Panel 3: Studio Tools list per unit (Right) */}
-        <div className={`w-full xl:w-1/4 xl:border-l border-slate-200 dark:border-slate-800 xl:pl-6 overflow-y-visible xl:overflow-y-auto h-auto xl:h-full space-y-6 scrollbar-thin shrink-0 pb-10 ${mobileTab === 'tools' ? 'block' : 'hidden xl:block'}`}>
-          <h2 className="text-black dark:text-white font-bold text-lg md:text-xl flex items-center gap-2 mb-4 px-1">
-            <span>🎨</span> Studio Tools
-          </h2>
-          
-          {!currentPlan ? (
-            <p className="text-sm text-slate-500 italic px-1 font-sans">Select a lesson to access tools.</p>
-          ) : (
-            <div className="space-y-4">
-              {/* Teacher-assigned Lesson Plan specific tools */}
-              {currentPlan.isTeacherPlan && (
-                <div className="p-3 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-850 rounded-2xl space-y-2">
-                  <div className="text-[10px] font-black text-slate-450 uppercase tracking-widest px-1">Teacher Guidelines</div>
-                  <div className="grid grid-cols-1 gap-1.5">
-                    <button
-                      onClick={() => {
-                        setActiveSlide(0);
-                        setActiveStudioTool("teacher-slides");
-                      }}
-                      className="w-full text-left p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"
-                    >
-                      <span>🖼️</span> Concept Slide Deck
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setPodcastIndex(-1);
-                        setActiveStudioTool("teacher-podcast");
-                      }}
-                      className="w-full text-left p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"
-                    >
-                      <span>🎙️</span> Bilingual Audio Podcast
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setVideoScene(0);
-                        setActiveStudioTool("teacher-video");
-                      }}
-                      className="w-full text-left p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"
-                    >
-                      <span>🎬</span> Generate Video
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveStudioTool("teacher-bilingual");
-                      }}
-                      className="w-full text-left p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"
-                    >
-                      <span>🗣️</span> Bilingual Dictionary
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveStudioTool("teacher-assessment");
-                      }}
-                      className="w-full text-left p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2"
-                    >
-                      <span>🎯</span> Class Exit Tickets
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Grand Topic Infographic Visual Explain */}
-              <div className="p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-850 rounded-2xl space-y-3">
-                <div className="text-xs font-black text-slate-450 uppercase tracking-widest px-1">Grand Overview</div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveUnit(currentPlan.units[0] || null);
-                    setActiveStudioTool("visualExplain");
-                  }}
-                  className="w-full text-left p-3 md:p-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-250 dark:border-indigo-800 hover:border-indigo-500 rounded-xl transition-all text-sm font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-3"
-                >
-                  <span className="text-lg">📊</span> Topic Visual Explain
-                </button>
-              </div>
-
-              {currentPlan.units?.map((unit, idx) => (
-                <div key={unit.id} className="p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-850 rounded-2xl space-y-3">
-                  <div className="text-xs font-black text-slate-450 uppercase tracking-widest px-1">Unit {idx + 1} Tools</div>
-                  <div className="grid grid-cols-1 gap-2">
-                    
-                    <button
-                      onClick={() => {
-                        setActiveUnit(unit);
-                        setActiveStudioTool("unit-infographic");
-                      }}
-                      className="w-full text-left p-3 md:p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-sm md:text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-3 md:gap-2"
-                    >
-                      <span className="text-base">🖼️</span> Infographic Cheat Sheet
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveUnit(unit);
-                        setActiveStudioTool("unit-audio");
-                        setAudioLineIndex(-1);
-                      }}
-                      className="w-full text-left p-3 md:p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-sm md:text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-3 md:gap-2"
-                    >
-                      <span className="text-base">🎙️</span> Audio Buddy Podcast
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveUnit(unit);
-                        setActiveStudioTool("unit-quiz");
-                      }}
-                      className="w-full text-left p-3 md:p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-xl transition-colors text-sm md:text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-3 md:gap-2"
-                    >
-                      <span className="text-base">📝</span> Interactive Quiz Test
-                    </button>
-
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
       </div>
-
-      {/* Studio Tool Overlays */}
-      {activeStudioTool && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 sm:p-8">
-          <div className="w-full max-w-6xl rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-            
-            {/* Header */}
-            <div className="p-5 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
-              <div>
-                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block">
-                  {activeStudioTool === "visualExplain" ? "Grand Overview" : activeUnit?.title || "Lesson Guidelines"}
-                </span>
-                <h3 className="text-white font-black text-sm">
-                  {activeStudioTool === "visualExplain" && "📊 Intelligence Visual Explain"}
-                  {activeStudioTool === "unit-infographic" && "🖼️ Unit Cheat Sheet Infographic"}
-                  {activeStudioTool === "unit-audio" && "🎙️ Intelligence AI Audio Buddy"}
-                  {activeStudioTool === "unit-quiz" && "📝 Interactive mock Quiz"}
-                  {activeStudioTool === "teacher-slides" && "🖼️ Teacher Guideline Slides"}
-                  {activeStudioTool === "teacher-podcast" && "🎙️ Teacher Bilingual Podcast"}
-                  {activeStudioTool === "teacher-video" && "🎬 Generate Video"}
-                  {activeStudioTool === "teacher-bilingual" && "🗣️ Bilingual Vocabulary Dictionary"}
-                  {activeStudioTool === "teacher-assessment" && "🎯 Class Exit Ticket Quiz"}
-                </h3>
-              </div>
-            <div className="flex items-center gap-3 font-sans">
-              {activeStudioTool === "visualExplain" && currentPlan && (
-                <a
-                  href={`/infographic-view?planId=${currentPlan.id || "temp-unsaved"}&topic=${encodeURIComponent(currentPlan.topic)}&subject=${encodeURIComponent(currentPlan.subject)}&role=student`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => {
-                    if (!currentPlan.id || currentPlan.id === "temp-unsaved") {
-                      localStorage.setItem("tempInfographicData", JSON.stringify(currentPlan.planData?.infographic || currentPlan.infographic));
-                    }
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-indigo-650 hover:bg-indigo-700 text-white font-bold text-[10.5px] uppercase tracking-wider transition-colors flex items-center gap-1 shadow-md hover:scale-105"
-                >
-                  ↗️ Open Separate Page
-                </a>
-              )}
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveStudioTool(null);
-                  setActiveUnit(null);
-                  window.speechSynthesis.cancel();
-                  setIsPlayingAudio(false);
-                  setAudioLineIndex(-1);
-                  setIsPlayingPodcast(false);
-                  setPodcastIndex(-1);
-                  setIsVideoPlaying(false);
-                  if (videoIntervalRef.current) clearInterval(videoIntervalRef.current);
-                }}
-                className="w-8 h-8 rounded-full bg-slate-900 hover:bg-red-950/40 text-slate-400 hover:text-red-500 border border-slate-850 flex items-center justify-center font-bold text-sm transition-all"
-              >
-                ✕
-              </button>
-            </div>
-            </div>
-
-            {/* Body */}
-            <div className="p-6 overflow-y-auto flex-1 max-h-[78vh] text-xs">
-              
-              {/* Visual Infographic Tool */}
-              {activeStudioTool === "visualExplain" && currentPlan && (
-                <InteractiveInfographic 
-                  key={currentPlan.topic}
-                  topic={currentPlan.topic} 
-                  subject={currentPlan.subject} 
-                  data={currentPlan.infographic} 
-                />
-              )}
-
-              {/* Teacher Slides Tool */}
-              {activeStudioTool === "teacher-slides" && currentPlan && (
-                <div className="space-y-4 flex flex-col justify-between h-full">
-                  {(() => {
-                    const slides = currentPlan.slides || ([
-                      {
-                        title: "Introduction",
-                        subtitle: "Concept Overview",
-                        bullets: ["Topic summary details"],
-                        graphicType: "concept",
-                        graphicData: { label: "Steps", values: ["Learn", "Practice"] }
-                      }
-                    ] as any[]);
-                    const slide = slides[activeSlide] || slides[0];
-                    const slideNum = activeSlide + 1;
-                    const totalSlides = slides.length;
-
-                    // Slide color accent based on slide index
-                    const accentPalette = [
-                      { from: "from-blue-600", to: "to-indigo-600", text: "text-blue-700", border: "border-blue-200", badge: "bg-blue-600" },
-                      { from: "from-emerald-600", to: "to-teal-600", text: "text-emerald-700", border: "border-emerald-200", badge: "bg-emerald-600" },
-                      { from: "from-violet-600", to: "to-purple-600", text: "text-violet-700", border: "border-violet-200", badge: "bg-violet-600" },
-                      { from: "from-rose-600", to: "to-pink-600", text: "text-rose-700", border: "border-rose-200", badge: "bg-rose-600" },
-                      { from: "from-amber-500", to: "to-orange-600", text: "text-amber-700", border: "border-amber-200", badge: "bg-amber-500" },
-                    ];
-                    const accent = accentPalette[activeSlide % accentPalette.length];
-
-                    const SlideCard = (
-                      <div className="flex flex-col gap-0 flex-grow">
-                        {/* Premium Slide Card */}
-                        <div className={`relative bg-white rounded-3xl shadow-[0_12px_50px_rgba(15,23,42,0.10)] border border-slate-100 overflow-hidden flex flex-col ${slideFullscreen ? "min-h-[calc(100vh-180px)]" : "min-h-[400px]"}`}>
-                          {/* Gradient accent top bar */}
-                          <div className={`h-1.5 w-full bg-gradient-to-r ${accent.from} ${accent.to}`} />
-
-                          {/* Slide top meta */}
-                          <div className="flex items-center justify-between px-6 pt-4 pb-2">
-                            <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white ${accent.badge}`}>
-                              Slide {slideNum} / {totalSlides}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{currentPlan.subject} · {currentPlan.grade}</span>
-                              <button
-                                type="button"
-                                title={slideFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-                                onClick={() => setSlideFullscreen(f => !f)}
-                                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-sm transition-all"
-                              >
-                                &#x26F6;
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Divider */}
-                          <div className="h-px bg-gradient-to-r from-transparent via-slate-100 to-transparent mx-6" />
-
-                          {/* Slide main content */}
-                          <div className="flex flex-col md:flex-row gap-0 flex-1 overflow-hidden">
-                            {/* Left: Title + Bullets */}
-                            <div className="flex-1 p-6 md:p-8 flex flex-col justify-start gap-5">
-                              <div>
-                                <h4 className="font-black text-xl md:text-2xl leading-snug font-tamil text-slate-900 mb-1">
-                                  {slide.title}
-                                </h4>
-                                <p className={`text-sm font-semibold ${accent.text} uppercase tracking-wider`}>
-                                  {slide.subtitle || "Concept Overview"}
-                                </p>
-                              </div>
-
-                              <ul className="space-y-2.5 font-sans">
-                                {slide.bullets?.map((bullet: string, idx: number) => (
-                                  <li key={idx} className="flex items-start gap-3 text-slate-700 text-sm">
-                                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-black shrink-0 mt-0.5 bg-gradient-to-br ${accent.from} ${accent.to}`}>{idx + 1}</span>
-                                    <span className="leading-relaxed">{bullet}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            {/* Right: Visual Infographic Panel */}
-                            <div className="w-full md:w-72 bg-gradient-to-br from-slate-50 to-blue-50/40 border-l border-slate-100 flex flex-col gap-2 p-4 shrink-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className={`w-6 h-6 rounded-md flex items-center justify-center text-white text-xs bg-gradient-to-br ${accent.from} ${accent.to}`}>📊</span>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Visual Infographic</span>
-                              </div>
-                              <div className="flex-1 min-h-[180px]">
-                                <SlideVisual
-                                  graphicType={slide.graphicType}
-                                  graphicData={slide.graphicData}
-                                  illustrationPrompt={slide.illustrationPrompt}
-                                  animationSuggestion={slide.animationSuggestion}
-                                  title={slide.title}
-                                  subtitle={slide.subtitle}
-                                  accent={accent}
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Footer: Study Notes + Practice Task */}
-                          {(slide.teacherNotes || slide.studentActivity) && (
-                            <div className="border-t border-slate-100 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-100">
-                              {slide.teacherNotes && (
-                                <div className="flex-1 p-4 flex gap-3">
-                                  <div className="w-1 rounded-full bg-emerald-500 shrink-0" />
-                                  <div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 block mb-0.5">📚 Study Notes</span>
-                                    <p className="text-xs text-slate-600 leading-relaxed">{slide.teacherNotes}</p>
-                                  </div>
-                                </div>
-                              )}
-                              {slide.studentActivity && (
-                                <div className="flex-1 p-4 flex gap-3">
-                                  <div className="w-1 rounded-full bg-indigo-500 shrink-0" />
-                                  <div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 block mb-0.5">✍️ Practice Task</span>
-                                    <p className="text-xs text-slate-600 leading-relaxed">{slide.studentActivity}</p>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Watermark */}
-                          <div className="absolute bottom-3 right-5 text-slate-200 font-black text-[10px] uppercase tracking-widest select-none pointer-events-none">
-                            Intelligence Studio
-                          </div>
-                        </div>
-
-                        {/* Navigation */}
-                        <div className="flex items-center justify-between gap-3 mt-4 px-1">
-                          <button
-                            type="button"
-                            disabled={activeSlide === 0}
-                            onClick={() => setActiveSlide((p) => p - 1)}
-                            className="px-4 py-2 rounded-xl font-bold text-xs bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 shadow-sm disabled:opacity-30 disabled:pointer-events-none transition-all"
-                          >
-                            ← Previous
-                          </button>
-
-                          {/* Slide thumbnail pills */}
-                          <div className="flex items-center gap-1 flex-wrap justify-center flex-1">
-                            {slides.map((_: any, i: number) => (
-                              <button
-                                key={i}
-                                type="button"
-                                onClick={() => setActiveSlide(i)}
-                                className={`h-2 rounded-full transition-all duration-200 ${
-                                  i === activeSlide
-                                    ? `w-6 bg-gradient-to-r ${accent.from} ${accent.to}`
-                                    : "w-2 bg-slate-200 hover:bg-slate-300"
-                                }`}
-                                title={`Slide ${i + 1}`}
-                              />
-                            ))}
-                          </div>
-
-                          <button
-                            type="button"
-                            disabled={activeSlide === totalSlides - 1}
-                            onClick={() => setActiveSlide((p) => p + 1)}
-                            className="px-4 py-2 rounded-xl font-bold text-xs bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 shadow-sm disabled:opacity-30 disabled:pointer-events-none transition-all"
-                          >
-                            Next →
-                          </button>
-                        </div>
-                      </div>
-                    );
-
-                    return slideFullscreen ? (
-                      <div className="fixed inset-0 z-[999] bg-gradient-to-br from-slate-100 via-white to-blue-50 flex flex-col p-6 overflow-y-auto">
-                        <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col">
-                          <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-slate-800 font-black text-sm uppercase tracking-widest">🖼️ Slide Deck · {currentPlan.topic}</h2>
-                            <button
-                              type="button"
-                              onClick={() => setSlideFullscreen(false)}
-                              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-700 transition-all"
-                            >✕ Exit Fullscreen</button>
-                          </div>
-                          {SlideCard}
-                        </div>
-                      </div>
-                    ) : SlideCard;
-                  })()}
-                </div>
-              )}
-
-              {/* Teacher Podcast Tool */}
-              {activeStudioTool === "teacher-podcast" && currentPlan && (
-                <div className="space-y-4">
-                  {(() => {
-                    const podcast = currentPlan.podcast || {
-                      hosts: ["Aravind", "Meera"],
-                      script: [{ speaker: "Aravind", text: "Ready?", lang: "en" }]
-                    };
-
-                    return (
-                      <div className="space-y-4">
-                        <div className="p-4 rounded-xl bg-slate-950 border border-slate-850 flex items-center justify-between">
-                          <div className="flex gap-3">
-                            <div className="flex -space-x-2 shrink-0">
-                              <div className="w-8 h-8 rounded-full bg-indigo-600 border border-slate-950 flex items-center justify-center text-xs">👨‍🏫</div>
-                              <div className="w-8 h-8 rounded-full bg-rose-600 border border-slate-950 flex items-center justify-center text-xs">👩‍🏫</div>
-                            </div>
-                            <div>
-                              <h4 className="text-white font-bold text-xs leading-tight">Intelligence AI Podcast Player</h4>
-                              <p className="text-[9px] text-slate-500">Hosts: {podcast.hosts?.join(" & ")}</p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            {isPlayingPodcast && (
-                              <div className="flex gap-0.5 items-end h-5 w-10 mr-1 shrink-0">
-                                <div className="bg-amber-500 w-0.5 rounded-sm animate-pulse h-2" style={{ animationDuration: "0.5s" }} />
-                                <div className="bg-amber-500 w-0.5 rounded-sm animate-pulse h-4" style={{ animationDuration: "0.7s" }} />
-                                <div className="bg-amber-500 w-0.5 rounded-sm animate-pulse h-1" style={{ animationDuration: "0.3s" }} />
-                                <div className="bg-amber-500 w-0.5 rounded-sm animate-pulse h-5" style={{ animationDuration: "0.8s" }} />
-                              </div>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => speakPodcast(podcast.script)}
-                              className={`px-3 py-1.5 rounded-xl font-bold text-[11px] text-white transition-all ${isPlayingPodcast ? "bg-red-650 hover:bg-red-700" : "bg-amber-500 hover:bg-amber-600"}`}
-                            >
-                              {isPlayingPodcast ? "⏹ Stop Podcast" : "🎙 Play AI Podcast"}
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2.5 max-h-[280px] overflow-y-auto bg-slate-950/40 p-4 rounded-xl border border-slate-850">
-                          {podcast.script?.map((line: any, idx: number) => (
-                            <div
-                              key={idx}
-                              className={`p-2.5 rounded-xl border transition-all ${
-                                podcastIndex === idx
-                                  ? "bg-amber-500/10 border-amber-500/40 text-white"
-                                  : "bg-slate-950 border-slate-850 text-slate-400"
-                              }`}
-                            >
-                              <div className="flex justify-between items-center mb-1 font-sans">
-                                <span className="font-bold text-[9px] text-amber-550 uppercase tracking-widest">{line.speaker}</span>
-                                <span className="text-[8px] text-slate-550 uppercase">{line.lang}</span>
-                              </div>
-                              <p className="text-xs leading-relaxed font-sans">{line.text}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-
-              {/* Teacher Video Tool */}
-              {activeStudioTool === "teacher-video" && currentPlan && (
-                <div className="space-y-4">
-                  {(() => {
-                    const storyboard = currentPlan.videoStoryboard || [
-                      { sceneNumber: 1, visualDescription: "Intro", narrationText: "Welcome", subtitles: "வணக்கம்" }
-                    ];
-                    const scene = storyboard[videoScene] || storyboard[0];
-
-                    return (
-                      <div className="space-y-4">
-                        <div className="relative aspect-video rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden flex flex-col justify-between p-5 shadow-lg group">
-                          {/* Generated Image Background */}
-                          <img 
-                            src={`https://image.pollinations.ai/prompt/${encodeURIComponent((scene.visualDescription || "educational scene") + ", highly detailed, 3d, cinematic, beautiful educational animation style, vibrant")}?width=800&height=450&nologo=true`} 
-                            alt="Generated Scene"
-                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10000ms] ease-linear scale-100 group-hover:scale-110 opacity-70"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent pointer-events-none" />
-
-                          <div className="absolute top-4 left-4 px-2 py-0.5 bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded text-[9px] font-bold text-amber-400 z-10">
-                            SCENE {scene.sceneNumber} OF {storyboard.length}
-                          </div>
-
-                          <div className="flex-1 flex flex-col items-center justify-center text-center mt-5 z-10 pointer-events-none">
-                            <h5 className="text-white font-bold text-sm max-w-sm mb-1 drop-shadow-md bg-black/40 px-3 py-1.5 rounded-lg backdrop-blur-sm">{scene.visualDescription}</h5>
-                          </div>
-
-                          <div className="bg-slate-900/90 backdrop-blur-md border border-slate-850 rounded-xl p-3 text-center mx-auto max-w-md w-full z-10">
-                            <p className="text-white text-xs font-semibold leading-relaxed font-sans">{scene.narrationText}</p>
-                            <p className="text-amber-400 text-[10px] font-tamil font-semibold mt-0.5 leading-relaxed">{scene.subtitles}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-between items-center p-2.5 rounded-xl border border-slate-800 bg-slate-950">
-                          <button
-                            type="button"
-                            onClick={() => toggleVideoPlayback(storyboard)}
-                            className="px-3 py-1 bg-slate-900 border border-slate-800 hover:border-amber-500 rounded text-xs font-bold text-white transition-colors"
-                          >
-                            {isVideoPlaying ? "⏸ Pause Video" : "▶ Play Lesson Video"}
-                          </button>
-
-                           <div className="flex gap-1.5">
-                            {storyboard.map((s: any, idx: number) => (
-                              <button
-                                type="button"
-                                key={idx}
-                                onClick={() => {
-                                  if (videoIntervalRef.current) clearInterval(videoIntervalRef.current);
-                                  setIsVideoPlaying(false);
-                                  setVideoScene(idx);
-                                }}
-                                className={`w-5 h-5 rounded text-[9px] font-bold border transition-colors ${
-                                  videoScene === idx
-                                    ? "bg-amber-500 border-amber-500 text-white"
-                                    : "bg-slate-900 border-slate-800 text-slate-400"
-                                }`}
-                              >
-                                {s.sceneNumber}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-
-              {/* Teacher Bilingual glossary */}
-              {activeStudioTool === "teacher-bilingual" && currentPlan && (
-                <div className="space-y-4">
-                  <div className="bg-amber-500/5 p-3 rounded-xl border border-amber-500/15">
-                    <p className="text-amber-400 font-medium leading-relaxed font-sans text-[11px]">
-                      📢 Use these Tamil equivalent terms in transitions to assist with regional media backgrounds.
-                    </p>
-                  </div>
-
-                  <table className="w-full text-left text-xs font-sans text-slate-350 border-collapse">
-                    <thead>
-                      <tr className="border-b border-slate-800 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                        <th className="py-2.5">English Term</th>
-                        <th className="py-2.5">Tamil Equivalent</th>
-                        <th className="py-2.5">Phonetic / Pronunciation</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-850 text-slate-200">
-                      {currentPlan.bilingual?.map((item: any, i: number) => (
-                        <tr key={i} className="hover:bg-slate-900/60 transition-colors">
-                          <td className="py-3 font-semibold text-white">{item.english}</td>
-                          <td className="py-3 text-amber-450 font-semibold font-tamil">{item.tamil}</td>
-                          <td className="py-3 text-slate-400">{item.pronunciation}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {/* Teacher Assessment */}
-              {activeStudioTool === "teacher-assessment" && currentPlan && (
-                <div className="space-y-4 text-slate-350">
-                  <h4 className="text-white font-bold text-xs mb-2">🎯 Exit Ticket MCQs & Answers</h4>
-                  <div className="space-y-3 font-sans">
-                    {currentPlan.units?.flatMap((u: any) => u.quiz || [])?.map((ticket: any, i: number) => (
-                      <div key={i} className="p-3.5 bg-slate-950 hover:bg-slate-900 rounded-xl border border-slate-850">
-                        <div className="font-bold text-white mb-2 leading-relaxed">Question {i + 1}: {ticket.question}</div>
-                        <div className="grid grid-cols-2 gap-2 font-mono text-[10px] text-slate-500">
-                          {ticket.options?.map((opt: string, oIdx: number) => <div key={oIdx}>{opt}</div>)}
-                        </div>
-                        <div className="mt-2.5 text-emerald-400 font-bold text-[10px]">
-                          Correct Answer: {ticket.answer}. Explanation: {ticket.rationale}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Infographic Cheat sheet */}
-              {activeStudioTool === "unit-infographic" && activeUnit && (
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-950 to-slate-950 border border-indigo-500/20 space-y-4">
-                  <div className="border-b border-indigo-500/20 pb-2">
-                    <h4 className="text-white font-black text-base leading-snug">{activeUnit.infographicCard?.title || "Concept Guide"}</h4>
-                    <p className="text-indigo-400 font-medium text-[10px] uppercase">infographic cheat sheet</p>
-                  </div>
-
-                  <div className="space-y-4 text-xs">
-                    {activeUnit.infographicCard?.formulas?.length > 0 && (
-                      <div>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Important Equations / Rules</span>
-                        <div className="flex flex-col gap-1.5">
-                          {activeUnit.infographicCard.formulas.map((f, i) => (
-                            <code key={i} className="px-3 py-1.5 bg-slate-950 rounded-lg font-mono text-[11px] text-indigo-400 border border-slate-850 block">{f}</code>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {activeUnit.infographicCard?.keyConcepts?.length > 0 && (
-                      <div>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Key Concept Explanations</span>
-                        <ul className="list-disc list-inside space-y-1.5 text-slate-350 font-sans leading-relaxed">
-                          {activeUnit.infographicCard.keyConcepts.map((k, i) => <li key={i}>{k}</li>)}
-                        </ul>
-                      </div>
-                    )}
-
-                    {activeUnit.infographicCard?.illustrations?.length > 0 && (
-                      <div>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Visual Study Outline</span>
-                        <div className="p-3 bg-slate-950 rounded-xl text-slate-400 border border-slate-850 italic font-sans leading-relaxed">
-                          {activeUnit.infographicCard.illustrations.join(", ")}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Audio guide */}
-              {activeStudioTool === "unit-audio" && activeUnit && (
-                <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-slate-950 border border-slate-850 flex items-center justify-between">
-                    <div>
-                      <h4 className="text-white font-bold text-xs leading-tight">Bilingual Audio Buddy Discussion</h4>
-                      <p className="text-[9px] text-slate-500">Speakers: Karthik & Priya</p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {isPlayingAudio && (
-                        <div className="flex gap-0.5 items-end h-5 w-8 mr-1 shrink-0">
-                          <div className="bg-indigo-500 w-0.5 rounded animate-pulse h-2" style={{ animationDuration: "0.5s" }} />
-                          <div className="bg-indigo-500 w-0.5 rounded animate-pulse h-4" style={{ animationDuration: "0.7s" }} />
-                          <div className="bg-indigo-500 w-0.5 rounded animate-pulse h-5" style={{ animationDuration: "0.9s" }} />
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => playAudioGuide(activeUnit.audioGuide)}
-                        className={`px-3 py-1.5 rounded-xl font-bold text-[11px] text-white transition-all ${isPlayingAudio ? "bg-red-650 hover:bg-red-700" : "bg-indigo-650 hover:bg-indigo-700"}`}
-                      >
-                        {isPlayingAudio ? "⏹ Stop Guide" : "🔊 Listen Podcast"}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2.5 max-h-[250px] overflow-y-auto bg-slate-950/40 p-4 rounded-xl border border-slate-850">
-                    {activeUnit.audioGuide?.map((line, idx) => (
-                      <div
-                        key={idx}
-                        className={`p-2.5 rounded-xl border transition-all ${
-                          audioLineIndex === idx
-                            ? "bg-indigo-500/10 border-indigo-500/40 text-white"
-                            : "bg-slate-950 border-slate-850 text-slate-400"
-                        }`}
-                      >
-                        <span className="font-bold text-[9px] text-indigo-400 uppercase tracking-widest block mb-0.5">{line.speaker}</span>
-                        <p className="text-xs leading-relaxed font-sans">{line.text}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Unit Quiz test */}
-              {activeStudioTool === "unit-quiz" && activeUnit && (
-                <div className="space-y-4 font-sans">
-                  {activeUnit.quiz?.map((q, qIdx) => {
-                    const key = `${activeUnit.id}-${qIdx}`;
-                    const selectedOpt = selectedAnswers[key];
-                    const submitted = submittedQuizzes[key];
-
-                    return (
-                      <div key={qIdx} className="p-4 bg-slate-950 rounded-2xl border border-slate-850 space-y-3 font-sans">
-                        <div className="font-bold text-white leading-relaxed">{q.question}</div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                          {q.options.map((opt, oIdx) => {
-                            const isSelected = selectedOpt === opt;
-                            return (
-                              <button
-                                type="button"
-                                key={oIdx}
-                                disabled={submitted}
-                                onClick={() => setSelectedAnswers({ ...selectedAnswers, [key]: opt })}
-                                className={`p-2.5 rounded-xl text-left text-xs font-semibold border transition-all ${
-                                  isSelected
-                                    ? "bg-indigo-500/10 border-indigo-500 text-indigo-400"
-                                    : "bg-slate-900 border-slate-800 hover:border-slate-650 text-slate-400"
-                                }`}
-                              >
-                                {opt}
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        {!submitted ? (
-                          <button
-                            type="button"
-                            disabled={!selectedOpt}
-                            onClick={() => setSubmittedQuizzes({ ...submittedQuizzes, [key]: true })}
-                            className="mt-2 px-4 py-1.5 bg-indigo-600 disabled:bg-indigo-900 text-white font-bold rounded-lg text-[10px]"
-                          >
-                            Submit Answer
-                          </button>
-                        ) : (
-                          <div className="mt-3 p-3 bg-slate-900 border border-slate-800 rounded-xl leading-relaxed text-[11px]">
-                            {selectedOpt === q.answer ? (
-                              <span className="text-emerald-400 font-bold block mb-1">✓ Correct! Great job.</span>
-                            ) : (
-                              <span className="text-red-400 font-bold block mb-1">✗ Incorrect. Correct option: {q.answer}</span>
-                            )}
-                            <span className="text-slate-400">{q.rationale}</span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newAnswers = { ...selectedAnswers };
-                                delete newAnswers[key];
-                                setSelectedAnswers(newAnswers);
-                                setSubmittedQuizzes({ ...submittedQuizzes, [key]: false });
-                              }}
-                              className="block mt-2 text-indigo-400 hover:underline font-bold text-[9px]"
-                            >
-                              Try Again
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-            </div>
-          </div>
-        </div>
-      )}
     </PortalLayout>
   );
 }
