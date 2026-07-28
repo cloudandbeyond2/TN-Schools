@@ -204,7 +204,7 @@ export default function HigherSecondaryDashboard() {
       <StudentDailyOverview />
 
       {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
+      {/* <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
         {kpis.map((kpi) => (
           <div key={kpi.label} className="kpi-card border border-slate-700 hover:border-purple-500/50 transition-colors">
             <div className="flex items-center justify-between mb-3">
@@ -215,7 +215,7 @@ export default function HigherSecondaryDashboard() {
             <div className="text-xs text-slate-400">{kpi.label}</div>
           </div>
         ))}
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
 
