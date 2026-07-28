@@ -70,15 +70,6 @@ export default function StudyPlanPage() {
   const { data: session } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  const [selectedSubject, setSelectedSubject] = useState(subjects[0]);
-  const [selectedGrade, setSelectedGrade] = useState(grades[2]); // Grade 10
-  const [topic, setTopic] = useState("Quadratic Equations");
-
-  // PDF Upload
-  const [fileName, setFileName] = useState("");
-  const [uploadedText, setUploadedText] = useState("");
-  const [isReadingFile, setIsReadingFile] = useState(false);
-
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<StudyPlan | null>(null);
 
@@ -110,7 +101,6 @@ export default function StudyPlanPage() {
           if (match) {
             const gradeStr = `Grade ${match[0]}`;
             params.append("grade", gradeStr);
-            setSelectedGrade(gradeStr);
           }
         }
 
@@ -143,119 +133,7 @@ export default function StudyPlanPage() {
     }
   }, [currentPlan]);
 
-  // Handle PDF/Text upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
 
-    setFileName(file.name);
-    setIsReadingFile(true);
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        if (file.name.endsWith(".pdf")) {
-          const arrayBuffer = event.target?.result as ArrayBuffer;
-          
-          // Load PDF.js from CDN dynamically
-          const pdfjsLib = (window as any)['pdfjs-dist/build/pdf'];
-          if (!pdfjsLib) {
-            await new Promise<void>((resolve, reject) => {
-              const script = document.createElement('script');
-              script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js';
-              script.onload = () => resolve();
-              script.onerror = () => reject(new Error('Failed to load PDF script.'));
-              document.head.appendChild(script);
-            });
-          }
-
-          const pdfjs = (window as any)['pdfjs-dist/build/pdf'];
-          pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-
-          const loadingTask = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) });
-          const pdfDoc = await loadingTask.promise;
-          let extractedText = "";
-
-          for (let i = 1; i <= pdfDoc.numPages; i++) {
-            const page = await pdfDoc.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items.map((item: any) => item.str).join(" ");
-            extractedText += pageText + "\n";
-          }
-
-          setUploadedText(extractedText);
-        } else {
-          setUploadedText(event.target?.result as string);
-        }
-
-        setIsReadingFile(false);
-        Swal.fire({
-          icon: "success",
-          title: "Study Guide PDF Uploaded!",
-          text: `Successfully read and parsed ${file.name} context.`,
-          timer: 1550,
-          showConfirmButton: false,
-        });
-      } catch (err) {
-        console.error(err);
-        setIsReadingFile(false);
-        Swal.fire({
-          icon: "error",
-          title: "PDF Parsing Failed",
-          text: "Could not extract text from the PDF file. Please copy-paste text instead.",
-        });
-      }
-    };
-    
-    if (file.name.endsWith(".pdf")) {
-      reader.readAsArrayBuffer(file);
-    } else {
-      reader.readAsText(file);
-    }
-  };
-
-  const handleGenerate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!topic.trim()) return;
-
-    setIsGenerating(true);
-    setCurrentPlan(null);
-    window.speechSynthesis.cancel();
-
-    // Reset active states, quiz answers, and chat logs
-    setChatInput("");
-    setChatMessages([]);
-
-    try {
-      const res = await fetch(`${API_URL}/api/ai/generate-study-plan`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject: selectedSubject,
-          grade: selectedGrade,
-          topic,
-          textbookContext: uploadedText || undefined
-        })
-      });
-
-      const json = await res.json();
-      if (json.success && json.data) {
-        setCurrentPlan(json.data);
-      } else {
-        throw new Error(json.error || "Failed to generate study plan");
-      }
-    } catch (err) {
-      console.error(err);
-      Swal.fire({
-        icon: "error",
-        title: "Generation Failed",
-        text: String(err),
-        confirmButtonColor: "#ef4444",
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   const loadTeacherPlan = (plan: any) => {
     window.speechSynthesis.cancel();
@@ -263,10 +141,7 @@ export default function StudyPlanPage() {
     // Reset active unit, active tool modals, quiz states, and slides/video positions
     setChatInput("");
 
-    // Sync search configuration inputs in sidebar
-    setSelectedSubject(plan.subject);
-    setSelectedGrade(plan.grade);
-    setTopic(plan.topic);
+    // Sync search configuration inputs in sidebar (removed)
 
     // Map teacher lesson plan to study plan structure
     const mappedPlan: StudyPlan = {
@@ -328,8 +203,8 @@ export default function StudyPlanPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          subject: selectedSubject,
-          grade: selectedGrade,
+          subject: currentPlan.subject,
+          grade: currentPlan.grade,
           messages: history,
           currentMessage: userMsg.content,
           language: "bilingual"
