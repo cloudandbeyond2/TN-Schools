@@ -73,9 +73,40 @@ export default function BoardStage({
   const exportPng = async () => {
     if (!stageRef.current || exporting) return;
     setExporting(true);
+    
+    const stage = stageRef.current;
+    const scrollContainer = stage.firstElementChild as HTMLElement;
+    
+    if (!scrollContainer) {
+      setExporting(false);
+      return;
+    }
+
+    const origStageHeight = stage.style.height;
+    const origStageOverflow = stage.style.overflow;
+    const origScrollHeight = scrollContainer.style.height;
+    const origScrollOverflow = scrollContainer.style.overflow;
+
     try {
+      const fullHeight = scrollContainer.scrollHeight;
+
+      // Temporarily expand to full height to capture everything
+      stage.style.height = `${fullHeight}px`;
+      stage.style.overflow = "visible";
+      scrollContainer.style.height = `${fullHeight}px`;
+      scrollContainer.style.overflow = "visible";
+
+      // Wait for DOM to update and Canvas to resize
+      await new Promise((r) => setTimeout(r, 150));
+
       const html2canvas = (await import("html2canvas")).default;
-      const captured = await html2canvas(stageRef.current, { backgroundColor: "#ffffff" });
+      const captured = await html2canvas(stage, { 
+        backgroundColor: "#ffffff",
+        windowHeight: fullHeight,
+        height: fullHeight,
+        scale: 2, // Better resolution for text readability
+      });
+      
       const link = document.createElement("a");
       link.download = `smart-class-unit-${unit.unitNumber}.png`;
       link.href = captured.toDataURL("image/png");
@@ -83,6 +114,12 @@ export default function BoardStage({
     } catch (err) {
       console.error("Board export failed:", err);
     } finally {
+      // Restore styles
+      stage.style.height = origStageHeight;
+      stage.style.overflow = origStageOverflow;
+      scrollContainer.style.height = origScrollHeight;
+      scrollContainer.style.overflow = origScrollOverflow;
+      
       setExporting(false);
     }
   };
