@@ -231,6 +231,14 @@ export default function StudyPlanPage() {
     };
   }, []);
 
+  // Group teacher plans by subject
+  const groupedPlans = teacherPlans.reduce((acc: Record<string, any[]>, plan: any) => {
+    const subj = plan.subject || "Other";
+    if (!acc[subj]) acc[subj] = [];
+    acc[subj].push(plan);
+    return acc;
+  }, {});
+
   return (
     <PortalLayout
       title="Personalized Study Plan (Intelligence Style)"
@@ -253,12 +261,6 @@ export default function StudyPlanPage() {
         >
           Study Hub
         </button>
-        <button 
-          onClick={() => setMobileTab("tools")}
-          className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${mobileTab === 'tools' ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-sm' : 'text-slate-500'}`}
-        >
-          Studio Tools
-        </button>
       </div>
 
       <div className="flex flex-col xl:flex-row gap-6 h-auto xl:h-[calc(100vh-160px)] xl:overflow-hidden pb-10 xl:pb-0">
@@ -277,23 +279,30 @@ export default function StudyPlanPage() {
             ) : teacherPlans.length === 0 ? (
               <p className="text-sm text-slate-550 italic font-sans">No assigned lessons yet.</p>
             ) : (
-              <div className="space-y-3 max-h-[350px] overflow-y-auto scrollbar-thin pr-1">
-                {teacherPlans.map((plan) => (
-                  <button
-                    key={plan.id}
-                    onClick={() => {
-                      loadTeacherPlan(plan);
-                      if (window.innerWidth < 1280) setMobileTab("study");
-                    }}
-                    className={`w-full text-left p-4 rounded-xl border transition-all ${
-                      currentPlan?.id === plan.id
-                        ? "bg-indigo-600 text-white border-indigo-500 shadow-md"
-                        : "bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-355 hover:border-slate-350"
-                    }`}
-                  >
-                    <span className="block truncate font-bold text-sm md:text-sm">{plan.topic}</span>
-                    <span className={`text-xs block mt-1 font-medium ${currentPlan?.id === plan.id ? 'text-indigo-200' : 'text-slate-500'}`}>{plan.subject} · {plan.grade}</span>
-                  </button>
+              <div className="space-y-5 max-h-[350px] overflow-y-auto scrollbar-thin pr-1">
+                {Object.keys(groupedPlans).map((subj) => (
+                  <div key={subj} className="space-y-2">
+                    <h5 className="text-[10px] font-black text-indigo-400 dark:text-indigo-500 uppercase tracking-widest px-1">{subj}</h5>
+                    <div className="space-y-2">
+                      {groupedPlans[subj].map((plan: any) => (
+                        <button
+                          key={plan.id}
+                          onClick={() => {
+                            loadTeacherPlan(plan);
+                            if (window.innerWidth < 1280) setMobileTab("study");
+                          }}
+                          className={`w-full text-left p-3.5 rounded-xl border transition-all ${
+                            currentPlan?.id === plan.id
+                              ? "bg-indigo-600 text-white border-indigo-500 shadow-md"
+                              : "bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-355 hover:border-slate-350 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                          }`}
+                        >
+                          <span className="block truncate font-bold text-sm md:text-sm">{plan.topic}</span>
+                          <span className={`text-[10px] block mt-1 font-medium ${currentPlan?.id === plan.id ? 'text-indigo-200' : 'text-slate-500'}`}>{plan.grade}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
