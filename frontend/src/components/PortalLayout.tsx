@@ -1078,7 +1078,7 @@ export default function PortalLayout({
             );
             return (
               <Link
-                key={item.href}
+                key={`${item.href}-${index}`}
                 href={item.href}
                 className={`sidebar-item ${isActive ? "active" : ""}`}
                 scroll={false}
