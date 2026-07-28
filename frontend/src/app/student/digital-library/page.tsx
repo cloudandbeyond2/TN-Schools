@@ -180,34 +180,36 @@ export default function DigitalLibraryPage() {
                       : res.fileUrl;
                     window.open(url, '_blank');
                   }} 
-                  className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer overflow-hidden transform hover:-translate-y-1"
+                  className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer overflow-hidden transform hover:-translate-y-1 flex flex-col h-full"
                 >
                   <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
-                    <img src="https://cdn-icons-png.flaticon.com/128/3112/3112946.png" className="w-16 h-16 grayscale" alt="trophy bg" />
+                    <img src="https://cdn-icons-png.flaticon.com/128/3112/3112946.png" className="w-24 h-24 grayscale" alt="trophy bg" />
                   </div>
-                  <div className="relative z-10 space-y-3">
+                  <div className="relative z-10 flex flex-col h-full gap-4">
                     <div className="flex items-center justify-between">
-                      <span className="px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-650 dark:text-indigo-400 text-[10px] font-black rounded-full border border-indigo-100 dark:border-indigo-800/50">
-                        {res.type.toUpperCase()}
+                      <span className="px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-black rounded-full border border-indigo-100 dark:border-indigo-800/50">
+                        {res.type?.toUpperCase() || 'RESOURCE'}
                       </span>
-                      <span className="flex items-center gap-1 text-[10px] text-slate-400 font-bold">
+                      <span className="flex items-center gap-1 text-[10px] text-slate-500 font-bold shrink-0">
                         <img src="https://cdn-icons-png.flaticon.com/128/2972/2972531.png" className="w-3.5 h-3.5 opacity-70 grayscale" alt="clock" /> 5m read
                       </span>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-800 dark:text-white line-clamp-2 leading-snug group-hover:text-indigo-600 transition-colors">
+                    <div className="flex-1">
+                      <h4 className="text-base font-bold text-slate-800 dark:text-white line-clamp-2 leading-snug group-hover:text-indigo-600 transition-colors">
                         {res.title}
                       </h4>
-                      <p className="text-[11px] text-slate-450 dark:text-slate-400 mt-1">Subject: {res.subject}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Subject: {res.subject}</p>
                     </div>
-                    <div className="pt-3 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
-                      <div className="flex gap-1">
-                        {res.tags?.slice(0, 2).map((tag: string) => (
-                          <span key={tag} className="text-[9px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded font-semibold">#{tag}</span>
-                        ))}
+                    <div className="pt-3 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 mt-auto">
+                      <div className="flex gap-1 flex-wrap">
+                        {res.tags?.length > 0 ? res.tags.slice(0, 2).map((tag: string) => (
+                          <span key={tag} className="text-[10px] px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-md font-semibold">#{tag}</span>
+                        )) : (
+                          <span className="text-[10px] px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-md font-semibold">#learning</span>
+                        )}
                       </div>
-                      <div className="w-7 h-7 rounded-full bg-indigo-500 text-white flex items-center justify-center transform group-hover:scale-110 transition-transform shadow-md shadow-indigo-500/30">
-                        <img src="https://cdn-icons-png.flaticon.com/128/2989/2989988.png" className="w-3.5 h-3.5 invert" alt="go" />
+                      <div className="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center transform group-hover:scale-110 transition-transform shadow-md shadow-indigo-500/30 shrink-0">
+                        <img src="https://cdn-icons-png.flaticon.com/128/2989/2989988.png" className="w-4 h-4 invert" alt="go" />
                       </div>
                     </div>
                   </div>
