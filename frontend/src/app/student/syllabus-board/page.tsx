@@ -205,15 +205,16 @@ export default function StudentSyllabusBoardPage() {
               <p className="text-xs text-slate-500 mt-2">Check back once the syllabus board is updated.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
               {unitCards.map((card) => (
                 <Link
                   key={card.unitId}
                   href={`/student/syllabus-board/${card.unitId}`}
-                  className="text-left rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 bg-white dark:bg-slate-950/40 block group"
+                  className="text-left rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-300 bg-white dark:bg-slate-950/40 block group"
                 >
                   {card.imageUrl ? (
-                    <img src={card.imageUrl} alt={card.unitName} className="w-full h-auto block group-hover:scale-[1.02] transition-transform duration-300" />
+                    <img src={card.imageUrl} alt={card.unitName} className="w-full h-auto block group-hover:scale-[1.01] transition-transform duration-500" />
+
                   ) : (
                     <div className="h-44 bg-gradient-to-br from-indigo-50/50 to-indigo-100/30 dark:from-slate-900/60 dark:to-slate-900/20 flex flex-col items-center justify-center p-6 text-center border-b border-slate-100 dark:border-slate-800/80 relative overflow-hidden group-hover:from-indigo-100/50 group-hover:to-indigo-200/20 transition-all duration-300 select-none">
                       {/* Decorative background grid pattern */}

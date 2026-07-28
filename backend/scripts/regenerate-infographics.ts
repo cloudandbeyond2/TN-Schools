@@ -52,9 +52,9 @@ function buildInfographicSVG(opts: {
     .map((ln, i) => `<tspan x="24" dy="${i === 0 ? 0 : 15}">${svgEscape(ln)}</tspan>`)
     .join('');
 
-  const tipLines = wrapText(tip, 50, 2);
+  const tipLines = wrapText('Tip: ' + tip, 46, 2);
   const tipTspans = tipLines
-    .map((ln, i) => `<tspan x="52" dy="${i === 0 ? 0 : 14}">${svgEscape(i === 0 ? 'Tip: ' + ln : ln)}</tspan>`)
+    .map((ln, i) => `<tspan x="52" dy="${i === 0 ? 0 : 14}">${svgEscape(ln)}</tspan>`)
     .join('');
 
   const titleText = svgEscape(primaryTitle.length > 32 ? primaryTitle.slice(0, 31) + '…' : primaryTitle);

@@ -1,6 +1,4 @@
 "use client";
-import { AlertTriangle, User, CheckCircle, Timer, Star, MessageSquare, Globe } from "lucide-react";
-
 
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
@@ -217,7 +215,7 @@ export default function TeacherUnitDetailPage() {
         href="/teacher/syllabus-board"
         className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-black dark:hover:text-white mb-6 transition-colors"
       >
-        ← Back to Syllabus Board
+        <i className="fi fi-rr-arrow-left"></i> Back to Syllabus Board
       </Link>
 
       {/* ── Loading ── */}
@@ -229,17 +227,17 @@ export default function TeacherUnitDetailPage() {
           </p>
         </div>
       ) : !unit ? (
-        <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800">
+        <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center w-full">
           <p className="text-lg font-bold text-slate-700 dark:text-slate-300">
             {error || "Unit not found."}
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6 w-full">
 
           {/* ── Hero header ── */}
           <div
-            className="relative rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900/30"
+            className="relative rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900/30 w-full"
             style={{ background: `linear-gradient(135deg, ${accent}10 0%, transparent 55%)` }}
           >
             {/* Decorative orb */}
@@ -255,7 +253,7 @@ export default function TeacherUnitDetailPage() {
                   className="w-full md:w-72 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md object-cover flex-shrink-0"
                 />
               )}
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 w-full">
                 <div className="flex items-center gap-2 flex-wrap mb-3">
                   <span
                     className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-lg border"
@@ -274,7 +272,7 @@ export default function TeacherUnitDetailPage() {
                         : "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400"
                     }`}
                   >
-                    {unit.isApproved ? <><CheckCircle className="w-4 h-4 inline mr-1" /> Published to Students</> : " Draft"}
+                    {unit.isApproved ? <><i className="fi fi-rr-check-circle inline mr-1"></i> Published to Students</> : " Draft"}
                   </span>
                 </div>
 
@@ -285,7 +283,7 @@ export default function TeacherUnitDetailPage() {
                   Generate bilingual AI lesson insights, tweak anything, then publish — students see a simplified version on their own syllabus board.
                 </p>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 w-full">
                   <button
                     onClick={() => handleGenerate(!!detail)}
                     disabled={generating}
@@ -303,19 +301,19 @@ export default function TeacherUnitDetailPage() {
                     <button
                       onClick={() => handleApprove(!unit.isApproved)}
                       disabled={saving}
-                      className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-60 active:scale-95 ${
+                      className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-60 active:scale-95 flex items-center gap-1 ${
                         unit.isApproved
                           ? "border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                           : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm"
                       }`}
                     >
-                      {saving ? "Saving..." : unit.isApproved ? "Unpublish" : <><CheckCircle className="w-4 h-4 inline mr-1" /> Approve & Publish</>}
+                      {saving ? "Saving..." : unit.isApproved ? "Unpublish" : <><i className="fi fi-rr-check-circle inline"></i> Approve & Publish</>}
                     </button>
                   )}
                 </div>
 
                 {error && (
-                  <p className="text-xs text-rose-600 mt-3 font-semibold"><AlertTriangle className="w-4 h-4 inline mr-1 text-amber-500" /> {error}</p>
+                  <p className="text-xs text-rose-600 mt-3 font-semibold"><i className="fi fi-rr-triangle-warning inline mr-1 text-amber-500"></i> {error}</p>
                 )}
                 {successMsg && (
                   <p className="text-xs text-emerald-600 mt-3 font-semibold">{successMsg}</p>
@@ -326,15 +324,15 @@ export default function TeacherUnitDetailPage() {
 
           {/* ── Generating spinner ── */}
           {generating && (
-            <div className="flex flex-col items-center justify-center py-12 glass rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+            <div className="flex flex-col items-center justify-center w-full py-12 glass rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
               <div
                 className="w-12 h-12 rounded-full border-4 border-t-transparent animate-spin mb-4"
                 style={{ borderColor: `${accent}44`, borderTopColor: accent }}
               />
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-300 text-center px-4">
                 Generating bilingual insights with Gemini…
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1 text-center px-4">
                 English & Tamil in one call — this takes 10–20 seconds.
               </p>
             </div>
@@ -342,12 +340,12 @@ export default function TeacherUnitDetailPage() {
 
           {/* ── Empty state ── */}
           {!detail && !generating && (
-            <div className="text-center p-14 glass rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
-              <span className="text-5xl block mb-4"><User className="w-4 h-4 inline mr-1 text-indigo-500" /></span>
+            <div className="text-center w-full flex flex-col items-center justify-center p-14 glass rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+              <span className="text-5xl block mb-4"><i className="fi fi-rr-user inline mr-1 text-indigo-500"></i></span>
               <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
                 No lesson insights yet for this unit.
               </p>
-              <p className="text-xs text-slate-500 mt-2">
+              <p className="text-xs text-slate-500 mt-2 px-4">
                 Click &quot;Generate AI Insights&quot; above — Gemini will produce English &amp; Tamil in one call.
               </p>
             </div>
@@ -355,13 +353,13 @@ export default function TeacherUnitDetailPage() {
 
           {/* ── Insights panel ── */}
           {detail && !generating && (
-            <>
+            <div className="w-full flex flex-col gap-6">
               {/* Language toggle */}
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Language
                 </span>
-                <div className="flex rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="flex rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm w-full sm:w-auto">
                   {(["en", "ta"] as Lang[]).map((l) => {
                     const isActive = lang === l;
                     const disabled = l === "ta" && !hasTamil;
@@ -375,7 +373,7 @@ export default function TeacherUnitDetailPage() {
                             ? "Tamil not generated yet — click Regenerate"
                             : undefined
                         }
-                        className={`px-4 py-2 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                        className={`flex-1 sm:flex-none px-4 py-3 sm:py-2 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                           isActive
                             ? "text-white"
                             : "text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900/40 hover:bg-slate-50 dark:hover:bg-slate-800/50"
@@ -394,7 +392,7 @@ export default function TeacherUnitDetailPage() {
                   })}
                 </div>
                 {!hasTamil && (
-                  <span className="text-[10px] text-amber-600 font-semibold">
+                  <span className="text-[10px] text-amber-600 font-semibold mt-2 sm:mt-0 w-full sm:w-auto">
                     Tamil not available — click Regenerate to get both languages.
                   </span>
                 )}
@@ -402,11 +400,11 @@ export default function TeacherUnitDetailPage() {
 
               {/* Cards grid */}
               {activeLang ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full animate-in fade-in slide-in-from-bottom-4 duration-300">
 
                   {/* Key Concepts */}
                   <InsightCard
-                    emoji=""
+                    icon={<i className="fi fi-rr-key text-indigo-500"></i>}
                     title={lang === "en" ? "Key Concepts" : "முக்கிய கருத்துகள்"}
                     subtitle={
                       lang === "en"
@@ -425,7 +423,7 @@ export default function TeacherUnitDetailPage() {
 
                   {/* Real-life Connections */}
                   <InsightCard
-                    emoji=""
+                    icon={<i className="fi fi-rr-globe text-emerald-500"></i>}
                     title={lang === "en" ? "Real-life Connections" : "நிஜ வாழ்க்கை இணைப்புகள்"}
                     subtitle={
                       lang === "en"
@@ -444,7 +442,7 @@ export default function TeacherUnitDetailPage() {
 
                   {/* Common Misconceptions */}
                   <InsightCard
-                    emoji=""
+                    icon={<i className="fi fi-rr-bug text-red-500"></i>}
                     title={lang === "en" ? "Common Misconceptions" : "பொதுவான தவறான கருத்துகள்"}
                     subtitle={
                       lang === "en"
@@ -463,7 +461,7 @@ export default function TeacherUnitDetailPage() {
 
                   {/* Student Key Points */}
                   <InsightCard
-                    emoji=""
+                    icon={<i className="fi fi-rr-graduation-cap text-purple-500"></i>}
                     title={lang === "en" ? "Student Key Points" : "மாணவர் முக்கிய குறிப்புகள்"}
                     subtitle={
                       lang === "en"
@@ -481,13 +479,13 @@ export default function TeacherUnitDetailPage() {
                   </InsightCard>
 
                   {/* Teaching Flow */}
-                  <div className="lg:col-span-2 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 p-6 overflow-hidden relative">
+                  <div className="lg:col-span-2 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 p-4 sm:p-6 overflow-hidden relative w-full">
                     <div
                       className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl"
                       style={{ background: `linear-gradient(90deg, ${accent}, ${accent}55)` }}
                     />
                     <h3 className="text-sm font-black text-black dark:text-white mb-1">
-                      <Timer className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" />{" "}
+                      <i className="fi fi-rr-time-fast inline-block mr-1 text-inherit"></i><i className="fi fi-rr-star inline-block mr-1 text-inherit"></i>{" "}
                       {lang === "en"
                         ? "Suggested Teaching Flow"
                         : "பரிந்துரைக்கப்பட்ட கற்பித்தல் திட்டம்"}
@@ -501,7 +499,7 @@ export default function TeacherUnitDetailPage() {
                       {activeLang.teachingFlow.map((step, i) => (
                         <div
                           key={i}
-                          className="rounded-2xl border p-4 relative flex flex-col h-full"
+                          className="rounded-2xl border p-4 relative flex flex-col h-full min-h-[140px]"
                           style={{ borderColor: `${accent}33`, background: `${accent}08` }}
                         >
                           <span
@@ -517,14 +515,14 @@ export default function TeacherUnitDetailPage() {
                               className="font-bold text-xs bg-transparent border-0 focus:outline-none w-2/3 truncate"
                               style={{ color: accent }}
                             />
-                            <div className="flex items-center gap-0.5">
+                            <div className="flex items-center gap-0.5 shrink-0">
                               <input
                                 type="number"
                                 value={step.minutes}
                                 onChange={(e) =>
                                   updateFlowStep(i, "minutes", Number(e.target.value))
                                 }
-                                className="w-10 text-right text-[10px] font-bold bg-transparent border-0 focus:outline-none text-slate-400"
+                                className="w-8 text-right text-[10px] font-bold bg-transparent border-0 focus:outline-none text-slate-400"
                               />
                               <span className="text-[10px] text-slate-400">min</span>
                             </div>
@@ -532,7 +530,7 @@ export default function TeacherUnitDetailPage() {
                           <textarea
                             value={step.description}
                             onChange={(e) => updateFlowStep(i, "description", e.target.value)}
-                            rows={3}
+                            rows={4}
                             className="w-full flex-grow text-[11px] text-slate-600 dark:text-slate-300 bg-transparent border-0 resize-none focus:outline-none leading-relaxed"
                           />
                         </div>
@@ -541,13 +539,13 @@ export default function TeacherUnitDetailPage() {
                   </div>
 
                   {/* Teacher Script */}
-                  <div className="lg:col-span-2 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 p-6 relative overflow-hidden">
+                  <div className="lg:col-span-2 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 p-4 sm:p-6 relative overflow-hidden w-full">
                     <div
                       className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl"
                       style={{ background: "linear-gradient(90deg, #6366f1, #8b5cf6)" }}
                     />
                     <h3 className="text-sm font-black text-black dark:text-white mb-1">
-                      <MessageSquare className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" />{" "}
+                      <i className="fi fi-rr-comment inline-block mr-1 text-inherit"></i><i className="fi fi-rr-star inline-block mr-1 text-inherit"></i>{" "}
                       {lang === "en"
                         ? "How I&apos;d Explain This to My Class"
                         : "என் வகுப்பிற்கு இதை எப்படி விளக்குவேன்"}
@@ -566,8 +564,8 @@ export default function TeacherUnitDetailPage() {
                   </div>
                 </div>
               ) : (
-                <div className="text-center p-10 glass rounded-3xl border border-dashed border-amber-300 dark:border-amber-700">
-                  <span className="text-4xl block mb-3"><Globe className="w-4 h-4 inline-block mr-1 text-inherit" /></span>
+                <div className="text-center w-full p-10 glass rounded-3xl border border-dashed border-amber-300 dark:border-amber-700">
+                  <span className="text-4xl block mb-3"><i className="fi fi-rr-globe inline-block mr-1 text-inherit"></i></span>
                   <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
                     Tamil not generated for this unit yet.
                   </p>
@@ -576,7 +574,7 @@ export default function TeacherUnitDetailPage() {
                   </p>
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
       )}
@@ -587,14 +585,14 @@ export default function TeacherUnitDetailPage() {
 /* ─── InsightCard ─────────────────────────────────────────────────────────── */
 
 function InsightCard({
-  emoji,
+  icon,
   title,
   subtitle,
   gradientFrom,
   accent,
   children,
 }: {
-  emoji: string;
+  icon: React.ReactNode;
   title: string;
   subtitle: string;
   gradientFrom: string;
@@ -602,7 +600,7 @@ function InsightCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 p-6 relative overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 group">
+    <div className="glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 p-4 sm:p-6 relative overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 group w-full">
       {/* Top accent bar */}
       <div
         className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl"
@@ -613,7 +611,7 @@ function InsightCard({
         className="w-9 h-9 rounded-xl flex items-center justify-center text-lg mb-3 shadow-sm"
         style={{ background: `${gradientFrom}18`, border: `1px solid ${gradientFrom}33` }}
       >
-        {emoji}
+        {icon}
       </div>
       <h3 className="text-sm font-black text-black dark:text-white mb-0.5">{title}</h3>
       <p className="text-[11px] text-slate-500 mb-4">{subtitle}</p>
@@ -634,9 +632,9 @@ function EditableList({
   onChange: (index: number, value: string) => void;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 w-full">
       {items.map((item, i) => (
-        <div key={i} className="flex items-start gap-2">
+        <div key={i} className="flex items-start gap-2 w-full">
           <span
             className="mt-2.5 w-1.5 h-1.5 rounded-full flex-shrink-0"
             style={{ background: accent }}
@@ -645,7 +643,7 @@ function EditableList({
             value={item}
             onChange={(e) => onChange(i, e.target.value)}
             rows={2}
-            className="flex-1 text-xs leading-relaxed text-slate-700 dark:text-slate-300 bg-transparent border-0 resize-none focus:outline-none focus:bg-slate-50/80 dark:focus:bg-slate-950/40 rounded-lg px-1 transition-colors"
+            className="flex-1 w-full text-xs leading-relaxed text-slate-700 dark:text-slate-300 bg-transparent border-0 resize-none focus:outline-none focus:bg-slate-50/80 dark:focus:bg-slate-950/40 rounded-lg px-1 transition-colors"
           />
         </div>
       ))}
