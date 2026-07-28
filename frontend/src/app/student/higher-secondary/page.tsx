@@ -136,7 +136,7 @@ export default function HigherSecondaryDashboard() {
       .then((res) => res.json())
       .then((json) => {
         if (json.success && json.data.length > 0) {
-          const myStudent = (session?.user as any)?.id 
+          const myStudent = (session?.user as any)?.id
             ? json.data.find((s: any) => s.userId === (session?.user as any)?.id)
             : null;
           setStudent(myStudent || json.data[0]);
@@ -154,7 +154,7 @@ export default function HigherSecondaryDashboard() {
       .then((json) => {
         if (json.success) {
           setSummary(json.data);
-          
+
           // Automatically sync sidebar when dashboard loads
           const dbStream = json.data.stream;
           const group = mapStreamToGroup(dbStream);
@@ -179,10 +179,10 @@ export default function HigherSecondaryDashboard() {
 
   const userName = session?.user?.name || student?.user?.name || (lang === "தமிழ்" ? "மாணவர்" : "Student");
   const currentStream = summary?.stream || "Pure Science & Bio";
-  const subtitle = student 
+  const subtitle = student
     ? (lang === "தமிழ்"
-        ? `வரவேற்கிறோம், ${userName} · வகுப்பு ${student.class}${student.section} · ${currentStream} பிரிவு`
-        : `Welcome, ${userName} · Class ${student.class}${student.section} · ${currentStream} Stream`)
+      ? `வரவேற்கிறோம், ${userName} · வகுப்பு ${student.class}${student.section} · ${currentStream} பிரிவு`
+      : `Welcome, ${userName} · Class ${student.class}${student.section} · ${currentStream} Stream`)
     : (lang === "தமிழ்" ? "மாணவர் தரவு ஏற்றப்படுகிறது..." : "Loading student data...");
 
   const streamKnowledge = lang === "தமிழ்" ? streamKnowledgeTa : streamKnowledgeEn;
@@ -218,7 +218,7 @@ export default function HigherSecondaryDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        
+
         {/* Subject Progress */}
         <div className="lg:col-span-2 glass rounded-2xl p-6 fade-in-2 border border-slate-700/50">
           <div className="flex items-center justify-between mb-5">
@@ -248,7 +248,7 @@ export default function HigherSecondaryDashboard() {
 
         {/* Right sidebars */}
         <div className="space-y-6">
-          
+
           {/* Today's Learning Progress Card */}
           <div className="glass rounded-2xl p-6 border border-slate-700/50">
             <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
@@ -296,7 +296,7 @@ export default function HigherSecondaryDashboard() {
             <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
               <span className="text-indigo-400">📝</span> {lang === "தமிழ்" ? "தேர்வு செயல்திறன் மையம்" : "Test Performance Hub"}
             </h2>
-            
+
             <div className="space-y-3">
               {summary?.recentTests?.map((t: any, idx: number) => (
                 <div key={idx} className="bg-slate-950/40 p-3 rounded-xl border border-slate-800/60 flex justify-between items-center">
@@ -318,51 +318,7 @@ export default function HigherSecondaryDashboard() {
         </div>
       </div>
 
-      {/* Stream Specific Knowledge Base Hub */}
-      <div className="glass rounded-2xl p-6 fade-in-5 border border-slate-700/50">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <span className="text-purple-400">🌐</span> {lang === "தமிழ்" ? "பாடப்பிரிவு அறிவு & கண்டுபிடிப்பு மையம்" : "Stream Knowledge & Innovation Hub"}
-          </h2>
-          <span className="text-xs text-slate-400">{lang === "தமிழ்" ? "பல்வேறு துறை சார்ந்த ஆதாரங்களை ஆராயுங்கள்" : "Explore multidisciplinary resources"}</span>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {streamKnowledge.map((stream, idx) => {
-            const origStream = streamKnowledgeEn[idx].stream;
-            const isActive = currentStream.toLowerCase().includes(origStream.split(" ")[0].toLowerCase());
-            return (
-              <div key={idx} className={`p-5 rounded-xl border transition-all hover:-translate-y-1 hover:shadow-lg relative ${stream.bgBorder} ${isActive ? 'ring-2 ring-indigo-500 border-indigo-500/50 scale-[1.02]' : ''}`}>
-                {isActive && (
-                  <span className="absolute top-2 right-2 bg-indigo-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-lg shadow-indigo-500/30">
-                    {lang === "தமிழ்" ? "என் பிரிவு" : "My Stream"}
-                  </span>
-                )}
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-3xl">{stream.icon}</span>
-                  <h3 className={`font-bold ${stream.color} leading-tight`}>{stream.stream}</h3>
-                </div>
-                <div className="text-xs text-slate-400 mb-4">
-                  <strong>{lang === "தமிழ்" ? "முதன்மை பாடங்கள்:" : "Core Subjects:"}</strong> {stream.subjects}
-                </div>
-                <div className="space-y-3">
-                  <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
-                    <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">{lang === "தமிழ்" ? "AI உதவியாளர் கவனம்" : "AI Assistant Focus"}</div>
-                    <div className="text-sm text-white font-medium">{stream.aiFeature}</div>
-                  </div>
-                  <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
-                    <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">{lang === "தமிழ்" ? "சிறப்புத் திட்ட யோசனை" : "Capstone Project Idea"}</div>
-                    <div className="text-sm text-white font-medium">{stream.projectIdea}</div>
-                  </div>
-                </div>
-                <button className={`w-full mt-4 py-2 rounded-lg border text-xs font-bold transition-colors ${stream.color.replace('text-', 'border-').replace('400', '500/30')} hover:bg-white/5`}>
-                  {lang === "தமிழ்" ? "அறிவுத் தளத்திற்குச் செல் →" : "Enter Knowledge Base →"}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+
     </PortalLayout>
   );
 }
