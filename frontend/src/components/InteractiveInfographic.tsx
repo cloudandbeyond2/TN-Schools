@@ -127,9 +127,12 @@ const COLOR_MAP: Record<string, { primary: string; light: string; ring: string; 
   },
 };
 
-// Realistic AI image via Pollinations (free, no key)
-const pol = (prompt: string, w = 1000, h = 600) =>
-  `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&nologo=true`;
+// Educational AI image via Pollinations (free, no key)
+const pol = (prompt: string, w = 1000, h = 600) => {
+  // Append safety and style constraints to ensure school-appropriate imagery
+  const safePrompt = `${prompt}, safe for middle school children, educational vector textbook illustration, family friendly, no inappropriate content`;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(safePrompt)}?width=${w}&height=${h}&nologo=true`;
+};
 
 // ---------------------------------------------------------------------------
 // Download helper
@@ -213,7 +216,7 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
       {/* ================================================================== */}
       <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-md relative bg-slate-100">
         <img
-          src={pol(`${heroTitle}, ${subject}, ${topic}, realistic educational illustration, vibrant, highly detailed, bright clean background`, 1200, 440)}
+          src={pol(`${topic}, ${subject}, core concept visualization, colorful educational infographic style, bright clean background`, 1200, 440)}
           alt={heroTitle}
           loading="lazy"
           className="w-full h-40 md:h-56 object-cover"
@@ -436,7 +439,7 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
                   </div>
                   <div className="relative w-full h-24 rounded-2xl overflow-hidden mb-3 border border-slate-100 bg-slate-100">
                     <img
-                      src={pol(`${work.step}, ${topic}, ${subject}, realistic educational, simple, bright`, 400, 240)}
+                      src={pol(`${work.step} in ${topic}, ${subject}, simple educational diagram, clean vector style, bright background`, 400, 240)}
                       alt={work.step}
                       loading="lazy"
                       className="w-full h-full object-cover"

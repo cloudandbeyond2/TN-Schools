@@ -992,7 +992,11 @@ export default function LessonPlannerPage() {
                   <button
                     onClick={() => handlePublish(!currentPlan.isPublished)}
                     disabled={publishing}
-                    className="px-3 py-1.5 rounded-lg text-[10px] font-black text-black transition-transform hover:scale-105 shadow-md disabled:opacity-60 bg-gradient-to-br from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20 inline-flex items-center gap-1.5"
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black text-white transition-transform hover:scale-105 shadow-md disabled:opacity-60 inline-flex items-center gap-1.5 ${
+                      currentPlan.isPublished 
+                        ? "bg-slate-600 hover:bg-slate-700 shadow-slate-500/20" 
+                        : "bg-gradient-to-br from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/20"
+                    }`}
                   >
                     {publishing ? "..." : currentPlan.isPublished ? "UNPUBLISH" : <><i className="fi fi-sr-bell leading-none" /> PUBLISH TO CLASS</>}
                   </button>

@@ -421,7 +421,7 @@ export default function TeacherSmartClassPage() {
                       {lang === "தமிழ்" ? `அலகு ${unit.unitNumber}` : `Unit ${unit.unitNumber}`}
                     </span>
                     {unit.isApproved && (
-                      <span className="text-[9px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-emerald-600 text-white">
+                      <span className="text-[9px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-400">
                         {lang === "தமிழ்" ? "வெளியிடப்பட்டது" : "Published"}
                       </span>
                     )}
