@@ -369,6 +369,197 @@ async function main() {
   });
   console.log("✅ Seeded Competitive Exams.");
 
+  // 6. Exam Schedules (Real PostgreSQL class-based date sheets)
+  await prisma.examSchedule.deleteMany({});
+  
+  if (school) {
+    const targetSchools = Array.from(new Set([school.id, school.dise].filter(Boolean)));
+    const scheduleItems: any[] = [];
+
+    for (const sId of targetSchools) {
+      scheduleItems.push(
+        // Class 11 Schedules
+        {
+          schoolId: sId,
+          title: "Quarterly Examination - Mathematics",
+          examType: "Unit Test",
+          class: "11",
+          section: "All",
+          subject: "Mathematics",
+          examDate: new Date("2026-08-10T09:30:00Z"),
+          startTime: "09:30 AM",
+          endTime: "12:30 PM",
+          maxMarks: 100,
+          passMark: 35,
+          venue: "Block A - Hall 1",
+          invigilator: "Diya Nair",
+          academicYear: "2026-27",
+          status: "Scheduled",
+          examMode: "Theory",
+          theoryMaxMarks: 100,
+          practicalMaxMarks: 0,
+          published: true,
+        },
+        {
+          schoolId: sId,
+          title: "Quarterly Examination - Physics",
+          examType: "Quarterly",
+          class: "11",
+          section: "All",
+          subject: "Physics",
+          examDate: new Date("2026-08-12T09:30:00Z"),
+          startTime: "09:30 AM",
+          endTime: "12:30 PM",
+          maxMarks: 100,
+          passMark: 35,
+          venue: "Block B - Hall 3",
+          invigilator: "Kavitha R",
+          academicYear: "2026-27",
+          status: "Scheduled",
+          examMode: "Both",
+          theoryMaxMarks: 70,
+          practicalMaxMarks: 30,
+          published: true,
+        },
+        {
+          schoolId: sId,
+          title: "Quarterly Examination - Chemistry",
+          examType: "Quarterly",
+          class: "11",
+          section: "All",
+          subject: "Chemistry",
+          examDate: new Date("2026-08-14T09:30:00Z"),
+          startTime: "09:30 AM",
+          endTime: "12:30 PM",
+          maxMarks: 100,
+          passMark: 35,
+          venue: "Block B - Hall 3",
+          invigilator: "Suresh M",
+          academicYear: "2026-27",
+          status: "Scheduled",
+          examMode: "Both",
+          theoryMaxMarks: 70,
+          practicalMaxMarks: 30,
+          published: true,
+        },
+        {
+          schoolId: sId,
+          title: "Quarterly Examination - Accountancy",
+          examType: "Quarterly",
+          class: "11",
+          section: "All",
+          subject: "Accountancy",
+          examDate: new Date("2026-08-16T09:30:00Z"),
+          startTime: "09:30 AM",
+          endTime: "12:30 PM",
+          maxMarks: 100,
+          passMark: 35,
+          venue: "Block C - Hall 2",
+          invigilator: "Ramesh K",
+          academicYear: "2026-27",
+          status: "Scheduled",
+          examMode: "Theory",
+          theoryMaxMarks: 100,
+          practicalMaxMarks: 0,
+          published: true,
+        },
+
+        // Class 10 Schedules
+        {
+          schoolId: sId,
+          title: "SSLC Model Exam - Mathematics",
+          examType: "Model",
+          class: "10",
+          section: "All",
+          subject: "Mathematics",
+          examDate: new Date("2026-08-10T09:30:00Z"),
+          startTime: "09:30 AM",
+          endTime: "12:30 PM",
+          maxMarks: 100,
+          passMark: 35,
+          venue: "Hall 1",
+          invigilator: "Anitha S",
+          academicYear: "2026-27",
+          status: "Scheduled",
+          examMode: "Theory",
+          theoryMaxMarks: 100,
+          practicalMaxMarks: 0,
+          published: true,
+        },
+        {
+          schoolId: sId,
+          title: "SSLC Model Exam - Science",
+          examType: "Model",
+          class: "10",
+          section: "All",
+          subject: "Science",
+          examDate: new Date("2026-08-12T09:30:00Z"),
+          startTime: "09:30 AM",
+          endTime: "12:30 PM",
+          maxMarks: 100,
+          passMark: 35,
+          venue: "Hall 2",
+          invigilator: "Ramesh K",
+          academicYear: "2026-27",
+          status: "Scheduled",
+          examMode: "Theory",
+          theoryMaxMarks: 100,
+          practicalMaxMarks: 0,
+          published: true,
+        },
+
+        // Class 12 Schedules
+        {
+          schoolId: sId,
+          title: "HSC Board Model Exam - Physics",
+          examType: "Model",
+          class: "12",
+          section: "All",
+          subject: "Physics",
+          examDate: new Date("2026-08-11T09:30:00Z"),
+          startTime: "09:30 AM",
+          endTime: "12:30 PM",
+          maxMarks: 100,
+          passMark: 35,
+          venue: "Hall A",
+          invigilator: "Rajesh Kumar",
+          academicYear: "2026-27",
+          status: "Scheduled",
+          examMode: "Both",
+          theoryMaxMarks: 70,
+          practicalMaxMarks: 30,
+          published: true,
+        },
+
+        // Class 9 Schedules
+        {
+          schoolId: sId,
+          title: "First Mid-Term Exam - Science",
+          examType: "Unit Test",
+          class: "9",
+          section: "All",
+          subject: "Science",
+          examDate: new Date("2026-08-10T09:30:00Z"),
+          startTime: "09:30 AM",
+          endTime: "12:00 PM",
+          maxMarks: 100,
+          passMark: 35,
+          venue: "Classroom 9A",
+          invigilator: "Staff",
+          academicYear: "2026-27",
+          status: "Scheduled",
+          examMode: "Theory",
+          theoryMaxMarks: 100,
+          practicalMaxMarks: 0,
+          published: true,
+        }
+      );
+    }
+
+    await prisma.examSchedule.createMany({ data: scheduleItems, skipDuplicates: true });
+    console.log(`✅ Seeded ${scheduleItems.length} real PostgreSQL Exam Schedules.`);
+  }
+
   console.log("🌱 Seeding finished successfully!");
 }
 
