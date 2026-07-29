@@ -192,10 +192,10 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
               {heroIcon}
             </div>
             <div>
-              <span className={`text-[10px] font-black ${colors.text} uppercase tracking-widest block mb-1`}>
+              <span className={`text-[10px] font-black ${colors.text} uppercase tracking-widest block mb-1 break-words`}>
                 Tamil Nadu Smart Schools · AI Intelligence Studio
               </span>
-              <h1 className="text-xl md:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              <h1 className="text-xl md:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight break-words">
                 {heroTitle}
               </h1>
               <p className={`text-sm font-bold ${colors.text} mt-1 opacity-80`}>{heroSubtitle}</p>
@@ -295,11 +295,11 @@ export default function InteractiveInfographic({ topic, subject, data }: Infogra
 
           {/* Term Table */}
           {termTable.length > 0 && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-4 shadow-md overflow-hidden">
-              <span className={`text-[9px] font-black ${colors.text} uppercase tracking-widest block mb-3`}>
+            <div className="bg-white border border-slate-200 rounded-3xl p-4 shadow-md overflow-x-auto">
+              <span className={`text-[9px] font-black ${colors.text} uppercase tracking-widest block mb-3 min-w-max`}>
                 Bilingual Key Terms / இருமொழி கலைச்சொற்கள்
               </span>
-              <table className="w-full text-left text-xs table-fixed">
+              <table className="w-full min-w-[350px] text-left text-xs table-fixed">
                 <thead>
                   <tr className="border-b border-slate-100">
                     <th className="pb-2 font-black text-slate-500 text-[9px] uppercase tracking-wider w-[25%]">English</th>
