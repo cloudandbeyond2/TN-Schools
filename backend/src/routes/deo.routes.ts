@@ -60,7 +60,15 @@ router.get('/grievances', async (req: Request, res: Response) => {
     const { district } = req.query;
     const where: any = {};
     if (district) {
-      where.district = String(district);
+      const distStr = String(district).trim();
+      if (distStr.toLowerCase() === 'trichy' || distStr.toLowerCase() === 'tiruchirappalli') {
+        where.OR = [
+          { district: { equals: 'Trichy', mode: 'insensitive' } },
+          { district: { equals: 'Tiruchirappalli', mode: 'insensitive' } }
+        ];
+      } else {
+        where.district = { equals: distStr, mode: 'insensitive' };
+      }
     }
     const grievances = await prisma.ministerGrievance.findMany({
       where,
@@ -72,10 +80,22 @@ router.get('/grievances', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/deo/grievances - Create a grievance log
+// POST /api/deo/grievances - Create or update a grievance log
 router.post('/grievances', async (req: Request, res: Response) => {
   try {
-    const { petitioner, district, category, filed, status, escalation, ministerAction } = req.body;
+    const { id, petitioner, district, category, filed, status, escalation, ministerAction } = req.body;
+
+    if (id) {
+      const updated = await prisma.ministerGrievance.update({
+        where: { id },
+        data: {
+          status: status || 'Resolved',
+          updatedAt: new Date()
+        }
+      });
+      return res.json({ success: true, data: updated });
+    }
+
     if (!petitioner || !district) {
       return res.status(400).json({ success: false, error: 'Petitioner and district are required.' });
     }

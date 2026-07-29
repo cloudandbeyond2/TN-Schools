@@ -913,7 +913,7 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #f1f5f9 !important;
 }
 
-:root:not(.dark) .main-content .bg-gradient-to-r {
+:root:not(.dark) .main-content .bg-gradient-to-r:not(button):not(a) {
   background: #ffffff !important;
   border-color: var(--border) !important;
 }

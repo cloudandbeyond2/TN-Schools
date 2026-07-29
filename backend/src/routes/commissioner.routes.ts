@@ -271,4 +271,16 @@ router.get('/teachers', async (_req: Request, res: Response) => {
   }
 });
 
+// ─── GET /api/commissioner/grievances ─────────────────────────────────────────
+router.get('/grievances', async (_req: Request, res: Response) => {
+  try {
+    const grievances = await prisma.ministerGrievance.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ success: true, data: grievances });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
