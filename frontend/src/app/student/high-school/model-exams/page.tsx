@@ -113,6 +113,9 @@ export default function ModelExamsPage() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
 
   useEffect(() => {
     fetch(`${API_BASE}/api/students`)
@@ -172,6 +175,9 @@ export default function ModelExamsPage() {
     ? withPct.reduce((best, r) => (r.percentage > best.percentage ? r : best), withPct[0])
     : null;
   const latest = results[0] || null;
+
+  const totalPages = Math.ceil(results.length / itemsPerPage);
+  const paginatedResults = results.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <PortalLayout
@@ -308,9 +314,10 @@ export default function ModelExamsPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 fade-in-3">
-              {results.map((r) => {
-                const subjects = SUBJECT_FIELDS.filter((s) => r[s.key] !== null && r[s.key] !== undefined);
+            <div className="fade-in-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {paginatedResults.map((r) => {
+                  const subjects = SUBJECT_FIELDS.filter((s) => r[s.key] !== null && r[s.key] !== undefined);
                 return (
                   <div key={r.id} className="glass rounded-2xl p-5 border border-slate-700/50 hover:border-red-500/40 transition-colors">
                     <div className="flex items-start justify-between gap-3 mb-4">
@@ -388,6 +395,29 @@ export default function ModelExamsPage() {
                   </div>
                 );
               })}
+              </div>
+              
+              {totalPages > 1 && (
+                <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 mt-6">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 rounded-xl text-sm font-bold bg-slate-800/50 text-slate-300 border border-slate-700 disabled:opacity-50 hover:bg-slate-700/50 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm font-bold text-slate-300">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 rounded-xl text-sm font-bold bg-slate-800/50 text-slate-300 border border-slate-700 disabled:opacity-50 hover:bg-slate-700/50 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
