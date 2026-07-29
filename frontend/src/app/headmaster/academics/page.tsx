@@ -1270,18 +1270,11 @@ export default function HeadmasterAcademicsPage() {
                 {error && <div className="text-red-500 text-sm bg-red-50/80 p-3 rounded-xl">{error}</div>}
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
+                  <div className="col-span-2">
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
                     <select required value={subjectForm.class} onChange={e => setSubjectForm({ ...subjectForm, class: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="">Select Class</option>
                       {[...Array(12)].map((_, i) => <option key={i} value={String(i + 1)}>Class {i + 1}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Section (Optional)</label>
-                    <select value={subjectForm.section} onChange={e => setSubjectForm({ ...subjectForm, section: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
-                      <option value="">Any</option>
-                      {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                 </div>
