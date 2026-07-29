@@ -63,7 +63,7 @@ export default function UserManagement() {
   const [filterStatus, setFilterStatus] = useState<"ALL" | "active" | "inactive">("ALL");
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
-  const [form, setForm] = useState({ name:"", email:"", role:"TEACHER" as Role, district:"", block:"", school:"" });
+  const [form, setForm] = useState({ name:"", email:"", password:"", role:"TEACHER" as Role, district:"", block:"", school:"" });
 
   const filtered = users.filter((u) => {
     const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
