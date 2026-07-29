@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -218,6 +218,7 @@ const monitoringChain = [
 export default function ReportPage() {
   const [lang, setLang] = useState<"en" | "ta">("en");
   const { data: session } = useSession();
+  const [activeTab, setActiveTab] = useState<"file" | "my_reports">("file");
   const [step, setStep] = useState<"select" | "form" | "success">("select");
   const [selectedCategory, setSelectedCategory] = useState<typeof reportCategories[0] | null>(null);
   const [isAnonymous, setIsAnonymous] = useState(true);
@@ -229,6 +230,78 @@ export default function ReportPage() {
   const [witnessDetails, setWitnessDetails] = useState("");
   const [refNum, setRefNum] = useState("");
 
+  const [myReports, setMyReports] = useState<any[]>([]);
+  const [searchRef, setSearchRef] = useState("");
+  const [selectedStudentReport, setSelectedStudentReport] = useState<any | null>(null);
+
+  const fetchDatabaseStatuses = async (baseReports: any[]) => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const dist = (session?.user as any)?.district || "Trichy";
+      const res = await fetch(`${API_URL}/api/deo/grievances?district=${encodeURIComponent(dist)}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const updated = baseReports.map(report => {
+          const dbMatch = json.data.find((g: any) => g.petitioner.includes(report.refNum) || g.id === report.refNum);
+          if (dbMatch) {
+            return {
+              ...report,
+              status: dbMatch.status,
+              officialNote: dbMatch.status === "Resolved"
+                ? "✅ Issue verified and marked as RESOLVED by District Education Officer."
+                : (dbMatch.status === "Under Review" ? "🔍 Currently under active investigation by DEO Team." : report.officialNote)
+            };
+          }
+          return report;
+        });
+        setMyReports(updated);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("tn_student_reports", JSON.stringify(updated));
+        }
+      } else {
+        setMyReports(baseReports);
+      }
+    } catch (err) {
+      setMyReports(baseReports);
+    }
+  };
+
+  useEffect(() => {
+    let initialReports: any[] = [];
+    const saved = typeof window !== "undefined" ? localStorage.getItem("tn_student_reports") : null;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        initialReports = parsed.map((item: any) => ({
+          ...item,
+          description: item.description ? item.description.replace(/Location:\s*Brick Kiln/gi, "Location: Holy Cross Hr Sec School Campus, Trichy") : item.description,
+          location: item.location && item.location.includes("Brick Kiln") ? "Holy Cross Hr Sec School Campus, Trichy" : item.location
+        }));
+      } catch (e) {}
+    } else {
+      initialReports = [
+        {
+          refNum: "TN-RPT-806066",
+          category: "Child Labour / Forced Work",
+          priority: "CRITICAL",
+          date: "2026-07-29",
+          status: "Pending",
+          description: "Holy Cross Hr Sec School | Location: Holy Cross Hr Sec School Campus, Trichy | Details: Forced labor report",
+          staffName: "Factory Supervisor",
+          location: "Holy Cross Hr Sec School Campus, Trichy",
+          dateOfIncident: "2026-07-29",
+          witnessDetails: "Classmates",
+          urgency: "Urgent",
+          isAnonymous: "Anonymous Report",
+          officialNote: "Received by DEO Trichy & State Commissioner. Under 24h critical escalation review."
+        }
+      ];
+    }
+
+    setMyReports(initialReports);
+    fetchDatabaseStatuses(initialReports);
+  }, [session]);
+
   const L = t[lang];
 
   const handleCategorySelect = (cat: typeof reportCategories[0]) => {
@@ -236,10 +309,59 @@ export default function ReportPage() {
     setStep("form");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const ref = `TN-RPT-${Date.now().toString().slice(-6)}`;
     setRefNum(ref);
+
+    const newReportEntry = {
+      refNum: ref,
+      category: selectedCategory?.title.en || "General",
+      priority: selectedCategory?.severity === "critical" ? "CRITICAL" : (urgency === "urgent" ? "HIGH" : "MEDIUM"),
+      date: dateOfIncident || new Date().toISOString().split("T")[0],
+      status: "Pending",
+      description: description || "No description provided.",
+      staffName: staffName || "Not specified",
+      location: location || "Campus / School Grounds",
+      dateOfIncident: dateOfIncident || new Date().toISOString().split("T")[0],
+      witnessDetails: witnessDetails || "None recorded",
+      urgency: urgency === "urgent" ? "Urgent (Same-day response)" : "Normal (1-3 days)",
+      isAnonymous: isAnonymous ? "Anonymous Report" : "Identified Report",
+      officialNote: selectedCategory?.severity === "critical" 
+        ? "Received by DEO & Commissioner. Flagged for 24h critical escalation."
+        : "Received by School Counsellor. Assigned for review within 1–3 school days."
+    };
+
+    const updated = [newReportEntry, ...myReports];
+    setMyReports(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("tn_student_reports", JSON.stringify(updated));
+    }
+
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const userDistrict = (session?.user as any)?.district || "Trichy";
+      const userSchool = (session?.user as any)?.schoolName || "Holy Cross Hr Sec School";
+
+      const formattedAction = `School: ${userSchool} | Staff: ${staffName || "N/A"} | Location: ${location || "Campus"} | Date: ${dateOfIncident || "Today"} | Witnesses: ${witnessDetails || "None"} | Urgency: ${urgency} | Details: ${description}`;
+
+      await fetch(`${API_URL}/api/deo/grievances`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          petitioner: isAnonymous ? `Anonymous Student (${ref})` : (session?.user?.name || "Student"),
+          district: userDistrict,
+          category: selectedCategory?.title.en || "General",
+          filed: dateOfIncident || new Date().toISOString().split("T")[0],
+          status: "Pending",
+          escalation: selectedCategory?.severity === "critical" ? "Critical" : (urgency === "urgent" ? "High" : "Medium"),
+          ministerAction: formattedAction
+        })
+      });
+    } catch (err) {
+      console.error("Error saving grievance to backend:", err);
+    }
+
     setStep("success");
   };
 
@@ -319,8 +441,138 @@ export default function ReportPage() {
         </div>
       </div>
 
+      {/* ── Navigation Tabs: File Report vs My Reports & Live Status ── */}
+      <div className="flex items-center gap-3 mb-6 bg-slate-100 dark:bg-slate-900/60 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 w-fit">
+        <button
+          onClick={() => { setActiveTab("file"); setStep("select"); }}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+            activeTab === "file"
+              ? "bg-red-600 !text-white shadow-md font-black"
+              : "text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-white"
+          }`}
+          style={activeTab === "file" ? { backgroundColor: "#dc2626", color: "#ffffff" } : undefined}
+        >
+          <ShieldCheck size={16} />
+          {lang === "en" ? "File New Concern" : "புதிய புகார் சமர்ப்பிக்க"}
+        </button>
+
+        <button
+          onClick={() => { setActiveTab("my_reports"); fetchDatabaseStatuses(myReports); }}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all relative ${
+            activeTab === "my_reports"
+              ? "bg-red-600 !text-white shadow-md font-black"
+              : "text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-white"
+          }`}
+          style={activeTab === "my_reports" ? { backgroundColor: "#dc2626", color: "#ffffff" } : undefined}
+        >
+          <Clock size={16} />
+          {lang === "en" ? "My Filed Reports & Live Status" : "என் புகார்கள் & நேரலை நிலை"}
+          {myReports.length > 0 && (
+            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-white/20 !text-white font-black">
+              {myReports.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* ── MY REPORTS & LIVE STATUS TRACKER ── */}
+      {activeTab === "my_reports" && (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-black text-black dark:text-white flex items-center gap-2">
+                <Hash size={18} className="text-indigo-500" />
+                {lang === "en" ? "Track Complaint Status by Reference Number" : "குறிப்பு எண்ணால் புகாரைக் கண்காணிக்க"}
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                {lang === "en" 
+                  ? "Enter your TN-RPT reference number to view official response updates." 
+                  : "உங்கள் TN-RPT குறிப்பு எண்ணை உள்ளிட்டு நிலையை அறியவும்."}
+              </p>
+            </div>
+            <div className="relative w-full md:w-72">
+              <Hash size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchRef}
+                onChange={(e) => setSearchRef(e.target.value)}
+                placeholder="e.g. TN-RPT-806066"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-xs font-mono text-black dark:text-white uppercase placeholder:normal-case focus:outline-none focus:border-red-500"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {myReports
+              .filter((r) => !searchRef || r.refNum.toLowerCase().includes(searchRef.toLowerCase()))
+              .map((r, idx) => (
+                <div key={idx} className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-all hover:border-red-400/50">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-mono font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800">
+                        {r.refNum}
+                      </span>
+                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-md uppercase ${
+                        r.priority === "CRITICAL" ? "bg-red-500 text-white" : "bg-amber-500 text-slate-950"
+                      }`}>
+                        {r.priority}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-slate-400">Status:</span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${
+                        r.status === "Resolved" 
+                          ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 border border-emerald-300"
+                          : r.status === "Under Review"
+                          ? "bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 border border-amber-300"
+                          : "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-300"
+                      }`}>
+                        {r.status === "Resolved" ? "✅ Resolved" : r.status === "Under Review" ? "🔍 Under Review" : "⏳ Action Pending"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Category & Date</span>
+                      <span className="font-bold text-black dark:text-white block">{r.category}</span>
+                      <span className="text-slate-500 text-[11px]">{r.date}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Incident Summary</span>
+                      <p className="text-slate-600 dark:text-slate-400 text-[11px] line-clamp-2">{r.description}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                    <div className="bg-slate-50 dark:bg-slate-950 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 flex items-start gap-3 flex-1">
+                      <ShieldCheck size={18} className="text-emerald-500 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 block mb-0.5">
+                          Official Department Response / Action Note
+                        </span>
+                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                          {r.officialNote || "Your report is under active review by the school counsellor and DEO."}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSelectedStudentReport(r)}
+                      className="px-4 py-2.5 bg-red-600 hover:bg-red-700 !text-white text-xs font-black rounded-xl shadow-sm flex items-center justify-center gap-1.5 shrink-0"
+                      style={{ backgroundColor: "#dc2626", color: "#ffffff" }}
+                    >
+                      <Eye size={14} className="!text-white" />
+                      {lang === "en" ? "View Full Details" : "முழு விவரங்களை பார்க்க"}
+                    </button>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
       {/* ── STEP 1: Select Category ── */}
-      {step === "select" && (
+      {activeTab === "file" && step === "select" && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-5">
@@ -608,12 +860,13 @@ export default function ReportPage() {
           <button
             type="submit"
             disabled={!description.trim()}
-            className="w-full py-4 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-black text-sm rounded-2xl shadow-xl hover:shadow-red-500/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3"
+            className="w-full py-4 !text-white font-black text-sm rounded-2xl shadow-xl hover:shadow-red-500/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3"
+            style={{ background: "linear-gradient(to right, #ef4444, #e11d48)", color: "#ffffff" }}
           >
-            <ShieldCheck size={20} />
-            {L.submitBtn}
+            <ShieldCheck size={20} className="!text-white" />
+            <span className="!text-white font-black">{L.submitBtn}</span>
           </button>
-          <p className="text-center text-[10px] text-slate-400 max-w-lg mx-auto">
+          <p className="text-center text-[10px] text-slate-500 dark:text-slate-400 max-w-lg mx-auto">
             {L.submitDisclaimer}
           </p>
         </form>
@@ -671,8 +924,8 @@ export default function ReportPage() {
               <button onClick={() => { setStep("select"); setSelectedCategory(null); setDescription(""); }} className="px-6 py-3 border-2 border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-700 dark:text-emerald-400 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all flex items-center justify-center gap-2">
                 <Hash size={16} /> {L.fileAnother}
               </button>
-              <Link href="/student" className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
-                {L.backPortal} <ArrowRight size={16} />
+              <Link href="/student" className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 !text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2" style={{ backgroundColor: "#10b981", color: "#ffffff" }}>
+                <span className="!text-white font-black">{L.backPortal}</span> <ArrowRight size={16} className="!text-white" />
               </Link>
             </div>
           </div>
@@ -684,6 +937,87 @@ export default function ReportPage() {
             <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed mt-1">
               {L.emergencyFooter}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Student View Details Modal ── */}
+      {selectedStudentReport && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-3xl p-6 md:p-8 space-y-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
+                  <ShieldCheck size={22} className="text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-black dark:text-white">
+                    {lang === "en" ? "Report Details" : "புகார் விவரங்கள்"}
+                  </h3>
+                  <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                    {selectedStudentReport.refNum}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedStudentReport(null)}
+                className="text-xs font-bold px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              >
+                ✕ {lang === "en" ? "Close" : "மூடு"}
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">Category</span>
+                  <span className="font-bold text-black dark:text-white">{selectedStudentReport.category}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">Priority</span>
+                  <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                    selectedStudentReport.priority === "CRITICAL" ? "bg-red-500 text-white" : "bg-amber-500 text-slate-950"
+                  }`}>
+                    {selectedStudentReport.priority}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">Date Filed</span>
+                  <span className="text-slate-600 dark:text-slate-300 font-semibold">{selectedStudentReport.date}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">Current Status</span>
+                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                    selectedStudentReport.status === "Resolved"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-red-100 text-red-700"
+                  }`}>
+                    {selectedStudentReport.status}
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                  {lang === "en" ? "Full Incident Details & Description" : "சம்பவத்தின் முழு விவரங்கள்"}
+                </span>
+                <p className="text-slate-700 dark:text-slate-300 text-xs leading-relaxed font-mono bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 whitespace-pre-wrap">
+                  {selectedStudentReport.description || "No description provided."}
+                </p>
+              </div>
+
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-800 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={16} className="text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-[10px] font-black uppercase text-emerald-700 dark:text-emerald-400">
+                    {lang === "en" ? "Official Department Action / Response" : "அதிகாரப்பூர்வ நடவடிக்கை குறிப்பு"}
+                  </span>
+                </div>
+                <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed font-medium">
+                  {selectedStudentReport.officialNote || "Your report is under active review by the school counsellor and DEO."}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

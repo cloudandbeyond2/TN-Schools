@@ -63,7 +63,7 @@ export default function UserManagement() {
   const [filterStatus, setFilterStatus] = useState<"ALL" | "active" | "inactive">("ALL");
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
-  const [form, setForm] = useState({ name:"", email:"", role:"TEACHER" as Role, district:"", block:"", school:"" });
+  const [form, setForm] = useState({ name:"", email:"", password:"", role:"TEACHER" as Role, district:"", block:"", school:"" });
 
   const filtered = users.filter((u) => {
     const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -77,8 +77,8 @@ export default function UserManagement() {
     setUsers((prev) => prev.map((u) => u.id === id ? { ...u, status: u.status === "active" ? "inactive" : "active" } : u));
   };
 
-  const openAdd = () => { setEditUser(null); setForm({ name:"", email:"", role:"TEACHER", district:"", block:"", school:"" }); setShowModal(true); };
-  const openEdit = (u: User) => { setEditUser(u); setForm({ name:u.name, email:u.email, role:u.role, district:u.district, block:u.block, school:u.school }); setShowModal(true); };
+  const openAdd = () => { setEditUser(null); setForm({ name:"", email:"", password:"123456", role:"TEACHER", district:"", block:"", school:"" }); setShowModal(true); };
+  const openEdit = (u: User) => { setEditUser(u); setForm({ name:u.name, email:u.email, password: u.role === "COMMISSIONER" ? "Commissioner@26" : "123456", role:u.role, district:u.district, block:u.block, school:u.school }); setShowModal(true); };
 
   const saveUser = () => {
     if (!form.name || !form.email) return;
@@ -207,19 +207,21 @@ export default function UserManagement() {
             <h3 className="text-base font-bold text-white mb-5">{editUser ? "✏️ Edit User" : "➕ Add New User"}</h3>
             <div className="space-y-3">
               {[
-                { label:"Full Name", key:"name", placeholder:"Enter full name" },
-                { label:"Email", key:"email", placeholder:"email@tn.gov.in" },
-                { label:"District", key:"district", placeholder:"e.g. Coimbatore" },
-                { label:"Block", key:"block", placeholder:"e.g. Coimbatore South" },
-                { label:"School / Office", key:"school", placeholder:"School name or —" },
-              ].map(({ label, key, placeholder }) => (
+                { label:"Full Name", key:"name", placeholder:"Enter full name", type:"text" },
+                { label:"Email", key:"email", placeholder:"email@tn.gov.in", type:"email" },
+                { label:"Password", key:"password", placeholder:"Set account password", type:"text" },
+                { label:"District", key:"district", placeholder:"e.g. Coimbatore", type:"text" },
+                { label:"Block", key:"block", placeholder:"e.g. Coimbatore South", type:"text" },
+                { label:"School / Office", key:"school", placeholder:"School name or —", type:"text" },
+              ].map(({ label, key, placeholder, type }) => (
                 <div key={key}>
                   <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">{label}</label>
                   <input
-                    value={(form as any)[key]}
+                    type={type}
+                    value={(form as any)[key] || ""}
                     onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                     placeholder={placeholder}
-                    className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500"
+                    className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 font-mono"
                   />
                 </div>
               ))}

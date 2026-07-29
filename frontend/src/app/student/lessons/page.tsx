@@ -123,9 +123,9 @@ export default function StudentLessonsPage() {
       {/* ───── Detail view ───── */}
       {active ? (
         <div className="space-y-5">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 flex-wrap">
             <button onClick={() => setActive(null)} className="text-sm font-bold text-slate-500 hover:text-indigo-600 flex items-center gap-1">← All lessons</button>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="flex bg-slate-100 dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-800">
                 {(["en", "ta"] as const).map((l) => (
                   <button key={l} onClick={() => setLang(l)} className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-white shadow-sm" : "text-slate-500"}`}>
@@ -138,7 +138,7 @@ export default function StudentLessonsPage() {
             </div>
           </div>
 
-          <div ref={captureRef} className="bg-white rounded-3xl p-6 xl:p-8 space-y-6">
+          <div ref={captureRef} className="bg-white rounded-3xl p-5 sm:p-6 xl:p-8 space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4 pb-4 border-b border-slate-100">
               <div className="text-5xl">{active.planData?.infographic?.heroIcon || "📚"}</div>
@@ -209,7 +209,7 @@ export default function StudentLessonsPage() {
       ) : (
         /* ───── List view ───── */
         <>
-          <div className="flex items-center justify-between gap-4 mb-6 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 glass rounded-3xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50">
             <div>
               <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1">Published Lessons</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">Focused key points &amp; infographics from your teacher.</p>
@@ -260,7 +260,7 @@ export default function StudentLessonsPage() {
                 ))}
               </div>
               {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-8">
+                <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 mt-8">
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
@@ -315,7 +315,7 @@ export default function StudentLessonsPage() {
                 <p className="text-slate-500 text-xl xl:text-2xl font-semibold tracking-wide uppercase">{active.grade} • {active.subject}</p>
               </div>
             ) : presentIndex <= presentPoints.length ? (
-              <div className="max-w-4xl w-full text-left animate-in fade-in slide-in-from-right-8 duration-400 bg-white rounded-[2.5rem] p-10 xl:p-16 shadow-2xl border border-slate-100 flex flex-col md:flex-row items-center gap-8 xl:gap-12 relative overflow-hidden">
+              <div className="max-w-4xl w-full text-left animate-in fade-in slide-in-from-right-8 duration-400 bg-white rounded-[2.5rem] p-6 sm:p-10 xl:p-16 shadow-2xl border border-slate-100 flex flex-col md:flex-row items-center gap-6 sm:gap-8 xl:gap-12 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-60"></div>
                 
                 <div className="shrink-0 flex flex-col items-center justify-center w-32 h-32 xl:w-48 xl:h-48 rounded-[2rem] bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-xl shadow-emerald-500/30 transform -rotate-3 transition-transform relative z-10">
@@ -345,14 +345,14 @@ export default function StudentLessonsPage() {
               </div>
             )}
           </div>
-          <div className="flex items-center justify-center gap-6 px-6 py-6 shrink-0 relative z-10 bg-white/80 backdrop-blur-md border-t border-slate-100">
-            <button onClick={() => setPresentIndex((i) => Math.max(i - 1, 0))} disabled={presentIndex === 0} className="px-8 py-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold disabled:opacity-30 transition-all text-sm xl:text-base">← Previous</button>
-            <div className="flex gap-2 mx-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 px-4 sm:px-6 py-4 sm:py-6 shrink-0 relative z-10 bg-white/80 backdrop-blur-md border-t border-slate-100">
+            <button onClick={() => setPresentIndex((i) => Math.max(i - 1, 0))} disabled={presentIndex === 0} className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold disabled:opacity-30 transition-all text-sm xl:text-base">← Previous</button>
+            <div className="flex gap-2 mx-2 sm:mx-4 flex-wrap justify-center">
               {Array.from({ length: presentTotal }).map((_, i) => (
                 <button key={i} onClick={() => setPresentIndex(i)} className={`w-3 h-3 rounded-full transition-all ${i === presentIndex ? "bg-emerald-500 w-8 shadow-md shadow-emerald-500/30" : "bg-slate-200 hover:bg-slate-300"}`} />
               ))}
             </div>
-            <button onClick={() => setPresentIndex((i) => Math.min(i + 1, presentTotal - 1))} disabled={presentIndex >= presentTotal - 1} className="px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold disabled:opacity-30 transition-all text-sm xl:text-base shadow-lg shadow-emerald-500/20">Next →</button>
+            <button onClick={() => setPresentIndex((i) => Math.min(i + 1, presentTotal - 1))} disabled={presentIndex >= presentTotal - 1} className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold disabled:opacity-30 transition-all text-sm xl:text-base shadow-lg shadow-emerald-500/20">Next →</button>
           </div>
         </div>
       )}

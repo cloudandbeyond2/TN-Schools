@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import Link from "next/link";
 import * as XLSX from "xlsx";
 import { Lock, Unlock, Plus, Download, Upload, Trash2, ChevronLeft, AlertTriangle, CheckCircle2, TrendingUp, Users, BookOpen, Award } from "lucide-react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
@@ -506,7 +507,7 @@ export default function ModelExamsPage() {
       const ta = calcLocal(a, isHsc).total || 0;
       const tb = calcLocal(b, isHsc).total || 0;
       return tb - ta;
-    }).slice(0, 3);
+    }).slice(0, 5);
     return { subAvg, passed, total: entered.length, avgPct: Math.round(avgPct), toppers };
   })();
 
@@ -719,14 +720,16 @@ export default function ModelExamsPage() {
               </div>
 
               {/* Toppers */}
-              <div className="glass rounded-2xl border border-slate-800 p-5">
+              <div className="glass rounded-2xl border border-slate-800 p-5 flex flex-col">
                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">🏆 Top Performers</h3>
-                <div className="space-y-3">
+                <div className="space-y-3 flex-1">
                   {analytics.toppers.map((t, i) => {
                     const { total, pct, maxTotal } = calcLocal(t, isHsc);
                     return (
                       <div key={t.studentId} className="flex items-center gap-3">
-                        <span className="text-lg">{i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}</span>
+                        <div className="w-6 text-center shrink-0">
+                          {i === 0 ? <span className="text-lg">🥇</span> : i === 1 ? <span className="text-lg">🥈</span> : i === 2 ? <span className="text-lg">🥉</span> : <span className="text-[10px] font-black text-slate-500 bg-slate-800 rounded-full px-1.5 py-0.5">#{i+1}</span>}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold text-white truncate">{t.studentName}</p>
                           <p className="text-[10px] text-slate-500">{t.rollNumber}</p>
@@ -740,6 +743,16 @@ export default function ModelExamsPage() {
                   })}
                   {analytics.toppers.length === 0 && <p className="text-xs text-slate-600">Enter marks to see toppers.</p>}
                 </div>
+                {analytics.toppers.length > 0 && (
+                  <div className="mt-5 pt-4 border-t border-slate-800/60 text-center shrink-0">
+                    <Link
+                      href={`/headmaster/model-exams/${activeExam.id}/top-performers`}
+                      className="inline-block text-xs font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-4 py-2 rounded-xl transition-colors"
+                    >
+                      View All Rankings →
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           )}

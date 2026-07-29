@@ -300,33 +300,38 @@ export default function TeacherSyllabusBoardPage() {
                 <Link
                   key={card.unitId}
                   href={`/teacher/syllabus-board/${card.unitId}`}
-                  className="relative text-left rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 bg-white dark:bg-slate-950/40 block group"
+                  className="relative text-left rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 bg-white dark:bg-slate-950/40 flex flex-col group"
                   title={`${card.unitName} — open lesson insights (Class ${selectedClass}${selectedSection})`}
                 >
-                  {/* Published badge */}
-                  {card.isApproved && (
-                    <span className="absolute top-2.5 right-2.5 z-10 text-[9px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-emerald-600 text-white shadow-sm">
-                      {lang === "தமிழ்" ? "பொதுப்படுத்தப்பட்டது" : "Published"}
-                    </span>
-                  )}
+                  <div className="relative overflow-hidden flex-1">
+                    {/* Published badge */}
+                    {card.isApproved && (
+                      <span className="absolute top-2.5 right-2.5 z-10 text-[9px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg bg-emerald-600 text-white shadow-sm">
+                        {lang === "தமிழ்" ? "பொதுப்படுத்தப்பட்டது" : "Published"}
+                      </span>
+                    )}
 
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 z-[5] bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4">
-                    <span className="text-white text-xs font-bold">
-                      {lang === "தமிழ்" ? "பாடத்திட்ட விளக்கம் திறக்கு →" : "Open lesson insights →"}
-                    </span>
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 z-[5] bg-black/30 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center p-4 pointer-events-none">
+                      <div 
+                        className="text-xs font-bold px-4 py-2 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
+                        style={{ backgroundColor: "rgba(15, 23, 42, 0.9)", color: "#ffffff" }}
+                      >
+                        {lang === "தமிழ்" ? "பாடத்திட்ட விளக்கம் திறக்கு →" : "Open lesson insights →"}
+                      </div>
+                    </div>
+
+                    {card.imageUrl ? (
+                      <img src={card.imageUrl} alt={card.altText || card.unitName} className="w-full h-auto block group-hover:scale-[1.02] transition-transform duration-300" />
+                    ) : (
+                      <div className="h-40 flex items-center justify-center text-slate-400 text-xs font-semibold bg-slate-50 dark:bg-slate-900/50">
+                        {lang === "தமிழ்" ? `பிரிவு ${card.unitNumber} க்கு காட்சி இல்லை` : `No visual available for Unit ${card.unitNumber}`}
+                      </div>
+                    )}
                   </div>
 
-                  {card.imageUrl ? (
-                    <img src={card.imageUrl} alt={card.altText || card.unitName} className="w-full h-auto block group-hover:scale-[1.02] transition-transform duration-300" />
-                  ) : (
-                    <div className="h-40 flex items-center justify-center text-slate-400 text-xs font-semibold">
-                      {lang === "தமிழ்" ? `பிரிவு ${card.unitNumber} க்கு காட்சி இல்லை` : `No visual available for Unit ${card.unitNumber}`}
-                    </div>
-                  )}
-
                   {/* Card footer */}
-                  <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                  <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 bg-white dark:bg-slate-950/40 relative z-10 shrink-0">
                     <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">
                       {lang === "தமிழ்" ? `பிரிவு ${card.unitNumber}: ${card.unitName}` : `Unit ${card.unitNumber}: ${card.unitName}`}
                     </p>

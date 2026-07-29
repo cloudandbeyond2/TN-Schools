@@ -3,7 +3,17 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 
-interface Grievance { id: string; petitioner: string; school: string; block: string; category: string; filed: string; status: string; }
+interface Grievance {
+  id: string;
+  petitioner: string;
+  school: string;
+  block: string;
+  category: string;
+  filed: string;
+  status: string;
+  ministerAction?: string;
+  escalation?: string;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -22,6 +32,7 @@ export default function DEOGrievancesPage() {
   const [grievances, setGrievances] = useState<Grievance[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedGrievance, setSelectedGrievance] = useState<Grievance | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState({ petitioner: "", school: "", block: "", category: "Scholarship Delay", filed: "", status: "Pending" });
@@ -41,7 +52,9 @@ export default function DEOGrievancesPage() {
             block: parsed.block,
             category: g.category,
             filed: g.filed,
-            status: g.status
+            status: g.status,
+            ministerAction: g.ministerAction || "No extra details recorded.",
+            escalation: g.escalation || "Medium"
           };
         });
         setGrievances(formatted);
@@ -59,14 +72,15 @@ export default function DEOGrievancesPage() {
 
   const handleResolve = async (id: string) => {
     try {
-      // Simulate resolving via API update
       const res = await fetch(`${API_URL}/api/deo/grievances`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Simple update trigger: we reuse POST but pass status resolved to update state
-        body: JSON.stringify({ petitioner: "Update", district, id, status: "Resolved" })
+        body: JSON.stringify({ id, status: "Resolved" })
       });
       setGrievances(p => p.map(g => g.id === id ? { ...g, status: "Resolved" } : g));
+      if (selectedGrievance?.id === id) {
+        setSelectedGrievance(prev => prev ? { ...prev, status: "Resolved" } : null);
+      }
       setToast("✅ Grievance marked as resolved.");
       setTimeout(() => setToast(null), 3000);
     } catch (e) {
@@ -99,7 +113,9 @@ export default function DEOGrievancesPage() {
           block: parsed.block,
           category: json.data.category,
           filed: json.data.filed,
-          status: json.data.status
+          status: json.data.status,
+          ministerAction: json.data.ministerAction || "No extra details recorded.",
+          escalation: json.data.escalation || "Medium"
         };
         setGrievances(p => [newGrievance, ...p]);
         setIsModalOpen(false);
@@ -145,7 +161,9 @@ export default function DEOGrievancesPage() {
             block: parsed.block,
             category: json.data.category,
             filed: json.data.filed,
-            status: json.data.status
+            status: json.data.status,
+            ministerAction: json.data.ministerAction || "Imported record",
+            escalation: "Medium"
           };
           setGrievances(p => [newGrievance, ...p]);
           setToast("📊 Grievance register imported! 1 new record added.");
@@ -208,9 +226,10 @@ export default function DEOGrievancesPage() {
                   <td className="text-xs text-pink-400">{g.category}</td>
                   <td className="text-xs text-slate-500">{g.filed}</td>
                   <td><span className={`badge ${g.status === "Resolved" ? "badge-green" : g.status === "Pending" || g.status === "Intervention Pending" ? "badge-red" : "badge-yellow"}`}>{g.status}</span></td>
-                  <td>
+                  <td className="space-x-2">
+                    <button onClick={() => setSelectedGrievance(g)} className="text-xs text-pink-400 hover:text-pink-300 font-bold px-2 py-1 bg-pink-500/10 rounded-md">👁️ View</button>
                     {g.status !== "Resolved" && (
-                      <button onClick={() => handleResolve(g.id)} className="text-xs text-emerald-400 hover:text-emerald-300 font-bold">Resolve</button>
+                      <button onClick={() => handleResolve(g.id)} className="text-xs text-emerald-400 hover:text-emerald-300 font-bold px-2 py-1 bg-emerald-500/10 rounded-md">Resolve</button>
                     )}
                   </td>
                 </tr>
@@ -219,6 +238,63 @@ export default function DEOGrievancesPage() {
           </tbody>
         </table>
       </div>
+
+      {/* View Grievance Details Modal */}
+      {selectedGrievance && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-xl rounded-3xl p-6 space-y-5" style={{ background: "#090d16", border: "1px solid rgba(236,72,153,0.3)", boxShadow: "0 20px 60px rgba(0,0,0,0.95)" }}>
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⚖️</span>
+                <h3 className="text-base font-black text-white">Grievance Details</h3>
+              </div>
+              <button onClick={() => setSelectedGrievance(null)} className="text-slate-400 hover:text-white text-xs font-bold px-2 py-1 bg-slate-800 rounded-lg">✕ Close</button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3 bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
+                <div>
+                  <span className="text-[10px] text-slate-500 block uppercase font-bold">Petitioner / Ref</span>
+                  <span className="text-white font-bold">{selectedGrievance.petitioner}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-500 block uppercase font-bold">Category</span>
+                  <span className="text-pink-400 font-bold">{selectedGrievance.category}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-500 block uppercase font-bold">Date Filed</span>
+                  <span className="text-slate-300">{selectedGrievance.filed}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-500 block uppercase font-bold">Priority Level</span>
+                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase ${selectedGrievance.escalation === "Critical" ? "bg-red-500 text-white" : "bg-amber-500 text-slate-950"}`}>
+                    {selectedGrievance.escalation || "Critical"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 space-y-2">
+                <span className="text-[10px] text-slate-500 block uppercase font-bold">Full Incident Details & Description</span>
+                <p className="text-slate-200 text-xs leading-relaxed whitespace-pre-wrap font-mono bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+                  {selectedGrievance.ministerAction}
+                </p>
+              </div>
+
+              <div className="flex justify-between items-center pt-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400">Status:</span>
+                  <span className={`badge ${selectedGrievance.status === "Resolved" ? "badge-green" : "badge-red"}`}>{selectedGrievance.status}</span>
+                </div>
+                {selectedGrievance.status !== "Resolved" && (
+                  <button onClick={() => handleResolve(selectedGrievance.id)} className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-md">
+                    ✓ Mark as Resolved
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
