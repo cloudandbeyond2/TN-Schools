@@ -111,10 +111,12 @@ const daysUntil = (d: string | Date) => {
   return Math.round((target.getTime() - now.getTime()) / 86400000);
 };
 
-/* ────────────────────────────────────────────────────────────
-   Component
-──────────────────────────────────────────────────────────── */
-export default function StudentDailyOverview() {
+interface StudentDailyOverviewProps {
+  extraLeft?: React.ReactNode;
+  extraRight?: React.ReactNode;
+}
+
+export default function StudentDailyOverview({ extraLeft, extraRight }: StudentDailyOverviewProps = {}) {
   const { data: session } = useSession();
   const { lang } = usePortalLanguage();
 
@@ -137,22 +139,23 @@ export default function StudentDailyOverview() {
 
   useEffect(() => {
     const u = session?.user as any;
-    if (!u?.id) return;
     let cancelled = false;
 
     (async () => {
       // Resolve student identity (studentId + school/class/section) from the
       // session, falling back to the students list when fields are missing.
-      let studentId = u.studentId || null;
-      let schoolId = u.schoolId || null;
-      let cls = u.class ? String(u.class) : null;
-      let section = u.section ? String(u.section) : null;
+      let studentId = u?.studentId || null;
+      let schoolId = u?.schoolId || null;
+      let cls = u?.class ? String(u.class) : null;
+      let section = u?.section ? String(u.section) : null;
 
       if (!studentId || !schoolId || !cls) {
         try {
           const res = await fetch(`${API_BASE}/api/students`);
           const json = await res.json();
-          const me = json.success ? json.data.find((s: any) => s.userId === u.id) : null;
+          const me = json.success && Array.isArray(json.data) && json.data.length > 0
+            ? (u?.id ? json.data.find((s: any) => s.userId === u.id) : null) || json.data[0]
+            : null;
           if (me) {
             studentId = studentId || me.id;
             schoolId = schoolId || me.schoolId;
@@ -161,7 +164,8 @@ export default function StudentDailyOverview() {
           }
         } catch {}
       }
-      if (cancelled || !studentId) return;
+
+      if (cancelled) return;
 
       const today = new Date();
       const dayOfWeek = today.getDay(); // 0=Sun … 6=Sat (matches Timetable.dayOfWeek)
@@ -254,9 +258,12 @@ export default function StudentDailyOverview() {
         })
         .catch(() => !cancelled && setAttendance({ pct: null, today: "NOT_MARKED", present: 0, total: 0 }));
 
-      /* 5. Teacher announcements (class announcements, falling back to notifications) */
-      const loadNotifications = () =>
-        fetch(`${API_BASE}/api/notifications?userId=${u.id}`)
+      const loadNotifications = () => {
+        if (!u?.id) {
+          setAnnouncements([]);
+          return Promise.resolve();
+        }
+        return fetch(`${API_BASE}/api/notifications?userId=${u.id}`)
           .then((r) => r.json())
           .then((json) => {
             if (cancelled) return;
@@ -272,6 +279,7 @@ export default function StudentDailyOverview() {
             } else setAnnouncements([]);
           })
           .catch(() => !cancelled && setAnnouncements([]));
+      };
 
       if (schoolId && cls) {
         fetch(
@@ -452,8 +460,6 @@ export default function StudentDailyOverview() {
     ];
   }, [subjectAverages]);
 
-  if (!session?.user) return null;
-
   const todayLabel = new Date().toLocaleDateString(undefined, {
     weekday: "long",
     day: "numeric",
@@ -489,334 +495,345 @@ export default function StudentDailyOverview() {
         )}
       </div>
 
-      {/* ── Row 1: timetable + attendance/homework ───── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Daily timetable & upcoming classes */}
-        <div className="lg:col-span-2 glass rounded-2xl p-5 border border-[var(--border)]">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
-              <Fi name="calendar-lines" className="text-sm text-indigo-500" /> {lang === "தமிழ்" ? "இன்றைய பாட அட்டவணை" : "Today's Timetable"}
-            </h3>
-            {timetable?.[0]?.sample && (
-              <span className="text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-full">
-                {lang === "தமிழ்" ? "மாதிரி — அட்டவணை இன்னும் வெளியிடப்படவில்லை" : "Sample — timetable not published yet"}
-              </span>
-            )}
-          </div>
-
-          {timetable === null ? (
-            <CardLoading />
-          ) : timetable.length === 0 ? (
-            <EmptyNote icon="moon-stars" text={lang === "தமிழ்" ? "இன்று வகுப்புகள் எதுவும் திட்டமிடப்படவில்லை." : "No classes scheduled today. Enjoy your holiday — or revise a unit you found hard!"} />
-          ) : (
-            <div className="space-y-1.5">
-              {timetable.map((slot) => {
-                const isNow = currentPeriod?.period === slot.period;
-                const isNext = nextPeriods[0]?.period === slot.period;
-                const done = toMinutes(slot.endTime) <= nowMin;
-                return (
-                  <div
-                    key={slot.period}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-xl border transition-colors ${
-                      isNow
-                        ? "border-emerald-500/50 bg-emerald-500/10"
-                        : isNext
-                        ? "border-indigo-500/40 bg-indigo-500/5"
-                        : "border-[var(--border)]"
-                    } ${done ? "opacity-55" : ""}`}
-                  >
-                    <span
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0"
-                      style={{ backgroundColor: `${subjectColor(slot.subject)}1a`, color: subjectColor(slot.subject) }}
-                    >
-                      P{slot.period}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-bold text-[var(--text-heading)] truncate">{slot.subject}</div>
-                      <div className="text-[10px] text-[var(--text-muted)] font-semibold">
-                        {fmtTime(slot.startTime)} – {fmtTime(slot.endTime)}
-                      </div>
-                    </div>
-                    {isNow && (
-                      <span className="text-[9px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-2 py-1 rounded-full flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> {lang === "தமிழ்" ? "இப்போது" : "Now"}
-                      </span>
-                    )}
-                    {isNext && (
-                      <span className="text-[9px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 px-2 py-1 rounded-full">
-                        {lang === "தமிழ்" ? "அடுத்து" : "Up next"}
-                      </span>
-                    )}
-                    {done && <Fi name="check" className="text-xs text-[var(--text-muted)]" />}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Attendance + pending homework stack */}
+      {/* ── Main Overview Grid ───── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+        {/* Left Column Stack */}
         <div className="space-y-4">
-          {/* Attendance status */}
+          {/* Daily timetable & upcoming classes */}
           <div className="glass rounded-2xl p-5 border border-[var(--border)]">
-            <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2 mb-3">
-              <Fi name="calendar-check" className="text-sm text-emerald-500" /> {lang === "தமிழ்" ? "வருகைப்பதிவு நிலை" : "Attendance Status"}
-            </h3>
-            {attendance === null ? (
-              <CardLoading />
-            ) : (
-              <div className="space-y-3">
-                <div
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl border"
-                  style={{ borderColor: `${attendanceToday.color}55`, backgroundColor: `${attendanceToday.color}14` }}
-                >
-                  <span style={{ color: attendanceToday.color }}>
-                    <Fi name={attendanceToday.icon} className="text-sm" />
-                  </span>
-                  <span className="text-xs font-bold" style={{ color: attendanceToday.color }}>
-                    {attendanceToday.label}
-                  </span>
-                </div>
-                {attendance.pct !== null ? (
-                  <div>
-                    <div className="flex justify-between text-[10px] font-bold text-[var(--text-muted)] mb-1.5">
-                      <span>{lang === "தமிழ்" ? "இந்த மாதம்" : "This month"}</span>
-                      <span>
-                        {attendance.present}/{attendance.total} {lang === "தமிழ்" ? "நாட்கள்" : "days"} · {attendance.pct}%
-                      </span>
-                    </div>
-                    <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${attendance.pct}%`,
-                          background: attendance.pct >= 85 ? "#10b981" : attendance.pct >= 70 ? "#f59e0b" : "#ef4444",
-                        }}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-[11px] text-[var(--text-muted)] italic">{lang === "தமிழ்" ? "இந்த மாதம் இதுவரை வருகைப்பதிவு இல்லை." : "No attendance recorded this month yet."}</p>
-                )}
-                <Link
-                  href="/student/leave"
-                  className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
-                >
-                  {lang === "தமிழ்" ? "விடுப்பு கோரிக்கைகள் & வரலாறு" : "Leave requests & history"} <Fi name="arrow-small-right" className="text-xs" />
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Pending homework */}
-          <div className="glass rounded-2xl p-5 border border-[var(--border)]">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
-                <Fi name="pencil" className="text-sm text-blue-500" /> {lang === "தமிழ்" ? "நிலுவையில் உள்ள வீட்டுப்பாடம்" : "Pending Homework"}
+                <Fi name="calendar-lines" className="text-sm text-indigo-500" /> {lang === "தமிழ்" ? "இன்றைய பாட அட்டவணை" : "Today's Timetable"}
               </h3>
-              {homework && homework.length > 0 && (
-                <span className="text-[10px] font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full">
-                  {homework.length}
+              {timetable?.[0]?.sample && (
+                <span className="text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-full">
+                  {lang === "தமிழ்" ? "மாதிரி — அட்டவணை இன்னும் வெளியிடப்படவில்லை" : "Sample — timetable not published yet"}
                 </span>
               )}
             </div>
-            {homework === null ? (
+
+            {timetable === null ? (
               <CardLoading />
-            ) : homework.length === 0 ? (
-              <EmptyNote icon="check" text={lang === "தமிழ்" ? "நிலுவையில் வீட்டுப்பாடம் இல்லை — அனைத்தும் முடிந்தது!" : "No pending homework — you're all caught up!"} />
+            ) : timetable.length === 0 ? (
+              <EmptyNote icon="moon-stars" text={lang === "தமிழ்" ? "இன்று வகுப்புகள் எதுவும் திட்டமிடப்படவில்லை." : "No classes scheduled today. Enjoy your holiday — or revise a unit you found hard!"} />
             ) : (
-              <div className="space-y-2">
-                {homework.slice(0, 3).map((h) => {
-                  const d = h.dueDate ? daysUntil(h.dueDate) : null;
-                  const overdue = d !== null && d < 0;
+              <div className="space-y-1.5">
+                {timetable.map((slot) => {
+                  const isNow = currentPeriod?.period === slot.period;
+                  const isNext = nextPeriods[0]?.period === slot.period;
+                  const done = toMinutes(slot.endTime) <= nowMin;
                   return (
-                    <Link
-                      key={h.id}
-                      href="/student/homework"
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-[var(--border)] hover:bg-[var(--bg-card-hover)] transition-colors"
+                    <div
+                      key={slot.period}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-xl border transition-colors ${
+                        isNow
+                          ? "border-emerald-500/50 bg-emerald-500/10"
+                          : isNext
+                          ? "border-indigo-500/40 bg-indigo-500/5"
+                          : "border-[var(--border)]"
+                      } ${done ? "opacity-55" : ""}`}
                     >
                       <span
-                        className="w-1.5 h-8 rounded-full shrink-0"
-                        style={{ backgroundColor: overdue ? "#ef4444" : subjectColor(h.subject) }}
-                      />
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0"
+                        style={{ backgroundColor: `${subjectColor(slot.subject)}1a`, color: subjectColor(slot.subject) }}
+                      >
+                        P{slot.period}
+                      </span>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-[var(--text-heading)] truncate">{h.title}</div>
-                        <div className={`text-[10px] font-semibold ${overdue ? "text-red-500" : "text-[var(--text-muted)]"}`}>
-                          {h.subject}
-                          {d !== null &&
-                            ` · ${overdue ? (lang === "தமிழ்" ? `${Math.abs(d)} நாட்கள் தாமதம்` : `Overdue by ${Math.abs(d)} day${Math.abs(d) === 1 ? "" : "s"}`) : d === 0 ? (lang === "தமிழ்" ? "இன்று கடைசி நாள்" : "Due today") : d === 1 ? (lang === "தமிழ்" ? "நாளை கடைசி நாள்" : "Due tomorrow") : (lang === "தமிழ்" ? `${d} நாட்களில் கடைசி நாள்` : `Due in ${d} days`)}`}
+                        <div className="text-xs font-bold text-[var(--text-heading)] truncate">{slot.subject}</div>
+                        <div className="text-[10px] text-[var(--text-muted)] font-semibold">
+                          {fmtTime(slot.startTime)} – {fmtTime(slot.endTime)}
                         </div>
                       </div>
-                      <Fi name="angle-small-right" className="text-sm text-[var(--text-muted)]" />
-                    </Link>
+                      {isNow && (
+                        <span className="text-[9px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-2 py-1 rounded-full flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> {lang === "தமிழ்" ? "இப்போது" : "Now"}
+                        </span>
+                      )}
+                      {isNext && (
+                        <span className="text-[9px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 px-2 py-1 rounded-full">
+                          {lang === "தமிழ்" ? "அடுத்து" : "Up next"}
+                        </span>
+                      )}
+                      {done && <Fi name="check" className="text-xs text-[var(--text-muted)]" />}
+                    </div>
                   );
                 })}
-                <Link
-                  href="/student/homework"
-                  className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
-                >
-                  {lang === "தமிழ்" ? "அனைத்து வீட்டுப்பாடங்களும்" : "All homework"} <Fi name="arrow-small-right" className="text-xs" />
-                </Link>
               </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* ── Row 2: exams + announcements + AI suggestions ─ */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Upcoming examinations */}
-        <div className="glass rounded-2xl p-5 border border-[var(--border)]">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
-              <Fi name="diploma" className="text-sm text-purple-500" /> {lang === "தமிழ்" ? "வரவிருக்கும் தேர்வுகள்" : "Upcoming Exams"}
-            </h3>
-            <Link href="/student/exams" className="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline">
-              {lang === "தமிழ்" ? "முழு அட்டவணை" : "Full schedule"}
-            </Link>
+          {/* Upcoming Exams & Teacher Announcements Sub-grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Upcoming examinations */}
+            <div className="glass rounded-2xl p-5 border border-[var(--border)]">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
+                  <Fi name="diploma" className="text-sm text-purple-500" /> {lang === "தமிழ்" ? "வரவிருக்கும் தேர்வுகள்" : "Upcoming Exams"}
+                </h3>
+                <Link href="/student/exams" className="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline">
+                  {lang === "தமிழ்" ? "முழு அட்டவணை" : "Full schedule"}
+                </Link>
+              </div>
+              {exams === null ? (
+                <CardLoading />
+              ) : exams.length === 0 ? (
+                <EmptyNote icon="calendar" text={lang === "தமிழ்" ? "தேர்வுகள் எதுவும் இன்னும் திட்டமிடப்படவில்லை." : "No exams scheduled yet. Keep revising — the schedule will appear here."} />
+              ) : (
+                <div className="space-y-2">
+                  {exams.slice(0, 4).map((e) => {
+                    const d = daysUntil(e.examDate);
+                    return (
+                      <div key={e.id} className="flex items-center gap-3 px-3 py-2 rounded-xl border border-[var(--border)]">
+                        <div
+                          className="w-10 h-10 rounded-xl flex flex-col items-center justify-center shrink-0"
+                          style={{ backgroundColor: `${subjectColor(e.subject)}14`, color: subjectColor(e.subject) }}
+                        >
+                          <span className="text-sm font-black leading-none">{new Date(e.examDate).getDate()}</span>
+                          <span className="text-[8px] font-bold uppercase">
+                            {new Date(e.examDate).toLocaleDateString(undefined, { month: "short" })}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold text-[var(--text-heading)] truncate">
+                            {e.subject} · {e.examType}
+                          </div>
+                          <div className="text-[10px] text-[var(--text-muted)] font-semibold truncate">
+                            {fmtTime(e.startTime)}
+                            {e.venue ? ` · ${e.venue}` : ""}
+                          </div>
+                        </div>
+                        <span
+                          className={`text-[9px] font-black px-2 py-1 rounded-full shrink-0 ${
+                            d <= 3 ? "bg-red-500/10 text-red-500" : "bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                          }`}
+                        >
+                          {d <= 0 ? (lang === "தமிழ்" ? "இன்று" : "Today") : d === 1 ? (lang === "தமிழ்" ? "நாளை" : "Tomorrow") : `${d} ${lang === "தமிழ்" ? "நாட்கள்" : "days"}`}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Teacher announcements */}
+            <div className="glass rounded-2xl p-5 border border-[var(--border)]">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
+                  <Fi name="megaphone" className="text-sm text-amber-500" /> {lang === "தமிழ்" ? "ஆசிரியர் அறிவிப்புகள்" : "Teacher Announcements"}
+                </h3>
+                <Link
+                  href="/student/announcements"
+                  className="text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:underline"
+                >
+                  {lang === "தமிழ்" ? "அனைத்தையும் பார்" : "View all"}
+                </Link>
+              </div>
+              {announcements === null ? (
+                <CardLoading />
+              ) : announcements.length === 0 ? (
+                <EmptyNote icon="bell" text={lang === "தமிழ்" ? "இப்போது புதிய அறிவிப்புகள் இல்லை." : "No announcements right now. New messages from your teachers will appear here."} />
+              ) : (
+                <div className="space-y-2">
+                  {announcements.slice(0, 3).map((a) => (
+                    <div key={a.id} className="px-3 py-2 rounded-xl border border-[var(--border)]">
+                      <div className="flex items-start gap-2">
+                        {a.pinned && <Fi name="thumbtack" className="text-[10px] text-amber-500 mt-0.5" />}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold text-[var(--text-heading)] leading-snug line-clamp-2">{a.title}</div>
+                          {a.body && (
+                            <div className="text-[10px] text-[var(--text-muted)] leading-relaxed line-clamp-2 mt-0.5">{a.body}</div>
+                          )}
+                          <div className="text-[9px] text-[var(--text-muted)] font-semibold mt-1">
+                            {new Date(a.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-          {exams === null ? (
-            <CardLoading />
-          ) : exams.length === 0 ? (
-            <EmptyNote icon="calendar" text={lang === "தமிழ்" ? "தேர்வுகள் எதுவும் இன்னும் திட்டமிடப்படவில்லை." : "No exams scheduled yet. Keep revising — the schedule will appear here."} />
-          ) : (
-            <div className="space-y-2">
-              {exams.slice(0, 4).map((e) => {
-                const d = daysUntil(e.examDate);
-                return (
-                  <div key={e.id} className="flex items-center gap-3 px-3 py-2 rounded-xl border border-[var(--border)]">
-                    <div
-                      className="w-10 h-10 rounded-xl flex flex-col items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${subjectColor(e.subject)}14`, color: subjectColor(e.subject) }}
-                    >
-                      <span className="text-sm font-black leading-none">{new Date(e.examDate).getDate()}</span>
-                      <span className="text-[8px] font-bold uppercase">
-                        {new Date(e.examDate).toLocaleDateString(undefined, { month: "short" })}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-bold text-[var(--text-heading)] truncate">
-                        {e.subject} · {e.examType}
-                      </div>
-                      <div className="text-[10px] text-[var(--text-muted)] font-semibold truncate">
-                        {fmtTime(e.startTime)}
-                        {e.venue ? ` · ${e.venue}` : ""}
-                      </div>
-                    </div>
-                    <span
-                      className={`text-[9px] font-black px-2 py-1 rounded-full shrink-0 ${
-                        d <= 3 ? "bg-red-500/10 text-red-500" : "bg-purple-500/10 text-purple-600 dark:text-purple-400"
-                      }`}
-                    >
-                      {d <= 0 ? (lang === "தமிழ்" ? "இன்று" : "Today") : d === 1 ? (lang === "தமிழ்" ? "நாளை" : "Tomorrow") : `${d} ${lang === "தமிழ்" ? "நாட்கள்" : "days"}`}
+          {extraLeft}
+        </div>
+
+        {/* Right Sidebar Stack */}
+        <div className="space-y-4">
+          {/* Attendance & Homework Sub-grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Attendance status */}
+            <div className="glass rounded-2xl p-5 border border-[var(--border)]">
+              <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2 mb-3">
+                <Fi name="calendar-check" className="text-sm text-emerald-500" /> {lang === "தமிழ்" ? "வருகைப்பதிவு நிலை" : "Attendance Status"}
+              </h3>
+              {attendance === null ? (
+                <CardLoading />
+              ) : (
+                <div className="space-y-3">
+                  <div
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl border"
+                    style={{ borderColor: `${attendanceToday.color}55`, backgroundColor: `${attendanceToday.color}14` }}
+                  >
+                    <span style={{ color: attendanceToday.color }}>
+                      <Fi name={attendanceToday.icon} className="text-sm" />
+                    </span>
+                    <span className="text-xs font-bold" style={{ color: attendanceToday.color }}>
+                      {attendanceToday.label}
                     </span>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Teacher announcements */}
-        <div className="glass rounded-2xl p-5 border border-[var(--border)]">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
-              <Fi name="megaphone" className="text-sm text-amber-500" /> {lang === "தமிழ்" ? "ஆசிரியர் அறிவிப்புகள்" : "Teacher Announcements"}
-            </h3>
-            <Link
-              href="/student/announcements"
-              className="text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:underline"
-            >
-              {lang === "தமிழ்" ? "அனைத்தையும் பார்" : "View all"}
-            </Link>
-          </div>
-          {announcements === null ? (
-            <CardLoading />
-          ) : announcements.length === 0 ? (
-            <EmptyNote icon="bell" text={lang === "தமிழ்" ? "இப்போது புதிய அறிவிப்புகள் இல்லை." : "No announcements right now. New messages from your teachers will appear here."} />
-          ) : (
-            <div className="space-y-2">
-              {announcements.slice(0, 3).map((a) => (
-                <div key={a.id} className="px-3 py-2 rounded-xl border border-[var(--border)]">
-                  <div className="flex items-start gap-2">
-                    {a.pinned && <Fi name="thumbtack" className="text-[10px] text-amber-500 mt-0.5" />}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-bold text-[var(--text-heading)] leading-snug line-clamp-2">{a.title}</div>
-                      {a.body && (
-                        <div className="text-[10px] text-[var(--text-muted)] leading-relaxed line-clamp-2 mt-0.5">{a.body}</div>
-                      )}
-                      <div className="text-[9px] text-[var(--text-muted)] font-semibold mt-1">
-                        {new Date(a.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  {attendance.pct !== null ? (
+                    <div>
+                      <div className="flex justify-between text-[10px] font-bold text-[var(--text-muted)] mb-1.5">
+                        <span>{lang === "தமிழ்" ? "இந்த மாதம்" : "This month"}</span>
+                        <span>
+                          {attendance.present}/{attendance.total} {lang === "தமிழ்" ? "நாட்கள்" : "days"} · {attendance.pct}%
+                        </span>
+                      </div>
+                      <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${attendance.pct}%`,
+                            background: attendance.pct >= 85 ? "#10b981" : attendance.pct >= 70 ? "#f59e0b" : "#ef4444",
+                          }}
+                        />
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* AI study suggestions + learning recommendations */}
-        <div className="glass rounded-2xl p-5 border border-indigo-500/30 relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-15 bg-gradient-to-br from-indigo-500 to-fuchsia-500" />
-          <div className="flex items-center justify-between mb-1 relative z-10">
-            <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
-              <Fi name="sparkles" className="text-sm text-indigo-500" /> {lang === "தமிழ்" ? "AI கற்றல் பரிந்துரைகள்" : "AI Study Suggestions"}
-            </h3>
-          </div>
-          <p className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-3 relative z-10">
-            {lang === "தமிழ்" ? "மதிப்பெண்கள், வீட்டுப்பாடம் மற்றும் வருகைப் பதிவிலிருந்து உருவாக்கப்பட்டது" : "Generated from your marks, homework & attendance"}
-          </p>
-          <div className="space-y-2 relative z-10">
-            {suggestions.map((s, i) => (
-              <Link
-                key={i}
-                href={s.href}
-                className="flex items-start gap-2.5 px-3 py-2 rounded-xl border border-[var(--border)] hover:bg-[var(--bg-card-hover)] transition-colors group"
-              >
-                <span
-                  className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-                  style={{ backgroundColor: `${s.color}14`, color: s.color }}
-                >
-                  <Fi name={s.icon} className="text-xs" />
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] text-[var(--text-main)] leading-relaxed">{s.text}</p>
-                  <span
-                    className="text-[10px] font-bold inline-flex items-center gap-1 mt-1 group-hover:gap-1.5 transition-all"
-                    style={{ color: s.color }}
+                  ) : (
+                    <p className="text-[11px] text-[var(--text-muted)] italic">{lang === "தமிழ்" ? "இந்த மாதம் இதுவரை வருகைப்பதிவு இல்லை." : "No attendance recorded this month yet."}</p>
+                  )}
+                  <Link
+                    href="/student/leave"
+                    className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
                   >
-                    {s.action} <Fi name="arrow-small-right" className="text-[10px]" />
-                  </span>
+                    {lang === "தமிழ்" ? "விடுப்பு கோரிக்கைகள் & வரலாறு" : "Leave requests & history"} <Fi name="arrow-small-right" className="text-xs" />
+                  </Link>
                 </div>
-              </Link>
-            ))}
+              )}
+            </div>
+
+            {/* Pending homework */}
+            <div className="glass rounded-2xl p-5 border border-[var(--border)]">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
+                  <Fi name="pencil" className="text-sm text-blue-500" /> {lang === "தமிழ்" ? "நிலுவையில் உள்ள வீட்டுப்பாடம்" : "Pending Homework"}
+                </h3>
+                {homework && homework.length > 0 && (
+                  <span className="text-[10px] font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full">
+                    {homework.length}
+                  </span>
+                )}
+              </div>
+              {homework === null ? (
+                <CardLoading />
+              ) : homework.length === 0 ? (
+                <EmptyNote icon="check" text={lang === "தமிழ்" ? "நிலுவையில் வீட்டுப்பாடம் இல்லை — அனைத்தும் முடிந்தது!" : "No pending homework — you're all caught up!"} />
+              ) : (
+                <div className="space-y-2">
+                  {homework.slice(0, 3).map((h) => {
+                    const d = h.dueDate ? daysUntil(h.dueDate) : null;
+                    const overdue = d !== null && d < 0;
+                    return (
+                      <Link
+                        key={h.id}
+                        href="/student/homework"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-[var(--border)] hover:bg-[var(--bg-card-hover)] transition-colors"
+                      >
+                        <span
+                          className="w-1.5 h-8 rounded-full shrink-0"
+                          style={{ backgroundColor: overdue ? "#ef4444" : subjectColor(h.subject) }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold text-[var(--text-heading)] truncate">{h.title}</div>
+                          <div className={`text-[10px] font-semibold ${overdue ? "text-red-500" : "text-[var(--text-muted)]"}`}>
+                            {h.subject}
+                            {d !== null &&
+                              ` · ${overdue ? (lang === "தமிழ்" ? `${Math.abs(d)} நாட்கள் தாமதம்` : `Overdue by ${Math.abs(d)} day${Math.abs(d) === 1 ? "" : "s"}`) : d === 0 ? (lang === "தமிழ்" ? "இன்று கடைசி நாள்" : "Due today") : d === 1 ? (lang === "தமிழ்" ? "நாளை கடைசி நாள்" : "Due tomorrow") : (lang === "தமிழ்" ? `${d} நாட்களில் கடைசி நாள்` : `Due in ${d} days`)}`}
+                          </div>
+                        </div>
+                        <Fi name="angle-small-right" className="text-sm text-[var(--text-muted)]" />
+                      </Link>
+                    );
+                  })}
+                  <Link
+                    href="/student/homework"
+                    className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+                  >
+                    {lang === "தமிழ்" ? "அனைத்து வீட்டுப்பாடங்களும்" : "All homework"} <Fi name="arrow-small-right" className="text-xs" />
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Learning recommendations */}
-          <div className="mt-3 pt-3 border-t border-[var(--border)] relative z-10">
-            <div className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-2">
-              {lang === "தமிழ்" ? "உங்களுக்காக பரிந்துரைக்கப்பட்டவை" : "Recommended for you"}
+          {/* AI study suggestions + learning recommendations */}
+          <div className="glass rounded-2xl p-5 border border-indigo-500/40 bg-gradient-to-br from-indigo-950/40 via-purple-950/30 to-slate-900/60 shadow-xl relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full blur-3xl opacity-25 bg-gradient-to-br from-indigo-500 to-fuchsia-500 pointer-events-none" />
+            <div className="flex items-center justify-between mb-1 relative z-10">
+              <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
+                <span className="p-1 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                  <Fi name="sparkles" className="text-sm" />
+                </span>
+                {lang === "தமிழ்" ? "AI கற்றல் பரிந்துரைகள்" : "AI Study Suggestions"}
+              </h3>
             </div>
-            <div className="space-y-1.5">
-              {recommendations.map((r) => (
+            <p className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-3 relative z-10">
+              {lang === "தமிழ்" ? "மதிப்பெண்கள், வீட்டுப்பாடம் மற்றும் வருகைப் பதிவிலிருந்து உருவாக்கப்பட்டது" : "Generated from your marks, homework & attendance"}
+            </p>
+            <div className="space-y-2 relative z-10">
+              {suggestions.map((s, i) => (
                 <Link
-                  key={r.href}
-                  href={r.href}
-                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl hover:bg-[var(--bg-card-hover)] transition-colors"
+                  key={i}
+                  href={s.href}
+                  className="flex items-start gap-2.5 px-3 py-2 rounded-xl border border-indigo-500/20 bg-slate-900/40 hover:bg-indigo-500/10 hover:border-indigo-500/40 transition-all group shadow-sm"
                 >
-                  <span style={{ color: r.color }}>
-                    <Fi name={r.icon} className="text-sm" />
+                  <span
+                    className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 shadow-inner"
+                    style={{ backgroundColor: `${s.color}1e`, color: s.color }}
+                  >
+                    <Fi name={s.icon} className="text-xs" />
                   </span>
                   <div className="flex-1 min-w-0">
-                    <span className="text-[11px] font-bold text-[var(--text-heading)] block truncate">{r.label}</span>
-                    <span className="text-[9px] text-[var(--text-muted)] block truncate">{r.sub}</span>
+                    <p className="text-[11px] text-[var(--text-main)] leading-relaxed font-medium">{s.text}</p>
+                    <span
+                      className="text-[10px] font-bold inline-flex items-center gap-1 mt-1 group-hover:gap-1.5 transition-all"
+                      style={{ color: s.color }}
+                    >
+                      {s.action} <Fi name="arrow-small-right" className="text-[10px]" />
+                    </span>
                   </div>
-                  <Fi name="angle-small-right" className="text-xs text-[var(--text-muted)]" />
                 </Link>
               ))}
             </div>
+
+            {/* Learning recommendations */}
+            <div className="mt-3 pt-3 border-t border-[var(--border)] relative z-10">
+              <div className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-2">
+                {lang === "தமிழ்" ? "உங்களுக்காக பரிந்துரைக்கப்பட்டவை" : "Recommended for you"}
+              </div>
+              <div className="space-y-1.5">
+                {recommendations.map((r) => (
+                  <Link
+                    key={r.href}
+                    href={r.href}
+                    className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl hover:bg-[var(--bg-card-hover)] transition-colors"
+                  >
+                    <span style={{ color: r.color }}>
+                      <Fi name={r.icon} className="text-sm" />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[11px] font-bold text-[var(--text-heading)] block truncate">{r.label}</span>
+                      <span className="text-[9px] text-[var(--text-muted)] block truncate">{r.sub}</span>
+                    </div>
+                    <Fi name="angle-small-right" className="text-xs text-[var(--text-muted)]" />
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
+          {extraRight}
         </div>
       </div>
     </div>

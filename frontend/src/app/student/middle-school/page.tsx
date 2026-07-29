@@ -211,7 +211,7 @@ export default function MiddleSchoolDashboard() {
               .then((mRes) => mRes.json())
               .then((mJson) => {
                 if (mJson.success && Array.isArray(mJson.data)) {
-                  setRecentMarks(mJson.data.slice(0, 5));
+                  setRecentMarks(mJson.data.slice(0, 6));
                 }
               })
               .catch((err) => console.error(err))
@@ -283,7 +283,145 @@ export default function MiddleSchoolDashboard() {
       <PersonalKpiStrip studentId={(session?.user as any)?.studentId || null} />
 
       {/* Daily timetable, homework, exams, attendance, announcements & AI suggestions */}
-      <StudentDailyOverview />
+      <StudentDailyOverview 
+        extraLeft={
+          <div className="glass rounded-3xl p-4 sm:p-6 fade-in-2 border border-slate-200 dark:border-slate-700/50 shadow-2xl relative overflow-hidden bg-white/80 dark:bg-slate-900/60 h-fit">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -z-10" />
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+              <div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  {lang === "தமிழ்" ? "கற்றல் அரங்கம்" : "Learning Quest Arcade"}
+                </span>
+                <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white flex items-center gap-2 mt-1">
+                  <Rocket className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500" /> {lang === "தமிழ்" ? "எனது கற்றல் பயணம்" : "My Learning Journey"}
+                </h2>
+              </div>
+              <button id="ms-view-all-subjects" className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-500/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all border border-emerald-500/20">
+                {lang === "தமிழ்" ? "அனைத்தையும் ஆராயுங்கள் →" : "Explore All →"}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {subjectsList.map((s) => {
+                const SubjectIcon = IconMap[s.icon] || BookOpen;
+                const statusTag = s.progress >= 85 
+                  ? { label: lang === "தமிழ்" ? "சூப்பர் ஸ்டார்" : "Superstar 🌟", color: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20" }
+                  : s.progress >= 75 
+                  ? { label: lang === "தமிழ்" ? "நன்றாக உள்ளது" : "Champion 🏆", color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" }
+                  : { label: lang === "தமிழ்" ? "பூஸ்ட் தேவை" : "Power Up ⚡", color: "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20" };
+
+                return (
+                  <div key={s.name} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 transition-all group relative overflow-hidden shadow-sm">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
+                          <SubjectIcon className="w-6 h-6" style={{ color: s.color }} />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{s.name}</h3>
+                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${statusTag.color}`}>
+                            {statusTag.label}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-lg font-black text-black dark:text-white">{s.progress}%</span>
+                    </div>
+
+                    <div className="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-300 dark:border-slate-700/40">
+                      <div className="h-full rounded-full transition-all duration-500 relative" style={{ width: `${s.progress}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}dd)` }}>
+                        <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        }
+        extraRight={
+          <>
+            {/* Today's Learning Progress Card */}
+            <div className="glass rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent">
+              <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white mb-3 flex items-center gap-2">
+                <span>⏱️</span> {lang === "தமிழ்" ? "இன்றைய படிப்பு முன்னேற்றம்" : "Today's Study Progress"}
+              </h2>
+              {todayProgress ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div className="text-left">
+                      <div className="text-[10px] text-slate-500 uppercase font-black">{lang === "தமிழ்" ? "இன்று பதிவான நேரம்" : "Logged Today"}</div>
+                      <div className="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{todayProgress.totalTimeSpentMinutes} {lang === "தமிழ்" ? "நிமி" : "mins"}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] text-slate-500 uppercase font-black">{lang === "தமிழ்" ? "படித்தவை" : "Resources Studied"}</div>
+                      <div className="text-xl font-extrabold text-emerald-650 dark:text-emerald-400">{todayProgress.activeCount}</div>
+                    </div>
+                  </div>
+
+                  {todayProgress.recentResources && todayProgress.recentResources.length > 0 ? (
+                    <div className="space-y-2.5">
+                      <div className="text-[10px] text-slate-500 uppercase font-black text-left font-sans">{lang === "தமிழ்" ? "சமீபத்திய செயல்பாடு" : "Recent Activity"}</div>
+                      {todayProgress.recentResources.slice(0, 3).map((r: any) => (
+                        <div key={r.resourceId} className="bg-slate-50 dark:bg-slate-900/30 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/60 text-left space-y-1">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate max-w-[70%]">{r.resourceTitle}</span>
+                            <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400">{r.progressPercent}%</span>
+                          </div>
+                          <div className="w-full bg-slate-200 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+                            <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${r.progressPercent}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-505 dark:text-slate-500 italic py-2 text-center">{lang === "தமிழ்" ? "இன்று இன்னும் படிப்பு நடவடிக்கை ஏதும் பதிவாகவில்லை." : "No study activity logged today yet."}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="text-xs text-slate-500 py-4 text-center">{lang === "தமிழ்" ? "முன்னேற்றம் ஏற்றப்படுகிறது..." : "Loading progress..."}</div>
+              )}
+            </div>
+
+            {/* Recent Assessment Marks Card */}
+            <div className="glass rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
+              <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white mb-3 flex items-center gap-2">
+                <span>🎯</span> {lang === "தமிழ்" ? "சமீபத்திய மதிப்பீட்டு மதிப்பெண்கள்" : "Recent Assessment Marks"}
+              </h2>
+              {loadingMarks ? (
+                <div className="text-xs text-slate-500 py-4 text-center">{lang === "தமிழ்" ? "மதிப்பெண்கள் ஏற்றப்படுகின்றன..." : "Loading marks..."}</div>
+              ) : recentMarks.length > 0 ? (
+                <div className="space-y-3">
+                  {recentMarks.map((m) => (
+                    <div key={m.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-150 dark:border-slate-800">
+                      <div>
+                        <div className="text-[10px] text-slate-500 font-bold uppercase">{m.subject}</div>
+                        <div className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                          {m.examType.replace("Assessment: ", "")}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-black text-indigo-600 dark:text-indigo-400 font-mono">
+                          {m.scored} / {m.maxMarks}
+                        </div>
+                        <div className="text-[9px] font-bold text-slate-400">
+                          {new Date(m.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-xs text-slate-505 dark:text-slate-500 italic">{lang === "தமிழ்" ? "இதுவரை எந்த மதிப்பீடும் முடிக்கப்படவில்லை." : "No assessments completed yet."}</p>
+                  <Link href="/student/assessments" className="inline-block mt-3 text-xs font-bold text-indigo-650 dark:text-indigo-400 hover:underline">
+                    {lang === "தமிழ்" ? "உங்கள் முதல் தேர்வை எழுதுங்கள் →" : "Take your first test →"}
+                  </Link>
+                </div>
+              )}
+            </div>
+          </>
+        }
+      />
 
       {/* KPI Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
@@ -304,35 +442,53 @@ export default function MiddleSchoolDashboard() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Subject Progress */}
-        <div className="lg:col-span-2 glass rounded-3xl p-4 sm:p-6 fade-in-2 border border-slate-200 dark:border-slate-700/50 shadow-2xl relative overflow-hidden bg-white dark:bg-transparent">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-start">
+        {/* Subject Progress Arcade */}
+        <div className="lg:col-span-2 glass rounded-3xl p-4 sm:p-6 fade-in-2 border border-slate-200 dark:border-slate-700/50 shadow-2xl relative overflow-hidden bg-white/80 dark:bg-slate-900/60 h-fit">
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -z-10" />
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white flex items-center gap-2">
-              <Rocket className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500" /> {lang === "தமிழ்" ? "எனது கற்றல் பயணம்" : "My Learning Journey"}
-            </h2>
-            <button id="ms-view-all-subjects" className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-500/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl">
-              {lang === "தமிழ்" ? "அனைத்தையும் ஆராயுங்கள்" : "Explore All"}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                {lang === "தமிழ்" ? "கற்றல் அரங்கம்" : "Learning Quest Arcade"}
+              </span>
+              <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white flex items-center gap-2 mt-1">
+                <Rocket className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500" /> {lang === "தமிழ்" ? "எனது கற்றல் பயணம்" : "My Learning Journey"}
+              </h2>
+            </div>
+            <button id="ms-view-all-subjects" className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-500/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all border border-emerald-500/20">
+              {lang === "தமிழ்" ? "அனைத்தையும் ஆராயுங்கள் →" : "Explore All →"}
             </button>
           </div>
-          <div className="space-y-4 sm:space-y-5">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {subjectsList.map((s) => {
               const SubjectIcon = IconMap[s.icon] || BookOpen;
+              const statusTag = s.progress >= 85 
+                ? { label: lang === "தமிழ்" ? "சூப்பர் ஸ்டார்" : "Superstar 🌟", color: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20" }
+                : s.progress >= 75 
+                ? { label: lang === "தமிழ்" ? "நன்றாக உள்ளது" : "Champion 🏆", color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" }
+                : { label: lang === "தமிழ்" ? "பூஸ்ட் தேவை" : "Power Up ⚡", color: "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20" };
+
               return (
-                <div key={s.name} className="flex items-center gap-4 sm:gap-5 p-2 sm:p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center shadow-inner">
-                    <SubjectIcon className="w-5 h-5 sm:w-6 sm:h-6 text-slate-600 dark:text-slate-300" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between text-xs sm:text-sm mb-1.5">
-                      <span className="text-black dark:text-white font-bold text-sm sm:text-base">{s.name}</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-bold text-xs sm:text-sm">{s.progress}%</span>
-                    </div>
-                    <div className="progress-bar h-2.5 sm:h-3 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                      <div className="progress-fill h-full rounded-full relative" style={{ width: `${s.progress}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}aa)` }}>
-                        <div className="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]" />
+                <div key={s.name} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 transition-all group relative overflow-hidden shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
+                        <SubjectIcon className="w-6 h-6" style={{ color: s.color }} />
                       </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{s.name}</h3>
+                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${statusTag.color}`}>
+                          {statusTag.label}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-lg font-black text-black dark:text-white">{s.progress}%</span>
+                  </div>
+
+                  <div className="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-300 dark:border-slate-700/40">
+                    <div className="h-full rounded-full transition-all duration-500 relative" style={{ width: `${s.progress}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}dd)` }}>
+                      <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
                     </div>
                   </div>
                 </div>

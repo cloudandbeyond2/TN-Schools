@@ -6,6 +6,7 @@ import StudentDailyOverview from "@/components/student/StudentDailyOverview";
 import { useSession } from "next-auth/react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import Link from "next/link";
+import { FileText, HeartPulse } from "lucide-react";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -123,15 +124,16 @@ const streamKnowledgeTa = [
 ];
 
 export default function HigherSecondaryDashboard() {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const { lang } = usePortalLanguage();
   const [student, setStudent] = useState<any>(null);
   const [todayProgress, setTodayProgress] = useState<any>(null);
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // 1. Load Student Profile
+  // 1. Load Student Profile — wait for session to resolve to avoid using wrong student on refresh
   useEffect(() => {
+    if (sessionStatus === "loading") return; // wait until session is determined
     fetch(`${API_BASE}/api/students`)
       .then((res) => res.json())
       .then((json) => {
@@ -143,7 +145,7 @@ export default function HigherSecondaryDashboard() {
         }
       })
       .catch((err) => console.error(err));
-  }, [session]);
+  }, [session, sessionStatus]);
 
   // 2. Load Dashboard Summaries & Live Stats
   useEffect(() => {
@@ -168,14 +170,15 @@ export default function HigherSecondaryDashboard() {
 
   // 3. Load Library Progress
   useEffect(() => {
-    if (!(session?.user as any)?.id) return;
-    fetch(`${API_BASE}/api/digital-library/progress/today?studentId=${(session?.user as any)?.id}`)
+    const targetId = (session?.user as any)?.id || student?.userId || student?.id;
+    if (!targetId) return;
+    fetch(`${API_BASE}/api/digital-library/progress/today?studentId=${targetId}`)
       .then((res) => res.json())
       .then((json) => {
         if (json.success) setTodayProgress(json.data);
       })
       .catch((err) => console.error("Failed to load today progress:", err));
-  }, [session]);
+  }, [session, student]);
 
   const userName = session?.user?.name || student?.user?.name || (lang === "தமிழ்" ? "மாணவர்" : "Student");
   const currentStream = summary?.stream || "Pure Science & Bio";
@@ -200,123 +203,184 @@ export default function HigherSecondaryDashboard() {
       {/* Real academic-year KPIs */}
       <PersonalKpiStrip studentId={(session?.user as any)?.studentId || student?.id || null} />
 
-      {/* Daily timetable, homework, exams, attendance, announcements & AI suggestions */}
-      <StudentDailyOverview />
-
-      {/* KPI Row */}
-      {/* <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
-        {kpis.map((kpi) => (
-          <div key={kpi.label} className="kpi-card border border-slate-700 hover:border-purple-500/50 transition-colors">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{kpi.icon}</span>
-              <span className={`text-xs font-medium ${kpi.color}`}>{kpi.sub}</span>
-            </div>
-            <div className={`text-3xl font-bold ${kpi.color} mb-1`}>{kpi.value}</div>
-            <div className="text-xs text-slate-400">{kpi.label}</div>
-          </div>
-        ))}
-      </div> */}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-
-        {/* Subject Progress */}
-        <div className="lg:col-span-2 glass rounded-2xl p-6 fade-in-2 border border-slate-700/50">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-base font-semibold text-white">{lang === "தமிழ்" ? `பாடப்பிரிவு சிறப்பு: ${currentStream}` : `Stream Specialization: ${currentStream}`}</h2>
-            <Link href="/student/academic-history" className="text-xs text-purple-400 hover:text-purple-300">{lang === "தமிழ்" ? "கல்விப் பயணத்தைப் பார் →" : "View Academic Journey →"}</Link>
-          </div>
+      {/* Daily timetable, homework, exams, attendance, announcements & AI suggestions + Stream Mastery */}
+      <StudentDailyOverview 
+        extraLeft={
           <div className="space-y-4">
-            {summary?.subjects?.map((s: any) => (
-              <div key={s.name} className="flex items-center gap-4">
-                <div className="text-xl w-8">{s.icon}</div>
-                <div className="flex-1">
-                  <div className="flex justify-between text-sm mb-1.5">
-                    <span className="text-slate-300 font-medium">{s.name}</span>
-                    <span className="text-slate-400">{s.progress}%</span>
+            {/* Stream Mastery Matrix */}
+            <div className="glass rounded-2xl p-6 fade-in-2 border border-[var(--border)] h-fit relative overflow-hidden">
+              <div className="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+              
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                      {lang === "தமிழ்" ? "பாடப்பிரிவு சிறப்பியல்பு" : "Stream Mastery Matrix"}
+                    </span>
                   </div>
-                  <div className="progress-bar bg-slate-800">
-                    <div className="progress-fill" style={{ width: `${s.progress}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}aa)` }} />
-                  </div>
+                  <h2 className="text-lg font-bold text-[var(--text-heading)] mt-1 flex items-center gap-2">
+                    {currentStream}
+                  </h2>
                 </div>
+                <Link 
+                  href="/student/academic-history" 
+                  className="text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-300 transition-all border border-purple-500/30 flex items-center gap-1 group shadow-sm"
+                >
+                  <span>{lang === "தமிழ்" ? "கல்விப் பயணத்தைப் பார்" : "Academic Journey"}</span>
+                  <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                </Link>
               </div>
-            ))}
-            {(!summary?.subjects || summary.subjects.length === 0) && (
-              <p className="text-xs text-slate-500 py-4 text-center">{lang === "தமிழ்" ? "பாடங்கள் ஏற்றப்படுகின்றன..." : "Loading subjects..."}</p>
-            )}
-          </div>
-        </div>
 
-        {/* Right sidebars */}
-        <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {summary?.subjects?.slice(0, 6).map((s: any) => {
+                  const statusTag = s.progress >= 85 
+                    ? { label: lang === "தமிழ்" ? "சிறந்த நிலை" : "Mastered", color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" }
+                    : s.progress >= 75 
+                    ? { label: lang === "தமிழ்" ? "நன்றாக உள்ளது" : "On Track", color: "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20" }
+                    : { label: lang === "தமிழ்" ? "பயிற்சி தேவை" : "Needs Focus", color: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20" };
 
-          {/* Today's Learning Progress Card */}
-          <div className="glass rounded-2xl p-6 border border-slate-700/50">
-            <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
-              <span>⏱️</span> {lang === "தமிழ்" ? "இன்றைய படிப்பு முன்னேற்றம்" : "Today's Study Progress"}
-            </h2>
-            {todayProgress ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
-                  <div className="text-left">
-                    <div className="text-[10px] text-slate-500 uppercase font-black">{lang === "தமிழ்" ? "இன்று பதிவான நேரம்" : "Logged Today"}</div>
-                    <div className="text-xl font-extrabold text-indigo-400">{todayProgress.totalTimeSpentMinutes} {lang === "தமிழ்" ? "நிமி" : "mins"}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-[10px] text-slate-500 uppercase font-black">{lang === "தமிழ்" ? "படித்தவை" : "Resources Studied"}</div>
-                    <div className="text-xl font-extrabold text-emerald-400">{todayProgress.activeCount}</div>
-                  </div>
-                </div>
-
-                {todayProgress.recentResources && todayProgress.recentResources.length > 0 ? (
-                  <div className="space-y-2.5">
-                    <div className="text-[10px] text-slate-500 uppercase font-black text-left font-sans">{lang === "தமிழ்" ? "சமீபத்திய செயல்பாடு" : "Recent Activity"}</div>
-                    {todayProgress.recentResources.slice(0, 3).map((r: any) => (
-                      <div key={r.resourceId} className="bg-slate-900/30 p-2.5 rounded-xl border border-slate-800/60 text-left space-y-1">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold text-slate-200 truncate max-w-[70%]">{r.resourceTitle}</span>
-                          <span className="text-[9px] font-black text-indigo-400">{r.progressPercent}%</span>
+                  return (
+                    <div 
+                      key={s.name} 
+                      className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-[var(--border)] hover:border-purple-500/40 transition-all group relative overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800/80 border border-[var(--border)] flex items-center justify-center text-xl shadow-inner group-hover:scale-105 transition-transform">
+                            {s.icon}
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-[var(--text-heading)] group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">{s.name}</h3>
+                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${statusTag.color}`}>
+                              {statusTag.label}
+                            </span>
+                          </div>
                         </div>
-                        <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
-                          <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${r.progressPercent}%` }} />
+                        <div className="text-right">
+                          <span className="text-lg font-black text-[var(--text-heading)]">{s.progress}%</span>
                         </div>
                       </div>
-                    ))}
+
+                      <div className="w-full bg-slate-200 dark:bg-slate-800/80 h-2 rounded-full overflow-hidden p-0.5 border border-[var(--border)]">
+                        <div 
+                          className="h-full rounded-full transition-all duration-500 relative" 
+                          style={{ width: `${s.progress}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}dd)` }}
+                        >
+                          <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {(!summary?.subjects || summary.subjects.length === 0) && (
+                  <div className="sm:col-span-2 py-8 text-center text-xs text-[var(--text-muted)] animate-pulse">
+                    {lang === "தமிழ்" ? "பாடங்கள் ஏற்றப்படுகின்றன..." : "Loading subject matrix..."}
                   </div>
-                ) : (
-                  <p className="text-xs text-slate-500 italic py-2 text-center">{lang === "தமிழ்" ? "இன்று இன்னும் படிப்பு நடவடிக்கை ஏதும் பதிவாகவில்லை." : "No study activity logged today yet."}</p>
                 )}
               </div>
-            ) : (
-              <div className="text-xs text-slate-500 py-4 text-center">{lang === "தமிழ்" ? "முன்னேற்றம் ஏற்றப்படுகிறது..." : "Loading progress..."}</div>
-            )}
-          </div>
+            </div>
 
-          {/* Test Performance Hub */}
-          <div className="glass rounded-2xl p-6 border border-purple-500/30 bg-gradient-to-br from-indigo-900/20 to-purple-900/20">
-            <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
-              <span className="text-indigo-400">📝</span> {lang === "தமிழ்" ? "தேர்வு செயல்திறன் மையம்" : "Test Performance Hub"}
-            </h2>
+            {/* Test Performance Hub */}
+            <div className="glass rounded-2xl p-5 border border-purple-500/30 shadow-md relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
+              <h2 className="text-sm font-bold text-[var(--text-heading)] mb-4 flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-purple-500/10 text-purple-500 border border-purple-500/20">📝</span> 
+                {lang === "தமிழ்" ? "தேர்வு செயல்திறன் மையம்" : "Test Performance Hub"}
+              </h2>
 
-            <div className="space-y-3">
-              {summary?.recentTests?.map((t: any, idx: number) => (
-                <div key={idx} className="bg-slate-950/40 p-3 rounded-xl border border-slate-800/60 flex justify-between items-center">
-                  <div>
-                    <h4 className="text-xs font-bold text-white max-w-[150px] truncate">{t.test}</h4>
-                    <span className="text-[10px] text-slate-500 font-bold uppercase">{t.status}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {summary?.recentTests?.slice(0, 6).map((t: any, idx: number) => (
+                  <div key={idx} className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-[var(--border)] flex justify-between items-center hover:border-purple-500/40 transition-colors">
+                    <div>
+                      <h4 className="text-xs font-bold text-[var(--text-heading)] max-w-[150px] truncate">{t.test}</h4>
+                      <span className="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-wider">{t.status}</span>
+                    </div>
+                    <span className={`text-xs font-black px-2.5 py-1 rounded-lg border ${
+                      t.status === "excellent" 
+                        ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" 
+                        : t.status === "good" 
+                        ? "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20" 
+                        : "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20"
+                    }`}>
+                      {t.score}
+                    </span>
                   </div>
-                  <span className={`text-xs font-black ${t.status === "excellent" ? "text-emerald-400" : t.status === "good" ? "text-indigo-400" : "text-amber-400"}`}>
-                    {t.score}
-                  </span>
-                </div>
-              ))}
-              {(!summary?.recentTests || summary.recentTests.length === 0) && (
-                <p className="text-xs text-slate-500 py-4 text-center">{lang === "தமிழ்" ? "வகுப்பறையில் இதுவரை தேர்வுகள் எதுவும் பதிவாகவில்லை." : "No tests recorded in classroom yet."}</p>
-              )}
+                ))}
+                {(!summary?.recentTests || summary.recentTests.length === 0) && (
+                  <p className="text-xs text-[var(--text-muted)] py-4 text-center">{lang === "தமிழ்" ? "வகுப்பறையில் இதுவரை தேர்வுகள் எதுவும் பதிவாகவில்லை." : "No tests recorded in classroom yet."}</p>
+                )}
+              </div>
             </div>
           </div>
+        }
+        extraRight={
+          <>
+            {/* Today's Learning Progress Card */}
+            <div className="glass rounded-2xl p-5 border border-[var(--border)]">
+              <h2 className="text-sm font-bold text-[var(--text-heading)] mb-4 flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">⏱️</span> 
+                {lang === "தமிழ்" ? "இன்றைய படிப்பு முன்னேற்றம்" : "Today's Study Progress"}
+              </h2>
+              {todayProgress ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3 bg-slate-100/70 dark:bg-slate-950/60 p-3 rounded-xl border border-[var(--border)]">
+                    <div className="text-left">
+                      <div className="text-[10px] text-[var(--text-muted)] uppercase font-bold">{lang === "தமிழ்" ? "இன்று பதிவான நேரம்" : "Logged Today"}</div>
+                      <div className="text-lg font-extrabold text-indigo-600 dark:text-indigo-400 mt-0.5">{todayProgress.totalTimeSpentMinutes} {lang === "தமிழ்" ? "நிமி" : "mins"}</div>
+                    </div>
+                    <div className="text-left">
+                      <div className="text-[10px] text-[var(--text-muted)] uppercase font-bold">{lang === "தமிழ்" ? "படித்தவை" : "Resources Studied"}</div>
+                      <div className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">{todayProgress.activeCount}</div>
+                    </div>
+                  </div>
 
-        </div>
-      </div>
+                  {todayProgress.recentResources && todayProgress.recentResources.length > 0 ? (
+                    <div className="space-y-2.5">
+                      <div className="text-[10px] text-[var(--text-muted)] uppercase font-bold text-left">{lang === "தமிழ்" ? "சமீபத்திய செயல்பாடு" : "Recent Activity"}</div>
+                      {todayProgress.recentResources.slice(0, 3).map((r: any) => (
+                        <div key={r.resourceId} className="bg-slate-50 dark:bg-slate-950/40 p-2.5 rounded-xl border border-[var(--border)] text-left space-y-1 hover:border-indigo-500/30 transition-colors">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-[var(--text-heading)] truncate max-w-[70%]">{r.resourceTitle}</span>
+                            <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400">{r.progressPercent}%</span>
+                          </div>
+                          <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${r.progressPercent}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-[var(--text-muted)] italic py-2 text-center">{lang === "தமிழ்" ? "இன்று இன்னும் படிப்பு நடவடிக்கை ஏதும் பதிவாகவில்லை." : "No study activity logged today yet."}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="text-xs text-[var(--text-muted)] py-4 text-center">{lang === "தமிழ்" ? "முன்னேற்றம் ஏற்றப்படுகிறது..." : "Loading progress..."}</div>
+              )}
+            </div>
+
+            {/* Quick Links / Student Tools */}
+            <div className="glass rounded-2xl p-5 border border-[var(--border)]">
+              <h2 className="text-sm font-bold text-[var(--text-heading)] mb-4">{lang === "தமிழ்" ? "விரைவு இணைப்புகள்" : "Quick Links"}</h2>
+              <div className="space-y-3">
+                <a href="/student/leave" className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-[var(--border)] hover:border-purple-500/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-purple-500" />
+                    <span className="text-xs text-[var(--text-main)] group-hover:text-[var(--text-heading)]">{lang === "தமிழ்" ? "விடுப்பு அறிக்கைகள் & விண்ணப்பம்" : "Leave Reports & Application"}</span>
+                  </div>
+                  <span className="text-xs text-[var(--text-muted)] group-hover:text-purple-500">{lang === "தமிழ்" ? "பார் →" : "View →"}</span>
+                </a>
+                <a href="/student/health" className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-[var(--border)] hover:border-purple-500/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group">
+                  <div className="flex items-center gap-3">
+                    <HeartPulse className="h-5 w-5 text-purple-500" />
+                    <span className="text-xs text-[var(--text-main)] group-hover:text-[var(--text-heading)]">{lang === "தமிழ்" ? "எனது சுகாதார அறிக்கை" : "My Health Report"}</span>
+                  </div>
+                  <span className="text-xs text-[var(--text-muted)] group-hover:text-purple-500">{lang === "தமிழ்" ? "பார் →" : "View →"}</span>
+                </a>
+              </div>
+            </div>
+          </>
+        }
+      />
 
 
     </PortalLayout>
