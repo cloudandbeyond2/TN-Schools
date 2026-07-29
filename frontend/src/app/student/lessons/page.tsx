@@ -37,7 +37,13 @@ export default function StudentLessonsPage() {
   const [downloading, setDownloading] = useState(false);
   const [presenting, setPresenting] = useState(false);
   const [presentIndex, setPresentIndex] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
   const captureRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [subjectFilter]);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -68,6 +74,8 @@ export default function StudentLessonsPage() {
 
   const subjects = ["All", ...Array.from(new Set(lessons.map((l) => l.subject)))];
   const filtered = subjectFilter === "All" ? lessons : lessons.filter((l) => l.subject === subjectFilter);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedLessons = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const keyPoints = (l: Lesson | null) =>
     (l?.planData?.studentKeyPoints?.[lang] || l?.planData?.studentKeyPoints?.en || []) as string[];
@@ -229,27 +237,50 @@ export default function StudentLessonsPage() {
               <p className="text-xs text-slate-500 mt-2">Your teacher hasn't shared any AI lessons for your class yet.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-              {filtered.map((l) => (
-                <button
-                  key={l.id}
-                  onClick={() => { setActive(l); setLang("en"); }}
-                  className="text-left rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 bg-white dark:bg-slate-950/40 group"
-                >
-                  <div className="h-28 flex items-center justify-center text-5xl bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30 group-hover:scale-105 transition-transform">
-                    {l.planData?.infographic?.heroIcon || "📚"}
-                  </div>
-                  <div className="p-4">
-                    <div className="flex gap-2 mb-1.5">
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold uppercase">{l.subject}</span>
-                      <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[9px] font-bold uppercase">{l.grade}</span>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {paginatedLessons.map((l) => (
+                  <button
+                    key={l.id}
+                    onClick={() => { setActive(l); setLang("en"); }}
+                    className="text-left rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 bg-white dark:bg-slate-950/40 group"
+                  >
+                    <div className="h-28 flex items-center justify-center text-5xl bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30 group-hover:scale-105 transition-transform">
+                      {l.planData?.infographic?.heroIcon || "📚"}
                     </div>
-                    <p className="font-black text-sm text-slate-800 dark:text-slate-100 truncate">{l.topic}</p>
-                    <span className="text-[10px] text-indigo-500 font-bold">View lesson →</span>
-                  </div>
-                </button>
-              ))}
-            </div>
+                    <div className="p-4">
+                      <div className="flex gap-2 mb-1.5">
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold uppercase">{l.subject}</span>
+                        <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[9px] font-bold uppercase">{l.grade}</span>
+                      </div>
+                      <p className="font-black text-sm text-slate-800 dark:text-slate-100 truncate">{l.topic}</p>
+                      <span className="text-[10px] text-indigo-500 font-bold">View lesson →</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-4 mt-8">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 rounded-xl text-sm font-bold bg-white dark:bg-slate-900/40 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 rounded-xl text-sm font-bold bg-white dark:bg-slate-900/40 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </>
       )}

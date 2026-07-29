@@ -9,6 +9,7 @@ import {
   Sparkles,
   Send,
   ChevronLeft,
+  ChevronDown,
   Clock,
   CheckCircle2,
   Image as ImageIcon,
@@ -120,6 +121,8 @@ function AssignmentCard({
   a: Assignment;
   onOpen: (id: string, intent: OpenIntent) => void;
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   return (
     <div className="group relative w-full rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c] p-5 transition-colors hover:border-slate-300 dark:hover:border-white/[0.12] hover:bg-slate-55 dark:hover:bg-[#141f35]">
       <span
@@ -127,12 +130,12 @@ function AssignmentCard({
         style={{ backgroundColor: a.subjectColor }}
       />
       <button
-        onClick={() => onOpen(a.id, "view")}
+        onClick={() => setIsExpanded(!isExpanded)}
         className="flex w-full items-start justify-between pl-3 text-left"
       >
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3 flex-1">
           <IconBadge icon={FileText} color={a.subjectColor} />
-          <div>
+          <div className="flex-1">
             <div className="flex items-center gap-2">
               <span
                 className="text-[12px] font-semibold tracking-wide"
@@ -144,37 +147,46 @@ function AssignmentCard({
                 {a.classLabel}
               </span>
             </div>
-            <h3 className="mt-1 text-[15px] font-semibold leading-snug text-black dark:text-slate-100">
-              {a.title}
-            </h3>
-            <p className="mt-1 text-[13px] leading-relaxed text-black dark:text-slate-400">
-              {a.description}
-            </p>
+            <div className="flex items-center justify-between w-full mt-1">
+              <h3 className="text-[15px] font-semibold leading-snug text-black dark:text-slate-100 pr-4">
+                {a.title}
+              </h3>
+              <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${isExpanded ? "rotate-180" : ""} text-slate-400`} />
+            </div>
+            {isExpanded && (
+              <p className="mt-2 text-[13px] leading-relaxed text-black dark:text-slate-400 pr-4 animate-in slide-in-from-top-2 fade-in duration-200">
+                {a.description}
+              </p>
+            )}
           </div>
         </div>
       </button>
 
-      <div className="mt-4 flex items-center justify-between pl-3">
-        <StatusPill status={a.status} />
-        <span className="text-[12px] text-black dark:text-white">{a.dueLabel}</span>
-      </div>
+      {isExpanded && (
+        <div className="animate-in slide-in-from-top-2 fade-in duration-200">
+          <div className="mt-4 flex items-center justify-between pl-3">
+            <StatusPill status={a.status} />
+            <span className="text-[12px] text-black dark:text-white">{a.dueLabel}</span>
+          </div>
 
-      <div className="mt-4 flex items-center gap-2 pl-3">
-        <button
-          onClick={() => onOpen(a.id, "view")}
-          className="rounded-lg border border-slate-200 dark:border-white/[0.1] bg-slate-50 dark:bg-white/[0.03] px-3 py-1.5 text-[12.5px] font-medium text-black dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-white/[0.07]"
-        >
-          View Details
-        </button>
-        {a.status === "not_submitted" && (
-          <button
-            onClick={() => onOpen(a.id, "submit")}
-            className="ml-auto rounded-lg bg-teal-500 px-3.5 py-1.5 text-[12.5px] font-semibold text-[#06291f] transition-colors hover:bg-teal-400"
-          >
-            Submit Homework
-          </button>
-        )}
-      </div>
+          <div className="mt-4 flex items-center gap-2 pl-3">
+            <button
+              onClick={() => onOpen(a.id, "view")}
+              className="rounded-lg border border-slate-200 dark:border-white/[0.1] bg-slate-50 dark:bg-white/[0.03] px-3 py-1.5 text-[12.5px] font-medium text-black dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-white/[0.07]"
+            >
+              View Details
+            </button>
+            {a.status === "not_submitted" && (
+              <button
+                onClick={() => onOpen(a.id, "submit")}
+                className="ml-auto rounded-lg bg-teal-500 px-3.5 py-1.5 text-[12.5px] font-semibold text-[#06291f] transition-colors hover:bg-teal-400"
+              >
+                Submit Homework
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1002,57 +1014,39 @@ export default function HomeworkPage() {
             </div>
           ) : (
             /* list */
-            <div className="mt-5 space-y-6">
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                {filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((a) => (
-                  <AssignmentCard key={a.id} a={a} onOpen={handleOpen} />
-                ))}
-                {filtered.length === 0 && (
-                  <div className="rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c] p-8 text-center lg:col-span-2">
-                    <p className="text-[13.5px] text-black dark:text-slate-400">
-                      Nothing here right now.
-                    </p>
+            <div className="mt-8 space-y-10">
+              {filtered.length > 0 ? (
+                Object.entries(
+                  filtered.reduce((acc, a) => {
+                    if (!acc[a.subject]) {
+                      acc[a.subject] = { color: a.subjectColor, items: [] };
+                    }
+                    acc[a.subject].items.push(a);
+                    return acc;
+                  }, {} as Record<string, { color: string; items: typeof filtered }>)
+                ).map(([subject, data]) => (
+                  <div key={subject} className="space-y-4">
+                    <div className="flex items-center gap-3 border-b border-slate-100 dark:border-white/[0.05] pb-2">
+                      <span className="w-1.5 h-6 rounded-full" style={{ backgroundColor: data.color }}></span>
+                      <h3 className="text-[16px] font-bold text-black dark:text-slate-100 uppercase tracking-wide">
+                        {subject}
+                      </h3>
+                      <span className="bg-slate-200/60 dark:bg-white/[0.06] text-black dark:text-slate-300 text-[11px] px-2 py-0.5 rounded-full font-semibold">
+                        {data.items.length}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                      {data.items.map((a) => (
+                        <AssignmentCard key={a.id} a={a} onOpen={handleOpen} />
+                      ))}
+                    </div>
                   </div>
-                )}
-              </div>
-
-              {/* Pagination controls */}
-              {Math.ceil(filtered.length / itemsPerPage) > 1 && (
-                <div className="flex items-center justify-between border-t border-slate-100 dark:border-white/[0.05] pt-4 mt-6">
-                  <div className="text-[12px] text-slate-500 dark:text-slate-400">
-                    Showing <span className="font-semibold">{((currentPage - 1) * itemsPerPage) + 1}</span> to{" "}
-                    <span className="font-semibold">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of{" "}
-                    <span className="font-semibold">{filtered.length}</span> assignments
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-white/[0.07] disabled:opacity-40 disabled:pointer-events-none transition-colors"
-                    >
-                      Prev
-                    </button>
-                    {Array.from({ length: Math.ceil(filtered.length / itemsPerPage) }, (_, i) => i + 1).map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => setCurrentPage(p)}
-                        className={`w-8 h-8 flex items-center justify-center text-xs font-bold rounded-lg transition-colors ${
-                          currentPage === p
-                            ? "bg-teal-500 text-[#06291f] font-black"
-                            : "bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-450 hover:bg-slate-200 dark:hover:bg-white/[0.07]"
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filtered.length / itemsPerPage)))}
-                      disabled={currentPage === Math.ceil(filtered.length / itemsPerPage)}
-                      className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-white/[0.07] disabled:opacity-40 disabled:pointer-events-none transition-colors"
-                    >
-                      Next
-                    </button>
-                  </div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c] p-8 text-center">
+                  <p className="text-[13.5px] text-black dark:text-slate-400">
+                    Nothing here right now.
+                  </p>
                 </div>
               )}
             </div>
