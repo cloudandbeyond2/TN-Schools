@@ -320,7 +320,7 @@ export default function StudyPlanPage() {
         </div>
 
         {/* Panel 2 & 3: Middle Section (Document View & AI Chat) */}
-        <div className={`w-full xl:w-2/4 px-0 xl:px-2 overflow-y-visible xl:overflow-y-auto min-h-[85vh] xl:min-h-0 xl:h-full flex-col justify-between space-y-4 shrink-0 ${mobileTab === 'study' ? 'flex' : 'hidden xl:flex'}`}>
+        <div className={`w-full xl:w-3/4 px-0 xl:px-2 overflow-y-visible xl:overflow-y-auto min-h-[85vh] xl:min-h-0 xl:h-full flex-col justify-between space-y-4 shrink-0 ${mobileTab === 'study' ? 'flex' : 'hidden xl:flex'}`}>
           {isGenerating ? (
             <div className="glass rounded-3xl p-12 border border-slate-250 dark:border-slate-700/50 text-center flex-grow flex flex-col items-center justify-center bg-white dark:bg-transparent">
               <div className="w-16 h-16 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin mb-6" />
