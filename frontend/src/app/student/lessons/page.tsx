@@ -259,6 +259,7 @@ export default function StudentLessonsPage() {
                   </button>
                 ))}
               </div>
+              {totalPages > 1 && (
                 <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 mt-8">
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
