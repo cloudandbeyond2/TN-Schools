@@ -46,6 +46,8 @@ export default function TeacherProfilePage() {
   const [address, setAddress] = useState("");
   const [gender, setGender] = useState("");
   const [dob, setDob] = useState("");
+  // Store the raw metadata so we can merge updates without losing headmaster's data
+  const [metaData, setMetaData] = useState<any>({});
 
   const fetchProfile = async () => {
     if (!userId) return;
@@ -62,9 +64,23 @@ export default function TeacherProfilePage() {
         setSubjectInput(data.subject);
         setQualification(data.qualification);
         setJoiningDate(data.joiningDate);
-        setAddress(data.address || "");
         setGender(data.gender || "");
         setDob(data.dob || "");
+        
+        // Parse the address field if it's JSON (metadata)
+        try {
+          if (data.address && data.address.trim().startsWith("{")) {
+            const parsed = JSON.parse(data.address);
+            setMetaData(parsed);
+            setAddress(parsed.address || "");
+          } else {
+            setAddress(data.address || "");
+            setMetaData({});
+          }
+        } catch (e) {
+          setAddress(data.address || "");
+          setMetaData({});
+        }
       }
     } catch (err) {
       console.error("Error fetching profile:", err);
@@ -89,6 +105,12 @@ export default function TeacherProfilePage() {
 
     try {
       setSaving(true);
+      
+      // Merge the updated physical address back into the metadata object
+      const updatedAddress = Object.keys(metaData).length > 0 
+        ? JSON.stringify({ ...metaData, address }) 
+        : address;
+
       const res = await fetch(`${API_URL}/api/teacher/profile/${userId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -99,7 +121,7 @@ export default function TeacherProfilePage() {
           subjects: subjectInput.split(",").map((s) => s.trim()),
           qualification,
           joiningDate,
-          address,
+          address: updatedAddress,
           gender,
           dob,
         }),

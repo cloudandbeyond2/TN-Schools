@@ -188,6 +188,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     req.path === '/' ||
     req.path.startsWith('/uploads/') ||
     req.path.startsWith('/api/portfolio') ||
+    req.path.startsWith('/api/counsellor') ||
     req.method === 'OPTIONS' ||
     PUBLIC_PATHS.includes(req.path)
   ) {
