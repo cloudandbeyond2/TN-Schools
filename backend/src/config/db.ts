@@ -7,12 +7,17 @@ export const connectMongoDB = async () => {
   try {
     const mongoURI = process.env.MONGODB_URI;
     if (!mongoURI) {
-      throw new Error("MONGODB_URI is not defined in environment variables");
+      console.warn("MONGODB_URI is not defined, using in-memory store.");
+      return;
     }
 
-    await mongoose.connect(mongoURI);
+    mongoose.connection.on('error', (err) => {
+      console.warn('MongoDB runtime warning (in-memory store active):', err.message);
+    });
+
+    await mongoose.connect(mongoURI, { serverSelectionTimeoutMS: 4000 });
     console.log('MongoDB connected successfully');
   } catch (error) {
-    console.error('MongoDB connection failed (server will keep running):', error);
+    console.warn('MongoDB connection offline/timed out (in-memory store active):', (error as Error).message);
   }
 };

@@ -173,6 +173,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Extracurricular & Wellbeing ───────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Extracurricular & Wellbeing", href: "#", icon: "" },
+      { label: "Personal Counsellor", href: "/student/counsellor", icon: "Heart" },
       { label: "Sports & Athletics", href: "/student/sports", icon: "Activity" },
       { label: "Extracurriculars", href: "/student/activities", icon: "Smile" },
       { label: "Social Activities", href: "/student/social-activities", icon: "HeartHandshake" },
@@ -258,13 +259,13 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Extracurricular & Wellbeing ───────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Extracurricular & Wellbeing", href: "#", icon: "" },
+      { label: "Personal Counsellor", href: "/student/counsellor", icon: "Heart" },
       { label: "Sports & Athletics", href: "/student/sports", icon: "Activity" },
       { label: "Extracurriculars", href: "/student/activities", icon: "Smile" },
       { label: "Social Activities", href: "/student/social-activities", icon: "HeartHandshake" },
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
       { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
       { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
-      // { label: "Wellness", href: "/student/wellness", icon: "Smile" },
 
       // ── School & Career ───────────────────────────────
       { label: "---", href: "#", icon: "" },
@@ -341,6 +342,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // ── Extracurricular & Wellbeing ───────────────────
       { label: "---", href: "#", icon: "" },
       { label: "Extracurricular & Wellbeing", href: "#", icon: "" },
+      { label: "Personal Counsellor", href: "/student/counsellor", icon: "Heart" },
       { label: "Sports & Athletics", href: "/student/sports", icon: "Activity" },
       { label: "Extracurriculars", href: "/student/activities", icon: "Smile" },
       { label: "Social Activities", href: "/student/social-activities", icon: "HeartHandshake" },
@@ -420,6 +422,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       // Student Management
       { label: "Student Management", href: "#", icon: "" },
+      { label: "Personal Counsellor", href: "/teacher/counsellor", icon: "Heart" },
       { label: "Student Profiles", href: "/teacher/student-profiles", icon: "User" },
       { label: "Digital Portfolio", href: "/teacher/portfolio", icon: "FolderOpen" },
       { label: "Student Status", href: "/teacher/student-status", icon: "TrendingUp" },
@@ -494,6 +497,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Temporary Staff", href: "/headmaster/temporary-staff", icon: "fi fi-rr-users" },
       { label: "Parents Details", href: "/headmaster/parents", icon: "fi fi-rr-users" },
       { label: "School Alumni", href: "/headmaster/alumni", icon: "fi fi-rr-graduation-cap" },
+      { label: "Personal Counsellor", href: "/headmaster/counsellor", icon: "fi fi-rr-heart" },
 
       { label: "Academics & Records", href: "#", icon: "" },
       { label: "Academics Approvals", href: "/headmaster/academics", icon: "fi fi-rr-checkbox" },

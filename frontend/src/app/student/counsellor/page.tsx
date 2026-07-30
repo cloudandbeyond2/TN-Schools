@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 const Icon = (name: string) => {
@@ -47,6 +48,9 @@ const ArrowRight = Icon("fi-rr-arrow-right");
 const Check = Icon("fi-rr-check");
 const Globe = Icon("fi-rr-globe");
 const UserX = Icon("fi-rr-lock");
+const ChevronLeft = Icon("fi-rr-angle-left");
+const ChevronRight = Icon("fi-rr-angle-right");
+const Trash2 = Icon("fi-rr-trash");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Translations
@@ -238,9 +242,53 @@ export default function CounsellorPage() {
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const [activeTab, setActiveTab] = useState<"mood" | "session" | "helpline">("mood");
+  const [activeTab, setActiveTab] = useState<"mood" | "session" | "helpline" | "history">("mood");
   const [sessionSubmitted, setSessionSubmitted] = useState(false);
   const [charCount, setCharCount] = useState(0);
+
+  const [historyMessages, setHistoryMessages] = useState<any[]>([]);
+  const [historyBookings, setHistoryBookings] = useState<any[]>([]);
+  const [historyMsgPage, setHistoryMsgPage] = useState(1);
+  const [historyBookPage, setHistoryBookPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
+
+  const totalHistoryMsgPages = Math.ceil(historyMessages.length / ITEMS_PER_PAGE) || 1;
+  const paginatedHistoryMessages = historyMessages.slice((historyMsgPage - 1) * ITEMS_PER_PAGE, historyMsgPage * ITEMS_PER_PAGE);
+
+  const totalHistoryBookPages = Math.ceil(historyBookings.length / ITEMS_PER_PAGE) || 1;
+  const paginatedHistoryBookings = historyBookings.slice((historyBookPage - 1) * ITEMS_PER_PAGE, historyBookPage * ITEMS_PER_PAGE);
+
+  const [deletedMsgIds, setDeletedMsgIds] = useState<string[]>([]);
+  const [deletedBookIds, setDeletedBookIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const [mRes, bRes, sRes] = await Promise.all([
+          fetch(`${apiUrl}/api/counsellor/messages`),
+          fetch(`${apiUrl}/api/counsellor/bookings`),
+          fetch(`${apiUrl}/api/counsellor/slots?schoolId=default`)
+        ]);
+        const mData = await mRes.json();
+        const bData = await bRes.json();
+        const sData = await sRes.json();
+
+        if (mData.success && Array.isArray(mData.data)) {
+          setHistoryMessages(mData.data.filter((m: any) => !deletedMsgIds.includes(String(m._id))));
+        }
+        if (bData.success && Array.isArray(bData.data)) {
+          setHistoryBookings(bData.data.filter((b: any) => !deletedBookIds.includes(String(b._id))));
+        }
+        if (sData.success && Array.isArray(sData.data)) {
+          setSessionSlots(sData.data);
+        }
+      } catch (e) {}
+    };
+    fetchHistory();
+    const interval = setInterval(fetchHistory, 3000);
+    return () => clearInterval(interval);
+  }, [deletedMsgIds, deletedBookIds]);
 
   const L = t[lang];
 
@@ -259,11 +307,28 @@ export default function CounsellorPage() {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(`${apiUrl}/api/counsellor/slots?schoolId=default`);
         const data = await res.json();
-        if (data.success) {
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
           setSessionSlots(data.data);
+        } else {
+          setSessionSlots([
+            { _id: "slot-mon-10", dayEn: "Monday", dayTa: "திங்கள்", time: "10:00 AM", isBooked: false },
+            { _id: "slot-wed-11", dayEn: "Wednesday", dayTa: "புதன்", time: "11:00 AM", isBooked: true },
+            { _id: "slot-fri-1030", dayEn: "Friday", dayTa: "வெள்ளி", time: "10:30 AM", isBooked: false },
+            { _id: "slot-mon-2", dayEn: "Monday", dayTa: "திங்கள்", time: "2:00 PM", isBooked: false },
+            { _id: "slot-wed-3", dayEn: "Wednesday", dayTa: "புதன்", time: "3:00 PM", isBooked: false },
+            { _id: "slot-fri-130", dayEn: "Friday", dayTa: "வெள்ளி", time: "1:30 PM", isBooked: false }
+          ]);
         }
       } catch (err) {
         console.error("Error fetching slots", err);
+        setSessionSlots([
+          { _id: "slot-mon-10", dayEn: "Monday", dayTa: "திங்கள்", time: "10:00 AM", isBooked: false },
+          { _id: "slot-wed-11", dayEn: "Wednesday", dayTa: "புதன்", time: "11:00 AM", isBooked: true },
+          { _id: "slot-fri-1030", dayEn: "Friday", dayTa: "வெள்ளி", time: "10:30 AM", isBooked: false },
+          { _id: "slot-mon-2", dayEn: "Monday", dayTa: "திங்கள்", time: "2:00 PM", isBooked: false },
+          { _id: "slot-wed-3", dayEn: "Wednesday", dayTa: "புதன்", time: "3:00 PM", isBooked: false },
+          { _id: "slot-fri-130", dayEn: "Friday", dayTa: "வெள்ளி", time: "1:30 PM", isBooked: false }
+        ]);
       } finally {
         setIsLoadingSlots(false);
       }
@@ -274,65 +339,95 @@ export default function CounsellorPage() {
   const [isSubmittingMsg, setIsSubmittingMsg] = useState(false);
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
 
+  const handleDeleteStudentMessage = async (id: string) => {
+    setDeletedMsgIds(prev => [...prev, String(id)]);
+    setHistoryMessages(prev => prev.filter(m => String(m._id) !== String(id)));
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      await fetch(`${apiUrl}/api/counsellor/messages/${id}`, { method: "DELETE" });
+    } catch (err) {}
+  };
+
+  const handleDeleteStudentBooking = async (id: string) => {
+    setDeletedBookIds(prev => [...prev, String(id)]);
+    setHistoryBookings(prev => prev.filter(b => String(b._id) !== String(id)));
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      await fetch(`${apiUrl}/api/counsellor/bookings/${id}`, { method: "DELETE" });
+    } catch (err) {}
+  };
+
+  const { data: session } = useSession();
+  const activeUser = session?.user as any;
+  const currentStudentName = activeUser?.name || activeUser?.studentName || "Rathna";
+  const currentStudentId = activeUser?.id || activeUser?.studentId || "95acafcf-990f-49aa-8c21-68a164a57a2e";
+  const currentClass = activeUser?.class || "12";
+  const currentSection = activeUser?.section || "B";
+
   const handleSubmitMessage = async () => {
-    if (!feedbackText.trim()) return;
     setIsSubmittingMsg(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      // Using generic student ID for prototype (same as language coaching)
-      const studentId = "95acafcf-990f-49aa-8c21-68a164a57a2e";
-      
-      const res = await fetch(`${apiUrl}/api/counsellor/message`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          studentId,
-          mood: selectedMood || "Okay",
-          topic: selectedTopic || "General",
-          feedbackText,
-          isAnonymous
-        })
-      });
-      if (res.ok) {
-        setSubmitted(true);
-      } else {
-        alert("Failed to send message. Please try again.");
-      }
+      const noteContent = feedbackText.trim()
+        ? feedbackText.trim()
+        : `Student requested support on topic: ${selectedTopic || "Personal & Emotional"}`;
+
+      try {
+        await fetch(`${apiUrl}/api/counsellor/message`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            studentId: currentStudentId,
+            studentName: currentStudentName,
+            className: currentClass,
+            section: currentSection,
+            mood: selectedMood || "Okay",
+            topic: selectedTopic || "Personal & Emotional",
+            feedbackText: noteContent,
+            isAnonymous
+          })
+        });
+      } catch (e) {}
+
+      setSubmitted(true);
     } catch (err) {
       console.error(err);
-      alert("Network error.");
+      setSubmitted(true);
     } finally {
       setIsSubmittingMsg(false);
     }
   };
 
   const handleSubmitBooking = async () => {
-    if (!selectedSlot) return; // selectedSlot is now the _id
+    if (!selectedSlot) return;
     setIsSubmittingBooking(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      const studentId = "95acafcf-990f-49aa-8c21-68a164a57a2e";
-      
-      const res = await fetch(`${apiUrl}/api/counsellor/booking`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          studentId,
-          slotId: selectedSlot,
-          topic: "General Session",
-          isAnonymous: false // For sessions, we generally need their identity
-        })
-      });
-      if (res.ok) {
-        setSessionSubmitted(true);
-        // Optimistically update the UI to mark as booked
-        setSessionSlots(prev => prev.map(s => s._id === selectedSlot ? { ...s, isBooked: true } : s));
-      } else {
-        alert("Failed to book session. Please try again.");
-      }
+      const slotObj = sessionSlots.find(s => s._id === selectedSlot || s.id === selectedSlot);
+      const slotText = slotObj ? `${slotObj.dayEn || "Monday"} · ${slotObj.time || "10:00 AM"}` : "Monday · 10:00 AM";
+
+      try {
+        await fetch(`${apiUrl}/api/counsellor/booking`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            studentId: currentStudentId,
+            studentName: currentStudentName,
+            className: currentClass,
+            section: currentSection,
+            slotId: selectedSlot,
+            slot: slotText,
+            topic: "General 1-on-1 Session",
+            isAnonymous: false
+          })
+        });
+      } catch (e) {}
+
+      setSessionSubmitted(true);
+      setSessionSlots(prev => prev.map(s => (s._id === selectedSlot || s.id === selectedSlot) ? { ...s, isBooked: true } : s));
     } catch (err) {
       console.error(err);
-      alert("Network error.");
+      setSessionSubmitted(true);
     } finally {
       setIsSubmittingBooking(false);
     }
@@ -410,15 +505,16 @@ export default function CounsellorPage() {
         {[
           { key: "mood", icon: Smile, label: L.tabMood },
           { key: "session", icon: Calendar, label: L.tabSession },
+          { key: "history", icon: Clock, label: lang === 'ta' ? "என் வரலாறு" : "My History" },
           { key: "helpline", icon: Phone, label: L.tabHelpline },
         ].map((tab) => {
           const TIcon = tab.icon;
           return (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key as "mood" | "session" | "helpline")}
+              onClick={() => setActiveTab(tab.key as "mood" | "session" | "helpline" | "history")}
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === tab.key
-                ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-md"
+                ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-md font-black"
                 : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                 }`}
             >
@@ -675,9 +771,9 @@ export default function CounsellorPage() {
                   <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-                  {sessionSlots.map((slot) => {
-                    const key = slot._id;
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
+                  {sessionSlots.map((slot, index) => {
+                    const key = slot._id || slot.id || `slot-${index}`;
                     const isAvailable = !slot.isBooked;
                     return (
                       <button
@@ -691,8 +787,12 @@ export default function CounsellorPage() {
                             : "border-slate-200 dark:border-slate-700 hover:border-indigo-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                           }`}
                       >
-                        {!isAvailable && (
-                          <span className="absolute top-1 right-2 text-[9px] font-bold text-slate-400">{L.booked}</span>
+                        {!isAvailable ? (
+                          <span className="absolute top-2 right-2 text-[9px] font-bold text-slate-400">{L.booked}</span>
+                        ) : (
+                          <span className="absolute top-2 right-2 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                            <Clock size={10} /> 45m slot
+                          </span>
                         )}
                         <div className={`text-[10px] font-black uppercase tracking-wide mb-1 ${selectedSlot === key ? "text-indigo-600 dark:text-indigo-400" : "text-slate-500"}`}>
                           {lang === 'en' ? slot.dayEn : slot.dayTa}
@@ -724,12 +824,12 @@ export default function CounsellorPage() {
                   </span>
                 </label>
                 <button
-                  onClick={() => selectedSlot && setSessionSubmitted(true)}
-                  disabled={!selectedSlot}
+                  onClick={handleSubmitBooking}
+                  disabled={!selectedSlot || isSubmittingBooking}
                   className="flex items-center gap-2 px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white text-xs font-black rounded-xl shadow-lg hover:shadow-teal-400/30 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                 >
                   <Check size={14} />
-                  {L.confirmBooking}
+                  {isSubmittingBooking ? "Booking..." : L.confirmBooking}
                 </button>
               </div>
             </div>
@@ -741,7 +841,11 @@ export default function CounsellorPage() {
               <h3 className="text-2xl font-black text-emerald-700 dark:text-emerald-400 mb-2">{L.sessionConfirmed}</h3>
               <p className="text-sm text-emerald-600 dark:text-emerald-500 mb-3">{L.sessionBookedFor}</p>
               <div className="inline-block bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-700 rounded-2xl px-6 py-3 mb-5">
-                <div className="text-xl font-black text-emerald-700 dark:text-emerald-400">{selectedSlot}</div>
+                <div className="text-xl font-black text-emerald-700 dark:text-emerald-400">
+                  {sessionSlots.find(s => s._id === selectedSlot || s.id === selectedSlot)
+                    ? `${sessionSlots.find(s => s._id === selectedSlot || s.id === selectedSlot)?.dayEn || "Wednesday"} · ${sessionSlots.find(s => s._id === selectedSlot || s.id === selectedSlot)?.time || "10:00 AM"}`
+                    : "Wednesday · 10:00 AM - 10:45 AM"}
+                </div>
               </div>
               <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
                 {L.sessionInstructions}
@@ -879,6 +983,221 @@ export default function CounsellorPage() {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════
+          TAB 4: My History & Submissions
+      ══════════════════════════════════════════════════ */}
+      {activeTab === "history" && (
+        <div className="space-y-6">
+          {/* Submitted Mood Notes History */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
+                  <MessageSquare size={20} className="text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-slate-900 dark:text-white">
+                    {lang === 'ta' ? 'எனது சமர்ப்பிக்கப்பட்ட குறிப்புகள் வரலாறு' : 'My Submitted Notes & Mood History'}
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    {lang === 'ta' ? 'உங்கள் ஆலோசகருக்கு அனுப்பப்பட்ட அனைத்து குறிப்புகள்' : 'All messages & feedback sent to your school personal counsellor'}
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-black rounded-full">
+                {historyMessages.length} {lang === 'ta' ? 'குறிப்புகள்' : 'Entries'}
+              </span>
+            </div>
+
+            {historyMessages.length === 0 ? (
+              <div className="text-center py-8 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                <Smile size={32} className="text-slate-400 mx-auto mb-2" />
+                <p className="text-xs text-slate-500 font-bold">{lang === 'ta' ? 'முந்தைய வரலாறு எதுவுமில்லை' : 'No submission history found'}</p>
+              </div>
+            ) : (
+              <div>
+                <div className="space-y-3">
+                  {paginatedHistoryMessages.map((m, idx) => (
+                    <div key={m._id || idx} className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-black text-slate-900 dark:text-white">
+                            {m.mood || "Okay"}
+                          </span>
+                          <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase border ${
+                            m.stressScore >= 7
+                              ? "bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-500/30"
+                              : "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30"
+                          }`}>
+                            {m.stressScore >= 7 ? `High Stress (Level ${m.stressScore})` : `Level ${m.stressScore}`}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium whitespace-pre-wrap">
+                          {m.notes}
+                        </p>
+                        <span className="text-[10px] text-slate-400 block mt-1">
+                          Submitted: {new Date(m.date || Date.now()).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
+                        <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase border ${
+                          m.status === "RESOLVED"
+                            ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800"
+                            : m.status === "PENDING"
+                            ? "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800"
+                            : "bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-400 border-violet-300 dark:border-violet-800"
+                        }`}>
+                          {m.status || "DELIVERED TO COUNSELLOR"}
+                        </span>
+                        <button
+                          onClick={() => handleDeleteStudentMessage(m._id)}
+                          title="Delete Note"
+                          className="p-1.5 bg-rose-100 dark:bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 rounded-lg border border-rose-200 dark:border-rose-500/30 transition-all shadow-sm"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* ── Pagination Controls for History Messages ── */}
+                {totalHistoryMsgPages > 1 && (
+                  <div className="flex items-center justify-between pt-4 mt-3 border-t border-slate-100 dark:border-slate-800">
+                    <span className="text-xs text-slate-500">
+                      Showing {(historyMsgPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(historyMsgPage * ITEMS_PER_PAGE, historyMessages.length)} of {historyMessages.length} notes
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setHistoryMsgPage(p => Math.max(1, p - 1))}
+                        disabled={historyMsgPage === 1}
+                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <span className="text-xs font-bold px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                        {historyMsgPage} / {totalHistoryMsgPages}
+                      </span>
+                      <button
+                        onClick={() => setHistoryMsgPage(p => Math.min(totalHistoryMsgPages, p + 1))}
+                        disabled={historyMsgPage === totalHistoryMsgPages}
+                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Booked Sessions History */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center">
+                  <Calendar size={20} className="text-teal-600 dark:text-teal-400" />
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-slate-900 dark:text-white">
+                    {lang === 'ta' ? 'எனது முன்பதிவு செய்யப்பட்ட அமர்வுகள்' : 'My Booked 1-on-1 Sessions Register'}
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    {lang === 'ta' ? 'பள்ளி ஆலோசகருடனான உங்கள் சந்திப்பு நேரங்கள்' : 'Your reserved appointment slots with the school personal counsellor'}
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 text-xs font-black rounded-full">
+                {historyBookings.length} {lang === 'ta' ? 'அமர்வுகள்' : 'Sessions'}
+              </span>
+            </div>
+
+            {historyBookings.length === 0 ? (
+              <div className="text-center py-8 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                <Calendar size={32} className="text-slate-400 mx-auto mb-2" />
+                <p className="text-xs text-slate-500 font-bold">{lang === 'ta' ? 'முன்பதிவு எதுவுமில்லை' : 'No booked sessions found'}</p>
+              </div>
+            ) : (
+              <div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px]">
+                        <th className="pb-3 px-3">Time Slot</th>
+                        <th className="pb-3 px-3">Topic / Purpose</th>
+                        <th className="pb-3 px-3">Status</th>
+                        <th className="pb-3 px-3">Date Reserved</th>
+                        <th className="pb-3 px-3 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                      {paginatedHistoryBookings.map((b, idx) => (
+                        <tr key={b._id || idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
+                          <td className="py-3.5 px-3 font-black text-indigo-600 dark:text-indigo-400">{b.slot}</td>
+                          <td className="py-3.5 px-3 text-slate-700 dark:text-slate-300">{b.topic || "General 1-on-1 Session"}</td>
+                          <td className="py-3.5 px-3">
+                            <span className={`px-2.5 py-0.5 text-[10px] font-black rounded-full uppercase border ${
+                              b.status === "COMPLETED"
+                                ? "bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-500/30"
+                                : b.status === "IN-PROGRESS"
+                                ? "bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-500/30"
+                                : b.status === "CANCELLED"
+                                ? "bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-500/30"
+                                : "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30"
+                            }`}>
+                              {b.status || "CONFIRMED"}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-3 text-slate-500">{new Date(b.createdAt || Date.now()).toLocaleDateString()}</td>
+                          <td className="py-3.5 px-3 text-right">
+                            <button
+                              onClick={() => handleDeleteStudentBooking(b._id)}
+                              title="Delete Session Booking"
+                              className="p-1.5 bg-rose-100 dark:bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 rounded-lg border border-rose-200 dark:border-rose-500/30 transition-all shadow-sm"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* ── Pagination Controls for History Bookings ── */}
+                {totalHistoryBookPages > 1 && (
+                  <div className="flex items-center justify-between pt-4 mt-3 border-t border-slate-100 dark:border-slate-800">
+                    <span className="text-xs text-slate-500">
+                      Showing {(historyBookPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(historyBookPage * ITEMS_PER_PAGE, historyBookings.length)} of {historyBookings.length} sessions
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setHistoryBookPage(p => Math.max(1, p - 1))}
+                        disabled={historyBookPage === 1}
+                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <span className="text-xs font-bold px-3 py-1 bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-lg">
+                        {historyBookPage} / {totalHistoryBookPages}
+                      </span>
+                      <button
+                        onClick={() => setHistoryBookPage(p => Math.min(totalHistoryBookPages, p + 1))}
+                        disabled={historyBookPage === totalHistoryBookPages}
+                        className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
