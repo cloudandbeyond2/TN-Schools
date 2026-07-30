@@ -388,6 +388,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "📚 ACADEMICS", href: "#", icon: "" },
 
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
+      { label: "Academic Progress", href: "/student/progress", icon: "BarChart2" },
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
@@ -522,6 +523,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Student Profiles", href: "/teacher/student-profiles", icon: "User" },
       { label: "Digital Portfolio", href: "/teacher/portfolio", icon: "FolderOpen" },
       { label: "Student Status", href: "/teacher/student-status", icon: "TrendingUp" },
+      { label: "Student Progress", href: "/teacher/progress", icon: "BarChart2" },
       { label: "Homework Manager", href: "/teacher/homework", icon: "Check" },
       { label: "Scholarship Details", href: "/teacher/scholarships", icon: "GraduationCap" },
       { label: "Social Activities Review", href: "/teacher/social-activities", icon: "HeartHandshake" },

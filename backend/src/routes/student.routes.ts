@@ -188,27 +188,189 @@ router.post('/:id/marks', async (req: Request, res: Response) => {
     });
     if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
     
-    const pct = (scored / (maxMarks || 100)) * 100;
+    const numScored = Number(scored);
+    const numMax = Number(maxMarks || 100);
+    const targetExam = examType || "Quarterly Exam";
+
+    const pct = (numScored / numMax) * 100;
     let grade = "E";
     if (pct >= 90) grade = "A1";
     else if (pct >= 80) grade = "A2";
     else if (pct >= 70) grade = "B1";
     else if (pct >= 60) grade = "B2";
-    else if (pct >= 50) grade = "C";
+    else if (pct >= 50) grade = "C1";
     else if (pct >= 35) grade = "D";
 
-    const newMark = await prisma.mark.create({
-      data: {
+    const existing = await prisma.mark.findFirst({
+      where: {
         studentId: student.id,
-        subject,
-        examType,
-        maxMarks: maxMarks || 100,
-        scored,
-        grade,
-        academicYear: "2024-25"
+        subject: subject,
+        examType: targetExam,
       }
     });
-    res.json({ success: true, data: newMark });
+
+    let savedMark;
+    if (existing) {
+      savedMark = await prisma.mark.update({
+        where: { id: existing.id },
+        data: {
+          scored: numScored,
+          maxMarks: numMax,
+          grade,
+          teacherId: req.body.teacherId || null,
+          academicYear: req.body.academicYear || "2024-25"
+        }
+      });
+    } else {
+      savedMark = await prisma.mark.create({
+        data: {
+          studentId: student.id,
+          subject,
+          examType: targetExam,
+          maxMarks: numMax,
+          scored: numScored,
+          grade,
+          teacherId: req.body.teacherId || null,
+          academicYear: req.body.academicYear || "2024-25"
+        }
+      });
+    }
+
+    res.json({ success: true, data: savedMark, message: `${subject} mark (${numScored}/${numMax}) saved to PostgreSQL database` });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/students/marks/class-wise - Fetch PostgreSQL marks filtered by schoolId, class, section, subject
+router.get('/marks/class-wise', async (req: Request, res: Response) => {
+  try {
+    const { schoolId, class: cls, section, subject, examType, academicYear } = req.query;
+
+    const students = await prisma.student.findMany({
+      where: {
+        ...(schoolId ? { schoolId: String(schoolId) } : {}),
+        ...(cls ? { class: String(cls) } : {}),
+        ...(section ? { section: String(section) } : {}),
+      },
+      select: { id: true, userId: true, class: true, section: true, rollNumber: true, emisNumber: true }
+    });
+
+    const studentIds = students.map(s => s.id);
+
+    const marks = await prisma.mark.findMany({
+      where: {
+        studentId: { in: studentIds },
+        ...(subject && subject !== 'ALL' && subject !== 'All' ? { subject: String(subject) } : {}),
+        ...(examType && examType !== 'ALL' ? { examType: String(examType) } : {}),
+        ...(academicYear ? { academicYear: String(academicYear) } : {}),
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ success: true, count: marks.length, data: marks, studentsCount: students.length });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// PUT /api/students/marks/:id - Update existing mark in PostgreSQL
+router.put('/marks/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { scored, maxMarks, subject, examType, academicYear, teacherId } = req.body;
+
+    const existing = await prisma.mark.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ success: false, error: 'Mark entry not found' });
+
+    const updatedMax = maxMarks !== undefined ? Number(maxMarks) : existing.maxMarks;
+    const updatedScored = scored !== undefined ? Number(scored) : existing.scored;
+
+    const pct = (updatedScored / (updatedMax || 100)) * 100;
+    let grade = "E";
+    if (pct >= 90) grade = "A1";
+    else if (pct >= 80) grade = "A2";
+    else if (pct >= 70) grade = "B1";
+    else if (pct >= 60) grade = "B2";
+    else if (pct >= 50) grade = "C1";
+    else if (pct >= 35) grade = "D";
+
+    const updated = await prisma.mark.update({
+      where: { id },
+      data: {
+        scored: updatedScored,
+        maxMarks: updatedMax,
+        grade,
+        ...(subject ? { subject } : {}),
+        ...(examType ? { examType } : {}),
+        ...(academicYear ? { academicYear } : {}),
+        ...(teacherId ? { teacherId } : {}),
+      }
+    });
+
+    res.json({ success: true, data: updated, message: "Mark updated successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/students/marks/:id - Delete mark entry from PostgreSQL
+router.delete('/marks/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.mark.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ success: false, error: 'Mark entry not found' });
+
+    await prisma.mark.delete({ where: { id } });
+    res.json({ success: true, message: "Mark entry deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// POST /api/students/marks/bulk - Class & Subject bulk mark entry in PostgreSQL
+router.post('/marks/bulk', async (req: Request, res: Response) => {
+  try {
+    const { subject, examType, maxMarks = 100, academicYear = "2024-25", teacherId, marks } = req.body;
+
+    if (!Array.isArray(marks) || marks.length === 0) {
+      return res.status(400).json({ success: false, error: "Array of mark entries required" });
+    }
+
+    const createdMarks = [];
+
+    for (const item of marks) {
+      const { studentId, scored, id } = item;
+      if (!studentId || scored === undefined) continue;
+
+      const numScored = Number(scored);
+      const numMax = Number(item.maxMarks || maxMarks || 100);
+      const pct = (numScored / numMax) * 100;
+      let grade = "E";
+      if (pct >= 90) grade = "A1";
+      else if (pct >= 80) grade = "A2";
+      else if (pct >= 70) grade = "B1";
+      else if (pct >= 60) grade = "B2";
+      else if (pct >= 50) grade = "C1";
+      else if (pct >= 35) grade = "D";
+
+      if (id) {
+        // Update existing record
+        const updated = await prisma.mark.update({
+          where: { id },
+          data: { scored: numScored, maxMarks: numMax, grade, subject, examType, academicYear, teacherId }
+        });
+        createdMarks.push(updated);
+      } else {
+        // Create new record
+        const newM = await prisma.mark.create({
+          data: { studentId, subject, examType, maxMarks: numMax, scored: numScored, grade, academicYear, teacherId }
+        });
+        createdMarks.push(newM);
+      }
+    }
+
+    res.json({ success: true, count: createdMarks.length, data: createdMarks, message: `${createdMarks.length} student marks saved to database` });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
