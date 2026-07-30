@@ -110,7 +110,8 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
   const { data: session } = useSession();
   const { lang } = usePortalLanguage();
 
-  const [timetable, setTimetable] = useState<TimetableSlot[] | null>(null);
+  const [allTimetableSlots, setAllTimetableSlots] = useState<any[] | null>(null);
+  const [dayOffset, setDayOffset] = useState<number>(0);
   const [homework, setHomework] = useState<HomeworkItem[] | null>(null);
   const [exams, setExams] = useState<ExamItem[] | null>(null);
   const [announcements, setAnnouncements] = useState<AnnouncementItem[] | null>(null);
@@ -183,27 +184,15 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
           .then((json) => {
             if (cancelled) return;
             if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-              const allClassSlots = json.data;
-              const todaySlots = allClassSlots.filter((s: any) => Number(s.dayOfWeek) === dayOfWeek);
-
-              if (todaySlots.length > 0) {
-                setTimetable(
-                  todaySlots
-                    .sort((a: any, b: any) => a.period - b.period)
-                    .map((s: any) => ({ period: s.period, subject: s.subject, startTime: s.startTime, endTime: s.endTime, sample: false }))
-                );
-              } else {
-                // Real timetable is published for this class, but no classes scheduled for today specifically
-                setTimetable([]);
-              }
+              setAllTimetableSlots(json.data);
             } else {
               // School has not published a timetable for this class yet
-              setTimetable([]);
+              setAllTimetableSlots([]);
             }
           })
-          .catch(() => !cancelled && setTimetable([]));
+          .catch(() => !cancelled && setAllTimetableSlots([]));
       } else {
-        setTimetable([]);
+        setAllTimetableSlots([]);
       }
 
       /* 2. Pending homework */
@@ -332,13 +321,29 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
     };
   }, [session]);
 
+  /* ── derived: dynamic timetable based on dayOffset ── */
+  const timetable = useMemo(() => {
+    if (!allTimetableSlots) return null;
+    if (allTimetableSlots.length === 0) return [];
+    
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + dayOffset);
+    const targetDayOfWeek = targetDate.getDay();
+    
+    return allTimetableSlots
+      .filter((s: any) => Number(s.dayOfWeek) === targetDayOfWeek)
+      .sort((a: any, b: any) => a.period - b.period)
+      .map((s: any) => ({ period: s.period, subject: s.subject, startTime: s.startTime, endTime: s.endTime, sample: false }));
+  }, [allTimetableSlots, dayOffset]);
+
   /* ── derived: current / next period (upcoming classes) ── */
   const { currentPeriod, nextPeriods } = useMemo(() => {
+    if (dayOffset !== 0) return { currentPeriod: null, nextPeriods: [] }; // Only highlight today's active periods
     const slots = timetable || [];
     const current = slots.find((s) => nowMin >= toMinutes(s.startTime) && nowMin < toMinutes(s.endTime)) || null;
     const upcoming = slots.filter((s) => toMinutes(s.startTime) > nowMin);
     return { currentPeriod: current, nextPeriods: upcoming };
-  }, [timetable, nowMin]);
+  }, [timetable, nowMin, dayOffset]);
 
   /* ── derived: subject averages → weakest subject ── */
   const subjectAverages = useMemo(() => {
@@ -517,22 +522,52 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
         <div className="space-y-4">
           {/* Daily timetable & upcoming classes */}
           <div className="glass rounded-2xl p-5 border border-[var(--border)]">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
-                <Fi name="calendar-lines" className="text-sm text-indigo-500" /> {lang === "தமிழ்" ? "இன்றைய பாட அட்டவணை" : "Today's Timetable"}
+                <Fi name="calendar-lines" className="text-sm text-indigo-500" /> 
+                {dayOffset === 0 ? (lang === "தமிழ்" ? "இன்றைய பாட அட்டவணை" : "Today's Timetable") : dayOffset === 1 ? (lang === "தமிழ்" ? "நாளைய பாட அட்டவணை" : "Tomorrow's Timetable") : dayOffset === -1 ? (lang === "தமிழ்" ? "நேற்றைய பாட அட்டவணை" : "Yesterday's Timetable") : lang === "தமிழ்" ? "பாட அட்டவணை" : "Timetable"}
               </h3>
+              
+              {/* Only show navigation arrows if timetable exists */}
+              {allTimetableSlots && allTimetableSlots.length > 0 && (
+                <div className="flex items-center gap-1 bg-[var(--bg-card-hover)] rounded-lg p-0.5 border border-[var(--border)] shrink-0 self-start">
+                  <button onClick={() => setDayOffset(d => d - 1)} className="p-1.5 rounded-md hover:bg-white dark:hover:bg-slate-800 transition-colors">
+                    <Fi name="angle-left" className="text-[10px] text-[var(--text-muted)]" />
+                  </button>
+                  <button 
+                    onClick={() => setDayOffset(0)} 
+                    className={`text-[10px] font-bold px-2 transition-colors ${dayOffset === 0 ? 'text-indigo-500' : 'text-[var(--text-muted)] hover:text-[var(--text-heading)]'}`}
+                    title={lang === "தமிழ்" ? "இன்றுக்கு திரும்பு" : "Back to today"}
+                  >
+                    {(() => {
+                      const targetDate = new Date();
+                      targetDate.setDate(targetDate.getDate() + dayOffset);
+                      const dateStr = targetDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                      if (dayOffset === 0) return `${lang === "தமிழ்" ? "இன்று" : "Today"}, ${dateStr}`;
+                      if (dayOffset === 1) return `${lang === "தமிழ்" ? "நாளை" : "Tomorrow"}, ${dateStr}`;
+                      if (dayOffset === -1) return `${lang === "தமிழ்" ? "நேற்று" : "Yesterday"}, ${dateStr}`;
+                      return targetDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                    })()}
+                  </button>
+                  <button onClick={() => setDayOffset(d => d + 1)} className="p-1.5 rounded-md hover:bg-white dark:hover:bg-slate-800 transition-colors">
+                    <Fi name="angle-right" className="text-[10px] text-[var(--text-muted)]" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {timetable === null ? (
               <CardLoading />
+            ) : timetable.length === 0 && allTimetableSlots?.length === 0 ? (
+              <EmptyNote icon="moon-stars" text={lang === "தமிழ்" ? "இன்னும் பாட அட்டவணை வெளியிடப்படவில்லை." : "Timetable not published yet."} />
             ) : timetable.length === 0 ? (
-              <EmptyNote icon="moon-stars" text={lang === "தமிழ்" ? "இன்று வகுப்புகள் எதுவும் திட்டமிடப்படவில்லை." : "No classes scheduled today. Enjoy your holiday — or revise a unit you found hard!"} />
+              <EmptyNote icon="moon-stars" text={lang === "தமிழ்" ? "இந்த நாளுக்கு வகுப்புகள் எதுவும் திட்டமிடப்படவில்லை." : "No classes scheduled for this day."} />
             ) : (
               <div className="space-y-1.5">
                 {timetable.map((slot) => {
                   const isNow = currentPeriod?.period === slot.period;
                   const isNext = nextPeriods[0]?.period === slot.period;
-                  const done = toMinutes(slot.endTime) <= nowMin;
+                  const done = dayOffset < 0 || (dayOffset === 0 && toMinutes(slot.endTime) <= nowMin);
                   return (
                     <div
                       key={slot.period}

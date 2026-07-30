@@ -137,7 +137,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
-      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
+      // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
@@ -216,7 +216,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
-      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
+      // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       //{ label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
@@ -390,7 +390,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
-      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
+      // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
 
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
 
@@ -780,7 +780,7 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
   Science: [
     { label: "Science Campus", href: "/student/science-campus", icon: "Sparkles" },
     // { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
-    { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
+    // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
     { label: "Botany Centre", href: "/student/botany-centre", icon: "Leaf" },
     { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
     { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
