@@ -45,89 +45,8 @@ function mapToValidMood(rawMood?: string): 'great' | 'good' | 'okay' | 'stressed
 const DELETED_MESSAGE_IDS = new Set<string>();
 const DELETED_BOOKING_IDS = new Set<string>();
 
-const MEMORY_MESSAGES: any[] = [
-  {
-    _id: "msg-karthik-1",
-    studentId: "karthik-student-id",
-    studentName: "Karthik S.",
-    className: "8",
-    section: "A",
-    displayName: "👤 Karthik S. · Class 8-A",
-    mood: "Angry",
-    stressScore: 8,
-    notes: "[Topic: Personal & Emotional] [Anonymous: false]\nFeeling overwhelmed and anxious. Requesting immediate counsellor guidance.",
-    counselingReferred: true,
-    date: new Date().toISOString()
-  },
-  {
-    _id: "msg-1",
-    studentId: "95acafcf-990f-49aa-8c21-68a164a57a2e",
-    studentName: "Rathna",
-    className: "12",
-    section: "B",
-    displayName: "👤 Rathna · Class 12-B",
-    mood: "Sad",
-    stressScore: 8,
-    notes: "[Topic: school] [Anonymous: false]\nI feel very stressed about upcoming board exams and would like support on time management.",
-    counselingReferred: true,
-    date: new Date(Date.now() - 3600000).toISOString()
-  },
-  {
-    _id: "msg-2",
-    studentId: "ANONYMOUS_e9e0b213",
-    studentName: "Kavitha S.",
-    className: "10",
-    section: "A",
-    displayName: "🔒 Anonymous Student",
-    mood: "Anxious",
-    stressScore: 6,
-    notes: "[Topic: peer] [Anonymous: true]\nClassmate teasing is bothering me during lunch breaks.",
-    counselingReferred: true,
-    date: new Date(Date.now() - 86400000).toISOString()
-  }
-];
-
-const MEMORY_BOOKINGS: any[] = [
-  {
-    _id: "book-karthik-1",
-    studentId: "karthik-student-id",
-    studentName: "Karthik S.",
-    className: "8",
-    section: "A",
-    displayName: "👤 Karthik S. · Class 8-A",
-    slot: "Monday · 10:00 AM",
-    topic: "General 1-on-1 Session",
-    isAnonymous: false,
-    status: "CONFIRMED",
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: "book-1",
-    studentId: "95acafcf-990f-49aa-8c21-68a164a57a2e",
-    studentName: "Rathna",
-    className: "12",
-    section: "B",
-    displayName: "👤 Rathna · Class 12-B",
-    slot: "Wednesday · 10:00 AM - 10:45 AM",
-    topic: "Exam Anxiety & Time Management",
-    isAnonymous: false,
-    status: "CONFIRMED",
-    createdAt: new Date(Date.now() - 3600000).toISOString()
-  },
-  {
-    _id: "book-2",
-    studentId: "e9e0b213-95b0-4186-8a88-ef53de06533f",
-    studentName: "Kavitha S.",
-    className: "10",
-    section: "A",
-    displayName: "👤 Kavitha S. · Class 10-A",
-    slot: "Thursday · 02:00 PM - 02:45 PM",
-    topic: "Peer Support Session",
-    isAnonymous: false,
-    status: "CONFIRMED",
-    createdAt: new Date(Date.now() - 86400000).toISOString()
-  }
-];
+const MEMORY_MESSAGES: any[] = [];
+const MEMORY_BOOKINGS: any[] = [];
 
 // POST /api/counsellor/message — Submit a message to the counsellor (logs into Wellness)
 router.post('/message', async (req: Request, res: Response) => {
@@ -383,8 +302,9 @@ router.delete('/messages/:id', async (req: Request, res: Response) => {
     try {
       if (mongoose.Types.ObjectId.isValid(id)) {
         await Wellness.findByIdAndDelete(id);
+        await Wellness.deleteMany({ _id: id });
       } else {
-        await Wellness.deleteOne({ _id: id });
+        await Wellness.deleteMany({ _id: id });
       }
     } catch (e) {}
 
@@ -408,8 +328,9 @@ router.delete('/bookings/:id', async (req: Request, res: Response) => {
     try {
       if (mongoose.Types.ObjectId.isValid(id)) {
         await CounsellorBooking.findByIdAndDelete(id);
+        await CounsellorBooking.deleteMany({ _id: id });
       } else {
-        await CounsellorBooking.deleteOne({ _id: id });
+        await CounsellorBooking.deleteMany({ _id: id });
       }
     } catch (e) {}
 
