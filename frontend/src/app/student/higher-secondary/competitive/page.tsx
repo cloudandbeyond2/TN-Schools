@@ -13,6 +13,7 @@ export default function CompetitivePrepPage() {
   const { data: session } = useSession();
   const studentId = (session?.user as any)?.studentId || null;
   const studentClass = (session?.user as any)?.class || null;
+  const schoolId = (session?.user as any)?.schoolId || null;
   const studentGroup = useStudentGroup();
 
   // Exam modules offered to this student's group (tab order preserved).
@@ -286,7 +287,7 @@ export default function CompetitivePrepPage() {
         <h2 className="text-lg font-bold text-black dark:text-white flex items-center gap-2 mb-4">
           <span className="text-xl">🗓️</span> Exam Calendar & Notifications
         </h2>
-        <GroupAwareExamList studentId={studentId} studentClass={studentClass} />
+        <GroupAwareExamList studentId={studentId} studentClass={studentClass} schoolId={schoolId} />
       </div>
     </PortalLayout>
   );

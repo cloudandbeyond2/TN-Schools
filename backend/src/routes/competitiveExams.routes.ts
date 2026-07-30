@@ -22,22 +22,52 @@ const EXAM_STREAM_AFFINITY: Array<{ match: RegExp; streams: StreamCategory[] }> 
   { match: /clat|ailet|law/i, streams: ['ARTS', 'COMMERCE'] },
 ];
 
-// ─── GET /api/competitive-exams?schoolId=&category=&status= ──────
+// ─── GET /api/competitive-exams?schoolId=&teacherId=&targetClass=&category=&status= ──────
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { schoolId, category, status, search } = req.query;
+    const { schoolId, teacherId, targetClass, class: classParam, category, status, search } = req.query;
 
-    const where: any = {};
-    if (schoolId) where.schoolId = String(schoolId);
-    if (category) where.category = String(category);
-    if (status)   where.status   = String(status);
-    if (search) {
-      where.OR = [
-        { examName:    { contains: String(search), mode: 'insensitive' } },
-        { conductedBy: { contains: String(search), mode: 'insensitive' } },
-        { eligibility: { contains: String(search), mode: 'insensitive' } },
-      ];
+    const filterClass = targetClass || classParam;
+    const whereConditions: any[] = [];
+
+    if (teacherId) {
+      whereConditions.push({ teacherId: String(teacherId) });
+      if (schoolId) {
+        whereConditions.push({ schoolId: String(schoolId) });
+      }
+    } else if (schoolId) {
+      whereConditions.push({
+        OR: [
+          { schoolId: String(schoolId) },
+          { schoolId: null },
+        ],
+      });
     }
+
+    if (filterClass && String(filterClass) !== 'All') {
+      const clsStr = String(filterClass).replace(/^(class\s*)/i, '').trim();
+      whereConditions.push({
+        OR: [
+          { targetClass: null },
+          { targetClass: 'All' },
+          { targetClass: { contains: clsStr, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    if (category) whereConditions.push({ category: String(category) });
+    if (status) whereConditions.push({ status: String(status) });
+    if (search) {
+      whereConditions.push({
+        OR: [
+          { examName:    { contains: String(search), mode: 'insensitive' } },
+          { conductedBy: { contains: String(search), mode: 'insensitive' } },
+          { eligibility: { contains: String(search), mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    const where = whereConditions.length > 0 ? { AND: whereConditions } : {};
 
     const data = await prisma.competitiveExam.findMany({
       where,
@@ -73,8 +103,32 @@ router.get('/recommendations', async (req: Request, res: Response) => {
   try {
     const groupCode = req.query.group ? String(req.query.group) : '';
     const group = getGroup(groupCode);
+    const { schoolId, class: classParam, targetClass } = req.query;
+    const filterClass = targetClass || classParam;
 
-    const exams = await prisma.competitiveExam.findMany({ orderBy: [{ examDate: 'asc' }, { examName: 'asc' }] });
+    const whereConditions: any[] = [];
+    if (schoolId) {
+      whereConditions.push({
+        OR: [{ schoolId: String(schoolId) }, { schoolId: null }],
+      });
+    }
+    if (filterClass && String(filterClass) !== 'All') {
+      const clsStr = String(filterClass).replace(/^(class\s*)/i, '').trim();
+      whereConditions.push({
+        OR: [
+          { targetClass: null },
+          { targetClass: 'All' },
+          { targetClass: { contains: clsStr, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    const where = whereConditions.length > 0 ? { AND: whereConditions } : {};
+
+    const exams = await prisma.competitiveExam.findMany({
+      where,
+      orderBy: [{ examDate: 'asc' }, { examName: 'asc' }],
+    });
 
     if (!group) {
       return res.json({
@@ -164,7 +218,7 @@ router.post('/', async (req: Request, res: Response) => {
     const {
       examName, category, conductedBy, registrationDeadline, examDate,
       status, eligibility, website, studentsEnrolled, studentsCleared,
-      schoolId, teacherId, syllabus
+      schoolId, teacherId, targetClass, class: classParam, syllabus
     } = req.body;
 
     if (!examName || !category || !conductedBy || !registrationDeadline || !examDate) {
@@ -188,6 +242,7 @@ router.post('/', async (req: Request, res: Response) => {
         studentsCleared: Number(studentsCleared) || 0,
         schoolId: schoolId || null,
         teacherId: teacherId || null,
+        targetClass: targetClass || classParam || 'All',
         syllabus: syllabus || null
       }
     });
@@ -211,7 +266,8 @@ router.put('/:id', async (req: Request, res: Response) => {
 
     const {
       examName, category, conductedBy, registrationDeadline, examDate,
-      status, eligibility, website, studentsEnrolled, studentsCleared, syllabus
+      status, eligibility, website, studentsEnrolled, studentsCleared, syllabus,
+      schoolId, teacherId, targetClass, class: classParam
     } = req.body;
 
     // Handle NEET Prep alignment if this is a NEET exam
@@ -296,6 +352,9 @@ router.put('/:id', async (req: Request, res: Response) => {
         website: website !== undefined ? website : undefined,
         studentsEnrolled: studentsEnrolled !== undefined ? Number(studentsEnrolled) : undefined,
         studentsCleared: studentsCleared !== undefined ? Number(studentsCleared) : undefined,
+        schoolId: schoolId !== undefined ? schoolId : undefined,
+        teacherId: teacherId !== undefined ? teacherId : undefined,
+        targetClass: (targetClass || classParam) !== undefined ? (targetClass || classParam) : undefined,
         syllabus: syllabus !== undefined ? syllabus : undefined
       }
     });

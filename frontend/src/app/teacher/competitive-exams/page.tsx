@@ -20,6 +20,9 @@ interface CompetitiveExam {
   status: string;
   eligibility: string;
   website: string;
+  schoolId?: string;
+  teacherId?: string;
+  targetClass?: string;
 }
 
 interface StudyMaterial {
@@ -87,11 +90,12 @@ const emptyForm = {
   website: "",
   studentsEnrolled: "0",
   studentsCleared: "0",
+  targetClass: "All",
 };
 
 export default function CompetitiveExamsPage() {
   const { lang } = usePortalLanguage();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const teacherId = (session?.user as any)?.id;
 
@@ -108,10 +112,12 @@ export default function CompetitiveExamsPage() {
   const [editId, setEditId] = useState<string | null>(null);
 
   const fetchExams = useCallback(async () => {
+    if (!teacherId) return;
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (schoolId) params.append("schoolId", schoolId);
+      if (teacherId) params.append("teacherId", teacherId);
       const res = await fetch(`${API}/api/competitive-exams?${params}`);
       const data = await res.json();
       if (data.success) setExamsList(data.data);
@@ -120,11 +126,13 @@ export default function CompetitiveExamsPage() {
     } finally {
       setLoading(false);
     }
-  }, [schoolId]);
+  }, [schoolId, teacherId]);
 
   useEffect(() => {
-    fetchExams();
-  }, [fetchExams]);
+    if (status !== "loading" && teacherId) {
+      fetchExams();
+    }
+  }, [status, teacherId, fetchExams]);
 
   const filtered = examsList.filter((e) => {
     const q = search.toLowerCase();
@@ -152,6 +160,7 @@ export default function CompetitiveExamsPage() {
       website: e.website || "",
       studentsEnrolled: String(e.studentsEnrolled),
       studentsCleared: String(e.studentsCleared),
+      targetClass: e.targetClass || "All",
     });
     setEditId(e.id);
     setShowModal(true);
@@ -169,6 +178,7 @@ export default function CompetitiveExamsPage() {
         studentsCleared: Number(form.studentsCleared) || 0,
         schoolId,
         teacherId,
+        targetClass: form.targetClass || "All",
       };
       const url = editId ? `${API}/api/competitive-exams/${editId}` : `${API}/api/competitive-exams`;
       const res = await fetch(url, {
@@ -383,13 +393,16 @@ export default function CompetitiveExamsPage() {
                     </div>
 
                     {/* Badges */}
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
                       <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-semibold ${categoryColor[exam.category] || "bg-slate-100 text-slate-600"}`}>
                         {catTranslated}
                       </span>
                       <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold border inline-flex items-center gap-1 ${statusColor[exam.status] || ""}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${statusDot[exam.status] || "bg-slate-400"}`} />
                         {statusTranslated}
+                      </span>
+                      <span className="text-[9px] px-2 py-0.5 rounded-full font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                        🎯 {exam.targetClass === "All" || !exam.targetClass ? (lang === "தமிழ்" ? "அனைத்து வகுப்புகளும்" : "All Classes") : `Class ${exam.targetClass}`}
                       </span>
                     </div>
 
@@ -599,9 +612,19 @@ export default function CompetitiveExamsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">{lang === "தமிழ்" ? "நடத்துபவர் *" : "Conducted By *"}</label>
-                  <input value={form.conductedBy} onChange={(e) => setForm({ ...form, conductedBy: e.target.value })} type="text" placeholder="e.g. NTA, UPSC" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none" />
+                  <label className="block text-[10px] text-slate-500 mb-1 font-semibold">{lang === "தமிழ்" ? "இலக்கு வகுப்பு *" : "Target Class *"}</label>
+                  <select value={form.targetClass} onChange={(e) => setForm({ ...form, targetClass: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none">
+                    {["All", "12", "11", "10", "9", "8", "7", "6"].map((cls) => (
+                      <option key={cls} value={cls}>
+                        {cls === "All" ? (lang === "தமிழ்" ? "அனைத்து வகுப்புகளும்" : "All Classes") : `Class ${cls}`}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+              </div>
+              <div>
+                <label className="block text-[10px] text-slate-500 mb-1 font-semibold">{lang === "தமிழ்" ? "நடத்துபவர் *" : "Conducted By *"}</label>
+                <input value={form.conductedBy} onChange={(e) => setForm({ ...form, conductedBy: e.target.value })} type="text" placeholder="e.g. NTA, UPSC" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>

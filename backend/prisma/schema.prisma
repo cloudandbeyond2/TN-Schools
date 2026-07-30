@@ -1623,6 +1623,7 @@ model CompetitiveExam {
   syllabus             Json?
   schoolId             String?
   teacherId            String?
+  targetClass          String?  @default("All")
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
