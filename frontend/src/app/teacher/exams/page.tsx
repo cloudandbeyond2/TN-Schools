@@ -143,7 +143,8 @@ export default function TeacherExamsPage() {
 
   // Model Exam results states
   const [modelExams, setModelExams] = useState<any[]>([]);
-  const [activeClassTab, setActiveClassTab] = useState("6");
+  const [teacherClasses, setTeacherClasses] = useState<string[]>([]);
+  const [activeClassTab, setActiveClassTab] = useState("11");
   const [loadingModelExams, setLoadingModelExams] = useState(false);
   const [selectedModelExam, setSelectedModelExam] = useState<any | null>(null);
   const [modelExamRows, setModelExamRows] = useState<any[]>([]);
@@ -266,6 +267,42 @@ export default function TeacherExamsPage() {
     }
     setIsMounted(true);
   }, [session, schoolId, fetchExamsFromDB]);
+
+  // Fetch teacher assigned classes
+  useEffect(() => {
+    if (!schoolId) return;
+    const fetchTeacherAssignedClasses = async () => {
+      try {
+        const teacherId = (session?.user as any)?.id || "";
+        const url = teacherId 
+          ? `${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`
+          : `${API_URL}/api/classes?schoolId=${schoolId}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const classesExtracted = Array.from(
+            new Set(
+              json.data
+                .map((c: any) => {
+                  const name = c.className || c.class || "";
+                  const match = String(name).match(/\d+/);
+                  return match ? match[0] : "";
+                })
+                .filter(Boolean)
+            )
+          ).sort((a: any, b: any) => parseInt(a) - parseInt(b)) as string[];
+
+          if (classesExtracted.length > 0) {
+            setTeacherClasses(classesExtracted);
+            setActiveClassTab((prev) => (classesExtracted.includes(prev) ? prev : classesExtracted[0]));
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching teacher classes:", err);
+      }
+    };
+    fetchTeacherAssignedClasses();
+  }, [schoolId, session, API_URL]);
 
   useEffect(() => {
     if (activeTab === "results") {
@@ -812,8 +849,8 @@ export default function TeacherExamsPage() {
             <div>
               {/* Class Selection Tabs */}
               <div className="flex items-center gap-2 mb-6 flex-wrap">
-                <span className="text-xs text-slate-505 font-bold mr-1">{lang === "தமிழ்" ? "வகுப்பு" : "CLASS"}</span>
-                {CLASSES.map(cls => (
+                <span className="text-xs text-slate-500 font-bold mr-1">{lang === "தமிழ்" ? "வகுப்பு" : "CLASS"}</span>
+                {(teacherClasses.length > 0 ? teacherClasses : CLASSES).map(cls => (
                   <button key={cls}
                     onClick={() => { setActiveClassTab(cls); }}
                     className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${activeClassTab === cls ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20" : "bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700"}`}

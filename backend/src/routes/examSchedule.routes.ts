@@ -125,20 +125,42 @@ async function notifyExamScheduled(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/exam-schedule
-// Query params: schoolId (required), class?, section?, examType?, academicYear?,
+// Query params: schoolId?, class?, section?, examType?, academicYear?,
 //               status?, fromDate?, toDate?
-// ─────────────────────────────────────────────────────────────────────────────
+// class can be a raw string "Class 11 - B" or a number "11" — matched with contains.
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { schoolId, class: cls, section, examType, academicYear, status, fromDate, toDate } = req.query;
 
-    if (!schoolId) {
-      return res.status(400).json({ success: false, error: 'schoolId is required' });
+    const where: any = {};
+    if (schoolId) {
+      const schoolStr = String(schoolId);
+      try {
+        const schoolObj = await prisma.school.findFirst({
+          where: { OR: [{ id: schoolStr }, { dise: schoolStr }] },
+          select: { id: true, dise: true }
+        });
+        if (schoolObj) {
+          const ids = Array.from(new Set([schoolStr, schoolObj.id, schoolObj.dise].filter(Boolean)));
+          where.schoolId = { in: ids };
+        } else {
+          where.schoolId = schoolStr;
+        }
+      } catch {
+        where.schoolId = schoolStr;
+      }
     }
 
-    const where: any = { schoolId: String(schoolId) };
-
-    if (cls)          where.class        = String(cls);
+    if (cls) {
+      // Extract numeric part so "Class 11 - B" → "11" and matches "11", "Class 11 (General)", etc.
+      const clsStr = String(cls);
+      const numericOnly = clsStr.match(/\d+/)?.[0];
+      if (numericOnly) {
+        where.class = { contains: numericOnly, mode: 'insensitive' };
+      } else {
+        where.class = { contains: clsStr, mode: 'insensitive' };
+      }
+    }
     if (section)      where.section      = String(section);
     if (examType)     where.examType     = String(examType);
     if (academicYear) where.academicYear = String(academicYear);
