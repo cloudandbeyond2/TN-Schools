@@ -408,7 +408,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Homework", href: "/student/homework", icon: "Edit3" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
-      { label: "Board Preparation", href: "/student/higher-secondary/board-prep", icon: "Target" },
+      // { label: "Board Preparation", href: "/student/higher-secondary/board-prep", icon: "Target" },
       { label: "Mock Tests", href: "/student/higher-secondary/mock-tests", icon: "ClipboardCheck" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
 
@@ -450,7 +450,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       { label: "Learning Platform", href: "/student/higher-secondary/learning-platform", icon: "Monitor" },
       { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
-      { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
+      // { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
       { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
 
       // ===================== SUPPORT =====================
@@ -461,10 +461,10 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Report a Concern", href: "/student/report", icon: "ShieldAlert" },
 
       // ===================== UnWanted =====================
-      { label: "---", href: "#", icon: "" },
-      { label: "🛡️ UnWanted", href: "#", icon: "" },
-      { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
-      { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
+      // { label: "---", href: "#", icon: "" },
+      // { label: "🛡️ UnWanted", href: "#", icon: "" },
+      // { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
+      // { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
 
     ]
   },
