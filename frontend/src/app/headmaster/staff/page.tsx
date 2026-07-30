@@ -47,6 +47,7 @@ interface StaffMetadata {
   assignedClass?: string;
   assignedSection?: string;
   docAppointment?: string;
+  isClassTeacher?: boolean;
 }
 
 interface StaffMember {
@@ -147,6 +148,7 @@ export default function StaffManagementPage() {
   const [formAssignedClass, setFormAssignedClass] = useState("");
   const [formAssignedSection, setFormAssignedSection] = useState("");
   const [formDocAppointment, setFormDocAppointment] = useState("");
+  const [formIsClassTeacher, setFormIsClassTeacher] = useState(false);
 
   // Temporary Staff specific form fields
   const [formTempAgency, setFormTempAgency] = useState("Direct Contract");
@@ -188,7 +190,8 @@ export default function StaffManagementPage() {
             workAllocation: parsed.workAllocation || parsedMeta.workAllocation,
             assignedClass: parsed.assignedClass || "",
             assignedSection: parsed.assignedSection || "",
-            docAppointment: parsed.docAppointment || ""
+            docAppointment: parsed.docAppointment || "",
+            isClassTeacher: parsed.isClassTeacher || false
           };
         } else {
           parsedMeta.address = rawAddress;
@@ -289,6 +292,27 @@ export default function StaffManagementPage() {
   const handleSaveStaff = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName || (!formEmisId && formType !== "Temporary")) return;
+
+    if (formType === "Teaching" && formIsClassTeacher && formAssignedClass && formAssignedSection) {
+      const existingClassTeacher = staffList.find(staff => 
+        staff.parsedMeta?.assignedClass === formAssignedClass &&
+        staff.parsedMeta?.assignedSection === formAssignedSection &&
+        staff.parsedMeta?.isClassTeacher
+      );
+
+      if (existingClassTeacher) {
+        Swal.fire({
+          title: "Class Teacher Exists",
+          text: `${existingClassTeacher.name} is already assigned as the class teacher for ${formAssignedClass}-${formAssignedSection}.`,
+          icon: "warning",
+          background: "var(--bg-card)",
+          color: "var(--text-heading)",
+          confirmButtonColor: "#3b82f6"
+        });
+        return;
+      }
+    }
+
     setIsSaving(true);
 
     try {
@@ -342,7 +366,8 @@ export default function StaffManagementPage() {
           workAllocation: formWorkAllocation,
           assignedClass: formAssignedClass,
           assignedSection: formAssignedSection,
-          docAppointment: formDocAppointment
+          docAppointment: formDocAppointment,
+          isClassTeacher: formIsClassTeacher
         });
 
         const body = {
@@ -402,6 +427,28 @@ export default function StaffManagementPage() {
   // Handle Updates
   const handleEditStaff = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formType === "Teaching" && formIsClassTeacher && formAssignedClass && formAssignedSection) {
+      const existingClassTeacher = staffList.find(staff => 
+        staff.id !== selectedStaff?.id &&
+        staff.parsedMeta?.assignedClass === formAssignedClass &&
+        staff.parsedMeta?.assignedSection === formAssignedSection &&
+        staff.parsedMeta?.isClassTeacher
+      );
+
+      if (existingClassTeacher) {
+        Swal.fire({
+          title: "Class Teacher Exists",
+          text: `${existingClassTeacher.name} is already assigned as the class teacher for ${formAssignedClass}-${formAssignedSection}.`,
+          icon: "warning",
+          background: "var(--bg-card)",
+          color: "var(--text-heading)",
+          confirmButtonColor: "#3b82f6"
+        });
+        return;
+      }
+    }
+
     setIsSaving(true);
 
     try {
@@ -451,7 +498,8 @@ export default function StaffManagementPage() {
           workAllocation: formWorkAllocation,
           assignedClass: formAssignedClass,
           assignedSection: formAssignedSection,
-          docAppointment: formDocAppointment
+          docAppointment: formDocAppointment,
+          isClassTeacher: formIsClassTeacher
         });
 
         const body = {
@@ -528,6 +576,7 @@ export default function StaffManagementPage() {
     setFormAssignedClass(staff.parsedMeta?.assignedClass || "");
     setFormAssignedSection(staff.parsedMeta?.assignedSection || "");
     setFormDocAppointment(staff.parsedMeta?.docAppointment || "");
+    setFormIsClassTeacher(staff.parsedMeta?.isClassTeacher || false);
     setIsEditModalOpen(true);
   };
 
@@ -882,6 +931,7 @@ export default function StaffManagementPage() {
     setFormAssignedClass("");
     setFormAssignedSection("");
     setFormDocAppointment("");
+    setFormIsClassTeacher(false);
     setFormTempAgency("Direct Contract");
     setFormTempJoined("");
     setFormTempDuration("12 Months");
@@ -1911,6 +1961,48 @@ export default function StaffManagementPage() {
                       />
                     </div>
                   </div>
+
+                  {formType === "Teaching" && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-indigo-50/40 dark:bg-indigo-950/30 p-3 rounded-2xl border border-indigo-100 dark:border-indigo-900/50 mt-3">
+                      <div>
+                        <label className="block text-[10px] text-indigo-800 dark:text-indigo-300 mb-1 font-bold">Assigned Class</label>
+                        <select
+                          value={formAssignedClass}
+                          onChange={e => setFormAssignedClass(e.target.value)}
+                          className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500"
+                        >
+                          <option value="">None</option>
+                          {[...Array(12)].map((_, i) => (
+                            <option key={i + 1} value={`${i + 1}`}>Class {i + 1}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-indigo-800 dark:text-indigo-300 mb-1 font-bold">Assigned Section</label>
+                        <select
+                          value={formAssignedSection}
+                          onChange={e => setFormAssignedSection(e.target.value)}
+                          className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500"
+                        >
+                          <option value="">None</option>
+                          {['A', 'B', 'C', 'D', 'E'].map(sec => (
+                            <option key={sec} value={sec}>Section {sec}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex items-center mt-4">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-indigo-800 dark:text-indigo-300">
+                          <input
+                            type="checkbox"
+                            checked={formIsClassTeacher}
+                            onChange={e => setFormIsClassTeacher(e.target.checked)}
+                            className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 bg-white border-slate-300"
+                          />
+                          Is Class Teacher?
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 
@@ -2146,6 +2238,48 @@ export default function StaffManagementPage() {
                       />
                     </div>
                   </div>
+
+                  {formType === "Teaching" && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-indigo-50/40 p-3 rounded-2xl border border-indigo-100 mt-3">
+                      <div>
+                        <label className="block text-[10px] text-indigo-800 mb-1 font-bold">Assigned Class</label>
+                        <select
+                          value={formAssignedClass}
+                          onChange={e => setFormAssignedClass(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-indigo-500"
+                        >
+                          <option value="">None</option>
+                          {[...Array(12)].map((_, i) => (
+                            <option key={i + 1} value={`${i + 1}`}>Class {i + 1}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-indigo-800 mb-1 font-bold">Assigned Section</label>
+                        <select
+                          value={formAssignedSection}
+                          onChange={e => setFormAssignedSection(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-indigo-500"
+                        >
+                          <option value="">None</option>
+                          {['A', 'B', 'C', 'D', 'E'].map(sec => (
+                            <option key={sec} value={sec}>Section {sec}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex items-center mt-4">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-indigo-800">
+                          <input
+                            type="checkbox"
+                            checked={formIsClassTeacher}
+                            onChange={e => setFormIsClassTeacher(e.target.checked)}
+                            className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 bg-white border-slate-300"
+                          />
+                          Is Class Teacher?
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 
