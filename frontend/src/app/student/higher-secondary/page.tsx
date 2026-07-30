@@ -190,12 +190,82 @@ export default function HigherSecondaryDashboard() {
 
   const streamKnowledge = lang === "தமிழ்" ? streamKnowledgeTa : streamKnowledgeEn;
 
-  // Dynamic KPI lists
-  const kpis = [
-    { label: lang === "தமிழ்" ? "மேல்நிலை பொதுத் தேர்வு" : "HSC Board Exam", value: lang === "தமிழ்" ? "62 நாட்கள்" : "62 Days", icon: "⏳", color: "text-purple-400", sub: lang === "தமிழ்" ? "தேர்வு மார்ச் 5 அன்று தொடங்குகிறது" : "Exam starts Mar 5" },
-    { label: lang === "தமிழ்" ? "பாடப்பிரிவு பாதை" : "Stream Track", value: currentStream.split(" ")[0], icon: "🩺", color: "text-pink-400", sub: lang === "தமிழ்" ? "இலக்கு: முன்னணி கல்லூரிகள்" : "Target: Top Colleges" },
-    { label: lang === "தமிழ்" ? "ஒட்டுமொத்த சராசரி" : "Overall Average", value: summary ? `${summary.overallAvg}%` : "80%", icon: "📊", color: "text-blue-400", sub: lang === "தமிழ்" ? "வகுப்பறை தேர்வுகளின் அடிப்படையில்" : "Based on classroom tests" },
-    { label: lang === "தமிழ்" ? "பதிவுசெய்யப்பட்ட தேர்வுகள்" : "Tests Logged", value: summary ? `${summary.testsCount}` : "0", icon: "📝", color: "text-amber-400", sub: lang === "தமிழ்" ? "நேரலையில் புதுப்பிக்கப்பட்டது" : "Updated real-time" },
+  const [celebrations, setCelebrations] = useState<any[]>([]);
+  const [pressArticles, setPressArticles] = useState<any[]>([]);
+
+  // 4. Load Celebrations & School Press
+  useEffect(() => {
+    const schoolId = (session?.user as any)?.schoolId || student?.schoolId;
+    if (!schoolId) return;
+
+    fetch(`${API_BASE}/api/celebrations?schoolId=${schoolId}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setCelebrations(json.data);
+        }
+      })
+      .catch((err) => console.error("Failed to load celebrations:", err));
+
+    fetch(`${API_BASE}/api/teacher/school-press?schoolId=${schoolId}&approvedOnly=true`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setPressArticles(json.data);
+        }
+      })
+      .catch((err) => console.error("Failed to load school press:", err));
+  }, [session, student]);
+
+  const defaultCelebrations = [
+    {
+      id: "def-1",
+      title: lang === "தமிழ்" ? "சுதந்திர தின அமுதப் பெருவிழா 2026" : "Independence Day Grand Celebration 2026",
+      date: "2026-08-15",
+      description: lang === "தமிழ்" ? "தேசிய கொடியேற்றம், அணிவகுப்பு மற்றும் கலாச்சார கலைநிகழ்ச்சிகள்." : "Flag hoisting, parade & cultural performances at school grounds.",
+      badge: lang === "தமிழ்" ? "நிகழ்ச்சி" : "Event",
+    },
+    {
+      id: "def-2",
+      title: lang === "தமிழ்" ? "மாநில அளவிலான அறிவியல் மற்றும் கணிதக் கண்காட்சி" : "State Science & Math Exhibition",
+      date: "2026-09-05",
+      description: lang === "தமிழ்" ? "மாணவர்களின் புதுமையான AI மற்றும் அறிவியல் மாதிரிகள் காட்சிப்படுத்தப்படும்." : "Innovative AI & STEM models presented by students.",
+      badge: lang === "தமிழ்" ? "கண்காட்சி" : "Expo",
+    },
+    {
+      id: "def-3",
+      title: lang === "தமிழ்" ? "ஆண்டு விளையாட்டுப் போட்டி மற்றும் கலை விழா" : "Annual Sports Meet & Cultural Fest",
+      date: "2026-10-20",
+      description: lang === "தமிழ்" ? "விளையாட்டுப் போட்டிகள், பாரம்பரிய நடனங்கள் மற்றும் விருது வழங்கும் விழா." : "Inter-house athletics, traditional dance & award ceremony.",
+      badge: lang === "தமிழ்" ? "விளையாட்டு" : "Sports",
+    },
+  ];
+
+  const defaultPressItems = [
+    {
+      id: "press-1",
+      title: lang === "தமிழ்" ? "மாநில அறிவியல் போட்டியில் எமது பள்ளி 11-ம் வகுப்பு மாணவர்கள் முதலிடம்!" : "Class 11 Science Team Wins 1st Prize in State Innovation Contest",
+      description: lang === "தமிழ்" ? "இயற்கை விவசாயம் பற்றிய AI மாதிரியை உருவாக்கி முதன்மை விருதை வென்றனர்." : "Developed an AI-driven sustainable farming prototype and bagged top honors.",
+      category: lang === "தமிழ்" ? "சாதனை" : "Achievement",
+      authorName: lang === "தமிழ்" ? "பள்ளி செய்தி இதழ் குழு" : "School Media Club",
+      createdAt: "2026-07-28",
+    },
+    {
+      id: "press-2",
+      title: lang === "தமிழ்" ? "வருடாந்திர பள்ளி காலாண்டு செய்தி இதழ் 'TN Spectrum' 2026 வெளியீடு" : "Quarterly School Press Magazine 'TN Spectrum 2026' Released",
+      description: lang === "தமிழ்" ? "மாணவர்களின் சிறுகதைகள், ஓவியங்கள் மற்றும் கல்வி சாதனைகள் இடம்பெற்றுள்ளன." : "Featuring top student articles, poetry, artwork & academic milestones.",
+      category: lang === "தமிழ்" ? "செய்தி இதழ்" : "Newsletter",
+      authorName: lang === "தமிழ்" ? "தமிழ்ப் பேரவை & பதிப்பகம்" : "Editorial Board",
+      createdAt: "2026-07-20",
+    },
+    {
+      id: "press-3",
+      title: lang === "தமிழ்" ? "தேசிய கணித ஒலிம்பியாட் தேர்வில் 15 மாணவர்கள் தகுதி சாதனை" : "15 Students Qualify for National Mathematics Olympiad Finals",
+      description: lang === "தமிழ்" ? "சிறப்புப் பயிற்சி வகுப்புகளின் மூலம் மாணவர்கள் சிறந்த மதிப்பெண்களைப் பெற்றுள்ளனர்." : "Recognized for exceptional analytical skills and top percentile scores.",
+      category: lang === "தமிழ்" ? "கல்வி சாதனை" : "Academic Honor",
+      authorName: lang === "தமிழ்" ? "கணிதத் துறை" : "Mathematics Dept",
+      createdAt: "2026-07-15",
+    },
   ];
 
   return (
@@ -203,112 +273,144 @@ export default function HigherSecondaryDashboard() {
       {/* Real academic-year KPIs */}
       <PersonalKpiStrip studentId={(session?.user as any)?.studentId || student?.id || null} />
 
-      {/* Daily timetable, homework, exams, attendance, announcements & AI suggestions + Stream Mastery */}
+      {/* Daily timetable, homework, exams, attendance, announcements & AI suggestions + Celebrations & School Press */}
       <StudentDailyOverview 
         extraLeft={
           <div className="space-y-4">
-            {/* Stream Mastery Matrix */}
-            <div className="glass rounded-2xl p-6 fade-in-2 border border-[var(--border)] h-fit relative overflow-hidden">
+            {/* 1. Celebrations Card */}
+            <div className="glass rounded-2xl p-6 fade-in-2 border border-purple-500/20 shadow-sm relative overflow-hidden">
               <div className="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
               
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-                      {lang === "தமிழ்" ? "பாடப்பிரிவு சிறப்பியல்பு" : "Stream Mastery Matrix"}
-                    </span>
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center text-xl shadow-inner">
+                    🎉
                   </div>
-                  <h2 className="text-lg font-bold text-[var(--text-heading)] mt-1 flex items-center gap-2">
-                    {currentStream}
-                  </h2>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                        {lang === "தமிழ்" ? "கொண்டாட்டங்கள் & நிகழ்வுகள்" : "Celebrations & Events"}
+                      </span>
+                    </div>
+                    <h2 className="text-base font-bold text-[var(--text-heading)] mt-0.5">
+                      {lang === "தமிழ்" ? "பள்ளி கொண்டாட்டங்கள் மற்றும் விழாக்கள்" : "School Celebrations & Festivals"}
+                    </h2>
+                  </div>
                 </div>
                 <Link 
-                  href="/student/academic-history" 
+                  href="/student/celebrations" 
                   className="text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-300 transition-all border border-purple-500/30 flex items-center gap-1 group shadow-sm"
                 >
-                  <span>{lang === "தமிழ்" ? "கல்விப் பயணத்தைப் பார்" : "Academic Journey"}</span>
+                  <span>{lang === "தமிழ்" ? "அனைத்தும் காண்" : "View All"}</span>
                   <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                 </Link>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {summary?.subjects?.slice(0, 6).map((s: any) => {
-                  const statusTag = s.progress >= 85 
-                    ? { label: lang === "தமிழ்" ? "சிறந்த நிலை" : "Mastered", color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" }
-                    : s.progress >= 75 
-                    ? { label: lang === "தமிழ்" ? "நன்றாக உள்ளது" : "On Track", color: "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20" }
-                    : { label: lang === "தமிழ்" ? "பயிற்சி தேவை" : "Needs Focus", color: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20" };
+              <div className="space-y-3">
+                {(celebrations.length > 0 ? celebrations.slice(0, 3) : defaultCelebrations).map((c: any) => {
+                  const d = c.date ? new Date(c.date) : new Date();
+                  const monthStr = d.toLocaleDateString(lang === "தமிழ்" ? "ta-IN" : "en-US", { month: "short" }).toUpperCase();
+                  const dayStr = d.getDate();
 
                   return (
                     <div 
-                      key={s.name} 
-                      className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-[var(--border)] hover:border-purple-500/40 transition-all group relative overflow-hidden"
+                      key={c.id || c.title} 
+                      className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 hover:bg-purple-500/5 border border-[var(--border)] hover:border-purple-500/30 transition-all group flex items-start gap-3.5"
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800/80 border border-[var(--border)] flex items-center justify-center text-xl shadow-inner group-hover:scale-105 transition-transform">
-                            {s.icon}
-                          </div>
-                          <div>
-                            <h3 className="text-sm font-bold text-[var(--text-heading)] group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">{s.name}</h3>
-                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${statusTag.color}`}>
-                              {statusTag.label}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-lg font-black text-[var(--text-heading)]">{s.progress}%</span>
-                        </div>
+                      <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex flex-col items-center justify-center text-purple-600 dark:text-purple-300 group-hover:scale-105 transition-transform">
+                        <span className="text-[10px] font-black uppercase tracking-wider">{monthStr}</span>
+                        <span className="text-base font-black leading-tight">{dayStr}</span>
                       </div>
 
-                      <div className="w-full bg-slate-200 dark:bg-slate-800/80 h-2 rounded-full overflow-hidden p-0.5 border border-[var(--border)]">
-                        <div 
-                          className="h-full rounded-full transition-all duration-500 relative" 
-                          style={{ width: `${s.progress}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}dd)` }}
-                        >
-                          <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h3 className="text-xs font-bold text-[var(--text-heading)] group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate">
+                            {c.title}
+                          </h3>
+                          <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 ml-auto flex-shrink-0">
+                            {c.badge || c.type || (lang === "தமிழ்" ? "நிகழ்ச்சி" : "Event")}
+                          </span>
                         </div>
+                        {c.description && (
+                          <p className="text-[11px] text-[var(--text-muted)] line-clamp-1">
+                            {c.description}
+                          </p>
+                        )}
                       </div>
                     </div>
                   );
                 })}
-                {(!summary?.subjects || summary.subjects.length === 0) && (
-                  <div className="sm:col-span-2 py-8 text-center text-xs text-[var(--text-muted)] animate-pulse">
-                    {lang === "தமிழ்" ? "பாடங்கள் ஏற்றப்படுகின்றன..." : "Loading subject matrix..."}
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* Test Performance Hub */}
-            <div className="glass rounded-2xl p-5 border border-purple-500/30 shadow-md relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
-              <h2 className="text-sm font-bold text-[var(--text-heading)] mb-4 flex items-center gap-2">
-                <span className="p-1.5 rounded-lg bg-purple-500/10 text-purple-500 border border-purple-500/20">📝</span> 
-                {lang === "தமிழ்" ? "தேர்வு செயல்திறன் மையம்" : "Test Performance Hub"}
-              </h2>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {summary?.recentTests?.slice(0, 6).map((t: any, idx: number) => (
-                  <div key={idx} className="bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-[var(--border)] flex justify-between items-center hover:border-purple-500/40 transition-colors">
-                    <div>
-                      <h4 className="text-xs font-bold text-[var(--text-heading)] max-w-[150px] truncate">{t.test}</h4>
-                      <span className="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-wider">{t.status}</span>
-                    </div>
-                    <span className={`text-xs font-black px-2.5 py-1 rounded-lg border ${
-                      t.status === "excellent" 
-                        ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" 
-                        : t.status === "good" 
-                        ? "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20" 
-                        : "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20"
-                    }`}>
-                      {t.score}
-                    </span>
+            {/* 2. School Press Card */}
+            <div className="glass rounded-2xl p-6 fade-in-2 border border-emerald-500/20 shadow-sm relative overflow-hidden">
+              <div className="absolute -top-12 -right-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+              
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-xl shadow-inner">
+                    📰
                   </div>
-                ))}
-                {(!summary?.recentTests || summary.recentTests.length === 0) && (
-                  <p className="text-xs text-[var(--text-muted)] py-4 text-center">{lang === "தமிழ்" ? "வகுப்பறையில் இதுவரை தேர்வுகள் எதுவும் பதிவாகவில்லை." : "No tests recorded in classroom yet."}</p>
-                )}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        {lang === "தமிழ்" ? "பள்ளி செய்தி இதழ்" : "School Press & Media"}
+                      </span>
+                    </div>
+                    <h2 className="text-base font-bold text-[var(--text-heading)] mt-0.5">
+                      {lang === "தமிழ்" ? "பள்ளி செய்திகள் மற்றும் சாதனைகள்" : "Campus News & Achievements"}
+                    </h2>
+                  </div>
+                </div>
+                <Link 
+                  href="/student/school-press" 
+                  className="text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 transition-all border border-emerald-500/30 flex items-center gap-1 group shadow-sm"
+                >
+                  <span>{lang === "தமிழ்" ? "செய்தி இதழ் காண்" : "Press Feed"}</span>
+                  <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                </Link>
+              </div>
+
+              <div className="space-y-3">
+                {(pressArticles.length > 0 ? pressArticles.slice(0, 3) : defaultPressItems).map((p: any) => {
+                  const dateStr = p.createdAt ? new Date(p.createdAt).toLocaleDateString(lang === "தமிழ்" ? "ta-IN" : "en-US", { month: "short", day: "numeric" }) : "";
+
+                  return (
+                    <div 
+                      key={p.id || p.title} 
+                      className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 hover:bg-emerald-500/5 border border-[var(--border)] hover:border-emerald-500/30 transition-all group relative overflow-hidden"
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                        <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          {p.category || (lang === "தமிழ்" ? "செய்தி" : "News")}
+                        </span>
+                        {dateStr && (
+                          <span className="text-[10px] text-[var(--text-muted)] font-medium">
+                            {dateStr}
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-xs font-bold text-[var(--text-heading)] group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors mb-1 line-clamp-1">
+                        {p.title}
+                      </h3>
+
+                      <p className="text-[11px] text-[var(--text-muted)] line-clamp-2 mb-2">
+                        {p.description || p.content}
+                      </p>
+
+                      <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] pt-2 border-t border-[var(--border)]">
+                        <span className="font-semibold text-emerald-600/80 dark:text-emerald-400/80">
+                          ✍️ {p.authorName || p.student?.user?.name || (lang === "தமிழ்" ? "மாணவர் செய்தி குழு" : "Student Reporter")}
+                        </span>
+                        <span className="group-hover:translate-x-0.5 transition-transform text-emerald-600 dark:text-emerald-400 font-bold">
+                          {lang === "தமிழ்" ? "படிக்க →" : "Read →"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

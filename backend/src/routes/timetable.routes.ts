@@ -36,6 +36,38 @@ async function getTeacherIds(teacherId: string) {
   return ids;
 }
 
+// Helper to resolve all potential School IDs (UUID and DISE code)
+async function resolveSchoolIds(schoolIdStr: string): Promise<string[]> {
+  if (!schoolIdStr) return [];
+  const ids: string[] = [schoolIdStr];
+  try {
+    const schoolObj = await prisma.school.findFirst({
+      where: { OR: [{ id: schoolIdStr }, { dise: schoolIdStr }] },
+      select: { id: true, dise: true }
+    });
+    if (schoolObj) {
+      if (schoolObj.id && !ids.includes(schoolObj.id)) ids.push(schoolObj.id);
+      if (schoolObj.dise && !ids.includes(schoolObj.dise)) ids.push(schoolObj.dise);
+    }
+  } catch (err) {
+    console.error('[resolveSchoolIds Error]', err);
+  }
+  return ids;
+}
+
+// Helper to get canonical primary School.id for PostgreSQL foreign key operations
+async function getCanonicalSchoolId(schoolIdStr: string): Promise<string> {
+  if (!schoolIdStr) return schoolIdStr;
+  try {
+    const schoolObj = await prisma.school.findFirst({
+      where: { OR: [{ id: schoolIdStr }, { dise: schoolIdStr }] },
+      select: { id: true }
+    });
+    if (schoolObj) return schoolObj.id;
+  } catch {}
+  return schoolIdStr;
+}
+
 // 1. GET /api/timetable — Fetch timetable slots
 router.get('/', async (req: Request, res: Response) => {
   try {
@@ -44,10 +76,31 @@ router.get('/', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'schoolId is required' });
     }
 
-    const whereClause: any = { schoolId: String(schoolId) };
-    if (className) whereClause.class = String(className);
-    if (section) whereClause.section = String(section);
-    if (dayOfWeek) whereClause.dayOfWeek = parseInt(String(dayOfWeek));
+    const schoolIds = await resolveSchoolIds(String(schoolId));
+    const whereClause: any = { schoolId: { in: schoolIds } };
+
+    if (className && String(className) !== "All") {
+      const clsStr = String(className).trim();
+      const numericOnly = clsStr.match(/\d+/)?.[0];
+      if (numericOnly) {
+        whereClause.class = { contains: numericOnly, mode: 'insensitive' };
+      } else {
+        whereClause.class = { contains: clsStr, mode: 'insensitive' };
+      }
+    }
+
+    if (section && String(section) !== "All") {
+      const secStr = String(section).trim();
+      whereClause.OR = [
+        { section: { equals: secStr, mode: 'insensitive' } },
+        { section: { equals: 'All', mode: 'insensitive' } },
+        { class: { contains: secStr, mode: 'insensitive' } }
+      ];
+    }
+
+    if (dayOfWeek !== undefined && dayOfWeek !== null && String(dayOfWeek) !== "") {
+      whereClause.dayOfWeek = parseInt(String(dayOfWeek));
+    }
 
     const timetable = await prisma.timetable.findMany({
       where: whereClause,
@@ -94,6 +147,9 @@ router.post('/', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
 
+    const canonicalSchoolId = await getCanonicalSchoolId(String(schoolId));
+    const schoolIds = await resolveSchoolIds(canonicalSchoolId);
+
     // --- Production Conflict Checks ---
     if (teacherId) {
       const teacherIds = await getTeacherIds(teacherId);
@@ -101,7 +157,7 @@ router.post('/', async (req: Request, res: Response) => {
       // Check if this teacher is already scheduled elsewhere in the same period on this day
       const conflict = await prisma.timetable.findFirst({
         where: {
-          schoolId,
+          schoolId: { in: schoolIds },
           dayOfWeek: parseInt(dayOfWeek),
           period: parseInt(period),
           teacherId: { in: teacherIds }
@@ -119,7 +175,7 @@ router.post('/', async (req: Request, res: Response) => {
     const slot = await prisma.timetable.upsert({
       where: {
         schoolId_class_section_dayOfWeek_period: {
-          schoolId,
+          schoolId: canonicalSchoolId,
           class: String(className),
           section: String(section),
           dayOfWeek: parseInt(dayOfWeek),
@@ -133,7 +189,7 @@ router.post('/', async (req: Request, res: Response) => {
         endTime,
       },
       create: {
-        schoolId,
+        schoolId: canonicalSchoolId,
         class: String(className),
         section: String(section),
         dayOfWeek: parseInt(dayOfWeek),

@@ -18,7 +18,7 @@ interface ExamCalendar {
   duration?: string;
   hall: string;
   invigilator: string;
-  status: "Scheduled" | "In Progress" | "Completed";
+  status: "Scheduled" | "In Progress" | "Completed" | "Cancelled";
   type: string;
   examMode?: ExamMode;
   theoryMaxMarks?: number;
@@ -118,139 +118,7 @@ const SUBJECT_MARKS_CONFIG: Record<string, { theory: number; practical: number; 
   "Economics": { theory: 100, practical: 0, allowPractical: false }
 };
 
-function getDefaultClassExams(clsStr: string): ExamCalendar[] {
-  const num = String(clsStr || "").match(/\d+/)?.[0] || "11";
-  
-  if (num === "11" || num === "12") {
-    return [
-      {
-        id: "def-11-1",
-        name: "Quarterly Examination - Mathematics",
-        classSection: `Class ${num} (General)`,
-        subject: "Mathematics",
-        date: "2026-08-10",
-        timeSlot: "09:30 AM - 12:30 PM",
-        duration: "3 Hours",
-        hall: "Block A - Hall 1",
-        invigilator: "Diya Nair",
-        status: "Scheduled",
-        type: "Quarterly",
-        examMode: "Theory",
-        theoryMaxMarks: 100,
-        practicalMaxMarks: 0,
-        published: true
-      },
-      {
-        id: "def-11-2",
-        name: "Quarterly Examination - Physics",
-        classSection: `Class ${num} (Science)`,
-        subject: "Physics",
-        date: "2026-08-12",
-        timeSlot: "09:30 AM - 12:30 PM",
-        duration: "3 Hours",
-        hall: "Block B - Hall 3",
-        invigilator: "Kavitha R",
-        status: "Scheduled",
-        type: "Quarterly",
-        examMode: "Both",
-        theoryMaxMarks: 70,
-        practicalMaxMarks: 30,
-        published: true
-      },
-      {
-        id: "def-11-3",
-        name: "Quarterly Examination - Chemistry",
-        classSection: `Class ${num} (Science)`,
-        subject: "Chemistry",
-        date: "2026-08-14",
-        timeSlot: "09:30 AM - 12:30 PM",
-        duration: "3 Hours",
-        hall: "Block B - Hall 3",
-        invigilator: "Suresh M",
-        status: "Scheduled",
-        type: "Quarterly",
-        examMode: "Both",
-        theoryMaxMarks: 70,
-        practicalMaxMarks: 30,
-        published: true
-      }
-    ];
-  } else if (num === "10") {
-    return [
-      {
-        id: "def-10-1",
-        name: "SSLC Model Exam - Mathematics",
-        classSection: "Class 10 (A)",
-        subject: "Mathematics",
-        date: "2026-08-10",
-        timeSlot: "09:30 AM - 12:30 PM",
-        duration: "3 Hours",
-        hall: "Hall 1",
-        invigilator: "Anitha S",
-        status: "Scheduled",
-        type: "Model",
-        examMode: "Theory",
-        theoryMaxMarks: 100,
-        practicalMaxMarks: 0,
-        published: true
-      },
-      {
-        id: "def-10-2",
-        name: "SSLC Model Exam - Science",
-        classSection: "Class 10 (A)",
-        subject: "Science",
-        date: "2026-08-12",
-        timeSlot: "09:30 AM - 12:30 PM",
-        duration: "3 Hours",
-        hall: "Hall 2",
-        invigilator: "Ramesh K",
-        status: "Scheduled",
-        type: "Model",
-        examMode: "Theory",
-        theoryMaxMarks: 100,
-        practicalMaxMarks: 0,
-        published: true
-      }
-    ];
-  } else {
-    return [
-      {
-        id: `def-${num}-1`,
-        name: `Term Assessment - Mathematics`,
-        classSection: `Class ${num} (A)`,
-        subject: "Mathematics",
-        date: "2026-08-10",
-        timeSlot: "09:30 AM - 12:00 PM",
-        duration: "2.5 Hours",
-        hall: "Hall 1",
-        invigilator: "Staff",
-        status: "Scheduled",
-        type: "Unit Test",
-        examMode: "Theory",
-        theoryMaxMarks: 100,
-        practicalMaxMarks: 0,
-        published: true
-      },
-      {
-        id: `def-${num}-2`,
-        name: `Term Assessment - Science`,
-        classSection: `Class ${num} (A)`,
-        subject: "Science",
-        date: "2026-08-12",
-        timeSlot: "09:30 AM - 12:00 PM",
-        duration: "2.5 Hours",
-        hall: "Hall 2",
-        invigilator: "Staff",
-        status: "Scheduled",
-        type: "Unit Test",
-        examMode: "Theory",
-        theoryMaxMarks: 100,
-        practicalMaxMarks: 0,
-        published: true
-      }
-    ];
-  }
-}
+
 
 const translations = {
   en: {
@@ -490,40 +358,46 @@ export default function StudentExamsPage() {
     if (user) {
       if (user.name) setStudentName(user.name);
       const rawClass = user.class || user.className || user.classId || "";
-      if (rawClass) setStudentClass(rawClass);
+      // Normalize: "11-B" or "11B" → "11"
+      const classNum = rawClass ? String(rawClass).match(/\d+/)?.[0] || "" : "";
+      if (classNum) setStudentClass(`Class ${classNum}`);
       if (user.emisId || user.emisNumber) setEmisNumber(user.emisId || user.emisNumber);
     }
 
-    const schoolId = user?.schoolId || "";
-    const rawClass = user?.class || user?.className || user?.classId || "";
+    const schoolId = (session?.user as any)?.schoolId || "";
+    const userId   = (session?.user as any)?.id || "";
+    const rawClass = (session?.user as any)?.class || (session?.user as any)?.className || "";
     const classNum = rawClass ? String(rawClass).match(/\d+/)?.[0] || "" : "";
 
     if (schoolId) {
       fetchExamsFromDB(schoolId, classNum || undefined);
     }
 
+    // Fetch student profile to fill in name, emisNumber, and fallback schoolId/class
     const fetchStudentProfile = async () => {
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const res = await fetch(`${API_URL}/api/students`);
+        const params = new URLSearchParams();
+        if (userId) params.set("userId", userId);
+        const res = await fetch(`${API_URL}/api/students?${params.toString()}`);
         const json = await res.json();
-        if (json.success && session?.user) {
-          const profile = json.data.find((s: any) => s.userId === (session.user as any).id);
+        if (json.success && json.data) {
+          const students = Array.isArray(json.data) ? json.data : [json.data];
+          const profile = userId
+            ? students.find((s: any) => s.userId === userId) || students[0]
+            : students[0];
           if (profile) {
-            setStudentName(profile.name);
-            setEmisNumber(profile.emisNumber || "3301234567");
-            
-            const match = profile.class.match(/Class\s+\d+/i);
-            if (match) {
-              setStudentClass(match[0]);
-            } else if (profile.class) {
-              setStudentClass(profile.class);
-            }
+            setStudentName(profile.name || profile.studentName || "");
+            setEmisNumber(profile.emisNumber || "—");
+
+            const profileClassNum = String(profile.class || "").match(/\d+/)?.[0] || "";
+            if (profileClassNum) setStudentClass(`Class ${profileClassNum}`);
 
             // Re-fetch exams with profile schoolId + class if session was missing them
             if (!schoolId && profile.schoolId) {
-              const profileClass = String(profile.class || "").match(/\d+/)?.[0] || "";
-              fetchExamsFromDB(profile.schoolId, profileClass || undefined);
+              fetchExamsFromDB(profile.schoolId, profileClassNum || undefined);
+            } else if (schoolId && !classNum && profileClassNum) {
+              fetchExamsFromDB(schoolId, profileClassNum);
             }
           }
         }
@@ -553,9 +427,12 @@ export default function StudentExamsPage() {
     }
   }, [activeTab, fetchStudentResults]);
 
-  const effectiveExams = exams.length > 0 ? exams : getDefaultClassExams(studentClass);
+  // Show all real exams from DB; exclude only Cancelled ones
+  const effectiveExams = exams;
 
-  const studentExams = effectiveExams.filter((ex) => ex.status !== "Completed");
+  const studentExams = effectiveExams.filter(
+    (ex) => ex.status !== "Cancelled" && (ex.status as string) !== "CANCELLED"
+  );
 
   const getExamDateTime = (dateStr: string, slotStr: string) => {
     try {

@@ -132,7 +132,9 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const { schoolId, class: cls, section, examType, academicYear, status, fromDate, toDate } = req.query;
 
-    const where: any = {};
+    const andClauses: any[] = [];
+
+    // School ID: resolve UUID and DISE code
     if (schoolId) {
       const schoolStr = String(schoolId);
       try {
@@ -142,35 +144,51 @@ router.get('/', async (req: Request, res: Response) => {
         });
         if (schoolObj) {
           const ids = Array.from(new Set([schoolStr, schoolObj.id, schoolObj.dise].filter(Boolean)));
-          where.schoolId = { in: ids };
+          andClauses.push({ schoolId: { in: ids } });
         } else {
-          where.schoolId = schoolStr;
+          andClauses.push({ schoolId: schoolStr });
         }
       } catch {
-        where.schoolId = schoolStr;
+        andClauses.push({ schoolId: schoolStr });
       }
     }
 
+    // Class: numeric fuzzy match — "11" matches "Class 11 (Commerce)", "11", "Class 11 - B" etc.
     if (cls) {
-      // Extract numeric part so "Class 11 - B" → "11" and matches "11", "Class 11 (General)", etc.
       const clsStr = String(cls);
       const numericOnly = clsStr.match(/\d+/)?.[0];
       if (numericOnly) {
-        where.class = { contains: numericOnly, mode: 'insensitive' };
+        andClauses.push({ class: { contains: numericOnly, mode: 'insensitive' } });
       } else {
-        where.class = { contains: clsStr, mode: 'insensitive' };
+        andClauses.push({ class: { contains: clsStr, mode: 'insensitive' } });
       }
     }
-    if (section)      where.section      = String(section);
-    if (examType)     where.examType     = String(examType);
-    if (academicYear) where.academicYear = String(academicYear);
-    if (status)       where.status       = String(status);
+
+    // Section: match exact section OR school-wide "All" exams
+    if (section && String(section) !== 'All') {
+      const secStr = String(section).trim();
+      andClauses.push({
+        OR: [
+          { section: { equals: 'All', mode: 'insensitive' } },
+          { section: null },
+          { section: { equals: '', mode: 'insensitive' } },
+          { section: { equals: secStr, mode: 'insensitive' } },
+        ]
+      });
+    }
+
+    if (examType)     andClauses.push({ examType:     String(examType) });
+    if (academicYear) andClauses.push({ academicYear: String(academicYear) });
+    if (status)       andClauses.push({ status:       String(status) });
 
     if (fromDate || toDate) {
-      where.examDate = {};
-      if (fromDate) where.examDate.gte = new Date(String(fromDate));
-      if (toDate)   where.examDate.lte = new Date(String(toDate));
+      const dateClause: any = {};
+      if (fromDate) dateClause.gte = new Date(String(fromDate));
+      if (toDate)   dateClause.lte = new Date(String(toDate));
+      andClauses.push({ examDate: dateClause });
     }
+
+    const where = andClauses.length > 0 ? { AND: andClauses } : {};
 
     const schedules = await prisma.examSchedule.findMany({
       where,

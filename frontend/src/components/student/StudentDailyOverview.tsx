@@ -111,91 +111,7 @@ const daysUntil = (d: string | Date) => {
   return Math.round((target.getTime() - now.getTime()) / 86400000);
 };
 
-const getDefaultDashboardExams = (clsStr: string): ExamItem[] => {
-  const num = String(clsStr || "").match(/\d+/)?.[0] || "11";
-  const todayStr = new Date().toISOString().slice(0, 10);
-  
-  if (num === "11" || num === "12") {
-    return [
-      {
-        id: "def-dash-11-1",
-        title: "Quarterly Examination",
-        examType: "Unit Test",
-        subject: "Mathematics",
-        examDate: todayStr,
-        startTime: "09:30 AM",
-        venue: "Block A - Hall 1",
-        status: "Scheduled"
-      },
-      {
-        id: "def-dash-11-2",
-        title: "Quarterly Examination",
-        examType: "Quarterly",
-        subject: "Physics",
-        examDate: "2026-08-05",
-        startTime: "09:30 AM",
-        venue: "Block B - Hall 3",
-        status: "Scheduled"
-      },
-      {
-        id: "def-dash-11-3",
-        title: "Quarterly Examination",
-        examType: "Quarterly",
-        subject: "Chemistry",
-        examDate: "2026-08-10",
-        startTime: "09:30 AM",
-        venue: "Block B - Hall 3",
-        status: "Scheduled"
-      }
-    ];
-  } else if (num === "10") {
-    return [
-      {
-        id: "def-dash-10-1",
-        title: "SSLC Model Exam",
-        examType: "Model",
-        subject: "Mathematics",
-        examDate: todayStr,
-        startTime: "09:30 AM",
-        venue: "Hall 1",
-        status: "Scheduled"
-      },
-      {
-        id: "def-dash-10-2",
-        title: "SSLC Model Exam",
-        examType: "Model",
-        subject: "Science",
-        examDate: "2026-08-05",
-        startTime: "09:30 AM",
-        venue: "Hall 2",
-        status: "Scheduled"
-      }
-    ];
-  } else {
-    return [
-      {
-        id: `def-dash-${num}-1`,
-        title: "Term Assessment",
-        examType: "Unit Test",
-        subject: "Mathematics",
-        examDate: todayStr,
-        startTime: "09:30 AM",
-        venue: "Hall 1",
-        status: "Scheduled"
-      },
-      {
-        id: `def-dash-${num}-2`,
-        title: "Term Assessment",
-        examType: "Unit Test",
-        subject: "Science",
-        examDate: "2026-08-05",
-        startTime: "09:30 AM",
-        venue: "Hall 2",
-        status: "Scheduled"
-      }
-    ];
-  }
-};
+
 
 interface StudentDailyOverviewProps {
   extraLeft?: React.ReactNode;
@@ -237,11 +153,14 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
 
       if (!studentId || !schoolId || !cls) {
         try {
-          const res = await fetch(`${API_BASE}/api/students`);
+          const studentParams = new URLSearchParams();
+          if (u?.id) studentParams.set("userId", u.id);
+          const res = await fetch(`${API_BASE}/api/students?${studentParams.toString()}`);
           const json = await res.json();
-          const me = json.success && Array.isArray(json.data) && json.data.length > 0
-            ? (u?.id ? json.data.find((s: any) => s.userId === u.id) : null) || json.data[0]
-            : null;
+          const students = json.success && Array.isArray(json.data) ? json.data : json.success && json.data ? [json.data] : [];
+          const me = u?.id
+            ? students.find((s: any) => s.userId === u.id) || students[0]
+            : students[0];
           if (me) {
             studentId = studentId || me.id;
             schoolId = schoolId || me.schoolId;
@@ -251,25 +170,44 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
         } catch {}
       }
 
-      if (cancelled) return;
+      // 2. Parse & normalize class and section (e.g., "11-B" -> class="11", section="B")
+      let cleanClass = cls ? String(cls).trim() : "11";
+      let cleanSection = section ? String(section).trim() : "";
+      const numMatch = cleanClass.match(/\d+/);
+      if (numMatch) {
+        const secLetter = cleanClass.replace(/[^a-zA-Z]/g, "").trim();
+        cleanClass = numMatch[0];
+        if (!cleanSection && secLetter) cleanSection = secLetter;
+      }
 
       const today = new Date();
       const dayOfWeek = today.getDay(); // 0=Sun … 6=Sat (matches Timetable.dayOfWeek)
 
       /* 1. Daily timetable + upcoming classes */
-      if (schoolId && cls) {
-        fetch(
-          `${API_BASE}/api/timetable?schoolId=${schoolId}&class=${encodeURIComponent(cls)}${section ? `&section=${encodeURIComponent(section)}` : ""}&dayOfWeek=${dayOfWeek}`
-        )
+      if (schoolId && cleanClass) {
+        const ttParams = new URLSearchParams();
+        ttParams.set("schoolId", schoolId);
+        ttParams.set("class", cleanClass);
+        if (cleanSection) ttParams.set("section", cleanSection);
+
+        fetch(`${API_BASE}/api/timetable?${ttParams.toString()}`)
           .then((r) => r.json())
           .then((json) => {
             if (cancelled) return;
             if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-              setTimetable(
-                json.data
-                  .sort((a: any, b: any) => a.period - b.period)
-                  .map((s: any) => ({ period: s.period, subject: s.subject, startTime: s.startTime, endTime: s.endTime }))
-              );
+              const allClassSlots = json.data;
+              const todaySlots = allClassSlots.filter((s: any) => Number(s.dayOfWeek) === dayOfWeek);
+
+              if (todaySlots.length > 0) {
+                setTimetable(
+                  todaySlots
+                    .sort((a: any, b: any) => a.period - b.period)
+                    .map((s: any) => ({ period: s.period, subject: s.subject, startTime: s.startTime, endTime: s.endTime, sample: false }))
+                );
+              } else {
+                // Real timetable is published for this class, but no classes scheduled for today specifically
+                setTimetable([]);
+              }
             } else {
               // School has not published a timetable for this class yet — show a sample day
               setTimetable(
@@ -304,11 +242,12 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
         })
         .catch(() => !cancelled && setHomework([]));
 
-      /* 3. Upcoming examinations */
-      const targetClass = cls || "11";
+      /* 3. Upcoming examinations — only show real published exams from the headmaster */
       const examUrl = new URLSearchParams();
       if (schoolId) examUrl.set("schoolId", schoolId);
-      if (targetClass) examUrl.set("class", targetClass);
+      if (cleanClass) examUrl.set("class", cleanClass);
+      // Note: do NOT send section — fetch all class exams and filter client-side
+      // so "All"-section exams always show for every student in that class
 
       fetch(`${API_BASE}/api/exam-schedule?${examUrl.toString()}`)
         .then((r) => r.json())
@@ -316,19 +255,26 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
           if (cancelled) return;
           if (json.success && Array.isArray(json.data) && json.data.length > 0) {
             const mine = json.data.filter(
-              (e: any) =>
-                e.status !== "Completed" && e.status !== "Cancelled" &&
-                (!section || !e.section || e.section === "All" || e.section === section)
+              (e: any) => {
+                // Exclude cancelled exams only
+                if (e.status === "Cancelled" || e.status === "CANCELLED") return false;
+                // Section filter: only filter if exam is narrowly scoped to a single letter section
+                // Group names like "Commerce", "General", "Science", "All", or empty = visible to all students in the class
+                const examSec = (e.section || "").trim();
+                const isSingleLetterSection = /^[A-Z]$/i.test(examSec);
+                if (cleanSection && isSingleLetterSection &&
+                    examSec.toLowerCase() !== cleanSection.toLowerCase()) return false;
+                return true;
+              }
             );
-            if (mine.length > 0) {
-              setExams(mine);
-              return;
-            }
+            setExams(mine);
+          } else {
+            // No exams published by headmaster — show empty state, no dummy data
+            setExams([]);
           }
-          setExams(getDefaultDashboardExams(targetClass));
         })
         .catch(() => {
-          if (!cancelled) setExams(getDefaultDashboardExams(targetClass));
+          if (!cancelled) setExams([]);
         });
 
       /* 4. Attendance status (this month + today) */
