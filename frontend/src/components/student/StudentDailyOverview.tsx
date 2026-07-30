@@ -64,18 +64,6 @@ interface MarkItem {
   maxMarks: number;
 }
 
-/* Fallback timetable shown when the school has not published one yet */
-const SAMPLE_TIMES: [string, string][] = [
-  ["09:30", "10:15"],
-  ["10:15", "11:00"],
-  ["11:15", "12:00"],
-  ["12:00", "12:45"],
-  ["13:30", "14:15"],
-  ["14:15", "15:00"],
-  ["15:15", "16:00"],
-];
-const SAMPLE_SUBJECTS = ["Tamil", "English", "Mathematics", "Science", "Social Science", "Mathematics", "Physical Education"];
-
 const SUBJECT_COLORS: Record<string, string> = {
   Tamil: "#f59e0b",
   English: "#3b82f6",
@@ -209,18 +197,8 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
                 setTimetable([]);
               }
             } else {
-              // School has not published a timetable for this class yet — show a sample day
-              setTimetable(
-                dayOfWeek === 0
-                  ? []
-                  : SAMPLE_TIMES.map(([st, et], i) => ({
-                      period: i + 1,
-                      subject: SAMPLE_SUBJECTS[i % SAMPLE_SUBJECTS.length],
-                      startTime: st,
-                      endTime: et,
-                      sample: true,
-                    }))
-              );
+              // School has not published a timetable for this class yet
+              setTimetable([]);
             }
           })
           .catch(() => !cancelled && setTimetable([]));
@@ -543,11 +521,6 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
               <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
                 <Fi name="calendar-lines" className="text-sm text-indigo-500" /> {lang === "தமிழ்" ? "இன்றைய பாட அட்டவணை" : "Today's Timetable"}
               </h3>
-              {timetable?.[0]?.sample && (
-                <span className="text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-full">
-                  {lang === "தமிழ்" ? "மாதிரி — அட்டவணை இன்னும் வெளியிடப்படவில்லை" : "Sample — timetable not published yet"}
-                </span>
-              )}
             </div>
 
             {timetable === null ? (
