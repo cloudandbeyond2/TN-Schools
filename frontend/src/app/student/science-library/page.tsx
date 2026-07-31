@@ -19,33 +19,58 @@ export default function ScienceLibraryPage() {
   const { data: session } = useSession();
   const user = session?.user as any;
   const studentClass = user?.class ? parseInt(user.class) : null;
+  const studentSchoolId = user?.schoolId || "";
 
   const [cls, setCls] = useState<number | "all">("all");
   const [medium, setMedium] = useState<"all" | "Tamil" | "English">("all");
   const [subject, setSubject] = useState<string>("all");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<ScienceBook | null>(null);
+  const [dbSubjects, setDbSubjects] = useState<string[]>([]);
+  const [dbClasses, setDbClasses] = useState<any[]>([]);
 
   // Default filter to student's own class when loaded
   useEffect(() => {
     if (studentClass && ALL_CLASSES.includes(studentClass)) {
       setCls(studentClass);
     }
-  }, [studentClass]);
 
-  const books = useMemo(
-    () =>
-      SCIENCE_BOOKS.filter(
-        (b) =>
-          (cls === "all" || b.class === cls) &&
-          (medium === "all" || b.medium === medium) &&
-          (subject === "all" || b.subject === subject) &&
-          (q === "" ||
-            `${b.subject} ${b.class} ${b.medium}`.toLowerCase().includes(q.toLowerCase()) ||
-            (b.chapters || []).some((c) => c.toLowerCase().includes(q.toLowerCase())))
-      ),
-    [cls, medium, subject, q]
-  );
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const schoolParam = studentSchoolId ? `?schoolId=${encodeURIComponent(studentSchoolId)}` : "";
+
+    fetch(`${API_URL}/api/superadmin/academics/subjects${schoolParam}`)
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const unique = Array.from(new Set(data.map((s: any) => s.name)));
+          setDbSubjects(unique as string[]);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_URL}/api/superadmin/academics/classes${schoolParam}`)
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setDbClasses(data.map((c: any) => c.name));
+        }
+      })
+      .catch(() => {});
+  }, [studentClass, studentSchoolId]);
+
+  const books = SCIENCE_BOOKS.filter((b) => {
+    if (cls !== "all" && b.class !== cls) return false;
+    if (medium !== "all" && b.medium !== medium) return false;
+    if (subject !== "all" && b.subject !== subject) return false;
+    if (q.trim()) {
+      const needle = q.toLowerCase();
+      return (
+        `${b.subject} ${b.class} ${b.medium}`.toLowerCase().includes(needle) ||
+        (b.chapters || []).some((c) => c.toLowerCase().includes(needle))
+      );
+    }
+    return true;
+  });
 
   return (
     <PortalLayout title="Science Book Library 📚" subtitle="All Tamil Nadu Government science books · Class 6-12 · Tamil & English">
@@ -64,7 +89,9 @@ export default function ScienceLibraryPage() {
               <select value={cls} onChange={(e) => setCls(e.target.value === "all" ? "all" : Number(e.target.value))}
                 className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-black text-slate-700 dark:text-white">
                 <option value="all">All classes</option>
-                {ALL_CLASSES.map((c) => <option key={c} value={c}>Class {c}</option>)}
+                {dbClasses.length > 0
+                  ? dbClasses.map((c) => <option key={c} value={c}>{c}</option>)
+                  : ALL_CLASSES.map((c) => <option key={c} value={c}>Class {c}</option>)}
               </select>
             </div>
             <select value={medium} onChange={(e) => setMedium(e.target.value as any)}
@@ -76,7 +103,7 @@ export default function ScienceLibraryPage() {
             <select value={subject} onChange={(e) => setSubject(e.target.value)}
               className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-black text-slate-700 dark:text-white">
               <option value="all">All subjects</option>
-              {ALL_SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
+              {(dbSubjects.length > 0 ? dbSubjects : ALL_SUBJECTS).map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
             <span className="ml-auto text-xs font-black text-slate-400">{books.length} books</span>
           </div>
