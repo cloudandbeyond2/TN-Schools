@@ -1,10 +1,24 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
-import { BookOpen } from "lucide-react";
+
+const getSubjectIcon = (name: string): string => {
+  const normalized = name.toLowerCase().trim();
+  if (normalized.includes("tamil")) return "fi-sr-scroll";
+  if (normalized.includes("english")) return "fi-sr-book";
+  if (normalized.includes("math")) return "fi-sr-ruler-triangle";
+  if (normalized.includes("science") && !normalized.includes("social")) return "fi-sr-flask";
+  if (normalized.includes("social")) return "fi-sr-globe";
+  if (normalized.includes("physics")) return "fi-sr-atom";
+  if (normalized.includes("chemistry")) return "fi-sr-flask";
+  if (normalized.includes("biology")) return "fi-sr-dna";
+  if (normalized.includes("computer")) return "fi-sr-laptop";
+  return "fi-sr-book"; // fallback
+};
 
 interface Subject {
   id: string;
@@ -150,11 +164,15 @@ export default function StudentSyllabusBoardPage() {
     >
       <div className="flex items-center justify-between gap-4 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
         <div>
-          <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1">Syllabus Board</h2>
+          <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
+            <i className="fi fi-sr-clipboard-list text-indigo-600 dark:text-indigo-400 flex items-center" />
+            Syllabus Board
+          </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">All centralized units published for your curriculum standard.</p>
         </div>
         {selectedClass && (
-          <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+            <i className="fi fi-sr-graduation-cap flex items-center text-sm" />
             Class {selectedClass}th Standard
           </span>
         )}
@@ -167,7 +185,7 @@ export default function StudentSyllabusBoardPage() {
         </div>
       ) : subjects.length === 0 ? (
         <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
-          <span className="text-5xl block mb-4">📭</span>
+          <i className="fi fi-sr-inbox text-5xl text-slate-350 dark:text-slate-600 block mb-4 mx-auto w-fit" />
           <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No syllabus board yet for Class {selectedClass}</p>
         </div>
       ) : (
@@ -177,10 +195,10 @@ export default function StudentSyllabusBoardPage() {
               <button
                 key={sub.id}
                 onClick={() => handleSelectSubject(sub)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all border ${
+                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-bold transition-all border ${
                   selectedSubject?.id === sub.id
                     ? "text-white shadow-sm"
-                    : "text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 hover:border-slate-400"
+                    : "text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 hover:border-slate-450"
                 }`}
                 style={
                   selectedSubject?.id === sub.id
@@ -188,7 +206,8 @@ export default function StudentSyllabusBoardPage() {
                     : undefined
                 }
               >
-                <span>{sub.icon || "📚"}</span> {sub.name}
+                <i className={`fi ${getSubjectIcon(sub.name)} text-[13px] flex items-center`} />
+                <span>{sub.name}</span>
               </button>
             ))}
           </div>
@@ -200,7 +219,7 @@ export default function StudentSyllabusBoardPage() {
             </div>
           ) : unitCards.length === 0 ? (
             <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
-              <span className="text-5xl block mb-4">🕓</span>
+              <i className="fi fi-sr-time-past text-5xl text-slate-350 dark:text-slate-600 block mb-4 mx-auto w-fit" />
               <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No units have been published yet for this subject.</p>
               <p className="text-xs text-slate-500 mt-2">Check back once the syllabus board is updated.</p>
             </div>
@@ -210,7 +229,7 @@ export default function StudentSyllabusBoardPage() {
                 <Link
                   key={card.unitId}
                   href={`/student/syllabus-board/${card.unitId}`}
-                  className="text-left rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-300 bg-white dark:bg-slate-950/40 block group"
+                  className="text-left rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-300 bg-white dark:bg-slate-955/40 block group"
                 >
                   {card.imageUrl ? (
                     <img src={card.imageUrl} alt={card.unitName} className="w-full h-auto block group-hover:scale-[1.01] transition-transform duration-500" />
@@ -220,7 +239,7 @@ export default function StudentSyllabusBoardPage() {
                       {/* Decorative background grid pattern */}
                       <div className="absolute inset-0 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.06] dark:opacity-[0.03]" />
                       <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 flex items-center justify-center mb-3 shadow-inner relative z-10">
-                        <BookOpen className="w-5 h-5 text-indigo-550 dark:text-indigo-400" />
+                        <i className="fi fi-sr-book text-lg text-indigo-550 dark:text-indigo-400 flex items-center" />
                       </div>
                       <span className="text-xs font-black text-slate-800 dark:text-slate-200 relative z-10 leading-snug">
                         Unit {card.unitNumber} Overview
