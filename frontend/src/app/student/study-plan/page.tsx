@@ -85,6 +85,10 @@ export default function StudyPlanPage() {
   // Mobile layout state
   const [mobileTab, setMobileTab] = useState<"lessons" | "study" | "tools">("lessons");
 
+  // Lesson list search and accordion state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedSubjects, setExpandedSubjects] = useState<Record<string, boolean>>({});
+
   // Fetch teacher plans on mount
   useEffect(() => {
     const fetchTeacherPlans = async () => {
@@ -230,14 +234,24 @@ export default function StudyPlanPage() {
       window.speechSynthesis.cancel();
     };
   }, []);
+  // Filter teacher plans based on search
+  const filteredTeacherPlans = teacherPlans.filter((plan: any) => 
+    !searchQuery || 
+    plan.topic?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    plan.subject?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // Group teacher plans by subject
-  const groupedPlans = teacherPlans.reduce((acc: Record<string, any[]>, plan: any) => {
+  const groupedPlans = filteredTeacherPlans.reduce((acc: Record<string, any[]>, plan: any) => {
     const subj = plan.subject || "Other";
     if (!acc[subj]) acc[subj] = [];
     acc[subj].push(plan);
     return acc;
   }, {});
+
+  const toggleSubject = (subj: string) => {
+    setExpandedSubjects(prev => ({ ...prev, [subj]: prev[subj] === false ? true : false }));
+  };
 
   return (
     <PortalLayout
@@ -275,40 +289,74 @@ export default function StudyPlanPage() {
 
 
           {/* Teacher assigned plans list */}
-          <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent">
-            <h3 className="text-black dark:text-white font-bold text-sm mb-4 flex items-center gap-2">
+          <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent flex flex-col h-full max-h-[500px]">
+            <h3 className="text-black dark:text-white font-bold text-sm mb-4 flex items-center gap-2 shrink-0">
               <i className="fi fi-sr-chalkboard-user text-indigo-500 flex items-center" /> Teacher Assigned Lessons
             </h3>
+            
+            <div className="mb-4 shrink-0 relative">
+              <i className="fi fi-rr-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+              <input 
+                type="text" 
+                placeholder="Search lessons..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2 pl-9 pr-3 text-xs focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200"
+              />
+            </div>
+
             {loadingTeacherPlans ? (
               <div className="text-slate-400 text-sm animate-pulse font-sans">Loading assigned lessons...</div>
             ) : teacherPlans.length === 0 ? (
               <p className="text-sm text-slate-550 italic font-sans">No assigned lessons yet.</p>
+            ) : Object.keys(groupedPlans).length === 0 ? (
+              <p className="text-xs text-slate-500 italic text-center py-4">No lessons found matching your search.</p>
             ) : (
-              <div className="space-y-5 max-h-[350px] overflow-y-auto scrollbar-thin pr-1">
-                {Object.keys(groupedPlans).map((subj) => (
-                  <div key={subj} className="space-y-2">
-                    <h5 className="text-[10px] font-black text-indigo-400 dark:text-indigo-500 uppercase tracking-widest px-1">{subj}</h5>
-                    <div className="space-y-2">
-                      {groupedPlans[subj].map((plan: any) => (
-                        <button
-                          key={plan.id}
-                          onClick={() => {
-                            loadTeacherPlan(plan);
-                            if (window.innerWidth < 1280) setMobileTab("study");
-                          }}
-                          className={`w-full text-left p-3.5 rounded-xl border transition-all ${
-                            currentPlan?.id === plan.id
-                              ? "bg-indigo-600 text-white border-indigo-500 shadow-md"
-                              : "bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-355 hover:border-slate-350 hover:bg-slate-100 dark:hover:bg-slate-800/80"
-                          }`}
-                        >
-                          <span className="block truncate font-bold text-sm md:text-sm">{plan.topic}</span>
-                          <span className={`text-[10px] block mt-1 font-medium ${currentPlan?.id === plan.id ? 'text-indigo-200' : 'text-slate-500'}`}>{plan.grade}</span>
-                        </button>
-                      ))}
+              <div className="space-y-3 overflow-y-auto scrollbar-thin pr-1 flex-1 pb-4">
+                {Object.keys(groupedPlans).map((subj) => {
+                  const isExpanded = !!searchQuery || expandedSubjects[subj] !== false; // Default true, or true if searching
+                  return (
+                    <div key={subj} className="bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-100 dark:border-slate-800 overflow-hidden transition-all shadow-sm">
+                      <button 
+                        onClick={() => toggleSubject(subj)}
+                        className="w-full flex items-center justify-between p-3 bg-white dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
+                            <i className="fi fi-sr-book text-[11px] text-indigo-600 dark:text-indigo-400" />
+                          </div>
+                          <div className="text-left min-w-0">
+                            <h5 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wide truncate">{subj}</h5>
+                            <div className="text-[9px] font-bold text-slate-500">{groupedPlans[subj].length} Lessons</div>
+                          </div>
+                        </div>
+                        <i className={`fi fi-sr-caret-down text-slate-400 text-[10px] transition-transform duration-300 ml-2 ${isExpanded ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {isExpanded && (
+                        <div className="p-2 space-y-2 bg-slate-50/50 dark:bg-slate-900/20 border-t border-slate-100 dark:border-slate-800 max-h-[240px] overflow-y-auto scrollbar-thin">
+                          {groupedPlans[subj].map((plan: any) => (
+                            <button
+                              key={plan.id}
+                              onClick={() => {
+                                loadTeacherPlan(plan);
+                                if (window.innerWidth < 1280) setMobileTab("study");
+                              }}
+                              className={`w-full text-left p-3 rounded-lg border transition-all ${
+                                currentPlan?.id === plan.id
+                                  ? "bg-indigo-600 text-white border-indigo-500 shadow-sm"
+                                  : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 hover:border-indigo-300 hover:shadow-sm"
+                              }`}
+                            >
+                              <span className="block truncate font-bold text-[13px]">{plan.topic}</span>
+                              <span className={`text-[9px] block mt-0.5 font-bold uppercase tracking-wide ${currentPlan?.id === plan.id ? 'text-indigo-200' : 'text-slate-400'}`}>{plan.grade}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
