@@ -113,7 +113,7 @@ const BOOKMARK_KEY = "academics-bookmarks";
    Page component
 ──────────────────────────────────────────────────────────── */
 export default function AcademicsHubPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { lang } = usePortalLanguage();
   const CATEGORIES = useMemo(() => getCategories(lang), [lang]);
 
@@ -130,8 +130,12 @@ export default function AcademicsHubPage() {
     title: string;
   } | null>(null);
 
-  const studentClass = String((session?.user as any)?.class || "10");
-  const classNum = parseInt(studentClass.match(/\d+/)?.[0] || "10", 10);
+  // Extract class ONLY from the loaded session — never fallback to a default class
+  // to avoid fetching wrong class subjects before session is ready.
+  const rawClass = (session?.user as any)?.class;
+  const studentClass = rawClass ? String(rawClass) : null;
+  const studentSchoolId = (session?.user as any)?.schoolId || "";
+  const classNum = studentClass ? (parseInt(studentClass.match(/\d+/)?.[0] || "0", 10) || 0) : 0;
   const isHigherSecondary = classNum >= 11;
   const studentGroup = useStudentGroup();
 
@@ -147,13 +151,14 @@ export default function AcademicsHubPage() {
       setLoading(true);
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const schoolQuery = studentSchoolId ? `&schoolId=${encodeURIComponent(studentSchoolId)}` : "";
         
-        // 1. Fetch Subjects for this class
-        const subjectsRes = await fetch(`${API_URL}/api/superadmin/academics/subjects?class=${classNum}&status=Active`);
+        // 1. Fetch Subjects for this class & school
+        const subjectsRes = await fetch(`${API_URL}/api/superadmin/academics/subjects?class=${classNum}&status=Active${schoolQuery}`);
         const subjectsJson = await subjectsRes.json();
         
-        // 2. Fetch Resources for this class
-        const resourcesRes = await fetch(`${API_URL}/api/superadmin/academics/resources?class=${classNum}&status=Active`);
+        // 2. Fetch Resources for this class & school
+        const resourcesRes = await fetch(`${API_URL}/api/superadmin/academics/resources?class=${classNum}&status=Active${schoolQuery}`);
         const resourcesJson = await resourcesRes.json();
 
         const fetchedSyllabus: Record<string, SyllabusUnit[]> = {};
@@ -229,32 +234,16 @@ export default function AcademicsHubPage() {
       }
     }
     
-    if (classNum) {
+    // Only fetch when session is authenticated and we have a valid class number
+    if (classNum && classNum > 0 && status === "authenticated") {
       fetchData();
     }
-  }, [classNum, studentId]);
+  }, [classNum, studentId, status]);
 
-  // For Classes 11 & 12 the subject list is group-specific: show the full
-  // TN State Board subject set for the student's group, enriched with any
-  // matching subjects the super-admin has seeded for this class.
+  // Return database-fetched subjects for this student's class
   const subjects = useMemo<SubjectInfo[]>(() => {
-    if (!isHigherSecondary) return dbSubjects;
-    const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
-    return HS_GROUP_SUBJECTS[studentGroup].map((gs) => {
-      const fromDb = dbSubjects.find((d) => norm(d.name) === norm(gs.name));
-      if (fromDb) return fromDb;
-      return {
-        name: gs.name,
-        color: gs.color,
-        gradient: `from-[${gs.color}] to-slate-600`,
-        icon: gs.icon,
-        teacher: lang === "தமிழ்" ? "வகுப்பு ஆசிரியர்" : "Class Teacher",
-        progress: 0,
-        units: syllabusData[gs.name]?.length || 0,
-        unitsDone: 0,
-      };
-    });
-  }, [dbSubjects, syllabusData, isHigherSecondary, studentGroup, lang]);
+    return dbSubjects;
+  }, [dbSubjects]);
 
   // Load / persist bookmarks
   useEffect(() => {
@@ -935,35 +924,7 @@ export default function AcademicsHubPage() {
           {syllabusSubjects.map((s) => {
             const units = syllabusData[s.name] || [];
             return (
-              <div key={s.name} className="glass rounded-2xl border border-[var(--border)] overflow-hidden">
-                <div
-                  className="px-5 py-4 flex items-center justify-between"
-                  style={{ background: `linear-gradient(90deg, ${s.color}22, transparent)` }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-lg shadow`}
-                    >
-                      {s.icon}
-                    </span>
-                    <div>
-                      <h2 className="text-sm font-black text-[var(--text-heading)]">{lang === "தமிழ்" ? `${s.name} பாடத்திட்டம்` : `${s.name} Syllabus`}</h2>
-                      <p className="text-[10px] text-[var(--text-muted)] font-semibold">
-                        {lang === "தமிழ்"
-                          ? `வகுப்பு ${studentClass} · தமிழ்நாடு மாநில பாடத்திட்டம் · இந்த ஆண்டு ${units.length} அலகுகள்`
-                          : `Class ${studentClass} · TN State Board · ${units.length} units this year`}
-                      </p>
-                    </div>
-                  </div>
-                  <Link
-                    href="/student/syllabus"
-                    className="text-[11px] font-bold flex items-center gap-1 hover:gap-1.5 transition-all"
-                    style={{ color: s.color }}
-                  >
-                    {lang === "தமிழ்" ? "முழு பாடத்திட்டம்" : "Full syllabus"} <Fi name="arrow-small-right" className="text-xs" />
-                  </Link>
-                </div>
-                <div className="divide-y divide-[var(--border)]">
+              <div key={s.name} className="divide-y divide-[var(--border)] glass rounded-2xl border border-[var(--border)] overflow-hidden">
                   {units.map((u) => {
                     const key = `${s.name}-${u.unit}`;
                     const open = !!expandedUnits[key];
@@ -1067,7 +1028,6 @@ export default function AcademicsHubPage() {
                     );
                   })}
                 </div>
-              </div>
             );
           })}
         </div>

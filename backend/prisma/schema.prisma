@@ -1928,9 +1928,25 @@ model StudySchedule {
   @@index([studentId])
 }
 
+model AcademicClass {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  status    String   @default("Active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AcademicSection {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  status    String   @default("Active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model AcademicSubject {
   id          String             @id @default(uuid())
-  name        String             @unique
+  name        String
   color       String?
   icon        String?
   class       String?
@@ -1938,10 +1954,13 @@ model AcademicSubject {
   subjectCode String?
   medium      String?
   description String?
+  schoolId    String?
   status      String             @default("Active")
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   resources   AcademicResource[]
+
+  @@index([schoolId])
 }
 
 model AcademicResource {
@@ -1958,6 +1977,7 @@ model AcademicResource {
   popular          Boolean  @default(false)
   class            String?
   section          String?
+  schoolId         String?
   group            String?
   term             String?
   chapterNumber    String?
@@ -1986,6 +2006,7 @@ model AcademicResource {
 
   @@index([subjectId])
   @@index([category])
+  @@index([schoolId])
 }
 
 model TestSync2 {

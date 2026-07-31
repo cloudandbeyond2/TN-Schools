@@ -1,15 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
-import { 
-  FiEdit2 as FiEditIcon, 
-  FiTrash2 as FiTrashIcon, 
-  FiPlus as FiPlusIcon, 
-  FiX as FiXIcon, 
-  FiSearch as FiSearchIcon, 
-  FiFilter as FiFilterIcon, 
+import {
+  FiEdit2 as FiEditIcon,
+  FiTrash2 as FiTrashIcon,
+  FiPlus as FiPlusIcon,
+  FiX as FiXIcon,
+  FiSearch as FiSearchIcon,
+  FiFilter as FiFilterIcon,
   FiCheck as FiCheckIcon,
   FiExternalLink as FiExternalLinkIcon
 } from "react-icons/fi";
@@ -77,8 +78,21 @@ interface Resource {
   subject?: Subject;
 }
 
+interface ClassItem {
+  id: string;
+  name: string;
+  status?: string;
+}
+
+interface SectionItem {
+  id: string;
+  name: string;
+  status?: string;
+}
+
 const CATEGORIES = [
   { key: "overview", label: "Overview", icon: "apps", gradient: "linear-gradient(135deg, #64748b, #475569)", blurb: "Review pending approvals and school metrics" },
+  // { key: "structure", label: "Class & Structure Setup", icon: "settings-sliders", gradient: "linear-gradient(135deg, #059669, #0d9488)", blurb: "Configure classes, sections, and master subjects" },
   { key: "subjects", label: "Class Subjects", icon: "graduation-cap", gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)", blurb: "Configure subjects, sections, mediums & teachers" },
   { key: "syllabus", label: "Syllabus", icon: "book-alt", gradient: "linear-gradient(135deg, #10b981, #059669)", blurb: "Term-wise unit maps with lesson tracking" },
   { key: "textbooks", label: "Textbooks", icon: "book", gradient: "linear-gradient(135deg, #f59e0b, #d97706)", blurb: "Official Samacheer Kalvi textbooks & eBooks" },
@@ -118,12 +132,50 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export default function HeadmasterAcademicsPage() {
+  const { data: session } = useSession();
+  const userSchoolId = (session?.user as any)?.schoolId;
   const { lang } = usePortalLanguage();
   const [activeTab, setActiveTab] = useState("overview");
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
+  const [classes, setClasses] = useState<ClassItem[]>([]);
+  const [sections, setSections] = useState<SectionItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Structure Popup Modal States
+  const [structureModal, setStructureModal] = useState<{
+    isOpen: boolean;
+    type: "class" | "section" | "subject";
+    editId?: string | null;
+  }>({ isOpen: false, type: "class", editId: null });
+  const [structureInput, setStructureInput] = useState("");
+  const [savingStructure, setSavingStructure] = useState(false);
+
+  // Drag and Drop reorder handlers
+  const handleDropClass = (dragIdx: number, dropIdx: number) => {
+    if (dragIdx === dropIdx) return;
+    const updated = [...classes];
+    const [moved] = updated.splice(dragIdx, 1);
+    updated.splice(dropIdx, 0, moved);
+    setClasses(updated);
+  };
+
+  const handleDropSection = (dragIdx: number, dropIdx: number) => {
+    if (dragIdx === dropIdx) return;
+    const updated = [...sections];
+    const [moved] = updated.splice(dragIdx, 1);
+    updated.splice(dropIdx, 0, moved);
+    setSections(updated);
+  };
+
+  const handleDropSubject = (dragIdx: number, dropIdx: number) => {
+    if (dragIdx === dropIdx) return;
+    const updated = [...subjects];
+    const [moved] = updated.splice(dragIdx, 1);
+    updated.splice(dropIdx, 0, moved);
+    setSubjects(updated);
+  };
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState("");
@@ -141,11 +193,20 @@ export default function HeadmasterAcademicsPage() {
   const [isSubjectDropdownOpen, setIsSubjectDropdownOpen] = useState(false);
 
   // Form States
+  const [selectedSubjectNames, setSelectedSubjectNames] = useState<string[]>([]);
+  const [customSubjectInput, setCustomSubjectInput] = useState("");
+  const [subjectSearchQuery, setSubjectSearchQuery] = useState("");
+
+  const allMasterSubjects = useMemo(() => {
+    const dbNames = subjects.map(s => s.name);
+    return Array.from(new Set([...dbNames, ...selectedSubjectNames])).filter(Boolean).sort();
+  }, [subjects, selectedSubjectNames]);
+
   const [subjectForm, setSubjectForm] = useState({
     name: "", color: "", icon: "", class: "", section: "",
     subjectCode: "", medium: "", description: "", status: "Active"
   });
-  
+
   const [resourceForm, setResourceForm] = useState({
     title: "", subjectId: "", type: "PDF", url: "", meta: "", description: "", addedBy: "",
     class: "", section: "", group: "", term: "", chapterNumber: "", topicName: "",
@@ -157,12 +218,33 @@ export default function HeadmasterAcademicsPage() {
   useEffect(() => {
     fetchSubjects();
     fetchResources();
+    fetchClasses();
+    fetchSections();
   }, []);
+
+  const fetchClasses = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/classes?_t=${Date.now()}`);
+      if (res.ok) setClasses(await res.json());
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchSections = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/sections?_t=${Date.now()}`);
+      if (res.ok) setSections(await res.json());
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchSubjects = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/subjects?_t=${Date.now()}`);
+      const schoolQuery = userSchoolId ? `&schoolId=${encodeURIComponent(userSchoolId)}` : "";
+      const res = await fetch(`${API_BASE}/subjects?_t=${Date.now()}${schoolQuery}`);
       if (res.ok) setSubjects(await res.json());
     } catch (err) {
       console.error(err);
@@ -174,7 +256,8 @@ export default function HeadmasterAcademicsPage() {
   const fetchResources = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/resources?_t=${Date.now()}`);
+      const schoolQuery = userSchoolId ? `&schoolId=${encodeURIComponent(userSchoolId)}` : "";
+      const res = await fetch(`${API_BASE}/resources?_t=${Date.now()}${schoolQuery}`);
       if (res.ok) setResources(await res.json());
     } catch (err) {
       console.error(err);
@@ -183,33 +266,156 @@ export default function HeadmasterAcademicsPage() {
     }
   };
 
+  // --- Structure Action Handlers ---
+  const handleSaveStructure = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!structureInput.trim()) return;
+
+    setSavingStructure(true);
+    try {
+      const isEdit = Boolean(structureModal.editId);
+      const base = structureModal.type === "class" ? "classes" : structureModal.type === "section" ? "sections" : "subjects";
+      const endpoint = isEdit ? `${API_BASE}/${base}/${structureModal.editId}` : `${API_BASE}/${base}`;
+      const method = isEdit ? "PUT" : "POST";
+
+      const res = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: structureInput.trim() }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || `Failed to ${isEdit ? "update" : "save"} ${structureModal.type}`);
+      }
+
+      Swal.fire({
+        title: isEdit ? "Updated!" : "Saved!",
+        text: `${structureModal.type.toUpperCase()} "${structureInput.trim()}" ${isEdit ? "updated" : "added"} successfully in database!`,
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      setStructureInput("");
+      setStructureModal({ isOpen: false, type: "class", editId: null });
+
+      if (structureModal.type === "class") fetchClasses();
+      else if (structureModal.type === "section") fetchSections();
+      else fetchSubjects();
+    } catch (err: any) {
+      Swal.fire({
+        title: "Error!",
+        text: err.message || "Failed to save item.",
+        icon: "error",
+      });
+    } finally {
+      setSavingStructure(false);
+    }
+  };
+
+  const handleDeleteClassItem = async (id: string) => {
+    const result = await Swal.fire({
+      title: "Delete Class?",
+      text: "Are you sure you want to remove this class?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Delete",
+    });
+    if (result.isConfirmed) {
+      try {
+        await fetch(`${API_BASE}/classes/${id}`, { method: "DELETE" });
+        fetchClasses();
+        Swal.fire({ title: "Deleted!", icon: "success", timer: 1200, showConfirmButton: false });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleDeleteSectionItem = async (id: string) => {
+    const result = await Swal.fire({
+      title: "Delete Section?",
+      text: "Are you sure you want to remove this section?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Delete",
+    });
+    if (result.isConfirmed) {
+      try {
+        await fetch(`${API_BASE}/sections/${id}`, { method: "DELETE" });
+        fetchSections();
+        Swal.fire({ title: "Deleted!", icon: "success", timer: 1200, showConfirmButton: false });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
   // --- Subject Actions ---
   const handleSaveSubject = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    const method = editSubjectId ? "PUT" : "POST";
-    const url = editSubjectId ? `${API_BASE}/subjects/${editSubjectId}` : `${API_BASE}/subjects`;
 
-    const payload = {
-      ...subjectForm,
-      color: subjectForm.color || "#6366f1",
-      icon: subjectForm.icon || "📚"
-    };
+    if (editSubjectId) {
+      const url = `${API_BASE}/subjects/${editSubjectId}`;
+      const payload = {
+        ...subjectForm,
+        schoolId: userSchoolId || undefined,
+        color: subjectForm.color || "#6366f1",
+        icon: subjectForm.icon || "📚"
+      };
 
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to save subject");
+      try {
+        const res = await fetch(url, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to save subject");
+        }
+        setShowSubjectModal(false);
+        fetchSubjects();
+      } catch (err: any) {
+        setError(err.message);
       }
-      setShowSubjectModal(false);
-      fetchSubjects();
-    } catch (err: any) {
-      setError(err.message);
+    } else {
+      const namesToSave = selectedSubjectNames.length > 0
+        ? selectedSubjectNames
+        : (subjectForm.name ? [subjectForm.name] : []);
+
+      if (namesToSave.length === 0) {
+        setError("Please select or enter at least one subject.");
+        return;
+      }
+
+      try {
+        for (const subName of namesToSave) {
+          const matchingSub = subjects.find(s => s.name === subName);
+          const payload = {
+            ...subjectForm,
+            name: subName,
+            schoolId: userSchoolId || undefined,
+            color: matchingSub?.color || subjectForm.color || "#6366f1",
+            icon: matchingSub?.icon || subjectForm.icon || "📚"
+          };
+          const res = await fetch(`${API_BASE}/subjects`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || `Failed to save subject "${subName}"`);
+          }
+        }
+        setShowSubjectModal(false);
+        fetchSubjects();
+      } catch (err: any) {
+        setError(err.message);
+      }
     }
   };
 
@@ -237,15 +443,26 @@ export default function HeadmasterAcademicsPage() {
   const openSubjectModal = (sub?: Subject) => {
     if (sub) {
       setEditSubjectId(sub.id);
+      setSelectedSubjectNames([sub.name]);
+      // Normalize class value: strip "Class " prefix if present so dropdown matches
+      const classVal = (sub.class || "").replace(/^Class\s+/i, '');
       setSubjectForm({
-        name: sub.name, color: sub.color || "", icon: sub.icon || "",
-        class: sub.class || "", section: sub.section || "",
-        subjectCode: sub.subjectCode || "", medium: sub.medium || "",
-        description: sub.description || "", status: sub.status || "Active"
+        name: sub.name,
+        color: sub.color || "#6366f1",
+        icon: sub.icon || "📚",
+        class: classVal,
+        section: sub.section || "",
+        subjectCode: sub.subjectCode || "",
+        medium: sub.medium || "",
+        description: sub.description || "",
+        status: sub.status || "Active"
       });
     } else {
       setEditSubjectId(null);
-      setSubjectForm({ name: "", color: "", icon: "", class: "", section: "", subjectCode: "", medium: "", description: "", status: "Active" });
+      setSelectedSubjectNames([]);
+      setCustomSubjectInput("");
+      setSubjectSearchQuery("");
+      setSubjectForm({ name: "", color: "#6366f1", icon: "📚", class: filterClass || "", section: filterSection || "", subjectCode: "", medium: "", description: "", status: "Active" });
     }
     setError("");
     setShowSubjectModal(true);
@@ -261,6 +478,7 @@ export default function HeadmasterAcademicsPage() {
     try {
       const payload = {
         ...resourceForm,
+        schoolId: userSchoolId || undefined,
         category: activeTab === "overview" ? (resourceForm.contentType || "materials") : activeTab,
         title: resourceForm.title || resourceForm.topicName || resourceForm.chapter || "Untitled Resource"
       };
@@ -429,11 +647,16 @@ export default function HeadmasterAcademicsPage() {
   }, [subjects, filterClass]);
 
   const countByCategory = (key: string) => {
+    if (key === "structure") {
+      const uniqueSubjectsCount = Array.from(new Set(subjects.map(s => s.name))).length;
+      return classes.length + sections.length + uniqueSubjectsCount;
+    }
     if (key === "subjects") {
       return subjects.filter(s => {
+        const hasClass = Boolean(s.class) && s.class !== "ALL";
         const matchClass = filterClass ? s.class === String(filterClass) : true;
         const matchSection = filterSection ? s.section === filterSection : true;
-        return matchClass && matchSection;
+        return hasClass && matchClass && matchSection;
       }).length;
     }
     return resources.filter(r => {
@@ -449,12 +672,13 @@ export default function HeadmasterAcademicsPage() {
   // --- Filtered lists for the tabs ---
   const filteredSubjects = useMemo(() => {
     return subjects.filter(sub => {
+      const hasClass = Boolean(sub.class) && sub.class !== "ALL";
       const matchSearch = searchQuery.trim() ? sub.name.toLowerCase().includes(searchQuery.toLowerCase()) : true;
       const matchClass = filterClass ? sub.class === String(filterClass) : true;
       const matchSection = filterSection ? sub.section === filterSection : true;
       const matchStatus = statusFilter === "All" ? true : sub.status === statusFilter;
       const matchRail = selectedSubject === "All" ? true : sub.name === selectedSubject;
-      return matchSearch && matchClass && matchSection && matchStatus && matchRail;
+      return hasClass && matchSearch && matchClass && matchSection && matchStatus && matchRail;
     });
   }, [subjects, searchQuery, filterClass, filterSection, statusFilter, selectedSubject]);
 
@@ -495,7 +719,7 @@ export default function HeadmasterAcademicsPage() {
   const pendingApprovalsQueue = useMemo(() => {
     const list: { type: "subject" | "resource"; item: any }[] = [];
     const query = searchQuery.trim().toLowerCase();
-    
+
     // Filter pending subjects
     subjects.forEach(sub => {
       if (sub.status === "Pending") {
@@ -516,7 +740,7 @@ export default function HeadmasterAcademicsPage() {
         const resSubName = subjects.find(s => s.id === res.subjectId)?.name || "General";
         const matchRail = selectedSubject === "All" ? true : resSubName === selectedSubject;
         const matchSearch = query ? (
-          res.title.toLowerCase().includes(query) || 
+          res.title.toLowerCase().includes(query) ||
           (res.description && res.description.toLowerCase().includes(query))
         ) : true;
         if (matchClass && matchSection && matchRail && matchSearch) {
@@ -545,7 +769,7 @@ export default function HeadmasterAcademicsPage() {
       themeClass="theme-headmaster"
     >
       <div className="space-y-6">
-        
+
         {/* ── Hero Banner ─────────────────────────────────── */}
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
           <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
@@ -567,7 +791,7 @@ export default function HeadmasterAcademicsPage() {
                 {lang === "தமிழ்" ? "வகுப்புப் பாடங்கள், காலத் திட்டங்கள், பாடப்புத்தகங்கள், கற்றல் குறிப்புகள், போலித் தேர்வுகள் மற்றும் கல்வி ஊடகங்களை மதிப்பாய்வு செய்யவும். ஆசிரியர் பதிவேற்றங்கள் மற்றும் பாடத்திட்ட சீரமைப்பை நிர்வகிக்கவும்." : "Review class subjects, term plans, textbooks, learning notes, mock-tests and educational media. Manage teacher uploads and curriculum alignment."}
               </p>
             </div>
-            
+
             {/* Stats count boxes */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
               {[
@@ -578,11 +802,10 @@ export default function HeadmasterAcademicsPage() {
               ].map((s) => (
                 <div
                   key={s.label}
-                  className={`backdrop-blur rounded-2xl px-4 py-3 text-center border transition-all ${
-                    s.highlighted 
-                      ? "bg-amber-500/20 border-amber-400/40 shadow-inner" 
-                      : "bg-white/15 border-white/20"
-                  }`}
+                  className={`backdrop-blur rounded-2xl px-4 py-3 text-center border transition-all ${s.highlighted
+                    ? "bg-amber-500/20 border-amber-400/40 shadow-inner"
+                    : "bg-white/15 border-white/20"
+                    }`}
                 >
                   <Fi name={s.icon} className="text-sm mx-auto mb-1" style={s.highlighted ? { color: "#fcd34d" } : { color: "rgba(255, 255, 255, 0.8)" }} />
                   <div className="text-xl font-black leading-none" style={s.highlighted ? { color: "#fcd34d" } : { color: "#ffffff" }}>
@@ -601,11 +824,10 @@ export default function HeadmasterAcademicsPage() {
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none scroll-smooth">
           <button
             onClick={() => setSelectedSubject("All")}
-            className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${
-              selectedSubject === "All"
-                ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-indigo-400"
-            }`}
+            className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${selectedSubject === "All"
+              ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
+              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-indigo-400"
+              }`}
           >
             <Fi name="apps" className="text-sm" /> All Subjects
           </button>
@@ -615,9 +837,8 @@ export default function HeadmasterAcademicsPage() {
               <button
                 key={s.name}
                 onClick={() => setSelectedSubject(active ? "All" : s.name)}
-                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${
-                  active ? "text-white shadow-md" : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:shadow"
-                }`}
+                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${active ? "text-white shadow-md" : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:shadow"
+                  }`}
                 style={
                   active
                     ? { backgroundColor: s.color, borderColor: s.color }
@@ -634,12 +855,13 @@ export default function HeadmasterAcademicsPage() {
         <div className="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-1.5 flex gap-1 overflow-x-auto scrollbar-none">
           {CATEGORIES.map((c) => {
             const active = activeTab === c.key;
-            const count = (c.key === "overview" || c.key === "subjects" || c.key === "syllabus") ? null : countByCategory(c.key);
-            
+            const count = (c.key === "overview") ? null : countByCategory(c.key);
+
             // Inline localization mapping
             const getCategoryLabel = (key: string, l: string) => {
               const map: Record<string, string> = {
                 overview: l === "தமிழ்" ? "மேலோட்டம்" : "Overview",
+                structure: l === "தமிழ்" ? "வகுப்பு அமைப்பு" : "Class & Structure Setup",
                 subjects: l === "தமிழ்" ? "வகுப்புப் பாடங்கள்" : "Class Subjects",
                 syllabus: l === "தமிழ்" ? "பாடத்திட்டம்" : "Syllabus",
                 textbooks: l === "தமிழ்" ? "பாடப்புத்தகங்கள்" : "Textbooks",
@@ -656,20 +878,18 @@ export default function HeadmasterAcademicsPage() {
               <button
                 key={c.key}
                 onClick={() => setActiveTab(c.key)}
-                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                  active
-                    ? `text-white shadow-md`
-                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
+                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${active
+                  ? `text-white shadow-md`
+                  : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
                 style={active ? { background: c.gradient } : undefined}
               >
                 <Fi name={c.icon} className="text-sm" />
                 {getCategoryLabel(c.key, lang)}
                 {count !== null && (
                   <span
-                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
-                      active ? "bg-white/25" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                    }`}
+                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${active ? "bg-white/25" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                      }`}
                   >
                     {count}
                   </span>
@@ -724,9 +944,16 @@ export default function HeadmasterAcademicsPage() {
               className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
             >
               <option value="">All Classes</option>
-              {[...Array(12)].map((_, i) => (
-                <option key={i + 1} value={String(i + 1)}>Class {i + 1}</option>
-              ))}
+              {classes.length > 0 ? (
+                classes.map(c => {
+                  const val = c.name.replace(/^Class\s+/i, '');
+                  return <option key={c.id} value={val}>{c.name}</option>;
+                })
+              ) : (
+                [...Array(12)].map((_, i) => (
+                  <option key={i + 1} value={String(i + 1)}>Class {i + 1}</option>
+                ))
+              )}
             </select>
 
             {/* Section Filter */}
@@ -736,9 +963,16 @@ export default function HeadmasterAcademicsPage() {
               className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
             >
               <option value="">All Sections</option>
-              {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(s => (
-                <option key={s} value={s}>Section {s}</option>
-              ))}
+              {sections.length > 0 ? (
+                sections.map(s => {
+                  const val = s.name.replace(/^Section\s+/i, '');
+                  return <option key={s.id} value={val}>{s.name}</option>;
+                })
+              ) : (
+                ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(s => (
+                  <option key={s} value={s}>Section {s}</option>
+                ))
+              )}
             </select>
 
             {/* Clear Button */}
@@ -759,7 +993,7 @@ export default function HeadmasterAcademicsPage() {
             )}
 
             {/* Add Subject/Resource Button */}
-            {activeTab !== "overview" && (
+            {activeTab !== "overview" && activeTab !== "structure" && (
               <button
                 onClick={() => (activeTab === "subjects" ? openSubjectModal() : openResourceModal())}
                 className="flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md hover:shadow-lg active:scale-95 transition-all ml-auto md:ml-0"
@@ -778,11 +1012,257 @@ export default function HeadmasterAcademicsPage() {
           </div>
         ) : (
           <motion.div layout className="min-h-[400px]">
-            
+
+            {/* ══ STRUCTURE SETUP TAB (CLASS, SECTION, SUBJECT SETUP) ═════════ */}
+            {activeTab === "structure" && (
+              <div className="space-y-6 text-left">
+                <div className="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div>
+                    {/* <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-2">
+                      <Fi name="settings-sliders" className="text-sm" /> PostgreSQL Master Data
+                    </div> */}
+                    <h2 className="text-xl font-black">Class, Section & Subject Structure Setup</h2>
+                    <p className="text-xs text-emerald-100 mt-1 max-w-xl">
+                      Easily add and manage school classes, section groups, and subject masters. All additions are saved directly to PostgreSQL.
+                    </p>
+                  </div>
+                  {/* <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "class" }); }}
+                      className="px-4 py-2.5 bg-white text-emerald-800 hover:bg-emerald-50 rounded-xl text-xs font-black shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <FiPlusIcon size={14} /> Add Class
+                    </button>
+                    <button
+                      onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "section" }); }}
+                      className="px-4 py-2.5 bg-emerald-950/40 text-white hover:bg-emerald-950/60 border border-white/20 rounded-xl text-xs font-black shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <FiPlusIcon size={14} /> Add Section
+                    </button>
+                    <button
+                      onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "subject" }); }}
+                      className="px-4 py-2.5 bg-white/20 text-white hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-black shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <FiPlusIcon size={14} /> Add Subject
+                    </button>
+                  </div> */}
+                </div>
+
+                {/* 3 Master Cards Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                  {/* 1. Classes Card */}
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center font-black">
+                            <Fi name="graduation-cap" className="text-lg" />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">School Classes</h3>
+                            <p className="text-[10px] text-slate-400">Total {classes.length} registered</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "class" }); }}
+                          className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <FiPlusIcon size={12} /> Add Class
+                        </button>
+                      </div>
+
+                      <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+                        {classes.length > 0 ? (
+                          classes.map((c, idx) => (
+                            <div
+                              key={c.id}
+                              draggable
+                              onDragStart={(e) => e.dataTransfer.setData("text/plain", idx.toString())}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const dragIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+                                if (!isNaN(dragIdx)) handleDropClass(dragIdx, idx);
+                              }}
+                              className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 group hover:border-teal-500/30 transition-all cursor-grab active:cursor-grabbing"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Fi name="menu" className="text-slate-300 dark:text-slate-600 group-hover:text-slate-400 text-xs shrink-0" />
+                                <span className="w-2 h-2 rounded-full bg-teal-500" />
+                                <span className="font-bold text-xs text-slate-700 dark:text-slate-200">{c.name}</span>
+                              </div>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                <button
+                                  onClick={() => { setStructureInput(c.name); setStructureModal({ isOpen: true, type: "class", editId: c.id }); }}
+                                  className="p-1 text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-all cursor-pointer"
+                                  title="Edit Class"
+                                >
+                                  <FiEditIcon size={13} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteClassItem(c.id)}
+                                  className="p-1 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
+                                  title="Delete Class"
+                                >
+                                  <FiTrashIcon size={13} />
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="py-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                            No classes created yet.<br />Click "+ Add Class" button above to add one.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. Sections Card */}
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black">
+                            <Fi name="layers" className="text-lg" />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">Class Sections</h3>
+                            <p className="text-[10px] text-slate-400">Total {sections.length} registered</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "section", editId: null }); }}
+                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <FiPlusIcon size={12} /> Add Section
+                        </button>
+                      </div>
+
+                      <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+                        {sections.length > 0 ? (
+                          sections.map((s, idx) => (
+                            <div
+                              key={s.id}
+                              draggable
+                              onDragStart={(e) => e.dataTransfer.setData("text/plain", idx.toString())}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const dragIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+                                if (!isNaN(dragIdx)) handleDropSection(dragIdx, idx);
+                              }}
+                              className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 group hover:border-emerald-500/30 transition-all cursor-grab active:cursor-grabbing"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Fi name="menu" className="text-slate-300 dark:text-slate-600 group-hover:text-slate-400 text-xs shrink-0" />
+                                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                <span className="font-bold text-xs text-slate-700 dark:text-slate-200">{s.name}</span>
+                              </div>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                <button
+                                  onClick={() => { setStructureInput(s.name); setStructureModal({ isOpen: true, type: "section", editId: s.id }); }}
+                                  className="p-1 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all cursor-pointer"
+                                  title="Edit Section"
+                                >
+                                  <FiEditIcon size={13} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteSectionItem(s.id)}
+                                  className="p-1 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
+                                  title="Delete Section"
+                                >
+                                  <FiTrashIcon size={13} />
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="py-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                            No sections created yet.<br />Click "+ Add Section" button above to add one.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Subjects Card */}
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black">
+                            <Fi name="book-alt" className="text-lg" />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">Master Subjects</h3>
+                            <p className="text-[10px] text-slate-400">Total {Array.from(new Set(subjects.map(s => s.name))).length} registered</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "subject", editId: null }); }}
+                          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <FiPlusIcon size={12} /> Add Subject
+                        </button>
+                      </div>
+
+                      <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+                        {subjects.length > 0 ? (
+                          Array.from(new Map(subjects.map(s => [s.name, s])).values()).map((sub, idx) => (
+                            <div
+                              key={sub.id}
+                              draggable
+                              onDragStart={(e) => e.dataTransfer.setData("text/plain", idx.toString())}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const dragIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+                                if (!isNaN(dragIdx)) handleDropSubject(dragIdx, idx);
+                              }}
+                              className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 group hover:border-indigo-500/30 transition-all cursor-grab active:cursor-grabbing"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Fi name="menu" className="text-slate-300 dark:text-slate-600 group-hover:text-slate-400 text-xs shrink-0" />
+                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: sub.color || '#6366f1' }} />
+                                <span className="font-bold text-xs text-slate-700 dark:text-slate-200">{sub.name}</span>
+                              </div>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                <button
+                                  onClick={() => { setStructureInput(sub.name); setStructureModal({ isOpen: true, type: "subject", editId: sub.id }); }}
+                                  className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all cursor-pointer"
+                                  title="Edit Subject"
+                                >
+                                  <FiEditIcon size={13} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteSubject(sub.id)}
+                                  className="p-1 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
+                                  title="Delete Subject"
+                                >
+                                  <FiTrashIcon size={13} />
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="py-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                            No subjects created yet.<br />Click "+ Add Subject" button above to add one.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
             {/* ══ OVERVIEW TAB ═══════════════════════════════ */}
             {activeTab === "overview" && (
               <div className="space-y-6">
-                
+
                 {/* Search Results Combined View (If user entered a search query) */}
                 {searchQuery.trim() !== "" ? (
                   <div className="space-y-6 text-left">
@@ -790,7 +1270,7 @@ export default function HeadmasterAcademicsPage() {
                       <h3 className="text-base font-black text-slate-800 dark:text-slate-200">
                         Search Results for "{searchQuery}"
                       </h3>
-                      <button 
+                      <button
                         onClick={() => setSearchQuery("")}
                         className="text-xs text-indigo-500 hover:text-indigo-600 font-bold"
                       >
@@ -843,7 +1323,7 @@ export default function HeadmasterAcademicsPage() {
                             const subInfo = subjects.find(s => s.id === res.subjectId);
                             const subName = subInfo?.name || "General";
                             const t = subjectTheme(subName);
-                            
+
                             return (
                               <div
                                 key={res.id}
@@ -909,7 +1389,7 @@ export default function HeadmasterAcademicsPage() {
                                   </p>
                                 </div>
                               </div>
-                              
+
                               {/* Approval Actions */}
                               <div className="flex items-center gap-1.5 shrink-0 ml-2">
                                 <button
@@ -995,15 +1475,14 @@ export default function HeadmasterAcademicsPage() {
                         >
                           {sub.icon || "📚"}
                         </div>
-                        
+
                         {/* Status Label Badge */}
-                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
-                          sub.status === "Active" 
-                            ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50" 
-                            : sub.status === "Inactive"
+                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${sub.status === "Active"
+                          ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50"
+                          : sub.status === "Inactive"
                             ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50"
                             : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50"
-                        }`}>
+                          }`}>
                           {sub.status === "Active" ? "APPROVED" : sub.status === "Inactive" ? "REJECTED" : "PENDING"}
                         </span>
                       </div>
@@ -1025,7 +1504,7 @@ export default function HeadmasterAcademicsPage() {
                           {sub.subjectCode && <span>Code: {sub.subjectCode}</span>}
                           {sub.medium && <span className="block mt-0.5">{sub.medium} Medium</span>}
                         </div>
-                        
+
                         {/* Interactive operations */}
                         <div className="flex items-center gap-1">
                           {sub.status !== "Active" && (
@@ -1083,7 +1562,7 @@ export default function HeadmasterAcademicsPage() {
                     const subInfo = subjects.find(s => s.id === res.subjectId);
                     const subName = subInfo?.name || "General";
                     const t = subjectTheme(subName);
-                    
+
                     return (
                       <motion.div
                         key={res.id}
@@ -1105,16 +1584,15 @@ export default function HeadmasterAcademicsPage() {
                             <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${TYPE_COLORS[res.type] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
                               <Fi name={TYPE_ICONS[res.type] || "document"} className="text-xl" />
                             </div>
-                            
+
                             <div className="flex items-center gap-1.5">
                               {/* Status Badge */}
-                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
-                                res.status === "Active"
-                                  ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50"
-                                  : res.status === "Inactive"
+                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${res.status === "Active"
+                                ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50"
+                                : res.status === "Inactive"
                                   ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50"
                                   : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50"
-                              }`}>
+                                }`}>
                                 {res.status === "Active" ? "APPROVED" : res.status === "Inactive" ? "REJECTED" : "PENDING"}
                               </span>
                             </div>
@@ -1128,7 +1606,7 @@ export default function HeadmasterAcademicsPage() {
                             >
                               {t.icon} {subName}
                             </span>
-                            
+
                             {res.class && (
                               <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
                                 Class {res.class} {res.section ? `· Sec ${res.section}` : ""}
@@ -1150,7 +1628,7 @@ export default function HeadmasterAcademicsPage() {
                           <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug mb-1">
                             {res.title}
                           </h3>
-                          
+
                           {/* Syllabus Custom Information */}
                           {res.category === "syllabus" && (
                             <div className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold mb-1">
@@ -1226,13 +1704,7 @@ export default function HeadmasterAcademicsPage() {
                     );
                   })}
                 </AnimatePresence>
-                {filteredResources.length === 0 && (
-                  <div className="col-span-full flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-center">
-                    <FcDocument className="text-5xl mb-3 grayscale opacity-50" />
-                    <p className="text-base font-bold text-slate-800 dark:text-slate-200">No resources found</p>
-                    <p className="text-xs text-slate-500 mt-1">Clear your filter criteria or click 'Add' to upload curriculum materials.</p>
-                  </div>
-                )}
+
               </div>
             )}
 
@@ -1257,6 +1729,7 @@ export default function HeadmasterAcademicsPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="bg-white dark:bg-[#121824] w-full max-w-md rounded-[2rem] shadow-2xl overflow-visible relative z-10 border border-slate-100 dark:border-slate-800/80"
+              key={editSubjectId ?? 'add-subject'}
             >
               <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800/60">
                 <h3 className="font-bold text-xl text-slate-800 dark:text-slate-100">
@@ -1274,33 +1747,138 @@ export default function HeadmasterAcademicsPage() {
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
                     <select required value={subjectForm.class} onChange={e => setSubjectForm({ ...subjectForm, class: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="">Select Class</option>
-                      {[...Array(12)].map((_, i) => <option key={i} value={String(i + 1)}>Class {i + 1}</option>)}
+                      {classes.length > 0 ? (
+                        classes.map(c => {
+                          const val = c.name.replace(/^Class\s+/i, '');
+                          return <option key={c.id} value={val}>{c.name}</option>;
+                        })
+                      ) : (
+                        [...Array(12)].map((_, i) => <option key={i} value={String(i + 1)}>Class {i + 1}</option>)
+                      )}
                     </select>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="relative">
-                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject Name *</label>
-                    <div onClick={() => setIsSubjectDropdownOpen(!isSubjectDropdownOpen)} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 cursor-pointer flex justify-between items-center outline-none">
-                      <span className={subjectForm.name ? "" : "text-slate-400"}>{subjectForm.name || "Select"}</span>
-                      <span className="text-xs text-slate-400">▼</span>
+                {!editSubjectId ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold uppercase text-slate-400">
+                        Subject Name(s) * {selectedSubjectNames.length > 0 && <span className="text-indigo-600 dark:text-indigo-400 font-extrabold">({selectedSubjectNames.length} selected)</span>}
+                      </label>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedSubjectNames(allMasterSubjects)}
+                          className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+                        >
+                          Select All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedSubjectNames([])}
+                          className="text-[10px] text-slate-400 font-bold hover:underline"
+                        >
+                          Clear
+                        </button>
+                      </div>
                     </div>
-                    <AnimatePresence>
-                      {isSubjectDropdownOpen && (
-                        <motion.div className="absolute z-55 w-full mt-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-48 overflow-y-auto">
-                          {ALL_SUBJECTS.map((subject) => (
-                            <div key={subject} onClick={() => { setSubjectForm({ ...subjectForm, name: subject }); setIsSubjectDropdownOpen(false); }} className="px-4 py-2 cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-slate-700 dark:text-slate-200 font-medium border-b border-slate-100 dark:border-slate-800/40">{subject}</div>
-                          ))}
-                        </motion.div>
+
+                    {/* Row 1 — Search filter */}
+                    <div className="relative flex items-center">
+                      <FiSearchIcon className="absolute left-3 text-slate-400 text-xs" size={13} />
+                      <input
+                        type="text"
+                        placeholder="Search subjects..."
+                        value={subjectSearchQuery}
+                        onChange={(e) => setSubjectSearchQuery(e.target.value)}
+                        className="w-full pl-8 pr-8 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-xs font-medium text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      />
+                      {subjectSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSubjectSearchQuery("")}
+                          className="absolute right-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                        >
+                          <FiXIcon size={13} />
+                        </button>
                       )}
-                    </AnimatePresence>
+                    </div>
+
+
+                    {/* Chips list — filtered by search */}
+                    <div className="max-h-36 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 bg-slate-50/50 dark:bg-slate-950/50 flex flex-wrap gap-1.5 custom-scrollbar">
+                      {(() => {
+                        const filtered = subjectSearchQuery.trim()
+                          ? allMasterSubjects.filter(n => n.toLowerCase().includes(subjectSearchQuery.toLowerCase()))
+                          : allMasterSubjects;
+                        if (filtered.length === 0) {
+                          return (
+                            <p className="text-xs text-slate-400 p-2 text-center w-full">
+                              {subjectSearchQuery ? `No subjects match "${subjectSearchQuery}"` : 'No subjects found. Type above & click "+ Add Custom".'}
+                            </p>
+                          );
+                        }
+                        return filtered.map((subName) => {
+                          const isSelected = selectedSubjectNames.includes(subName);
+                          return (
+                            <span
+                              key={subName}
+                              className={`inline-flex items-center gap-1 pl-2.5 rounded-lg text-xs font-bold border transition-all ${isSelected
+                                ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
+                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"
+                                }`}
+                            >
+                              {isSelected && <FiCheckIcon size={11} />}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setSelectedSubjectNames(selectedSubjectNames.filter(n => n !== subName));
+                                  } else {
+                                    setSelectedSubjectNames([...selectedSubjectNames, subName]);
+                                  }
+                                }}
+                                className="py-1 cursor-pointer"
+                              >
+                                {subName}
+                              </button>
+                              {isSelected && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedSubjectNames(selectedSubjectNames.filter(n => n !== subName))}
+                                  className="px-1.5 py-1 hover:bg-indigo-700 rounded-r-lg transition-colors cursor-pointer"
+                                  title="Remove"
+                                >
+                                  <FiXIcon size={10} />
+                                </button>
+                              )}
+                              {!isSelected && (
+                                <span className="w-1.5" />
+                              )}
+                            </span>
+                          );
+                        });
+                      })()}
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject Code</label>
-                    <input type="text" value={subjectForm.subjectCode} onChange={e => setSubjectForm({ ...subjectForm, subjectCode: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject Name *</label>
+                      <select
+                        required
+                        value={subjectForm.name}
+                        onChange={e => setSubjectForm({ ...subjectForm, name: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none font-medium"
+                      >
+                        <option value="">Select Subject</option>
+                        {allMasterSubjects.map(n => (
+                          <option key={n} value={n}>{n}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1372,39 +1950,50 @@ export default function HeadmasterAcademicsPage() {
                   <FiXIcon className="text-xl" />
                 </button>
               </div>
-              
+
               <form onSubmit={handleSaveResource} className="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-left font-sans">
                 {error && <div className="text-red-500 text-sm bg-red-50/80 p-3 rounded-xl">{error}</div>}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
-                    <select 
-                      required 
-                      value={resourceForm.class} 
+                    <select
+                      required
+                      value={resourceForm.class}
                       onChange={e => {
                         const newClass = e.target.value;
-                        const filtered = newClass ? subjects.filter(s => String(s.class) === String(newClass)) : subjects;
+                        const filtered = newClass ? subjects.filter(s => String(s.class) === String(newClass) || String(s.class) === `Class ${newClass}`) : subjects;
                         const isStillValid = filtered.some(s => String(s.id) === String(resourceForm.subjectId));
                         setResourceForm({
                           ...resourceForm,
                           class: newClass,
                           subjectId: isStillValid ? resourceForm.subjectId : ""
                         });
-                      }} 
+                      }}
                       className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none"
                     >
                       <option value="">Select Class</option>
-                      {[...Array(12)].map((_, i) => <option key={i} value={String(i + 1)}>Class {i + 1}</option>)}
+                      {classes.length > 0 ? (
+                        classes.map(c => {
+                          const val = c.name.replace(/^Class\s+/i, '');
+                          return <option key={c.id} value={val}>{c.name}</option>;
+                        })
+                      ) : (
+                        [...Array(12)].map((_, i) => <option key={i} value={String(i + 1)}>Class {i + 1}</option>)
+                      )}
                     </select>
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Subject *</label>
                     <select required value={resourceForm.subjectId} onChange={e => setResourceForm({ ...resourceForm, subjectId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none">
                       <option value="" disabled>Select subject</option>
-                      {subjects
-                        .filter(s => !resourceForm.class || String(s.class) === String(resourceForm.class))
-                        .map(s => <option key={s.id} value={s.id}>{s.name} (Class {s.class})</option>)}
+                      {Array.from(
+                        new Map(
+                          subjects
+                            .filter(s => !resourceForm.class || String(s.class) === String(resourceForm.class) || String(s.class) === `Class ${resourceForm.class}`)
+                            .map(s => [s.name, s])
+                        ).values()
+                      ).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
                   </div>
                 </div>
@@ -1613,7 +2202,7 @@ export default function HeadmasterAcademicsPage() {
                 {activeTab === "syllabus" ? (
                   <input type="hidden" value={resourceForm.title} />
                 ) : null}
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Attachment Type</label>
@@ -1640,22 +2229,22 @@ export default function HeadmasterAcademicsPage() {
                         <input type="file" onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          
+
                           setResourceForm(prev => ({ ...prev, url: "Uploading..." }));
-                          
+
                           const formData = new FormData();
                           formData.append("file", file);
-                          
+
                           try {
                             const res = await fetch(`${API_BASE}/upload`, {
                               method: "POST",
                               body: formData
                             });
-                            
+
                             if (!res.ok) {
                               throw new Error("Upload failed");
                             }
-                            
+
                             const data = await res.json();
                             if (data.url) {
                               setResourceForm(prev => ({ ...prev, url: data.url }));
@@ -1688,6 +2277,93 @@ export default function HeadmasterAcademicsPage() {
                   <button type="button" onClick={() => setShowResourceModal(false)} className="px-5 py-2.5 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-bold">Cancel</button>
                   <button type="submit" className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md font-bold transition-colors">
                     Save {CATEGORIES.find(t => t.key === activeTab)?.label}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ══ STRUCTURE SETUP SINGLE-FIELD POPUP MODAL ══════════════ */}
+      <AnimatePresence>
+        {structureModal.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() => setStructureModal({ isOpen: false, type: "class" })}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl relative z-10 overflow-hidden text-left"
+            >
+              <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800 mb-5">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center font-black">
+                    <FiPlusIcon size={18} />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base text-slate-800 dark:text-slate-100">
+                      {structureModal.editId
+                        ? `Edit ${structureModal.type === "class" ? "Class" : structureModal.type === "section" ? "Section" : "Subject"}`
+                        : structureModal.type === "class"
+                          ? "Add New Class"
+                          : structureModal.type === "section"
+                            ? "Add New Section"
+                            : "Add New Subject"}
+                    </h3>
+                    <p className="text-xs text-slate-400">Save single field directly to PostgreSQL database</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setStructureModal({ isOpen: false, type: "class", editId: null })}
+                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <FiXIcon size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveStructure} className="space-y-5">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                    {structureModal.type === "class" ? "Class Name" : structureModal.type === "section" ? "Section Name" : "Subject Name"}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    value={structureInput}
+                    onChange={(e) => setStructureInput(e.target.value)}
+                    placeholder={
+                      structureModal.type === "class"
+                        ? "e.g. Class 10"
+                        : structureModal.type === "section"
+                          ? "e.g. Section A"
+                          : "e.g. Mathematics"
+                    }
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-teal-500/30 transition-all"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setStructureModal({ isOpen: false, type: "class", editId: null })}
+                    className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingStructure}
+                    className="px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-black shadow-md transition-all flex items-center gap-2"
+                  >
+                    {savingStructure ? "Saving to DB..." : structureModal.editId ? `Update ${structureModal.type.toUpperCase()}` : `Save ${structureModal.type.toUpperCase()}`}
                   </button>
                 </div>
               </form>
