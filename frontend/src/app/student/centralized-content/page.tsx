@@ -4,24 +4,10 @@ import PortalLayout from "@/components/PortalLayout";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import {
-  Calculator,
-  Atom,
-  Globe,
-  Laptop,
-  BookOpen,
-  Scroll,
-  Orbit,
-  Beaker,
-  Dna,
-  Book,
-  PenTool,
-  Languages,
-  PawPrint
-} from "lucide-react";
+
 
 interface SubjectTheme {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: string;
   gradient: string;
   glow: string;
   text: string;
@@ -30,77 +16,77 @@ interface SubjectTheme {
 
 const SUBJECT_THEMES: Record<string, SubjectTheme> = {
   mathematics: {
-    icon: Calculator,
+    icon: "fi-sr-ruler-triangle",
     gradient: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
     glow: "rgba(99, 102, 241, 0.15)",
     text: "text-indigo-600 dark:text-indigo-400",
     bgLight: "bg-indigo-50/50 dark:bg-indigo-950/20"
   },
   science: {
-    icon: Atom,
+    icon: "fi-sr-flask",
     gradient: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
     glow: "rgba(16, 185, 129, 0.15)",
     text: "text-emerald-600 dark:text-emerald-400",
     bgLight: "bg-emerald-50/50 dark:bg-emerald-950/20"
   },
   "social science": {
-    icon: Globe,
+    icon: "fi-sr-globe",
     gradient: "linear-gradient(135deg, #ec4899 0%, #db2777 100%)",
     glow: "rgba(236, 72, 153, 0.15)",
     text: "text-pink-650 dark:text-pink-400",
     bgLight: "bg-pink-50/50 dark:bg-pink-950/20"
   },
   physics: {
-    icon: Orbit,
+    icon: "fi-sr-atom",
     gradient: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
     glow: "rgba(139, 92, 246, 0.15)",
     text: "text-purple-650 dark:text-purple-400",
     bgLight: "bg-purple-50/50 dark:bg-purple-950/20"
   },
   chemistry: {
-    icon: Beaker,
+    icon: "fi-sr-flask",
     gradient: "linear-gradient(135deg, #db2777 0%, #c11f6c 100%)",
     glow: "rgba(219, 39, 119, 0.15)",
     text: "text-rose-650 dark:text-rose-400",
     bgLight: "bg-rose-50/50 dark:bg-rose-950/20"
   },
   biology: {
-    icon: Dna,
+    icon: "fi-sr-dna",
     gradient: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
     glow: "rgba(34, 197, 94, 0.15)",
     text: "text-green-650 dark:text-green-400",
     bgLight: "bg-green-50/50 dark:bg-green-950/20"
   },
   zoology: {
-    icon: PawPrint,
+    icon: "fi-sr-paw",
     gradient: "linear-gradient(135deg, #059669 0%, #064e3b 100%)",
     glow: "rgba(5, 150, 105, 0.15)",
     text: "text-emerald-700 dark:text-emerald-400",
     bgLight: "bg-emerald-50/50 dark:bg-emerald-950/20"
   },
   "computer science": {
-    icon: Laptop,
+    icon: "fi-sr-laptop",
     gradient: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
     glow: "rgba(59, 130, 246, 0.15)",
     text: "text-blue-600 dark:text-blue-400",
     bgLight: "bg-blue-50/50 dark:bg-blue-950/20"
   },
   english: {
-    icon: BookOpen,
+    icon: "fi-sr-book",
     gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
     glow: "rgba(245, 158, 11, 0.15)",
     text: "text-amber-600 dark:text-amber-400",
     bgLight: "bg-amber-50/50 dark:bg-amber-950/20"
   },
   tamil: {
-    icon: Languages,
+    icon: "fi-sr-comment-alt-middle",
     gradient: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
     glow: "rgba(217, 119, 6, 0.15)",
     text: "text-amber-700 dark:text-amber-500",
     bgLight: "bg-amber-50/50 dark:bg-amber-950/20"
   },
   history: {
-    icon: Scroll,
+    icon: "fi-sr-scroll",
     gradient: "linear-gradient(135deg, #b45309 0%, #78350f 100%)",
     glow: "rgba(180, 83, 9, 0.15)",
     text: "text-orange-700 dark:text-orange-400",
@@ -121,10 +107,10 @@ const getSubjectTheme = (name: string): SubjectTheme => {
   }
 
   return {
-    icon: BookOpen,
+    icon: "fi-sr-book",
     gradient: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
     glow: "rgba(99, 102, 241, 0.15)",
-    text: "text-indigo-650 dark:text-indigo-400",
+    text: "text-indigo-655 dark:text-indigo-400",
     bgLight: "bg-indigo-50/50 dark:bg-indigo-950/20"
   };
 };
@@ -165,6 +151,8 @@ interface Content {
     rationale: string;
   }> | null;
 }
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function CentralizedContentPage() {
   const { data: session, status } = useSession();
@@ -208,7 +196,6 @@ export default function CentralizedContentPage() {
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   useEffect(() => {
     const infographicItem = contents.find(c => c.contentType === "INFOGRAPHIC");
@@ -423,19 +410,23 @@ export default function CentralizedContentPage() {
     >
 
       {/* 1. Header Filter Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
-        <div>
-          <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1">
-            📚 TN State Board Curriculum
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Bilingual educational materials tailored for your grade.
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <i className="fi fi-sr-book-open-reader text-2xl text-indigo-600 dark:text-indigo-400 flex items-center" />
+          <div>
+            <h2 className="text-lg sm:text-xl font-black text-black dark:text-white uppercase tracking-wider leading-tight">
+              TN State Board Curriculum
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Bilingual educational materials tailored for your grade.
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 whitespace-nowrap shrink-0 self-start sm:self-auto">
           <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Grade:</span>
-          <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+            <i className="fi fi-sr-graduation-cap flex items-center text-sm" />
             Class {selectedClass}th Standard
           </span>
         </div>
@@ -453,7 +444,7 @@ export default function CentralizedContentPage() {
             </div>
           ) : subjects.length === 0 ? (
             <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
-              <span className="text-5xl block mb-4">📭</span>
+              <i className="fi fi-sr-inbox text-5xl text-slate-350 dark:text-slate-600 block mb-4 mx-auto w-fit" />
               <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No Centralized Content Available</p>
               <p className="text-xs text-slate-500 mt-2">Syllabus is being updated for Class {selectedClass}th. Check back soon!</p>
             </div>
@@ -477,10 +468,10 @@ export default function CentralizedContentPage() {
                     {/* Subject Icon & Class Tag in Row */}
                     <div className="flex justify-between items-start w-full relative z-10">
                       <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center shadow-md transition-all duration-500 group-hover:scale-105 group-hover:rotate-3 text-white"
+                        className="w-11 h-11 rounded-xl flex items-center justify-center shadow-md transition-all duration-500 group-hover:scale-105 group-hover:rotate-3 text-white text-lg"
                         style={{ background: theme.gradient }}
                       >
-                        <SubjectIcon className="w-5.5 h-5.5" />
+                        <i className={`fi ${theme.icon} text-white flex items-center`} style={{ color: '#fff' }} />
                       </div>
                       <span className="text-[9px] uppercase font-extrabold tracking-wider px-2.5 py-1 rounded-lg bg-slate-100/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border border-slate-200/20 shadow-xs">
                         Class {sub.class}
@@ -512,9 +503,9 @@ export default function CentralizedContentPage() {
             {/* Back Button */}
             <button
               onClick={() => setSelectedSubject(null)}
-              className="w-full py-3 px-4 rounded-xl bg-slate-150 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-black dark:text-white font-bold text-xs transition-colors flex items-center gap-2 border border-slate-200 dark:border-slate-800"
+              className="w-full py-3 px-4 rounded-xl bg-slate-150 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-black dark:text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-800"
             >
-              <span>←</span> Back to Subjects
+              <i className="fi fi-sr-arrow-left flex items-center" /> Back to Subjects
             </button>
 
             {/* Subject Details Header */}
@@ -524,10 +515,10 @@ export default function CentralizedContentPage() {
               return (
                 <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-850 bg-white/90 dark:bg-slate-900/50 backdrop-blur-md flex items-center gap-4 shadow-sm">
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center shadow-md text-white"
+                    className="w-12 h-12 rounded-xl flex items-center justify-center shadow-md text-white text-xl"
                     style={{ background: theme.gradient }}
                   >
-                    <SubjectIcon className="w-6 h-6" />
+                    <i className={`fi ${theme.icon} text-white flex items-center`} style={{ color: '#fff' }} />
                   </div>
                   <div>
                     <h3 className="font-black text-sm md:text-base text-slate-805 dark:text-slate-100">{selectedSubject.name}</h3>
@@ -585,8 +576,8 @@ export default function CentralizedContentPage() {
 
               /* Default subunit selection prompt */
               <div className="flex flex-col items-center justify-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/10 min-h-[450px]">
-                <span className="text-6xl block mb-4 animate-bounce" style={{ animationDuration: '3s' }}>📖</span>
-                <h3 className="text-lg font-bold text-slate-750 dark:text-slate-200">Start Your Master Study</h3>
+                <i className="fi fi-sr-book-open-reader text-6xl text-indigo-500/80 dark:text-indigo-400 block mb-4 animate-bounce" style={{ animationDuration: '3s' }} />
+                <h3 className="text-lg font-bold text-slate-755 dark:text-slate-200">Start Your Master Study</h3>
                 <p className="text-xs text-slate-500 mt-2 text-center max-w-sm leading-relaxed">
                   Select a specific subunit from the syllabus index on the left to load textbooks, summaries, custom revision notes, interactive quiz prep, and the AI study coach.
                 </p>
@@ -612,25 +603,27 @@ export default function CentralizedContentPage() {
                 {/* Tabs selection header */}
                 <div className="px-6 bg-slate-100/30 dark:bg-slate-950/10 border-b border-slate-250/20 dark:border-slate-800/80 flex overflow-x-auto gap-2 py-2">
                   {[
-                    { id: "materials", label: "📄 Study Materials", show: true },
-                    { id: "infographic", label: "🎨 AI Infographic Map", show: contents.some(c => c.contentType === "INFOGRAPHIC") },
-                    { id: "presentation", label: "📊 AI Presentation Slides", show: contents.some(c => c.contentType === "PRESENTATION") },
-                    { id: "summary", label: "📝 AI Summary", show: contents.some(c => c.contentType === "SUMMARY") },
-                    { id: "notes", label: "📓 Revision Notes", show: contents.some(c => c.contentType === "NOTES") },
-                    { id: "mcq", label: "🧠 MCQ Mastery Quiz", show: contents.some(c => c.contentType === "MCQ") },
-                    { id: "ai", label: "💬 AI Study Coach", show: true }
+                    { id: "materials", label: "Study Materials", icon: "fi-sr-document", show: true },
+                    { id: "infographic", label: "AI Infographic Map", icon: "fi-sr-map", show: contents.some(c => c.contentType === "INFOGRAPHIC") },
+                    { id: "presentation", label: "AI Presentation Slides", icon: "fi-sr-stats", show: contents.some(c => c.contentType === "PRESENTATION") },
+                    { id: "summary", label: "AI Summary", icon: "fi-sr-document-signed", show: contents.some(c => c.contentType === "SUMMARY") },
+                    { id: "notes", label: "Revision Notes", icon: "fi-sr-notebook", show: contents.some(c => c.contentType === "NOTES") },
+                    { id: "mcq", label: "MCQ Mastery Quiz", icon: "fi-sr-brain", show: contents.some(c => c.contentType === "MCQ") },
+                    { id: "ai", label: "AI Study Coach", icon: "fi-sr-comment-alt", show: true }
                   ].map((tab) => {
                     if (!tab.show) return null;
+                    const active = activeTab === tab.id;
                     return (
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === tab.id
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${active
                             ? "bg-slate-900 text-white dark:bg-slate-800 dark:text-white shadow-sm"
                             : "text-slate-500 hover:text-black dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/30"
                           }`}
                       >
-                        {tab.label}
+                        <i className={`fi ${tab.icon} flex items-center text-sm`} style={!active ? { color: "#6366f1" } : undefined} />
+                        <span>{tab.label}</span>
                       </button>
                     );
                   })}
@@ -656,7 +649,7 @@ export default function CentralizedContentPage() {
                             if (mats.length === 0) {
                               return (
                                 <div className="text-center py-10 bg-slate-50/50 dark:bg-slate-900/20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-                                  <span className="text-4xl block mb-2">📁</span>
+                                  <i className="fi fi-sr-folder text-4xl text-slate-350 dark:text-slate-600 block mb-2 mx-auto" />
                                   <p className="text-xs text-slate-500">No documents uploaded for this subunit.</p>
                                 </div>
                               );
@@ -714,7 +707,7 @@ export default function CentralizedContentPage() {
                             </div>
                           ) : !infographicData ? (
                             <div className="text-center py-16 bg-slate-50 dark:bg-slate-900/10 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
-                              <span className="text-5xl block mb-3">🎨</span>
+                              <i className="fi fi-sr-map text-5xl text-slate-350 dark:text-slate-600 block mb-3 mx-auto" />
                               <h4 className="font-bold text-sm text-black dark:text-white mb-2">Visual Infographic Map Not Available</h4>
                               <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
                                 A visual study map is not generated yet for this topic. Please ask your administrator or teacher to generate the AI concept map.
@@ -725,12 +718,12 @@ export default function CentralizedContentPage() {
                               {/* 1. Header card */}
                               <div className="p-5 rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 shadow-sm relative overflow-hidden flex flex-col md:flex-row gap-4 items-center">
                                 <div className="absolute top-0 right-0 p-8 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl -mr-4 -mt-4"></div>
-                                <span className="text-4xl">🧠</span>
+                                <i className="fi fi-sr-brain text-4xl text-indigo-500 dark:text-indigo-400 flex items-center shrink-0" />
                                 <div>
-                                  <h4 className="font-black text-sm md:text-base text-indigo-450 dark:text-indigo-400">
+                                  <h4 className="font-black text-sm md:text-base text-indigo-455 dark:text-indigo-400">
                                     {infographicData.topicTitle || selectedTopic.name}
                                   </h4>
-                                  <p className="text-xs text-slate-700 dark:text-slate-350 mt-1 leading-relaxed font-medium">
+                                  <p className="text-xs text-slate-700 dark:text-slate-355 mt-1 leading-relaxed font-medium">
                                     {infographicData.overallSummary}
                                   </p>
                                 </div>
@@ -739,7 +732,7 @@ export default function CentralizedContentPage() {
                               {/* 2. Visual Sequence Flow */}
                               <div className="space-y-4">
                                 <h5 className="text-[11px] font-black uppercase text-slate-450 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
-                                  <span>🗺️</span> Conceptual Step-by-Step Flow
+                                  <i className="fi fi-sr-map-marker text-indigo-500 flex items-center text-xs" /> Conceptual Step-by-Step Flow
                                 </h5>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -764,8 +757,8 @@ export default function CentralizedContentPage() {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Formulas / Facts */}
                                 <div className="space-y-3">
-                                  <h5 className="text-[11px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
-                                    <span>🔑</span> Core Formulas & Facts
+                                  <h5 className="text-[11px] font-black uppercase text-slate-450 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                                    <i className="fi fi-sr-key text-indigo-500" /> Core Formulas & Facts
                                   </h5>
                                   <div className="space-y-2.5">
                                     {infographicData.keyFormulasOrFacts?.map((item: any, idx: number) => (
@@ -783,14 +776,14 @@ export default function CentralizedContentPage() {
 
                                 {/* Mnemonics */}
                                 <div className="space-y-3">
-                                  <h5 className="text-[11px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
-                                    <span>✨</span> AI Memory Tricks (Mnemonics)
+                                  <h5 className="text-[11px] font-black uppercase text-slate-455 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                                    <i className="fi fi-sr-magic-wand text-indigo-500" /> AI Memory Tricks (Mnemonics)
                                   </h5>
                                   <div className="space-y-2.5">
                                     {infographicData.mnemonics?.map((item: any, idx: number) => (
                                       <div key={idx} className="p-3.5 rounded-xl border border-emerald-500/25 bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors flex flex-col gap-1">
-                                        <span className="font-black text-xs text-emerald-850 dark:text-emerald-300">
-                                          💡 {item.phrase}
+                                        <span className="font-black text-xs text-emerald-850 dark:text-emerald-300 flex items-center gap-1">
+                                          <i className="fi fi-sr-lightbulb text-emerald-600 text-xs shrink-0" /> {item.phrase}
                                         </span>
                                         <span className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium mt-0.5">
                                           {item.meaning}
@@ -804,8 +797,8 @@ export default function CentralizedContentPage() {
                               {/* 4. Active Recall Flashcards */}
                               <div className="space-y-4">
                                 <div className="flex justify-between items-center">
-                                  <h5 className="text-[11px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
-                                    <span>🃏</span> 3D Flip Flashcards (Active Recall)
+                                  <h5 className="text-[11px] font-black uppercase text-slate-450 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                                    <i className="fi fi-sr-layer-group text-indigo-500" /> 3D Flip Flashcards (Active Recall)
                                   </h5>
                                   <span className="text-[10px] text-slate-500 font-medium">Click card to reveal answer</span>
                                 </div>
@@ -829,7 +822,9 @@ export default function CentralizedContentPage() {
                                             <p className="text-xs text-slate-800 dark:text-slate-200 font-bold leading-snug line-clamp-3 my-auto">
                                               {card.front}
                                             </p>
-                                            <span className="text-[8px] text-slate-450 text-right mt-1 font-bold group-hover:text-indigo-500">🔄 CLICK TO REVEAL</span>
+                                            <span className="text-[8px] text-slate-450 text-right mt-1 font-bold group-hover:text-indigo-500 flex items-center justify-end gap-1">
+                                              <i className="fi fi-sr-refresh text-[8px]" /> CLICK TO REVEAL
+                                            </span>
                                           </div>
 
                                           {/* Back face */}
@@ -838,7 +833,9 @@ export default function CentralizedContentPage() {
                                             <p className="text-xs text-indigo-300 font-medium leading-snug line-clamp-4 my-auto">
                                               {card.back}
                                             </p>
-                                            <span className="text-[8px] text-indigo-400/80 text-right mt-1 font-bold">🔄 CLICK TO FLIP BACK</span>
+                                            <span className="text-[8px] text-indigo-400/80 text-right mt-1 font-bold flex items-center justify-end gap-1">
+                                              <i className="fi fi-sr-refresh text-[8px]" /> CLICK TO FLIP BACK
+                                            </span>
                                           </div>
                                         </div>
                                       </div>
@@ -857,7 +854,7 @@ export default function CentralizedContentPage() {
                         <div className="space-y-6 animate-in fade-in duration-300">
                           {!presentationData ? (
                             <div className="text-center py-16 bg-slate-50 dark:bg-slate-900/10 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
-                              <span className="text-5xl block mb-3">📊</span>
+                              <i className="fi fi-sr-stats text-5xl text-slate-350 dark:text-slate-600 block mb-3 mx-auto" />
                               <h4 className="font-bold text-sm text-black dark:text-white mb-2">Slides Presentation Not Available</h4>
                               <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
                                 A presentation slide deck is not generated yet for this topic. Please ask your administrator or teacher to generate the AI slides.
@@ -901,8 +898,8 @@ export default function CentralizedContentPage() {
                                         <div className="absolute inset-0 bg-[linear-gradient(to_right,#0ea5e912_1px,transparent_1px),linear-gradient(to_bottom,#0ea5e912_1px,transparent_1px)] bg-[size:14px_24px] pointer-events-none opacity-40"></div>
 
                                         <div className="relative z-10 space-y-3">
-                                          <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-200/20 dark:border-teal-500/20 rounded-md">
-                                            📐 Visual Illustration Blueprint
+                                          <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-200/20 dark:border-teal-500/20 rounded-md">
+                                            <i className="fi fi-sr-ruler-combined text-[10px]" /> Visual Illustration Blueprint
                                           </span>
                                           <h5 className="text-xs font-extrabold text-slate-800 dark:text-slate-200">Pictorial Concept Representation:</h5>
                                           <p className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed font-medium">
@@ -910,8 +907,8 @@ export default function CentralizedContentPage() {
                                           </p>
                                         </div>
 
-                                        <div className="relative z-10 mt-4 text-[10px] text-teal-600 dark:text-teal-400 font-bold flex items-center gap-1 bg-teal-950/20 dark:bg-teal-950/30 p-2 rounded-lg border border-teal-500/10">
-                                          <span>🎨</span>
+                                        <div className="relative z-10 mt-4 text-[10px] text-teal-600 dark:text-teal-400 font-bold flex items-center gap-1.5 bg-teal-950/20 dark:bg-teal-950/30 p-2 rounded-lg border border-teal-500/10">
+                                          <i className="fi fi-sr-palette text-xs shrink-0 flex items-center" />
                                           <span>Visual layout reference for conceptual modeling.</span>
                                         </div>
                                       </div>
@@ -920,8 +917,10 @@ export default function CentralizedContentPage() {
 
                                     {/* Speaker Notes / Explanation */}
                                     <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/30 leading-relaxed text-xs text-slate-705 dark:text-slate-300">
-                                      <span className="font-bold text-slate-800 dark:text-white block mb-1">📢 Presenter Notes & bilingual Explanation:</span>
-                                      <p className="whitespace-pre-line leading-relaxed font-medium text-slate-600 dark:text-slate-350">
+                                      <span className="font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-1.5">
+                                        <i className="fi fi-sr-bullhorn text-indigo-500 flex items-center" /> Presenter Notes & bilingual Explanation:
+                                      </span>
+                                      <p className="whitespace-pre-line leading-relaxed font-medium text-slate-600 dark:text-slate-355 mt-1">
                                         {currentSlide.speakerNotes}
                                       </p>
                                     </div>
