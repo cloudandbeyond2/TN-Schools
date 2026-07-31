@@ -33,22 +33,242 @@ router.post("/upload", requireMinRole("HEADMASTER"), upload.single("file"), asyn
   }
 });
 
+import { randomUUID } from "crypto";
+
+// Ensure AcademicClass and AcademicSection tables exist in PostgreSQL
+async function ensureAcademicTablesExist() {
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "AcademicClass" (
+        "id" TEXT PRIMARY KEY,
+        "name" TEXT UNIQUE NOT NULL,
+        "status" TEXT DEFAULT 'Active',
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "AcademicSection" (
+        "id" TEXT PRIMARY KEY,
+        "name" TEXT UNIQUE NOT NULL,
+        "status" TEXT DEFAULT 'Active',
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicSubject" ADD COLUMN IF NOT EXISTS "schoolId" TEXT;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "AcademicResource" ADD COLUMN IF NOT EXISTS "schoolId" TEXT;`);
+  } catch (e) {
+    console.error("Error creating academic tables/columns:", e);
+  }
+}
+
+// --- Classes ---
+router.get("/classes", async (req: Request, res: Response) => {
+  try {
+    await ensureAcademicTablesExist();
+    let classes: any[] = [];
+    try {
+      if ((prisma as any).academicClass) {
+        classes = await (prisma as any).academicClass.findMany({
+          orderBy: { name: "asc" },
+        });
+      } else {
+        throw new Error("academicClass model not loaded");
+      }
+    } catch {
+      classes = await prisma.$queryRawUnsafe(`SELECT "id", "name", "status" FROM "AcademicClass" ORDER BY "name" ASC`);
+    }
+    res.json(classes);
+  } catch (error: any) {
+    console.error("Error fetching classes:", error);
+    res.status(500).json({ error: "Failed to fetch classes", details: error.message });
+  }
+});
+
+router.post("/classes", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
+  try {
+    await ensureAcademicTablesExist();
+    const { name } = req.body;
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ error: "Class name is required" });
+    }
+    const cleanName = String(name).trim();
+    const id = randomUUID();
+
+    let result: any = null;
+    try {
+      if ((prisma as any).academicClass) {
+        result = await (prisma as any).academicClass.upsert({
+          where: { name: cleanName },
+          update: { updatedAt: new Date() },
+          create: { id, name: cleanName, status: "Active" },
+        });
+      } else {
+        throw new Error("academicClass model not loaded");
+      }
+    } catch {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "AcademicClass" ("id", "name", "status", "createdAt", "updatedAt") VALUES ($1, $2, 'Active', NOW(), NOW()) ON CONFLICT ("name") DO UPDATE SET "updatedAt" = NOW()`,
+        id,
+        cleanName
+      );
+      result = { id, name: cleanName, status: "Active" };
+    }
+    res.status(201).json(result);
+  } catch (error: any) {
+    console.error("Error creating class:", error);
+    res.status(500).json({ error: "Failed to create class", details: error.message });
+  }
+});
+
+router.delete("/classes/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
+  try {
+    await ensureAcademicTablesExist();
+    const { id } = req.params;
+    try {
+      if ((prisma as any).academicClass) {
+        await (prisma as any).academicClass.delete({ where: { id } });
+      } else {
+        throw new Error("academicClass model not loaded");
+      }
+    } catch {
+      await prisma.$executeRawUnsafe(`DELETE FROM "AcademicClass" WHERE "id" = $1`, id);
+    }
+    res.status(204).send();
+  } catch (error: any) {
+    console.error("Error deleting class:", error);
+    res.status(500).json({ error: "Failed to delete class", details: error.message });
+  }
+});
+
+// --- Sections ---
+router.get("/sections", async (req: Request, res: Response) => {
+  try {
+    await ensureAcademicTablesExist();
+    let sections: any[] = [];
+    try {
+      if ((prisma as any).academicSection) {
+        sections = await (prisma as any).academicSection.findMany({
+          orderBy: { name: "asc" },
+        });
+      } else {
+        throw new Error("academicSection model not loaded");
+      }
+    } catch {
+      sections = await prisma.$queryRawUnsafe(`SELECT "id", "name", "status" FROM "AcademicSection" ORDER BY "name" ASC`);
+    }
+    res.json(sections);
+  } catch (error: any) {
+    console.error("Error fetching sections:", error);
+    res.status(500).json({ error: "Failed to fetch sections", details: error.message });
+  }
+});
+
+router.post("/sections", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
+  try {
+    await ensureAcademicTablesExist();
+    const { name } = req.body;
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ error: "Section name is required" });
+    }
+    const cleanName = String(name).trim();
+    const id = randomUUID();
+
+    let result: any = null;
+    try {
+      if ((prisma as any).academicSection) {
+        result = await (prisma as any).academicSection.upsert({
+          where: { name: cleanName },
+          update: { updatedAt: new Date() },
+          create: { id, name: cleanName, status: "Active" },
+        });
+      } else {
+        throw new Error("academicSection model not loaded");
+      }
+    } catch {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "AcademicSection" ("id", "name", "status", "createdAt", "updatedAt") VALUES ($1, $2, 'Active', NOW(), NOW()) ON CONFLICT ("name") DO UPDATE SET "updatedAt" = NOW()`,
+        id,
+        cleanName
+      );
+      result = { id, name: cleanName, status: "Active" };
+    }
+    res.status(201).json(result);
+  } catch (error: any) {
+    console.error("Error creating section:", error);
+    res.status(500).json({ error: "Failed to create section", details: error.message });
+  }
+});
+
+router.delete("/sections/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
+  try {
+    await ensureAcademicTablesExist();
+    const { id } = req.params;
+    try {
+      if ((prisma as any).academicSection) {
+        await (prisma as any).academicSection.delete({ where: { id } });
+      } else {
+        throw new Error("academicSection model not loaded");
+      }
+    } catch {
+      await prisma.$executeRawUnsafe(`DELETE FROM "AcademicSection" WHERE "id" = $1`, id);
+    }
+    res.status(204).send();
+  } catch (error: any) {
+    console.error("Error deleting section:", error);
+    res.status(500).json({ error: "Failed to delete section", details: error.message });
+  }
+});
+
 // --- Subjects ---
 
 // List all subjects
 router.get("/subjects", async (req: Request, res: Response) => {
   try {
-    const { class: className, status } = req.query;
+    await ensureAcademicTablesExist();
+    const { class: className, status, schoolId } = req.query;
+    const targetSchoolId = (schoolId as string) || req.user?.schoolId || null;
+
     const where: any = {};
+
     if (className) {
-      where.OR = [
-        { class: String(className) },
-        { class: null },
-        { class: "" }
-      ];
+      const clsStr = String(className).trim();
+      const numMatch = clsStr.match(/\d+/)?.[0];
+      const classVariants = Array.from(new Set([
+        clsStr,
+        clsStr.toLowerCase(),
+        clsStr.toUpperCase(),
+        `Class ${clsStr}`,
+        `CLASS ${clsStr}`,
+        numMatch || "",
+        numMatch ? `Class ${numMatch}` : "",
+        numMatch ? `CLASS ${numMatch}` : "",
+      ])).filter(Boolean);
+
+      // Only return subjects that exactly match the requested class.
+      // Do NOT include null/empty class rows — those are unassigned subjects
+      // that should only appear in the headmaster's "all subjects" view.
+      where.OR = classVariants.map(c => ({ class: c }));
     }
+
     if (status) {
-      where.status = String(status);
+      const st = String(status).trim();
+      where.status = {
+        in: Array.from(new Set([st, st.toLowerCase(), st.toUpperCase(), "Active", "Approved", "ACTIVE", "APPROVED"]))
+      };
+    }
+
+    if (targetSchoolId) {
+      where.AND = [
+        {
+          OR: [
+            { schoolId: targetSchoolId },
+            { schoolId: null },
+            { schoolId: "" }
+          ]
+        }
+      ];
     }
 
     const subjects = await prisma.academicSubject.findMany({
@@ -62,34 +282,79 @@ router.get("/subjects", async (req: Request, res: Response) => {
   }
 });
 
-// Create a subject
+// Create or update a subject
 router.post("/subjects", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
-    const { name, color, icon, class: className, section, subjectCode, medium, description, status } = req.body;
-    if (!name) return res.status(400).json({ error: "Name is required" });
+    await ensureAcademicTablesExist();
+    const { name, color, icon, class: className, section, subjectCode, medium, description, status, schoolId } = req.body;
+    if (!name || !String(name).trim()) return res.status(400).json({ error: "Name is required" });
 
-    const subject = await prisma.academicSubject.create({
-      data: { name, color, icon, class: className, section, subjectCode, medium, description, status },
+    const cleanName = String(name).trim();
+    const cleanClass = className ? String(className).trim() : null;
+    const targetSchoolId = schoolId || req.user?.schoolId || null;
+
+    // Check if subject with this exact name and class already exists
+    const existing = await prisma.academicSubject.findFirst({
+      where: {
+        name: cleanName,
+        class: cleanClass,
+      },
     });
-    res.status(201).json(subject);
+
+    if (existing) {
+      // Update existing subject record for this class
+      const updated = await prisma.academicSubject.update({
+        where: { id: existing.id },
+        data: {
+          color: color || existing.color,
+          icon: icon || existing.icon,
+          section: section !== undefined ? section : existing.section,
+          subjectCode: subjectCode || existing.subjectCode,
+          medium: medium || existing.medium,
+          description: description || existing.description,
+          status: status || existing.status,
+          schoolId: targetSchoolId || (existing as any).schoolId,
+        } as any,
+      });
+      return res.status(200).json(updated);
+    }
+
+    // Otherwise create new subject record
+    const subject = await prisma.academicSubject.create({
+      data: {
+        name: cleanName,
+        color,
+        icon,
+        class: cleanClass,
+        section,
+        subjectCode,
+        medium,
+        description,
+        schoolId: targetSchoolId,
+        status: status || "Active",
+      } as any,
+    });
+    return res.status(201).json(subject);
   } catch (error: any) {
     console.error("Error creating subject:", error);
-    if (error.code === "P2002") {
-      return res.status(400).json({ error: "Subject with this name already exists" });
-    }
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Failed to save subject", details: error.message });
   }
 });
 
 // Update a subject
 router.put("/subjects/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
+    await ensureAcademicTablesExist();
     const { id } = req.params;
-    const { name, color, icon, class: className, section, subjectCode, medium, description, status } = req.body;
-    
+    const { name, color, icon, class: className, section, subjectCode, medium, description, status, schoolId } = req.body;
+    const targetSchoolId = schoolId || req.user?.schoolId || undefined;
+
     const subject = await prisma.academicSubject.update({
       where: { id },
-      data: { name, color, icon, class: className, section, subjectCode, medium, description, status },
+      data: { 
+        name, color, icon, class: className, section, subjectCode, medium, description, status,
+        ...(targetSchoolId !== undefined ? { schoolId: targetSchoolId } : {})
+      },
     });
     res.json(subject);
   } catch (error) {
@@ -101,6 +366,7 @@ router.put("/subjects/:id", requireMinRole("HEADMASTER"), async (req: Request, r
 // Delete a subject
 router.delete("/subjects/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
+    await ensureAcademicTablesExist();
     const { id } = req.params;
     await prisma.academicSubject.delete({
       where: { id },
@@ -114,22 +380,53 @@ router.delete("/subjects/:id", requireMinRole("HEADMASTER"), async (req: Request
 
 // --- Resources ---
 
-// List resources (optionally filter by category, subject, and class)
+// List resources (optionally filter by category, subject, class, and schoolId)
 router.get("/resources", async (req: Request, res: Response) => {
   try {
-    const { category, subjectId, class: className, status } = req.query;
+    await ensureAcademicTablesExist();
+    const { category, subjectId, class: className, status, schoolId } = req.query;
+    const targetSchoolId = (schoolId as string) || req.user?.schoolId || null;
+
     const where: any = {};
     if (category) where.category = String(category);
     if (subjectId) where.subjectId = String(subjectId);
+
     if (className) {
-      where.OR = [
-        { class: String(className) },
-        { class: null },
-        { class: "" }
-      ];
+      const clsStr = String(className).trim();
+      const numMatch = clsStr.match(/\d+/)?.[0];
+      const classVariants = Array.from(new Set([
+        clsStr,
+        clsStr.toLowerCase(),
+        clsStr.toUpperCase(),
+        `Class ${clsStr}`,
+        `CLASS ${clsStr}`,
+        numMatch || "",
+        numMatch ? `Class ${numMatch}` : "",
+        numMatch ? `CLASS ${numMatch}` : "",
+      ])).filter(Boolean);
+
+      // Only return resources that exactly match the requested class.
+      // Do NOT include null/empty class rows — those are unassigned resources.
+      where.OR = classVariants.map(c => ({ class: c }));
     }
+
     if (status) {
-      where.status = String(status);
+      const st = String(status).trim();
+      where.status = {
+        in: Array.from(new Set([st, st.toLowerCase(), st.toUpperCase(), "Active", "Approved", "ACTIVE", "APPROVED"]))
+      };
+    }
+
+    if (targetSchoolId) {
+      where.AND = [
+        {
+          OR: [
+            { schoolId: targetSchoolId },
+            { schoolId: null },
+            { schoolId: "" }
+          ]
+        }
+      ];
     }
 
     const resources = await prisma.academicResource.findMany({
@@ -147,24 +444,28 @@ router.get("/resources", async (req: Request, res: Response) => {
 // Create a resource
 router.post("/resources", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
+    await ensureAcademicTablesExist();
     const { 
       title, subjectId, category, type, url, meta, description, addedBy, isNew, popular, 
       class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
       medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
-      chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status 
+      chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status, schoolId 
     } = req.body;
     
     if (!title || !subjectId || !category || !type) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    const targetSchoolId = schoolId || req.user?.schoolId || null;
+
     const resource = await prisma.academicResource.create({
       data: {
         title, subjectId, category, type, url, meta, description, addedBy, isNew, popular, 
         class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
         medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
-        chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status
-      },
+        chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status,
+        schoolId: targetSchoolId
+      } as any,
       include: { subject: true },
     });
     res.status(201).json(resource);
@@ -177,13 +478,16 @@ router.post("/resources", requireMinRole("HEADMASTER"), async (req: Request, res
 // Update a resource
 router.put("/resources/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
   try {
+    await ensureAcademicTablesExist();
     const { id } = req.params;
     const { 
       title, subjectId, category, type, url, meta, description, addedBy, isNew, popular, 
       class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
       medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
-      chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status 
+      chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status, schoolId 
     } = req.body;
+
+    const targetSchoolId = schoolId || req.user?.schoolId || undefined;
 
     const resource = await prisma.academicResource.update({
       where: { id },
@@ -191,7 +495,8 @@ router.put("/resources/:id", requireMinRole("HEADMASTER"), async (req: Request, 
         title, subjectId, category, type, url, meta, description, addedBy, isNew, popular, 
         class: className, section, group, term, chapterNumber, topicName, learningOutcomes, 
         medium, bookVersion, publisher, language, coverImage, materialType, downloadAllowed, 
-        chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status
+        chapter, lessonTitle, youtubeUrl, videoDuration, thumbnail, contentType, author, isbn, status,
+        ...(targetSchoolId !== undefined ? { schoolId: targetSchoolId } : {})
       },
       include: { subject: true },
     });
