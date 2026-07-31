@@ -285,8 +285,9 @@ export default function MiddleSchoolDashboard() {
       {/* Daily timetable, homework, exams, attendance, announcements & AI suggestions */}
       <StudentDailyOverview 
         extraLeft={
-          <div className="glass rounded-3xl p-4 sm:p-6 fade-in-2 border border-slate-200 dark:border-slate-700/50 shadow-2xl relative overflow-hidden bg-white/80 dark:bg-slate-900/60 h-fit">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -z-10" />
+          <>
+            <div className="glass rounded-[2rem] p-5 sm:p-8 fade-in-2 border border-slate-200 dark:border-slate-700/50 shadow-xl relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl h-fit">
+            <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl -z-10" />
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
               <div>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
@@ -337,11 +338,50 @@ export default function MiddleSchoolDashboard() {
               })}
             </div>
           </div>
-        }
-        extraRight={
-          <>
-            {/* Today's Learning Progress Card */}
-            <div className="glass rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent">
+
+          {/* Recent Assessment Marks Card */}
+          <div className="glass rounded-[2rem] p-5 sm:p-8 border border-slate-200 dark:border-slate-700/50 shadow-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl text-left mt-6">
+            <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white mb-3 flex items-center gap-2">
+              <span>🎯</span> {lang === "தமிழ்" ? "சமீபத்திய மதிப்பீட்டு மதிப்பெண்கள்" : "Recent Assessment Marks"}
+            </h2>
+            {loadingMarks ? (
+              <div className="text-xs text-slate-500 py-4 text-center">{lang === "தமிழ்" ? "மதிப்பெண்கள் ஏற்றப்படுகின்றன..." : "Loading marks..."}</div>
+            ) : recentMarks.length > 0 ? (
+              <div className="space-y-3">
+                {recentMarks.map((m) => (
+                  <div key={m.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-150 dark:border-slate-800">
+                    <div>
+                      <div className="text-[10px] text-slate-500 font-bold uppercase">{m.subject}</div>
+                      <div className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                        {m.examType.replace("Assessment: ", "")}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-black text-indigo-600 dark:text-indigo-400 font-mono">
+                        {m.scored} / {m.maxMarks}
+                      </div>
+                      <div className="text-[9px] font-bold text-slate-400">
+                        {new Date(m.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-xs text-slate-505 dark:text-slate-500 italic">{lang === "தமிழ்" ? "இதுவரை எந்த மதிப்பீடும் முடிக்கப்படவில்லை." : "No assessments completed yet."}</p>
+                <Link href="/student/assessments" className="inline-block mt-3 text-xs font-bold text-indigo-650 dark:text-indigo-400 hover:underline">
+                  {lang === "தமிழ்" ? "உங்கள் முதல் தேர்வை எழுதுங்கள் →" : "Take your first test →"}
+                </Link>
+              </div>
+            )}
+          </div>
+        </>
+      }
+      extraRight={
+        <>
+          {/* Today's Learning Progress Card */}
+            <div className="glass rounded-[2rem] p-5 sm:p-8 border border-slate-200 dark:border-slate-700/50 shadow-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl">
               <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white mb-3 flex items-center gap-2">
                 <span>⏱️</span> {lang === "தமிழ்" ? "இன்றைய படிப்பு முன்னேற்றம்" : "Today's Study Progress"}
               </h2>
@@ -381,101 +421,71 @@ export default function MiddleSchoolDashboard() {
                 <div className="text-xs text-slate-500 py-4 text-center">{lang === "தமிழ்" ? "முன்னேற்றம் ஏற்றப்படுகிறது..." : "Loading progress..."}</div>
               )}
             </div>
-
-            {/* Recent Assessment Marks Card */}
-            <div className="glass rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent text-left">
-              <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white mb-3 flex items-center gap-2">
-                <span>🎯</span> {lang === "தமிழ்" ? "சமீபத்திய மதிப்பீட்டு மதிப்பெண்கள்" : "Recent Assessment Marks"}
-              </h2>
-              {loadingMarks ? (
-                <div className="text-xs text-slate-500 py-4 text-center">{lang === "தமிழ்" ? "மதிப்பெண்கள் ஏற்றப்படுகின்றன..." : "Loading marks..."}</div>
-              ) : recentMarks.length > 0 ? (
-                <div className="space-y-3">
-                  {recentMarks.map((m) => (
-                    <div key={m.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-150 dark:border-slate-800">
-                      <div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase">{m.subject}</div>
-                        <div className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-                          {m.examType.replace("Assessment: ", "")}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-black text-indigo-600 dark:text-indigo-400 font-mono">
-                          {m.scored} / {m.maxMarks}
-                        </div>
-                        <div className="text-[9px] font-bold text-slate-400">
-                          {new Date(m.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <p className="text-xs text-slate-505 dark:text-slate-500 italic">{lang === "தமிழ்" ? "இதுவரை எந்த மதிப்பீடும் முடிக்கப்படவில்லை." : "No assessments completed yet."}</p>
-                  <Link href="/student/assessments" className="inline-block mt-3 text-xs font-bold text-indigo-650 dark:text-indigo-400 hover:underline">
-                    {lang === "தமிழ்" ? "உங்கள் முதல் தேர்வை எழுதுங்கள் →" : "Take your first test →"}
-                  </Link>
-                </div>
-              )}
-            </div>
           </>
         }
       />
 
       {/* KPI Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8 fade-in">
         {kpis.map((kpi) => {
           const Icon = IconMap[kpi.icon] || Star;
           return (
-            <div key={kpi.label} className="kpi-card bg-gradient-to-b from-white to-slate-50 dark:from-slate-800/80 dark:to-slate-900/80 border-2 border-emerald-500/20 hover:border-emerald-500/50 transition-all flex flex-col justify-between p-4 sm:p-5 rounded-2xl">
-              <div className="flex items-center justify-between mb-3">
-                <Icon className={`w-6 h-6 sm:w-8 sm:h-8 ${kpi.color}`} />
-                <span className={`text-[10px] sm:text-xs font-bold ${kpi.color}`}>{kpi.sub}</span>
+            <div key={kpi.label} className="group glass bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-700/50 hover:border-emerald-500/50 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between p-6 rounded-[2rem] relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl -z-10 group-hover:bg-emerald-500/15 transition-all" />
+              <div className="flex items-center justify-between mb-5">
+                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700 shadow-sm group-hover:scale-110 transition-transform">
+                  <Icon className={`w-6 h-6 ${kpi.color}`} />
+                </div>
+                <span className={`text-[10px] sm:text-[11px] font-black px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm ${kpi.color}`}>{kpi.sub}</span>
               </div>
               <div>
-                <div className={`text-2xl sm:text-3xl md:text-4xl font-extrabold ${kpi.color} mb-1 drop-shadow-md`}>{kpi.value}</div>
-                <div className="text-xs sm:text-sm font-semibold text-black dark:text-white">{kpi.label}</div>
+                <div className={`text-3xl sm:text-4xl font-black text-slate-800 dark:text-white mb-1.5 tracking-tight`}>{kpi.value}</div>
+                <div className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400">{kpi.label}</div>
               </div>
             </div>
           );
         })}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 items-stretch">
         {/* Recent Notifications */}
-        <div className="glass rounded-3xl p-4 sm:p-6 fade-in-3 flex flex-col border border-slate-200 dark:border-slate-700/50 shadow-2xl bg-gradient-to-b from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 text-left h-full">
-          <div className="flex items-center gap-3 mb-4">
-            <Megaphone className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500 animate-pulse" />
-            <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white">{lang === "தமிழ்" ? "சமீபத்திய அறிவிப்புகள்" : "Recent Notifications"}</h2>
+        <div className="glass rounded-[2rem] p-6 sm:p-8 fade-in-3 flex flex-col border border-indigo-200/50 dark:border-indigo-700/30 shadow-xl bg-gradient-to-br from-indigo-50/50 to-white dark:from-indigo-900/10 dark:to-slate-900/40 backdrop-blur-xl text-left h-full hover:shadow-2xl transition-all">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="p-3 bg-indigo-100 dark:bg-indigo-500/20 rounded-2xl text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-200 dark:border-indigo-500/30">
+              <Megaphone className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
+            </div>
+            <h2 className="text-lg sm:text-xl font-black text-slate-800 dark:text-white tracking-tight">{lang === "தமிழ்" ? "சமீபத்திய அறிவிப்புகள்" : "Recent Notifications"}</h2>
           </div>
           <div className="flex-1 space-y-3">
             {loadingNotifications ? (
-              <div className="text-center py-8 text-xs sm:text-sm text-slate-500">{lang === "தமிழ்" ? "அறிவிப்புகள் ஏற்றப்படுகின்றன..." : "Loading notifications..."}</div>
+              <div className="text-center py-8 text-xs sm:text-sm text-slate-500 font-bold">{lang === "தமிழ்" ? "அறிவிப்புகள் ஏற்றப்படுகின்றன..." : "Loading notifications..."}</div>
             ) : notifications.length > 0 ? (
               notifications.map((n) => (
-                <div key={n.id} className="p-3 bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-700/50 hover:shadow-md transition-shadow">
-                  <div className="text-[11px] sm:text-xs text-black dark:text-slate-200 font-medium leading-relaxed">{n.message}</div>
-                  <div className="text-[9px] sm:text-[10px] text-slate-400 mt-2 font-semibold">
+                <div key={n.id} className="p-4 bg-white/80 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-100 dark:border-slate-700/50 hover:border-indigo-200 dark:hover:border-indigo-700/50 hover:shadow-md transition-all">
+                  <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 font-bold leading-relaxed">{n.message}</div>
+                  <div className="text-[10px] sm:text-xs text-slate-400 mt-2 font-semibold">
                     {new Date(n.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-center py-8 text-xs sm:text-sm text-slate-500">{lang === "தமிழ்" ? "புதிய அறிவிப்புகள் இல்லை." : "No new notifications."}</div>
+              <div className="text-center py-8 text-xs sm:text-sm text-slate-500 font-bold">{lang === "தமிழ்" ? "புதிய அறிவிப்புகள் இல்லை." : "No new notifications."}</div>
             )}
           </div>
         </div>
 
         {/* My Health Report */}
-        <Link href="/student/health" className="glass rounded-3xl p-4 sm:p-6 border border-rose-200 dark:border-rose-700/50 bg-gradient-to-br from-rose-50 to-white dark:from-rose-950/10 dark:to-transparent text-left hover:-translate-y-1 transition-transform shadow-lg cursor-pointer h-full flex flex-col justify-center">
-          <div className="flex flex-col items-center text-center gap-3">
-            <span className="text-4xl mb-2">❤️</span>
+        <Link href="/student/health" className="glass rounded-[2rem] p-6 sm:p-8 border border-rose-200/50 dark:border-rose-700/30 shadow-xl bg-gradient-to-br from-rose-50/50 to-white dark:from-rose-950/10 dark:to-slate-900/40 backdrop-blur-xl text-left hover:-translate-y-1.5 hover:shadow-2xl transition-all cursor-pointer h-full flex flex-col justify-center group relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl -z-10 group-hover:bg-rose-500/20 transition-all" />
+          <div className="flex flex-col items-center text-center gap-4">
+            <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-[2rem] flex items-center justify-center text-3xl shadow-sm border border-rose-100 dark:border-rose-900/50 group-hover:scale-110 group-hover:rotate-3 transition-transform">
+              ❤️
+            </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white mb-2">
-                {lang === "தமிழ்" ? "எனது சுகாதார அறிக்கை" : "My Health Report"}
+              <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">
+                {lang === "தமிழ்" ? "சுகாதார அறிக்கை" : "My Health Report"}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium leading-relaxed max-w-xs mx-auto">
                 {lang === "தமிழ்" ? "உங்கள் உடலமைப்பு அளவீடுகள், உயரம்/எடை வரைபடங்கள் மற்றும் நல்வாழ்வுப் பதிவுகளைச் சரிபார்க்கவும்." : "Check your physical health metrics, height/weight charts, and wellness logs."}
               </p>
             </div>
@@ -483,14 +493,17 @@ export default function MiddleSchoolDashboard() {
         </Link>
 
         {/* My Leave History */}
-        <Link href="/student/leave" className="glass rounded-3xl p-4 sm:p-6 border border-sky-200 dark:border-sky-700/50 bg-gradient-to-br from-sky-50 to-white dark:from-sky-950/10 dark:to-transparent text-left hover:-translate-y-1 transition-transform shadow-lg cursor-pointer h-full flex flex-col justify-center">
-          <div className="flex flex-col items-center text-center gap-3">
-            <span className="text-4xl mb-2">📅</span>
+        <Link href="/student/leave" className="glass rounded-[2rem] p-6 sm:p-8 border border-sky-200/50 dark:border-sky-700/30 shadow-xl bg-gradient-to-br from-sky-50/50 to-white dark:from-sky-950/10 dark:to-slate-900/40 backdrop-blur-xl text-left hover:-translate-y-1.5 hover:shadow-2xl transition-all cursor-pointer h-full flex flex-col justify-center group relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl -z-10 group-hover:bg-sky-500/20 transition-all" />
+          <div className="flex flex-col items-center text-center gap-4">
+            <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-[2rem] flex items-center justify-center text-3xl shadow-sm border border-sky-100 dark:border-sky-900/50 group-hover:scale-110 group-hover:-rotate-3 transition-transform">
+              📅
+            </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white mb-2">
-                {lang === "தமிழ்" ? "எனது விடுப்பு வரலாறு" : "My Leave History"}
+              <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">
+                {lang === "தமிழ்" ? "விடுப்பு வரலாறு" : "My Leave History"}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium leading-relaxed max-w-xs mx-auto">
                 {lang === "தமிழ்" ? "புதிய விடுப்பு விண்ணப்பங்களைச் சமர்ப்பிக்கவும், நிலையைச் சரிபார்க்கவும்." : "Submit new leave requests, check status of submissions, and view school calendar logs."}
               </p>
             </div>
@@ -499,11 +512,11 @@ export default function MiddleSchoolDashboard() {
       </div>
 
       {/* Earned Badges Section */}
-      <div className="glass rounded-3xl p-4 sm:p-6 fade-in-4 border border-slate-200 dark:border-slate-700/50 shadow-2xl bg-white dark:bg-transparent relative overflow-hidden mb-6">
+      <div className="glass rounded-[2rem] p-6 sm:p-8 fade-in-4 border border-slate-200 dark:border-slate-700/50 shadow-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl relative overflow-hidden mb-6">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -z-10" />
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white flex items-center gap-2">
-            <Award className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500" /> {lang === "தமிழ்" ? "நான் பெற்ற பேட்ஜ்கள்" : "My Earned Badges"}
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 tracking-tight">
+            <Award className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-500" /> {lang === "தமிழ்" ? "நான் பெற்ற பேட்ஜ்கள்" : "My Earned Badges"}
           </h2>
           <Link href="/student/middle-school/badges" className="text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-500/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl">
             {lang === "தமிழ்" ? "கோப்பை அறையைப் பார்" : "View Trophy Room"}
