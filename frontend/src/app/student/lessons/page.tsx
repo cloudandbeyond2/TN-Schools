@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
@@ -23,6 +24,25 @@ interface Lesson {
     infographic?: any;
   };
 }
+
+const getHeroIcon = (iconName: string | undefined | null, subject: string): string => {
+  const name = (iconName || "").toLowerCase().trim();
+  if (name === "🧲" || name.includes("magnet")) return "fi-sr-magnet";
+  if (name.includes("⚛") || name.includes("atom") || name.includes("physics")) return "fi-sr-flask";
+  if (name === "🧪" || name.includes("chemistry") || name.includes("flask")) return "fi-sr-flask";
+  if (name === "🧬" || name.includes("biology") || name.includes("dna")) return "fi-sr-dna";
+  if (name === "🌱" || name.includes("plant") || name.includes("leaf")) return "fi-sr-leaf";
+  if (name === "🔋" || name.includes("battery") || name.includes("electricity")) return "fi-sr-bolt";
+  
+  // Fallback by subject
+  const sub = subject.toLowerCase().trim();
+  if (sub.includes("tamil")) return "fi-sr-scroll";
+  if (sub.includes("english")) return "fi-sr-book";
+  if (sub.includes("math")) return "fi-sr-ruler-triangle";
+  if (sub.includes("science")) return "fi-sr-flask";
+  if (sub.includes("social")) return "fi-sr-globe";
+  return "fi-sr-book";
+};
 
 export default function StudentLessonsPage() {
   const { data: session, status } = useSession();
@@ -124,24 +144,41 @@ export default function StudentLessonsPage() {
       {active ? (
         <div className="space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 flex-wrap">
-            <button onClick={() => setActive(null)} className="text-sm font-bold text-slate-500 hover:text-indigo-600 flex items-center gap-1">← All lessons</button>
+            <button onClick={() => setActive(null)} className="text-sm font-bold text-slate-500 hover:text-indigo-650 flex items-center gap-1.5">
+              <i className="fi fi-sr-arrow-left flex items-center text-xs" />
+              All lessons
+            </button>
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex bg-slate-100 dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-800">
                 {(["en", "ta"] as const).map((l) => (
-                  <button key={l} onClick={() => setLang(l)} className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-white shadow-sm" : "text-slate-500"}`}>
+                  <button key={l} onClick={() => setLang(l)} className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${lang === l ? "bg-white dark:bg-slate-800 text-indigo-650 dark:text-white shadow-sm" : "text-slate-500"}`}>
                     {l === "en" ? "English" : "தமிழ்"}
                   </button>
                 ))}
               </div>
-              <button onClick={() => { setPresentIndex(0); setPresenting(true); }} className="px-3 py-2 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-700">🖥️ Present</button>
-              <button onClick={handleDownload} disabled={downloading} className="px-3 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60">{downloading ? "Saving…" : "⬇️ JPG"}</button>
+              <button onClick={() => { setPresentIndex(0); setPresenting(true); }} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-700">
+                <i className="fi fi-sr-screen flex items-center text-xs" />
+                Present
+              </button>
+              <button onClick={handleDownload} disabled={downloading} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60">
+                {downloading ? (
+                  "Saving…"
+                ) : (
+                  <>
+                    <i className="fi fi-sr-download flex items-center text-xs" />
+                    JPG
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
           <div ref={captureRef} className="bg-white rounded-3xl p-5 sm:p-6 xl:p-8 space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4 pb-4 border-b border-slate-100">
-              <div className="text-5xl">{active.planData?.infographic?.heroIcon || "📚"}</div>
+              <div className="text-5xl text-indigo-600">
+                <i className={`fi ${getHeroIcon(active.planData?.infographic?.heroIcon, active.subject)} text-5xl flex items-center`} />
+              </div>
               <div>
                 <h1 className="text-2xl xl:text-3xl font-black text-slate-900">{active.topic}</h1>
                 <p className="text-sm text-slate-500 font-semibold">{active.grade} • {active.subject}</p>
@@ -151,7 +188,10 @@ export default function StudentLessonsPage() {
             {/* Key points */}
             {presentPoints.length > 0 && (
               <div>
-                <h3 className="text-sm font-black text-emerald-600 uppercase tracking-widest mb-3 flex items-center gap-2">🎯 Key Points to Remember</h3>
+                <h3 className="text-sm font-black text-emerald-650 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <i className="fi fi-sr-target text-base flex items-center" />
+                  Key Points to Remember
+                </h3>
                 <ul className="grid grid-cols-1 xl:grid-cols-2 gap-3">
                   {presentPoints.map((pt, i) => (
                     <li key={i} className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-sm text-slate-800 flex gap-3">
@@ -166,7 +206,10 @@ export default function StudentLessonsPage() {
             {/* Objectives */}
             {active.planData?.objectives && active.planData.objectives.length > 0 && (
               <div>
-                <h3 className="text-sm font-black text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-2">📋 What You'll Learn</h3>
+                <h3 className="text-sm font-black text-indigo-650 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <i className="fi fi-sr-clipboard-list text-base flex items-center" />
+                  What You'll Learn
+                </h3>
                 <ul className="space-y-2">
                   {active.planData.objectives.map((o, i) => (
                     <li key={i} className="p-3 rounded-xl bg-indigo-50 border border-indigo-100 text-sm text-slate-800 flex gap-2">
@@ -180,7 +223,10 @@ export default function StudentLessonsPage() {
             {/* Bilingual key terms */}
             {active.planData?.bilingual && active.planData.bilingual.length > 0 && (
               <div>
-                <h3 className="text-sm font-black text-violet-600 uppercase tracking-widest mb-3 flex items-center gap-2">🌐 Key Terms</h3>
+                <h3 className="text-sm font-black text-violet-605 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <i className="fi fi-sr-globe text-base flex items-center" />
+                  Key Terms
+                </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
                   {active.planData.bilingual.map((t, i) => (
                     <div key={i} className="p-3 rounded-xl bg-violet-50 border border-violet-100">
@@ -196,7 +242,10 @@ export default function StudentLessonsPage() {
             {/* Infographic */}
             {active.planData?.infographic && (
               <div>
-                <h3 className="text-sm font-black text-slate-600 uppercase tracking-widest mb-3 flex items-center gap-2">📊 Concept Infographic</h3>
+                <h3 className="text-sm font-black text-slate-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <i className="fi fi-sr-stats text-base flex items-center" />
+                  Concept Infographic
+                </h3>
                 <div className="rounded-2xl overflow-hidden border border-slate-100">
                   <InteractiveInfographic topic={active.topic} subject={active.subject} data={active.planData.infographic} />
                 </div>
@@ -211,10 +260,16 @@ export default function StudentLessonsPage() {
         <>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 glass rounded-3xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50">
             <div>
-              <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1">Published Lessons</h2>
+              <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
+                <i className="fi fi-sr-chalkboard-user text-indigo-600 dark:text-indigo-400 flex items-center" />
+                Published Lessons
+              </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">Focused key points &amp; infographics from your teacher.</p>
             </div>
-            <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20">Class {studentClass}</span>
+            <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20">
+              <i className="fi fi-sr-graduation-cap flex items-center text-sm" />
+              Class {studentClass}
+            </span>
           </div>
 
           {subjects.length > 1 && (
@@ -232,7 +287,7 @@ export default function StudentLessonsPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center p-12 glass rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30">
-              <span className="text-5xl block mb-4">🕓</span>
+              <i className="fi fi-sr-time-past text-5xl text-slate-350 dark:text-slate-655 block mb-4 mx-auto w-fit" />
               <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No lessons published yet.</p>
               <p className="text-xs text-slate-500 mt-2">Your teacher hasn't shared any AI lessons for your class yet.</p>
             </div>
@@ -245,8 +300,8 @@ export default function StudentLessonsPage() {
                     onClick={() => { setActive(l); setLang("en"); }}
                     className="text-left rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 bg-white dark:bg-slate-950/40 group"
                   >
-                    <div className="h-28 flex items-center justify-center text-5xl bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30 group-hover:scale-105 transition-transform">
-                      {l.planData?.infographic?.heroIcon || "📚"}
+                    <div className="h-28 flex items-center justify-center bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30 group-hover:scale-105 transition-transform">
+                      <i className={`fi ${getHeroIcon(l.planData?.infographic?.heroIcon, l.subject)} text-5xl text-indigo-600 dark:text-indigo-400 flex items-center`} />
                     </div>
                     <div className="p-4">
                       <div className="flex gap-2 mb-1.5">
@@ -308,8 +363,8 @@ export default function StudentLessonsPage() {
           <div className="flex-1 flex items-center justify-center px-6 xl:px-20 overflow-hidden relative z-10">
             {presentIndex === 0 ? (
               <div className="text-center animate-in fade-in zoom-in duration-500 max-w-5xl">
-                <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-indigo-50 text-6xl mb-8 shadow-inner border border-indigo-100">
-                  {active.planData?.infographic?.heroIcon || "📚"}
+                <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-indigo-50 text-indigo-600 mb-8 shadow-inner border border-indigo-100">
+                  <i className={`fi ${getHeroIcon(active.planData?.infographic?.heroIcon, active.subject)} text-5xl flex items-center`} />
                 </div>
                 <h1 className="text-5xl xl:text-7xl font-black text-slate-900 mb-6 leading-tight tracking-tight drop-shadow-sm">{active.topic}</h1>
                 <p className="text-slate-500 text-xl xl:text-2xl font-semibold tracking-wide uppercase">{active.grade} • {active.subject}</p>

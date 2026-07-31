@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
@@ -36,7 +37,19 @@ interface UnitInfo {
 
 type Lang = "en" | "ta";
 
-/* ─── Page ───────────────────────────────────────────────────────────────── */
+const getSubjectIcon = (name: string): string => {
+  const normalized = name.toLowerCase().trim();
+  if (normalized.includes("tamil")) return "fi-sr-scroll";
+  if (normalized.includes("english")) return "fi-sr-book";
+  if (normalized.includes("math")) return "fi-sr-ruler-triangle";
+  if (normalized.includes("science") && !normalized.includes("social")) return "fi-sr-flask";
+  if (normalized.includes("social")) return "fi-sr-globe";
+  if (normalized.includes("physics")) return "fi-sr-atom";
+  if (normalized.includes("chemistry")) return "fi-sr-flask";
+  if (normalized.includes("biology")) return "fi-sr-dna";
+  if (normalized.includes("computer")) return "fi-sr-laptop";
+  return "fi-sr-book"; // fallback
+};
 
 export default function StudentUnitDetailPage() {
   const params = useParams();
@@ -131,9 +144,9 @@ export default function StudentUnitDetailPage() {
     >
       <Link
         href="/student/syllabus-board"
-        className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-black dark:hover:text-white mb-6 transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-black dark:hover:text-white mb-6 transition-colors"
       >
-        ← Back to Syllabus Board
+        <i className="fi fi-sr-arrow-left flex items-center text-xs" /> Back to Syllabus Board
       </Link>
 
       {/* Loading */}
@@ -194,11 +207,7 @@ export default function StudentUnitDetailPage() {
                 </>
               ) : (
                 <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
+                  <i className="fi fi-sr-download flex items-center text-sm" />
                   {lang === "en" ? "Download JPG" : "JPG பதிவிறக்கம்"}
                 </>
               )}
@@ -226,10 +235,13 @@ export default function StudentUnitDetailPage() {
                 )}
                 <div className="flex-1 min-w-0">
                   <span
-                    className="inline-block text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-lg border mb-3"
+                    className="inline-flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-lg border mb-3"
                     style={{ background: `${accent}18`, borderColor: `${accent}44`, color: accent }}
                   >
-                    {unit.subject.icon || "📚"} {unit.subject.name} · Class {unit.subject.class} · Unit {unit.unitNumber}
+                    <i className={`fi ${getSubjectIcon(unit.subject.name)} text-xs flex items-center`} />
+                    <span>
+                      {unit.subject.name} · Class {unit.subject.class} · Unit {unit.unitNumber}
+                    </span>
                   </span>
                   <h2 className="text-2xl font-black text-black dark:text-white mb-2 leading-tight">
                     {unit.name}
@@ -246,7 +258,7 @@ export default function StudentUnitDetailPage() {
             {/* Content sections */}
             {!currentLangDetail ? (
               <div className="text-center p-14 border border-dashed border-slate-300 dark:border-slate-700 rounded-3xl mt-6">
-                <span className="text-4xl block mb-3">📝</span>
+                <i className="fi fi-sr-document text-4xl text-slate-350 dark:text-slate-600 block mb-3 mx-auto" />
                 <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
                   {lang === "ta"
                     ? "இந்த அலகிற்கு தமிழ் உள்ளடக்கம் இன்னும் கிடைக்கவில்லை."
@@ -258,7 +270,7 @@ export default function StudentUnitDetailPage() {
                 {/* Key Points */}
                 {currentLangDetail.studentKeyPoints?.length > 0 && (
                   <SectionCard
-                    emoji="🎯"
+                    iconClass="fi-sr-target"
                     title={lang === "en" ? "Key Points to Remember" : "நினைவில் கொள்ள வேண்டிய குறிப்புகள்"}
                     subtitle={lang === "en" ? "The most important takeaways from this unit" : "இந்த அலகின் மிக முக்கியமான குறிப்புகள்"}
                     gradientFrom={accent}
@@ -280,7 +292,7 @@ export default function StudentUnitDetailPage() {
                 {/* Real-life Connections */}
                 {currentLangDetail.realLifeConnections?.length > 0 && (
                   <SectionCard
-                    emoji="🌍"
+                    iconClass="fi-sr-globe"
                     title={lang === "en" ? "Where You'll See This in Real Life" : "நிஜ வாழ்க்கையில் எங்கு காண்பீர்கள்"}
                     subtitle={lang === "en" ? "Everyday examples that connect to this topic" : "இந்த தலைப்புடன் இணையும் அன்றாட எடுத்துக்காட்டுகள்"}
                     gradientFrom="#10b981"
@@ -302,7 +314,7 @@ export default function StudentUnitDetailPage() {
                 {currentLangDetail.commonMisconceptions?.length > 0 && (
                   <div className="lg:col-span-2">
                     <SectionCard
-                      emoji="🤔"
+                      iconClass="fi-sr-comment-alt-question"
                       title={lang === "en" ? "Think About It..." : "சிந்தியுங்கள்..."}
                       subtitle={lang === "en" ? "Common questions and ideas to explore further" : "மேலும் ஆராய வேண்டிய பொதுவான கேள்விகள்"}
                       gradientFrom="#f59e0b"
@@ -311,7 +323,7 @@ export default function StudentUnitDetailPage() {
                         {currentLangDetail.commonMisconceptions.map((p, i) => (
                           <div
                             key={i}
-                            className="text-[13px] text-slate-700 dark:text-slate-300 leading-relaxed border border-amber-300/40 bg-amber-50/50 dark:bg-amber-950/10 rounded-xl p-3.5"
+                            className="text-[13px] text-slate-700 dark:text-slate-300 leading-relaxed border border-amber-300/40 bg-amber-50/50 dark:bg-amber-955/10 rounded-xl p-3.5"
                           >
                             {p}
                           </div>
@@ -325,14 +337,14 @@ export default function StudentUnitDetailPage() {
                 {currentLangDetail.keyConcepts && currentLangDetail.keyConcepts.length > 0 && (
                   <div className="lg:col-span-2">
                     <SectionCard
-                      emoji="🧠"
-                      title={lang === "en" ? "Key Concepts" : "முக்கிய கருத்துகள்"}
+                      iconClass="fi-sr-brain"
+                      title={lang === "en" ? "Key Concepts" : "முคัญ கருத்துகள்"}
                       subtitle={lang === "en" ? "Core ideas to understand in this unit" : "இந்த அலகில் புரிந்துகொள்ள வேண்டிய அடிப்படை கருத்துகள்"}
                       gradientFrom="#8b5cf6"
                     >
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         {currentLangDetail.keyConcepts.map((p, i) => (
-                          <div key={i} className="flex items-start gap-2.5 text-[13px] text-slate-700 dark:text-slate-300 leading-relaxed bg-violet-50/50 dark:bg-violet-950/10 rounded-xl p-3 border border-violet-200/30 dark:border-violet-800/20">
+                          <div key={i} className="flex items-start gap-2.5 text-[13px] text-slate-700 dark:text-slate-300 leading-relaxed bg-violet-50/50 dark:bg-violet-955/10 rounded-xl p-3 border border-violet-200/30 dark:border-violet-800/20">
                             <span className="mt-0.5 text-violet-500 font-bold text-xs">{i + 1}.</span>
                             {p}
                           </div>
@@ -345,7 +357,7 @@ export default function StudentUnitDetailPage() {
             )}
 
             {/* Footer watermark for download */}
-            <div className="flex items-center justify-between px-6 py-4 mt-4 text-[10px] text-slate-400 border-t border-slate-100">
+            <div className="flex items-center justify-between px-6 py-4 mt-4 text-[10px] text-slate-450 border-t border-slate-100">
               <span>TN Schools AI Education Platform</span>
               <span>{unit.subject.name} · Class {unit.subject.class} · Unit {unit.unitNumber}: {unit.name}</span>
             </div>
@@ -359,13 +371,13 @@ export default function StudentUnitDetailPage() {
 /* ─── SectionCard ────────────────────────────────────────────────────────── */
 
 function SectionCard({
-  emoji,
+  iconClass,
   title,
   subtitle,
   gradientFrom,
   children,
 }: {
-  emoji: string;
+  iconClass: string;
   title: string;
   subtitle: string;
   gradientFrom: string;
@@ -378,10 +390,10 @@ function SectionCard({
         style={{ background: `linear-gradient(90deg, ${gradientFrom}, ${gradientFrom}55)` }}
       />
       <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center text-lg mb-3 shadow-sm"
+        className="w-9 h-9 rounded-xl flex items-center justify-center mb-3 shadow-sm"
         style={{ background: `${gradientFrom}18`, border: `1px solid ${gradientFrom}33` }}
       >
-        {emoji}
+        <i className={`fi ${iconClass} flex items-center text-sm`} style={{ color: gradientFrom }} />
       </div>
       <h3 className="text-sm font-black text-black dark:text-white mb-0.5">{title}</h3>
       <p className="text-[11px] text-slate-500 mb-4">{subtitle}</p>
