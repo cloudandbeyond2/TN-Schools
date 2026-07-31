@@ -389,7 +389,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
       { label: "Academic Progress", href: "/student/progress", icon: "BarChart2" },
-      { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
+      // { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
       // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
 
