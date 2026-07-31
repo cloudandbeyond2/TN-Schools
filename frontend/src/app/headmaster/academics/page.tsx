@@ -28,6 +28,33 @@ const Fi = ({ name, className = "", style = {} }: { name: string; className?: st
   <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} style={style} />
 );
 
+const SYLLABUS_CLASSES = [
+  { id: "6", name: "Class 6", badge: "SSLC" },
+  { id: "7", name: "Class 7", badge: "SSLC" },
+  { id: "8", name: "Class 8", badge: "SSLC" },
+  { id: "9", name: "Class 9", badge: "SSLC" },
+  { id: "10", name: "Class 10", badge: "SSLC" },
+  { id: "11", name: "Class 11", badge: "HSC" },
+  { id: "12", name: "Class 12", badge: "HSC" },
+];
+
+const getSubjectIcon = (name: string) => {
+  if (!name) return "📚";
+  const n = name.toLowerCase();
+  if (n.includes("tamil")) return "📜";
+  if (n.includes("english")) return "🗣️";
+  if (n.includes("math")) return "📐";
+  if (n.includes("science") && !n.includes("social")) return "🔬";
+  if (n.includes("social")) return "🌍";
+  if (n.includes("physics")) return "⚡";
+  if (n.includes("chem")) return "🧪";
+  if (n.includes("bio")) return "🧬";
+  if (n.includes("computer")) return "💻";
+  if (n.includes("commerce") || n.includes("account")) return "💼";
+  if (n.includes("economic")) return "📈";
+  return "📚";
+};
+
 interface Subject {
   id: string;
   name: string;
@@ -197,6 +224,201 @@ export default function HeadmasterAcademicsPage() {
   const [customSubjectInput, setCustomSubjectInput] = useState("");
   const [subjectSearchQuery, setSubjectSearchQuery] = useState("");
 
+  // Syllabus Management Dedicated States
+  const [syllabusClass, setSyllabusClass] = useState<string>("7");
+  const [selectedSyllabusSubject, setSelectedSyllabusSubject] = useState<string>("Tamil");
+  const [syllabusSearchQuery, setSyllabusSearchQuery] = useState<string>("");
+
+  // Dedicated Chapter Modal States
+  const [chapterModal, setChapterModal] = useState<{
+    isOpen: boolean;
+    editId?: string | null;
+  }>({ isOpen: false, editId: null });
+
+  const [chapterForm, setChapterForm] = useState({
+    title: "",
+    numberOfTopics: "",
+    chapterNumber: "",
+    term: ""
+  });
+
+  const [savingChapter, setSavingChapter] = useState(false);
+
+  const openAddChapterModal = () => {
+    setChapterForm({
+      title: "",
+      numberOfTopics: "",
+      chapterNumber: String(syllabusChapters.length + 1),
+      term: ""
+    });
+    setChapterModal({ isOpen: true, editId: null });
+  };
+
+  const openEditChapterModal = (ch: any) => {
+    const topicVal = ch.topicName?.match(/\d+/)?.[0] || ch.topicName || "5";
+    setChapterForm({
+      title: ch.chapter || ch.title || "",
+      numberOfTopics: topicVal,
+      chapterNumber: ch.chapterNumber || "",
+      term: ch.term || "Term 1"
+    });
+    setChapterModal({ isOpen: true, editId: ch.id });
+  };
+
+  const handleSaveChapter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chapterForm.title.trim()) return;
+
+    setSavingChapter(true);
+    try {
+      const targetSub = subjects.find(s => s.name.toLowerCase() === selectedSyllabusSubject.toLowerCase());
+      const isEdit = Boolean(chapterModal.editId);
+      const endpoint = isEdit ? `${API_BASE}/resources/${chapterModal.editId}` : `${API_BASE}/resources`;
+      const method = isEdit ? "PUT" : "POST";
+
+      const payload = {
+        title: chapterForm.title.trim(),
+        chapter: chapterForm.title.trim(),
+        subjectId: targetSub?.id || (subjects.length > 0 ? subjects[0].id : ""),
+        category: "syllabus",
+        type: "PDF",
+        class: syllabusClass,
+        topicName: `${chapterForm.numberOfTopics} Topics`,
+        chapterNumber: chapterForm.chapterNumber || String(syllabusChapters.length + 1),
+        term: chapterForm.term || "Term 1",
+        status: "Active",
+        schoolId: userSchoolId || undefined
+      };
+
+      const res = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || `Failed to ${isEdit ? "update" : "save"} chapter`);
+      }
+
+      Swal.fire({
+        title: isEdit ? "Chapter Updated!" : "Chapter Added!",
+        text: `Chapter "${chapterForm.title.trim()}" saved directly to PostgreSQL!`,
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false
+      });
+
+      setChapterModal({ isOpen: false, editId: null });
+      fetchResources();
+    } catch (err: any) {
+      Swal.fire({
+        title: "Error!",
+        text: err.message || "Failed to save chapter.",
+        icon: "error"
+      });
+    } finally {
+      setSavingChapter(false);
+    }
+  };
+
+  const dynamicSyllabusClasses = useMemo(() => {
+    if (classes.length > 0) {
+      return classes.map(c => {
+        const cleanVal = String(c.name).replace(/^Class\s+/i, '').trim();
+        const badgeStr = parseInt(cleanVal) >= 11 ? "HSC" : "SSLC";
+        return {
+          id: cleanVal,
+          name: c.name.startsWith("Class") ? c.name : `Class ${c.name}`,
+          badge: badgeStr
+        };
+      });
+    }
+    return SYLLABUS_CLASSES;
+  }, [classes]);
+
+  const syllabusSubjectsForClass = useMemo(() => {
+    const cleanSyllabusClass = String(syllabusClass).replace(/^Class\s+/i, '').trim();
+
+    const dbSubs = subjects.filter(s => {
+      if (!s.class) return false;
+      const cVal = String(s.class).replace(/^Class\s+/i, '').trim();
+      return cVal === cleanSyllabusClass || String(s.class).trim() === cleanSyllabusClass;
+    });
+
+    const namesFromDb = Array.from(new Set(dbSubs.map(s => s.name).filter(Boolean)));
+
+    if (namesFromDb.length > 0) {
+      return namesFromDb.map(name => {
+        const matched = dbSubs.find(s => s.name.toLowerCase() === name.toLowerCase());
+        return {
+          id: matched?.id || name,
+          name: name,
+          icon: matched?.icon || getSubjectIcon(name),
+          color: matched?.color || "#6366f1"
+        };
+      });
+    }
+
+    const defaultCore = parseInt(cleanSyllabusClass) >= 11
+      ? ["Tamil", "English", "Mathematics", "Physics", "Chemistry", "Biology"]
+      : ["Tamil", "English", "Mathematics", "Science", "Social Science"];
+
+    return defaultCore.map(name => ({
+      id: name,
+      name: name,
+      icon: getSubjectIcon(name),
+      color: "#6366f1"
+    }));
+  }, [subjects, syllabusClass]);
+
+  useEffect(() => {
+    if (syllabusSubjectsForClass.length > 0) {
+      const exists = syllabusSubjectsForClass.some(s => s.name.toLowerCase() === selectedSyllabusSubject.toLowerCase());
+      if (!exists) {
+        setSelectedSyllabusSubject(syllabusSubjectsForClass[0].name);
+      }
+    }
+  }, [syllabusClass, syllabusSubjectsForClass]);
+
+  const syllabusChapters = useMemo(() => {
+    return resources.filter(res => {
+      const isSyllabus = res.category === "syllabus";
+      if (!isSyllabus) return false;
+
+      const resClass = res.class ? String(res.class).replace(/^Class\s+/i, '') : "";
+      const matchClass = !resClass || resClass === syllabusClass;
+
+      const resSub = subjects.find(s => s.id === res.subjectId);
+      const subName = resSub?.name || res.title || "";
+      const matchSubject = !selectedSyllabusSubject || subName.toLowerCase() === selectedSyllabusSubject.toLowerCase() || res.title.toLowerCase().includes(selectedSyllabusSubject.toLowerCase());
+
+      const matchSearch = syllabusSearchQuery.trim()
+        ? (res.title.toLowerCase().includes(syllabusSearchQuery.toLowerCase()) ||
+           (res.chapter && res.chapter.toLowerCase().includes(syllabusSearchQuery.toLowerCase())) ||
+           (res.topicName && res.topicName.toLowerCase().includes(syllabusSearchQuery.toLowerCase())))
+        : true;
+
+      return matchClass && matchSubject && matchSearch;
+    });
+  }, [resources, subjects, syllabusClass, selectedSyllabusSubject, syllabusSearchQuery]);
+
+  const getSubjectStats = (subName: string) => {
+    const items = resources.filter(res => {
+      const isSyllabus = res.category === "syllabus";
+      const resClass = res.class ? String(res.class).replace(/^Class\s+/i, '') : "";
+      const matchClass = !resClass || resClass === syllabusClass;
+      const resSub = subjects.find(s => s.id === res.subjectId);
+      const sName = resSub?.name || "";
+      const matchSub = sName.toLowerCase() === subName.toLowerCase() || res.title.toLowerCase().includes(subName.toLowerCase());
+      return isSyllabus && matchClass && matchSub;
+    });
+
+    const total = items.length;
+    const aiCount = items.filter(r => r.meta && r.meta.toLowerCase().includes("ai")).length;
+    return { total, aiCount };
+  };
+
   const allMasterSubjects = useMemo(() => {
     const dbNames = subjects.map(s => s.name);
     return Array.from(new Set([...dbNames, ...selectedSubjectNames])).filter(Boolean).sort();
@@ -225,7 +447,16 @@ export default function HeadmasterAcademicsPage() {
   const fetchClasses = async () => {
     try {
       const res = await fetch(`${API_BASE}/classes?_t=${Date.now()}`);
-      if (res.ok) setClasses(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        // Sort numerically by the number in the class name (e.g. "Class 6" → 6)
+        data.sort((a: ClassItem, b: ClassItem) => {
+          const numA = parseInt(a.name.replace(/\D/g, "")) || 0;
+          const numB = parseInt(b.name.replace(/\D/g, "")) || 0;
+          return numA - numB;
+        });
+        setClasses(data);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -900,6 +1131,7 @@ export default function HeadmasterAcademicsPage() {
         </div>
 
         {/* ── Toolbar: Search, Filters & Add Button ───────── */}
+        {activeTab !== "syllabus" && (
         <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm">
           {/* Left search */}
           <div className="relative w-full md:flex-1">
@@ -1004,6 +1236,7 @@ export default function HeadmasterAcademicsPage() {
             )}
           </div>
         </div>
+        )}
 
         {/* ══ CONTENT PANELS ════════════════════════════════ */}
         {loading ? (
@@ -1554,8 +1787,237 @@ export default function HeadmasterAcademicsPage() {
               </div>
             )}
 
+            {/* ══ DEDICATED SYLLABUS MANAGEMENT TAB ════════════════════ */}
+            {activeTab === "syllabus" && (
+              <div className="space-y-6 text-left font-sans">
+                {/* Header Banner */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black">
+                        <Fi name="book-alt" className="text-xl" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100">
+                          Syllabus Management
+                        </h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          Manage state curriculum by class, subject, and chapter. Control AI mapping and chapter visibility.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Horizontal Class Pills Selection Bar */}
+                <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+                  {dynamicSyllabusClasses.map((cls) => {
+                    const isSelected = syllabusClass === cls.id;
+                    return (
+                      <button
+                        key={cls.id}
+                        onClick={() => setSyllabusClass(cls.id)}
+                        className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-amber-500 text-white shadow-md shadow-amber-500/25 scale-[1.02]"
+                            : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-amber-400 dark:hover:border-amber-700/60"
+                        }`}
+                      >
+                        <span>{cls.name}</span>
+                        <span
+                          className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md transition-colors ${
+                            isSelected
+                              ? "bg-white/20 text-white"
+                              : cls.badge === "HSC"
+                              ? "bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50"
+                              : "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/50"
+                          }`}
+                        >
+                          {cls.badge}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* 2-Column Main Layout: Left Subjects Panel & Right Chapters Panel */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                  {/* Left Column: SUBJECTS List */}
+                  <div className="lg:col-span-3 space-y-3">
+                    <div className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 px-1">
+                      SUBJECTS
+                    </div>
+                    <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1 custom-scrollbar">
+                      {syllabusSubjectsForClass.map((sub) => {
+                        const isSelected = selectedSyllabusSubject.toLowerCase() === sub.name.toLowerCase();
+                        const stats = getSubjectStats(sub.name);
+                        return (
+                          <div
+                            key={sub.name}
+                            onClick={() => setSelectedSyllabusSubject(sub.name)}
+                            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${
+                              isSelected
+                                ? "bg-amber-50/70 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500/80 ring-2 ring-amber-400/20 shadow-sm"
+                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700/50 shadow-sm"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-xl shrink-0">{sub.icon}</span>
+                              <div>
+                                <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-100 leading-snug">
+                                  {sub.name}
+                                </h4>
+                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
+                                  {stats.total}/0 chapters · {stats.aiCount} AI
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Right Column: Chapters Detail Table & Controls */}
+                  <div className="lg:col-span-9 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm min-h-[500px] flex flex-col justify-between">
+                    <div>
+                      {/* Header Bar */}
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">{getSubjectIcon(selectedSyllabusSubject)}</span>
+                            <h3 className="text-lg font-black text-slate-800 dark:text-slate-100">
+                              {selectedSyllabusSubject} — Class {syllabusClass}
+                            </h3>
+                          </div>
+                          <p className="text-xs text-slate-400 font-semibold mt-0.5">
+                            {syllabusChapters.length} chapters · {syllabusChapters.filter(c => c.status === "Active").length} enabled · {syllabusChapters.filter(c => c.meta?.toLowerCase().includes("ai")).length} AI-mapped
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <FiSearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" size={13} />
+                            <input
+                              type="text"
+                              placeholder="Search chapters..."
+                              value={syllabusSearchQuery}
+                              onChange={(e) => setSyllabusSearchQuery(e.target.value)}
+                              className="pl-8 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500/20 w-48 md:w-60"
+                            />
+                            {syllabusSearchQuery && (
+                              <button
+                                onClick={() => setSyllabusSearchQuery("")}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                              >
+                                <FiXIcon size={12} />
+                              </button>
+                            )}
+                          </div>
+
+                          <button
+                            onClick={openAddChapterModal}
+                            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                          >
+                            <FiPlusIcon size={14} /> Chapter
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Table Area */}
+                      <div className="mt-5 overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="bg-slate-50/80 dark:bg-slate-950/60 border-b border-slate-100 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                              <th className="py-3 px-4 w-12 text-center">NO</th>
+                              <th className="py-3 px-4">CHAPTER TITLE</th>
+                              <th className="py-3 px-4">TOPICS</th>
+                              <th className="py-3 px-4">AI MAPPING</th>
+                              <th className="py-3 px-4 text-right">STATUS</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs font-medium">
+                            {syllabusChapters.length > 0 ? (
+                              syllabusChapters.map((ch, idx) => (
+                                <tr key={ch.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-950/40 transition-colors">
+                                  <td className="py-3.5 px-4 font-extrabold text-slate-400 text-center">
+                                    {String(ch.chapterNumber || idx + 1).padStart(2, '0')}
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <div className="font-bold text-slate-800 dark:text-slate-100">{ch.chapter || ch.title}</div>
+                                    <div className="text-[10px] text-slate-400 mt-0.5">{ch.term || "Term 1"} · {ch.description || "No description"}</div>
+                                  </td>
+                                  <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-semibold">
+                                    {ch.topicName || "General Topics"}
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                      ch.meta?.toLowerCase().includes("ai")
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                                        : "bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
+                                    }`}>
+                                      {ch.meta?.toLowerCase().includes("ai") ? "Mapped" : "Not Mapped"}
+                                    </span>
+                                  </td>
+                                  <td className="py-3.5 px-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                        ch.status === "Active"
+                                          ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400"
+                                          : "bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400"
+                                      }`}>
+                                        {ch.status === "Active" ? "Enabled" : "Disabled"}
+                                      </span>
+                                      <button
+                                        onClick={() => openEditChapterModal(ch)}
+                                        className="p-1 text-slate-400 hover:text-indigo-600 transition-colors"
+                                        title="Edit Chapter"
+                                      >
+                                        <FiEditIcon size={13} />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteResource(ch.id)}
+                                        className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                                        title="Delete Chapter"
+                                      >
+                                        <FiTrashIcon size={13} />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={5} className="py-16 text-center text-slate-400">
+                                  <div className="flex flex-col items-center justify-center">
+                                    <Fi name="book-alt" className="text-3xl text-slate-300 dark:text-slate-700 mb-2" />
+                                    <p className="font-bold text-slate-700 dark:text-slate-300 text-sm">
+                                      0 chapters added for {selectedSyllabusSubject} - Class {syllabusClass}
+                                    </p>
+                                    <p className="text-xs text-slate-400 mt-1 max-w-sm">
+                                      Click the "+ Chapter" button above to add state board chapters and unit maps.
+                                    </p>
+                                    <button
+                                      onClick={openAddChapterModal}
+                                      className="mt-4 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer"
+                                    >
+                                      + Add Chapter
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* ══ GENERAL RESOURCES TABS ══════════════════════ */}
-            {activeTab !== "overview" && activeTab !== "subjects" && (
+            {activeTab !== "overview" && activeTab !== "subjects" && activeTab !== "syllabus" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <AnimatePresence>
                   {filteredResources.map((res, idx) => {
@@ -2364,6 +2826,80 @@ export default function HeadmasterAcademicsPage() {
                     className="px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-black shadow-md transition-all flex items-center gap-2"
                   >
                     {savingStructure ? "Saving to DB..." : structureModal.editId ? `Update ${structureModal.type.toUpperCase()}` : `Save ${structureModal.type.toUpperCase()}`}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ══ DEDICATED ADD / EDIT CHAPTER POPUP MODAL ════════════════════ */}
+      <AnimatePresence>
+        {chapterModal.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() => setChapterModal({ isOpen: false, editId: null })}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl relative z-10 overflow-hidden text-left font-sans"
+            >
+              <h3 className="font-extrabold text-xl text-slate-800 dark:text-slate-100 text-center mb-6">
+                {chapterModal.editId ? "Edit Chapter" : "Add Chapter"}
+              </h3>
+
+              <form onSubmit={handleSaveChapter} className="space-y-4">
+                <div>
+                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
+                    CHAPTER TITLE
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    value={chapterForm.title}
+                    onChange={(e) => setChapterForm({ ...chapterForm, title: e.target.value })}
+                    placeholder="e.g. Quadratic Equations"
+                    className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
+                    NUMBER OF TOPICS
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    required
+                    value={chapterForm.numberOfTopics}
+                    onChange={(e) => setChapterForm({ ...chapterForm, numberOfTopics: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setChapterModal({ isOpen: false, editId: null })}
+                    className="flex-1 py-2.5 px-4 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingChapter}
+                    className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white rounded-xl text-xs font-black shadow-md shadow-amber-500/25 transition-all cursor-pointer"
+                  >
+                    {savingChapter ? "Saving..." : chapterModal.editId ? "Update Chapter" : "Add Chapter"}
                   </button>
                 </div>
               </form>
