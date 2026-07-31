@@ -450,7 +450,7 @@ function TeacherProgressContent() {
       if (data.success) {
         Swal.fire({
           icon: "success",
-          title: lang === "தமிழ்" ? "தரவுத்தளத்தில் சேமிக்கப்பட்டது!" : "Saved to PostgreSQL!",
+          title: lang === "தமிழ்" ? "தரவுத்தளத்தில் சேமிக்கப்பட்டது!" : "Saved to Datas!",
           text: data.message || `${marksToSubmit.length} student marks saved successfully.`,
           timer: 2000,
           showConfirmButton: false,
@@ -461,7 +461,7 @@ function TeacherProgressContent() {
         Swal.fire({
           icon: "error",
           title: "Database Error",
-          text: data.error || "Failed to save marks to PostgreSQL.",
+          text: data.error || "Failed to save marks to Data.",
           confirmButtonColor: "#ef4444",
         });
       }
@@ -481,7 +481,7 @@ function TeacherProgressContent() {
   const handleDeleteMark = async (markId: string, subjectName: string) => {
     const confirm = await Swal.fire({
       title: lang === "தமிழ்" ? "மதிப்பெண்ணை நீக்கவா?" : "Delete Mark Record?",
-      html: `You are about to delete the <strong>${subjectName}</strong> mark entry from PostgreSQL database.`,
+      html: `You are about to delete the <strong>${subjectName}</strong> mark entry from  database.`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes, Delete",
@@ -541,7 +541,7 @@ function TeacherProgressContent() {
       if (data.success) {
         Swal.fire({
           icon: "success",
-          title: lang === "தமிழ்" ? "தரவுத்தளத்தில் சேமிக்கப்பட்டது!" : "Saved to PostgreSQL!",
+          title: lang === "தமிழ்" ? "தரவுத்தளத்தில் சேமிக்கப்பட்டது!" : "Saved to Data!",
           text: data.message || `${subjectName} mark (${scoreVal}/${maxScoreVal}) saved successfully to database.`,
           timer: 1800,
           showConfirmButton: false,
@@ -615,11 +615,11 @@ function TeacherProgressContent() {
 
       Swal.fire({
         icon: "success",
-        title: lang === "தமிழ்" ? "தரவுத்தளத்தில் சேமிக்கப்பட்டது!" : "Saved to PostgreSQL!",
+        title: lang === "தமிழ்" ? "தரவுத்தளத்தில் சேமிக்கப்பட்டது!" : "Saved to Data!",
         text:
           lang === "தமிழ்"
             ? "மதிப்பெண்கள் மற்றும் ஆசிரியர் குறிப்பு தரவுத்தளத்தில் சேமிக்கப்பட்டது."
-            : "Subject marks and teacher evaluation remarks saved to PostgreSQL database.",
+            : "Subject marks and teacher evaluation remarks saved to database.",
         timer: 2000,
         showConfirmButton: false,
       });
@@ -656,8 +656,8 @@ function TeacherProgressContent() {
             </div>
             <p className="text-sm text-[var(--text-muted)] mt-1">
               {lang === "தமிழ்"
-                ? "PostgreSQL தரவுத்தளத்துடன் இணைக்கப்பட்ட வகுப்பு மற்றும் பாடம் வாரியான மதிப்பெண் பதிவேடு."
-                : "PostgreSQL-backed real-time class & subject mark entry, editing, and progress cards."}
+                ? "Data தரவுத்தளத்துடன் இணைக்கப்பட்ட வகுப்பு மற்றும் பாடம் வாரியான மதிப்பெண் பதிவேடு."
+                : "Data-backed real-time class & subject mark entry, editing, and progress cards."}
             </p>
           </div>
 
@@ -803,7 +803,7 @@ function TeacherProgressContent() {
           <div className="text-center py-16 bg-[var(--bg-card)] rounded-2xl border border-[var(--border)]">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-amber-500 border-t-transparent mb-3" />
             <p className="text-sm text-[var(--text-muted)]">
-              {lang === "தமிழ்" ? "தரவுத்தளத்திலிருந்து மதிப்பெண்கள் ஏற்றப்படுகின்றன..." : "Loading PostgreSQL student marks..."}
+              {lang === "தமிழ்" ? "தரவுத்தளத்திலிருந்து மதிப்பெண்கள் ஏற்றப்படுகின்றன..." : "Loading Data student marks..."}
             </p>
           </div>
         ) : filteredStudents.length === 0 ? (
@@ -901,7 +901,7 @@ function TeacherProgressContent() {
                             ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30"
                             : "bg-[var(--bg-main)] text-[var(--text-muted)] border-[var(--border)]"
                             }`}
-                          title={sub.id ? "Stored in PostgreSQL" : "Default estimate"}
+                          title={sub.id ? "Stored in Data" : "Default estimate"}
                         >
                           {sub.name}: <strong className="text-[var(--text-heading)]">{sub.score}</strong>
                         </span>
@@ -933,12 +933,12 @@ function TeacherProgressContent() {
                 <div>
                   <h2 className="text-xl font-black flex items-center gap-2">
                     <Edit3 className="w-5 h-5" />
-                    {lang === "தமிழ்" ? "வகுப்பு & பாடம் மதிப்பெண் பதிவேடு" : "Enter Class & Subject Marks (PostgreSQL)"}
+                    {lang === "தமிழ்" ? "வகுப்பு & பாடம் மதிப்பெண் பதிவேடு" : "Enter Class & Subject Marks (Data)"}
                   </h2>
                   <p className="text-xs text-amber-100 mt-1">
                     {lang === "தமிழ்"
                       ? "தேர்ந்தெடுக்கப்பட்ட வகுப்பு மற்றும் பாடத்திற்கான மதிப்பெண்களை தரவுத்தளத்தில் பதிவு செய்க."
-                      : "Enter or update student marks directly stored in PostgreSQL backend database."}
+                      : "Enter or update student marks directly stored in Data backend database."}
                   </p>
                 </div>
                 <button
@@ -1111,10 +1111,10 @@ function TeacherProgressContent() {
                   {savingBulk
                     ? lang === "தமிழ்"
                       ? "சேமிக்கப்படுகிறது..."
-                      : "Saving to PostgreSQL..."
+                      : "Saving to Data..."
                     : lang === "தமிழ்"
                       ? "மதிப்பெண்களை சேமி"
-                      : "Save All Marks to PostgreSQL"}
+                      : "Save All Marks to Data"}
                 </button>
               </div>
             </div>
@@ -1285,7 +1285,7 @@ function TeacherProgressContent() {
                                 <button
                                   onClick={() => handleDeleteMark(sub.id!, sub.name)}
                                   className="p-1 text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
-                                  title="Delete mark from PostgreSQL"
+                                  title="Delete mark from Data"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
