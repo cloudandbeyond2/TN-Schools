@@ -355,7 +355,15 @@ export default function SuperadminAcademicsPage() {
     }
 
     const defaultCore = parseInt(cleanSyllabusClass) >= 11
-      ? ["Tamil", "English", "Mathematics", "Physics", "Chemistry", "Biology"]
+      ? [
+          "Tamil", "English",
+          "Physics", "Chemistry", "Biology", "Mathematics",
+          "Computer Science",
+          "Commerce", "Accountancy", "Economics", "Computer Applications",
+          "Business Mathematics",
+          "History", "Geography", "Political Science",
+          "Basic Electrical", "Agriculture Science", "Office Management"
+        ]
       : ["Tamil", "English", "Mathematics", "Science", "Social Science"];
 
     return defaultCore.map(name => ({
