@@ -1,26 +1,15 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
 import { useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import {
-  FileText,
-  Upload,
-  Sparkles,
-  Send,
   ChevronLeft,
   ChevronDown,
-  Clock,
-  CheckCircle2,
-  Image as ImageIcon,
   X,
-  Paperclip,
   Loader2,
-  Lightbulb,
-  MessageCircleQuestion,
-  AlertCircle,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 type OpenIntent = "view" | "ai" | "submit";
 
@@ -71,41 +60,41 @@ const AI_GUIDANCE: Record<string, string[]> = {
 function StatusPill({ status }: { status: Status }) {
   if (status === "submitted") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-emerald-600 dark:text-emerald-400">
-        <CheckCircle2 className="h-3.5 w-3.5" />
+      <span className="inline-flex items-center gap-1 text-[12px] font-bold text-emerald-600 dark:text-emerald-400">
+        <i className="fi fi-sr-checkbox flex items-center text-sm" />
         Submitted
       </span>
     );
   }
   if (status === "late_submission") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-amber-600 dark:text-amber-400">
-        <AlertCircle className="h-3.5 w-3.5" />
+      <span className="inline-flex items-center gap-1 text-[12px] font-bold text-amber-600 dark:text-amber-400">
+        <i className="fi fi-sr-exclamation flex items-center text-sm" />
         Late Submission
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-black dark:text-white">
-      <Clock className="h-3.5 w-3.5" />
+    <span className="inline-flex items-center gap-1 text-[12px] font-bold text-slate-500 dark:text-slate-400">
+      <i className="fi fi-sr-time-past flex items-center text-sm" />
       Not submitted
     </span>
   );
 }
 
 function IconBadge({
-  icon: Icon,
+  iconClass,
   color,
 }: {
-  icon: LucideIcon;
+  iconClass: string;
   color: string;
 }) {
   return (
     <div
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
-      style={{ backgroundColor: `${color}1f`, color }}
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+      style={{ backgroundColor: `${color}18`, color }}
     >
-      <Icon className="h-[18px] w-[18px]" />
+      <i className={`fi ${iconClass} text-sm flex items-center`} />
     </div>
   );
 }
@@ -134,7 +123,7 @@ function AssignmentCard({
         className="flex w-full items-start justify-between pl-3 text-left"
       >
         <div className="flex items-start gap-3 flex-1">
-          <IconBadge icon={FileText} color={a.subjectColor} />
+          <IconBadge iconClass="fi-sr-document-signed" color={a.subjectColor} />
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <span
@@ -219,8 +208,8 @@ function AiGuidancePanel({
   return (
     <div className="rounded-2xl border border-violet-500/20 bg-gradient-to-b from-violet-50 dark:from-violet-500/[0.08] to-white dark:to-transparent p-5">
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-500/15 text-violet-600 dark:text-violet-300">
-          <Sparkles className="h-[18px] w-[18px]" />
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-500/15 text-violet-600 dark:text-violet-300">
+          <i className="fi fi-sr-sparkles text-sm flex items-center animate-pulse" />
         </div>
         <div>
           <h3 className="text-[14px] font-semibold text-black dark:text-slate-100">
@@ -237,7 +226,7 @@ function AiGuidancePanel({
           onClick={onAsk}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-violet-500 px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-violet-400"
         >
-          <Lightbulb className="h-4 w-4" />
+          <i className="fi fi-sr-lightbulb text-sm flex items-center" />
           Get ideas for this homework
         </button>
       )}
@@ -272,8 +261,8 @@ function AiGuidancePanel({
 
       {/* Free-form doubt box */}
       <div className="mt-5 border-t border-slate-200 dark:border-white/[0.08] pt-4">
-        <p className="flex items-center gap-1.5 text-[12.5px] font-semibold text-black dark:text-slate-300">
-          <MessageCircleQuestion className="h-3.5 w-3.5 text-violet-600 dark:text-violet-300" />
+        <p className="flex items-center gap-1 text-[12.5px] font-bold text-black dark:text-slate-350">
+          <i className="fi fi-sr-comment-alt-question text-violet-600 dark:text-violet-300 text-sm flex items-center" />
           Stuck on something specific? Ask here.
         </p>
         <div className="mt-2.5 flex gap-2">
@@ -289,12 +278,12 @@ function AiGuidancePanel({
           <button
             onClick={onAskDoubt}
             disabled={!doubt.trim() || doubtLoading}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-violet-500 px-3.5 py-2 text-[12.5px] font-semibold text-white transition-colors hover:bg-violet-400 disabled:cursor-not-allowed disabled:bg-slate-200 dark:disabled:bg-white/[0.06] disabled:text-black dark:disabled:text-slate-500"
+            className="flex shrink-0 items-center gap-1 rounded-xl bg-violet-500 px-3.5 py-2 text-[12.5px] font-bold text-white transition-colors hover:bg-violet-400 disabled:cursor-not-allowed disabled:bg-slate-200 dark:disabled:bg-white/[0.06] disabled:text-black dark:disabled:text-slate-500"
           >
             {doubtLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <Send className="h-4 w-4" />
+              <i className="fi fi-sr-paper-plane text-xs flex items-center" />
             )}
             Ask
           </button>
@@ -352,8 +341,8 @@ function SubmissionPanel({
     return (
       <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-emerald-50 dark:from-emerald-500/[0.06] to-white dark:to-transparent p-5">
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-emerald-600 dark:text-emerald-400">
-            <CheckCircle2 className="h-4 w-4" />
+          <span className="inline-flex items-center gap-1 text-[13px] font-bold text-emerald-600 dark:text-emerald-400">
+            <i className="fi fi-sr-checkbox flex items-center text-sm" />
             Submitted to teacher
           </span>
           <button
@@ -389,9 +378,9 @@ function SubmissionPanel({
                   className="flex items-center gap-2.5 rounded-lg border border-slate-200 dark:border-white/[0.06] bg-slate-50 dark:bg-[#0d1626] px-3 py-2"
                 >
                   {f.kind === "pdf" ? (
-                    <FileText className="h-4 w-4 shrink-0 text-rose-500 dark:text-rose-400" />
+                    <i className="fi fi-sr-document text-sm text-rose-500 dark:text-rose-400 flex items-center" />
                   ) : (
-                    <ImageIcon className="h-4 w-4 shrink-0 text-sky-500 dark:text-sky-400" />
+                    <i className="fi fi-sr-picture text-sm text-sky-500 dark:text-sky-400 flex items-center" />
                   )}
                   <div className="min-w-0">
                     {f.url ? (
@@ -455,7 +444,7 @@ function SubmissionPanel({
             : "border-slate-300 dark:border-white/[0.1] bg-slate-50 dark:bg-[#0d1626]"
         }`}
       >
-        <Upload className="h-5 w-5 text-black dark:text-slate-500" />
+        <i className="fi fi-sr-cloud-upload text-3xl text-slate-400 dark:text-slate-500 flex items-center mb-1" />
         <p className="text-[12.5px] text-black dark:text-slate-400">
           Drag a PDF or photo here, or{" "}
           <button
@@ -485,9 +474,9 @@ function SubmissionPanel({
             >
               <div className="flex min-w-0 items-center gap-2.5">
                 {f.kind === "pdf" ? (
-                  <FileText className="h-4 w-4 shrink-0 text-rose-500 dark:text-rose-400" />
+                  <i className="fi fi-sr-document text-sm text-rose-500 dark:text-rose-400 flex items-center" />
                 ) : (
-                  <ImageIcon className="h-4 w-4 shrink-0 text-sky-500 dark:text-sky-400" />
+                  <i className="fi fi-sr-picture text-sm text-sky-500 dark:text-sky-400 flex items-center" />
                 )}
                 <div className="min-w-0">
                   <p className="truncate text-[12.5px] text-black dark:text-slate-200">
@@ -510,9 +499,9 @@ function SubmissionPanel({
       <button
         onClick={onSubmit}
         disabled={!canSubmit}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-teal-500 px-4 py-2.5 text-[13.5px] font-semibold text-[#06291f] transition-colors hover:bg-teal-400 disabled:cursor-not-allowed disabled:bg-slate-200 dark:disabled:bg-white/[0.06] disabled:text-black dark:disabled:text-slate-500"
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-teal-500 px-4 py-2.5 text-[13.5px] font-bold text-[#06291f] transition-all hover:bg-teal-400 disabled:cursor-not-allowed disabled:bg-slate-200 dark:disabled:bg-white/[0.06] disabled:text-slate-450"
       >
-        <Send className="h-4 w-4" />
+        <i className="fi fi-sr-paper-plane flex items-center text-sm" />
         Submit homework
       </button>
     </div>
@@ -698,7 +687,7 @@ function AssignmentDetail({
         <div className="space-y-4">
           <div className="rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c] p-5">
             <div className="flex items-start gap-3">
-              <IconBadge icon={FileText} color={assignment.subjectColor} />
+              <IconBadge iconClass="fi-sr-document-signed" color={assignment.subjectColor} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span
@@ -736,7 +725,8 @@ function AssignmentDetail({
           {/* Teacher Feedback Section */}
           <div className="rounded-2xl border border-teal-500/10 bg-white dark:bg-[#111a2c] p-6 shadow-sm">
             <h3 className="text-[15px] font-bold text-black dark:text-slate-100 flex items-center gap-2">
-              <span className="text-lg">🍎</span> Teacher Evaluation & Feedback
+              <i className="fi fi-sr-chalkboard-user text-teal-600 flex items-center" />
+              Teacher Evaluation & Feedback
             </h3>
             
             {submitted ? (
@@ -837,6 +827,7 @@ export default function HomeworkPage() {
 
   useEffect(() => {
     fetchHomework();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId]);
 
   const completed = assignments.filter((a) => a.status === "submitted").length;
@@ -881,35 +872,54 @@ export default function HomeworkPage() {
         />
       ) : (
         <div>
+          {/* Main header banner card */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+            <div>
+              <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
+                <i className="fi fi-sr-book-bookmark text-teal-600 dark:text-teal-400 flex items-center" />
+                Student Homework
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Assignments from your teachers, updated automatically.</p>
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 font-extrabold text-sm rounded-xl border border-teal-200/20 shadow-sm">
+              <i className="fi fi-sr-graduation-cap flex items-center text-sm" />
+              Class Homework Portal
+            </span>
+          </div>
+
           {/* filters and completed progress on the same line */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mt-2 mb-6">
             <div className="flex flex-wrap gap-2">
               {(
                 [
-                  ["all", `All (${total})`],
-                  ["pending", `Pending (${assignments.filter((a) => a.status === "not_submitted").length})`],
-                  ["submitted", `Submitted (${completed})`],
-                  ["history", `Performance History`],
-                ] as [Filter, string][]
-              ).map(([key, label]) => (
+                  ["all", `All (${total})`, "fi-sr-list"],
+                  ["pending", `Pending (${assignments.filter((a) => a.status === "not_submitted").length})`, "fi-sr-time-past"],
+                  ["submitted", `Submitted (${completed})`, "fi-sr-checkbox"],
+                  ["history", `Performance History`, "fi-sr-chart-histogram"],
+                ] as [Filter, string, string][]
+              ).map(([key, label, icon]) => (
                 <button
                   key={key}
                   onClick={() => setFilter(key)}
-                  className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors ${
+                  className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[12.5px] font-bold transition-all border ${
                     filter === key
-                      ? "bg-teal-400/15 text-teal-600 dark:text-teal-300 ring-1 ring-inset ring-teal-400/30"
-                      : "bg-slate-100 dark:bg-white/[0.04] text-black dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.07] hover:text-teal-600 dark:hover:text-slate-300"
+                      ? "bg-teal-400/15 text-teal-600 dark:text-teal-300 border-teal-400/30 shadow-sm"
+                      : "bg-white dark:bg-slate-900/40 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-teal-400 hover:text-teal-600"
                   }`}
                 >
-                  {label}
+                  <i className={`fi ${icon} flex items-center text-xs`} />
+                  <span>{label}</span>
                 </button>
               ))}
             </div>
 
-            <div className="glass w-56 shrink-0 rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-transparent p-3">
+            <div className="glass w-56 shrink-0 rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white/80 dark:bg-[#111a2c]/50 p-3 shadow-sm flex flex-col justify-center">
               <div className="flex items-center justify-between text-[11.5px]">
-                <span className="text-black dark:text-white">Completed</span>
-                <span className="font-semibold text-black dark:text-slate-200">
+                <span className="text-slate-600 dark:text-slate-400 font-bold flex items-center gap-1">
+                  <i className="fi fi-sr-target text-teal-600 flex items-center" />
+                  Completed
+                </span>
+                <span className="font-extrabold text-black dark:text-slate-200">
                   {completed} / {total}
                 </span>
               </div>
@@ -926,10 +936,12 @@ export default function HomeworkPage() {
             <div className="mt-6 space-y-6">
               {/* Stats overview */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="glass rounded-2xl p-5 border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c]">
-                  <span className="text-2xl">📈</span>
-                  <h4 className="mt-2 text-[12px] uppercase font-bold tracking-wide text-slate-400">Average Performance</h4>
-                  <p className="text-3xl font-extrabold text-teal-500 mt-1">
+                <div className="glass rounded-2xl p-5 border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c] flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[12px] uppercase font-black tracking-wider text-slate-400">Average Performance</h4>
+                    <i className="fi fi-sr-stats text-xl text-teal-500 flex items-center" />
+                  </div>
+                  <p className="text-3xl font-extrabold text-teal-500 mt-3">
                     {(() => {
                       const scores = assignments
                         .map(a => {
@@ -948,33 +960,41 @@ export default function HomeworkPage() {
                         : "—";
                     })()}
                   </p>
-                  <p className="text-[11px] text-slate-500 mt-1">Based on graded assignments</p>
+                  <p className="text-[11px] text-slate-500 mt-1 font-medium">Based on graded assignments</p>
                 </div>
 
-                <div className="glass rounded-2xl p-5 border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c]">
-                  <span className="text-2xl">✅</span>
-                  <h4 className="mt-2 text-[12px] uppercase font-bold tracking-wide text-slate-400">Submission Rate</h4>
-                  <p className="text-3xl font-extrabold text-emerald-500 mt-1">{pct}%</p>
-                  <p className="text-[11px] text-slate-500 mt-1">{completed} of {total} completed</p>
+                <div className="glass rounded-2xl p-5 border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c] flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[12px] uppercase font-black tracking-wider text-slate-400">Submission Rate</h4>
+                    <i className="fi fi-sr-checkbox text-xl text-emerald-500 flex items-center" />
+                  </div>
+                  <p className="text-3xl font-extrabold text-emerald-500 mt-3">{pct}%</p>
+                  <p className="text-[11px] text-slate-500 mt-1 font-medium">{completed} of {total} completed</p>
                 </div>
 
-                <div className="glass rounded-2xl p-5 border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c]">
-                  <span className="text-2xl">⏳</span>
-                  <h4 className="mt-2 text-[12px] uppercase font-bold tracking-wide text-slate-400">Pending Assignments</h4>
-                  <p className="text-3xl font-extrabold text-amber-500 mt-1">
+                <div className="glass rounded-2xl p-5 border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c] flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[12px] uppercase font-black tracking-wider text-slate-400">Pending Assignments</h4>
+                    <i className="fi fi-sr-time-past text-xl text-amber-500 flex items-center" />
+                  </div>
+                  <p className="text-3xl font-extrabold text-amber-500 mt-3">
                     {assignments.filter(a => a.status === "not_submitted").length}
                   </p>
-                  <p className="text-[11px] text-slate-500 mt-1">Require your attention</p>
+                  <p className="text-[11px] text-slate-500 mt-1 font-medium">Require your attention</p>
                 </div>
               </div>
 
               {/* Submission Timeline / Log */}
-              <div className="glass rounded-2xl p-6 border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c]">
-                <h3 className="text-base font-bold text-black dark:text-slate-100 mb-4">📜 Homework Submission Log</h3>
+              <div className="glass rounded-2xl p-6 border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c] shadow-sm">
+                <h3 className="text-base font-bold text-black dark:text-slate-100 mb-4 flex items-center gap-2">
+                  <i className="fi fi-sr-journal text-teal-600 flex items-center" />
+                  Homework Submission Log
+                </h3>
                 
                 <div className="space-y-4">
                   {assignments.filter(a => a.status !== "not_submitted").length === 0 ? (
-                    <div className="text-center py-8 text-slate-500 text-sm">
+                    <div className="text-center py-8 text-slate-400 text-sm">
+                      <i className="fi fi-sr-inbox text-3xl text-slate-350 dark:text-slate-655 block mb-2 mx-auto w-fit" />
                       You haven't submitted any homework yet.
                     </div>
                   ) : (
@@ -1043,9 +1063,13 @@ export default function HomeworkPage() {
                   </div>
                 ))
               ) : (
-                <div className="rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c] p-8 text-center">
-                  <p className="text-[13.5px] text-black dark:text-slate-400">
-                    Nothing here right now.
+                <div className="rounded-2xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#111a2c] p-12 text-center shadow-sm">
+                  <i className="fi fi-sr-inbox text-5xl text-slate-300 dark:text-slate-700 block mb-4 mx-auto w-fit" />
+                  <p className="text-[14px] font-bold text-slate-700 dark:text-slate-300">
+                    No assignments found
+                  </p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                    Your teachers haven't assigned any homework in this category.
                   </p>
                 </div>
               )}
