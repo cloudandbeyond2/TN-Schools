@@ -190,6 +190,7 @@ export default function SuperadminAcademicsPage() {
   // Form States
   const [selectedSubjectNames, setSelectedSubjectNames] = useState<string[]>([]);
   const [customSubjectInput, setCustomSubjectInput] = useState("");
+  const [subjectSearchQuery, setSubjectSearchQuery] = useState("");
 
   const allMasterSubjects = useMemo(() => {
     const dbNames = subjects.map(s => s.name);
@@ -451,6 +452,7 @@ export default function SuperadminAcademicsPage() {
       setEditSubjectId(null);
       setSelectedSubjectNames([]);
       setCustomSubjectInput("");
+      setSubjectSearchQuery("");
       setSubjectForm({ name: "", color: "#6366f1", icon: "📚", class: filterClass || "", section: filterSection || "", subjectCode: "", medium: "", description: "", status: "Active" });
     }
     setError("");
@@ -1099,7 +1101,7 @@ export default function SuperadminAcademicsPage() {
                               </div>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                                 <button
-                                  onClick={() => openSubjectModal(sub)}
+                                  onClick={() => { setStructureInput(sub.name); setStructureModal({ isOpen: true, type: "subject", editId: sub.id }); }}
                                   className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all cursor-pointer"
                                   title="Edit Subject"
                                 >
@@ -1562,69 +1564,82 @@ export default function SuperadminAcademicsPage() {
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    {/* Search filter */}
+                    <div className="relative flex items-center">
+                      <FiSearchIcon className="absolute left-3 text-slate-400 text-xs" size={13} />
                       <input
                         type="text"
-                        placeholder="Add custom subject..."
-                        value={customSubjectInput}
-                        onChange={(e) => setCustomSubjectInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            const trimmed = customSubjectInput.trim();
-                            if (trimmed && !selectedSubjectNames.includes(trimmed)) {
-                              setSelectedSubjectNames([...selectedSubjectNames, trimmed]);
-                              setCustomSubjectInput("");
-                            }
-                          }
-                        }}
-                        className="flex-1 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-xs font-medium text-slate-700 dark:text-slate-200 outline-none"
+                        placeholder="Search subjects..."
+                        value={subjectSearchQuery}
+                        onChange={(e) => setSubjectSearchQuery(e.target.value)}
+                        className="w-full pl-8 pr-8 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-xs font-medium text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                       />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const trimmed = customSubjectInput.trim();
-                          if (trimmed && !selectedSubjectNames.includes(trimmed)) {
-                            setSelectedSubjectNames([...selectedSubjectNames, trimmed]);
-                            setCustomSubjectInput("");
-                          }
-                        }}
-                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all"
-                      >
-                        + Add Custom
-                      </button>
+                      {subjectSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSubjectSearchQuery("")}
+                          className="absolute right-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                        >
+                          <FiXIcon size={13} />
+                        </button>
+                      )}
                     </div>
 
+                    {/* Chips list — filtered by search */}
                     <div className="max-h-36 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 bg-slate-50/50 dark:bg-slate-950/50 flex flex-wrap gap-1.5 custom-scrollbar">
-                      {allMasterSubjects.length > 0 ? (
-                        allMasterSubjects.map((subName) => {
+                      {(() => {
+                        const filtered = subjectSearchQuery.trim()
+                          ? allMasterSubjects.filter(n => n.toLowerCase().includes(subjectSearchQuery.toLowerCase()))
+                          : allMasterSubjects;
+                        if (filtered.length === 0) {
+                          return (
+                            <p className="text-xs text-slate-400 p-2 text-center w-full">
+                              {subjectSearchQuery ? `No subjects match "${subjectSearchQuery}"` : 'No subjects found.'}
+                            </p>
+                          );
+                        }
+                        return filtered.map((subName) => {
                           const isSelected = selectedSubjectNames.includes(subName);
                           return (
-                            <button
+                            <span
                               key={subName}
-                              type="button"
-                              onClick={() => {
-                                if (isSelected) {
-                                  setSelectedSubjectNames(selectedSubjectNames.filter(n => n !== subName));
-                                } else {
-                                  setSelectedSubjectNames([...selectedSubjectNames, subName]);
-                                }
-                              }}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border ${isSelected
+                              className={`inline-flex items-center gap-1 pl-2.5 rounded-lg text-xs font-bold border transition-all ${
+                                isSelected
                                   ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
-                                  : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-400"
-                                }`}
+                                  : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"
+                              }`}
                             >
-                              {isSelected && <FiCheckIcon size={12} />}
-                              {subName}
-                            </button>
+                              {isSelected && <FiCheckIcon size={11} />}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setSelectedSubjectNames(selectedSubjectNames.filter(n => n !== subName));
+                                  } else {
+                                    setSelectedSubjectNames([...selectedSubjectNames, subName]);
+                                  }
+                                }}
+                                className="py-1 cursor-pointer"
+                              >
+                                {subName}
+                              </button>
+                              {isSelected && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedSubjectNames(selectedSubjectNames.filter(n => n !== subName))}
+                                  className="px-1.5 py-1 hover:bg-indigo-700 rounded-r-lg transition-colors cursor-pointer"
+                                  title="Remove"
+                                >
+                                  <FiXIcon size={10} />
+                                </button>
+                              )}
+                              {!isSelected && (
+                                <span className="w-1.5" />
+                              )}
+                            </span>
                           );
-                        })
-                      ) : (
-                        <p className="text-xs text-slate-400 p-2 text-center w-full">
-                          No PostgreSQL subjects found. Type a subject name above & click "+ Add Custom".
-                        </p>
-                      )}
+                        });
+                      })()}
                     </div>
                   </div>
                 ) : (
