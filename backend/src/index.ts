@@ -144,6 +144,19 @@ try {
 }
 app.use('/uploads', express.static(uploadsDir));
 
+// Serve audio cache statically
+const audioCacheDir = path.join(__dirname, '../public/audio_cache');
+try {
+  if (!fs.existsSync(audioCacheDir)) {
+    fs.mkdirSync(audioCacheDir, { recursive: true });
+  }
+} catch (error) {
+  console.warn('[Warning] Could not create audio_cache directory.');
+}
+app.use('/audio_cache', cors({ origin: '*' }), express.static(audioCacheDir));
+
+
+
 // ─── Connect Databases ───────────────────────────────────────
 connectMongoDB();  // MongoDB Atlas
 

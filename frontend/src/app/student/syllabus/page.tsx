@@ -26,26 +26,42 @@ interface Unit {
   topics: Topic[];
 }
 
+// Emoji to Flaticon mapping helper
+const getSubjectIcon = (iconStr: string | null | undefined): string => {
+  if (!iconStr) return "fi-sr-book";
+  if (iconStr.startsWith("fi-") || iconStr.startsWith("fi ")) return iconStr;
+  const mapping: Record<string, string> = {
+    "📐": "fi-sr-ruler-triangle",
+    "🔬": "fi-sr-microscope",
+    "🌍": "fi-sr-globe",
+    "📖": "fi-sr-book-open-reader",
+    "🗣️": "fi-sr-comment-alt-middle",
+    "🧪": "fi-sr-flask",
+    "🧬": "fi-sr-dna",
+    "📜": "fi-sr-scroll",
+    "💻": "fi-sr-laptop",
+    "📚": "fi-sr-book"
+  };
+  return mapping[iconStr] || "fi-sr-book";
+};
+
 export default function StudentSyllabusPage() {
   const { data: session, status } = useSession();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const [studentClass, setStudentClass] = useState<string>("");
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loadingSubjects, setLoadingSubjects] = useState<boolean>(true);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
-
   const [units, setUnits] = useState<Unit[]>([]);
-  const [loadingUnits, setLoadingUnits] = useState<boolean>(false);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
+  const [loadingUnits, setLoadingUnits] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [expandedUnitId, setExpandedUnitId] = useState<string | null>(null);
-  
-  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Determine student class from session, default to "10"
+  // Sync state with Auth session
   useEffect(() => {
-    if (status === "loading") return;
     if (status === "authenticated" && session?.user) {
-      const userClass = (session?.user as any)?.class;
+      const userClass = (session.user as any).class;
       if (userClass) {
         const num = String(userClass).match(/\d+/)?.[0] || String(userClass);
         setStudentClass(num);
@@ -129,17 +145,21 @@ export default function StudentSyllabusPage() {
       accentColor="#6366f1"
     >
       {/* Header Info */}
-      <div className="flex items-center justify-between gap-4 mb-6 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
-        <div>
-          <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1">
-            📖 Class Syllabus
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Browse chapters, topics, and lessons assigned to your standard.
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <i className="fi fi-sr-book-open-cover text-2xl text-indigo-600 dark:text-indigo-400 flex items-center" />
+          <div>
+            <h2 className="text-lg sm:text-xl font-black text-black dark:text-white uppercase tracking-wider leading-tight">
+              Class Syllabus
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Browse chapters, topics, and lessons assigned to your standard.
+            </p>
+          </div>
         </div>
         {studentClass && (
-          <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm whitespace-nowrap shrink-0 self-start sm:self-auto">
+            <i className="fi fi-sr-graduation-cap flex items-center" />
             Class {studentClass}th Standard
           </span>
         )}
@@ -175,9 +195,10 @@ export default function StudentSyllabusPage() {
                     style={isSelected ? { background: `linear-gradient(135deg, ${sub.color || "#6366f1"}, ${sub.color || "#6366f1"}dd)` } : undefined}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-base flex items-center justify-center">
-                        {sub.icon || "📚"}
-                      </span>
+                      <i 
+                        className={`fi ${getSubjectIcon(sub.icon)} text-base flex items-center`} 
+                        style={!isSelected ? { color: sub.color || "#6366f1" } : undefined}
+                      />
                       <span className="text-xs font-semibold">{sub.name}</span>
                     </div>
                   </button>
@@ -195,7 +216,11 @@ export default function StudentSyllabusPage() {
               <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
                 <div>
                   <h3 className="text-sm font-bold text-slate-850 dark:text-white flex items-center gap-2">
-                    {selectedSubject.icon || "📚"} {selectedSubject.name} — Class {studentClass}
+                    <i 
+                      className={`fi ${getSubjectIcon(selectedSubject.icon)} flex items-center`} 
+                      style={{ color: selectedSubject.color || "#6366f1" }}
+                    />
+                    {selectedSubject.name} — Class {studentClass}
                   </h3>
                   <p className="text-[10px] text-slate-500 mt-0.5">
                     {units.length} units listed
@@ -262,7 +287,7 @@ export default function StudentSyllabusPage() {
                                 <td colSpan={3} className="bg-slate-50/50 dark:bg-slate-950/30 p-4 border-b border-slate-200 dark:border-slate-800">
                                   <div className="pl-6 space-y-3">
                                     <h4 className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest flex items-center gap-1.5">
-                                      <span>📚</span> Lessons & Subtopics inside Unit {u.unitNumber}
+                                      <i className="fi fi-sr-book-bookmark text-indigo-500 flex items-center" /> Lessons & Subtopics inside Unit {u.unitNumber}
                                     </h4>
                                     {realLessons.length === 0 ? (
                                       <p className="text-xs text-slate-550 italic pl-1">
@@ -297,7 +322,8 @@ export default function StudentSyllabusPage() {
             </>
           ) : (
             <div className="text-center py-20 text-slate-500 text-xs">
-              👈 Select a subject from the sidebar to inspect its syllabus
+              <i className="fi fi-sr-arrow-left text-lg text-indigo-500 mb-2 block mx-auto animate-pulse" />
+              Select a subject from the sidebar to inspect its syllabus
             </div>
           )}
         </div>

@@ -49,3 +49,13 @@ setup-portals.js
 
 # Test coverage
 coverage/
+
+# ─── Tamil TTS Audio Cache (auto-generated, should NOT be committed) ──────────
+backend/public/audio_cache/
+backend/public/audio_cache/*.mp3
+*.mp3
+
+# ─── Development / Test Scripts (scratch files, not for production) ────────────
+backend/scripts/test-tts.js
+backend/scripts/test-api-tts.js
+backend/scripts/generate-voice-samples.js
