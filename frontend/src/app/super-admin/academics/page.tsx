@@ -142,9 +142,35 @@ export default function SuperadminAcademicsPage() {
   const [structureModal, setStructureModal] = useState<{
     isOpen: boolean;
     type: "class" | "section" | "subject";
-  }>({ isOpen: false, type: "class" });
+    editId?: string | null;
+  }>({ isOpen: false, type: "class", editId: null });
   const [structureInput, setStructureInput] = useState("");
   const [savingStructure, setSavingStructure] = useState(false);
+
+  // Drag and Drop reorder handlers
+  const handleDropClass = (dragIdx: number, dropIdx: number) => {
+    if (dragIdx === dropIdx) return;
+    const updated = [...classes];
+    const [moved] = updated.splice(dragIdx, 1);
+    updated.splice(dropIdx, 0, moved);
+    setClasses(updated);
+  };
+
+  const handleDropSection = (dragIdx: number, dropIdx: number) => {
+    if (dragIdx === dropIdx) return;
+    const updated = [...sections];
+    const [moved] = updated.splice(dragIdx, 1);
+    updated.splice(dropIdx, 0, moved);
+    setSections(updated);
+  };
+
+  const handleDropSubject = (dragIdx: number, dropIdx: number) => {
+    if (dragIdx === dropIdx) return;
+    const updated = [...subjects];
+    const [moved] = updated.splice(dragIdx, 1);
+    updated.splice(dropIdx, 0, moved);
+    setSubjects(updated);
+  };
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState("");
@@ -239,33 +265,32 @@ export default function SuperadminAcademicsPage() {
 
     setSavingStructure(true);
     try {
-      const endpoint = structureModal.type === "class"
-        ? `${API_BASE}/classes`
-        : structureModal.type === "section"
-          ? `${API_BASE}/sections`
-          : `${API_BASE}/subjects`;
+      const isEdit = Boolean(structureModal.editId);
+      const base = structureModal.type === "class" ? "classes" : structureModal.type === "section" ? "sections" : "subjects";
+      const endpoint = isEdit ? `${API_BASE}/${base}/${structureModal.editId}` : `${API_BASE}/${base}`;
+      const method = isEdit ? "PUT" : "POST";
 
       const res = await fetch(endpoint, {
-        method: "POST",
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: structureInput.trim() }),
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || `Failed to save ${structureModal.type}`);
+        throw new Error(data.error || `Failed to ${isEdit ? "update" : "save"} ${structureModal.type}`);
       }
 
       Swal.fire({
-        title: "Saved!",
-        text: `${structureModal.type.toUpperCase()} "${structureInput.trim()}" added successfully to PostgreSQL!`,
+        title: isEdit ? "Updated!" : "Saved!",
+        text: `${structureModal.type.toUpperCase()} "${structureInput.trim()}" ${isEdit ? "updated" : "added"} successfully in database!`,
         icon: "success",
         timer: 1500,
         showConfirmButton: false,
       });
 
       setStructureInput("");
-      setStructureModal({ isOpen: false, type: "class" });
+      setStructureModal({ isOpen: false, type: "class", editId: null });
 
       if (structureModal.type === "class") fetchClasses();
       else if (structureModal.type === "section") fetchSections();
@@ -918,19 +943,40 @@ export default function SuperadminAcademicsPage() {
 
                       <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
                         {classes.length > 0 ? (
-                          classes.map(c => (
-                            <div key={c.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 group hover:border-teal-500/30 transition-all">
+                          classes.map((c, idx) => (
+                            <div
+                              key={c.id}
+                              draggable
+                              onDragStart={(e) => e.dataTransfer.setData("text/plain", idx.toString())}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const dragIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+                                if (!isNaN(dragIdx)) handleDropClass(dragIdx, idx);
+                              }}
+                              className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 group hover:border-teal-500/30 transition-all cursor-grab active:cursor-grabbing"
+                            >
                               <div className="flex items-center gap-2">
+                                <Fi name="menu" className="text-slate-300 dark:text-slate-600 group-hover:text-slate-400 text-xs shrink-0" />
                                 <span className="w-2 h-2 rounded-full bg-teal-500" />
                                 <span className="font-bold text-xs text-slate-700 dark:text-slate-200">{c.name}</span>
                               </div>
-                              <button
-                                onClick={() => handleDeleteClassItem(c.id)}
-                                className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
-                                title="Delete Class"
-                              >
-                                <FiTrashIcon size={13} />
-                              </button>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                <button
+                                  onClick={() => { setStructureInput(c.name); setStructureModal({ isOpen: true, type: "class", editId: c.id }); }}
+                                  className="p-1 text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-all cursor-pointer"
+                                  title="Edit Class"
+                                >
+                                  <FiEditIcon size={13} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteClassItem(c.id)}
+                                  className="p-1 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
+                                  title="Delete Class"
+                                >
+                                  <FiTrashIcon size={13} />
+                                </button>
+                              </div>
                             </div>
                           ))
                         ) : (
@@ -956,7 +1002,7 @@ export default function SuperadminAcademicsPage() {
                           </div>
                         </div>
                         <button
-                          onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "section" }); }}
+                          onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "section", editId: null }); }}
                           className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                         >
                           <FiPlusIcon size={12} /> Add Section
@@ -965,19 +1011,40 @@ export default function SuperadminAcademicsPage() {
 
                       <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
                         {sections.length > 0 ? (
-                          sections.map(s => (
-                            <div key={s.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 group hover:border-emerald-500/30 transition-all">
+                          sections.map((s, idx) => (
+                            <div
+                              key={s.id}
+                              draggable
+                              onDragStart={(e) => e.dataTransfer.setData("text/plain", idx.toString())}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const dragIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+                                if (!isNaN(dragIdx)) handleDropSection(dragIdx, idx);
+                              }}
+                              className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 group hover:border-emerald-500/30 transition-all cursor-grab active:cursor-grabbing"
+                            >
                               <div className="flex items-center gap-2">
+                                <Fi name="menu" className="text-slate-300 dark:text-slate-600 group-hover:text-slate-400 text-xs shrink-0" />
                                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
                                 <span className="font-bold text-xs text-slate-700 dark:text-slate-200">{s.name}</span>
                               </div>
-                              <button
-                                onClick={() => handleDeleteSectionItem(s.id)}
-                                className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
-                                title="Delete Section"
-                              >
-                                <FiTrashIcon size={13} />
-                              </button>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                <button
+                                  onClick={() => { setStructureInput(s.name); setStructureModal({ isOpen: true, type: "section", editId: s.id }); }}
+                                  className="p-1 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all cursor-pointer"
+                                  title="Edit Section"
+                                >
+                                  <FiEditIcon size={13} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteSectionItem(s.id)}
+                                  className="p-1 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
+                                  title="Delete Section"
+                                >
+                                  <FiTrashIcon size={13} />
+                                </button>
+                              </div>
                             </div>
                           ))
                         ) : (
@@ -1003,7 +1070,7 @@ export default function SuperadminAcademicsPage() {
                           </div>
                         </div>
                         <button
-                          onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "subject" }); }}
+                          onClick={() => { setStructureInput(""); setStructureModal({ isOpen: true, type: "subject", editId: null }); }}
                           className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                         >
                           <FiPlusIcon size={12} /> Add Subject
@@ -1012,19 +1079,40 @@ export default function SuperadminAcademicsPage() {
 
                       <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
                         {subjects.length > 0 ? (
-                          Array.from(new Map(subjects.map(s => [s.name, s])).values()).map(sub => (
-                            <div key={sub.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 group hover:border-indigo-500/30 transition-all">
+                          Array.from(new Map(subjects.map(s => [s.name, s])).values()).map((sub, idx) => (
+                            <div
+                              key={sub.id}
+                              draggable
+                              onDragStart={(e) => e.dataTransfer.setData("text/plain", idx.toString())}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const dragIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+                                if (!isNaN(dragIdx)) handleDropSubject(dragIdx, idx);
+                              }}
+                              className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 group hover:border-indigo-500/30 transition-all cursor-grab active:cursor-grabbing"
+                            >
                               <div className="flex items-center gap-2">
+                                <Fi name="menu" className="text-slate-300 dark:text-slate-600 group-hover:text-slate-400 text-xs shrink-0" />
                                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: sub.color || '#6366f1' }} />
                                 <span className="font-bold text-xs text-slate-700 dark:text-slate-200">{sub.name}</span>
                               </div>
-                              <button
-                                onClick={() => handleDeleteSubject(sub.id)}
-                                className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
-                                title="Delete Subject"
-                              >
-                                <FiTrashIcon size={13} />
-                              </button>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                <button
+                                  onClick={() => openSubjectModal(sub)}
+                                  className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all cursor-pointer"
+                                  title="Edit Subject"
+                                >
+                                  <FiEditIcon size={13} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteSubject(sub.id)}
+                                  className="p-1 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
+                                  title="Delete Subject"
+                                >
+                                  <FiTrashIcon size={13} />
+                                </button>
+                              </div>
                             </div>
                           ))
                         ) : (
@@ -1998,13 +2086,19 @@ export default function SuperadminAcademicsPage() {
                   </div>
                   <div>
                     <h3 className="font-extrabold text-base text-slate-800 dark:text-slate-100">
-                      {structureModal.type === "class" ? "Add New Class" : structureModal.type === "section" ? "Add New Section" : "Add New Subject"}
+                      {structureModal.editId
+                        ? `Edit ${structureModal.type === "class" ? "Class" : structureModal.type === "section" ? "Section" : "Subject"}`
+                        : structureModal.type === "class"
+                        ? "Add New Class"
+                        : structureModal.type === "section"
+                        ? "Add New Section"
+                        : "Add New Subject"}
                     </h3>
                     <p className="text-xs text-slate-400">Save single field directly to PostgreSQL database</p>
                   </div>
                 </div>
                 <button
-                  onClick={() => setStructureModal({ isOpen: false, type: "class" })}
+                  onClick={() => setStructureModal({ isOpen: false, type: "class", editId: null })}
                   className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
                   <FiXIcon size={18} />
@@ -2036,7 +2130,7 @@ export default function SuperadminAcademicsPage() {
                 <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                   <button
                     type="button"
-                    onClick={() => setStructureModal({ isOpen: false, type: "class" })}
+                    onClick={() => setStructureModal({ isOpen: false, type: "class", editId: null })}
                     className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                   >
                     Cancel
@@ -2046,7 +2140,7 @@ export default function SuperadminAcademicsPage() {
                     disabled={savingStructure}
                     className="px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-black shadow-md transition-all flex items-center gap-2"
                   >
-                    {savingStructure ? "Saving to DB..." : `Save ${structureModal.type.toUpperCase()}`}
+                    {savingStructure ? "Saving to DB..." : structureModal.editId ? `Update ${structureModal.type.toUpperCase()}` : `Save ${structureModal.type.toUpperCase()}`}
                   </button>
                 </div>
               </form>

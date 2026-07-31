@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import multer from "multer";
+import { randomUUID } from "crypto";
 import { authenticate, requireMinRole } from "../middleware/auth.middleware";
 import { UPLOAD_LIMITS, documentFileFilter } from "../utils/uploads";
 import { uploadBuffer } from "../services/storage.service";
@@ -32,8 +33,6 @@ router.post("/upload", requireMinRole("HEADMASTER"), upload.single("file"), asyn
     res.status(500).json({ error: "Internal Server Error", details: error.message });
   }
 });
-
-import { randomUUID } from "crypto";
 
 // Ensure AcademicClass and AcademicSection tables exist in PostgreSQL
 async function ensureAcademicTablesExist() {
@@ -142,6 +141,36 @@ router.delete("/classes/:id", requireMinRole("HEADMASTER"), async (req: Request,
   }
 });
 
+router.put("/classes/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
+  try {
+    await ensureAcademicTablesExist();
+    const { id } = req.params;
+    const { name } = req.body;
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ error: "Class name is required" });
+    }
+    const cleanName = String(name).trim();
+    let result: any = null;
+    try {
+      if ((prisma as any).academicClass) {
+        result = await (prisma as any).academicClass.update({
+          where: { id },
+          data: { name: cleanName, updatedAt: new Date() }
+        });
+      } else {
+        throw new Error("academicClass model not loaded");
+      }
+    } catch {
+      await prisma.$executeRawUnsafe(`UPDATE "AcademicClass" SET "name" = $1, "updatedAt" = NOW() WHERE "id" = $2`, cleanName, id);
+      result = { id, name: cleanName };
+    }
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error updating class:", error);
+    res.status(500).json({ error: "Failed to update class", details: error.message });
+  }
+});
+
 // --- Sections ---
 router.get("/sections", async (req: Request, res: Response) => {
   try {
@@ -218,6 +247,36 @@ router.delete("/sections/:id", requireMinRole("HEADMASTER"), async (req: Request
   } catch (error: any) {
     console.error("Error deleting section:", error);
     res.status(500).json({ error: "Failed to delete section", details: error.message });
+  }
+});
+
+router.put("/sections/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
+  try {
+    await ensureAcademicTablesExist();
+    const { id } = req.params;
+    const { name } = req.body;
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ error: "Section name is required" });
+    }
+    const cleanName = String(name).trim();
+    let result: any = null;
+    try {
+      if ((prisma as any).academicSection) {
+        result = await (prisma as any).academicSection.update({
+          where: { id },
+          data: { name: cleanName, updatedAt: new Date() }
+        });
+      } else {
+        throw new Error("academicSection model not loaded");
+      }
+    } catch {
+      await prisma.$executeRawUnsafe(`UPDATE "AcademicSection" SET "name" = $1, "updatedAt" = NOW() WHERE "id" = $2`, cleanName, id);
+      result = { id, name: cleanName };
+    }
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error updating section:", error);
+    res.status(500).json({ error: "Failed to update section", details: error.message });
   }
 });
 
