@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import PortalLayout from "@/components/PortalLayout";
@@ -99,7 +99,7 @@ const EXAM_TYPES = [
   "Unit Test 2",
 ];
 
-export default function StudentProgressPage() {
+function TeacherProgressContent() {
   const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const searchParams = useSearchParams();
@@ -1357,5 +1357,17 @@ export default function StudentProgressPage() {
         )}
       </div>
     </PortalLayout>
+  );
+}
+
+export default function TeacherProgressPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--bg-main)]">
+        <div className="w-12 h-12 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin" />
+      </div>
+    }>
+      <TeacherProgressContent />
+    </Suspense>
   );
 }
