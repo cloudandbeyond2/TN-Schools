@@ -1021,48 +1021,78 @@ export default function CounsellorPage() {
             ) : (
               <div>
                 <div className="space-y-3">
-                  {paginatedHistoryMessages.map((m, idx) => (
-                    <div key={m._id || idx} className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-black text-slate-900 dark:text-white">
-                            {m.mood || "Okay"}
-                          </span>
-                          <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase border ${
-                            m.stressScore >= 7
-                              ? "bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-500/30"
-                              : "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30"
-                          }`}>
-                            {m.stressScore >= 7 ? `High Stress (Level ${m.stressScore})` : `Level ${m.stressScore}`}
+                  {paginatedHistoryMessages.map((m, idx) => {
+                    let cleanNotes = m.notes || "";
+                    let parsedTopic = null;
+                    let isAnon = false;
+                    
+                    const topicMatch = cleanNotes.match(/\[Topic:\s*(.*?)\]/i);
+                    if (topicMatch) {
+                      parsedTopic = topicMatch[1];
+                      cleanNotes = cleanNotes.replace(topicMatch[0], "");
+                    }
+                    
+                    const anonMatch = cleanNotes.match(/\[Anonymous:\s*(true|false)\]/i);
+                    if (anonMatch) {
+                      isAnon = anonMatch[1].toLowerCase() === "true";
+                      cleanNotes = cleanNotes.replace(anonMatch[0], "");
+                    }
+                    
+                    cleanNotes = cleanNotes.trim();
+
+                    return (
+                      <div key={m._id || idx} className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col md:flex-row md:items-start justify-between gap-3 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase border bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700 shadow-sm">
+                              {m.mood || "Okay"}
+                            </span>
+                            <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase border shadow-sm ${
+                              m.stressScore >= 7
+                                ? "bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-500/30"
+                                : "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30"
+                            }`}>
+                              {m.stressScore >= 7 ? `High Stress (Level ${m.stressScore})` : `Level ${m.stressScore}`}
+                            </span>
+                            {parsedTopic && (
+                              <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase border shadow-sm bg-violet-100 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-300 dark:border-violet-500/30">
+                                Topic: {parsedTopic}
+                              </span>
+                            )}
+                            {isAnon && (
+                              <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase border shadow-sm bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border-slate-300 dark:border-slate-700 flex items-center gap-1">
+                                <Lock size={10} /> Anonymous
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium whitespace-pre-wrap bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-100 dark:border-slate-800 mt-2 shadow-inner">
+                            {cleanNotes || "No detailed notes provided."}
+                          </p>
+                          <span className="text-[10px] text-slate-400 block mt-2 font-semibold">
+                            Submitted: {new Date(m.date || Date.now()).toLocaleString()}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium whitespace-pre-wrap">
-                          {m.notes}
-                        </p>
-                        <span className="text-[10px] text-slate-400 block mt-1">
-                          Submitted: {new Date(m.date || Date.now()).toLocaleString()}
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0 self-start">
+                          <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase border shadow-sm ${
+                            m.status === "RESOLVED"
+                              ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800"
+                              : m.status === "PENDING"
+                              ? "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800"
+                              : "bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-800"
+                          }`}>
+                            {m.status || "DELIVERED TO COUNSELLOR"}
+                          </span>
+                          <button
+                            onClick={() => handleDeleteStudentMessage(m._id)}
+                            title="Delete Note"
+                            className="p-1.5 bg-rose-100 dark:bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 rounded-lg border border-rose-200 dark:border-rose-500/30 transition-all shadow-sm"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
-                        <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase border ${
-                          m.status === "RESOLVED"
-                            ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800"
-                            : m.status === "PENDING"
-                            ? "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800"
-                            : "bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-400 border-violet-300 dark:border-violet-800"
-                        }`}>
-                          {m.status || "DELIVERED TO COUNSELLOR"}
-                        </span>
-                        <button
-                          onClick={() => handleDeleteStudentMessage(m._id)}
-                          title="Delete Note"
-                          className="p-1.5 bg-rose-100 dark:bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 rounded-lg border border-rose-200 dark:border-rose-500/30 transition-all shadow-sm"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* ── Pagination Controls for History Messages ── */}
