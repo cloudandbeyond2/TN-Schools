@@ -248,20 +248,25 @@ export default function StudyPlanPage() {
       themeClass="theme-student"
       accentColor="#6366f1"
     >
-      <div className="flex xl:hidden mb-4 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl w-full shadow-inner">
-        <button 
-          onClick={() => setMobileTab("lessons")}
-          className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${mobileTab === 'lessons' ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-sm' : 'text-slate-500'}`}
-        >
-          Lessons
-        </button>
-        <button 
-          onClick={() => setMobileTab("study")}
-          className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${mobileTab === 'study' ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-sm' : 'text-slate-500'}`}
-        >
-          Study Hub
-        </button>
+      {/* ── Page Banner ─────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <i className="fi fi-sr-brain text-2xl text-indigo-600 dark:text-indigo-400 flex items-center" />
+          <div>
+            <h2 className="text-lg sm:text-xl font-black text-black dark:text-white uppercase tracking-wider leading-tight">
+              Self-Study Plan
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Interact with textbook chapters, chat with AI Tutor and launch studio learning tools.
+            </p>
+          </div>
+        </div>
+        <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm whitespace-nowrap shrink-0 self-start sm:self-auto">
+          <i className="fi fi-sr-magic-wand flex items-center text-sm" />
+          Intelligence Mode
+        </span>
       </div>
+
 
       <div className="flex flex-col xl:flex-row gap-6 h-auto xl:h-[calc(100vh-160px)] xl:overflow-hidden pb-10 xl:pb-0">
         
@@ -272,7 +277,7 @@ export default function StudyPlanPage() {
           {/* Teacher assigned plans list */}
           <div className="glass rounded-3xl p-5 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-transparent">
             <h3 className="text-black dark:text-white font-bold text-sm mb-4 flex items-center gap-2">
-              <span>👩‍🏫</span> Teacher Assigned Lessons
+              <i className="fi fi-sr-chalkboard-user text-indigo-500 flex items-center" /> Teacher Assigned Lessons
             </h3>
             {loadingTeacherPlans ? (
               <div className="text-slate-400 text-sm animate-pulse font-sans">Loading assigned lessons...</div>
@@ -309,7 +314,7 @@ export default function StudyPlanPage() {
           </div>
 
           <div className="glass rounded-3xl p-5 border border-slate-250 dark:border-slate-700/50 bg-indigo-500/5">
-            <h4 className="text-indigo-600 dark:text-indigo-400 font-bold text-sm mb-2">🎓 How to Study:</h4>
+            <h4 className="text-indigo-600 dark:text-indigo-400 font-bold text-sm mb-2 flex items-center gap-1.5"><i className="fi fi-sr-graduation-cap flex items-center" /> How to Study:</h4>
             <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed font-sans space-y-1.5 flex flex-col">
               <span>1. Choose an assigned lesson above.</span>
               <span>2. Review the study targets.</span>
@@ -331,7 +336,7 @@ export default function StudyPlanPage() {
             </div>
           ) : !currentPlan ? (
             <div className="glass rounded-3xl p-12 border border-slate-250 dark:border-slate-700/50 text-center flex-grow flex flex-col items-center justify-center bg-white dark:bg-transparent">
-              <span className="text-6xl mb-6 block">📓</span>
+              <i className="fi fi-sr-notebook text-6xl text-slate-300 dark:text-slate-600 mb-6 flex items-center justify-center" />
               <h3 className="text-black dark:text-white font-bold text-lg md:text-xl font-sans">Student Study Hub</h3>
               <p className="text-sm md:text-base text-slate-550 max-w-md mt-3 leading-relaxed font-sans">
                 Select a lesson from the "Lessons" tab to get started. You can view study materials and chat with your AI Tutor here.
@@ -348,7 +353,7 @@ export default function StudyPlanPage() {
 
                 <div className="space-y-6 text-sm text-slate-655 dark:text-slate-350">
                   <div>
-                    <h4 className="text-black dark:text-white font-bold text-sm md:text-base mb-3">🎯 Study Targets</h4>
+                    <h4 className="text-black dark:text-white font-bold text-sm md:text-base mb-3 flex items-center gap-1.5"><i className="fi fi-sr-target flex items-center text-indigo-500" /> Study Targets</h4>
                     <ul className="list-disc list-inside space-y-2 text-slate-600 dark:text-slate-400 font-sans leading-relaxed text-sm md:text-base">
                       {currentPlan.goals?.map((goal, idx) => <li key={idx}>{goal}</li>)}
                     </ul>
@@ -359,7 +364,7 @@ export default function StudyPlanPage() {
                   {/* Global Studio Tools */}
                   <div>
                     <div className="flex items-center gap-2 mb-4">
-                      <span className="text-xl">🎨</span>
+                      <i className="fi fi-sr-palette text-indigo-500 flex items-center text-base" />
                       <h4 className="text-black dark:text-white font-bold text-sm md:text-base">Studio Tools for {currentPlan.topic}</h4>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -385,7 +390,7 @@ export default function StudyPlanPage() {
                   <hr className="border-slate-200 dark:border-slate-800" />
 
                   <div>
-                    <h4 className="text-black dark:text-white font-bold text-sm md:text-base mb-4">📖 Course Units</h4>
+                    <h4 className="text-black dark:text-white font-bold text-sm md:text-base mb-4 flex items-center gap-1.5"><i className="fi fi-sr-book-open-reader flex items-center text-indigo-500" /> Course Units</h4>
                     <div className="space-y-3">
                       {currentPlan.units?.map((unit, idx) => (
                         <div key={unit.id} className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
@@ -404,7 +409,7 @@ export default function StudyPlanPage() {
               {/* Chat Workspace */}
               <div className="flex-1 min-h-[300px] md:h-[40%] rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 p-5 flex flex-col justify-between overflow-hidden">
                 <div className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 pb-3 flex justify-between items-center">
-                  <span>🤖 AI Tutor</span>
+                  <span className="flex items-center gap-1.5"><i className="fi fi-sr-robot flex items-center text-indigo-400" /> AI Tutor</span>
                   <span className="text-indigo-400 lowercase truncate hidden sm:block">Connected to Gemini 2.5</span>
                 </div>
 

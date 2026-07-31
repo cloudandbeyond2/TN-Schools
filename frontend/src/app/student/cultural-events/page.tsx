@@ -548,7 +548,7 @@ export default function StudentCulturalEventsPage() {
       title="Culture & Fun!"
       subtitle="Join the dance, art, and music festivals!"
     >
-      <div className="flex flex-col gap-8 w-full max-w-none px-4 sm:px-8 lg:px-12 text-left">
+      <div className="flex flex-col gap-8 w-full max-w-none text-left">
         
         {/* Dynamic & Premium Hero Banner */}
         {heroEvent ? (
@@ -600,6 +600,13 @@ export default function StudentCulturalEventsPage() {
                       className="px-6 py-3 rounded-2xl text-sm font-black border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-50 hover:bg-emerald-100 transition-all flex items-center gap-2 active:scale-95 shadow-sm"
                     >
                       <i className="fi fi-sr-checkbox text-sm" /> Registered ({registrations[heroEvent.id]?.type === "individual" ? "Individual" : "Group"})
+                    </button>
+                  ) : new Date(heroEvent.eventDate).getTime() < new Date().getTime() ? (
+                    <button
+                      disabled
+                      className="px-6 py-3 rounded-2xl text-sm font-black bg-slate-100 text-slate-400 dark:bg-slate-900 dark:text-slate-500 cursor-not-allowed flex items-center gap-2 border border-slate-200 dark:border-slate-800"
+                    >
+                      <i className="fi fi-rr-ban text-sm" /> Event Closed
                     </button>
                   ) : (
                     <button
@@ -798,6 +805,9 @@ export default function StudentCulturalEventsPage() {
                 const theme = THEMES[category] || THEMES["General"];
                 const loc = parseLocation(evt.location);
                 const isRegistered = !!registrations[evt.id];
+                
+                const isPastEvent = new Date(evt.eventDate).getTime() < new Date().getTime();
+                const displayStatus = isPastEvent ? "CLOSED" : evt.status;
 
                 return (
                   <div
@@ -813,7 +823,7 @@ export default function StudentCulturalEventsPage() {
                       {/* Top-right Status & Category Badge */}
                       <div className="flex flex-col items-end gap-1.5">
                         <span className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg border ${theme.badgeBorder} ${theme.badgeBg} ${theme.badgeText} shadow-sm`}>
-                          {evt.status}
+                          {displayStatus}
                         </span>
                         <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                           {category}
@@ -874,13 +884,13 @@ export default function StudentCulturalEventsPage() {
                           <i className="fi fi-sr-checkbox text-sm" />
                           <span>Registered ({registrations[evt.id]?.type === "individual" ? "Individual" : "Group"})</span>
                         </button>
-                      ) : evt.status.toLowerCase().includes("completed") ? (
+                      ) : evt.status.toLowerCase().includes("completed") || isPastEvent ? (
                         <button
                           disabled
                           className="w-full py-3 rounded-2xl text-xs font-black bg-slate-100 text-slate-455 dark:bg-slate-900 dark:text-slate-650 cursor-not-allowed flex items-center justify-center gap-1.5 border border-slate-200 dark:border-slate-800"
                         >
                           <i className="fi fi-rr-ban text-sm" />
-                          <span>Completed Program</span>
+                          <span>{isPastEvent ? "Event Closed" : "Completed Program"}</span>
                         </button>
                       ) : (
                         <button

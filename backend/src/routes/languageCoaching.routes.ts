@@ -1,10 +1,21 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import https from 'https';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
+import { EdgeTTS } from 'node-edge-tts';
 import { LanguageCoachingProgress } from '../models/mongo';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// Ensure audio cache folder exists
+const AUDIO_CACHE_DIR = path.join(__dirname, '../../public/audio_cache');
+if (!fs.existsSync(AUDIO_CACHE_DIR)) {
+  fs.mkdirSync(AUDIO_CACHE_DIR, { recursive: true });
+}
+
 
 // ─── Grade Tier Helper ───────────────────────────────────────────────────────
 type GradeTier = 'explorer' | 'communicator' | 'orator';
@@ -133,13 +144,18 @@ Avoid words already used: ${JSON.stringify(recentWords)}.`;
       return res.json({ success: true, data });
     } catch {
       // Fallback
-      const fallbacks: Record<GradeTier, any> = {
+      const fallbacks: Record<GradeTier, any> = language === 'Tamil' ? {
+        explorer:     { word: 'மரியாதை', meaning: 'மற்றவர்களை மதிப்பளித்து அன்புடனும் மரியாதையுடனும் நடத்துவது.', example: 'பெரியவர்களுக்கும் நண்பர்களுக்கும் மரியாதை செலுத்துவது நற்பண்பாகும்.', difficulty: 'easy', tamilTranslation: 'Respect' },
+        communicator: { word: 'முயற்சி', meaning: 'ஒரு செயலைச் செய்து முடிக்க எடுக்கும் கடின உழைப்பு.', example: 'முயற்சி உடையார் இகழ்ச்சி அடையார்.', difficulty: 'medium', tamilTranslation: 'Effort' },
+        orator:       { word: 'நம்பிக்கை', meaning: 'தன்னைப் பற்றியும் பிறரைப் பற்றியும் கொள்ளும் நண்ணம்பிக்கை.', example: 'நம்பிக்கையே மனிதனின் வெற்றிக்கு அடிப்படை.', difficulty: 'hard', tamilTranslation: 'Confidence' }
+      } : {
         explorer:     { word: 'Curious', meaning: 'Eager to know or learn', example: 'The curious student asked many questions.', difficulty: 'easy', tamilTranslation: 'ஆர்வமுள்ள (Aarvamulla)' },
         communicator: { word: 'Persuade', meaning: 'To convince someone to do or believe something', example: 'She persuaded her friend to join the debate club.', difficulty: 'medium', tamilTranslation: 'சமாதானப்படுத்து (Samadhaanapaduthu)' },
         orator:       { word: 'Articulate', meaning: 'Able to express ideas clearly and effectively', example: 'An articulate speaker commands the room during a Group Discussion.', difficulty: 'hard', tamilTranslation: 'தெளிவாக பேசுபவர் (Theligaaga Pesupavar)' }
       };
       return res.json({ success: true, data: fallbacks[tier] });
     }
+
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -170,7 +186,13 @@ Do not repeat: ${JSON.stringify(recentWords)}.`;
 
     try {
       const data = await callGeminiCoach(prompt);
-      const words = Array.isArray(data) ? data : data.flashcards || data.words || [];
+      const rawWords = Array.isArray(data) ? data : data.flashcards || data.words || [];
+      const cleanText = (str: any) => typeof str === 'string' ? str.replace(/[\uFFFD\uFEFF\u200B\u200C\u200D\u00AD]/g, '').trim() : str;
+      const words = rawWords.map((w: any) => ({
+        word: cleanText(w.word),
+        meaning: cleanText(w.meaning),
+        sentence: cleanText(w.sentence)
+      }));
       await LanguageCoachingProgress.findOneAndUpdate(
         { studentId: resolved.student.id },
         { $inc: { newWordsCount: words.length } },
@@ -178,7 +200,13 @@ Do not repeat: ${JSON.stringify(recentWords)}.`;
       );
       return res.json({ success: true, data: words, theme });
     } catch {
-      const fallback = [
+      const fallback = language === 'Tamil' ? [
+        { word: 'முயற்சி', meaning: 'ஒரு செயலைச் செய்து முடிக்க எடுக்கும் கடின உழைப்பு.', sentence: 'முயற்சி உடையார் இகழ்ச்சி அடையார்.' },
+        { word: 'ஒழுக்கம்', meaning: 'நம்மை ஒழுங்குபடுத்தும் நல்ல பண்புகள்.', sentence: 'ஒழுக்கம் விழுப்பம் தரலான் ஒழுக்கம் உயிரினும் ஓம்பப் படும்.' },
+        { word: 'நம்பிக்கை', meaning: 'தன்னம்பிக்கை மற்றும் பிறரிடம் கொள்ளும் நன்மதிப்பு.', sentence: 'நம்பிக்கையே மனிதனின் வெற்றிக்கு அடிப்படை பலம்.' },
+        { word: 'மகிழ்ச்சி', meaning: 'மன நிறைவும் இன்பமும் கொண்ட நிலை.', sentence: 'நல்ல நண்பர்களுடன் பழகும்போது நாம் மகிழ்ச்சி அடைகிறோம்.' },
+        { word: 'அறிவு', meaning: 'கல்வி மற்றும் அனுபவத்தால் பெரும் பகுத்தறிவு.', sentence: 'அறிவு அற்றம் காக்கும் கருவி.' }
+      ] : [
         { word: 'Equanimity',    meaning: 'Mental calmness, composure, especially in a difficult situation.', sentence: 'She accepted both praise and criticism with equanimity.' },
         { word: 'Pernicious',    meaning: 'Having a harmful effect, especially in a gradual or subtle way.',  sentence: 'The pernicious influence of false rumours ruined their teamwork.' },
         { word: 'Obfuscate',     meaning: 'To render obscure, unclear, or unintelligible.',                  sentence: 'Avoid jargon that serves only to obfuscate your presentation.' },
@@ -187,6 +215,7 @@ Do not repeat: ${JSON.stringify(recentWords)}.`;
       ];
       return res.json({ success: true, data: fallback, theme });
     }
+
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -216,13 +245,18 @@ Return JSON:
       const data = await callGeminiCoach(prompt);
       return res.json({ success: true, data, theme });
     } catch {
-      const fallbacks: Record<GradeTier, any> = {
+      const fallbacks: Record<GradeTier, any> = language === 'Tamil' ? {
+        explorer:     { words: ['நான்', 'பள்ளிக்குச்', 'செல்கிறேன்', 'தினமும்'],              target: 'நான் தினமும் பள்ளிக்குச் செல்கிறேன்' },
+        communicator: { words: ['முயற்சி', 'திருவினையாக்கும்', 'என்றும்', 'கடின'],     target: 'கடின முயற்சி என்றும் திருவினையாக்கும்' },
+        orator:       { words: ['அறிவு', 'மனிதனை', 'உயர்த்தும்', 'சிறந்த', 'கருவி', 'ஆகும்'], target: 'அறிவு மனிதனை உயர்த்தும் சிறந்த கருவி ஆகும்' }
+      } : {
         explorer:     { words: ['I', 'love', 'going', 'school', 'to'],              target: 'I love going to school' },
         communicator: { words: ['is', 'hard', 'essential', 'work', 'for', 'success', 'that'],     target: 'Hard work is essential for success' },
         orator:       { words: ['critical', 'thinking', 'modern', 'challenges', 'solve', 'complex', 'helps', 'us', 'world\'s'], target: 'Critical thinking helps us solve the complex challenges of the modern world' }
       };
       return res.json({ success: true, data: fallbacks[tier], theme });
     }
+
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -251,13 +285,18 @@ Return JSON:
       const data = await callGeminiCoach(prompt);
       return res.json({ success: true, data });
     } catch {
-      const fallbacks: Record<GradeTier, any> = {
+      const fallbacks: Record<GradeTier, any> = language === 'Tamil' ? {
+        explorer:     { title: 'எறும்பும் வெட்டுக்கிளியும்', passage: 'கோடை காலத்தில், வெட்டுக்கிளி நாள் முழுவதும் பாடி மகிழ்ந்தது. ஆனால் எறும்பு குளிர்காலத்திற்காக உணவைச் சேமித்து வைத்தது. குளிர்காலம் வந்தபோது வெட்டுக்கிளி பசியால் வாடியது. எறும்பு தன் உணவைப் பகிர்ந்து கொண்டது. ஆனால், "எப்போதும் எதிர்காலத்திற்காக உழைக்க வேண்டும்" என்று அறிவுரை கூறியது. கடின உழைப்பின் முக்கியத்துவத்தை வெட்டுக்கிளி உணர்ந்தது.', comprehensionQuestion: 'வெட்டுக்கிளி கற்றுக்கொண்ட பாடம் என்ன?' },
+        communicator: { title: 'அன்பின் சக்தி', passage: 'ரவி எப்போதும் படிப்பில் சுறுசுறுப்பாக இருப்பான். ஒரு நாள், தன் வகுப்பில் பிரியா தனியாக அழுதுகொண்டிருப்பதை கவனித்தான். அவள் தேர்வில் தோல்வியடைந்ததால் வருத்தத்தில் இருந்தாள். ரவி அவளுக்கு ஆதரவாகப் பேசி, மீண்டும் முயற்சி செய்ய ஊக்கப்படுத்தினான். படிக்க எளிய குறிப்புகளைக் கொடுத்து உதவினான். ஒரு மாதத்திற்குப் பிறகு பிரியா நல்ல மதிப்பெண் பெற்று தேர்ச்சி பெற்றாள். ரவிக்கு எளிய அன்பான செயல் பிறர் வாழ்க்கையை மாற்றும் என்பது புரிந்தது.', comprehensionQuestion: 'ரவி பிரியாவிற்கு எவ்வாறு உதவினான்? அதன் முடிவு என்ன?' },
+        orator:       { title: 'டிஜிட்டல் இந்தியா: நன்மையும் சவாலும்', passage: 'இந்தியாவின் டிஜிட்டல் புரட்சி கல்வி, வங்கி மற்றும் அரசு சேவைகளை மக்கள் எளிதாகப் பெற மாற்றியுள்ளது. மொபைல் தொழில்நுட்பம் கிராமங்களுக்கும் நிதி வசதியைக் கொண்டு சேர்த்துள்ளது. இருப்பினும், இணைய வசதி நகரங்களில் எளிதாகவும் கிராமங்களில் கிராமப்புற மாணவர்கள் இணைய இணைப்பு இல்லாமல் தவிப்பதும் சவாலாக உள்ளது. இணையக் குற்றங்களும் தரவுப் பாதுகாப்பு சவால்களும் அதிகரித்து வருகின்றன. தொழில்நுட்பம் ஒரு தடையல்லாமல், பாலமாக அமைய நாம் அனைவரும் இணைந்து செயல்பட வேண்டும். டிஜிட்டல் கல்வி அனைவருக்கும் சமமாகக் கிடைக்க வழி செய்ய வேண்டும்.', comprehensionQuestion: 'டிஜிட்டல் புரட்சியால் ஏற்படும் முக்கிய சவால்கள் யாவை?' }
+      } : {
         explorer:     { title: 'The Ant and the Grasshopper', passage: 'One summer, a grasshopper sang all day while an ant worked hard storing food. When winter came, the grasshopper was hungry. The ant shared its food but said, "Always prepare for tomorrow." The grasshopper learned a valuable lesson about hard work.', comprehensionQuestion: 'What lesson did the grasshopper learn?' },
         communicator: { title: 'The Power of Kindness', passage: 'Ravi was always busy with studies. One day, he noticed his classmate Priya sitting alone. She had failed her exam and felt sad. Ravi sat with her and encouraged her to try again. He shared study tips and helped her prepare. A month later, Priya passed with high marks. She thanked Ravi, who realized that small acts of kindness can change someone\'s life completely.', comprehensionQuestion: 'How did Ravi help Priya? What was the result?' },
         orator:       { title: 'Digital India: Promise and Peril', passage: 'India\'s digital revolution has transformed how millions access education, banking, and government services. The Jan Dhan-Aadhaar-Mobile trinity has brought financial inclusion to remote villages. Yet, rapid digitisation carries risks. The digital divide — where urban youth enjoy seamless connectivity while rural students struggle with bandwidth — threatens to widen existing inequalities. Cybercrime, misinformation, and data privacy breaches are rising. As India races toward a two-trillion-dollar digital economy, policymakers must ensure that technology becomes a bridge, not a barrier. Inclusive digital literacy programmes, affordable devices, and robust cyber laws are not optional — they are urgent national priorities.', comprehensionQuestion: 'What does the author mean by "technology becomes a bridge, not a barrier"? Do you agree?' }
       };
       return res.json({ success: true, data: fallbacks[tier] });
     }
+
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -325,7 +364,62 @@ Return JSON:
       return res.json({ success: true, data, theme });
     } catch {
       // Setup dynamic offline fallback lists
-      const fallbacks: Record<GradeTier, Array<{ scenario: string, turns: any[] }>> = {
+      const fallbacks: Record<GradeTier, Array<{ scenario: string, turns: any[] }>> = language === 'Tamil' ? {
+        explorer: [
+          {
+            scenario: 'பள்ளி உணவகத்தில் உணவு வாங்குதல்.',
+            turns: [
+              {
+                aiLine: 'உணவக அண்ணன்: தம்பி இன்று உனக்கு என்ன வேண்டும்?',
+                options: [
+                  { text: 'ஒரு சமோசாவும் சாறும் கொடுங்கள் அண்ணா.', quality: 'strong', feedback: 'மிகவும் மரியாதையான முழுமையான வாக்கியம்!' },
+                  { text: 'சமோசா கொடு.', quality: 'weak', feedback: 'சிறிது மரியாதைக் குறைவான பதில். "அண்ணா" அல்லது "தயவுசெய்து" சேர்க்கலாம்.' }
+                ]
+              }
+            ]
+          },
+          {
+            scenario: 'பள்ளி நூலகத்தில் புத்தகம் வாங்குதல்.',
+            turns: [
+              {
+                aiLine: 'நூலகர்: வணக்கம்! இன்று உனக்கு என்ன புத்தகம் வேண்டும்?',
+                options: [
+                  { text: 'வணக்கம் ஐயா, எனக்குக் கதை புத்தகம் வேண்டும்.', quality: 'strong', feedback: 'மரியாதையான தொடக்கமும் தெளிவான விளக்கமும்!' },
+                  { text: 'கதை புத்தகம் கொடுங்க.', quality: 'weak', feedback: 'வணக்கம் கூறிவிட்டு மரியாதையாகக் கேட்கலாம்.' }
+                ]
+              }
+            ]
+          }
+        ],
+        communicator: [
+          {
+            scenario: 'குழு செயல்முறைப் பணி பற்றி நண்பனுடன் உரையாடல்.',
+            turns: [
+              {
+                aiLine: 'நண்பன்: நீ இந்த திட்டத்தில் உன் பங்கைச் சரியாகச் செய்யவில்லை என நினைக்கிறேன்.',
+                options: [
+                  { text: 'உன் கவலை புரிகிறது. நான் செய்த வேலைகளை விளக்குகிறேன் கேள்.', quality: 'strong', feedback: 'மிகவும் ஆக்கபூர்வமான மரியாதையான பதில்.' },
+                  { text: 'அது உண்மை இல்லை!', quality: 'weak', feedback: 'எதிர்ப்புத் தெரிவிக்கும் பதில், விவாதத்தை வளர்க்கும்.' }
+                ]
+              }
+            ]
+          }
+        ],
+        orator: [
+          {
+            scenario: 'வகுப்பில் மொபைல் போன் பயன்பாடு பற்றிய விவாதம்.',
+            turns: [
+              {
+                aiLine: 'நண்பன்: வகுப்பில் மாணவர்கள் போன் பயன்படுத்த அனுமதிக்க வேண்டும் என நினைக்கிறேன்.',
+                options: [
+                  { text: 'போன்கள் நல்ல கற்றல் கருவிதான், ஆனால் அவை கவனத்தை சிதறடிக்கும் வாய்ப்பும் உள்ளது.', quality: 'strong', feedback: 'ஆக்கப்பூர்வமான இரு பக்க வாதம்.' },
+                  { text: 'இல்லை, போன்கள் பயன்படுத்தக் கூடாது!', quality: 'weak', feedback: 'காரணம் கூறாமல் மறுக்கும் எளிய பதில்.' }
+                ]
+              }
+            ]
+          }
+        ]
+      } : {
         explorer: [
           {
             scenario: 'You are ordering food at the school canteen.',
@@ -410,6 +504,7 @@ Return JSON:
       const selectedFallback = tierFallbacks[Math.floor(Math.random() * tierFallbacks.length)];
       return res.json({ success: true, data: selectedFallback, theme });
     }
+
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -738,4 +833,54 @@ router.get('/:studentId/progress', async (req: Request, res: Response) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// 13. TAMIL TTS AUDIO GENERATION (Zero API Key, Native Tamil Voice, MP3 Cached)
+// ═══════════════════════════════════════════════════════════════════════════════
+router.post('/tts', async (req: Request, res: Response) => {
+  try {
+    const { text, voice = 'ta-IN-PallaviNeural', rate = '0%' } = req.body;
+
+    if (!text || typeof text !== 'string') {
+      return res.status(400).json({ success: false, error: 'Text parameter is required' });
+    }
+
+    // 1. Calculate MD5 Hash for text + voice + rate (Unique MP3 file key)
+    const hashKey = crypto
+      .createHash('md5')
+      .update(`${voice}_${rate}_${text}`)
+      .digest('hex');
+
+    const filename = `${hashKey}.mp3`;
+    const filePath = path.join(AUDIO_CACHE_DIR, filename);
+    const audioUrl = `/audio_cache/${filename}`;
+
+    // 2. CHECK CACHE: Serve instantly if file already exists (0ms, 0 API calls)
+    if (fs.existsSync(filePath)) {
+      console.log(`[TTS Cache HIT] Serving cached MP3 for: "${text.substring(0, 30)}..."`);
+      return res.json({ success: true, audioUrl, cached: true });
+    }
+
+    // 3. CACHE MISS: Convert to Native Tamil Speech without API Key
+    console.log(`[TTS Cache MISS] Generating new Tamil audio for: "${text.substring(0, 30)}..."`);
+    const tts = new EdgeTTS({
+      voice: voice,
+      lang: 'ta-IN',
+      outputFormat: 'audio-24khz-96kbitrate-mono-mp3',
+      rate: rate
+    });
+
+    await tts.ttsPromise(text, filePath);
+
+    return res.json({
+      success: true,
+      audioUrl,
+      cached: false
+    });
+  } catch (err) {
+    console.error('TTS Endpoint Error:', err);
+    return res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
+
