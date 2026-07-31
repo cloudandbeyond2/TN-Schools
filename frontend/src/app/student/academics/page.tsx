@@ -12,9 +12,28 @@ import { HS_GROUP_SUBJECTS, HS_GROUP_LABELS } from "@/data/hsGroups";
    Flaticon (uicons) glyph — the app loads uicons-regular-rounded,
    so every icon on this page is a `fi fi-rr-*` class.
 ──────────────────────────────────────────────────────────── */
-const Fi = ({ name, className = "" }: { name: string; className?: string }) => (
-  <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} />
+const Fi = ({ name, className = "", style }: { name: string; className?: string; style?: React.CSSProperties }) => (
+  <i className={`fi fi-rr-${name} inline-flex items-center justify-center leading-none ${className}`} style={style} />
 );
+
+const getSubjectFlaticon = (iconStr: string | null | undefined): string => {
+  if (!iconStr) return "book";
+  if (iconStr.startsWith("fi-") || iconStr.startsWith("fi ") || iconStr.startsWith("fi-rr-")) return iconStr.replace("fi-rr-", "");
+  const mapping: Record<string, string> = {
+    "📐": "ruler-combined",
+    "🔬": "flask",
+    "🌍": "globe",
+    "📖": "book",
+    "🗣️": "comment",
+    "🧪": "flask",
+    "🧬": "dna",
+    "📜": "document",
+    "💻": "computer",
+    "📚": "books"
+  };
+  return mapping[iconStr] || "book";
+};
+
 
 /* ────────────────────────────────────────────────────────────
    Types
@@ -184,7 +203,7 @@ export default function AcademicsHubPage() {
             const subName = sub.name;
             const color = sub.color || "#64748b";
             const gradient = `from-[${color}] to-slate-600`;
-            const icon = sub.icon || "📚";
+            const icon = sub.icon || "books";
             const unitsCount = fetchedSyllabus[subName]?.length || 0;
             
             fetchedSubjects.push({
@@ -367,7 +386,7 @@ export default function AcademicsHubPage() {
       name,
       color: "#64748b",
       gradient: "from-slate-500 to-slate-600",
-      icon: "📚",
+      icon: "books",
       teacher: lang === "தமிழ்" ? "வகுப்பு ஆசிரியர்" : "Class Teacher",
       progress: 0,
       units: 0,
@@ -412,7 +431,7 @@ export default function AcademicsHubPage() {
         className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
         style={{ backgroundColor: `${t.color}1a`, color: t.color }}
       >
-        {t.icon} {name}
+        <Fi name={getSubjectFlaticon(t.icon)} className="text-[10px] shrink-0" style={{ color: t.color }} /> {name}
       </span>
     );
   };
@@ -468,8 +487,8 @@ export default function AcademicsHubPage() {
         </p>
 
         {r.addedBy && (
-          <p className="text-[10px] text-[var(--text-muted)] mb-2 relative z-10">
-            👨‍🏫 <span className="font-semibold">{r.addedBy}</span> · {r.date}
+          <p className="text-[10px] text-[var(--text-muted)] mb-2 relative z-10 flex items-center gap-1">
+            <Fi name="chalkboard-user" className="text-xs" /> <span className="font-semibold">{r.addedBy}</span> · {r.date}
           </p>
         )}
 
@@ -507,7 +526,9 @@ export default function AcademicsHubPage() {
           ) : (
             <>
               <span className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
-              <span className="text-4xl opacity-40 absolute left-4 bottom-3">{t.icon}</span>
+              <span className="text-4xl opacity-40 absolute left-4 bottom-3 text-white/50">
+                <Fi name={getSubjectFlaticon(t.icon)} className="text-4xl shrink-0" />
+              </span>
             </>
           )}
           <span className="w-14 h-14 rounded-full bg-white/25 backdrop-blur flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg z-10">
@@ -587,36 +608,36 @@ export default function AcademicsHubPage() {
       themeClass="theme-student"
     >
       {/* ── Hero banner ─────────────────────────────────── */}
-      <div className="relative rounded-3xl overflow-hidden mb-6 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
+      <div className="relative rounded-3xl overflow-hidden mb-6 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-5 md:py-6 md:px-7 shadow-xl">
         <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-fuchsia-400/20 rounded-full blur-3xl" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6 justify-between">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-5 justify-between">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-1.5">
               <span
-                className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center"
+                className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center shrink-0"
                 style={{ color: "#fff" }}
               >
-                <Fi name="graduation-cap" className="text-xl" />
+                <Fi name="graduation-cap" className="text-base" />
               </span>
               <span
-                className="text-[11px] font-black uppercase tracking-widest"
+                className="text-[10px] font-black uppercase tracking-widest"
                 style={{ color: "rgba(255,255,255,0.85)" }}
               >
                 {lang === "தமிழ்" ? `வகுப்பு ${studentClass} · தமிழ்நாடு மாநிலப் பாடத்திட்டம்` : `Class ${studentClass} · Tamil Nadu State Board`}
                 {isHigherSecondary ? ` · ${HS_GROUP_LABELS[studentGroup]}` : ""}
               </span>
             </div>
-            <div className="text-2xl md:text-3xl font-black mb-1" style={{ color: "#fff" }}>
+            <div className="text-xl md:text-2xl font-black mb-1" style={{ color: "#fff" }}>
               {lang === "தமிழ்" ? "பாடங்கள் & பாடப்பிரிவுகள் மையம்" : "Academics & Subjects Hub"}
             </div>
-            <p className="text-sm max-w-xl" style={{ color: "rgba(255,255,255,0.9)" }}>
+            <p className="text-xs max-w-xl leading-relaxed" style={{ color: "rgba(255,255,255,0.9)" }}>
               {lang === "தமிழ்"
                 ? "உங்கள் வகுப்பு பாடங்களை ஆராயுங்கள், பாடத்திட்டத்தைப் பின்பற்றுங்கள், பாடப்புத்தகங்கள், படிப்புப் பொருட்கள், ஆசிரியர் குறிப்புகள், வீடியோ பாடங்கள் மற்றும் குறிப்பு உள்ளடக்கங்களைத் திறக்கவும் — அனைத்தும் ஒரே இடத்தில்."
                 : "Browse your class subjects, follow the syllabus, and open textbooks, study materials, teacher notes, video lessons and reference content — all from one place."}
             </p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 shrink-0 w-full md:w-auto">
             {[
               { label: lang === "தமிழ்" ? "பாடங்கள்" : "Subjects", value: subjects.length, icon: "graduation-cap" },
               { label: lang === "தமிழ்" ? "வளங்கள்" : "Resources", value: resources.length, icon: "document" },
@@ -625,11 +646,11 @@ export default function AcademicsHubPage() {
             ].map((s) => (
               <div
                 key={s.label}
-                className="bg-white/15 backdrop-blur rounded-2xl px-4 py-3 text-center border border-white/20"
+                className="bg-white/15 backdrop-blur rounded-xl px-3.5 py-2.5 text-center border border-white/20 flex-1 min-w-[70px] sm:min-w-[80px]"
               >
-                <Fi name={s.icon} className="text-sm mx-auto mb-1 text-[#fff]/80" />
-                <div className="text-xl font-black text-[#fff] leading-none">{s.value}</div>
-                <div className="text-[10px] font-bold text-[#fff]/75 uppercase tracking-wider mt-1">
+                <Fi name={s.icon} className="text-xs mx-auto mb-0.5 text-[#fff]/80" />
+                <div className="text-lg font-black text-[#fff] leading-none">{s.value}</div>
+                <div className="text-[9px] font-bold text-[#fff]/75 uppercase tracking-wider mt-0.5 whitespace-nowrap">
                   {s.label}
                 </div>
               </div>
@@ -666,7 +687,7 @@ export default function AcademicsHubPage() {
                   : { borderColor: `${s.color}55` }
               }
             >
-              <span>{s.icon}</span> {s.name}
+              <Fi name={getSubjectFlaticon(s.icon)} className="text-sm shrink-0" style={{ color: active ? '#fff' : s.color }} /> {s.name}
             </button>
           );
         })}
@@ -868,9 +889,9 @@ export default function AcademicsHubPage() {
                 />
                 <div className="flex justify-between items-start mb-4 relative z-10">
                   <div
-                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-2xl shadow-lg group-hover:scale-105 transition-transform`}
+                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-2xl shadow-lg group-hover:scale-105 transition-transform text-white`}
                   >
-                    {s.icon}
+                    <Fi name={getSubjectFlaticon(s.icon)} className="text-2xl" />
                   </div>
                   <div className="text-right">
                     <span className="text-2xl font-black text-[var(--text-heading)]">{s.progress}%</span>
@@ -880,7 +901,9 @@ export default function AcademicsHubPage() {
                   </div>
                 </div>
                 <h2 className="text-lg font-black text-[var(--text-heading)] mb-0.5 relative z-10">{s.name}</h2>
-                <p className="text-xs text-[var(--text-muted)] mb-4 relative z-10">👨‍🏫 {s.teacher}</p>
+                <p className="text-xs text-[var(--text-muted)] mb-4 relative z-10 flex items-center gap-1">
+                  <Fi name="chalkboard-user" className="text-xs text-indigo-500" /> {s.teacher}
+                </p>
 
                 <div className="mb-4 relative z-10">
                   <div className="flex justify-between text-[10px] font-bold text-[var(--text-muted)] mb-1.5">
@@ -942,9 +965,9 @@ export default function AcademicsHubPage() {
                 >
                   <div className="flex items-center gap-3">
                     <span
-                      className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-lg shadow`}
+                      className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-lg shadow text-white`}
                     >
-                      {s.icon}
+                      <Fi name={getSubjectFlaticon(s.icon)} className="text-lg" />
                     </span>
                     <div>
                       <h2 className="text-sm font-black text-[var(--text-heading)]">{lang === "தமிழ்" ? `${s.name} பாடத்திட்டம்` : `${s.name} Syllabus`}</h2>
@@ -1140,8 +1163,8 @@ export default function AcademicsHubPage() {
                   background: `linear-gradient(135deg, ${subjectTheme(previewResource.subject).color || '#64748b'}, #475569)`
                 }}
               >
-                <span className="text-6xl opacity-30 absolute left-6 bottom-3">
-                  {subjectTheme(previewResource.subject).icon}
+                <span className="text-6xl opacity-30 absolute left-6 bottom-3 text-white/40">
+                  <Fi name={getSubjectFlaticon(subjectTheme(previewResource.subject).icon)} className="text-6xl shrink-0" />
                 </span>
                 <span
                   className="w-16 h-16 rounded-2xl bg-white/25 backdrop-blur flex items-center justify-center shadow-lg"
