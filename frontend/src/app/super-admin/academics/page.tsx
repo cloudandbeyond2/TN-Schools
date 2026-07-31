@@ -887,9 +887,9 @@ export default function SuperadminAcademicsPage() {
               <div className="space-y-6 text-left">
                 <div className="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   <div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-2">
+                    {/* <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-2">
                       <Fi name="settings-sliders" className="text-sm" /> PostgreSQL Master Data
-                    </div>
+                    </div> */}
                     <h2 className="text-xl font-black">Class, Section & Subject Structure Setup</h2>
                     <p className="text-xs text-emerald-100 mt-1 max-w-xl">
                       Easily add and manage school classes, section groups, and subject masters. All additions are saved directly to PostgreSQL.
@@ -1610,11 +1610,10 @@ export default function SuperadminAcademicsPage() {
                                   setSelectedSubjectNames([...selectedSubjectNames, subName]);
                                 }
                               }}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border ${
-                                isSelected
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border ${isSelected
                                   ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
                                   : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-400"
-                              }`}
+                                }`}
                             >
                               {isSelected && <FiCheckIcon size={12} />}
                               {subName}
@@ -2089,10 +2088,10 @@ export default function SuperadminAcademicsPage() {
                       {structureModal.editId
                         ? `Edit ${structureModal.type === "class" ? "Class" : structureModal.type === "section" ? "Section" : "Subject"}`
                         : structureModal.type === "class"
-                        ? "Add New Class"
-                        : structureModal.type === "section"
-                        ? "Add New Section"
-                        : "Add New Subject"}
+                          ? "Add New Class"
+                          : structureModal.type === "section"
+                            ? "Add New Section"
+                            : "Add New Subject"}
                     </h3>
                     <p className="text-xs text-slate-400">Save single field directly to PostgreSQL database</p>
                   </div>

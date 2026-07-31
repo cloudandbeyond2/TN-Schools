@@ -4,13 +4,13 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
-import { 
-  FiEdit2 as FiEditIcon, 
-  FiTrash2 as FiTrashIcon, 
-  FiPlus as FiPlusIcon, 
-  FiX as FiXIcon, 
-  FiSearch as FiSearchIcon, 
-  FiFilter as FiFilterIcon, 
+import {
+  FiEdit2 as FiEditIcon,
+  FiTrash2 as FiTrashIcon,
+  FiPlus as FiPlusIcon,
+  FiX as FiXIcon,
+  FiSearch as FiSearchIcon,
+  FiFilter as FiFilterIcon,
   FiCheck as FiCheckIcon,
   FiExternalLink as FiExternalLinkIcon
 } from "react-icons/fi";
@@ -195,6 +195,7 @@ export default function HeadmasterAcademicsPage() {
   // Form States
   const [selectedSubjectNames, setSelectedSubjectNames] = useState<string[]>([]);
   const [customSubjectInput, setCustomSubjectInput] = useState("");
+  const [subjectSearchQuery, setSubjectSearchQuery] = useState("");
 
   const allMasterSubjects = useMemo(() => {
     const dbNames = subjects.map(s => s.name);
@@ -205,7 +206,7 @@ export default function HeadmasterAcademicsPage() {
     name: "", color: "", icon: "", class: "", section: "",
     subjectCode: "", medium: "", description: "", status: "Active"
   });
-  
+
   const [resourceForm, setResourceForm] = useState({
     title: "", subjectId: "", type: "PDF", url: "", meta: "", description: "", addedBy: "",
     class: "", section: "", group: "", term: "", chapterNumber: "", topicName: "",
@@ -460,6 +461,7 @@ export default function HeadmasterAcademicsPage() {
       setEditSubjectId(null);
       setSelectedSubjectNames([]);
       setCustomSubjectInput("");
+      setSubjectSearchQuery("");
       setSubjectForm({ name: "", color: "#6366f1", icon: "📚", class: filterClass || "", section: filterSection || "", subjectCode: "", medium: "", description: "", status: "Active" });
     }
     setError("");
@@ -717,7 +719,7 @@ export default function HeadmasterAcademicsPage() {
   const pendingApprovalsQueue = useMemo(() => {
     const list: { type: "subject" | "resource"; item: any }[] = [];
     const query = searchQuery.trim().toLowerCase();
-    
+
     // Filter pending subjects
     subjects.forEach(sub => {
       if (sub.status === "Pending") {
@@ -738,7 +740,7 @@ export default function HeadmasterAcademicsPage() {
         const resSubName = subjects.find(s => s.id === res.subjectId)?.name || "General";
         const matchRail = selectedSubject === "All" ? true : resSubName === selectedSubject;
         const matchSearch = query ? (
-          res.title.toLowerCase().includes(query) || 
+          res.title.toLowerCase().includes(query) ||
           (res.description && res.description.toLowerCase().includes(query))
         ) : true;
         if (matchClass && matchSection && matchRail && matchSearch) {
@@ -767,7 +769,7 @@ export default function HeadmasterAcademicsPage() {
       themeClass="theme-headmaster"
     >
       <div className="space-y-6">
-        
+
         {/* ── Hero Banner ─────────────────────────────────── */}
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 p-6 md:p-8 shadow-xl">
           <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
@@ -789,7 +791,7 @@ export default function HeadmasterAcademicsPage() {
                 {lang === "தமிழ்" ? "வகுப்புப் பாடங்கள், காலத் திட்டங்கள், பாடப்புத்தகங்கள், கற்றல் குறிப்புகள், போலித் தேர்வுகள் மற்றும் கல்வி ஊடகங்களை மதிப்பாய்வு செய்யவும். ஆசிரியர் பதிவேற்றங்கள் மற்றும் பாடத்திட்ட சீரமைப்பை நிர்வகிக்கவும்." : "Review class subjects, term plans, textbooks, learning notes, mock-tests and educational media. Manage teacher uploads and curriculum alignment."}
               </p>
             </div>
-            
+
             {/* Stats count boxes */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
               {[
@@ -800,11 +802,10 @@ export default function HeadmasterAcademicsPage() {
               ].map((s) => (
                 <div
                   key={s.label}
-                  className={`backdrop-blur rounded-2xl px-4 py-3 text-center border transition-all ${
-                    s.highlighted 
-                      ? "bg-amber-500/20 border-amber-400/40 shadow-inner" 
+                  className={`backdrop-blur rounded-2xl px-4 py-3 text-center border transition-all ${s.highlighted
+                      ? "bg-amber-500/20 border-amber-400/40 shadow-inner"
                       : "bg-white/15 border-white/20"
-                  }`}
+                    }`}
                 >
                   <Fi name={s.icon} className="text-sm mx-auto mb-1" style={s.highlighted ? { color: "#fcd34d" } : { color: "rgba(255, 255, 255, 0.8)" }} />
                   <div className="text-xl font-black leading-none" style={s.highlighted ? { color: "#fcd34d" } : { color: "#ffffff" }}>
@@ -823,11 +824,10 @@ export default function HeadmasterAcademicsPage() {
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none scroll-smooth">
           <button
             onClick={() => setSelectedSubject("All")}
-            className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${
-              selectedSubject === "All"
+            className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${selectedSubject === "All"
                 ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
                 : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-indigo-400"
-            }`}
+              }`}
           >
             <Fi name="apps" className="text-sm" /> All Subjects
           </button>
@@ -837,9 +837,8 @@ export default function HeadmasterAcademicsPage() {
               <button
                 key={s.name}
                 onClick={() => setSelectedSubject(active ? "All" : s.name)}
-                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${
-                  active ? "text-white shadow-md" : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:shadow"
-                }`}
+                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${active ? "text-white shadow-md" : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:shadow"
+                  }`}
                 style={
                   active
                     ? { backgroundColor: s.color, borderColor: s.color }
@@ -857,7 +856,7 @@ export default function HeadmasterAcademicsPage() {
           {CATEGORIES.map((c) => {
             const active = activeTab === c.key;
             const count = (c.key === "overview") ? null : countByCategory(c.key);
-            
+
             // Inline localization mapping
             const getCategoryLabel = (key: string, l: string) => {
               const map: Record<string, string> = {
@@ -879,20 +878,18 @@ export default function HeadmasterAcademicsPage() {
               <button
                 key={c.key}
                 onClick={() => setActiveTab(c.key)}
-                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                  active
+                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${active
                     ? `text-white shadow-md`
                     : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
+                  }`}
                 style={active ? { background: c.gradient } : undefined}
               >
                 <Fi name={c.icon} className="text-sm" />
                 {getCategoryLabel(c.key, lang)}
                 {count !== null && (
                   <span
-                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
-                      active ? "bg-white/25" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                    }`}
+                    className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${active ? "bg-white/25" : "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                      }`}
                   >
                     {count}
                   </span>
@@ -1015,15 +1012,15 @@ export default function HeadmasterAcademicsPage() {
           </div>
         ) : (
           <motion.div layout className="min-h-[400px]">
-            
+
             {/* ══ STRUCTURE SETUP TAB (CLASS, SECTION, SUBJECT SETUP) ═════════ */}
             {activeTab === "structure" && (
               <div className="space-y-6 text-left">
                 <div className="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   <div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-2">
+                    {/* <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-2">
                       <Fi name="settings-sliders" className="text-sm" /> PostgreSQL Master Data
-                    </div>
+                    </div> */}
                     <h2 className="text-xl font-black">Class, Section & Subject Structure Setup</h2>
                     <p className="text-xs text-emerald-100 mt-1 max-w-xl">
                       Easily add and manage school classes, section groups, and subject masters. All additions are saved directly to PostgreSQL.
@@ -1053,7 +1050,7 @@ export default function HeadmasterAcademicsPage() {
 
                 {/* 3 Master Cards Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  
+
                   {/* 1. Classes Card */}
                   <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
                     <div>
@@ -1233,7 +1230,7 @@ export default function HeadmasterAcademicsPage() {
                               </div>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                                 <button
-                                  onClick={() => openSubjectModal(sub)}
+                                  onClick={() => { setStructureInput(sub.name); setStructureModal({ isOpen: true, type: "subject", editId: sub.id }); }}
                                   className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all cursor-pointer"
                                   title="Edit Subject"
                                 >
@@ -1265,7 +1262,7 @@ export default function HeadmasterAcademicsPage() {
             {/* ══ OVERVIEW TAB ═══════════════════════════════ */}
             {activeTab === "overview" && (
               <div className="space-y-6">
-                
+
                 {/* Search Results Combined View (If user entered a search query) */}
                 {searchQuery.trim() !== "" ? (
                   <div className="space-y-6 text-left">
@@ -1273,7 +1270,7 @@ export default function HeadmasterAcademicsPage() {
                       <h3 className="text-base font-black text-slate-800 dark:text-slate-200">
                         Search Results for "{searchQuery}"
                       </h3>
-                      <button 
+                      <button
                         onClick={() => setSearchQuery("")}
                         className="text-xs text-indigo-500 hover:text-indigo-600 font-bold"
                       >
@@ -1326,7 +1323,7 @@ export default function HeadmasterAcademicsPage() {
                             const subInfo = subjects.find(s => s.id === res.subjectId);
                             const subName = subInfo?.name || "General";
                             const t = subjectTheme(subName);
-                            
+
                             return (
                               <div
                                 key={res.id}
@@ -1392,7 +1389,7 @@ export default function HeadmasterAcademicsPage() {
                                   </p>
                                 </div>
                               </div>
-                              
+
                               {/* Approval Actions */}
                               <div className="flex items-center gap-1.5 shrink-0 ml-2">
                                 <button
@@ -1478,15 +1475,14 @@ export default function HeadmasterAcademicsPage() {
                         >
                           {sub.icon || "📚"}
                         </div>
-                        
+
                         {/* Status Label Badge */}
-                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
-                          sub.status === "Active" 
-                            ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50" 
+                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${sub.status === "Active"
+                            ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50"
                             : sub.status === "Inactive"
-                            ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50"
-                            : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50"
-                        }`}>
+                              ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50"
+                              : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50"
+                          }`}>
                           {sub.status === "Active" ? "APPROVED" : sub.status === "Inactive" ? "REJECTED" : "PENDING"}
                         </span>
                       </div>
@@ -1508,7 +1504,7 @@ export default function HeadmasterAcademicsPage() {
                           {sub.subjectCode && <span>Code: {sub.subjectCode}</span>}
                           {sub.medium && <span className="block mt-0.5">{sub.medium} Medium</span>}
                         </div>
-                        
+
                         {/* Interactive operations */}
                         <div className="flex items-center gap-1">
                           {sub.status !== "Active" && (
@@ -1566,7 +1562,7 @@ export default function HeadmasterAcademicsPage() {
                     const subInfo = subjects.find(s => s.id === res.subjectId);
                     const subName = subInfo?.name || "General";
                     const t = subjectTheme(subName);
-                    
+
                     return (
                       <motion.div
                         key={res.id}
@@ -1588,16 +1584,15 @@ export default function HeadmasterAcademicsPage() {
                             <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${TYPE_COLORS[res.type] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
                               <Fi name={TYPE_ICONS[res.type] || "document"} className="text-xl" />
                             </div>
-                            
+
                             <div className="flex items-center gap-1.5">
                               {/* Status Badge */}
-                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
-                                res.status === "Active"
+                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${res.status === "Active"
                                   ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50"
                                   : res.status === "Inactive"
-                                  ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50"
-                                  : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50"
-                              }`}>
+                                    ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50"
+                                    : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50"
+                                }`}>
                                 {res.status === "Active" ? "APPROVED" : res.status === "Inactive" ? "REJECTED" : "PENDING"}
                               </span>
                             </div>
@@ -1611,7 +1606,7 @@ export default function HeadmasterAcademicsPage() {
                             >
                               {t.icon} {subName}
                             </span>
-                            
+
                             {res.class && (
                               <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
                                 Class {res.class} {res.section ? `· Sec ${res.section}` : ""}
@@ -1633,7 +1628,7 @@ export default function HeadmasterAcademicsPage() {
                           <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug mb-1">
                             {res.title}
                           </h3>
-                          
+
                           {/* Syllabus Custom Information */}
                           {res.category === "syllabus" && (
                             <div className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold mb-1">
@@ -1788,70 +1783,83 @@ export default function HeadmasterAcademicsPage() {
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    {/* Row 1 — Search filter */}
+                    <div className="relative flex items-center">
+                      <FiSearchIcon className="absolute left-3 text-slate-400 text-xs" size={13} />
                       <input
                         type="text"
-                        placeholder="Add custom subject..."
-                        value={customSubjectInput}
-                        onChange={(e) => setCustomSubjectInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            const trimmed = customSubjectInput.trim();
-                            if (trimmed && !selectedSubjectNames.includes(trimmed)) {
-                              setSelectedSubjectNames([...selectedSubjectNames, trimmed]);
-                              setCustomSubjectInput("");
-                            }
-                          }
-                        }}
-                        className="flex-1 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-xs font-medium text-slate-700 dark:text-slate-200 outline-none"
+                        placeholder="Search subjects..."
+                        value={subjectSearchQuery}
+                        onChange={(e) => setSubjectSearchQuery(e.target.value)}
+                        className="w-full pl-8 pr-8 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-xs font-medium text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                       />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const trimmed = customSubjectInput.trim();
-                          if (trimmed && !selectedSubjectNames.includes(trimmed)) {
-                            setSelectedSubjectNames([...selectedSubjectNames, trimmed]);
-                            setCustomSubjectInput("");
-                          }
-                        }}
-                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all"
-                      >
-                        + Add Custom
-                      </button>
+                      {subjectSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSubjectSearchQuery("")}
+                          className="absolute right-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                        >
+                          <FiXIcon size={13} />
+                        </button>
+                      )}
                     </div>
 
+
+                    {/* Chips list — filtered by search */}
                     <div className="max-h-36 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 bg-slate-50/50 dark:bg-slate-950/50 flex flex-wrap gap-1.5 custom-scrollbar">
-                      {allMasterSubjects.length > 0 ? (
-                        allMasterSubjects.map((subName) => {
+                      {(() => {
+                        const filtered = subjectSearchQuery.trim()
+                          ? allMasterSubjects.filter(n => n.toLowerCase().includes(subjectSearchQuery.toLowerCase()))
+                          : allMasterSubjects;
+                        if (filtered.length === 0) {
+                          return (
+                            <p className="text-xs text-slate-400 p-2 text-center w-full">
+                              {subjectSearchQuery ? `No subjects match "${subjectSearchQuery}"` : 'No subjects found. Type above & click "+ Add Custom".'}
+                            </p>
+                          );
+                        }
+                        return filtered.map((subName) => {
                           const isSelected = selectedSubjectNames.includes(subName);
                           return (
-                            <button
+                            <span
                               key={subName}
-                              type="button"
-                              onClick={() => {
-                                if (isSelected) {
-                                  setSelectedSubjectNames(selectedSubjectNames.filter(n => n !== subName));
-                                } else {
-                                  setSelectedSubjectNames([...selectedSubjectNames, subName]);
-                                }
-                              }}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border ${
+                              className={`inline-flex items-center gap-1 pl-2.5 rounded-lg text-xs font-bold border transition-all ${
                                 isSelected
                                   ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
-                                  : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-400"
+                                  : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"
                               }`}
                             >
-                              {isSelected && <FiCheckIcon size={12} />}
-                              {subName}
-                            </button>
+                              {isSelected && <FiCheckIcon size={11} />}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setSelectedSubjectNames(selectedSubjectNames.filter(n => n !== subName));
+                                  } else {
+                                    setSelectedSubjectNames([...selectedSubjectNames, subName]);
+                                  }
+                                }}
+                                className="py-1 cursor-pointer"
+                              >
+                                {subName}
+                              </button>
+                              {isSelected && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedSubjectNames(selectedSubjectNames.filter(n => n !== subName))}
+                                  className="px-1.5 py-1 hover:bg-indigo-700 rounded-r-lg transition-colors cursor-pointer"
+                                  title="Remove"
+                                >
+                                  <FiXIcon size={10} />
+                                </button>
+                              )}
+                              {!isSelected && (
+                                <span className="w-1.5" />
+                              )}
+                            </span>
                           );
-                        })
-                      ) : (
-                        <p className="text-xs text-slate-400 p-2 text-center w-full">
-                          No PostgreSQL subjects found. Type a subject name above & click "+ Add Custom".
-                        </p>
-                      )}
+                        });
+                      })()}
                     </div>
                   </div>
                 ) : (
@@ -1943,16 +1951,16 @@ export default function HeadmasterAcademicsPage() {
                   <FiXIcon className="text-xl" />
                 </button>
               </div>
-              
+
               <form onSubmit={handleSaveResource} className="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-left font-sans">
                 {error && <div className="text-red-500 text-sm bg-red-50/80 p-3 rounded-xl">{error}</div>}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Class *</label>
-                    <select 
-                      required 
-                      value={resourceForm.class} 
+                    <select
+                      required
+                      value={resourceForm.class}
                       onChange={e => {
                         const newClass = e.target.value;
                         const filtered = newClass ? subjects.filter(s => String(s.class) === String(newClass) || String(s.class) === `Class ${newClass}`) : subjects;
@@ -1962,7 +1970,7 @@ export default function HeadmasterAcademicsPage() {
                           class: newClass,
                           subjectId: isStillValid ? resourceForm.subjectId : ""
                         });
-                      }} 
+                      }}
                       className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none"
                     >
                       <option value="">Select Class</option>
@@ -2195,7 +2203,7 @@ export default function HeadmasterAcademicsPage() {
                 {activeTab === "syllabus" ? (
                   <input type="hidden" value={resourceForm.title} />
                 ) : null}
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Attachment Type</label>
@@ -2222,22 +2230,22 @@ export default function HeadmasterAcademicsPage() {
                         <input type="file" onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          
+
                           setResourceForm(prev => ({ ...prev, url: "Uploading..." }));
-                          
+
                           const formData = new FormData();
                           formData.append("file", file);
-                          
+
                           try {
                             const res = await fetch(`${API_BASE}/upload`, {
                               method: "POST",
                               body: formData
                             });
-                            
+
                             if (!res.ok) {
                               throw new Error("Upload failed");
                             }
-                            
+
                             const data = await res.json();
                             if (data.url) {
                               setResourceForm(prev => ({ ...prev, url: data.url }));
@@ -2305,10 +2313,10 @@ export default function HeadmasterAcademicsPage() {
                       {structureModal.editId
                         ? `Edit ${structureModal.type === "class" ? "Class" : structureModal.type === "section" ? "Section" : "Subject"}`
                         : structureModal.type === "class"
-                        ? "Add New Class"
-                        : structureModal.type === "section"
-                        ? "Add New Section"
-                        : "Add New Subject"}
+                          ? "Add New Class"
+                          : structureModal.type === "section"
+                            ? "Add New Section"
+                            : "Add New Subject"}
                     </h3>
                     <p className="text-xs text-slate-400">Save single field directly to PostgreSQL database</p>
                   </div>
@@ -2333,11 +2341,11 @@ export default function HeadmasterAcademicsPage() {
                     value={structureInput}
                     onChange={(e) => setStructureInput(e.target.value)}
                     placeholder={
-                      structureModal.type === "class" 
-                        ? "e.g. Class 10" 
-                        : structureModal.type === "section" 
-                        ? "e.g. Section A" 
-                        : "e.g. Mathematics"
+                      structureModal.type === "class"
+                        ? "e.g. Class 10"
+                        : structureModal.type === "section"
+                          ? "e.g. Section A"
+                          : "e.g. Mathematics"
                     }
                     className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-teal-500/30 transition-all"
                   />
