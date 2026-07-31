@@ -64,7 +64,7 @@ const statusDot: Record<string, string> = {
 };
 
 export default function StudentCompetitiveExamsPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const studentId = (session?.user as any)?.studentId || null;
   const studentClass = (session?.user as any)?.class || null;
@@ -77,10 +77,12 @@ export default function StudentCompetitiveExamsPage() {
   const [enrolledMap, setEnrolledMap] = useState<Record<string, boolean>>({});
 
   const fetchExams = useCallback(async () => {
+    if (status === "loading") return;
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (schoolId) params.append("schoolId", schoolId);
+      if (studentClass) params.append("class", String(studentClass));
       const res = await fetch(`${API}/api/competitive-exams?${params}`);
       const data = await res.json();
       if (data.success) {
@@ -97,11 +99,13 @@ export default function StudentCompetitiveExamsPage() {
     } finally {
       setLoading(false);
     }
-  }, [schoolId]);
+  }, [schoolId, studentClass, status]);
 
   useEffect(() => {
-    fetchExams();
-  }, [fetchExams]);
+    if (status !== "loading") {
+      fetchExams();
+    }
+  }, [status, fetchExams]);
 
   const toggleEnroll = (id: string) =>
     setEnrolledMap((prev) => ({ ...prev, [id]: !prev[id] }));

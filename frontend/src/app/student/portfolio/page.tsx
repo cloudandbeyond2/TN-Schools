@@ -3,7 +3,7 @@
 import PortalLayout from "@/components/PortalLayout";
 import { FlatIcon } from "@/components/FlatIcon";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
@@ -297,7 +297,7 @@ interface PortfolioData {
   schoolPress: SchoolPress[];
 }
 
-export default function DigitalPortfolioPage() {
+function DigitalPortfolioContent() {
   const [activeTab, setActiveTab] = useState("aboutme");
   const [data, setData] = useState<PortfolioData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -2649,5 +2649,17 @@ export default function DigitalPortfolioPage() {
       )}
 
     </PortalLayout>
+  );
+}
+
+export default function DigitalPortfolioPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
+        <div className="w-12 h-12 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />
+      </div>
+    }>
+      <DigitalPortfolioContent />
+    </Suspense>
   );
 }

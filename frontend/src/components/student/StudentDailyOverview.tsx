@@ -64,18 +64,6 @@ interface MarkItem {
   maxMarks: number;
 }
 
-/* Fallback timetable shown when the school has not published one yet */
-const SAMPLE_TIMES: [string, string][] = [
-  ["09:30", "10:15"],
-  ["10:15", "11:00"],
-  ["11:15", "12:00"],
-  ["12:00", "12:45"],
-  ["13:30", "14:15"],
-  ["14:15", "15:00"],
-  ["15:15", "16:00"],
-];
-const SAMPLE_SUBJECTS = ["Tamil", "English", "Mathematics", "Science", "Social Science", "Mathematics", "Physical Education"];
-
 const SUBJECT_COLORS: Record<string, string> = {
   Tamil: "#f59e0b",
   English: "#3b82f6",
@@ -111,91 +99,7 @@ const daysUntil = (d: string | Date) => {
   return Math.round((target.getTime() - now.getTime()) / 86400000);
 };
 
-const getDefaultDashboardExams = (clsStr: string): ExamItem[] => {
-  const num = String(clsStr || "").match(/\d+/)?.[0] || "11";
-  const todayStr = new Date().toISOString().slice(0, 10);
-  
-  if (num === "11" || num === "12") {
-    return [
-      {
-        id: "def-dash-11-1",
-        title: "Quarterly Examination",
-        examType: "Unit Test",
-        subject: "Mathematics",
-        examDate: todayStr,
-        startTime: "09:30 AM",
-        venue: "Block A - Hall 1",
-        status: "Scheduled"
-      },
-      {
-        id: "def-dash-11-2",
-        title: "Quarterly Examination",
-        examType: "Quarterly",
-        subject: "Physics",
-        examDate: "2026-08-05",
-        startTime: "09:30 AM",
-        venue: "Block B - Hall 3",
-        status: "Scheduled"
-      },
-      {
-        id: "def-dash-11-3",
-        title: "Quarterly Examination",
-        examType: "Quarterly",
-        subject: "Chemistry",
-        examDate: "2026-08-10",
-        startTime: "09:30 AM",
-        venue: "Block B - Hall 3",
-        status: "Scheduled"
-      }
-    ];
-  } else if (num === "10") {
-    return [
-      {
-        id: "def-dash-10-1",
-        title: "SSLC Model Exam",
-        examType: "Model",
-        subject: "Mathematics",
-        examDate: todayStr,
-        startTime: "09:30 AM",
-        venue: "Hall 1",
-        status: "Scheduled"
-      },
-      {
-        id: "def-dash-10-2",
-        title: "SSLC Model Exam",
-        examType: "Model",
-        subject: "Science",
-        examDate: "2026-08-05",
-        startTime: "09:30 AM",
-        venue: "Hall 2",
-        status: "Scheduled"
-      }
-    ];
-  } else {
-    return [
-      {
-        id: `def-dash-${num}-1`,
-        title: "Term Assessment",
-        examType: "Unit Test",
-        subject: "Mathematics",
-        examDate: todayStr,
-        startTime: "09:30 AM",
-        venue: "Hall 1",
-        status: "Scheduled"
-      },
-      {
-        id: `def-dash-${num}-2`,
-        title: "Term Assessment",
-        examType: "Unit Test",
-        subject: "Science",
-        examDate: "2026-08-05",
-        startTime: "09:30 AM",
-        venue: "Hall 2",
-        status: "Scheduled"
-      }
-    ];
-  }
-};
+
 
 interface StudentDailyOverviewProps {
   extraLeft?: React.ReactNode;
@@ -206,7 +110,8 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
   const { data: session } = useSession();
   const { lang } = usePortalLanguage();
 
-  const [timetable, setTimetable] = useState<TimetableSlot[] | null>(null);
+  const [allTimetableSlots, setAllTimetableSlots] = useState<any[] | null>(null);
+  const [dayOffset, setDayOffset] = useState<number>(0);
   const [homework, setHomework] = useState<HomeworkItem[] | null>(null);
   const [exams, setExams] = useState<ExamItem[] | null>(null);
   const [announcements, setAnnouncements] = useState<AnnouncementItem[] | null>(null);
@@ -237,11 +142,14 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
 
       if (!studentId || !schoolId || !cls) {
         try {
-          const res = await fetch(`${API_BASE}/api/students`);
+          const studentParams = new URLSearchParams();
+          if (u?.id) studentParams.set("userId", u.id);
+          const res = await fetch(`${API_BASE}/api/students?${studentParams.toString()}`);
           const json = await res.json();
-          const me = json.success && Array.isArray(json.data) && json.data.length > 0
-            ? (u?.id ? json.data.find((s: any) => s.userId === u.id) : null) || json.data[0]
-            : null;
+          const students = json.success && Array.isArray(json.data) ? json.data : json.success && json.data ? [json.data] : [];
+          const me = u?.id
+            ? students.find((s: any) => s.userId === u.id) || students[0]
+            : students[0];
           if (me) {
             studentId = studentId || me.id;
             schoolId = schoolId || me.schoolId;
@@ -251,43 +159,40 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
         } catch {}
       }
 
-      if (cancelled) return;
+      // 2. Parse & normalize class and section (e.g., "11-B" -> class="11", section="B")
+      let cleanClass = cls ? String(cls).trim() : "11";
+      let cleanSection = section ? String(section).trim() : "";
+      const numMatch = cleanClass.match(/\d+/);
+      if (numMatch) {
+        const secLetter = cleanClass.replace(/[^a-zA-Z]/g, "").trim();
+        cleanClass = numMatch[0];
+        if (!cleanSection && secLetter) cleanSection = secLetter;
+      }
 
       const today = new Date();
       const dayOfWeek = today.getDay(); // 0=Sun … 6=Sat (matches Timetable.dayOfWeek)
 
       /* 1. Daily timetable + upcoming classes */
-      if (schoolId && cls) {
-        fetch(
-          `${API_BASE}/api/timetable?schoolId=${schoolId}&class=${encodeURIComponent(cls)}${section ? `&section=${encodeURIComponent(section)}` : ""}&dayOfWeek=${dayOfWeek}`
-        )
+      if (schoolId && cleanClass) {
+        const ttParams = new URLSearchParams();
+        ttParams.set("schoolId", schoolId);
+        ttParams.set("class", cleanClass);
+        if (cleanSection) ttParams.set("section", cleanSection);
+
+        fetch(`${API_BASE}/api/timetable?${ttParams.toString()}`)
           .then((r) => r.json())
           .then((json) => {
             if (cancelled) return;
             if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-              setTimetable(
-                json.data
-                  .sort((a: any, b: any) => a.period - b.period)
-                  .map((s: any) => ({ period: s.period, subject: s.subject, startTime: s.startTime, endTime: s.endTime }))
-              );
+              setAllTimetableSlots(json.data);
             } else {
-              // School has not published a timetable for this class yet — show a sample day
-              setTimetable(
-                dayOfWeek === 0
-                  ? []
-                  : SAMPLE_TIMES.map(([st, et], i) => ({
-                      period: i + 1,
-                      subject: SAMPLE_SUBJECTS[i % SAMPLE_SUBJECTS.length],
-                      startTime: st,
-                      endTime: et,
-                      sample: true,
-                    }))
-              );
+              // School has not published a timetable for this class yet
+              setAllTimetableSlots([]);
             }
           })
-          .catch(() => !cancelled && setTimetable([]));
+          .catch(() => !cancelled && setAllTimetableSlots([]));
       } else {
-        setTimetable([]);
+        setAllTimetableSlots([]);
       }
 
       /* 2. Pending homework */
@@ -304,11 +209,12 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
         })
         .catch(() => !cancelled && setHomework([]));
 
-      /* 3. Upcoming examinations */
-      const targetClass = cls || "11";
+      /* 3. Upcoming examinations — only show real published exams from the headmaster */
       const examUrl = new URLSearchParams();
       if (schoolId) examUrl.set("schoolId", schoolId);
-      if (targetClass) examUrl.set("class", targetClass);
+      if (cleanClass) examUrl.set("class", cleanClass);
+      // Note: do NOT send section — fetch all class exams and filter client-side
+      // so "All"-section exams always show for every student in that class
 
       fetch(`${API_BASE}/api/exam-schedule?${examUrl.toString()}`)
         .then((r) => r.json())
@@ -316,19 +222,26 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
           if (cancelled) return;
           if (json.success && Array.isArray(json.data) && json.data.length > 0) {
             const mine = json.data.filter(
-              (e: any) =>
-                e.status !== "Completed" && e.status !== "Cancelled" &&
-                (!section || !e.section || e.section === "All" || e.section === section)
+              (e: any) => {
+                // Exclude cancelled exams only
+                if (e.status === "Cancelled" || e.status === "CANCELLED") return false;
+                // Section filter: only filter if exam is narrowly scoped to a single letter section
+                // Group names like "Commerce", "General", "Science", "All", or empty = visible to all students in the class
+                const examSec = (e.section || "").trim();
+                const isSingleLetterSection = /^[A-Z]$/i.test(examSec);
+                if (cleanSection && isSingleLetterSection &&
+                    examSec.toLowerCase() !== cleanSection.toLowerCase()) return false;
+                return true;
+              }
             );
-            if (mine.length > 0) {
-              setExams(mine);
-              return;
-            }
+            setExams(mine);
+          } else {
+            // No exams published by headmaster — show empty state, no dummy data
+            setExams([]);
           }
-          setExams(getDefaultDashboardExams(targetClass));
         })
         .catch(() => {
-          if (!cancelled) setExams(getDefaultDashboardExams(targetClass));
+          if (!cancelled) setExams([]);
         });
 
       /* 4. Attendance status (this month + today) */
@@ -408,13 +321,29 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
     };
   }, [session]);
 
+  /* ── derived: dynamic timetable based on dayOffset ── */
+  const timetable = useMemo(() => {
+    if (!allTimetableSlots) return null;
+    if (allTimetableSlots.length === 0) return [];
+    
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + dayOffset);
+    const targetDayOfWeek = targetDate.getDay();
+    
+    return allTimetableSlots
+      .filter((s: any) => Number(s.dayOfWeek) === targetDayOfWeek)
+      .sort((a: any, b: any) => a.period - b.period)
+      .map((s: any) => ({ period: s.period, subject: s.subject, startTime: s.startTime, endTime: s.endTime, sample: false }));
+  }, [allTimetableSlots, dayOffset]);
+
   /* ── derived: current / next period (upcoming classes) ── */
   const { currentPeriod, nextPeriods } = useMemo(() => {
+    if (dayOffset !== 0) return { currentPeriod: null, nextPeriods: [] }; // Only highlight today's active periods
     const slots = timetable || [];
     const current = slots.find((s) => nowMin >= toMinutes(s.startTime) && nowMin < toMinutes(s.endTime)) || null;
     const upcoming = slots.filter((s) => toMinutes(s.startTime) > nowMin);
     return { currentPeriod: current, nextPeriods: upcoming };
-  }, [timetable, nowMin]);
+  }, [timetable, nowMin, dayOffset]);
 
   /* ── derived: subject averages → weakest subject ── */
   const subjectAverages = useMemo(() => {
@@ -593,27 +522,52 @@ export default function StudentDailyOverview({ extraLeft, extraRight }: StudentD
         <div className="space-y-4">
           {/* Daily timetable & upcoming classes */}
           <div className="glass rounded-2xl p-5 border border-[var(--border)]">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <h3 className="text-sm font-bold text-[var(--text-heading)] flex items-center gap-2">
-                <Fi name="calendar-lines" className="text-sm text-indigo-500" /> {lang === "தமிழ்" ? "இன்றைய பாட அட்டவணை" : "Today's Timetable"}
+                <Fi name="calendar-lines" className="text-sm text-indigo-500" /> 
+                {dayOffset === 0 ? (lang === "தமிழ்" ? "இன்றைய பாட அட்டவணை" : "Today's Timetable") : dayOffset === 1 ? (lang === "தமிழ்" ? "நாளைய பாட அட்டவணை" : "Tomorrow's Timetable") : dayOffset === -1 ? (lang === "தமிழ்" ? "நேற்றைய பாட அட்டவணை" : "Yesterday's Timetable") : lang === "தமிழ்" ? "பாட அட்டவணை" : "Timetable"}
               </h3>
-              {timetable?.[0]?.sample && (
-                <span className="text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-full">
-                  {lang === "தமிழ்" ? "மாதிரி — அட்டவணை இன்னும் வெளியிடப்படவில்லை" : "Sample — timetable not published yet"}
-                </span>
+              
+              {/* Only show navigation arrows if timetable exists */}
+              {allTimetableSlots && allTimetableSlots.length > 0 && (
+                <div className="flex items-center gap-1 bg-[var(--bg-card-hover)] rounded-lg p-0.5 border border-[var(--border)] shrink-0 self-start">
+                  <button onClick={() => setDayOffset(d => d - 1)} className="p-1.5 rounded-md hover:bg-white dark:hover:bg-slate-800 transition-colors">
+                    <Fi name="angle-left" className="text-[10px] text-[var(--text-muted)]" />
+                  </button>
+                  <button 
+                    onClick={() => setDayOffset(0)} 
+                    className={`text-[10px] font-bold px-2 transition-colors ${dayOffset === 0 ? 'text-indigo-500' : 'text-[var(--text-muted)] hover:text-[var(--text-heading)]'}`}
+                    title={lang === "தமிழ்" ? "இன்றுக்கு திரும்பு" : "Back to today"}
+                  >
+                    {(() => {
+                      const targetDate = new Date();
+                      targetDate.setDate(targetDate.getDate() + dayOffset);
+                      const dateStr = targetDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                      if (dayOffset === 0) return `${lang === "தமிழ்" ? "இன்று" : "Today"}, ${dateStr}`;
+                      if (dayOffset === 1) return `${lang === "தமிழ்" ? "நாளை" : "Tomorrow"}, ${dateStr}`;
+                      if (dayOffset === -1) return `${lang === "தமிழ்" ? "நேற்று" : "Yesterday"}, ${dateStr}`;
+                      return targetDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                    })()}
+                  </button>
+                  <button onClick={() => setDayOffset(d => d + 1)} className="p-1.5 rounded-md hover:bg-white dark:hover:bg-slate-800 transition-colors">
+                    <Fi name="angle-right" className="text-[10px] text-[var(--text-muted)]" />
+                  </button>
+                </div>
               )}
             </div>
 
             {timetable === null ? (
               <CardLoading />
+            ) : timetable.length === 0 && allTimetableSlots?.length === 0 ? (
+              <EmptyNote icon="moon-stars" text={lang === "தமிழ்" ? "இன்னும் பாட அட்டவணை வெளியிடப்படவில்லை." : "Timetable not published yet."} />
             ) : timetable.length === 0 ? (
-              <EmptyNote icon="moon-stars" text={lang === "தமிழ்" ? "இன்று வகுப்புகள் எதுவும் திட்டமிடப்படவில்லை." : "No classes scheduled today. Enjoy your holiday — or revise a unit you found hard!"} />
+              <EmptyNote icon="moon-stars" text={lang === "தமிழ்" ? "இந்த நாளுக்கு வகுப்புகள் எதுவும் திட்டமிடப்படவில்லை." : "No classes scheduled for this day."} />
             ) : (
               <div className="space-y-1.5">
                 {timetable.map((slot) => {
                   const isNow = currentPeriod?.period === slot.period;
                   const isNext = nextPeriods[0]?.period === slot.period;
-                  const done = toMinutes(slot.endTime) <= nowMin;
+                  const done = dayOffset < 0 || (dayOffset === 0 && toMinutes(slot.endTime) <= nowMin);
                   return (
                     <div
                       key={slot.period}

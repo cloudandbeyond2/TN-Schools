@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import KpiStrip from "@/components/kpi/KpiStrip";
@@ -702,6 +703,12 @@ export default function ClassesPage() {
 
                 {/* Action Buttons */}
                 <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <Link
+                    href={`/teacher/progress?class=${c.className}-${c.section}`}
+                    className="px-3 py-1.5 bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-400 border border-sky-500/20 rounded-lg font-bold text-[10px] transition-all inline-flex items-center gap-1"
+                  >
+                    <i className="fi fi-rr-stats"></i> Student Progress
+                  </Link>
                   <button
                     onClick={() => openEdit(c)}
                     className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded-lg font-bold text-[10px] transition-all"
@@ -820,6 +827,12 @@ export default function ClassesPage() {
                       {/* Actions */}
                       <td className="px-5 py-3.5 text-right">
                         <div className="flex justify-end gap-2">
+                          <Link
+                            href={`/teacher/progress?class=${c.className}-${c.section}`}
+                            className="px-2.5 py-1 bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-400 border border-sky-500/20 rounded-lg font-bold text-[10px] transition-all inline-flex items-center gap-1"
+                          >
+                            <i className="fi fi-rr-stats"></i> Progress
+                          </Link>
                           <button
                             onClick={() => openEdit(c)}
                             className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded-lg font-bold text-[10px] transition-all"

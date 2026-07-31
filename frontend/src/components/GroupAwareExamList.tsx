@@ -122,6 +122,7 @@ interface Props {
   studentId: string | null;
   /** Student's class from session, e.g. "12" */
   studentClass: string | null;
+  schoolId?: string | null;
 }
 
 /**
@@ -131,7 +132,7 @@ interface Props {
  * plus subject-wise preparation shortcuts.
  * Renders nothing for classes below 11.
  */
-export default function GroupAwareExamList({ studentId, studentClass }: Props) {
+export default function GroupAwareExamList({ studentId, studentClass, schoolId }: Props) {
   const [recs, setRecs] = useState<Recommendations | null>(null);
   const [loading, setLoading] = useState(true);
   const [showOthers, setShowOthers] = useState(false);
@@ -153,7 +154,11 @@ export default function GroupAwareExamList({ studentId, studentClass }: Props) {
           const json = await res.json();
           group = json?.data?.group || json?.group || "";
         }
-        const recRes = await fetch(`${API_BASE}/api/competitive-exams/recommendations?group=${encodeURIComponent(group)}&class=${classNum}`);
+        let recUrl = `${API_BASE}/api/competitive-exams/recommendations?group=${encodeURIComponent(group)}&class=${classNum}`;
+        if (schoolId) {
+          recUrl += `&schoolId=${encodeURIComponent(schoolId)}`;
+        }
+        const recRes = await fetch(recUrl);
         const recJson = await recRes.json();
         if (!cancelled && recJson.success) setRecs(recJson.data);
       } catch {
@@ -165,7 +170,7 @@ export default function GroupAwareExamList({ studentId, studentClass }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [studentId, classNum, isHsc]);
+  }, [studentId, classNum, isHsc, schoolId]);
 
   if (!isHsc) return null;
 

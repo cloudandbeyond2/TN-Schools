@@ -137,7 +137,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
-      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
+      // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
@@ -216,7 +216,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
       { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
-      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
+      // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
       { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
       //{ label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
@@ -285,90 +285,190 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Report a Concern", href: "/student/report", icon: "ShieldAlert" },
     ],
   },
+  // STUDENT_HIGHER: {
+  //   title: "Higher Secondary Dashboard",
+  //   subtitle: "Welcome, Arjun · Class 12 Biology Stream · Target: Medical Colleges",
+  //   avatarLetter: "A",
+  //   avatarColor: "#8b5cf6",
+  //   themeClass: "theme-student",
+  //   accentColor: "#8b5cf6",
+  //   navItems: [
+  //     { label: "Dashboard", href: "/student/higher-secondary", icon: "Home" },
+
+  //     // ── Academics & Subjects ──────────────────────────
+  //     { label: "---", href: "#", icon: "" },
+  //     { label: "Academics & Subjects", href: "#", icon: "" },
+  //     { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
+  //     { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
+  //     { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
+  //     { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
+  //     { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
+  //     { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
+  //     { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
+  //     // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
+
+  //     { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
+  //     { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
+
+  //     // ── Exams & Assessments ───────────────────────────
+  //     { label: "---", href: "#", icon: "" },
+
+  //     { label: "Exams & Assessments", href: "#", icon: "" },
+  //     { label: "Homework", href: "/student/homework", icon: "Edit3" },
+  //     { label: "Board Prep", href: "/student/higher-secondary/board-prep", icon: "Target" },
+  //     { label: "Mock Tests", href: "/student/higher-secondary/mock-tests", icon: "Edit3" },
+  //     { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
+  //     { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
+  //     { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
+  //     // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
+
+  //     // ── Test Preparation ──────────────────────────────
+  //     { label: "---", href: "#", icon: "" },
+  //     { label: "Test Preparation", href: "#", icon: "" },
+  //     // { label: "Competitive Exam Prep", href: "/student/higher-secondary/competitive", icon: "Rocket" },
+  //     { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
+  //     { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
+  //     { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
+  //     { label: "Formula Bank", href: "/student/higher-secondary/formulae", icon: "Calculator" },
+  //     { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
+  //     { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
+
+  //     // ── Labs & Centers ────────────────────────
+  //     { label: "---", href: "#", icon: "" },
+  //     { label: "Labs & Centers", href: "/student/science-campus", icon: "FlaskConical" },
+  //     // // { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
+
+  //     // ── Extracurricular & Wellbeing ───────────────────
+  //     { label: "---", href: "#", icon: "" },
+  //     { label: "Extracurricular & Wellbeing", href: "#", icon: "" },
+  //     { label: "Sports & Athletics", href: "/student/sports", icon: "Activity" },
+  //     { label: "Extracurriculars", href: "/student/activities", icon: "Smile" },
+  //     { label: "Social Activities", href: "/student/social-activities", icon: "HeartHandshake" },
+  //     { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
+  //     { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
+  //     { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
+  //     // { label: "Wellness", href: "/student/wellness", icon: "Smile" },
+
+  //     // ── School & Career ───────────────────────────────
+  //     { label: "---", href: "#", icon: "" },
+  //     { label: "School & Career", href: "#", icon: "" },
+  //     { label: "Announcements", href: "/student/announcements", icon: "Megaphone" },
+  //     { label: "Career Guidance", href: "/student/career", icon: "Compass" },
+  //     { label: "Scholarships", href: "/student/higher-secondary/scholarships", icon: "ScrollText" },
+  //     { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
+  //     { label: "Learning Platform", href: "/student/higher-secondary/learning-platform", icon: "Monitor" },
+  //     { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
+  //     { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
+  //     { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
+
+  //     // ── Support & Safety ──────────────────────────────
+  //     { label: "---", href: "#", icon: "" },
+  //     { label: "Support & Safety", href: "#", icon: "" },
+  //     { label: "Personal Counsellor", href: "/student/counsellor", icon: "Heart" },
+  //     { label: "Report a Concern", href: "/student/report", icon: "ShieldAlert" },
+  //   ],
+  // },
+
+
   STUDENT_HIGHER: {
+    avatarLetter: "A",
+    avatarColor: "#3b82f6",
+    themeClass: "theme-student",
+    accentColor: "#3b82f6",
     title: "Higher Secondary Dashboard",
     subtitle: "Welcome, Arjun · Class 12 Biology Stream · Target: Medical Colleges",
-    avatarLetter: "A",
-    avatarColor: "#8b5cf6",
-    themeClass: "theme-student",
-    accentColor: "#8b5cf6",
+
     navItems: [
+
+      // ===================== HOME =====================
       { label: "Dashboard", href: "/student/higher-secondary", icon: "Home" },
 
-      // ── Academics & Subjects ──────────────────────────
+      // ===================== ACADEMICS =====================
       { label: "---", href: "#", icon: "" },
-      { label: "Academics & Subjects", href: "#", icon: "" },
+      { label: "📚 ACADEMICS", href: "#", icon: "" },
+
       { label: "Academics Hub", href: "/student/academics", icon: "GraduationCap" },
+      { label: "Academic Progress", href: "/student/progress", icon: "BarChart2" },
       { label: "Syllabus", href: "/student/syllabus", icon: "BookOpen" },
-      { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
       { label: "Digital Library", href: "/student/digital-library", icon: "Library" },
-      { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
-      { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
+      // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
+
       { label: "AI Lessons", href: "/student/lessons", icon: "Sparkles" },
-      // { label: "My Subjects", href: "/student/subjects", icon: "BookOpen" },
+
+      // ===================== STUDY PLANNER =====================
+      { label: "---", href: "#", icon: "" },
+      { label: "🧠 STUDY PLANNER", href: "#", icon: "" },
 
       { label: "Self-Study Plan", href: "/student/study-plan", icon: "Zap" },
       { label: "AI Study Planner", href: "/student/study-planner", icon: "Calendar" },
 
-      // ── Exams & Assessments ───────────────────────────
+      // ===================== HOMEWORK & EXAMS =====================
       { label: "---", href: "#", icon: "" },
+      { label: "📝 HOMEWORK & EXAMS", href: "#", icon: "" },
 
-      { label: "Exams & Assessments", href: "#", icon: "" },
       { label: "Homework", href: "/student/homework", icon: "Edit3" },
-      { label: "Board Prep", href: "/student/higher-secondary/board-prep", icon: "Target" },
-      { label: "Mock Tests", href: "/student/higher-secondary/mock-tests", icon: "Edit3" },
       { label: "Assessments", href: "/student/assessments", icon: "Edit3" },
       { label: "School Exams", href: "/student/exams", icon: "ClipboardList" },
+      // { label: "Board Preparation", href: "/student/higher-secondary/board-prep", icon: "Target" },
+      { label: "Mock Tests", href: "/student/higher-secondary/mock-tests", icon: "ClipboardCheck" },
       { label: "Competitive Exams", href: "/student/competitive-exams", icon: "Trophy" },
-      // { label: "Academic History", href: "/student/academic-history", icon: "ScrollText" },
 
-      // ── Test Preparation ──────────────────────────────
+      // ===================== COMPETITIVE PREPARATION =====================
       { label: "---", href: "#", icon: "" },
-      { label: "Test Preparation", href: "#", icon: "" },
-      // { label: "Competitive Exam Prep", href: "/student/higher-secondary/competitive", icon: "Rocket" },
+      { label: "🎯 COMPETITIVE PREPARATION", href: "#", icon: "" },
+
       { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
       { label: "AI Tutor", href: "/student/ai-tutor", icon: "Bot" },
       { label: "Personal Guide", href: "/student/personal-guide", icon: "Compass" },
       { label: "Formula Bank", href: "/student/higher-secondary/formulae", icon: "Calculator" },
-      { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
-      { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
+      { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "PencilRuler" },
+      { label: "Language Coaching", href: "/student/language-coaching", icon: "Languages" },
 
-      // ── Labs & Centers ────────────────────────
+      // ===================== LABS & PRACTICALS =====================
       { label: "---", href: "#", icon: "" },
-      { label: "Labs & Centers", href: "/student/science-campus", icon: "FlaskConical" },
-      // // { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
+      { label: "🧪 LABS & PRACTICALS", href: "#", icon: "" },
 
-      // ── Extracurricular & Wellbeing ───────────────────
+      { label: "Science Campus", href: "/student/science-campus", icon: "FlaskConical" },
+
+      // ===================== ACTIVITIES =====================
       { label: "---", href: "#", icon: "" },
-      { label: "Extracurricular & Wellbeing", href: "#", icon: "" },
+      { label: "🏆 ACTIVITIES", href: "#", icon: "" },
+
       { label: "Sports & Athletics", href: "/student/sports", icon: "Activity" },
-      { label: "Extracurriculars", href: "/student/activities", icon: "Smile" },
+      { label: "Extracurricular Activities", href: "/student/activities", icon: "Star" },
       { label: "Social Activities", href: "/student/social-activities", icon: "HeartHandshake" },
       { label: "Celebrations", href: "/student/celebrations", icon: "PartyPopper" },
-      { label: "Cultural Events", href: "/student/cultural-events", icon: "Smile" },
-      { label: "My Health Report", href: "/student/health", icon: "HeartPulse" },
-      // { label: "Wellness", href: "/student/wellness", icon: "Smile" },
+      { label: "Cultural Events", href: "/student/cultural-events", icon: "Music4" },
+      { label: "Health Report", href: "/student/health", icon: "HeartPulse" },
 
-      // ── School & Career ───────────────────────────────
+      // ===================== CAREER & SCHOOL =====================
       { label: "---", href: "#", icon: "" },
-      { label: "School & Career", href: "#", icon: "" },
+      { label: "🎓 CAREER & SCHOOL", href: "#", icon: "" },
+
       { label: "Announcements", href: "/student/announcements", icon: "Megaphone" },
       { label: "Career Guidance", href: "/student/career", icon: "Compass" },
-      { label: "Scholarships", href: "/student/higher-secondary/scholarships", icon: "ScrollText" },
+      { label: "Scholarships", href: "/student/higher-secondary/scholarships", icon: "Award" },
       { label: "Digital Portfolio", href: "/student/portfolio", icon: "FolderOpen" },
       { label: "Learning Platform", href: "/student/higher-secondary/learning-platform", icon: "Monitor" },
       { label: "School Press", href: "/student/school-press", icon: "Newspaper" },
-      { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
+      // { label: "Welfare & Benefits", href: "/student/welfare", icon: "Gift" },
       { label: "Leave Reports", href: "/student/leave", icon: "FileText" },
 
-      // ── Support & Safety ──────────────────────────────
+      // ===================== SUPPORT =====================
       { label: "---", href: "#", icon: "" },
-      { label: "Support & Safety", href: "#", icon: "" },
+      { label: "🛡️ SUPPORT & SAFETY", href: "#", icon: "" },
+
       { label: "Personal Counsellor", href: "/student/counsellor", icon: "Heart" },
       { label: "Report a Concern", href: "/student/report", icon: "ShieldAlert" },
-    ],
-  },
 
+      // ===================== UnWanted =====================
+      // { label: "---", href: "#", icon: "" },
+      // { label: "🛡️ UnWanted", href: "#", icon: "" },
+      // { label: "Learning Hub", href: "/student/centralized-content", icon: "Book" },
+      // { label: "Class Syllabus Board", href: "/student/syllabus-board", icon: "LayoutGrid" },
+
+    ]
+  },
   PET: {
     title: "Physical Education Teacher",
     subtitle: "PET Staff · GHS Coimbatore",
@@ -423,6 +523,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Student Profiles", href: "/teacher/student-profiles", icon: "User" },
       { label: "Digital Portfolio", href: "/teacher/portfolio", icon: "FolderOpen" },
       { label: "Student Status", href: "/teacher/student-status", icon: "TrendingUp" },
+      { label: "Student Progress", href: "/teacher/progress", icon: "BarChart2" },
       { label: "Homework Manager", href: "/teacher/homework", icon: "Check" },
       { label: "Scholarship Details", href: "/teacher/scholarships", icon: "GraduationCap" },
       { label: "Social Activities Review", href: "/teacher/social-activities", icon: "HeartHandshake" },
@@ -681,7 +782,7 @@ export const GROUP_SCIENCE_SECTIONS: Record<StudentGroup, NavItem[]> = {
   Science: [
     { label: "Science Campus", href: "/student/science-campus", icon: "Sparkles" },
     // { label: "3D Preview", href: "/student/3d-preview", icon: "Box" },
-    { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
+    // { label: "Science Book Library", href: "/student/science-library", icon: "BookOpen" },
     { label: "Botany Centre", href: "/student/botany-centre", icon: "Leaf" },
     { label: "Virtual Labs", href: "/student/labs", icon: "FlaskConical" },
     { label: "Science Lab Support", href: "/student/science-lab-support", icon: "FlaskConical" },
