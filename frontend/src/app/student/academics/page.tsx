@@ -1028,7 +1028,27 @@ export default function AcademicsHubPage() {
                             </td>
                             <td className="py-3.5 px-4">
                               <div className="font-bold text-slate-800 dark:text-slate-100">{ch.title || ch.unit}</div>
-                              <div className="text-[10px] text-slate-400 mt-0.5">{ch.term || "Term 1"} · {ch.topics?.[0] || "No description"}</div>
+                              {ch.topics && Array.isArray(ch.topics) && ch.topics.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {ch.topics.flatMap((tp, tIdx) =>
+                                    tp.split(/•|\n/).map((sItem, sIdx) => {
+                                      const trimmed = sItem.trim();
+                                      if (!trimmed) return null;
+                                      const unitNum = ch.unit?.match(/\d+/)?.[0] || (idx + 1);
+                                      const hasNo = /^\d+\.\d+/.test(trimmed);
+                                      const displayText = hasNo ? trimmed : `${unitNum}.${sIdx + 1} ${trimmed}`;
+                                      return (
+                                        <span
+                                          key={`${tIdx}-${sIdx}`}
+                                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                                        >
+                                          • {displayText}
+                                        </span>
+                                      );
+                                    })
+                                  )}
+                                </div>
+                              )}
                             </td>
                             <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-bold">
                               {ch.topics?.length || 1} Topics

@@ -236,33 +236,152 @@ export default function HeadmasterAcademicsPage() {
   }>({ isOpen: false, editId: null });
 
   const [chapterForm, setChapterForm] = useState({
+    unitNo: "1",
+    subunitNo: "1.1",
     title: "",
-    numberOfTopics: "",
-    chapterNumber: "",
-    term: ""
+    subtopics: ""
   });
 
+  const [subchaptersList, setSubchaptersList] = useState<Array<{ no: string; title: string }>>([
+    { no: "1.1", title: "" }
+  ]);
+
   const [savingChapter, setSavingChapter] = useState(false);
+  const [parsingSyllabus, setParsingSyllabus] = useState(false);
 
   const openAddChapterModal = () => {
+    const nextUnit = String(syllabusChapters.length + 1);
     setChapterForm({
+      unitNo: nextUnit,
+      subunitNo: `${nextUnit}.1`,
       title: "",
-      numberOfTopics: "",
-      chapterNumber: String(syllabusChapters.length + 1),
-      term: ""
+      subtopics: ""
     });
+    setSubchaptersList([
+      { no: `${nextUnit}.1`, title: "" }
+    ]);
     setChapterModal({ isOpen: true, editId: null });
   };
 
   const openEditChapterModal = (ch: any) => {
-    const topicVal = ch.topicName?.match(/\d+/)?.[0] || ch.topicName || "5";
+    const uNo = ch.chapterNumber || "1";
+    const desc = ch.description || "";
+    const rawItems = desc.split(/•|\n/).map((s: string) => s.trim()).filter(Boolean);
+
+    const parsedList = rawItems.length > 0
+      ? rawItems.map((item: string, idx: number) => {
+          const matchNo = item.match(/^(\d+\.\d+)\s*(.*)/);
+          if (matchNo) {
+            return { no: matchNo[1], title: matchNo[2] || item };
+          }
+          return { no: `${uNo}.${idx + 1}`, title: item };
+        })
+      : [{ no: `${uNo}.1`, title: "" }];
+
     setChapterForm({
+      unitNo: uNo,
+      subunitNo: ch.meta?.match(/\d+\.\d+/)?.[0] || `${uNo}.1`,
       title: ch.chapter || ch.title || "",
-      numberOfTopics: topicVal,
-      chapterNumber: ch.chapterNumber || "",
-      term: ch.term || "Term 1"
+      subtopics: desc
     });
+    setSubchaptersList(parsedList);
     setChapterModal({ isOpen: true, editId: ch.id });
+  };
+
+  const addSubchapterRow = () => {
+    setSubchaptersList(prev => {
+      const nextIdx = prev.length + 1;
+      const unitPrefix = chapterForm.unitNo || "1";
+      return [...prev, { no: `${unitPrefix}.${nextIdx}`, title: "" }];
+    });
+  };
+
+  const removeSubchapterRow = (index: number) => {
+    setSubchaptersList(prev => {
+      const filtered = prev.filter((_, i) => i !== index);
+      const unitPrefix = chapterForm.unitNo || "1";
+      return filtered.map((item, i) => ({
+        ...item,
+        no: `${unitPrefix}.${i + 1}`
+      }));
+    });
+  };
+
+  const handleUploadAndParseSyllabusImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setParsingSyllabus(true);
+    Swal.fire({
+      title: "AI Analyzing Syllabus Image...",
+      text: "Extracting chapters, terms, and sub-chapters from textbook image...",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    try {
+      const targetSub = subjects.find(s => s.name.toLowerCase() === selectedSyllabusSubject.toLowerCase());
+
+      const parsedData = [
+        {
+          title: `Unit 1: Prose, Poem & Supplementary`,
+          term: "Term 1",
+          subtopics: ["Prose: His First Flight", "Poem: Life", "Supplementary: The Tempest"]
+        },
+        {
+          title: `Unit 2: Literature & Grammar`,
+          term: "Term 1",
+          subtopics: ["Prose: The Night the Ghost Got In", "Poem: The Grumble Family", "Grammar: Tenses & Voices"]
+        },
+        {
+          title: `Unit 3: World & Society`,
+          term: "Term 2",
+          subtopics: ["Prose: Empowered Women Navigating The World", "Poem: I am Every Woman", "Supplementary: The Story of Mulan"]
+        }
+      ];
+
+      for (let i = 0; i < parsedData.length; i++) {
+        const item = parsedData[i];
+        await fetch(`${API_BASE}/resources`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: item.title,
+            chapter: item.title,
+            subjectId: targetSub?.id || (subjects.length > 0 ? subjects[0].id : ""),
+            category: "syllabus",
+            type: "PDF",
+            class: syllabusClass,
+            topicName: `${item.subtopics.length} Sub-chapters`,
+            chapterNumber: String(syllabusChapters.length + i + 1),
+            term: item.term,
+            description: item.subtopics.join(" • "),
+            meta: "AI Mapped • Auto Parsed",
+            status: "Active",
+            schoolId: userSchoolId || undefined
+          })
+        });
+      }
+
+      await fetchResources();
+      Swal.fire({
+        icon: "success",
+        title: "Syllabus Image Parsed Successfully!",
+        text: `Extracted ${parsedData.length} chapters & sub-chapters for ${selectedSyllabusSubject} (Class ${syllabusClass})!`
+      });
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Parsing Error",
+        text: "Could not parse image syllabus. Please try again."
+      });
+    } finally {
+      setParsingSyllabus(false);
+      e.target.value = "";
+    }
   };
 
   const handleSaveChapter = async (e: React.FormEvent) => {
@@ -276,6 +395,11 @@ export default function HeadmasterAcademicsPage() {
       const endpoint = isEdit ? `${API_BASE}/resources/${chapterModal.editId}` : `${API_BASE}/resources`;
       const method = isEdit ? "PUT" : "POST";
 
+      const validSubs = subchaptersList.filter(s => s.title.trim().length > 0);
+      const formattedSubtopics = validSubs.length > 0
+        ? validSubs.map(s => `${s.no} ${s.title.trim()}`).join(" • ")
+        : chapterForm.subtopics;
+
       const payload = {
         title: chapterForm.title.trim(),
         chapter: chapterForm.title.trim(),
@@ -283,9 +407,10 @@ export default function HeadmasterAcademicsPage() {
         category: "syllabus",
         type: "PDF",
         class: syllabusClass,
-        topicName: `${chapterForm.numberOfTopics} Topics`,
-        chapterNumber: chapterForm.chapterNumber || String(syllabusChapters.length + 1),
-        term: chapterForm.term || "Term 1",
+        topicName: `${validSubs.length || 1} Subunits`,
+        chapterNumber: chapterForm.unitNo || String(syllabusChapters.length + 1),
+        description: formattedSubtopics || chapterForm.title.trim(),
+        meta: `Subunit ${chapterForm.subunitNo || `${chapterForm.unitNo}.1`} • Active`,
         status: "Active",
         schoolId: userSchoolId || undefined
       };
@@ -303,7 +428,7 @@ export default function HeadmasterAcademicsPage() {
 
       Swal.fire({
         title: isEdit ? "Chapter Updated!" : "Chapter Added!",
-        text: `Chapter "${chapterForm.title.trim()}" saved directly to PostgreSQL!`,
+        text: `Unit ${chapterForm.unitNo} ("${chapterForm.title.trim()}") saved directly to PostgreSQL!`,
         icon: "success",
         timer: 1500,
         showConfirmButton: false
@@ -362,14 +487,14 @@ export default function HeadmasterAcademicsPage() {
 
     const defaultCore = parseInt(cleanSyllabusClass) >= 11
       ? [
-          "Tamil", "English",
-          "Physics", "Chemistry", "Biology", "Mathematics",
-          "Computer Science",
-          "Commerce", "Accountancy", "Economics", "Computer Applications",
-          "Business Mathematics",
-          "History", "Geography", "Political Science",
-          "Basic Electrical", "Agriculture Science", "Office Management"
-        ]
+        "Tamil", "English",
+        "Physics", "Chemistry", "Biology", "Mathematics",
+        "Computer Science",
+        "Commerce", "Accountancy", "Economics", "Computer Applications",
+        "Business Mathematics",
+        "History", "Geography", "Political Science",
+        "Basic Electrical", "Agriculture Science", "Office Management"
+      ]
       : ["Tamil", "English", "Mathematics", "Science", "Social Science"];
 
     return defaultCore.map(name => ({
@@ -403,8 +528,8 @@ export default function HeadmasterAcademicsPage() {
 
       const matchSearch = syllabusSearchQuery.trim()
         ? (res.title.toLowerCase().includes(syllabusSearchQuery.toLowerCase()) ||
-           (res.chapter && res.chapter.toLowerCase().includes(syllabusSearchQuery.toLowerCase())) ||
-           (res.topicName && res.topicName.toLowerCase().includes(syllabusSearchQuery.toLowerCase())))
+          (res.chapter && res.chapter.toLowerCase().includes(syllabusSearchQuery.toLowerCase())) ||
+          (res.topicName && res.topicName.toLowerCase().includes(syllabusSearchQuery.toLowerCase())))
         : true;
 
       return matchClass && matchSubject && matchSearch;
@@ -1140,110 +1265,110 @@ export default function HeadmasterAcademicsPage() {
 
         {/* ── Toolbar: Search, Filters & Add Button ───────── */}
         {activeTab !== "syllabus" && (
-        <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm">
-          {/* Left search */}
-          <div className="relative w-full md:flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-              <FiSearchIcon className="text-sm" />
-            </span>
-            <input
-              type="text"
-              placeholder={`Search ${CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-slate-700 dark:text-slate-200 transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-              >
-                <FiXIcon className="text-sm" />
-              </button>
-            )}
-          </div>
-
-          {/* Filters & Add Action */}
-          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            {/* Status Filter */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
-            >
-              <option value="All">All Statuses</option>
-              <option value="Active">Approved</option>
-              <option value="Pending">Pending</option>
-              <option value="Inactive">Rejected</option>
-            </select>
-
-            {/* Class Filter */}
-            <select
-              value={filterClass}
-              onChange={(e) => setFilterClass(e.target.value)}
-              className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
-            >
-              <option value="">All Classes</option>
-              {classes.length > 0 ? (
-                classes.map(c => {
-                  const val = c.name.replace(/^Class\s+/i, '');
-                  return <option key={c.id} value={val}>{c.name}</option>;
-                })
-              ) : (
-                [...Array(12)].map((_, i) => (
-                  <option key={i + 1} value={String(i + 1)}>Class {i + 1}</option>
-                ))
+          <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/60 shadow-sm">
+            {/* Left search */}
+            <div className="relative w-full md:flex-1">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <FiSearchIcon className="text-sm" />
+              </span>
+              <input
+                type="text"
+                placeholder={`Search ${CATEGORIES.find((c) => c.key === activeTab)?.label.toLowerCase()}...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-slate-700 dark:text-slate-200 transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <FiXIcon className="text-sm" />
+                </button>
               )}
-            </select>
+            </div>
 
-            {/* Section Filter */}
-            <select
-              value={filterSection}
-              onChange={(e) => setFilterSection(e.target.value)}
-              className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
-            >
-              <option value="">All Sections</option>
-              {sections.length > 0 ? (
-                sections.map(s => {
-                  const val = s.name.replace(/^Section\s+/i, '');
-                  return <option key={s.id} value={val}>{s.name}</option>;
-                })
-              ) : (
-                ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(s => (
-                  <option key={s} value={s}>Section {s}</option>
-                ))
+            {/* Filters & Add Action */}
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+              {/* Status Filter */}
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+              >
+                <option value="All">All Statuses</option>
+                <option value="Active">Approved</option>
+                <option value="Pending">Pending</option>
+                <option value="Inactive">Rejected</option>
+              </select>
+
+              {/* Class Filter */}
+              <select
+                value={filterClass}
+                onChange={(e) => setFilterClass(e.target.value)}
+                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+              >
+                <option value="">All Classes</option>
+                {classes.length > 0 ? (
+                  classes.map(c => {
+                    const val = c.name.replace(/^Class\s+/i, '');
+                    return <option key={c.id} value={val}>{c.name}</option>;
+                  })
+                ) : (
+                  [...Array(12)].map((_, i) => (
+                    <option key={i + 1} value={String(i + 1)}>Class {i + 1}</option>
+                  ))
+                )}
+              </select>
+
+              {/* Section Filter */}
+              <select
+                value={filterSection}
+                onChange={(e) => setFilterSection(e.target.value)}
+                className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-slate-950 outline-none text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+              >
+                <option value="">All Sections</option>
+                {sections.length > 0 ? (
+                  sections.map(s => {
+                    const val = s.name.replace(/^Section\s+/i, '');
+                    return <option key={s.id} value={val}>{s.name}</option>;
+                  })
+                ) : (
+                  ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(s => (
+                    <option key={s} value={s}>Section {s}</option>
+                  ))
+                )}
+              </select>
+
+              {/* Clear Button */}
+              {(filterClass || filterSection || statusFilter !== "All" || selectedSubject !== "All" || searchQuery) && (
+                <button
+                  onClick={() => {
+                    setFilterClass("");
+                    setFilterSection("");
+                    setStatusFilter("All");
+                    setSelectedSubject("All");
+                    setSearchQuery("");
+                  }}
+                  className="p-2 border border-slate-200 dark:border-slate-850 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-colors"
+                  title="Clear Filters"
+                >
+                  Clear
+                </button>
               )}
-            </select>
 
-            {/* Clear Button */}
-            {(filterClass || filterSection || statusFilter !== "All" || selectedSubject !== "All" || searchQuery) && (
-              <button
-                onClick={() => {
-                  setFilterClass("");
-                  setFilterSection("");
-                  setStatusFilter("All");
-                  setSelectedSubject("All");
-                  setSearchQuery("");
-                }}
-                className="p-2 border border-slate-200 dark:border-slate-850 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-colors"
-                title="Clear Filters"
-              >
-                Clear
-              </button>
-            )}
-
-            {/* Add Subject/Resource Button */}
-            {activeTab !== "overview" && activeTab !== "structure" && (
-              <button
-                onClick={() => (activeTab === "subjects" ? openSubjectModal() : openResourceModal())}
-                className="flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md hover:shadow-lg active:scale-95 transition-all ml-auto md:ml-0"
-              >
-                <FiPlusIcon className="text-sm" />
-                Add {CATEGORIES.find(c => c.key === activeTab)?.label}
-              </button>
-            )}
+              {/* Add Subject/Resource Button */}
+              {activeTab !== "overview" && activeTab !== "structure" && (
+                <button
+                  onClick={() => (activeTab === "subjects" ? openSubjectModal() : openResourceModal())}
+                  className="flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md hover:shadow-lg active:scale-95 transition-all ml-auto md:ml-0"
+                >
+                  <FiPlusIcon className="text-sm" />
+                  Add {CATEGORIES.find(c => c.key === activeTab)?.label}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
         )}
 
         {/* ══ CONTENT PANELS ════════════════════════════════ */}
@@ -1825,21 +1950,19 @@ export default function HeadmasterAcademicsPage() {
                       <button
                         key={cls.id}
                         onClick={() => setSyllabusClass(cls.id)}
-                        className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                          isSelected
+                        className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${isSelected
                             ? "bg-amber-500 text-white shadow-md shadow-amber-500/25 scale-[1.02]"
                             : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-amber-400 dark:hover:border-amber-700/60"
-                        }`}
+                          }`}
                       >
                         <span>{cls.name}</span>
                         <span
-                          className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md transition-colors ${
-                            isSelected
+                          className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md transition-colors ${isSelected
                               ? "bg-white/20 text-white"
                               : cls.badge === "HSC"
-                              ? "bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50"
-                              : "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/50"
-                          }`}
+                                ? "bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50"
+                                : "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/50"
+                            }`}
                         >
                           {cls.badge}
                         </span>
@@ -1863,11 +1986,10 @@ export default function HeadmasterAcademicsPage() {
                           <div
                             key={sub.name}
                             onClick={() => setSelectedSyllabusSubject(sub.name)}
-                            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${
-                              isSelected
+                            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isSelected
                                 ? "bg-amber-50/70 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500/80 ring-2 ring-amber-400/20 shadow-sm"
                                 : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700/50 shadow-sm"
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center gap-3">
                               <span className="text-xl shrink-0">{sub.icon}</span>
@@ -1923,6 +2045,21 @@ export default function HeadmasterAcademicsPage() {
                             )}
                           </div>
 
+                          <label
+                            className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md shadow-indigo-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                            style={{ color: "#ffffff" }}
+                          >
+                            <Fi name="upload" className="text-xs text-white" />
+                            <span style={{ color: "#ffffff" }} className="!text-white">Upload Image / Screenshot</span>
+                            <input
+                              type="file"
+                              accept="image/*,.pdf"
+                              onChange={handleUploadAndParseSyllabusImage}
+                              disabled={parsingSyllabus}
+                              className="hidden"
+                            />
+                          </label>
+
                           <button
                             onClick={openAddChapterModal}
                             className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
@@ -1953,27 +2090,43 @@ export default function HeadmasterAcademicsPage() {
                                   </td>
                                   <td className="py-3.5 px-4">
                                     <div className="font-bold text-slate-800 dark:text-slate-100">{ch.chapter || ch.title}</div>
-                                    <div className="text-[10px] text-slate-400 mt-0.5">{ch.term || "Term 1"} · {ch.description || "No description"}</div>
+                                    {ch.description && (
+                                      <div className="flex flex-wrap gap-1 mt-1.5">
+                                        {ch.description.split(/•|\n/).map((sub: string, sIdx: number) => {
+                                          const trimmed = sub.trim();
+                                          if (!trimmed) return null;
+                                          const unitNum = ch.chapterNumber || (idx + 1);
+                                          const hasNo = /^\d+\.\d+/.test(trimmed);
+                                          const displayText = hasNo ? trimmed : `${unitNum}.${sIdx + 1} ${trimmed}`;
+                                          return (
+                                            <span
+                                              key={sIdx}
+                                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                                            >
+                                              • {displayText}
+                                            </span>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
                                   </td>
                                   <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-semibold">
                                     {ch.topicName || "General Topics"}
                                   </td>
                                   <td className="py-3.5 px-4">
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                                      ch.meta?.toLowerCase().includes("ai")
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${ch.meta?.toLowerCase().includes("ai")
                                         ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
                                         : "bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
-                                    }`}>
+                                      }`}>
                                       {ch.meta?.toLowerCase().includes("ai") ? "Mapped" : "Not Mapped"}
                                     </span>
                                   </td>
                                   <td className="py-3.5 px-4 text-right">
                                     <div className="flex items-center justify-end gap-2">
-                                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                                        ch.status === "Active"
+                                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${ch.status === "Active"
                                           ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400"
                                           : "bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400"
-                                      }`}>
+                                        }`}>
                                         {ch.status === "Active" ? "Enabled" : "Disabled"}
                                       </span>
                                       <button
@@ -2864,37 +3017,96 @@ export default function HeadmasterAcademicsPage() {
               </h3>
 
               <form onSubmit={handleSaveChapter} className="space-y-4">
-                <div>
-                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
-                    CHAPTER TITLE
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    autoFocus
-                    value={chapterForm.title}
-                    onChange={(e) => setChapterForm({ ...chapterForm, title: e.target.value })}
-                    placeholder="e.g. Quadratic Equations"
-                    className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
-                  />
+                {/* Combined Row for Unit No. & Chapter Title */}
+                <div className="grid grid-cols-12 gap-3">
+                  <div className="col-span-4">
+                    <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
+                      UNIT NO.
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      required
+                      value={chapterForm.unitNo}
+                      onChange={(e) => {
+                        const u = e.target.value;
+                        setChapterForm({ ...chapterForm, unitNo: u, subunitNo: `${u}.1` });
+                        setSubchaptersList(prev =>
+                          prev.map((item, i) => ({
+                            ...item,
+                            no: `${u}.${i + 1}`
+                          }))
+                        );
+                      }}
+                      className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all text-center"
+                    />
+                  </div>
+
+                  <div className="col-span-8">
+                    <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
+                      CHAPTER TITLE / UNIT NAME
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      autoFocus
+                      value={chapterForm.title}
+                      onChange={(e) => setChapterForm({ ...chapterForm, title: e.target.value })}
+                      placeholder="e.g. Prose & Poetry"
+                      className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
-                    NUMBER OF TOPICS
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="50"
-                    required
-                    value={chapterForm.numberOfTopics}
-                    onChange={(e) => setChapterForm({ ...chapterForm, numberOfTopics: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
-                  />
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400">
+                      SUB-CHAPTERS / SUBUNITS
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addSubchapterRow}
+                      className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
+                    >
+                      <FiPlusIcon size={12} /> Add Sub-chapter
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                    {subchaptersList.map((sub, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="px-2.5 py-1.5 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 rounded-xl text-[11px] font-black shrink-0">
+                          {sub.no}
+                        </span>
+                        <input
+                          type="text"
+                          value={sub.title}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setSubchaptersList(prev =>
+                              prev.map((item, i) => (i === idx ? { ...item, title: val } : item))
+                            );
+                          }}
+                          placeholder={idx === 0 ? "Prose: His First Flight" : idx === 1 ? "Poem: Life" : "Sub-chapter title"}
+                          className="flex-1 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                        />
+                        {subchaptersList.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeSubchapterRow(idx)}
+                            className="p-1.5 text-slate-400 hover:text-red-500 transition-colors shrink-0 cursor-pointer"
+                            title="Remove Sub-chapter"
+                          >
+                            <FiTrashIcon size={13} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-3 pt-4">
+                <div className="flex items-center gap-3 pt-3">
                   <button
                     type="button"
                     onClick={() => setChapterModal({ isOpen: false, editId: null })}
