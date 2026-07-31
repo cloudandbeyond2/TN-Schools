@@ -302,6 +302,16 @@ export default function SuperadminAcademicsPage() {
     });
   };
 
+  const [ocrPreviewModal, setOcrPreviewModal] = useState<{
+    isOpen: boolean;
+    units: Array<{ unitNo: string; title: string; subtopics: string[] }>;
+  }>({
+    isOpen: false,
+    units: []
+  });
+
+  const [editingOcrIdx, setEditingOcrIdx] = useState<number | null>(null);
+
   const handleUploadAndParseSyllabusImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -317,28 +327,40 @@ export default function SuperadminAcademicsPage() {
     });
 
     try {
+      const { performOcrAndParseSyllabus } = await import("@/lib/syllabusOcrParser");
+      const { parsedUnits } = await performOcrAndParseSyllabus(file, selectedSyllabusSubject);
+
+      if (!parsedUnits || parsedUnits.length === 0) {
+        throw new Error("Could not extract readable text from image. Please ensure the textbook index image is clear.");
+      }
+
+      Swal.close();
+      setOcrPreviewModal({
+        isOpen: true,
+        units: parsedUnits
+      });
+    } catch (err: any) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "OCR Parsing Error",
+        text: err?.message || "Could not parse image syllabus. Please try again with a clearer image."
+      });
+    } finally {
+      setParsingSyllabus(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleSaveOcrUnitsToDb = async () => {
+    if (ocrPreviewModal.units.length === 0) return;
+
+    setSavingChapter(true);
+    try {
       const targetSub = subjects.find(s => s.name.toLowerCase() === selectedSyllabusSubject.toLowerCase());
 
-      const parsedData = [
-        {
-          title: `Unit 1: Prose, Poem & Supplementary`,
-          term: "Term 1",
-          subtopics: ["Prose: His First Flight", "Poem: Life", "Supplementary: The Tempest"]
-        },
-        {
-          title: `Unit 2: Literature & Grammar`,
-          term: "Term 1",
-          subtopics: ["Prose: The Night the Ghost Got In", "Poem: The Grumble Family", "Grammar: Tenses & Voices"]
-        },
-        {
-          title: `Unit 3: World & Society`,
-          term: "Term 2",
-          subtopics: ["Prose: Empowered Women Navigating The World", "Poem: I am Every Woman", "Supplementary: The Story of Mulan"]
-        }
-      ];
-
-      for (let i = 0; i < parsedData.length; i++) {
-        const item = parsedData[i];
+      for (let i = 0; i < ocrPreviewModal.units.length; i++) {
+        const item = ocrPreviewModal.units[i];
         await fetch(`${API_BASE}/resources`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -349,32 +371,31 @@ export default function SuperadminAcademicsPage() {
             category: "syllabus",
             type: "PDF",
             class: syllabusClass,
-            topicName: `${item.subtopics.length} Sub-chapters`,
-            chapterNumber: String(syllabusChapters.length + i + 1),
-            term: item.term,
-            description: item.subtopics.join(" • "),
-            meta: "AI Mapped • Auto Parsed",
+            topicName: item.subtopics.length > 0 ? `${item.subtopics.length} Subunits` : "1 Topic",
+            chapterNumber: item.unitNo || String(syllabusChapters.length + i + 1),
+            description: item.subtopics.join(" • ") || item.title,
+            meta: "AI OCR Parsed • Auto Extracted",
             status: "Active"
           })
         });
       }
 
       await fetchResources();
+      setOcrPreviewModal({ isOpen: false, units: [] });
       Swal.fire({
         icon: "success",
-        title: "Syllabus Image Parsed Successfully!",
-        text: `Extracted ${parsedData.length} chapters & sub-chapters for ${selectedSyllabusSubject} (Class ${syllabusClass})!`
+        title: "Syllabus Saved Successfully!",
+        text: `Saved ${ocrPreviewModal.units.length} units & sub-chapters directly to PostgreSQL!`
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       Swal.fire({
         icon: "error",
-        title: "Parsing Error",
-        text: "Could not parse image syllabus. Please try again."
+        title: "Save Error",
+        text: err?.message || "Failed to save syllabus units."
       });
     } finally {
-      setParsingSyllabus(false);
-      e.target.value = "";
+      setSavingChapter(false);
     }
   };
 
@@ -508,7 +529,7 @@ export default function SuperadminAcademicsPage() {
   }, [syllabusClass, syllabusSubjectsForClass]);
 
   const syllabusChapters = useMemo(() => {
-    return resources.filter(res => {
+    const list = resources.filter(res => {
       const isSyllabus = res.category === "syllabus";
       if (!isSyllabus) return false;
 
@@ -526,6 +547,15 @@ export default function SuperadminAcademicsPage() {
         : true;
 
       return matchClass && matchSubject && matchSearch;
+    });
+
+    return list.sort((a, b) => {
+      const extractNum = (item: any) => {
+        const numStr = item.chapterNumber || item.chapter || item.title || "";
+        const m = String(numStr).match(/\d+/);
+        return m ? parseInt(m[0], 10) : 999;
+      };
+      return extractNum(a) - extractNum(b);
     });
   }, [resources, subjects, syllabusClass, selectedSyllabusSubject, syllabusSearchQuery]);
 
@@ -2911,6 +2941,130 @@ export default function SuperadminAcademicsPage() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ══ UPLOADED IMAGE SYLLABUS PREVIEW & EDIT MODAL ════════════════ */}
+      <AnimatePresence>
+        {ocrPreviewModal.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setOcrPreviewModal({ isOpen: false, units: [] })}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative z-10 overflow-hidden text-left font-sans max-h-[85vh] flex flex-col justify-between"
+            >
+              <div>
+                {/* Top Banner (Matching user screenshot) */}
+                <div className="p-4 bg-indigo-50/80 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-800/60 rounded-2xl flex items-center gap-3 mb-4 shadow-sm">
+                  <span className="text-2xl shrink-0">🤖</span>
+                  <div>
+                    <h4 className="text-[11px] font-black uppercase text-indigo-950 dark:text-indigo-200 tracking-wider">
+                      UPLOAD IMAGE OR SCREENSHOT TO LOAD SYLLABUS UNITS & SUBUNITS
+                    </h4>
+                    <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-300 mt-0.5">
+                      Extracted {ocrPreviewModal.units.length} units/chapters. Click pencil to edit title or trash to delete.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Parsed Units List (Matching user screenshot format with Edit & Delete icons) */}
+                <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar">
+                  {ocrPreviewModal.units.map((unit, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between gap-3 group hover:border-indigo-400 dark:hover:border-indigo-600/60 shadow-sm transition-all"
+                    >
+                      <div className="flex-1 min-w-0">
+                        {editingOcrIdx === idx ? (
+                          <input
+                            type="text"
+                            value={unit.title}
+                            onChange={(e) => {
+                              const newTitle = e.target.value;
+                              setOcrPreviewModal(prev => ({
+                                ...prev,
+                                units: prev.units.map((u, i) => i === idx ? { ...u, title: newTitle } : u)
+                              }));
+                            }}
+                            className="w-full px-3 py-1.5 border border-indigo-400 dark:border-indigo-600 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 outline-none"
+                          />
+                        ) : (
+                          <div>
+                            <div className="font-extrabold text-xs text-slate-800 dark:text-slate-100 truncate">
+                              {idx + 1}. {unit.title}
+                            </div>
+                            {unit.subtopics && unit.subtopics.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1.5">
+                                {unit.subtopics.map((sub, sIdx) => (
+                                  <span
+                                    key={sIdx}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800"
+                                  >
+                                    • {sub}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setEditingOcrIdx(editingOcrIdx === idx ? null : idx)}
+                          className="p-1.5 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition-colors cursor-pointer"
+                          title="Edit Chapter Title"
+                        >
+                          <FiEditIcon size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOcrPreviewModal(prev => ({
+                              ...prev,
+                              units: prev.units.filter((_, i) => i !== idx)
+                            }));
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
+                          title="Delete Chapter"
+                        >
+                          <FiTrashIcon size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setOcrPreviewModal({ isOpen: false, units: [] })}
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveOcrUnitsToDb}
+                  disabled={savingChapter || ocrPreviewModal.units.length === 0}
+                  className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-black shadow-md shadow-indigo-500/25 transition-all cursor-pointer flex items-center gap-2"
+                >
+                  {savingChapter ? "Saving..." : `Confirm & Save All (${ocrPreviewModal.units.length} Units)`}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
