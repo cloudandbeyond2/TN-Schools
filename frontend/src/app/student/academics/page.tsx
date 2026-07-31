@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useStudentGroup } from "@/lib/useStudentGroup";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
-import { HS_GROUP_SUBJECTS, HS_GROUP_LABELS } from "@/data/hsGroups";
+import { HS_GROUP_SUBJECTS, HS_GROUP_LABELS, getGroupSubjectsForClass } from "@/data/hsGroups";
 
 /* ────────────────────────────────────────────────────────────
    Flaticon (uicons) glyph — the app loads uicons-regular-rounded,
@@ -182,49 +182,77 @@ export default function AcademicsHubPage() {
           });
         }
         
+        const userStream = (session?.user as any)?.stream || (session?.user as any)?.group || studentGroup;
+        const expectedGroupSubs = getGroupSubjectsForClass(classNum, userStream);
+        const allowedSubNames = new Set(expectedGroupSubs.map((s) => s.name.toLowerCase()));
+
         if (Array.isArray(subjectsJson)) {
           const fetchedSubjects: SubjectInfo[] = [];
-          
+
           subjectsJson.forEach((sub: any) => {
             const subName = sub.name;
-            const color = sub.color || "#64748b";
-            const gradient = `from-[${color}] to-slate-600`;
-            const icon = sub.icon || "📚";
-            const unitsCount = fetchedSyllabus[subName]?.length || 0;
-            
-            fetchedSubjects.push({
-              name: subName,
-              color,
-              gradient,
-              icon,
-              teacher: "Class Teacher",
-              progress: 0,
-              units: unitsCount,
-              unitsDone: 0
-            });
+            if (allowedSubNames.has(subName.toLowerCase())) {
+              const expMatch = expectedGroupSubs.find((e) => e.name.toLowerCase() === subName.toLowerCase());
+              const color = sub.color || expMatch?.color || "#64748b";
+              const gradient = `from-[${color}] to-slate-600`;
+              const icon = sub.icon || expMatch?.icon || "📚";
+              const unitsCount = fetchedSyllabus[subName]?.length || 0;
+
+              fetchedSubjects.push({
+                name: subName,
+                color,
+                gradient,
+                icon,
+                teacher: "Class Teacher",
+                progress: 0,
+                units: unitsCount,
+                unitsDone: 0,
+              });
+            }
           });
-          
+
+          // Ensure all expected group subjects exist for this student's group
+          expectedGroupSubs.forEach((exp) => {
+            if (!fetchedSubjects.some((s) => s.name.toLowerCase() === exp.name.toLowerCase())) {
+              fetchedSubjects.push({
+                name: exp.name,
+                color: exp.color,
+                gradient: `from-[${exp.color}] to-slate-600`,
+                icon: exp.icon,
+                teacher: "Class Teacher",
+                progress: 0,
+                units: fetchedSyllabus[exp.name]?.length || 0,
+                unitsDone: 0,
+              });
+            }
+          });
+
           setDbSubjects(fetchedSubjects);
           setSyllabusData(fetchedSyllabus);
         }
 
         if (Array.isArray(resourcesJson)) {
-          const fetchedResources: Resource[] = resourcesJson.map((res: any) => {
-            // Map the backend AcademicResource to the frontend Resource interface
-            return {
-              id: res.id,
-              title: res.title,
-              subject: res.subject?.name || "General",
-              category: res.category as any,
-              type: res.type as any,
-              meta: res.meta || "N/A",
-              description: res.description || "",
-              url: res.url,
-              addedBy: res.addedBy || "Admin",
-              isNew: res.isNew || false,
-              popular: res.popular || false
-            };
-          });
+          const fetchedResources: Resource[] = resourcesJson
+            .filter((res: any) => {
+              const sName = res.subject?.name;
+              if (!sName || sName === "General") return true;
+              return allowedSubNames.has(sName.toLowerCase());
+            })
+            .map((res: any) => {
+              return {
+                id: res.id,
+                title: res.title,
+                subject: res.subject?.name || "General",
+                category: res.category as any,
+                type: res.type as any,
+                meta: res.meta || "N/A",
+                description: res.description || "",
+                url: res.url,
+                addedBy: res.addedBy || "Admin",
+                isNew: res.isNew || false,
+                popular: res.popular || false,
+              };
+            });
           setResources(fetchedResources);
         }
       } catch (err) {
@@ -919,119 +947,122 @@ export default function AcademicsHubPage() {
       )}
 
       {/* ══ SYLLABUS TAB ═════════════════════════════════ */}
-      {activeTab === "syllabus" && (
-        <div className="space-y-5">
-          {syllabusSubjects.map((s) => {
-            const units = syllabusData[s.name] || [];
-            return (
-              <div key={s.name} className="divide-y divide-[var(--border)] glass rounded-2xl border border-[var(--border)] overflow-hidden">
-                  {units.map((u) => {
-                    const key = `${s.name}-${u.unit}`;
-                    const open = !!expandedUnits[key];
-                    return (
-                      <div key={key}>
-                        <button
-                          onClick={() => setExpandedUnits((p) => ({ ...p, [key]: !p[key] }))}
-                          className="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-[var(--bg-card-hover)] transition-colors text-left"
-                        >
-                          <span
-                            className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
-                              u.status === "completed"
-                                ? "bg-emerald-500/15 text-emerald-500"
-                                : u.status === "in-progress"
-                                ? "bg-amber-500/15 text-amber-500"
-                                : "bg-slate-500/10 text-[var(--text-muted)]"
-                            }`}
-                          >
-                            {u.status === "completed" ? (
-                              <Fi name="check" className="text-[10px]" />
-                            ) : u.status === "in-progress" ? (
-                              <Fi name="clock" className="text-xs" />
-                            ) : (
-                              <Fi name="book-alt" className="text-[10px]" />
-                            )}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <span className="text-xs font-bold text-[var(--text-heading)]">
-                              {u.unit}: {u.title}
-                            </span>
-                            <span className="block text-[10px] text-[var(--text-muted)] font-semibold">
-                              {u.term} ·{" "}
-                              {u.status === "completed"
-                                ? (lang === "தமிழ்" ? "முடிக்கப்பட்டது" : "Completed")
-                                : u.status === "in-progress"
-                                ? (lang === "தமிழ்" ? "நடப்பில் — தற்போதைய அலகு" : "In progress — current unit")
-                                : (lang === "தமிழ்" ? "வரவிருப்பது" : "Upcoming")}
-                            </span>
-                          </div>
-                          <Fi
-                            name="angle-small-down"
-                            className={`text-base text-[var(--text-muted)] transition-transform ${
-                              open ? "rotate-180" : ""
-                            }`}
-                          />
-                        </button>
-                        {open && (
-                          <div className="px-5 pb-4 pl-14">
-                            <ul className="space-y-1.5">
-                              {u.topics.map((t) => (
-                                <li
-                                  key={t}
-                                  className="text-xs text-[var(--text-main)] flex items-center gap-2"
-                                >
-                                  <span
-                                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                                    style={{ backgroundColor: s.color }}
-                                  />
-                                  {t}
-                                </li>
-                              ))}
-                            </ul>
-                            <div className="flex gap-2 mt-3">
-                              {u.url && (
-                                <button
-                                  onClick={() => {
-                                    setActiveMedia({
-                                      type: "pdf",
-                                      url: u.url || "",
-                                      title: `${s.name} - ${u.unit} Syllabus`
-                                    });
-                                  }}
-                                  className="text-[10px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white"
-                                >
-                                  <Fi name="document" className="text-[9px]" /> {lang === "தமிழ்" ? "பாடத்திட்டம் பார்" : "View Syllabus"}
-                                </button>
-                              )}
-                              <button
-                                onClick={() => {
-                                  setSelectedSubject(s.name);
-                                  setActiveTab("videos");
-                                }}
-                                className="text-[10px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all inline-flex items-center gap-1"
-                                style={{ background: s.color, color: "#fff" }}
-                              >
-                                <Fi name="play" className="text-[9px]" /> {lang === "தமிழ்" ? "பாடங்களைப் பார்" : "Watch lessons"}
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedSubject(s.name);
-                                  setActiveTab("materials");
-                                }}
-                                className="text-[10px] font-bold px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] active:scale-95 transition-all inline-flex items-center gap-1"
-                              >
-                                <Fi name="document" className="text-[9px]" /> {lang === "தமிழ்" ? "படிப்புப் பொருட்கள்" : "Study materials"}
-                              </button>
-                            </div>
-                          </div>
-                        )}
+      {activeTab === "syllabus" && (() => {
+        const activeSubName = selectedSubject === "All" ? (subjects[0]?.name || "Accountancy") : selectedSubject;
+        const currentSubjectInfo = subjects.find(s => s.name.toLowerCase() === activeSubName.toLowerCase()) || subjects[0];
+        const activeChapters = syllabusData[activeSubName] || [];
+
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start text-left font-sans">
+            {/* Left Column: SUBJECTS List Sidebar */}
+            <div className="lg:col-span-4 space-y-3">
+              <div className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 px-1">
+                SUBJECTS
+              </div>
+              <div className="space-y-2.5 max-h-[550px] overflow-y-auto pr-1.5 custom-scrollbar">
+                {subjects.map((sub) => {
+                  const isSelected = activeSubName.toLowerCase() === sub.name.toLowerCase();
+                  const chList = syllabusData[sub.name] || [];
+                  const aiCount = chList.filter(c => c.url?.toLowerCase().includes("ai") || c.title?.toLowerCase().includes("ai")).length;
+
+                  return (
+                    <div
+                      key={sub.name}
+                      onClick={() => setSelectedSubject(sub.name)}
+                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${
+                        isSelected
+                          ? "bg-amber-50/80 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500/80 ring-2 ring-amber-400/20 shadow-sm"
+                          : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700/50 shadow-sm"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl shrink-0">{sub.icon}</span>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-100 leading-snug">
+                            {sub.name}
+                          </h4>
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
+                            {chList.length}/0 chapters · {aiCount} AI
+                          </p>
+                        </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Column: Chapters Detail Table */}
+            <div className="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm min-h-[550px] flex flex-col justify-between">
+              <div>
+                {/* Header Bar */}
+                <div className="pb-5 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-2xl">{currentSubjectInfo?.icon || "📚"}</span>
+                    <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">
+                      {activeSubName} — Class {studentClass}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-400 font-semibold mt-1">
+                    {activeChapters.length} chapters · {activeChapters.length} enabled · 0 AI-mapped
+                  </p>
                 </div>
-            );
-          })}
-        </div>
-      )}
+
+                {/* Table Area */}
+                <div className="mt-5 overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50/80 dark:bg-slate-950/60 border-b border-slate-100 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        <th className="py-3 px-4 w-12 text-center">NO</th>
+                        <th className="py-3 px-4">CHAPTER TITLE</th>
+                        <th className="py-3 px-4">TOPICS</th>
+                        <th className="py-3 px-4 text-right">AI MAPPING</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs font-medium">
+                      {activeChapters.length > 0 ? (
+                        activeChapters.map((ch, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-950/40 transition-colors">
+                            <td className="py-3.5 px-4 font-extrabold text-slate-400 text-center">
+                              {String(ch.unit || idx + 1).padStart(2, '0').replace(/^Unit\s+/i, '')}
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <div className="font-bold text-slate-800 dark:text-slate-100">{ch.title || ch.unit}</div>
+                              <div className="text-[10px] text-slate-400 mt-0.5">{ch.term || "Term 1"} · {ch.topics?.[0] || "No description"}</div>
+                            </td>
+                            <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-bold">
+                              {ch.topics?.length || 1} Topics
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full border bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
+                                Not Mapped
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="py-16 text-center text-slate-400">
+                            <div className="flex flex-col items-center justify-center">
+                              <span className="text-3xl mb-2">📚</span>
+                              <p className="font-bold text-slate-700 dark:text-slate-300 text-sm">
+                                0 chapters added for {activeSubName} — Class {studentClass}
+                              </p>
+                              <p className="text-xs text-slate-400 mt-1 max-w-sm">
+                                State board syllabus chapters and units will appear here.
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ══ VIDEO LESSONS TAB ════════════════════════════ */}
       {activeTab === "videos" &&
