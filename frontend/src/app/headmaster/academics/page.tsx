@@ -92,7 +92,7 @@ interface SectionItem {
 
 const CATEGORIES = [
   { key: "overview", label: "Overview", icon: "apps", gradient: "linear-gradient(135deg, #64748b, #475569)", blurb: "Review pending approvals and school metrics" },
-  { key: "structure", label: "Class & Structure Setup", icon: "settings-sliders", gradient: "linear-gradient(135deg, #059669, #0d9488)", blurb: "Configure classes, sections, and master subjects" },
+  // { key: "structure", label: "Class & Structure Setup", icon: "settings-sliders", gradient: "linear-gradient(135deg, #059669, #0d9488)", blurb: "Configure classes, sections, and master subjects" },
   { key: "subjects", label: "Class Subjects", icon: "graduation-cap", gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)", blurb: "Configure subjects, sections, mediums & teachers" },
   { key: "syllabus", label: "Syllabus", icon: "book-alt", gradient: "linear-gradient(135deg, #10b981, #059669)", blurb: "Term-wise unit maps with lesson tracking" },
   { key: "textbooks", label: "Textbooks", icon: "book", gradient: "linear-gradient(135deg, #f59e0b, #d97706)", blurb: "Official Samacheer Kalvi textbooks & eBooks" },
@@ -803,8 +803,8 @@ export default function HeadmasterAcademicsPage() {
                 <div
                   key={s.label}
                   className={`backdrop-blur rounded-2xl px-4 py-3 text-center border transition-all ${s.highlighted
-                      ? "bg-amber-500/20 border-amber-400/40 shadow-inner"
-                      : "bg-white/15 border-white/20"
+                    ? "bg-amber-500/20 border-amber-400/40 shadow-inner"
+                    : "bg-white/15 border-white/20"
                     }`}
                 >
                   <Fi name={s.icon} className="text-sm mx-auto mb-1" style={s.highlighted ? { color: "#fcd34d" } : { color: "rgba(255, 255, 255, 0.8)" }} />
@@ -825,8 +825,8 @@ export default function HeadmasterAcademicsPage() {
           <button
             onClick={() => setSelectedSubject("All")}
             className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 ${selectedSubject === "All"
-                ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-indigo-400"
+              ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
+              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-indigo-400"
               }`}
           >
             <Fi name="apps" className="text-sm" /> All Subjects
@@ -879,8 +879,8 @@ export default function HeadmasterAcademicsPage() {
                 key={c.key}
                 onClick={() => setActiveTab(c.key)}
                 className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${active
-                    ? `text-white shadow-md`
-                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  ? `text-white shadow-md`
+                  : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
                   }`}
                 style={active ? { background: c.gradient } : undefined}
               >
@@ -1478,10 +1478,10 @@ export default function HeadmasterAcademicsPage() {
 
                         {/* Status Label Badge */}
                         <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${sub.status === "Active"
-                            ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50"
-                            : sub.status === "Inactive"
-                              ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50"
-                              : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50"
+                          ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50"
+                          : sub.status === "Inactive"
+                            ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50"
+                            : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50"
                           }`}>
                           {sub.status === "Active" ? "APPROVED" : sub.status === "Inactive" ? "REJECTED" : "PENDING"}
                         </span>
@@ -1588,10 +1588,10 @@ export default function HeadmasterAcademicsPage() {
                             <div className="flex items-center gap-1.5">
                               {/* Status Badge */}
                               <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${res.status === "Active"
-                                  ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50"
-                                  : res.status === "Inactive"
-                                    ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50"
-                                    : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50"
+                                ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50"
+                                : res.status === "Inactive"
+                                  ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50"
+                                  : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50"
                                 }`}>
                                 {res.status === "Active" ? "APPROVED" : res.status === "Inactive" ? "REJECTED" : "PENDING"}
                               </span>
@@ -1823,11 +1823,10 @@ export default function HeadmasterAcademicsPage() {
                           return (
                             <span
                               key={subName}
-                              className={`inline-flex items-center gap-1 pl-2.5 rounded-lg text-xs font-bold border transition-all ${
-                                isSelected
-                                  ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
-                                  : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"
-                              }`}
+                              className={`inline-flex items-center gap-1 pl-2.5 rounded-lg text-xs font-bold border transition-all ${isSelected
+                                ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
+                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"
+                                }`}
                             >
                               {isSelected && <FiCheckIcon size={11} />}
                               <button
