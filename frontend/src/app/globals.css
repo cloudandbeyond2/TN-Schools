@@ -1378,7 +1378,9 @@ button.bg-red-600 span {
 
 /* Ensure text color utility classes take precedence in Light Mode over general element overrides (excluding form controls) */
 :root:not(.dark) .text-white:not(input):not(select):not(textarea),
-:root:not(.dark) .text-white:not(input):not(select):not(textarea) span {
+:root:not(.dark) .text-white:not(input):not(select):not(textarea) span,
+:root:not(.dark) .text-white:not(input):not(select):not(textarea) i,
+:root:not(.dark) .text-white:not(input):not(select):not(textarea) i::before {
   color: #ffffff !important;
 }
 :root:not(.dark) .text-slate-400:not(input):not(select):not(textarea) {
