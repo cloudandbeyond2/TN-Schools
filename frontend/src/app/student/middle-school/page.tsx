@@ -1,94 +1,3 @@
-// import PortalLayout from "@/components/PortalLayout";
-
-
-// const subjects = [
-//   { name: "Mathematics", progress: 85, color: "#6366f1", icon: "🧮" },
-//   { name: "Science Explorer", progress: 70, color: "#10b981", icon: "🌱" },
-//   { name: "Tamil", progress: 92, color: "#f59e0b", icon: "🗣️" },
-//   { name: "English", progress: 80, color: "#3b82f6", icon: "✍️" },
-//   { name: "Social Science", progress: 60, color: "#ec4899", icon: "🌍" },
-// ];
-
-// const recentActivity = [
-//   { subject: "Mathematics", activity: "Completed 'Fractions Game'", score: "100%", time: "2 hrs ago", status: "green" },
-//   { subject: "Science Explorer", activity: "Watched 'Plant Life' Video", score: "—", time: "Yesterday", status: "green" },
-//   { subject: "Tamil", activity: "Story Reading", score: "20 min", time: "2 days ago", status: "blue" },
-// ];
-
-// export default function MiddleSchoolDashboard() {
-//   return (
-//     <PortalLayout>
-//       {/* KPI Row */}
-//       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
-//         {[
-//           { label: "Attendance Star", value: "98%", icon: "⭐", color: "text-amber-400", sub: "Perfect this week!" },
-//           { label: "Learning Points", value: "1,250", icon: "🏆", color: "text-emerald-400", sub: "+50 today" },
-//           { label: "Quizzes Passed", value: "12", icon: "🎯", color: "text-blue-400", sub: "2 pending" },
-//           { label: "Reading Time", value: "5 Hrs", icon: "📖", color: "text-purple-400", sub: "This week" },
-//         ].map((kpi) => (
-//           <div key={kpi.label} className="kpi-card bg-gradient-to-b from-slate-800/80 to-slate-900/80 border-2 border-emerald-500/20 hover:border-emerald-500/50 transition-all">
-//             <div className="flex items-center justify-between mb-3">
-//               <span className="text-3xl">{kpi.icon}</span>
-//               <span className={`text-xs font-bold ${kpi.color}`}>{kpi.sub}</span>
-//             </div>
-//             <div className={`text-4xl font-extrabold ${kpi.color} mb-1 drop-shadow-md`}>{kpi.value}</div>
-//             <div className="text-sm font-semibold text-slate-400">{kpi.label}</div>
-//           </div>
-//         ))}
-//       </div>
-
-//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-//         {/* Subject Progress */}
-//         <div className="lg:col-span-2 glass rounded-3xl p-6 fade-in-2 border border-slate-700/50 shadow-2xl relative overflow-hidden">
-//           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -z-10" />
-//           <div className="flex items-center justify-between mb-6">
-//             <h2 className="text-xl font-bold text-white flex items-center gap-2">🚀 My Learning Journey</h2>
-//             <button id="ms-view-all-subjects" className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 px-4 py-2 rounded-xl">Explore All</button>
-//           </div>
-//           <div className="space-y-5">
-//             {subjects.map((s) => (
-//               <div key={s.name} className="flex items-center gap-5 p-3 rounded-2xl hover:bg-slate-800/50 transition-colors">
-//                 <div className="text-3xl w-12 h-12 shrink-0 bg-slate-800 rounded-full flex items-center justify-center shadow-inner">{s.icon}</div>
-//                 <div className="flex-1 min-w-0">
-//                   <div className="flex justify-between text-sm mb-2">
-//                     <span className="text-slate-200 font-bold text-base">{s.name}</span>
-//                     <span className="text-emerald-400 font-bold">{s.progress}%</span>
-//                   </div>
-//                   <div className="progress-bar h-3 rounded-full bg-slate-800 overflow-hidden">
-//                     <div className="progress-fill h-full rounded-full relative" style={{ width: `${s.progress}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}aa)` }}>
-//                       <div className="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]" />
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-
-//         {/* AI Helper for Kids */}
-//         <div className="glass rounded-3xl p-6 fade-in-3 flex flex-col border border-slate-700/50 shadow-2xl bg-gradient-to-b from-indigo-900/20 to-purple-900/20">
-//           <div className="flex items-center gap-3 mb-4">
-//             <div className="w-12 h-12 shrink-0 bg-indigo-500 rounded-full flex items-center justify-center text-2xl animate-bounce shadow-lg shadow-indigo-500/30">🤖</div>
-//             <h2 className="text-xl font-bold text-white">AI Learning Buddy</h2>
-//           </div>
-//           <div className="flex-1 bg-slate-900/80 rounded-2xl p-5 mb-5 text-sm text-indigo-200 italic border border-indigo-500/30 relative">
-//             <div className="absolute -left-2 top-4 w-4 h-4 bg-slate-900/80 border-l border-b border-indigo-500/30 rotate-45" />
-//             &quot;Hi Arjun! Want to learn why the sky is blue? Or maybe play a math game?&quot;
-//           </div>
-//           <div className="space-y-3">
-//             {["Play a Math Game", "Tell me a Science Fact", "Help with Homework"].map((q) => (
-//               <button
-//                 key={q}
-//                 className="w-full text-left text-sm font-semibold px-4 py-3 bg-indigo-500/10 rounded-xl text-indigo-300 hover:bg-indigo-500/30 hover:text-white hover:-translate-y-1 transition-all border border-indigo-500/30 shadow-sm"
-//               >
-//                 ✨ {q}
-//               </button>
-//             ))}
-//           </div>
-//         </div>
-//       </div>
-//     </PortalLayout>
-//   );
 "use client";
 import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
@@ -97,461 +6,480 @@ import StudentDailyOverview from "@/components/student/StudentDailyOverview";
 import { useSession } from "next-auth/react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import Link from "next/link";
-import {
-  Megaphone,
-  Star,
-  Trophy,
-  Target,
-  BookOpen,
-  Calculator,
-  Compass,
-  Volume2,
-  PenTool,
-  Globe,
-  FlaskConical,
-  FileText,
-  MessageSquare,
-  Award,
-  Sparkles,
-  Rocket
-} from "lucide-react";
 
-const IconMap: Record<string, React.ComponentType<any>> = {
-  Star,
-  Trophy,
-  Target,
-  BookOpen,
-  Calculator,
-  Compass,
-  Volume2,
-  PenTool,
-  Globe,
-  FlaskConical,
-  FileText,
-  MessageSquare,
-  Award,
-  Sparkles,
-  Rocket
-};
-
-
+/* ─── API base ────────────────────────────────────────── */
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-  if (url && !url.startsWith("http://") && !url.startsWith("https://")) {
-    url = `https://${url}`;
-  }
+  if (url && !url.startsWith("http://") && !url.startsWith("https://")) url = `https://${url}`;
   return url;
 };
-
 const API_BASE = getApiBase();
 
-// Map badge label → icon & style
-const BADGE_META: Record<string, { icon: string; color: string; rarity: string }> = {
-  "🔬 Star Scientist":  { icon: "FlaskConical", color: "from-blue-500 to-indigo-600",   rarity: "Epic" },
-  "📝 Homework Pro":   { icon: "FileText", color: "from-amber-500 to-orange-600",   rarity: "Rare" },
-  "💬 Active Speaker": { icon: "MessageSquare", color: "from-emerald-500 to-teal-600",   rarity: "Rare" },
-  "🌟 Mentor Star":    { icon: "Sparkles", color: "from-purple-500 to-fuchsia-600", rarity: "Epic" },
+/* ─── Badge metadata ──────────────────────────────────── */
+const BADGE_META: Record<string, { fi: string; color: string; bg: string; rarity: string }> = {
+  "🔬 Star Scientist":  { fi: "fi-sr-flask", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500", rarity: "Epic" },
+  "📝 Homework Pro":   { fi: "fi-sr-pencil", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500", rarity: "Rare" },
+  "💬 Active Speaker": { fi: "fi-sr-comment", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500", rarity: "Rare" },
+  "🌟 Mentor Star":    { fi: "fi-sr-star", color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-500", rarity: "Epic" },
 };
 
+/* ─── Subject data ────────────────────────────────────── */
 const subjectsEn = [
-  { name: "Mathematics", progress: 85, color: "#6366f1", icon: "Calculator" },
-  { name: "Science Explorer", progress: 70, color: "#10b981", icon: "Compass" },
-  { name: "Tamil", progress: 92, color: "#f59e0b", icon: "Volume2" },
-  { name: "English", progress: 80, color: "#3b82f6", icon: "PenTool" },
-  { name: "Social Science", progress: 60, color: "#ec4899", icon: "Globe" },
+  { name: "Mathematics",    progress: 85, color: "#6366f1", fi: "fi-sr-calculator" },
+  { name: "Science",        progress: 70, color: "#10b981", fi: "fi-sr-flask"      },
+  { name: "Tamil",          progress: 92, color: "#f59e0b", fi: "fi-sr-book"       },
+  { name: "English",        progress: 80, color: "#3b82f6", fi: "fi-sr-pen-nib"    },
+  { name: "Social Science", progress: 60, color: "#ec4899", fi: "fi-sr-globe"      },
 ];
-
 const subjectsTa = [
-  { name: "கணிதம்", progress: 85, color: "#6366f1", icon: "Calculator" },
-  { name: "அறிவியல் ஆய்வாளர்", progress: 70, color: "#10b981", icon: "Compass" },
-  { name: "தமிழ்", progress: 92, color: "#f59e0b", icon: "Volume2" },
-  { name: "ஆங்கிலம்", progress: 80, color: "#3b82f6", icon: "PenTool" },
-  { name: "சமூக அறிவியல்", progress: 60, color: "#ec4899", icon: "Globe" },
+  { name: "கணிதம்",          progress: 85, color: "#6366f1", fi: "fi-sr-calculator" },
+  { name: "அறிவியல்",        progress: 70, color: "#10b981", fi: "fi-sr-flask"      },
+  { name: "தமிழ்",           progress: 92, color: "#f59e0b", fi: "fi-sr-book"       },
+  { name: "ஆங்கிலம்",        progress: 80, color: "#3b82f6", fi: "fi-sr-pen-nib"    },
+  { name: "சமூக அறிவியல்", progress: 60, color: "#ec4899", fi: "fi-sr-globe"      },
 ];
 
+/* ─── KPI data ────────────────────────────────────────── */
+const KPI_CONFIG = [
+  { keyEn: "Attendance", keyTa: "வருகை", fi: "fi-sr-user-check", valueKey: "attendance",  accent: "emerald" },
+  { keyEn: "Learning Pts", keyTa: "கற்றல்",  fi: "fi-sr-trophy",     valueKey: "points",      accent: "amber"   },
+  { keyEn: "Quizzes",      keyTa: "வினாக்கள்",fi: "fi-sr-target",     valueKey: "quizzes",     accent: "blue"    },
+  { keyEn: "Reading",      keyTa: "வாசிப்பு", fi: "fi-sr-book-open-cover", valueKey: "reading", accent: "purple" },
+];
+
+/* ─── Quick nav links ─────────────────────────────────── */
+const NAV_LINKS = [
+  { href: "/student/homework",    fi: "fi-sr-book-bookmark",  labelEn: "Homework",     labelTa: "வீட்டுப்பாடம்", accent: "teal"   },
+  { href: "/student/assessments", fi: "fi-sr-file-check",     labelEn: "Assessments",  labelTa: "தேர்வுகள்",    accent: "indigo" },
+  { href: "/student/progress",    fi: "fi-sr-chart-histogram",labelEn: "Progress",     labelTa: "முன்னேற்றம்",  accent: "amber"  },
+  { href: "/student/exams",       fi: "fi-sr-calendar-clock", labelEn: "Exams",        labelTa: "தேர்வு நாட்கள்",accent: "rose"  },
+  { href: "/student/health",      fi: "fi-sr-heart-rate",     labelEn: "Health",       labelTa: "சுகாதாரம்",   accent: "red"    },
+  { href: "/student/leave",       fi: "fi-sr-calendar",       labelEn: "Leave",        labelTa: "விடுப்பு",     accent: "sky"    },
+];
+
+const ACCENT_CLASSES: Record<string, { text: string; bg: string; border: string }> = {
+  teal:   { text: "text-teal-600 dark:text-teal-400",   bg: "bg-teal-50 dark:bg-teal-950/40",   border: "border-teal-200/40 dark:border-teal-800/40"   },
+  indigo: { text: "text-indigo-600 dark:text-indigo-400",bg: "bg-indigo-50 dark:bg-indigo-950/40",border: "border-indigo-200/40 dark:border-indigo-800/40"},
+  amber:  { text: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/40", border: "border-amber-200/40 dark:border-amber-800/40"  },
+  rose:   { text: "text-rose-600 dark:text-rose-400",   bg: "bg-rose-50 dark:bg-rose-950/40",   border: "border-rose-200/40 dark:border-rose-800/40"   },
+  red:    { text: "text-red-600 dark:text-red-400",     bg: "bg-red-50 dark:bg-red-950/40",     border: "border-red-200/40 dark:border-red-800/40"     },
+  sky:    { text: "text-sky-600 dark:text-sky-400",     bg: "bg-sky-50 dark:bg-sky-950/40",     border: "border-sky-200/40 dark:border-sky-800/40"     },
+  emerald:{ text: "text-emerald-600 dark:text-emerald-400",bg:"bg-emerald-50 dark:bg-emerald-950/40",border:"border-emerald-200/40 dark:border-emerald-800/40"},
+  blue:   { text: "text-blue-600 dark:text-blue-400",   bg: "bg-blue-50 dark:bg-blue-950/40",   border: "border-blue-200/40 dark:border-blue-800/40"   },
+  purple: { text: "text-purple-600 dark:text-purple-400",bg:"bg-purple-50 dark:bg-purple-950/40",border:"border-purple-200/40 dark:border-purple-800/40"},
+};
+
+/* ═══════════════════════════════════════════════════════ */
 export default function MiddleSchoolDashboard() {
   const { data: session } = useSession();
-  const { lang } = usePortalLanguage();
-  const [student, setStudent] = useState<any>(null);
-  const [earnedBadges, setEarnedBadges] = useState<any[]>([]);
-  const [loadingBadges, setLoadingBadges] = useState(true);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const { lang }          = usePortalLanguage();
+
+  const [student,              setStudent]              = useState<any>(null);
+  const [earnedBadges,         setEarnedBadges]         = useState<any[]>([]);
+  const [loadingBadges,        setLoadingBadges]        = useState(true);
+  const [notifications,        setNotifications]        = useState<any[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(true);
-  const [recentMarks, setRecentMarks] = useState<any[]>([]);
-  const [loadingMarks, setLoadingMarks] = useState(true);
+  const [recentMarks,          setRecentMarks]          = useState<any[]>([]);
+  const [loadingMarks,         setLoadingMarks]         = useState(true);
+  const [todayProgress,        setTodayProgress]        = useState<any>(null);
 
+  /* ── Fetch all data ──────────────────────────────────── */
   useEffect(() => {
-    if (session?.user) {
-      const userId = (session.user as any).id;
-      if (userId) {
-        fetch(`${API_BASE}/api/notifications?userId=${userId}`)
-          .then((res) => res.json())
-          .then((json) => {
-            if (json.success && Array.isArray(json.data)) {
-              setNotifications(json.data.slice(0, 3)); // top 3
-            }
-          })
-          .catch((err) => console.error(err))
-          .finally(() => setLoadingNotifications(false));
-      }
-    }
+    const userId   = (session?.user as any)?.id;
+    const schoolId = (session?.user as any)?.schoolId;
+    if (!userId) return;
+
+    /* notifications */
+    fetch(`${API_BASE}/api/notifications?userId=${userId}`)
+      .then(r => r.json())
+      .then(j => { if (j.success) setNotifications(j.data.slice(0, 4)); })
+      .catch(console.error)
+      .finally(() => setLoadingNotifications(false));
+
+    /* today progress */
+    fetch(`${API_BASE}/api/digital-library/progress/today?studentId=${userId}`)
+      .then(r => r.json())
+      .then(j => { if (j.success) setTodayProgress(j.data); })
+      .catch(console.error);
+
+    /* student + marks + badges */
     fetch(`${API_BASE}/api/students`)
-      .then((res) => res.json())
-      .then(async (json) => {
-        if (json.success && json.data.length > 0) {
-          const myStudent = (session?.user as any)?.id 
-            ? json.data.find((s: any) => s.userId === (session?.user as any)?.id)
-            : null;
-          const activeStudent = myStudent || json.data[0];
-          setStudent(activeStudent);
+      .then(r => r.json())
+      .then(async j => {
+        if (!j.success || !j.data.length) return;
+        const s = j.data.find((x: any) => x.userId === userId) ?? j.data[0];
+        setStudent(s);
 
-          if (activeStudent) {
-            // Fetch student marks
-            fetch(`${API_BASE}/api/students/${activeStudent.id}/marks`)
-              .then((mRes) => mRes.json())
-              .then((mJson) => {
-                if (mJson.success && Array.isArray(mJson.data)) {
-                  setRecentMarks(mJson.data.slice(0, 6));
-                }
-              })
-              .catch((err) => console.error(err))
-              .finally(() => setLoadingMarks(false));
+        /* marks */
+        fetch(`${API_BASE}/api/students/${s.id}/marks`)
+          .then(r => r.json())
+          .then(j => { if (j.success) setRecentMarks(j.data.slice(0, 6)); })
+          .catch(console.error)
+          .finally(() => setLoadingMarks(false));
 
-            const schoolId = (session?.user as any)?.schoolId;
-            const url = schoolId
-              ? `${API_BASE}/api/teacher/badges?schoolId=${schoolId}`
-              : `${API_BASE}/api/teacher/badges`;
-
-            const bRes = await fetch(url);
-            const bJson = await bRes.json();
-            if (bJson.success) {
-              const studentBadges = bJson.data.filter((b: any) => b.studentId === activeStudent.id);
-              const shaped = studentBadges.map((b: any) => {
-                const meta = BADGE_META[b.badge] || {
-                  icon: "Award",
-                  color: "from-slate-500 to-slate-700",
-                  rarity: "Common",
-                };
-                return {
-                  id: b.id,
-                  name: b.badge,
-                  icon: meta.icon,
-                  color: meta.color,
-                  rarity: meta.rarity,
-                };
-              });
-              setEarnedBadges(shaped);
-            }
-          }
+        /* badges */
+        const bUrl = schoolId
+          ? `${API_BASE}/api/teacher/badges?schoolId=${schoolId}`
+          : `${API_BASE}/api/teacher/badges`;
+        const bj = await fetch(bUrl).then(r => r.json());
+        if (bj.success) {
+          const shaped = bj.data
+            .filter((b: any) => b.studentId === s.id)
+            .map((b: any) => {
+              const m = BADGE_META[b.badge] ?? { fi: "fi-sr-badge", color: "text-slate-500", bg: "bg-slate-500", rarity: "Common" };
+              return { id: b.id, name: b.badge, fi: m.fi, color: m.color, bg: m.bg, rarity: m.rarity };
+            });
+          setEarnedBadges(shaped);
         }
       })
-      .catch((err) => console.error(err))
+      .catch(console.error)
       .finally(() => setLoadingBadges(false));
   }, [session]);
 
-  const [todayProgress, setTodayProgress] = useState<any>(null);
+  const isTa       = lang === "தமிழ்";
+  const userName   = session?.user?.name || student?.user?.name || (isTa ? "மாணவர்" : "Student");
+  const subjectList = isTa ? subjectsTa : subjectsEn;
 
-  useEffect(() => {
-    if (!(session?.user as any)?.id) return;
-    fetch(`${API_BASE}/api/digital-library/progress/today?studentId=${(session?.user as any)?.id}`)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success) setTodayProgress(json.data);
-      })
-      .catch((err) => console.error("Failed to load today progress:", err));
-  }, [session]);
+  /* KPI live values */
+  const kpiValues: Record<string, string> = {
+    attendance: "98%",
+    points:     "1,250",
+    quizzes:    "12",
+    reading:    "5 Hrs",
+  };
+  const kpiSubs: Record<string, string> = {
+    attendance: isTa ? "இந்த வாரம் சிறப்பு!" : "Perfect this week!",
+    points:     isTa ? "இன்று +50"           : "+50 today",
+    quizzes:    isTa ? "2 நிலுவையில்"         : "2 pending",
+    reading:    isTa ? "இந்த வாரம்"           : "This week",
+  };
 
-  const userName = session?.user?.name || student?.user?.name || (lang === "தமிழ்" ? "மாணவர்" : "Student");
-  const subtitle = student 
-    ? (lang === "தமிழ்"
-        ? `மீண்டும் வருக, ${userName}! · வகுப்பு ${student.class} ${student.section} · நீங்கள் ${earnedBadges.length} பேட்ஜ்களைப் பெற்றுள்ளீர்கள்!`
-        : `Welcome back, ${userName}! · Class ${student.class} ${student.section} · You have earned ${earnedBadges.length} ${earnedBadges.length === 1 ? "badge" : "badges"}!`)
-    : (lang === "தமிழ்" ? "மாணவர் தரவு ஏற்றப்படுகிறது..." : "Loading student data...");
-
-  const subjectsList = lang === "தமிழ்" ? subjectsTa : subjectsEn;
-
-  const kpis = [
-    { label: lang === "தமிழ்" ? "வருகை நட்சத்திரம்" : "Attendance Star", value: "98%", icon: "Star", color: "text-amber-500 dark:text-amber-400", sub: lang === "தமிழ்" ? "இந்த வாரம் சிறப்பு!" : "Perfect this week!" },
-    { label: lang === "தமிழ்" ? "கற்றல் புள்ளிகள்" : "Learning Points", value: "1,250", icon: "Trophy", color: "text-emerald-600 dark:text-emerald-400", sub: lang === "தமிழ்" ? "இன்று +50" : "+50 today" },
-    { label: lang === "தமிழ்" ? "தேர்ச்சி பெற்ற வினாக்கள்" : "Quizzes Passed", value: "12", icon: "Target", color: "text-blue-600 dark:text-blue-400", sub: lang === "தமிழ்" ? "2 நிலுவையில்" : "2 pending" },
-    { label: lang === "தமிழ்" ? "வாசிக்கும் நேரம்" : "Reading Time", value: "5 Hrs", icon: "BookOpen", color: "text-purple-600 dark:text-purple-400", sub: lang === "தமிழ்" ? "இந்த வாரம்" : "This week" },
-  ];
-
+  /* ── Render ──────────────────────────────────────────── */
   return (
-    <PortalLayout subtitle={subtitle}>
-      {/* Real academic-year KPIs */}
-      <PersonalKpiStrip studentId={(session?.user as any)?.studentId || null} />
-
-      {/* Daily timetable, homework, exams, attendance, announcements & AI suggestions */}
-      <StudentDailyOverview 
-        extraLeft={
-          <>
-            <div className="glass rounded-[2rem] p-5 sm:p-8 fade-in-2 border border-slate-200 dark:border-slate-700/50 shadow-xl relative overflow-hidden bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl h-fit">
-            <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl -z-10" />
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-              <div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  {lang === "தமிழ்" ? "கற்றல் அரங்கம்" : "Learning Quest Arcade"}
-                </span>
-                <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white flex items-center gap-2 mt-1">
-                  <Rocket className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500" /> {lang === "தமிழ்" ? "எனது கற்றல் பயணம்" : "My Learning Journey"}
-                </h2>
-              </div>
-              <button id="ms-view-all-subjects" className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-500/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all border border-emerald-500/20">
-                {lang === "தமிழ்" ? "அனைத்தையும் ஆராயுங்கள் →" : "Explore All →"}
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {subjectsList.map((s) => {
-                const SubjectIcon = IconMap[s.icon] || BookOpen;
-                const statusTag = s.progress >= 85 
-                  ? { label: lang === "தமிழ்" ? "சூப்பர் ஸ்டார்" : "Superstar 🌟", color: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20" }
-                  : s.progress >= 75 
-                  ? { label: lang === "தமிழ்" ? "நன்றாக உள்ளது" : "Champion 🏆", color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" }
-                  : { label: lang === "தமிழ்" ? "பூஸ்ட் தேவை" : "Power Up ⚡", color: "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20" };
-
-                return (
-                  <div key={s.name} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 transition-all group relative overflow-hidden shadow-sm">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-                          <SubjectIcon className="w-6 h-6" style={{ color: s.color }} />
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{s.name}</h3>
-                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${statusTag.color}`}>
-                            {statusTag.label}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="text-lg font-black text-black dark:text-white">{s.progress}%</span>
-                    </div>
-
-                    <div className="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-300 dark:border-slate-700/40">
-                      <div className="h-full rounded-full transition-all duration-500 relative" style={{ width: `${s.progress}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}dd)` }}>
-                        <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Recent Assessment Marks Card */}
-          <div className="glass rounded-[2rem] p-5 sm:p-8 border border-slate-200 dark:border-slate-700/50 shadow-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl text-left mt-6">
-            <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white mb-3 flex items-center gap-2">
-              <span>🎯</span> {lang === "தமிழ்" ? "சமீபத்திய மதிப்பீட்டு மதிப்பெண்கள்" : "Recent Assessment Marks"}
-            </h2>
-            {loadingMarks ? (
-              <div className="text-xs text-slate-500 py-4 text-center">{lang === "தமிழ்" ? "மதிப்பெண்கள் ஏற்றப்படுகின்றன..." : "Loading marks..."}</div>
-            ) : recentMarks.length > 0 ? (
-              <div className="space-y-3">
-                {recentMarks.map((m) => (
-                  <div key={m.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-150 dark:border-slate-800">
-                    <div>
-                      <div className="text-[10px] text-slate-500 font-bold uppercase">{m.subject}</div>
-                      <div className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-                        {m.examType.replace("Assessment: ", "")}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-black text-indigo-600 dark:text-indigo-400 font-mono">
-                        {m.scored} / {m.maxMarks}
-                      </div>
-                      <div className="text-[9px] font-bold text-slate-400">
-                        {new Date(m.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-xs text-slate-505 dark:text-slate-500 italic">{lang === "தமிழ்" ? "இதுவரை எந்த மதிப்பீடும் முடிக்கப்படவில்லை." : "No assessments completed yet."}</p>
-                <Link href="/student/assessments" className="inline-block mt-3 text-xs font-bold text-indigo-650 dark:text-indigo-400 hover:underline">
-                  {lang === "தமிழ்" ? "உங்கள் முதல் தேர்வை எழுதுங்கள் →" : "Take your first test →"}
-                </Link>
-              </div>
-            )}
-          </div>
-        </>
+    <PortalLayout
+      title={isTa ? "நடுநிலை பள்ளி" : "Middle School"}
+      subtitle={
+        student
+          ? isTa
+            ? `மீண்டும் வருக, ${userName}! · வகுப்பு ${student.class} ${student.section}`
+            : `Welcome back, ${userName}! · Class ${student.class} ${student.section}`
+          : isTa ? "தரவு ஏற்றப்படுகிறது..." : "Loading student data..."
       }
-      extraRight={
-        <>
-          {/* Today's Learning Progress Card */}
-            <div className="glass rounded-[2rem] p-5 sm:p-8 border border-slate-200 dark:border-slate-700/50 shadow-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl">
-              <h2 className="text-lg sm:text-xl font-bold text-black dark:text-white mb-3 flex items-center gap-2">
-                <span>⏱️</span> {lang === "தமிழ்" ? "இன்றைய படிப்பு முன்னேற்றம்" : "Today's Study Progress"}
-              </h2>
-              {todayProgress ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
-                    <div className="text-left">
-                      <div className="text-[10px] text-slate-500 uppercase font-black">{lang === "தமிழ்" ? "இன்று பதிவான நேரம்" : "Logged Today"}</div>
-                      <div className="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{todayProgress.totalTimeSpentMinutes} {lang === "தமிழ்" ? "நிமி" : "mins"}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[10px] text-slate-500 uppercase font-black">{lang === "தமிழ்" ? "படித்தவை" : "Resources Studied"}</div>
-                      <div className="text-xl font-extrabold text-emerald-650 dark:text-emerald-400">{todayProgress.activeCount}</div>
-                    </div>
-                  </div>
+      accentColor="#10b981"
+      themeClass="theme-student"
+    >
 
-                  {todayProgress.recentResources && todayProgress.recentResources.length > 0 ? (
-                    <div className="space-y-2.5">
-                      <div className="text-[10px] text-slate-500 uppercase font-black text-left font-sans">{lang === "தமிழ்" ? "சமீபத்திய செயல்பாடு" : "Recent Activity"}</div>
-                      {todayProgress.recentResources.slice(0, 3).map((r: any) => (
-                        <div key={r.resourceId} className="bg-slate-50 dark:bg-slate-900/30 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/60 text-left space-y-1">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate max-w-[70%]">{r.resourceTitle}</span>
-                            <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400">{r.progressPercent}%</span>
-                          </div>
-                          <div className="w-full bg-slate-200 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
-                            <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${r.progressPercent}%` }} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-slate-505 dark:text-slate-500 italic py-2 text-center">{lang === "தமிழ்" ? "இன்று இன்னும் படிப்பு நடவடிக்கை ஏதும் பதிவாகவில்லை." : "No study activity logged today yet."}</p>
-                  )}
-                </div>
-              ) : (
-                <div className="text-xs text-slate-500 py-4 text-center">{lang === "தமிழ்" ? "முன்னேற்றம் ஏற்றப்படுகிறது..." : "Loading progress..."}</div>
-              )}
-            </div>
-          </>
-        }
-      />
+      {/* ══════════════════════════════════════════════════
+          HERO BANNER  –  identical pattern to Homework page
+          ══════════════════════════════════════════════════ */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+        {/* Left */}
+        <div>
+          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+            <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+              {isTa ? "நடுநிலை பள்ளி" : "Middle School"}
+            </span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full">
+              {isTa ? "கல்வி ஆண்டு 2024-25" : "Academic Year 2024-25"}
+            </span>
+          </div>
+          <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
+            <i className="fi fi-sr-graduation-cap text-emerald-600 dark:text-emerald-400 flex items-center" />
+            {isTa ? "நடுநிலை மாணவர் போர்டல்" : "Middle School Student Portal"}
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            {isTa
+              ? "உங்கள் பாடங்கள், தேர்வுகள், பேட்ஜ்கள் மற்றும் தினசரி முன்னேற்றத்தை இங்கே கண்காணிக்கவும்."
+              : "Track your subjects, assessments, badges and daily academic progress."}
+          </p>
+        </div>
+        {/* Right badge */}
+        <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm rounded-xl border border-emerald-200/20 shadow-sm whitespace-nowrap shrink-0">
+          <i className="fi fi-sr-school flex items-center text-sm" />
+          {isTa ? "கல்வி போர்டல்" : "Class Learning Portal"}
+        </span>
+      </div>
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8 fade-in">
-        {kpis.map((kpi) => {
-          const Icon = IconMap[kpi.icon] || Star;
+      {/* ── KPI Strip ──────────────────────────────────── */}
+      <PersonalKpiStrip studentId={(session?.user as any)?.studentId || null} hideHeader={true} />
+
+      {/* ── Quick KPI Cards ────────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        {KPI_CONFIG.map(k => {
+          const ac = ACCENT_CLASSES[k.accent];
           return (
-            <div key={kpi.label} className="group glass bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl border border-slate-200 dark:border-slate-700/50 hover:border-emerald-500/50 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between p-6 rounded-[2rem] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl -z-10 group-hover:bg-emerald-500/15 transition-all" />
-              <div className="flex items-center justify-between mb-5">
-                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700 shadow-sm group-hover:scale-110 transition-transform">
-                  <Icon className={`w-6 h-6 ${kpi.color}`} />
+            <div key={k.keyEn}
+              className={`group glass ${ac.bg} border ${ac.border} rounded-2xl p-4 sm:p-5 flex flex-col justify-between hover:-translate-y-1 hover:shadow-lg transition-all duration-200 relative overflow-hidden`}>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/20 rounded-full blur-2xl -z-10" />
+              <div className="flex items-center justify-between mb-3">
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 border border-white/60 dark:border-slate-700 shadow-sm flex items-center justify-center`}>
+                  <i className={`fi ${k.fi} flex items-center text-base ${ac.text}`} />
                 </div>
-                <span className={`text-[10px] sm:text-[11px] font-black px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm ${kpi.color}`}>{kpi.sub}</span>
+                <span className={`text-[9px] sm:text-[10px] font-black px-2 py-1 rounded-full bg-white dark:bg-slate-800 border border-white/60 dark:border-slate-700 shadow-sm ${ac.text} text-right max-w-[80px] leading-tight`}>
+                  {kpiSubs[k.valueKey]}
+                </span>
               </div>
               <div>
-                <div className={`text-3xl sm:text-4xl font-black text-slate-800 dark:text-white mb-1.5 tracking-tight`}>{kpi.value}</div>
-                <div className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400">{kpi.label}</div>
+                <div className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white tracking-tight">{kpiValues[k.valueKey]}</div>
+                <div className={`text-[10px] sm:text-xs font-bold mt-0.5 ${ac.text}`}>{isTa ? k.keyTa : k.keyEn}</div>
               </div>
             </div>
           );
         })}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 items-stretch">
-        {/* Recent Notifications */}
-        <div className="glass rounded-[2rem] p-6 sm:p-8 fade-in-3 flex flex-col border border-indigo-200/50 dark:border-indigo-700/30 shadow-xl bg-gradient-to-br from-indigo-50/50 to-white dark:from-indigo-900/10 dark:to-slate-900/40 backdrop-blur-xl text-left h-full hover:shadow-2xl transition-all">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-indigo-100 dark:bg-indigo-500/20 rounded-2xl text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-200 dark:border-indigo-500/30">
-              <Megaphone className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
-            </div>
-            <h2 className="text-lg sm:text-xl font-black text-slate-800 dark:text-white tracking-tight">{lang === "தமிழ்" ? "சமீபத்திய அறிவிப்புகள்" : "Recent Notifications"}</h2>
-          </div>
-          <div className="flex-1 space-y-3">
-            {loadingNotifications ? (
-              <div className="text-center py-8 text-xs sm:text-sm text-slate-500 font-bold">{lang === "தமிழ்" ? "அறிவிப்புகள் ஏற்றப்படுகின்றன..." : "Loading notifications..."}</div>
-            ) : notifications.length > 0 ? (
-              notifications.map((n) => (
-                <div key={n.id} className="p-4 bg-white/80 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-100 dark:border-slate-700/50 hover:border-indigo-200 dark:hover:border-indigo-700/50 hover:shadow-md transition-all">
-                  <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 font-bold leading-relaxed">{n.message}</div>
-                  <div className="text-[10px] sm:text-xs text-slate-400 mt-2 font-semibold">
-                    {new Date(n.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-xs sm:text-sm text-slate-500 font-bold">{lang === "தமிழ்" ? "புதிய அறிவிப்புகள் இல்லை." : "No new notifications."}</div>
-            )}
-          </div>
-        </div>
-
-        {/* My Health Report */}
-        <Link href="/student/health" className="glass rounded-[2rem] p-6 sm:p-8 border border-rose-200/50 dark:border-rose-700/30 shadow-xl bg-gradient-to-br from-rose-50/50 to-white dark:from-rose-950/10 dark:to-slate-900/40 backdrop-blur-xl text-left hover:-translate-y-1.5 hover:shadow-2xl transition-all cursor-pointer h-full flex flex-col justify-center group relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl -z-10 group-hover:bg-rose-500/20 transition-all" />
-          <div className="flex flex-col items-center text-center gap-4">
-            <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-[2rem] flex items-center justify-center text-3xl shadow-sm border border-rose-100 dark:border-rose-900/50 group-hover:scale-110 group-hover:rotate-3 transition-transform">
-              ❤️
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">
-                {lang === "தமிழ்" ? "சுகாதார அறிக்கை" : "My Health Report"}
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium leading-relaxed max-w-xs mx-auto">
-                {lang === "தமிழ்" ? "உங்கள் உடலமைப்பு அளவீடுகள், உயரம்/எடை வரைபடங்கள் மற்றும் நல்வாழ்வுப் பதிவுகளைச் சரிபார்க்கவும்." : "Check your physical health metrics, height/weight charts, and wellness logs."}
-              </p>
-            </div>
-          </div>
-        </Link>
-
-        {/* My Leave History */}
-        <Link href="/student/leave" className="glass rounded-[2rem] p-6 sm:p-8 border border-sky-200/50 dark:border-sky-700/30 shadow-xl bg-gradient-to-br from-sky-50/50 to-white dark:from-sky-950/10 dark:to-slate-900/40 backdrop-blur-xl text-left hover:-translate-y-1.5 hover:shadow-2xl transition-all cursor-pointer h-full flex flex-col justify-center group relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl -z-10 group-hover:bg-sky-500/20 transition-all" />
-          <div className="flex flex-col items-center text-center gap-4">
-            <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-[2rem] flex items-center justify-center text-3xl shadow-sm border border-sky-100 dark:border-sky-900/50 group-hover:scale-110 group-hover:-rotate-3 transition-transform">
-              📅
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">
-                {lang === "தமிழ்" ? "விடுப்பு வரலாறு" : "My Leave History"}
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium leading-relaxed max-w-xs mx-auto">
-                {lang === "தமிழ்" ? "புதிய விடுப்பு விண்ணப்பங்களைச் சமர்ப்பிக்கவும், நிலையைச் சரிபார்க்கவும்." : "Submit new leave requests, check status of submissions, and view school calendar logs."}
-              </p>
-            </div>
-          </div>
-        </Link>
+      {/* ── Quick Nav Links ────────────────────────────── */}
+      <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
+        {NAV_LINKS.map(n => {
+          const ac = ACCENT_CLASSES[n.accent];
+          return (
+            <Link key={n.href} href={n.href}
+              className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm ${ac.text} ${ac.bg} border ${ac.border} hover:shadow-md hover:-translate-y-0.5 transition-all`}>
+              <i className={`fi ${n.fi} flex items-center text-sm`} />
+              {isTa ? n.labelTa : n.labelEn}
+            </Link>
+          );
+        })}
       </div>
 
-      {/* Earned Badges Section */}
-      <div className="glass rounded-[2rem] p-6 sm:p-8 fade-in-4 border border-slate-200 dark:border-slate-700/50 shadow-xl bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl relative overflow-hidden mb-6">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -z-10" />
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 tracking-tight">
-            <Award className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-500" /> {lang === "தமிழ்" ? "நான் பெற்ற பேட்ஜ்கள்" : "My Earned Badges"}
-          </h2>
-          <Link href="/student/middle-school/badges" className="text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-500/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl">
-            {lang === "தமிழ்" ? "கோப்பை அறையைப் பார்" : "View Trophy Room"}
-          </Link>
-        </div>
-        
-        {loadingBadges ? (
-          <div className="flex justify-center py-8">
-            <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      {/* ── Daily Overview (timetable, homework, exams, attendance) ── */}
+      <StudentDailyOverview />
+
+      {/* ── Subject Progress + Assessment Marks  (2-col on lg) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-6">
+
+        {/* Subject Progress */}
+        <div className="glass rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm bg-white/70 dark:bg-slate-900/40 backdrop-blur-md relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl -z-10" />
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h2 className="text-sm sm:text-base font-black text-black dark:text-white flex items-center gap-2">
+              <i className="fi fi-sr-rocket-lunch flex items-center text-emerald-500" />
+              {isTa ? "எனது கற்றல் பயணம்" : "My Learning Journey"}
+            </h2>
+            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              {isTa ? "கற்றல் அரங்கம்" : "Learning Arcade"}
+            </span>
           </div>
-        ) : earnedBadges.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-            {earnedBadges.map((badge) => {
-              const BadgeIcon = IconMap[badge.icon] || Award;
+
+          <div className="space-y-3">
+            {subjectList.map(s => {
+              const pct = s.progress;
+              const tag = pct >= 85
+                ? { fi: "fi-sr-star",   label: isTa ? "சூப்பர்" : "Superstar", col: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20"   }
+                : pct >= 75
+                ? { fi: "fi-sr-trophy", label: isTa ? "சாம்பியன்" : "Champion",  col: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" }
+                : { fi: "fi-sr-bolt",   label: isTa ? "பூஸ்ட்" : "Power Up",    col: "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20"   };
               return (
-                <div key={badge.id} className="bg-slate-50 dark:bg-slate-900/60 p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-700/50 text-center flex flex-col items-center group cursor-pointer hover:border-indigo-500/50 transition-all hover:-translate-y-1 relative">
-                  <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity bg-gradient-to-br ${badge.color}`}></div>
-                  <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br ${badge.color} flex items-center justify-center shadow-md mb-2 border-4 border-white dark:border-slate-800 relative animate-pulse-subtle`}>
-                    <BadgeIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white group-hover:scale-110 transition-transform" />
+                <div key={s.name}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 hover:border-emerald-400/40 transition-all group">
+                  <div className="w-9 h-9 shrink-0 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                    <i className={`fi ${s.fi} flex items-center text-base`} style={{ color: s.color }} />
                   </div>
-                  <h3 className="font-bold text-[11px] sm:text-xs text-black dark:text-white truncate w-full">{badge.name}</h3>
-                  <span className="text-[8px] sm:text-[9px] text-slate-500 dark:text-slate-400 font-medium block mt-0.5 sm:mt-1">{badge.rarity}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1.5 gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{s.name}</span>
+                        <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border flex items-center gap-0.5 shrink-0 ${tag.col}`}>
+                          <i className={`fi ${tag.fi} flex items-center text-[9px]`} />
+                          {tag.label}
+                        </span>
+                      </div>
+                      <span className="text-sm font-black text-black dark:text-white shrink-0">{pct}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}cc)` }} />
+                    </div>
+                  </div>
                 </div>
               );
             })}
           </div>
+        </div>
+
+        {/* Recent Assessment Marks */}
+        <div className="glass rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm bg-white/70 dark:bg-slate-900/40 backdrop-blur-md">
+          <h2 className="text-sm sm:text-base font-black text-black dark:text-white mb-4 flex items-center gap-2">
+            <i className="fi fi-sr-target flex items-center text-indigo-500" />
+            {isTa ? "சமீபத்திய மதிப்பீட்டு மதிப்பெண்கள்" : "Recent Assessment Marks"}
+          </h2>
+          {loadingMarks ? (
+            <div className="text-xs text-slate-500 py-6 text-center flex flex-col items-center gap-2">
+              <i className="fi fi-sr-refresh animate-spin text-xl text-indigo-400 flex items-center" />
+              {isTa ? "மதிப்பெண்கள் ஏற்றப்படுகின்றன..." : "Loading marks..."}
+            </div>
+          ) : recentMarks.length > 0 ? (
+            <div className="space-y-2.5">
+              {recentMarks.map(m => {
+                const pct = Math.round((m.scored / m.maxMarks) * 100);
+                const col = pct >= 75 ? "text-emerald-600 dark:text-emerald-400" : pct >= 50 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400";
+                return (
+                  <div key={m.id}
+                    className="flex items-center justify-between bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800 gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
+                        <i className="fi fi-sr-book flex items-center" />{m.subject}
+                      </div>
+                      <div className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5 truncate">
+                        {m.examType.replace("Assessment: ", "")}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className={`text-sm font-black font-mono ${col}`}>{m.scored}/{m.maxMarks}</div>
+                      <div className="text-[9px] font-bold text-slate-400">
+                        {new Date(m.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <i className="fi fi-sr-document text-3xl text-slate-300 dark:text-slate-600 flex items-center justify-center mb-2" />
+              <p className="text-xs text-slate-500 italic mb-3">{isTa ? "இதுவரை எந்த மதிப்பீடும் முடிக்கப்படவில்லை." : "No assessments completed yet."}</p>
+              <Link href="/student/assessments"
+                className="inline-flex items-center gap-1.5 text-xs font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1.5 rounded-xl border border-indigo-200/40 hover:shadow-md transition-all">
+                <i className="fi fi-sr-arrow-right flex items-center" />
+                {isTa ? "முதல் தேர்வை எழுதுங்கள்" : "Take your first test"}
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Notifications + Today Progress (2-col on lg) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-4 sm:mt-6">
+
+        {/* Notifications */}
+        <div className="glass rounded-2xl p-5 sm:p-6 border border-indigo-200/50 dark:border-indigo-700/30 shadow-sm bg-gradient-to-br from-indigo-50/60 to-white dark:from-indigo-950/10 dark:to-slate-900/40 backdrop-blur-md flex flex-col">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center">
+              <i className="fi fi-sr-bell flex items-center text-base text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <h2 className="text-sm sm:text-base font-black text-black dark:text-white">{isTa ? "சமீபத்திய அறிவிப்புகள்" : "Recent Notifications"}</h2>
+          </div>
+          <div className="flex-1 space-y-2.5">
+            {loadingNotifications ? (
+              <div className="text-xs text-slate-500 py-6 text-center flex flex-col items-center gap-2">
+                <i className="fi fi-sr-refresh animate-spin text-xl text-indigo-400 flex items-center" />
+                {isTa ? "ஏற்றப்படுகிறது..." : "Loading..."}
+              </div>
+            ) : notifications.length > 0 ? notifications.map(n => (
+              <div key={n.id} className="p-3 bg-white/80 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50 hover:border-indigo-200 dark:hover:border-indigo-700/50 transition-all">
+                <div className="text-xs font-bold text-slate-700 dark:text-slate-200 leading-relaxed">{n.message}</div>
+                <div className="text-[10px] text-slate-400 mt-1 font-semibold flex items-center gap-1">
+                  <i className="fi fi-sr-clock flex items-center" />
+                  {new Date(n.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                </div>
+              </div>
+            )) : (
+              <div className="text-center py-8">
+                <i className="fi fi-sr-bell-slash text-3xl text-slate-300 dark:text-slate-600 flex items-center justify-center mb-2" />
+                <p className="text-xs text-slate-500">{isTa ? "புதிய அறிவிப்புகள் இல்லை." : "No new notifications."}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Today's Study Progress */}
+        <div className="glass rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm bg-white/70 dark:bg-slate-900/40 backdrop-blur-md">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-500/20 border border-purple-200 dark:border-purple-500/30 flex items-center justify-center">
+              <i className="fi fi-sr-time-fast flex items-center text-base text-purple-600 dark:text-purple-400" />
+            </div>
+            <h2 className="text-sm sm:text-base font-black text-black dark:text-white">{isTa ? "இன்றைய படிப்பு முன்னேற்றம்" : "Today's Study Progress"}</h2>
+          </div>
+          {todayProgress ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
+                  <div className="text-[10px] text-slate-400 uppercase font-black flex items-center justify-center gap-1 mb-1">
+                    <i className="fi fi-sr-clock flex items-center" />
+                    {isTa ? "நேரம்" : "Logged"}
+                  </div>
+                  <div className="text-xl font-black text-indigo-600 dark:text-indigo-400">{todayProgress.totalTimeSpentMinutes}<span className="text-xs ml-0.5 font-bold">{isTa ? "நி" : "m"}</span></div>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
+                  <div className="text-[10px] text-slate-400 uppercase font-black flex items-center justify-center gap-1 mb-1">
+                    <i className="fi fi-sr-book flex items-center" />
+                    {isTa ? "படித்தவை" : "Resources"}
+                  </div>
+                  <div className="text-xl font-black text-emerald-600 dark:text-emerald-400">{todayProgress.activeCount}</div>
+                </div>
+              </div>
+              {todayProgress.recentResources?.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-[10px] text-slate-400 uppercase font-black flex items-center gap-1">
+                    <i className="fi fi-sr-chart-histogram flex items-center" />
+                    {isTa ? "சமீபத்திய செயல்பாடு" : "Recent Activity"}
+                  </div>
+                  {todayProgress.recentResources.slice(0, 3).map((r: any) => (
+                    <div key={r.resourceId} className="bg-slate-50 dark:bg-slate-900/30 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 space-y-1">
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{r.resourceTitle}</span>
+                        <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 shrink-0">{r.progressPercent}%</span>
+                      </div>
+                      <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${r.progressPercent}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-xs text-slate-500 py-6 text-center flex flex-col items-center gap-2">
+              <i className="fi fi-sr-refresh animate-spin text-xl text-purple-400 flex items-center" />
+              {isTa ? "முன்னேற்றம் ஏற்றப்படுகிறது..." : "Loading progress..."}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Earned Badges ──────────────────────────────── */}
+      <div className="glass rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm bg-white/70 dark:bg-slate-900/40 backdrop-blur-md mt-4 sm:mt-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl -z-10" />
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <h2 className="text-sm sm:text-base font-black text-black dark:text-white flex items-center gap-2">
+            <i className="fi fi-sr-badge flex items-center text-lg text-indigo-500" />
+            {isTa ? "நான் பெற்ற பேட்ஜ்கள்" : "My Earned Badges"}
+          </h2>
+          <Link href="/student/middle-school/badges"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1.5 rounded-xl border border-indigo-200/40 hover:shadow-md transition-all">
+            <i className="fi fi-sr-trophy flex items-center" />
+            {isTa ? "கோப்பை அறை" : "Trophy Room"}
+          </Link>
+        </div>
+
+        {loadingBadges ? (
+          <div className="flex justify-center py-8">
+            <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : earnedBadges.length > 0 ? (
+          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
+            {earnedBadges.map(b => (
+              <div key={b.id}
+                className="bg-slate-50 dark:bg-slate-900/60 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 text-center flex flex-col items-center group cursor-pointer hover:border-indigo-400/50 hover:-translate-y-1 transition-all">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${b.bg} flex items-center justify-center shadow-md mb-2 border-4 border-white dark:border-slate-800`}>
+                  <i className={`fi ${b.fi} flex items-center text-base sm:text-lg text-white group-hover:scale-110 transition-transform`} />
+                </div>
+                <h3 className="font-bold text-[10px] sm:text-xs text-black dark:text-white truncate w-full">{b.name}</h3>
+                <span className="text-[8px] sm:text-[9px] text-slate-400 font-medium mt-0.5">{b.rarity}</span>
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              {lang === "தமிழ்" ? "இன்னும் பேட்ஜ்கள் எதுவும் பெறப்படவில்லை. உங்கள் ஆசிரியர்களிடமிருந்து பேட்ஜ்களைப் பெற தொடர்ந்து நன்றாகப் படியுங்கள்!" : "No badges earned yet. Keep up the good work to earn badges from your teachers!"}
+            <i className="fi fi-sr-badge text-4xl text-slate-300 dark:text-slate-600 flex items-center justify-center mb-3" />
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+              {isTa
+                ? "இன்னும் பேட்ஜ்கள் எதுவும் பெறப்படவில்லை. தொடர்ந்து நன்றாகப் படியுங்கள்!"
+                : "No badges earned yet. Keep up the good work to earn badges from your teachers!"}
             </p>
           </div>
         )}
       </div>
+
     </PortalLayout>
   );
 }
-

@@ -207,59 +207,26 @@ export default function StudyBoostPage() {
     >
       <div className="max-w-7xl mx-auto space-y-6 mt-6 font-sans text-slate-800 dark:text-slate-100">
         
-        {/* Soft Light Pastel Hero Banner */}
-        <div 
-          style={{ background: "linear-gradient(135deg, #eef2ff 0%, #f3e8ff 50%, #fae8ff 100%)" }}
-          className="relative rounded-3xl p-8 md:p-10 overflow-hidden shadow-sm border border-indigo-100/80 dark:border-indigo-900/40"
-        >
-          {/* Subtle Ambient Orbs */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-200/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-          <div className="absolute bottom-0 left-10 w-64 h-64 bg-purple-200/30 rounded-full blur-2xl translate-y-1/2 pointer-events-none"></div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="max-w-2xl space-y-4">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-100 dark:bg-indigo-950/60 rounded-full text-xs font-bold tracking-wider uppercase border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 shadow-sm">
-                <Icon name="bolt" type="sr" className="text-amber-500 text-sm" /> 
-                Class {studentClass}th Board Exam Hub
-              </div>
-              
-              <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white">
-                Unlock Your Brain's <br /> 
-                <span className="text-indigo-600 dark:text-indigo-400 font-black">
-                  Full Potential
-                </span>
-              </h1>
-              
-              <p className="text-slate-600 dark:text-slate-300 text-base md:text-lg font-medium leading-relaxed max-w-xl">
-                Scientifically engineered for Tamil Nadu High School students. Boost memory retention using Pomodoro timers, active recall flashcards, and instant AI summaries.
+        {/* Header Banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 glass rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+          <div className="flex items-start sm:items-center gap-3">
+            <i className="fi fi-sr-bolt text-xl sm:text-2xl text-indigo-600 dark:text-indigo-400 flex items-center shrink-0 mt-0.5 sm:mt-0" />
+            <div>
+              <h2 className="text-base sm:text-lg md:text-xl font-black text-black dark:text-white uppercase tracking-wider leading-tight">
+                Study Boost Engine
+              </h2>
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                Boost memory retention using Pomodoro timers, active recall flashcards, and instant AI summaries.
               </p>
-
-              {/* Feature Badges */}
-              <div className="pt-2 flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white dark:bg-slate-800 rounded-xl text-xs font-bold text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-slate-700 shadow-sm">
-                  <Icon name="stopwatch" className="text-indigo-500 text-sm" /> Pomodoro Timer
-                </div>
-                <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white dark:bg-slate-800 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-slate-700 shadow-sm">
-                  <Icon name="book-alt" className="text-amber-500 text-sm" /> Syllabus Flashcards
-                </div>
-                <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white dark:bg-slate-800 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-slate-700 shadow-sm">
-                  <Icon name="stars" className="text-emerald-500 text-sm" /> AI Explanations
-                </div>
-              </div>
             </div>
+          </div>
 
-            {/* Compact Graphic Card with Gold Trophy Flaticon */}
-            <div className="shrink-0 relative group">
-              <div 
-                style={{ background: "linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%)" }}
-                className="w-28 h-28 md:w-32 md:h-32 rounded-2xl flex items-center justify-center border border-indigo-200/80 shadow-md transition-transform duration-300 group-hover:scale-105"
-              >
-                <Icon name="trophy" type="sr" className="text-amber-500 text-4xl md:text-5xl drop-shadow-sm" />
-              </div>
-              <div className="absolute -bottom-2 -right-2 bg-indigo-600 text-white rounded-xl p-2 shadow-sm border border-white">
-                <Icon name="sparkles" type="sr" className="text-sm text-amber-300" />
-              </div>
-            </div>
+          <div className="flex items-center gap-2 whitespace-nowrap shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-end">
+            <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Grade:</span>
+            <span className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+              <i className="fi fi-sr-graduation-cap flex items-center text-xs sm:text-sm" />
+              Class {studentClass}th Standard
+            </span>
           </div>
         </div>
 

@@ -420,16 +420,26 @@ export default function MockTestsPage() {
         {/* If no test is currently active, show test catalog */}
         {testStatus === "idle" || !activeTest ? (
           <>
-            {/* Banner card */}
-            <div className="relative overflow-hidden rounded-2xl md:rounded-[2.5rem] bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-6 md:p-8 shadow-xl border-2 md:border-4 border-blue-100 dark:border-blue-950">
-              <div className="absolute right-0 top-0 opacity-20 transform translate-x-1/4 -translate-y-1/4 scale-150 pointer-events-none mix-blend-overlay">
-                <FileText className="w-64 h-64" />
+            {/* Header Banner card */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 glass rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+              <div className="flex items-start sm:items-center gap-3">
+                <i className="fi fi-sr-file-edit text-xl sm:text-2xl text-indigo-600 dark:text-indigo-400 flex items-center shrink-0 mt-0.5 sm:mt-0" />
+                <div>
+                  <h2 className="text-base sm:text-lg md:text-xl font-black text-black dark:text-white uppercase tracking-wider leading-tight">
+                    SSLC Mock Exam Repository
+                  </h2>
+                  <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                    Simulate Tamil Nadu SSLC state board conditions. Challenge yourself with complete model papers, timed schedules, and structured score guides.
+                  </p>
+                </div>
               </div>
-              <div className="relative z-10 space-y-4">
-                <h2 className="text-2xl md:text-4xl font-black font-mono tracking-tight text-white">SSLC Mock Exam Repository</h2>
-                <p className="text-blue-100 font-bold max-w-xl text-xs md:text-sm">
-                  Simulate Tamil Nadu SSLC state board conditions. Challenge yourself with complete model papers, timed schedules, and structured score guides.
-                </p>
+
+              <div className="flex items-center gap-2 whitespace-nowrap shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-end">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Grade:</span>
+                <span className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+                  <i className="fi fi-sr-graduation-cap flex items-center text-xs sm:text-sm" />
+                  Class 10th Standard
+                </span>
               </div>
             </div>
 
