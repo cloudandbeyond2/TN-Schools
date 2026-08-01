@@ -104,6 +104,29 @@ export default function PrepPlansPage() {
     >
       <div className="space-y-6">
         
+        {/* Header Banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+          <div className="flex items-center gap-3">
+            <i className="fi fi-sr-book-open-cover text-2xl text-indigo-600 dark:text-indigo-400 flex items-center" />
+            <div>
+              <h2 className="text-lg sm:text-xl font-black text-black dark:text-white uppercase tracking-wider leading-tight">
+                Subject Preparation Plans
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Teacher-designed week-by-week plans to complete the board syllabus on time.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 whitespace-nowrap shrink-0 self-start sm:self-auto">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Grade:</span>
+            <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+              <i className="fi fi-sr-graduation-cap flex items-center text-sm" />
+              Class {selectedGrade}th Standard
+            </span>
+          </div>
+        </div>
+
         {/* Top Grade Switcher & Subject Filter Bar */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
           
