@@ -326,30 +326,46 @@ export default function SuperadminAcademicsPage() {
       }
     });
 
-    try {
-      const { performOcrAndParseSyllabus } = await import("@/lib/syllabusOcrParser");
-      const { parsedUnits } = await performOcrAndParseSyllabus(file, selectedSyllabusSubject);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64Image = event.target?.result as string;
+      try {
+        const res = await fetch(`${API_BASE}/parse-syllabus-ai`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: base64Image,
+            mimeType: file.type
+          })
+        });
+        
+        const json = await res.json();
+        if (!json.success || !json.data || json.data.length === 0) {
+          throw new Error(json.error || "Could not extract readable text from image. Please ensure the textbook index image is clear.");
+        }
 
-      if (!parsedUnits || parsedUnits.length === 0) {
-        throw new Error("Could not extract readable text from image. Please ensure the textbook index image is clear.");
+        Swal.close();
+        setOcrPreviewModal({
+          isOpen: true,
+          units: json.data.map((u: any, idx: number) => ({
+             unitNo: String(idx + 1),
+             title: u.title,
+             subtopics: u.subtopics || []
+          }))
+        });
+      } catch (err: any) {
+        console.error(err);
+        Swal.fire({
+          icon: "error",
+          title: "AI Parsing Error",
+          text: err?.message || "Could not parse image syllabus. Please try again with a clearer image."
+        });
+      } finally {
+        setParsingSyllabus(false);
+        e.target.value = "";
       }
-
-      Swal.close();
-      setOcrPreviewModal({
-        isOpen: true,
-        units: parsedUnits
-      });
-    } catch (err: any) {
-      console.error(err);
-      Swal.fire({
-        icon: "error",
-        title: "OCR Parsing Error",
-        text: err?.message || "Could not parse image syllabus. Please try again with a clearer image."
-      });
-    } finally {
-      setParsingSyllabus(false);
-      e.target.value = "";
-    }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSaveOcrUnitsToDb = async () => {
