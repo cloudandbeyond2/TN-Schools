@@ -501,7 +501,7 @@ router.get("/resources", async (req: Request, res: Response) => {
 });
 
 // Create a resource
-router.post("/resources", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
+router.post("/resources", requireMinRole("TEACHER"), async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
     const { 
@@ -535,7 +535,7 @@ router.post("/resources", requireMinRole("HEADMASTER"), async (req: Request, res
 });
 
 // Update a resource
-router.put("/resources/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
+router.put("/resources/:id", requireMinRole("TEACHER"), async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
     const { id } = req.params;
@@ -567,7 +567,7 @@ router.put("/resources/:id", requireMinRole("HEADMASTER"), async (req: Request, 
 });
 
 // Delete a resource
-router.delete("/resources/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
+router.delete("/resources/:id", requireMinRole("TEACHER"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.academicResource.delete({
