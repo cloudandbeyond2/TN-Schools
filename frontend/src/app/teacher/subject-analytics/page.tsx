@@ -69,13 +69,21 @@ export default function SubjectAnalyticsPage() {
       if (!schoolId || !session?.user) return;
       const teacherId = (session.user as any).id;
       try {
-        const res = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
-        const data = await res.json();
-        if (data.success && Array.isArray(data.data)) {
-          setTeacherClasses(data.data);
-          if (data.data.length > 0) {
-            setSelectedClass(`${data.data[0].className}${data.data[0].section}`);
+        let res = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`);
+        let data = await res.json();
+        let classesList = data.success && Array.isArray(data.data) ? data.data : [];
+
+        if (classesList.length === 0) {
+          const fallbackRes = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}`);
+          const fallbackData = await fallbackRes.json();
+          if (fallbackData.success && Array.isArray(fallbackData.data)) {
+            classesList = fallbackData.data;
           }
+        }
+
+        setTeacherClasses(classesList);
+        if (classesList.length > 0) {
+          setSelectedClass(`${classesList[0].className}${classesList[0].section}`);
         }
       } catch (err) {
         console.error("Error fetching teacher classes:", err);
