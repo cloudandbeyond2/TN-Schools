@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
+import Link from "next/link";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -60,41 +61,6 @@ export default function HeadmasterClubsPage() {
   const [sponsor, setSponsor] = useState("");
   const [meetingTime, setMeetingTime] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Members Modal State
-  const [showMembersModal, setShowMembersModal] = useState(false);
-  const [membersData, setMembersData] = useState<Record<string, Record<string, string[]>>>({});
-  const [loadingMembers, setLoadingMembers] = useState(false);
-
-  const fetchMembers = async () => {
-    if (!schoolId) return;
-    setLoadingMembers(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/activities/all-members?schoolId=${schoolId}`);
-      const json = await res.json();
-      if (json.success) {
-        const grouped: Record<string, Record<string, string[]>> = {};
-        json.data.forEach((m: any) => {
-          const cName = m.clubName;
-          const grade = m.class || "Unknown";
-          if (!grouped[cName]) grouped[cName] = {};
-          if (!grouped[cName][grade]) grouped[cName][grade] = [];
-          grouped[cName][grade].push(m.name);
-        });
-        setMembersData(grouped);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingMembers(false);
-    }
-  };
-
-  useEffect(() => {
-    if (showMembersModal) {
-      fetchMembers();
-    }
-  }, [showMembersModal, schoolId]);
 
   // Auto map theme classes when category changes for rich styling
   useEffect(() => {
@@ -350,7 +316,9 @@ export default function HeadmasterClubsPage() {
             <h2 className="text-base sm:text-lg font-bold flex items-center gap-2 text-slate-800 dark:text-white">
               <i className="fi fi-rr-users text-blue-500" /> {lang === "தமிழ்" ? `செயலில் உள்ள மன்றங்கள் (${clubs.length})` : `Existing Clubs (${clubs.length})`}
             </h2>
-            <button onClick={() => setShowMembersModal(true)} type="button" className="text-[10px] uppercase tracking-wider font-bold text-amber-500 hover:text-amber-600 transition-colors bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-900/50">View Club Members</button>
+            <Link href="/headmaster/club-members" className="text-[10px] uppercase tracking-wider font-bold text-amber-500 hover:text-amber-600 transition-colors bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-900/50">
+              View Club Members
+            </Link>
           </div>
           {isLoading ? (
             <div className="flex flex-col items-center justify-center p-12 text-slate-500 text-xs gap-3">
@@ -398,65 +366,6 @@ export default function HeadmasterClubsPage() {
           )}
         </div>
       </div>
-
-      {showMembersModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowMembersModal(false)}>
-          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800" onClick={e => e.stopPropagation()}>
-            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 rounded-t-2xl">
-              <h2 className="text-lg font-bold text-slate-800 dark:text-white">Club Members Overview</h2>
-              <button onClick={() => setShowMembersModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
-                <i className="fi fi-rr-cross"></i>
-              </button>
-            </div>
-            
-            <div className="p-5 overflow-y-auto flex-1 text-left">
-              {loadingMembers ? (
-                <div className="flex justify-center py-10">
-                  <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              ) : Object.keys(membersData).length === 0 ? (
-                <p className="text-center text-slate-500 py-10 text-sm">No club members found.</p>
-              ) : (
-                <div className="space-y-4">
-                  {Object.entries(membersData).map(([clubName, grades]) => {
-                    const totalMembers = Object.values(grades).flat().length;
-                    return (
-                      <details key={clubName} className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden group bg-white dark:bg-slate-900" open>
-                        <summary className="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 cursor-pointer list-none flex justify-between items-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                          <h3 className="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
-                            <i className="fi fi-rr-angle-small-down transform transition-transform group-open:-rotate-180 text-slate-400"></i>
-                            {clubName}
-                          </h3>
-                          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full">
-                            {totalMembers} {totalMembers === 1 ? 'Member' : 'Members'}
-                          </span>
-                        </summary>
-                        <div className="p-4 space-y-4 max-h-64 overflow-y-auto border-t border-slate-100 dark:border-slate-800">
-                          {Object.entries(grades).map(([grade, students]) => (
-                            <div key={grade}>
-                              <div className="flex justify-between items-center mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">
-                                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400">Class {grade}</h4>
-                                <span className="text-[9px] text-slate-400 font-semibold">{students.length}</span>
-                              </div>
-                              <div className="flex flex-wrap gap-1.5">
-                                {students.map((studentName, idx) => (
-                                  <span key={idx} className="inline-flex items-center px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-[10px] text-slate-700 dark:text-slate-300 font-medium">
-                                    {studentName}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </details>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </PortalLayout>
   );
 }

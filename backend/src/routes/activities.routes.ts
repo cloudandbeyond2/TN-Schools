@@ -349,4 +349,17 @@ router.delete('/leave', async (req: Request, res: Response) => {
   }
 });
 
+// DELETE /api/activities/members/:id — Remove a student from a club (Teacher/Headmaster)
+router.delete('/members/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.clubMember.delete({
+      where: { id }
+    });
+    res.json({ success: true, message: 'Member removed successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 export default router;
