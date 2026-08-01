@@ -223,23 +223,27 @@ export default function StudentAssessmentsPage() {
         {!selectedTopic && !showInstructions && (
           <>
             {/* Banner */}
-            <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-4 md:p-5 shadow-sm border border-slate-200 dark:border-slate-800">
-              <div className="absolute right-0 top-0 opacity-5 transform translate-x-1/4 -translate-y-1/4 scale-150 pointer-events-none mix-blend-overlay">
-                <Award className="w-48 h-48 text-slate-900 dark:text-white" />
-              </div>
-              
-              <div className="relative z-10 space-y-1.5">
-                <h2 className="text-2xl font-black tracking-tight">Quiz & Test Center</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+              <div>
+                <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-indigo-500 dark:text-indigo-400 flex-shrink-0" />
+                  Quiz &amp; Test Center
+                </h2>
                 {profile ? (
-                  <p className="text-slate-500 dark:text-slate-400 font-bold max-w-xl text-xs md:text-sm">
-                    Showing assigned learning assessments for your class: <strong className="text-amber-500">Grade {profile.class}</strong>.
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    Showing assigned learning assessments for your class:{" "}
+                    <strong className="text-amber-500">Grade {profile.class}</strong>.
                   </p>
                 ) : (
-                  <p className="text-slate-500 dark:text-slate-400 font-bold max-w-xl text-xs md:text-sm">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                     Select your assigned syllabus assessment folder to start practicing.
                   </p>
                 )}
               </div>
+              <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-extrabold text-sm rounded-xl border border-indigo-200/20 shadow-sm whitespace-nowrap">
+                <BookOpen className="w-4 h-4 flex-shrink-0" />
+                Assessment Portal
+              </span>
             </div>
 
             {loading ? (
