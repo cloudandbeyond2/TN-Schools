@@ -3,9 +3,6 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import { 
-  CheckCircle, PlayCircle, Clock, Award, ChevronRight, Sparkles, BookOpen
-} from "lucide-react";
 import Swal from "sweetalert2";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
@@ -150,7 +147,7 @@ export default function StudentMockTestsPage() {
     
     return (
       <PortalLayout title="Mock Exam in Progress" subtitle={activeTest.title} accentColor="#f59e0b">
-        <div className="w-full max-w-4xl mx-auto mb-10">
+        <div className="w-full mb-10">
           
           {/* Exam Header */}
           <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-amber-100 dark:border-amber-900/50 mb-6 flex justify-between items-center sticky top-24 z-10">
@@ -159,7 +156,7 @@ export default function StudentMockTestsPage() {
               <p className="text-sm text-gray-500">Question {currentQuestionIdx + 1} of {activeTest.questions.length}</p>
             </div>
             <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-lg ${timeLeft < 300 ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
-              <Clock className="w-5 h-5" />
+              <i className="fi fi-sr-clock flex items-center text-lg" />
               {formatTime(timeLeft)}
             </div>
           </div>
@@ -230,14 +227,14 @@ export default function StudentMockTestsPage() {
                 className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-xl font-bold transition-colors flex items-center gap-2"
               >
                 {isSubmitting ? "Submitting..." : "Submit Test"}
-                {!isSubmitting && <CheckCircle className="w-5 h-5" />}
+                {!isSubmitting && <i className="fi fi-sr-check flex items-center text-sm" />}
               </button>
             ) : (
               <button
                 onClick={() => setCurrentQuestionIdx((p) => Math.min(activeTest.questions.length - 1, p + 1))}
                 className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-xl font-bold transition-colors flex items-center gap-2"
               >
-                Next <ChevronRight className="w-5 h-5" />
+                Next <i className="fi fi-sr-angle-small-right flex items-center text-lg" />
               </button>
             )}
           </div>
@@ -253,32 +250,23 @@ export default function StudentMockTestsPage() {
       subtitle={lang === "தமிழ்" ? "பயிற்சி செய்து சிறந்த மதிப்பெண் பெறுங்கள்" : "Practice and prepare for your finals"}
       accentColor="#f59e0b"
     >
-      <div className="w-full max-w-7xl mx-auto mb-10">
+      <div className="w-full mb-10">
         
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 p-8 md:p-12 mb-8 shadow-2xl shadow-amber-500/20 text-white">
-          <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
-            <BookOpen className="w-64 h-64 text-white" />
-          </div>
-          <div className="relative z-10 max-w-2xl">
-            <span 
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/30"
-              style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
-            >
-              <Sparkles className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "தேர்வுக் கூடம்" : "Examination Hall"}
-            </span>
-            <h1 
-              className="text-3xl md:text-5xl font-black mb-4 leading-tight"
-              style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
-            >
-              {lang === "தமிழ்" ? "தயாராகுங்கள், சிறந்து விளங்குங்கள்!" : "Ready, Set, Excel!"}
-            </h1>
-            <p 
-              className="text-lg mb-0 leading-relaxed opacity-90"
-              style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
-            >
-              {lang === "தமிழ்" ? "உங்கள் ஆசிரியர்கள் அல்லது மாநில வாரியத்தால் ஒதுக்கப்பட்ட மாதிரி தேர்வுகளை எழுதி உங்கள் மதிப்பெண்களை மேம்படுத்துங்கள்." : "Take mock tests assigned by your teachers or the state board to check your preparation level and improve your scores."}
+        {/* Main header banner card */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+          <div>
+            <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
+              <i className="fi fi-sr-target text-amber-500 dark:text-amber-400 flex items-center" />
+              {lang === "தமிழ்" ? "எனது மாதிரி தேர்வுகள்" : "My Mock Exams"}
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {lang === "தமிழ்" ? "பயிற்சி செய்து சிறந்த மதிப்பெண் பெறுங்கள்" : "Practice and prepare for your finals"}
             </p>
           </div>
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-extrabold text-sm rounded-xl border border-amber-200/20 shadow-sm whitespace-nowrap">
+            <i className="fi fi-sr-document-text flex items-center text-sm" />
+            {lang === "தமிழ்" ? " மாதிரி தேர்வு போர்டல்" : "Mock Exam Portal"}
+          </span>
         </div>
 
         <h2 className="text-2xl font-black text-gray-800 dark:text-white mb-6">
@@ -289,9 +277,9 @@ export default function StudentMockTestsPage() {
           <div className="text-center py-20 text-gray-500">Loading assignments...</div>
         ) : assignments.length === 0 ? (
           <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <i className="fi fi-sr-badge text-gray-300 mx-auto mb-4 text-5xl flex items-center justify-center" />
             <h3 className="text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">You're all caught up!</h3>
-            <p className="text-gray-500">No mock tests assigned to your class right now.</p>
+            <p className="text-gray-500 text-sm">No mock tests assigned to your class right now.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -314,11 +302,11 @@ export default function StudentMockTestsPage() {
                   
                   <div className="grid grid-cols-2 gap-2 mb-6 mt-auto">
                     <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center">
-                      <Clock className="w-4 h-4 text-gray-400 mb-1" />
+                      <i className="fi fi-sr-clock text-gray-400 mb-1 text-sm flex items-center" />
                       <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test.duration} mins</span>
                     </div>
                     <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center">
-                      <Award className="w-4 h-4 text-gray-400 mb-1" />
+                      <i className="fi fi-sr-badge text-gray-400 mb-1 text-sm flex items-center" />
                       <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test.totalMarks} Marks</span>
                     </div>
                   </div>
@@ -333,7 +321,7 @@ export default function StudentMockTestsPage() {
                       onClick={() => startTest(assignment)}
                       className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm py-4 rounded-2xl transition-colors flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30"
                     >
-                      <PlayCircle className="w-5 h-5" /> Start Test
+                      <i className="fi fi-sr-play flex items-center text-sm" /> Start Test
                     </button>
                   )}
 
