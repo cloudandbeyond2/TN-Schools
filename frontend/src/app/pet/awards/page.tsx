@@ -2,35 +2,42 @@
 import PortalLayout from "@/components/PortalLayout";
 import { Trophy, Medal, Award, Plus, Trash2, CheckCircle2, Clock } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import { ModalShell, Field, inputCls } from "@/components/pet/PetUi";
 import {
   AwardRecord,
   MedalType,
   EventLevel,
-  DEFAULT_AWARDS,
-  AWARDS_KEY,
-  petLoad,
-  petSave,
-  petId,
+  PET_API_BASE,
 } from "@/lib/petData";
 
 const MEDALS: MedalType[] = ["Gold", "Silver", "Bronze", "Trophy", "Certificate"];
 const LEVELS: EventLevel[] = ["Intra-School", "Inter-School", "District", "State", "National"];
 
 export default function AwardsPage() {
+  const { data: session } = useSession();
+  const schoolId = (session?.user as any)?.schoolId;
   const [awards, setAwards] = useState<AwardRecord[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [levelFilter, setLevelFilter] = useState<"All" | EventLevel>("All");
   const [showAdd, setShowAdd] = useState(false);
 
   useEffect(() => {
-    setAwards(petLoad(AWARDS_KEY, DEFAULT_AWARDS));
-    setLoaded(true);
+    fetchAwards();
   }, []);
 
-  const save = (next: AwardRecord[]) => {
-    setAwards(next);
-    petSave(AWARDS_KEY, next);
+  const fetchAwards = async () => {
+    try {
+      const res = await fetch(`${PET_API_BASE}/api/pet/awards`);
+      const json = await res.json();
+      if (json.success) {
+        setAwards(json.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch awards", err);
+    } finally {
+      setLoaded(true);
+    }
   };
 
   const tally = useMemo(() => {
@@ -51,12 +58,26 @@ export default function AwardsPage() {
 
   const pendingCerts = awards.filter((a) => !a.certificateIssued).length;
 
-  const toggleCert = (id: string) =>
-    save(awards.map((a) => (a.id === id ? { ...a, certificateIssued: !a.certificateIssued } : a)));
+  const toggleCert = async (id: string) => {
+    const award = awards.find((a) => a.id === id);
+    if (!award) return;
+    const nextStatus = !award.certificateIssued;
+    // Optimistic UI update
+    setAwards(awards.map((a) => (a.id === id ? { ...a, certificateIssued: nextStatus } : a)));
+    try {
+      await fetch(`${PET_API_BASE}/api/pet/awards/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...award, certificateIssued: nextStatus }),
+      });
+    } catch (err) {
+      console.error("Failed to update certificate status", err);
+    }
+  };
 
   return (
     <PortalLayout>
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-6 w-full space-y-6">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-[var(--text-heading)]">Awards & Certifications</h1>
@@ -154,8 +175,15 @@ export default function AwardsPage() {
                     </td>
                     <td className="p-4 text-right">
                       <button
-                        onClick={() => {
-                          if (confirm(`Delete award for ${a.student}?`)) save(awards.filter((x) => x.id !== a.id));
+                        onClick={async () => {
+                          if (confirm(`Delete award for ${a.student}?`)) {
+                            setAwards(awards.filter((x) => x.id !== a.id));
+                            try {
+                              await fetch(`${PET_API_BASE}/api/pet/awards/${a.id}`, { method: "DELETE" });
+                            } catch (err) {
+                              console.error("Failed to delete award", err);
+                            }
+                          }
                         }}
                         className="p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                         title="Delete"
@@ -178,9 +206,22 @@ export default function AwardsPage() {
 
       {showAdd && (
         <AddAwardModal
+          schoolId={schoolId}
           onClose={() => setShowAdd(false)}
-          onAdd={(a) => {
-            save([{ ...a, id: petId() }, ...awards]);
+          onAdd={async (a) => {
+            try {
+              const res = await fetch(`${PET_API_BASE}/api/pet/awards`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(a),
+              });
+              const json = await res.json();
+              if (json.success) {
+                setAwards([json.data, ...awards]);
+              }
+            } catch (err) {
+              console.error("Failed to create award", err);
+            }
             setShowAdd(false);
           }}
         />
@@ -205,35 +246,88 @@ function MedalBadge({ medal }: { medal: MedalType }) {
 }
 
 function AddAwardModal({
+  schoolId,
   onClose,
   onAdd,
 }: {
+  schoolId?: string;
   onClose: () => void;
   onAdd: (a: Omit<AwardRecord, "id">) => void;
 }) {
   const [student, setStudent] = useState("");
-  const [cls, setCls] = useState("");
+  const [cls, setCls] = useState("10");
+  const [section, setSection] = useState("A");
   const [sport, setSport] = useState("");
   const [event, setEvent] = useState("");
   const [level, setLevel] = useState<EventLevel>("Intra-School");
   const [medal, setMedal] = useState<MedalType>("Gold");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [certificateIssued, setCertificateIssued] = useState(false);
+  const [studentsList, setStudentsList] = useState<{name: string, id: string}[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+
+  useEffect(() => {
+    const fetchClassStudents = async () => {
+      setLoadingStudents(true);
+      try {
+        let url = `${PET_API_BASE}/api/students?class=${encodeURIComponent(cls)}&section=${encodeURIComponent(section)}`;
+        if (schoolId) url += `&schoolId=${schoolId}`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+        const json = await res.json();
+        if (json.success && json.data) {
+          const list = json.data.map((s: any) => ({
+            id: s.id,
+            name: s.user?.name || s.name || "Student",
+          }));
+          setStudentsList(list);
+          if (list.length > 0 && !list.find((x: any) => x.name === student)) {
+            setStudent(list[0].name);
+          } else if (list.length === 0) {
+            setStudent("");
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load students", err);
+      } finally {
+        setLoadingStudents(false);
+      }
+    };
+    fetchClassStudents();
+  }, [cls, section, schoolId]); // intentionally omitting `student` to avoid re-fetching on name change
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAdd({ student, class: cls, sport, event, level, medal, date, certificateIssued });
+    onAdd({ student, class: `${cls}${section}`, sport, event, level, medal, date, certificateIssued });
   };
 
   return (
     <ModalShell title="Add Award / Achievement" onClose={onClose}>
       <form onSubmit={submit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Student / Team">
-            <input required value={student} onChange={(e) => setStudent(e.target.value)} placeholder="e.g. Arjun K." className={inputCls} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Field label="Class">
+            <select value={cls} onChange={(e) => setCls(e.target.value)} className={inputCls}>
+              {["6", "7", "8", "9", "10", "11", "12"].map((c) => (
+                <option key={c} value={c}>Class {c}</option>
+              ))}
+            </select>
           </Field>
-          <Field label="Class / Group">
-            <input required value={cls} onChange={(e) => setCls(e.target.value)} placeholder="e.g. 10A or U-17" className={inputCls} />
+          <Field label="Section">
+            <select value={section} onChange={(e) => setSection(e.target.value)} className={inputCls}>
+              {["A", "B", "C", "D", "E"].map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Student / Team">
+            {studentsList.length > 0 ? (
+              <select required value={student} onChange={(e) => setStudent(e.target.value)} className={inputCls}>
+                {studentsList.map((s) => (
+                  <option key={s.id} value={s.name}>{s.name}</option>
+                ))}
+              </select>
+            ) : (
+              <input required value={student} onChange={(e) => setStudent(e.target.value)} placeholder={loadingStudents ? "Loading..." : "Enter manually..."} className={inputCls} />
+            )}
           </Field>
         </div>
         <Field label="Sport / Discipline">
