@@ -173,29 +173,51 @@ export default function CelebrationsPage() {
     >
       <div className="flex flex-col gap-6 sm:gap-8 text-left w-full">
 
-        {/* Professional Banner */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-700 text-white p-6 sm:p-10 shadow-lg">
-          <div className="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4 scale-150 pointer-events-none">
-            <i className="fi fi-rr-calendar-star text-[160px]" />
-          </div>
-
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full font-medium tracking-wide text-xs uppercase mb-4 border border-white/20">
-                <i className="fi fi-rr-star text-yellow-300" /> School Events
-              </div>
-              <h2 className="text-2xl sm:text-4xl font-bold tracking-tight mb-3 drop-shadow-sm flex items-center gap-3">
-                Celebrations & Holidays
+        {/* ── PAGE BANNER ─────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md shadow-sm">
+          {/* Left: icon tile + title + subtitle */}
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/30 flex items-center justify-center shrink-0 shadow-sm">
+              <i className="fi fi-sr-calendar-star text-xl flex items-center text-indigo-500" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wider mb-1">
+                Celebrations &amp; Holidays
               </h2>
-              <p className="text-indigo-100 font-normal max-w-2xl text-sm sm:text-base leading-relaxed">
-                Stay updated on upcoming celebrations, festivals, and official holidays. Plan ahead and actively participate in our school community events.
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-snug">
+                Stay updated on upcoming celebrations, festivals, and official school holidays.
               </p>
             </div>
-            <button onClick={() => setCalendarModalOpen(true)} className="px-6 py-3 bg-white text-indigo-700 font-semibold text-sm rounded-xl transition-all shadow-sm hover:shadow-md hover:bg-indigo-50 active:scale-95 flex items-center gap-2 shrink-0 border border-indigo-100">
-              <i className="fi fi-rr-calendar-lines text-base" /> View Calendar
+          </div>
+
+          {/* Right: KPI chips + View Calendar button */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {/* Today chip */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs rounded-xl border border-indigo-200/50 dark:border-indigo-800/40 shadow-sm">
+              <i className="fi fi-sr-sun flex items-center text-indigo-500" />
+              <span>{todayCelebrations.length} Today</span>
+            </div>
+            {/* All Events chip */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-extrabold text-xs rounded-xl border border-blue-200/50 dark:border-blue-800/40 shadow-sm">
+              <i className="fi fi-sr-party-horn flex items-center text-blue-500" />
+              <span>{weekCelebrations.length} Events</span>
+            </div>
+            {/* Holidays chip */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-extrabold text-xs rounded-xl border border-amber-200/50 dark:border-amber-800/40 shadow-sm">
+              <i className="fi fi-sr-bank flex items-center text-amber-500" />
+              <span>{holidays.length} Holidays</span>
+            </div>
+            {/* View Calendar button */}
+            <button
+              onClick={() => setCalendarModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all active:scale-95"
+            >
+              <i className="fi fi-sr-calendar-lines flex items-center" />
+              View Calendar
             </button>
           </div>
         </div>
+        {/* ── END BANNER ──────────────────────────────────────── */}
 
         <div className="w-full">
           {/* Main List */}

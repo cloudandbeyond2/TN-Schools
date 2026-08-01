@@ -1,11 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import PortalLayout from '@/components/PortalLayout';
-import { 
-  Heart, Leaf, Award, Shield, Loader2, CheckCircle2, XCircle, 
-  MapPin, Clock, Calendar, Sparkles, Plus, Image, FileText, ArrowRight,
-  TrendingUp, Star, Gift, Compass, BookOpen, AlertCircle, Trash2
-} from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import Swal from 'sweetalert2';
 
@@ -434,47 +429,61 @@ export default function StudentSocialActivitiesPage() {
       accentColor="#10b981"
       themeClass="theme-student"
     >
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        {/* Dynamic Header */}
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl shadow-emerald-500/10 text-left">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-5">
-              <div className="p-4 bg-white/15 rounded-2xl shrink-0 backdrop-blur-md">
-                <Heart className="w-10 h-10 text-white animate-pulse" />
-              </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-wide">Community Service & Social Responsibility</h1>
-                <p className="text-white/85 text-xs sm:text-sm font-semibold max-w-2xl mt-1.5 leading-relaxed">
-                  Log environmental drives, cleanups, awareness campaigns, and elder support. Verified hours unlock achievement badges and automatically append to your Digital Portfolio.
-                </p>
-              </div>
+      <div className="w-full space-y-6">
+
+        {/* ── PAGE BANNER ─────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md shadow-sm">
+          {/* Left: icon + title + subtitle */}
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/30 flex items-center justify-center shrink-0 shadow-sm">
+              <i className="fi fi-sr-hand-holding-heart text-xl flex items-center text-emerald-500" />
             </div>
-            <div className="bg-white/10 px-6 py-4 rounded-2xl border border-white/10 backdrop-blur-md shrink-0 flex items-center gap-4">
-              <div className="text-4xl">{currentBadge.icon}</div>
-              <div className="text-left">
-                <span className="block text-[10px] font-black uppercase tracking-widest text-emerald-250">Current Badge</span>
-                <span className="text-base font-black text-white">{currentBadge.name}</span>
-              </div>
+            <div className="min-w-0">
+              <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2 flex-wrap">
+                Community Service &amp; Social Responsibility
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-snug">
+                Log service hours, track your environmental impact &amp; build your social portfolio.
+              </p>
+            </div>
+          </div>
+
+          {/* Right: KPI chips */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-extrabold text-xs rounded-xl border border-emerald-200/50 dark:border-emerald-800/40 shadow-sm">
+              <i className="fi fi-sr-clock flex items-center text-emerald-500" />
+              <span>{totalHours} hrs Logged</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-extrabold text-xs rounded-xl border border-blue-200/50 dark:border-blue-800/40 shadow-sm">
+              <i className="fi fi-sr-checkbox flex items-center text-blue-500" />
+              <span>{totalActivities} Activities</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-extrabold text-xs rounded-xl border border-purple-200/50 dark:border-purple-800/40 shadow-sm">
+              <i className="fi fi-sr-chart-line-up flex items-center text-purple-500" />
+              <span>{impactScore} Impact Score</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-extrabold text-xs rounded-xl border border-amber-200/50 dark:border-amber-800/40 shadow-sm">
+              <i className="fi fi-sr-badge flex items-center text-amber-500" />
+              <span>{currentBadge.name}</span>
             </div>
           </div>
         </div>
+        {/* ── END BANNER ──────────────────────────────────────── */}
 
-        {/* Dashboard Cards Grid */}
+        {/* Dashboard KPI Cards Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
-            { label: "Community Hours", value: `${totalHours} hrs`, icon: Clock, color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200/50" },
-            { label: "Activities Done", value: totalActivities, icon: CheckCircle2, color: "text-blue-500 bg-blue-50 dark:bg-blue-950/20 border-blue-200/50" },
-            { label: "Trees Planted", value: treesPlanted, icon: Leaf, color: "text-green-500 bg-green-50 dark:bg-green-950/20 border-green-200/50" },
-            { label: "Campaigns", value: campaignsParticipated, icon: Shield, color: "text-rose-500 bg-rose-50 dark:bg-rose-950/20 border-rose-200/50" },
-            { label: "Impact Score", value: impactScore, icon: TrendingUp, color: "text-purple-500 bg-purple-50 dark:bg-purple-950/20 border-purple-200/50" },
-            { label: "Total Points", value: `${(totalHours * 10) + challengePoints} Pts`, icon: Gift, color: "text-amber-500 bg-amber-50 dark:bg-amber-950/20 border-amber-200/50" }
+            { label: "Community Hours", value: `${totalHours} hrs`, fi: "fi fi-sr-clock",           color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200/50" },
+            { label: "Activities Done", value: totalActivities,      fi: "fi fi-sr-checkbox",        color: "text-blue-600 dark:text-blue-400",    bg: "bg-blue-50 dark:bg-blue-950/20 border-blue-200/50"       },
+            { label: "Trees Planted",   value: treesPlanted,         fi: "fi fi-sr-leaf",            color: "text-green-600 dark:text-green-400",  bg: "bg-green-50 dark:bg-green-950/20 border-green-200/50"     },
+            { label: "Campaigns",       value: campaignsParticipated,fi: "fi fi-sr-shield",          color: "text-rose-600 dark:text-rose-400",    bg: "bg-rose-50 dark:bg-rose-950/20 border-rose-200/50"       },
+            { label: "Impact Score",    value: impactScore,          fi: "fi fi-sr-chart-line-up",  color: "text-purple-600 dark:text-purple-400",bg: "bg-purple-50 dark:bg-purple-950/20 border-purple-200/50" },
+            { label: "Total Points",    value: `${(totalHours * 10) + challengePoints} Pts`, fi: "fi fi-sr-gift", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/20 border-amber-200/50" }
           ].map((stat, idx) => (
-            <div key={idx} className={`p-4 rounded-2xl border bg-white dark:bg-slate-900 flex flex-col justify-between items-start text-left shadow-sm ${stat.color}`}>
+            <div key={idx} className={`p-4 rounded-2xl border bg-white dark:bg-slate-900 flex flex-col justify-between items-start text-left shadow-sm ${stat.bg}`}>
               <div className="flex justify-between items-center w-full mb-3">
                 <span className="text-[10px] uppercase font-black tracking-wider text-slate-500">{stat.label}</span>
-                <stat.icon className="w-5 h-5 shrink-0" />
+                <i className={`${stat.fi} flex items-center text-base ${stat.color}`} />
               </div>
               <span className="text-xl sm:text-2xl font-black text-black dark:text-white leading-none">{stat.value}</span>
             </div>
@@ -490,7 +499,7 @@ export default function StudentSocialActivitiesPage() {
             {/* Form */}
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 text-left shadow-sm">
               <h2 className="text-lg font-bold text-black dark:text-white mb-6 flex items-center gap-2">
-                <Plus className="w-5 h-5 text-emerald-500" /> Log New Community Action
+                <i className="fi fi-sr-plus flex items-center text-emerald-500" /> Log New Community Action
               </h2>
               
               <form onSubmit={handleSubmit} className="space-y-5">
@@ -604,7 +613,7 @@ export default function StudentSocialActivitiesPage() {
                 <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-emerald-500" />
+                      <i className="fi fi-sr-sparkles flex items-center text-emerald-500 text-lg" />
                       <div className="text-left">
                         <span className="block font-bold text-black dark:text-white text-xs">AI Reflection Generator</span>
                         <span className="text-[10px] text-slate-500 font-semibold">Gemini will analyze your description to map critical social values.</span>
@@ -648,7 +657,7 @@ export default function StudentSocialActivitiesPage() {
                   className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl px-6 py-3.5 transition-all flex items-center justify-center gap-2 disabled:opacity-75"
                 >
                   {isSubmitting ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /> Submitting to teacher review...</>
+                    <><i className="fi fi-sr-refresh animate-spin flex items-center text-base" /> Submitting to teacher review...</>
                   ) : (
                     "Submit Community Action Log"
                   )}
@@ -659,12 +668,12 @@ export default function StudentSocialActivitiesPage() {
             {/* AI suggestions */}
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 text-left shadow-sm">
               <h2 className="text-lg font-bold text-black dark:text-white mb-6 flex items-center gap-2">
-                <Compass className="w-5 h-5 text-indigo-500" /> AI Suggestions for You
+                <i className="fi fi-sr-compass flex items-center text-indigo-500" /> AI Suggestions for You
               </h2>
 
               {suggestionsLoading ? (
                 <div className="flex justify-center items-center py-10">
-                  <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                  <i className="fi fi-sr-refresh animate-spin flex items-center text-3xl text-indigo-500" />
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -676,7 +685,7 @@ export default function StudentSocialActivitiesPage() {
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-semibold mb-4">{sug.description}</p>
                       </div>
                       <div className="border-t border-slate-200 dark:border-slate-800 pt-3 flex items-center justify-between mt-auto">
-                        <span className="text-[10px] text-slate-450 font-bold flex items-center gap-1"><Clock className="w-3 h-3 text-indigo-500" /> {sug.hours} hrs</span>
+                        <span className="text-[10px] text-slate-450 font-bold flex items-center gap-1"><i className="fi fi-sr-clock flex items-center text-indigo-500 text-xs" /> {sug.hours} hrs</span>
                         <button 
                           onClick={() => {
                             setActivityName(sug.activityName);
@@ -687,7 +696,7 @@ export default function StudentSocialActivitiesPage() {
                           }}
                           className="text-[10px] text-indigo-500 hover:text-indigo-600 font-black flex items-center gap-0.5 transition-colors"
                         >
-                          Fill Form <ArrowRight className="w-3 h-3" />
+                          Fill Form <i className="fi fi-sr-angle-right flex items-center text-xs" />
                         </button>
                       </div>
                     </div>
@@ -704,7 +713,7 @@ export default function StudentSocialActivitiesPage() {
             {/* Monthly Challenges */}
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 text-left shadow-sm">
               <h3 className="text-base font-bold text-black dark:text-white mb-5 flex items-center gap-2">
-                <Star className="w-5 h-5 text-amber-500" /> Active Monthly Challenges
+                <i className="fi fi-sr-star flex items-center text-amber-500" /> Active Monthly Challenges
               </h3>
               
               <div className="space-y-4">
@@ -740,7 +749,7 @@ export default function StudentSocialActivitiesPage() {
             {/* Badges Cabinet */}
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 text-left shadow-sm">
               <h3 className="text-base font-bold text-black dark:text-white mb-5 flex items-center gap-2">
-                <Award className="w-5 h-5 text-purple-500" /> Service Badges Cabinet
+                <i className="fi fi-sr-medal flex items-center text-purple-500" /> Service Badges Cabinet
               </h3>
               
               <div className="grid grid-cols-2 gap-3">
@@ -774,7 +783,7 @@ export default function StudentSocialActivitiesPage() {
         {/* Timeline / History Logs */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 text-left shadow-sm mt-8">
           <h2 className="text-lg font-bold text-black dark:text-white mb-6 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-emerald-500" /> Community Service Timeline & Reflections
+            <i className="fi fi-sr-calendar flex items-center text-emerald-500" /> Community Service Timeline & Reflections
           </h2>
 
           {activities.length === 0 ? (
@@ -808,9 +817,9 @@ export default function StudentSocialActivitiesPage() {
                           <span className="text-[10px] uppercase font-black tracking-wider text-slate-450">{act.activityType}</span>
                           <h3 className="text-base font-bold text-black dark:text-white mt-0.5">{act.activityName}</h3>
                           <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 font-semibold mt-1">
-                            <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {new Date(act.date).toLocaleDateString()}</span>
-                            <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {act.location || "Community"}</span>
-                            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-emerald-500" /> {act.hours} hrs</span>
+                            <span className="flex items-center gap-1"><i className="fi fi-sr-calendar flex items-center text-xs" /> {new Date(act.date).toLocaleDateString()}</span>
+                            <span className="flex items-center gap-1"><i className="fi fi-sr-marker flex items-center text-xs" /> {act.location || "Community"}</span>
+                            <span className="flex items-center gap-1"><i className="fi fi-sr-clock flex items-center text-emerald-500 text-xs" /> {act.hours} hrs</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -821,7 +830,7 @@ export default function StudentSocialActivitiesPage() {
                             className="p-1.5 rounded-lg hover:bg-rose-100 hover:text-rose-600 text-slate-400 dark:text-slate-500 transition-colors"
                             title="Delete activity log"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <i className="fi fi-sr-trash flex items-center text-sm" />
                           </button>
                         </div>
                       </div>
@@ -836,7 +845,7 @@ export default function StudentSocialActivitiesPage() {
                           {act.rating && (
                             <div className="flex items-center gap-0.5 mt-2">
                               {Array.from({ length: 5 }).map((_, i) => (
-                                <Star key={i} className={`w-3.5 h-3.5 ${(act.rating ?? 0) > i ? "text-amber-500 fill-amber-500" : "text-slate-350"}`} />
+                                <i key={i} className={`fi ${(act.rating ?? 0) > i ? "fi-sr-star text-amber-500" : "fi-rr-star text-slate-300"} flex items-center text-xs`} />
                               ))}
                             </div>
                           )}
@@ -847,12 +856,12 @@ export default function StudentSocialActivitiesPage() {
                       <div className="flex flex-wrap gap-2 mb-4">
                         {act.photoUrl && (
                           <a href={act.photoUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-350 transition-colors">
-                            <Image className="w-3.5 h-3.5 text-emerald-500" /> View Activity Photo
+                            <i className="fi fi-sr-picture flex items-center text-emerald-500 text-xs" /> View Activity Photo
                           </a>
                         )}
                         {act.certificateUrl && (
                           <a href={act.certificateUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-350 transition-colors">
-                            <FileText className="w-3.5 h-3.5 text-blue-500" /> View Service Certificate
+                            <i className="fi fi-sr-document flex items-center text-blue-500 text-xs" /> View Service Certificate
                           </a>
                         )}
                       </div>
@@ -864,7 +873,7 @@ export default function StudentSocialActivitiesPage() {
                             onClick={() => setSelectedActivity(selectedActivity?.id === act.id ? null : act)}
                             className="text-[10px] font-black text-emerald-500 flex items-center gap-1"
                           >
-                            <Sparkles className="w-3.5 h-3.5 animate-pulse" /> {selectedActivity?.id === act.id ? "Hide Reflection Metrics" : "View AI Reflection Analysis"}
+                             <i className="fi fi-sr-sparkles flex items-center text-xs animate-pulse" /> {selectedActivity?.id === act.id ? "Hide Reflection Metrics" : "View AI Reflection Analysis"}
                           </button>
 
                           {selectedActivity?.id === act.id && (

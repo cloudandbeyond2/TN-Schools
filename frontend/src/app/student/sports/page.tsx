@@ -4,14 +4,7 @@ import PortalLayout from "@/components/PortalLayout";
 import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
-import { 
-  Trophy, Activity, Award, Calendar, Heart, 
-  MapPin, Clock, Target, Users, ChevronRight, 
-  AlertTriangle, ChevronLeft, Shield, Search, 
-  CheckCircle, X, Info, Plus, Dumbbell, Flame, 
-  Sparkles, Download, FileText, Check, Filter, Zap,
-  Eye, RefreshCw, Star, Ribbon, UserCheck, Compass, Globe
-} from "lucide-react";
+
 import { petLoad, AWARDS_KEY, DEFAULT_AWARDS } from "@/lib/petData";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -302,13 +295,13 @@ export default function StudentSportsPortal() {
 
     // Gender-tailored teams (Bilingual)
     const teams = isGirls ? [
-      { id: "t1", name: isTa ? "பள்ளி மாணவிகள் எறிபந்து அணி" : "School Girls Throwball Team", role: isTa ? "அணித் தலைவர் / சர்வர்" : "Team Captain / Server", icon: "🏐", color: "from-pink-500 to-rose-500", match: isTa ? "மாவட்ட மாணவிகள் சாம்பியன்ஷிப்" : "District Girls Championship vs St. Mary's", date: "Aug 14, 2026", coach: isTa ? "அனிதா உடற்கல்வி ஆசிரியர்" : "Coach Anitha PET" },
-      { id: "t2", name: isTa ? "மாணவிகள் தட கள விளையாட்டு அணி" : "Girls Track & Field Squad", role: isTa ? "100மீ ஓட்டம் & நீளம் தாண்டுதல்" : "100m Sprint & Long Jump", icon: "🏃‍♀️", color: "from-amber-500 to-orange-500", match: isTa ? "மாநில பள்ளி விளையாட்டுப் போட்டி" : "TN State School Athletics Meet", date: "Sep 06, 2026", coach: isTa ? "தினேஷ் உடற்கல்வி ஆசிரியர்" : "Coach Dinesh PET" },
-      { id: "t3", name: isTa ? "மாணவிகள் கைப்பந்து அணி" : "Girls Volleyball XI", role: isTa ? "தாக்குதல் ஆட்டக்காரர்" : "Attacker / Setter", icon: "🏐", color: "from-purple-500 to-indigo-500", match: isTa ? "மண்டல போட்டி சுற்று 2" : "Zonal Tournament Round 2", date: "Oct 12, 2026", coach: isTa ? "செல்வம் உடற்கல்வி ஆசிரியர்" : "Coach R. Selvam" }
+      { id: "t1", name: isTa ? "பள்ளி மாணவிகள் எறிபந்து அணி" : "School Girls Throwball Team", role: isTa ? "அணித் தலைவர் / சர்வர்" : "Team Captain / Server", icon: "fi fi-sr-trophy", color: "from-pink-500 to-rose-500", match: isTa ? "மாவட்ட மாணவிகள் சாம்பியன்ஷிப்" : "District Girls Championship vs St. Mary's", date: "Aug 14, 2026", coach: isTa ? "அனிதா உடற்கல்வி ஆசிரியர்" : "Coach Anitha PET" },
+      { id: "t2", name: isTa ? "மாணவிகள் தட கள விளையாட்டு அணி" : "Girls Track & Field Squad", role: isTa ? "100மீ ஓட்டம் & நீளம் தாண்டுதல்" : "100m Sprint & Long Jump", icon: "fi fi-sr-bolt", color: "from-amber-500 to-orange-500", match: isTa ? "மாநில பள்ளி விளையாட்டுப் போட்டி" : "TN State School Athletics Meet", date: "Sep 06, 2026", coach: isTa ? "தினேஷ் உடற்கல்வி ஆசிரியர்" : "Coach Dinesh PET" },
+      { id: "t3", name: isTa ? "மாணவிகள் கைப்பந்து அணி" : "Girls Volleyball XI", role: isTa ? "தாக்குதல் ஆட்டக்காரர்" : "Attacker / Setter", icon: "fi fi-sr-shield", color: "from-purple-500 to-indigo-500", match: isTa ? "மண்டல போட்டி சுற்று 2" : "Zonal Tournament Round 2", date: "Oct 12, 2026", coach: isTa ? "செல்வம் உடற்கல்வி ஆசிரியர்" : "Coach R. Selvam" }
     ] : [
-      { id: "t1", name: isTa ? "பள்ளி மாணவர்கள் கால்பந்து அணி" : "School Boys Football XI", role: isTa ? "நடுவரிசை ஆட்டக்காரர்" : "Starting Midfielder", icon: "⚽", color: "from-cyan-500 to-blue-500", match: isTa ? "மாவட்ட மாணவர்கள் இறுதிப்போட்டி" : "District Boys Finals vs St. Xavier", date: "Aug 12, 2026", coach: isTa ? "செல்வம் உடற்கல்வி ஆசிரியர்" : "Coach R. Selvam" },
-      { id: "t2", name: isTa ? "மாணவர்கள் தட கள விளையாட்டு அணி" : "Boys Track & Field Squad", role: isTa ? "100மீ / 200மீ விரைவோட்டம்" : "100m / 200m Sprinter", icon: "🏃‍♂️", color: "from-amber-500 to-red-500", match: isTa ? "மாநில தடகளப் போட்டி" : "State Athletics Meet", date: "Sep 05, 2026", coach: isTa ? "தினேஷ் உடற்கல்வி ஆசிரியர்" : "Coach M. Dinesh" },
-      { id: "t3", name: isTa ? "மாணவர்கள் கபடி அணி" : "Boys Kabaddi Team", role: isTa ? "வலதுபுற ரைடர்" : "Right Raider", icon: "🤼‍♂️", color: "from-emerald-500 to-teal-600", match: isTa ? "மாவட்ட பள்ளிகளுக்கு இடையிலான லீக்" : "District Inter-School League", date: "Oct 18, 2026", coach: isTa ? "ரமேஷ் உடற்கல்வி ஆசிரியர்" : "Coach K. Ramesh" }
+      { id: "t1", name: isTa ? "பள்ளி மாணவர்கள் கால்பந்து அணி" : "School Boys Football XI", role: isTa ? "நடுவரிசை ஆட்டக்காரர்" : "Starting Midfielder", icon: "fi fi-sr-star", color: "from-cyan-500 to-blue-500", match: isTa ? "மாவட்ட மாணவர்கள் இறுதிப்போட்டி" : "District Boys Finals vs St. Xavier", date: "Aug 12, 2026", coach: isTa ? "செல்வம் உடற்கல்வி ஆசிரியர்" : "Coach R. Selvam" },
+      { id: "t2", name: isTa ? "மாணவர்கள் தட கள விளையாட்டு அணி" : "Boys Track & Field Squad", role: isTa ? "100மீ / 200மீ விரைவோட்டம்" : "100m / 200m Sprinter", icon: "fi fi-sr-bolt", color: "from-amber-500 to-red-500", match: isTa ? "மாநில தடகளப் போட்டி" : "State Athletics Meet", date: "Sep 05, 2026", coach: isTa ? "தினேஷ் உடற்கல்வி ஆசிரியர்" : "Coach M. Dinesh" },
+      { id: "t3", name: isTa ? "மாணவர்கள் கபடி அணி" : "Boys Kabaddi Team", role: isTa ? "வலதுபுற ரைடர்" : "Right Raider", icon: "fi fi-sr-users", color: "from-emerald-500 to-teal-600", match: isTa ? "மாவட்ட பள்ளிகளுக்கு இடையிலான லீக்" : "District Inter-School League", date: "Oct 18, 2026", coach: isTa ? "ரமேஷ் உடற்கல்வி ஆசிரியர்" : "Coach K. Ramesh" }
     ];
 
     const petFitness = {
@@ -353,13 +346,13 @@ export default function StudentSportsPortal() {
       sportsQuotaPoints,
       teams,
       stats: [
-        { label: isTa ? "100மீ விரைவோட்டம்" : "100m Sprint", value: isGirls ? "12.4s" : "11.8s", score: 92, icon: "🏃", color: "bg-emerald-500" },
-        { label: isTa ? "குண்டு எறிதல்" : "Shot Put / Throw", value: isGirls ? "9.8m" : "11.2m", score: 85, icon: "💪", color: "bg-blue-500" },
-        { label: isTa ? "வளைந்து கொடுக்கும் பயிற்சி" : "Flexibility Sit-Reach", value: isGirls ? "+24 cm" : "+18 cm", score: 96, icon: "🧘", color: "bg-purple-500" },
-        { label: isTa ? "இதய சகிப்புத்தன்மை" : "Cardio Endurance", value: "Superior", score: 94, icon: "🫀", color: "bg-rose-500" }
+        { label: isTa ? "100மீ விரைவோட்டம்" : "100m Sprint", value: isGirls ? "12.4s" : "11.8s", score: 92, icon: "fi fi-sr-bolt", softBg: "bg-emerald-100 dark:bg-emerald-900/40", iconColor: "text-emerald-600 dark:text-emerald-400" },
+        { label: isTa ? "குண்டு எறிதல்" : "Shot Put / Throw", value: isGirls ? "9.8m" : "11.2m", score: 85, icon: "fi fi-sr-star", softBg: "bg-blue-100 dark:bg-blue-900/40", iconColor: "text-blue-600 dark:text-blue-400" },
+        { label: isTa ? "வளைந்து கொடுக்கும் பயிற்சி" : "Flexibility Sit-Reach", value: isGirls ? "+24 cm" : "+18 cm", score: 96, icon: "fi fi-sr-target", softBg: "bg-purple-100 dark:bg-purple-900/40", iconColor: "text-purple-600 dark:text-purple-400" },
+        { label: isTa ? "இதய சகிப்புத்தன்மை" : "Cardio Endurance", value: "Superior", score: 94, icon: "fi fi-sr-heart", softBg: "bg-rose-100 dark:bg-rose-900/40", iconColor: "text-rose-600 dark:text-rose-400" }
       ],
       events: [
-        { id: "e1", title: isTa ? "ஆண்டு விளையாட்டு விழா 2026" : "Annual Sports Meet 2026", date: "Aug 20, 2026", type: "Tournament", icon: "🏆" }
+        { id: "e1", title: isTa ? "ஆண்டு விளையாட்டு விழா 2026" : "Annual Sports Meet 2026", date: "Aug 20, 2026", type: "Tournament", icon: "fi fi-sr-trophy" }
       ],
       logs: [
         { id: "l1", activity: isGirls ? (isTa ? "100மீ ஓட்டம் & நெகிழ்வுப் பயிற்சி" : "100m Sprint & Flexibility Practice") : (isTa ? "100மீ ஓட்டம் & கால்பந்து பயிற்சி" : "100m Sprint & Football Drills"), duration: "45 mins", intensity: "High", calories: 340, date: "2026-07-23" }
@@ -380,6 +373,64 @@ export default function StudentSportsPortal() {
     };
   }
 
+  // Enrich backend stats (which lack icon/softBg/iconColor) with matching Flaticon classes
+  function enrichStatsWithIcons(stats: any[]): any[] {
+    if (!stats || !Array.isArray(stats)) return stats;
+
+    const ICON_MAP: Record<string, { icon: string; softBg: string; iconColor: string }> = {
+      // English labels
+      endurance:    { icon: "fi fi-sr-heart-rate",  softBg: "bg-emerald-100 dark:bg-emerald-900/40", iconColor: "text-emerald-600 dark:text-emerald-400" },
+      strength:     { icon: "fi fi-sr-dumbbell",    softBg: "bg-blue-100 dark:bg-blue-900/40",     iconColor: "text-blue-600 dark:text-blue-400"     },
+      flexibility:  { icon: "fi fi-sr-target",      softBg: "bg-purple-100 dark:bg-purple-900/40", iconColor: "text-purple-600 dark:text-purple-400" },
+      speed:        { icon: "fi fi-sr-bolt",         softBg: "bg-amber-100 dark:bg-amber-900/40",  iconColor: "text-amber-600 dark:text-amber-400"  },
+      sprint:       { icon: "fi fi-sr-bolt",         softBg: "bg-emerald-100 dark:bg-emerald-900/40", iconColor: "text-emerald-600 dark:text-emerald-400" },
+      "100m":       { icon: "fi fi-sr-bolt",         softBg: "bg-emerald-100 dark:bg-emerald-900/40", iconColor: "text-emerald-600 dark:text-emerald-400" },
+      "shot put":   { icon: "fi fi-sr-star",         softBg: "bg-blue-100 dark:bg-blue-900/40",    iconColor: "text-blue-600 dark:text-blue-400"    },
+      throw:        { icon: "fi fi-sr-star",         softBg: "bg-blue-100 dark:bg-blue-900/40",    iconColor: "text-blue-600 dark:text-blue-400"    },
+      cardio:       { icon: "fi fi-sr-heart",        softBg: "bg-rose-100 dark:bg-rose-900/40",   iconColor: "text-rose-600 dark:text-rose-400"   },
+      heart:        { icon: "fi fi-sr-heart",        softBg: "bg-rose-100 dark:bg-rose-900/40",   iconColor: "text-rose-600 dark:text-rose-400"   },
+      "resting hr": { icon: "fi fi-sr-heart-rate",  softBg: "bg-rose-100 dark:bg-rose-900/40",   iconColor: "text-rose-600 dark:text-rose-400"   },
+      resting:      { icon: "fi fi-sr-heart-rate",  softBg: "bg-rose-100 dark:bg-rose-900/40",   iconColor: "text-rose-600 dark:text-rose-400"   },
+      bmi:          { icon: "fi fi-sr-weight",       softBg: "bg-cyan-100 dark:bg-cyan-900/40",   iconColor: "text-cyan-600 dark:text-cyan-400"   },
+      posture:      { icon: "fi fi-sr-user",         softBg: "bg-indigo-100 dark:bg-indigo-900/40",iconColor: "text-indigo-600 dark:text-indigo-400"},
+      balance:      { icon: "fi fi-sr-gym",          softBg: "bg-teal-100 dark:bg-teal-900/40",   iconColor: "text-teal-600 dark:text-teal-400"   },
+      agility:      { icon: "fi fi-sr-running",      softBg: "bg-orange-100 dark:bg-orange-900/40",iconColor: "text-orange-600 dark:text-orange-400"},
+      // Tamil labels (partial keyword match)
+      "இதய":        { icon: "fi fi-sr-heart",        softBg: "bg-rose-100 dark:bg-rose-900/40",   iconColor: "text-rose-600 dark:text-rose-400"   },
+      "வேகம்":      { icon: "fi fi-sr-bolt",         softBg: "bg-amber-100 dark:bg-amber-900/40", iconColor: "text-amber-600 dark:text-amber-400" },
+      "வளைந்து":    { icon: "fi fi-sr-target",      softBg: "bg-purple-100 dark:bg-purple-900/40",iconColor: "text-purple-600 dark:text-purple-400"},
+      "குண்டு":     { icon: "fi fi-sr-star",         softBg: "bg-blue-100 dark:bg-blue-900/40",   iconColor: "text-blue-600 dark:text-blue-400"   },
+      "100மீ":      { icon: "fi fi-sr-bolt",         softBg: "bg-emerald-100 dark:bg-emerald-900/40",iconColor:"text-emerald-600 dark:text-emerald-400"},
+    };
+
+    return stats.map((st: any) => {
+      // Only skip enrichment if the icon is already a valid Flaticon class (starts with "fi ")
+      // Emoji or other non-Flaticon values must also be enriched
+      if (st.icon && typeof st.icon === "string" && st.icon.trim().startsWith("fi ")) return st;
+
+      // Try to match by lowercased label
+      const labelLower = (st.label || "").toLowerCase();
+      let matched = ICON_MAP[labelLower];
+
+      if (!matched) {
+        // Partial keyword search
+        for (const [key, val] of Object.entries(ICON_MAP)) {
+          if (labelLower.includes(key) || (st.label || "").includes(key)) {
+            matched = val;
+            break;
+          }
+        }
+      }
+
+      return {
+        ...st,
+        icon:     matched?.icon     || "fi fi-sr-running",
+        softBg:   matched?.softBg   || "bg-slate-100 dark:bg-slate-800",
+        iconColor:matched?.iconColor|| "text-slate-600 dark:text-slate-400",
+      };
+    });
+  }
+
   async function fetchSportsData() {
     if (status === "loading") return;
     const targetStudentId = (session?.user as any)?.id || "demo-student";
@@ -398,6 +449,8 @@ export default function StudentSportsPortal() {
           ...generated,
           ...json.data,
           petFitness: json.data?.petFitness || generated.petFitness,
+          // Enrich backend stats with icon metadata (backend doesn't store icon/softBg/iconColor)
+          stats: enrichStatsWithIcons(json.data?.stats?.length ? json.data.stats : generated.stats),
         };
         setData(initialData);
         setAwardsPageData(initialData.awards || DEFAULT_AWARDS);
@@ -569,16 +622,55 @@ export default function StudentSportsPortal() {
       {/* Toast Banner */}
       {toastMessage && (
         <div className="fixed top-4 right-4 z-50 bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold animate-in fade-in slide-in-from-top-3">
-          <CheckCircle size={16} />
+          <i className="fi fi-sr-check-circle flex items-center" />
           <span>{toastMessage}</span>
         </div>
       )}
+
+      {/* Modern Glassmorphism Banner */}
+      <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl py-4 px-6 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shrink-0 shadow-sm ${
+            selectedGender === "Female"
+              ? "bg-pink-50 dark:bg-pink-950/40 border-pink-100 dark:border-pink-800/30"
+              : "bg-cyan-50 dark:bg-cyan-950/40 border-cyan-100 dark:border-cyan-800/30"
+          }`}>
+            <i className="fi fi-sr-trophy text-xl flex items-center" style={{ color: selectedGender === "Female" ? "#ec4899" : "#0891b2", WebkitTextFillColor: selectedGender === "Female" ? "#ec4899" : "#0891b2" }} />
+          </div>
+          <div className="text-left">
+            <span className={`text-[10px] font-black uppercase tracking-widest block mb-1 flex items-center gap-1.5 ${selectedGender === "Female" ? "text-pink-600 dark:text-pink-400" : "text-cyan-600 dark:text-cyan-400"}`}>
+              <i className="fi fi-sr-sparkles flex items-center text-amber-400 text-[10px]" />
+              Fit India & TN Schools ({currentData.ageGroup})
+            </span>
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-wider leading-none mb-1">
+              {currentData.studentName} · {dict.bannerTitle}
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-tight max-w-xl">
+              {dict.bannerSubtitle}
+            </p>
+          </div>
+        </div>
+        <div className="shrink-0 flex flex-col items-start sm:items-end gap-1.5">
+          <span className={`text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 border ${
+            selectedGender === "Female"
+              ? "bg-pink-50 dark:bg-pink-950/50 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-800"
+              : "bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800"
+          }`}>
+            <i className="fi fi-sr-shield flex items-center" />
+            {selectedGender === "Female" ? dict.girlsDiv : dict.boysDiv}
+          </span>
+          <span className="text-[10px] font-black px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+            <i className="fi fi-sr-check-circle flex items-center" />
+            {currentData.sportsQuotaEligible ? "Sports Quota Eligible" : "General Category"}
+          </span>
+        </div>
+      </div>
 
       {/* STUDENT GENDER SELECTION & LANGUAGE TOGGLE BAR */}
       <div className="mb-6 bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-xs font-extrabold text-slate-700 dark:text-slate-200">
-            <Compass size={18} className="text-cyan-500" />
+            <i className="fi fi-sr-compass text-cyan-500 flex items-center" />
             <span>{dict.studentPersona}</span>
           </div>
 
@@ -618,7 +710,7 @@ export default function StudentSportsPortal() {
             }}
             className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-extrabold flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
           >
-            <Globe size={15} className="text-cyan-500" />
+            <i className="fi fi-sr-globe text-cyan-500 flex items-center" />
             <span>{dict.langToggle}</span>
           </button>
 
@@ -636,35 +728,13 @@ export default function StudentSportsPortal() {
         </div>
       </div>
 
-      {/* Purpose Banner */}
-      <div className={`mb-6 bg-gradient-to-r ${
-        selectedGender === "Female" 
-          ? "from-pink-600 via-rose-600 to-purple-700" 
-          : "from-cyan-600 via-teal-600 to-blue-700"
-      } rounded-3xl p-6 text-white shadow-lg relative overflow-hidden`}>
-        <div className="absolute right-0 top-0 translate-x-4 -translate-y-4 opacity-10 pointer-events-none">
-          <Trophy size={240} />
-        </div>
-        <div className="relative z-10 max-w-3xl">
-          <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-extrabold w-fit mb-3 uppercase tracking-wider">
-            <Sparkles size={13} /> Fit India & TN Schools ({currentData.ageGroup})
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-black mb-2 leading-tight">
-            {currentData.studentName} · {dict.bannerTitle}
-          </h2>
-          <p className="text-white/90 text-xs sm:text-sm font-medium leading-relaxed">
-            {dict.bannerSubtitle}
-          </p>
-        </div>
-      </div>
-
       {/* Quick KPI Overview Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3">
           <div className={`w-10 h-10 rounded-xl ${
             selectedGender === "Female" ? "bg-pink-50 text-pink-500 dark:bg-pink-900/30" : "bg-cyan-50 text-cyan-500 dark:bg-cyan-900/30"
           } flex items-center justify-center shrink-0`}>
-            <Activity size={20} />
+            <i className="fi fi-sr-heart-rate flex items-center" />
           </div>
           <div>
             <div className="text-lg font-black text-slate-800 dark:text-white">
@@ -676,7 +746,7 @@ export default function StudentSportsPortal() {
 
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center shrink-0">
-            <Users size={20} />
+            <i className="fi fi-sr-users flex items-center" />
           </div>
           <div>
             <div className="text-lg font-black text-slate-800 dark:text-white">{currentData.teams?.length || 0}</div>
@@ -686,7 +756,7 @@ export default function StudentSportsPortal() {
 
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-500 flex items-center justify-center shrink-0">
-            <Calendar size={20} />
+            <i className="fi fi-sr-calendar flex items-center" />
           </div>
           <div>
             <div className="text-lg font-black text-slate-800 dark:text-white">{eventStats.registered}</div>
@@ -696,7 +766,7 @@ export default function StudentSportsPortal() {
 
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-yellow-50 dark:bg-yellow-900/30 text-yellow-500 flex items-center justify-center shrink-0">
-            <Trophy size={20} />
+            <i className="fi fi-sr-trophy flex items-center" />
           </div>
           <div>
             <div className="text-lg font-black text-slate-800 dark:text-white">{currentData.sportsQuotaPoints} Pts</div>
@@ -706,7 +776,7 @@ export default function StudentSportsPortal() {
 
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-3 col-span-2 sm:col-span-1">
           <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-900/30 text-rose-500 flex items-center justify-center shrink-0">
-            <Flame size={20} />
+            <i className="fi fi-sr-flame flex items-center" />
           </div>
           <div>
             <div className="text-lg font-black text-slate-800 dark:text-white">{totalCaloriesLogged} kcal</div>
@@ -718,17 +788,16 @@ export default function StudentSportsPortal() {
       {/* Navigation Tabs */}
       <div className="flex bg-white dark:bg-slate-900 p-1.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 w-full mb-8 overflow-x-auto gap-1">
         {[
-          { id: "overview", label: dict.tabOverview, icon: Activity },
-          { id: "teams", label: dict.tabTeams, icon: Users },
-          { id: "events", label: dict.tabEvents, icon: Calendar },
-          { id: "awards", label: dict.tabAwards, icon: Trophy },
-          { id: "house", label: dict.tabHouse, icon: Shield },
-          { id: "logs", label: dict.tabLogs, icon: Dumbbell },
-          { id: "injuries", label: dict.tabInjuries, icon: Heart },
-          { id: "clubs", label: dict.tabClubs, icon: Ribbon }
+          { id: "overview", label: dict.tabOverview, iconClass: "fi fi-sr-heart-rate" },
+          { id: "teams", label: dict.tabTeams, iconClass: "fi fi-sr-users" },
+          { id: "events", label: dict.tabEvents, iconClass: "fi fi-sr-calendar" },
+          { id: "awards", label: dict.tabAwards, iconClass: "fi fi-sr-trophy" },
+          { id: "house", label: dict.tabHouse, iconClass: "fi fi-sr-shield" },
+          { id: "logs", label: dict.tabLogs, iconClass: "fi fi-sr-dumbbell" },
+          { id: "injuries", label: dict.tabInjuries, iconClass: "fi fi-sr-heart" },
+          { id: "clubs", label: dict.tabClubs, iconClass: "fi fi-sr-medal" }
         ].map(tab => {
           const isActive = activeTab === tab.id;
-          const Icon = tab.icon;
           return (
             <button
               key={tab.id}
@@ -745,7 +814,7 @@ export default function StudentSportsPortal() {
                   : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
               }`}
             >
-              <Icon size={16} className={isActive ? (selectedGender === "Female" ? "text-pink-500" : "text-cyan-500") : "text-slate-400"} />
+              <i className={`${tab.iconClass} flex items-center text-sm ${isActive ? (selectedGender === "Female" ? "text-pink-500" : "text-cyan-500") : "text-slate-400"}`} />
               {tab.label}
             </button>
           );
@@ -759,7 +828,7 @@ export default function StudentSportsPortal() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-                <Heart className="text-rose-500" /> {dict.vitalsTitle} ({selectedGender === "Female" ? (currentLang === "தமிழ்" ? "மாணவி" : "Female") : (currentLang === "தமிழ்" ? "மாணவர்" : "Male")} · {currentData.ageGroup})
+                <i className="fi fi-sr-heart text-rose-500 flex items-center" /> {dict.vitalsTitle} ({selectedGender === "Female" ? (currentLang === "தமிழ்" ? "மாணவி" : "Female") : (currentLang === "தமிழ்" ? "மாணவர்" : "Male")} · {currentData.ageGroup})
               </h2>
               <span className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
                 {dict.fitIndiaStd}
@@ -831,14 +900,16 @@ export default function StudentSportsPortal() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
                 <h3 className="font-extrabold text-slate-800 dark:text-white text-base flex items-center gap-2">
-                  <Zap size={18} className="text-cyan-500" /> {dict.stdMetrics} ({selectedGender})
+                  <i className="fi fi-sr-bolt text-cyan-500 flex items-center" /> {dict.stdMetrics} ({selectedGender})
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {currentData.stats.map((st: any, idx: number) => (
                     <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">{st.icon || "🏅"}</span>
+                        <div className={`w-10 h-10 rounded-xl ${st.softBg || "bg-slate-100"} flex items-center justify-center shrink-0`}>
+                          <i className={`${st.icon || "fi fi-sr-running"} text-base flex items-center ${st.iconColor || "text-slate-600"}`} />
+                        </div>
                         <div>
                           <h4 className="font-extrabold text-slate-800 dark:text-white text-sm">{st.label}</h4>
                           <span className="text-xs font-semibold text-slate-400">Score: {st.value}</span>
@@ -854,7 +925,7 @@ export default function StudentSportsPortal() {
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400 font-extrabold text-xs uppercase tracking-wider mb-4">
-                    <Info size={18} className="text-cyan-600 dark:text-cyan-400" /> {dict.peEvaluation}
+                    <i className="fi fi-sr-info text-cyan-600 dark:text-cyan-400 flex items-center" /> {dict.peEvaluation}
                   </div>
                   
                   <div className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 p-4 rounded-2xl mb-5">
@@ -889,7 +960,7 @@ export default function StudentSportsPortal() {
                   onClick={() => setIsInjuryModalOpen(true)}
                   className="mt-6 w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl text-xs font-black flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
                 >
-                  <Heart size={16} className="fill-white/20" /> {dict.reportInjury}
+                  <i className="fi fi-sr-heart fill-white/20 flex items-center" /> {dict.reportInjury}
                 </button>
               </div>
             </div>
@@ -900,7 +971,7 @@ export default function StudentSportsPortal() {
         {activeTab === "teams" && (
           <div className="space-y-6">
             <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-              <Users className={selectedGender === "Female" ? "text-pink-500" : "text-cyan-500"} /> {dict.mySquads}
+              <i className={`fi fi-sr-users flex items-center ${selectedGender === "Female" ? "text-pink-500" : "text-cyan-500"}`} /> {dict.mySquads}
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -908,7 +979,9 @@ export default function StudentSportsPortal() {
                 <div key={tm.id} className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-3xl">{tm.icon}</span>
+                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${tm.color} flex items-center justify-center shrink-0 shadow-md`}>
+                        <i className={`${tm.icon} text-lg flex items-center text-white`} />
+                      </div>
                       <span className="px-3 py-1 bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded-full text-[10px] font-extrabold uppercase">
                         {tm.role}
                       </span>
@@ -931,10 +1004,10 @@ export default function StudentSportsPortal() {
 
                   <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                     <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                      <CheckCircle size={14} /> {dict.officialRoster}
+                      <i className="fi fi-sr-check-circle flex items-center" /> {dict.officialRoster}
                     </span>
                     <button onClick={() => setActiveTab("events")} className="text-cyan-600 font-extrabold flex items-center gap-0.5">
-                      {dict.viewFixtures} <ChevronRight size={14} />
+                      {dict.viewFixtures} <i className="fi fi-sr-angle-right flex items-center" />
                     </button>
                   </div>
                 </div>
@@ -948,7 +1021,7 @@ export default function StudentSportsPortal() {
           <div className="space-y-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
               <div className="relative flex-1">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <i className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 flex items-center" />
                 <input
                   type="text"
                   placeholder={dict.searchEventsPlaceholder}
@@ -987,7 +1060,7 @@ export default function StudentSportsPortal() {
               {paginatedEvents.map(ev => (
                 <div key={ev.id} className="p-5 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
                   <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-900/20 text-amber-500 flex items-center justify-center shrink-0">
-                    <Trophy size={22} />
+                    <i className="fi fi-sr-trophy flex items-center" />
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -1004,9 +1077,9 @@ export default function StudentSportsPortal() {
                     </div>
 
                     <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 flex-wrap">
-                      <span className="flex items-center gap-1"><MapPin size={13} /> {ev.venue}</span>
-                      <span className="flex items-center gap-1"><Clock size={13} /> {ev.date}</span>
-                      <span className="flex items-center gap-1"><Target size={13} /> {ev.sport}</span>
+                      <span className="flex items-center gap-1"><i className="fi fi-sr-map-marker flex items-center" /> {ev.venue}</span>
+                      <span className="flex items-center gap-1"><i className="fi fi-sr-time-past flex items-center" /> {ev.date}</span>
+                      <span className="flex items-center gap-1"><i className="fi fi-sr-target flex items-center" /> {ev.sport}</span>
                     </div>
                   </div>
 
@@ -1015,12 +1088,12 @@ export default function StudentSportsPortal() {
                       onClick={() => setSelectedEventModal(ev)}
                       className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800"
                     >
-                      <Info size={14} /> {dict.details}
+                      <i className="fi fi-sr-info flex items-center" /> {dict.details}
                     </button>
 
                     {ev.isRegistered ? (
                       <span className="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 text-xs font-bold flex items-center gap-1">
-                        <CheckCircle size={14} /> {dict.registered}
+                        <i className="fi fi-sr-check-circle flex items-center" /> {dict.registered}
                       </span>
                     ) : (
                       <button
@@ -1043,7 +1116,7 @@ export default function StudentSportsPortal() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-                <Award className="text-yellow-500" /> {dict.honoursTitle}
+                <i className="fi fi-sr-award text-yellow-500 flex items-center" /> {dict.honoursTitle}
               </h2>
               {currentData.sportsQuotaEligible && (
                 <span className="px-3 py-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 rounded-full text-xs font-black">
@@ -1058,7 +1131,7 @@ export default function StudentSportsPortal() {
                   <div>
                     <div className="flex items-start justify-between gap-3 mb-4">
                       <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-900/20 text-amber-500 flex items-center justify-center shrink-0">
-                        <Trophy size={24} />
+                        <i className="fi fi-sr-trophy flex items-center" />
                       </div>
                       <span className="px-3 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300 rounded-full text-[10px] font-black uppercase">
                         {aw.medal || "Gold Medal"}
@@ -1074,13 +1147,13 @@ export default function StudentSportsPortal() {
 
                   <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                      <CheckCircle size={14} /> {dict.officialVerified}
+                      <i className="fi fi-sr-check-circle flex items-center" /> {dict.officialVerified}
                     </span>
                     <button 
                       onClick={() => setSelectedCertificateModal(aw)}
                       className="px-3 py-1.5 bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-100 rounded-xl text-xs font-bold flex items-center gap-1"
                     >
-                      <Eye size={14} /> {dict.viewCert}
+                      <i className="fi fi-sr-eye flex items-center" /> {dict.viewCert}
                     </button>
                   </div>
                 </div>
@@ -1093,7 +1166,7 @@ export default function StudentSportsPortal() {
         {activeTab === "house" && (
           <div className="space-y-6">
             <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-              <Shield className="text-rose-500" /> {dict.houseTitle}
+              <i className="fi fi-sr-shield text-rose-500 flex items-center" /> {dict.houseTitle}
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -1130,13 +1203,13 @@ export default function StudentSportsPortal() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-                <Dumbbell className="text-cyan-500" /> {dict.trainingLog}
+                <i className="fi fi-sr-dumbbell text-cyan-500 flex items-center" /> {dict.trainingLog}
               </h2>
               <button
                 onClick={() => setIsLogModalOpen(true)}
                 className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-extrabold rounded-2xl shadow-sm flex items-center gap-1.5"
               >
-                <Plus size={16} /> {dict.logWorkout}
+                <i className="fi fi-sr-plus flex items-center" /> {dict.logWorkout}
               </button>
             </div>
 
@@ -1145,7 +1218,7 @@ export default function StudentSportsPortal() {
                 <div key={lg.id} className="p-5 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-cyan-50 dark:bg-cyan-900/20 text-cyan-500 flex items-center justify-center shrink-0">
-                      <Flame size={22} />
+                      <i className="fi fi-sr-flame flex items-center" />
                     </div>
                     <div>
                       <h4 className="font-extrabold text-slate-800 dark:text-white text-base">{lg.activity}</h4>
@@ -1164,13 +1237,13 @@ export default function StudentSportsPortal() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-                <Heart className="text-rose-500" /> {dict.injuryTitle}
+                <i className="fi fi-sr-heart text-rose-500 flex items-center" /> {dict.injuryTitle}
               </h2>
               <button
                 onClick={() => setIsInjuryModalOpen(true)}
                 className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold rounded-2xl shadow-sm flex items-center gap-1.5"
               >
-                <Plus size={16} /> {dict.reportInjuryBtn}
+                <i className="fi fi-sr-plus flex items-center" /> {dict.reportInjuryBtn}
               </button>
             </div>
 
@@ -1194,7 +1267,7 @@ export default function StudentSportsPortal() {
         {activeTab === "clubs" && (
           <div className="space-y-6">
             <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-              <Ribbon className="text-purple-500" /> {dict.clubsTitle}
+              <i className="fi fi-sr-medal text-purple-500 flex items-center" /> {dict.clubsTitle}
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -1218,7 +1291,7 @@ export default function StudentSportsPortal() {
           <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-black text-slate-900 dark:text-white">{selectedEventModal.name}</h3>
-              <button onClick={() => setSelectedEventModal(null)} className="p-2 text-slate-400 hover:text-slate-600"><X size={18} /></button>
+              <button onClick={() => setSelectedEventModal(null)} className="p-2 text-slate-400 hover:text-slate-600"><i className="fi fi-sr-cross-small flex items-center" /></button>
             </div>
             <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl">
               <div><span className="text-slate-400 font-semibold block text-[10px] uppercase">Sport</span><span className="font-extrabold text-slate-800 dark:text-white">{selectedEventModal.sport}</span></div>
@@ -1242,9 +1315,9 @@ export default function StudentSportsPortal() {
           <form onSubmit={handleSaveWorkout} className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <Dumbbell size={20} className="text-cyan-500" /> {dict.logWorkout}
+                <i className="fi fi-sr-dumbbell text-cyan-500 flex items-center" /> {dict.logWorkout}
               </h3>
-              <button type="button" onClick={() => setIsLogModalOpen(false)} className="p-2 text-slate-400"><X size={18} /></button>
+              <button type="button" onClick={() => setIsLogModalOpen(false)} className="p-2 text-slate-400"><i className="fi fi-sr-cross-small flex items-center" /></button>
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Activity Name</label>
@@ -1264,9 +1337,9 @@ export default function StudentSportsPortal() {
           <form onSubmit={handleSaveInjury} className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <Heart size={20} className="text-rose-500" /> {dict.reportInjuryBtn}
+                <i className="fi fi-sr-heart text-rose-500 flex items-center" /> {dict.reportInjuryBtn}
               </h3>
-              <button type="button" onClick={() => setIsInjuryModalOpen(false)} className="p-2 text-slate-400"><X size={18} /></button>
+              <button type="button" onClick={() => setIsInjuryModalOpen(false)} className="p-2 text-slate-400"><i className="fi fi-sr-cross-small flex items-center" /></button>
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Injury Type</label>
@@ -1288,9 +1361,9 @@ export default function StudentSportsPortal() {
       {selectedCertificateModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4 text-center">
-            <div className="flex justify-end"><button onClick={() => setSelectedCertificateModal(null)} className="p-2 text-slate-400"><X size={18} /></button></div>
+            <div className="flex justify-end"><button onClick={() => setSelectedCertificateModal(null)} className="p-2 text-slate-400"><i className="fi fi-sr-cross-small flex items-center" /></button></div>
             <div className="border-4 border-amber-400 p-6 rounded-2xl bg-amber-50/30 dark:bg-slate-800/50 space-y-3">
-              <Trophy size={48} className="mx-auto text-amber-500" />
+              <i className="fi fi-sr-trophy mx-auto text-amber-500 flex items-center" />
               <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest block">
                 {currentLang === "தமிழ்" ? "பள்ளிப் பள்ளிக் கல்வித் துறை · தமிழ்நாடு அரசு" : "Department of School Education · Tamil Nadu"}
               </span>
@@ -1317,7 +1390,7 @@ export default function StudentSportsPortal() {
               </div>
             </div>
             <button onClick={() => { showToast(currentLang === "தமிழ்" ? "சான்றிதழ் பதிவிறக்கப்பட்டது!" : "Downloaded E-Certificate!"); setSelectedCertificateModal(null); }} className="px-5 py-2.5 bg-cyan-600 text-white rounded-2xl text-xs font-extrabold flex items-center gap-2 mx-auto">
-              <Download size={16} /> {dict.downloadCert}
+              <i className="fi fi-sr-download flex items-center" /> {dict.downloadCert}
             </button>
           </div>
         </div>

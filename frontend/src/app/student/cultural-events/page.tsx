@@ -549,10 +549,9 @@ export default function StudentCulturalEventsPage() {
       subtitle="Join the dance, art, and music festivals!"
     >
       <div className="flex flex-col gap-8 w-full max-w-none text-left">
-        
         {/* Dynamic & Premium Hero Banner */}
         {heroEvent ? (
-          <div className="relative overflow-hidden rounded-[2rem] shadow-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-6 sm:p-10 lg:p-12 min-h-[380px] sm:min-h-[420px] flex items-center transition-all duration-300">
+          <div className="relative overflow-hidden rounded-[2rem] shadow-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-4 sm:p-5 flex items-center transition-all duration-300">
             {/* Blurry Ambient Background Elements */}
             <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-80 h-80 bg-rose-500/10 dark:bg-rose-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
@@ -564,7 +563,7 @@ export default function StudentCulturalEventsPage() {
                   <i className="fi fi-sr-star text-xs" /> Featured Event
                 </div>
                 
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-800 dark:text-white tracking-tight leading-tight">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-tight">
                   {heroEvent.title}
                 </h2>
                 
@@ -575,12 +574,12 @@ export default function StudentCulturalEventsPage() {
                 {/* Info pill list */}
                 <div className="flex flex-wrap gap-3 pt-2 text-xs sm:text-sm font-semibold text-slate-650 dark:text-slate-400">
                   <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/60 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <i className="fi fi-rr-calendar-lines text-indigo-550" />
+                    <i className="fi fi-rr-calendar-lines text-indigo-500" />
                     <span>{new Date(heroEvent.eventDate).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}</span>
                   </div>
                   {(() => {
                     const loc = parseLocation(heroEvent.location);
-                    const displayLocStr = loc.venue && loc.coordinator 
+                    const displayLocStr = loc.venue && loc.coordinator
                       ? `${loc.venue} (Coord: ${loc.coordinator})`
                       : (loc.venue || (loc.coordinator ? `Coord: ${loc.coordinator}` : ""));
                     if (!displayLocStr) return null;
@@ -611,7 +610,7 @@ export default function StudentCulturalEventsPage() {
                   ) : (
                     <button
                       onClick={() => openRegisterModal(heroEvent)}
-                      className="px-6 py-3 rounded-2xl text-sm font-black text-white bg-primary hover:bg-opacity-95 shadow-md shadow-indigo-500/20 active:scale-95 transition-all flex items-center gap-2"
+                      className="px-6 py-3 rounded-2xl text-sm font-black text-white bg-indigo-600 hover:bg-opacity-95 shadow-md shadow-indigo-500/20 active:scale-95 transition-all flex items-center gap-2"
                     >
                       <i className="fi fi-sr-ticket text-sm" /> Register to Participate
                     </button>
@@ -622,14 +621,14 @@ export default function StudentCulturalEventsPage() {
               {/* Right Illustration Panel */}
               <div className="lg:col-span-2 flex justify-center lg:justify-end">
                 <div className="relative group p-4 bg-slate-50 dark:bg-slate-900/40 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-inner">
-                  {renderFlatIcon(heroCategory, "w-44 h-44 sm:w-56 sm:h-56 transform group-hover:scale-105 group-hover:rotate-3 transition-transform duration-300 drop-shadow-lg")}
+                  {renderFlatIcon(heroCategory, "w-20 h-20 sm:w-24 sm:h-24 transform group-hover:scale-105 group-hover:rotate-3 transition-transform duration-300 drop-shadow-lg")}
                 </div>
               </div>
             </div>
           </div>
         ) : (
           /* Default Heritage Month Fallback if no database events */
-          <div className="relative overflow-hidden rounded-[2rem] shadow-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-6 sm:p-10 lg:p-12 min-h-[380px] sm:min-h-[420px] flex items-center transition-all duration-300">
+          <div className="relative overflow-hidden rounded-[2rem] shadow-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-5 sm:p-6 flex items-center transition-all duration-300">
             <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 dark:bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-80 h-80 bg-rose-500/10 dark:bg-rose-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
 
@@ -639,8 +638,8 @@ export default function StudentCulturalEventsPage() {
                   <i className="fi fi-sr-star text-xs" /> Featured Festival
                 </div>
                 
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-800 dark:text-white tracking-tight leading-tight flex items-center gap-2">
-                  Tamil Heritage & Arts Month <i className="fi fi-sr-magic-wand text-pink-500 text-2xl lg:text-3xl" />
+                <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-tight flex items-center gap-2">
+                  Tamil Heritage &amp; Arts Month <i className="fi fi-sr-magic-wand text-pink-500 text-2xl lg:text-3xl" />
                 </h2>
                 
                 <p className="text-slate-650 dark:text-slate-355 text-sm sm:text-base font-semibold leading-relaxed max-w-2xl">
@@ -654,14 +653,14 @@ export default function StudentCulturalEventsPage() {
                   </div>
                   <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/60 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
                     <i className="fi fi-rr-marker text-rose-500" />
-                    <span>School Campus & Auditorium</span>
+                    <span>School Campus &amp; Auditorium</span>
                   </div>
                 </div>
               </div>
 
               <div className="lg:col-span-2 flex justify-center lg:justify-end">
                 <div className="relative p-4 bg-amber-50/50 dark:bg-slate-950/20 rounded-3xl border border-amber-100 dark:border-slate-800 shadow-inner">
-                  <TraditionalIcon className="w-44 h-44 sm:w-56 sm:h-56 drop-shadow-lg" />
+                  <TraditionalIcon className="w-20 h-20 sm:w-24 sm:h-24 drop-shadow-lg" />
                 </div>
               </div>
             </div>

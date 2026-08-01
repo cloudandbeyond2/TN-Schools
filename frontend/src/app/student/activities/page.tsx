@@ -616,6 +616,53 @@ export default function ExtracurricularsPage() {
       themeClass="theme-student"
       accentColor="#8b5cf6"
     >
+      {/* ── PAGE BANNER ─────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md shadow-sm">
+        {/* Left: title + description */}
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="w-12 h-12 rounded-2xl bg-violet-50 dark:bg-violet-950/40 border border-violet-100 dark:border-violet-800/30 flex items-center justify-center shrink-0 shadow-sm">
+            <i className="fi fi-sr-star text-xl flex items-center text-violet-500" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2 flex-wrap">
+              <i className="fi fi-sr-clubs text-violet-500 flex items-center" />
+              Extracurricular Activities
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-snug">
+              Discover clubs, build skills &amp; connect with peers outside the classroom.
+            </p>
+          </div>
+        </div>
+
+        {/* Right: KPI chips + class badge */}
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {/* Clubs Joined chip */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 font-extrabold text-xs rounded-xl border border-violet-200/50 dark:border-violet-800/40 shadow-sm">
+            <i className="fi fi-sr-users flex items-center text-violet-500" />
+            <span>{eligibleMyClubs.length} Clubs Joined</span>
+          </div>
+
+          {/* Upcoming Events chip */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-extrabold text-xs rounded-xl border border-amber-200/50 dark:border-amber-800/40 shadow-sm">
+            <i className="fi fi-sr-calendar flex items-center text-amber-500" />
+            <span>{dynamicUpcomingEvents.length} Upcoming Events</span>
+          </div>
+
+          {/* Class badge */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-extrabold text-xs rounded-xl border border-emerald-200/50 dark:border-emerald-800/40 shadow-sm">
+            <i className="fi fi-sr-graduation-cap flex items-center text-emerald-500" />
+            <span>
+              {targetStandard === "higher"
+                ? "Higher Secondary (11-12)"
+                : targetStandard === "high"
+                ? "High School (9-10)"
+                : "Middle School (6-8)"}
+            </span>
+          </div>
+        </div>
+      </div>
+      {/* ── END BANNER ──────────────────────────────────────── */}
+
       <div className="flex flex-col lg:flex-row gap-6 text-left w-full items-start">
         {/* Left Column: My Clubs & Events */}
         <div className="w-full lg:w-[340px] xl:w-[380px] shrink-0 space-y-6">
