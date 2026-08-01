@@ -94,16 +94,16 @@ const CATEGORIES: {
   gradient: string;
   blurb: string;
 }[] = [
-  { key: "overview", label: "Overview", icon: "apps", gradient: "from-slate-500 to-slate-600", blurb: "Complete overview of all academic resources" },
-  { key: "subjects", label: "Class Subjects", icon: "graduation-cap", gradient: "from-indigo-500 to-violet-500", blurb: "Your assigned subjects, classes, and progress" },
-  { key: "syllabus", label: "Syllabus", icon: "book-alt", gradient: "from-emerald-500 to-teal-500", blurb: "Term-wise curriculum units & topic breakdowns" },
-  { key: "textbooks", label: "Textbooks", icon: "book", gradient: "from-amber-500 to-orange-500", blurb: "Official Samacheer Kalvi & NCERT textbooks & eBooks" },
-  { key: "materials", label: "Study Materials", icon: "document", gradient: "from-blue-500 to-sky-500", blurb: "Question banks, worksheets & formula charts" },
-  { key: "notes", label: "Teacher Notes", icon: "notebook", gradient: "from-pink-500 to-rose-500", blurb: "Class lecture notes & revision guides" },
-  { key: "videos", label: "Video Lessons", icon: "play-alt", gradient: "from-red-500 to-orange-500", blurb: "Recorded video lectures with playback support" },
-  { key: "digital", label: "Digital Content", icon: "computer", gradient: "from-purple-500 to-violet-500", blurb: "Interactive 3D sims, audio lessons & quizzes" },
-  { key: "reference", label: "Reference Materials", icon: "books", gradient: "from-cyan-500 to-sky-500", blurb: "Past board question papers & blueprint guides" },
-];
+    { key: "overview", label: "Overview", icon: "apps", gradient: "from-slate-500 to-slate-600", blurb: "Complete overview of all academic resources" },
+    { key: "subjects", label: "Class Subjects", icon: "graduation-cap", gradient: "from-indigo-500 to-violet-500", blurb: "Your assigned subjects, classes, and progress" },
+    { key: "syllabus", label: "Syllabus", icon: "book-alt", gradient: "from-emerald-500 to-teal-500", blurb: "Term-wise curriculum units & topic breakdowns" },
+    { key: "textbooks", label: "Textbooks", icon: "book", gradient: "from-amber-500 to-orange-500", blurb: "Official Samacheer Kalvi & NCERT textbooks & eBooks" },
+    { key: "materials", label: "Study Materials", icon: "document", gradient: "from-blue-500 to-sky-500", blurb: "Question banks, worksheets & formula charts" },
+    { key: "notes", label: "Teacher Notes", icon: "notebook", gradient: "from-pink-500 to-rose-500", blurb: "Class lecture notes & revision guides" },
+    { key: "videos", label: "Video Lessons", icon: "play-alt", gradient: "from-red-500 to-orange-500", blurb: "Recorded video lectures with playback support" },
+    { key: "digital", label: "Digital Content", icon: "computer", gradient: "from-purple-500 to-violet-500", blurb: "Interactive 3D sims, audio lessons & quizzes" },
+    { key: "reference", label: "Reference Materials", icon: "books", gradient: "from-cyan-500 to-sky-500", blurb: "Past board question papers & blueprint guides" },
+  ];
 
 const TYPE_ICONS: Record<Resource["type"], string> = {
   PDF: "document",
@@ -143,7 +143,7 @@ function generateStructuredData(subjectName: string, className: string, teacherN
   const cleanClass = className.replace(/^Class\s*/i, "");
   const baseId = `${subjectName.toLowerCase()}-${cleanClass.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
   const subLower = subjectName.toLowerCase();
-  
+
   let unitTemplates = [
     { title: `Fundamentals of ${subjectName}`, topics: ["Introduction & Key Principles", "Standard Definitions & Laws", "Core Formulations & Equations", "Sample Problem Solving"] },
     { title: `Advanced ${subjectName} Concepts`, topics: ["Theoretical Derivations", "Step-by-step Analytical Methods", "Classroom Experiments & Diagrams", "Numerical Applications"] },
@@ -347,7 +347,7 @@ const getCategoryGradient = (key: CategoryKey) => {
 export default function AcademicsHubPage() {
   const { t } = usePortalLanguage();
   const { data: session } = useSession();
-  
+
   const [activeTab, setActiveTab] = useState<CategoryKey>("overview");
   const [selectedClass, setSelectedClass] = useState<string>("ALL");
   const [selectedSubject, setSelectedSubject] = useState<string>("All");
@@ -355,7 +355,7 @@ export default function AcademicsHubPage() {
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [previewResource, setPreviewResource] = useState<Resource | null>(null);
-  
+
   const [assignedClasses, setAssignedClasses] = useState<ClassAssignment[]>([]);
   const [dbSubjects, setDbSubjects] = useState<any[]>([]);
   const [dbResources, setDbResources] = useState<any[]>([]);
@@ -383,7 +383,7 @@ export default function AcademicsHubPage() {
     try {
       const saved = JSON.parse(localStorage.getItem(BOOKMARK_KEY) || "[]");
       if (Array.isArray(saved)) setBookmarks(saved);
-    } catch {}
+    } catch { }
   }, []);
 
   const toggleBookmark = (id: string) => {
@@ -414,7 +414,7 @@ export default function AcademicsHubPage() {
             teacherClassesList = Array.isArray(classesData) ? classesData : (classesData.data || []);
           }
         }
-        
+
         // Default fallback classes if none returned
         if (teacherClassesList.length === 0) {
           teacherClassesList = [
@@ -456,7 +456,7 @@ export default function AcademicsHubPage() {
       const name = c.subject;
       const classTag = `Class ${c.className}${c.section ? "-" + c.section : ""}`;
       const existing = subjectsMap.get(name);
-      
+
       const theme = SUBJECT_THEMES[name] || { color: "#6366f1", icon: "📚" };
 
       if (existing) {
@@ -489,7 +489,7 @@ export default function AcademicsHubPage() {
         const foundSub = dbSubjects.find(s => s.id === r.subjectId);
         if (foundSub) subName = foundSub.name;
       }
-      
+
       // Strict check: Only include resources matching one of the teacher's created/assigned classes and subjects
       if (assignedClasses.length > 0) {
         const isTeacherClass = assignedClasses.some((c) => {
@@ -538,7 +538,7 @@ export default function AcademicsHubPage() {
     assignedClasses.forEach((c) => {
       const fullClassName = `Class ${c.className}${c.section ? "-" + c.section : ""}`;
       const generated = generateStructuredData(c.subject, fullClassName, teacherName);
-      
+
       allSyllabus.push(...generated.syllabus);
       allResources.push(...generated.resources);
     });
@@ -633,7 +633,7 @@ export default function AcademicsHubPage() {
           return `https://img.youtube.com/vi/${match[2]}/hqdefault.jpg`;
         }
       }
-    } catch {}
+    } catch { }
     return null;
   };
 
@@ -806,11 +806,10 @@ export default function AcademicsHubPage() {
             )}
             <button
               onClick={() => toggleBookmark(r.id)}
-              className={`p-1.5 rounded-lg transition-all active:scale-90 ${
-                saved
-                  ? "text-amber-500 bg-amber-500/10"
-                  : "text-[var(--text-muted)] hover:text-amber-500 hover:bg-amber-500/10"
-              }`}
+              className={`p-1.5 rounded-lg transition-all active:scale-90 ${saved
+                ? "text-amber-500 bg-amber-500/10"
+                : "text-[var(--text-muted)] hover:text-amber-500 hover:bg-amber-500/10"
+                }`}
               title={saved ? "Remove bookmark" : "Bookmark for later"}
             >
               <Fi name="bookmark" className={`text-base ${saved ? "" : "opacity-70"}`} />
@@ -912,9 +911,8 @@ export default function AcademicsHubPage() {
             <SubjectBadge name={r.subject} classNameTag={r.class} />
             <button
               onClick={() => toggleBookmark(r.id)}
-              className={`p-1 rounded-md transition-all active:scale-90 ${
-                saved ? "text-amber-500" : "text-[var(--text-muted)] hover:text-amber-500"
-              }`}
+              className={`p-1 rounded-md transition-all active:scale-90 ${saved ? "text-amber-500" : "text-[var(--text-muted)] hover:text-amber-500"
+                }`}
             >
               <Fi name="bookmark" className={`text-base ${saved ? "" : "opacity-70"}`} />
             </button>
@@ -947,20 +945,20 @@ export default function AcademicsHubPage() {
       <div className="relative rounded-3xl overflow-hidden mb-6 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-6 md:p-8 shadow-xl text-white">
         <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 left-1/3 w-72 h-72 bg-fuchsia-400/20 rounded-full blur-3xl" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6 justify-between">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6 justify-between text-white">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-                <Fi name="graduation-cap" className="text-xl" />
+              <span className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center !text-white" style={{ color: "#ffffff" }}>
+                <Fi name="graduation-cap" className="text-xl !text-white" />
               </span>
-              <span className="text-[11px] font-black uppercase tracking-widest text-white/80">
+              <span className="text-[11px] font-black uppercase tracking-widest !text-white" style={{ color: "#ffffff" }}>
                 Teacher Academic Workspace
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black mb-1">
+            <p className="text-2xl md:text-3xl font-black mb-1 !text-white" >
               Class & Subject Curriculum Hub
-            </h1>
-            <p className="text-sm max-w-xl text-white/90">
+            </p>
+            <p className="text-sm max-w-xl !text-white/95" style={{ color: "rgba(255, 255, 255, 0.95)" }}>
               Browse textbooks, syllabus units, study materials, video lessons, and generate AI lesson plans for your assigned classes.
             </p>
           </div>
@@ -974,11 +972,11 @@ export default function AcademicsHubPage() {
             ].map((s) => (
               <div
                 key={s.label}
-                className="bg-white/15 backdrop-blur rounded-2xl px-4 py-3 text-center border border-white/20"
+                className="bg-white/20 backdrop-blur rounded-2xl px-4 py-3 text-center border border-white/30 text-white"
               >
-                <Fi name={s.icon} className="text-sm mx-auto mb-1 text-white/80" />
-                <div className="text-xl font-black text-white leading-none">{s.value}</div>
-                <div className="text-[10px] font-bold text-white/75 uppercase tracking-wider mt-1">
+                <Fi name={s.icon} className="text-sm mx-auto mb-1 !text-white" />
+                <div className="text-2xl font-black !text-white leading-none mb-1" style={{ color: "#ffffff" }}>{s.value}</div>
+                <div className="text-[10px] font-black !text-white uppercase tracking-wider" style={{ color: "#ffffff" }}>
                   {s.label}
                 </div>
               </div>
@@ -1015,11 +1013,10 @@ export default function AcademicsHubPage() {
         <div className="flex gap-2 overflow-x-auto scrollbar-thin py-1">
           <button
             onClick={() => setSelectedSubject("All")}
-            className={`shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all active:scale-95 ${
-              selectedSubject === "All"
-                ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                : "glass border-[var(--border)] text-[var(--text-main)] hover:border-indigo-400"
-            }`}
+            className={`shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all active:scale-95 ${selectedSubject === "All"
+              ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
+              : "glass border-[var(--border)] text-[var(--text-main)] hover:border-indigo-400"
+              }`}
           >
             <Fi name="apps" className="text-xs" /> All Subjects
           </button>
@@ -1029,9 +1026,8 @@ export default function AcademicsHubPage() {
               <button
                 key={s.name}
                 onClick={() => setSelectedSubject(active ? "All" : s.name)}
-                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all active:scale-95 ${
-                  active ? "shadow-md text-white" : "glass text-[var(--text-main)] hover:shadow"
-                }`}
+                className={`shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all active:scale-95 ${active ? "shadow-md text-white" : "glass text-[var(--text-main)] hover:shadow"
+                  }`}
                 style={
                   active
                     ? { backgroundColor: s.color, borderColor: s.color }
@@ -1058,20 +1054,18 @@ export default function AcademicsHubPage() {
             <button
               key={c.key}
               onClick={() => setActiveTab(c.key)}
-              className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                active
-                  ? "shadow-md text-white font-extrabold"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
-              }`}
+              className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${active
+                ? "shadow-md text-white font-extrabold"
+                : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
+                }`}
               style={active ? { background: getCategoryGradient(c.key) } : undefined}
             >
               <Fi name={c.icon} className="text-sm" />
               {c.label}
               {count !== null && (
                 <span
-                  className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
-                    active ? "bg-white/25 text-white" : "bg-[var(--bg-card-hover)] border border-[var(--border)]"
-                  }`}
+                  className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${active ? "bg-white/25 text-white" : "bg-[var(--bg-card-hover)] border border-[var(--border)]"
+                    }`}
                 >
                   {count}
                 </span>
@@ -1105,11 +1099,10 @@ export default function AcademicsHubPage() {
           </div>
           <button
             onClick={() => setShowSavedOnly(!showSavedOnly)}
-            className={`flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 ${
-              showSavedOnly
-                ? "bg-amber-500 border-amber-500 text-white shadow-md"
-                : "glass border-[var(--border)] text-[var(--text-main)] hover:border-amber-400"
-            }`}
+            className={`flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 ${showSavedOnly
+              ? "bg-amber-500 border-amber-500 text-white shadow-md"
+              : "glass border-[var(--border)] text-[var(--text-main)] hover:border-amber-400"
+              }`}
           >
             <Fi name="bookmark" className="text-sm" />
             Saved Only {bookmarks.length > 0 && `(${bookmarks.length})`}
@@ -1126,8 +1119,8 @@ export default function AcademicsHubPage() {
                 c.key === "subjects"
                   ? assignedClasses.length
                   : c.key === "syllabus"
-                  ? filteredSyllabus.length
-                  : countByCategory(c.key);
+                    ? filteredSyllabus.length
+                    : countByCategory(c.key);
               return (
                 <button
                   key={c.key}
@@ -1336,13 +1329,12 @@ export default function AcademicsHubPage() {
                       <h3 className="text-sm font-black text-[var(--text-heading)]">{unit.title}</h3>
                     </div>
                     <span
-                      className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full shrink-0 ${
-                        unit.status === "completed"
-                          ? "bg-emerald-500/15 text-emerald-600"
-                          : unit.status === "in-progress"
+                      className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full shrink-0 ${unit.status === "completed"
+                        ? "bg-emerald-500/15 text-emerald-600"
+                        : unit.status === "in-progress"
                           ? "bg-amber-500/15 text-amber-600"
                           : "bg-slate-500/15 text-slate-500"
-                      }`}
+                        }`}
                     >
                       {unit.status}
                     </span>
@@ -1510,11 +1502,10 @@ export default function AcademicsHubPage() {
                     key={opt.key}
                     onClick={() => handleAITeacherGenerate(opt.key)}
                     disabled={teacherAIModal.isGenerating}
-                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
-                      teacherAIModal.option === opt.key
-                        ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                        : "glass border-[var(--border)] text-[var(--text-heading)] hover:border-indigo-400"
-                    }`}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${teacherAIModal.option === opt.key
+                      ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
+                      : "glass border-[var(--border)] text-[var(--text-heading)] hover:border-indigo-400"
+                      }`}
                   >
                     <Fi name={opt.icon} className="text-xs" /> {opt.label}
                   </button>
