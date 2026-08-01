@@ -142,53 +142,67 @@ const SUBJECT_THEMES: Record<string, { color: string; gradient: string; icon: st
 function generateStructuredData(subjectName: string, className: string, teacherName: string) {
   const cleanClass = className.replace(/^Class\s*/i, "");
   const baseId = `${subjectName.toLowerCase()}-${cleanClass.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+  const subLower = subjectName.toLowerCase();
   
-  const syllabus: SyllabusUnit[] = [
-    {
-      id: `${baseId}-syl-1`,
-      unitNumber: "Unit 1",
-      title: `Fundamentals of ${subjectName}`,
-      subject: subjectName,
-      class: className,
-      term: "Term 1",
-      topics: ["Introduction & Key Principles", "Standard Definitions & Laws", "Core Formulations & Equations", "Sample Problem Solving"],
-      status: "completed",
-      completionPct: 100,
-    },
-    {
-      id: `${baseId}-syl-2`,
-      unitNumber: "Unit 2",
-      title: `Advanced ${subjectName} Concepts`,
-      subject: subjectName,
-      class: className,
-      term: "Term 1",
-      topics: ["Theoretical Derivations", "Step-by-step Analytical Methods", "Classroom Experiments & Diagrams", "Numerical Applications"],
-      status: "in-progress",
-      completionPct: 65,
-    },
-    {
-      id: `${baseId}-syl-3`,
-      unitNumber: "Unit 3",
-      title: `${subjectName} Applied Analysis`,
-      subject: subjectName,
-      class: className,
-      term: "Term 2",
-      topics: ["Real-world Industry Case Studies", "Interactive Problem Sets", "Laboratory Protocol & Safety", "Term-End Review"],
-      status: "in-progress",
-      completionPct: 30,
-    },
-    {
-      id: `${baseId}-syl-4`,
-      unitNumber: "Unit 4",
-      title: `Board Exam & Master Review - ${subjectName}`,
-      subject: subjectName,
-      class: className,
-      term: "Term 2 & 3",
-      topics: ["5-Mark & 10-Mark High Yield Topics", "Past 10 Years Questions Breakdown", "Model Paper Solutions", "Speed & Accuracy Tips"],
-      status: "upcoming",
-      completionPct: 0,
-    },
+  let unitTemplates = [
+    { title: `Fundamentals of ${subjectName}`, topics: ["Introduction & Key Principles", "Standard Definitions & Laws", "Core Formulations & Equations", "Sample Problem Solving"] },
+    { title: `Advanced ${subjectName} Concepts`, topics: ["Theoretical Derivations", "Step-by-step Analytical Methods", "Classroom Experiments & Diagrams", "Numerical Applications"] },
+    { title: `${subjectName} Applied Analysis`, topics: ["Real-world Industry Case Studies", "Interactive Problem Sets", "Laboratory Protocol & Safety", "Term-End Review"] },
+    { title: `Board Exam & Master Review - ${subjectName}`, topics: ["5-Mark & 10-Mark High Yield Topics", "Past 10 Years Questions Breakdown", "Model Paper Solutions", "Speed & Accuracy Tips"] },
+    { title: `${subjectName} Advanced Topics & Practice`, topics: ["Higher Order Thinking Skills", "Self-Assessment Quizzes", "Project Protocols", "Comprehensive Revision"] }
   ];
+
+  if (subLower.includes("bio") || subLower.includes("botan") || subLower.includes("zool")) {
+    unitTemplates = [
+      { title: "Unit I: Reproduction in Organisms", topics: ["Reproduction in Organisms", "Human Reproduction", "Reproductive Health", "Plant Embryology"] },
+      { title: "Unit II: Genetics and Evolution", topics: ["Principles of Inheritance and Variation", "Molecular Genetics", "Evolutionary Biology", "Gene Expression"] },
+      { title: "Unit III: Biology in Human Welfare", topics: ["Human Health and Diseases", "Microbes in Human Welfare", "Immunology & Vaccines", "Disease Prevention"] },
+      { title: "Unit IV: Biotechnology", topics: ["Principles of Biotechnology", "Applications of Biotechnology", "Recombinant DNA", "Bioprocess Engineering"] },
+      { title: "Unit V: Ecology and Environment", topics: ["Organisms and Populations", "Biodiversity and Its Conservation", "Environmental Issues", "Ecosystem Dynamics"] }
+    ];
+  } else if (subLower.includes("math")) {
+    unitTemplates = [
+      { title: "Unit I: Real Numbers & Algebra", topics: ["Polynomials & Equations", "Matrices & Determinants", "Sequence & Series", "Algebraic Proofs"] },
+      { title: "Unit II: Geometry & Trigonometry", topics: ["Triangles & Coordinate Geometry", "Trigonometric Identities", "Heights & Distances", "Circle Theorems"] },
+      { title: "Unit III: Calculus & Analysis", topics: ["Limits & Continuity", "Differential Calculus", "Integral Calculus", "Applications of Derivatives"] },
+      { title: "Unit IV: Analytical Geometry & Vectors", topics: ["Two-Dimensional Geometry", "Vector Algebra", "Three-Dimensional Lines", "Conic Sections"] },
+      { title: "Unit V: Economic Botany & Quantitative Methods", topics: ["Plant Breeding", "Economically Useful Plants", "Entrepreneurial Botany", "Statistical Probability"] }
+    ];
+  } else if (subLower.includes("physic")) {
+    unitTemplates = [
+      { title: "Unit I: Electrostatics & Current Electricity", topics: ["Coulomb's Law & Electric Fields", "Gauss Theorem", "Ohm's Law & Kirchhoff Rules", "Potentiometer Applications"] },
+      { title: "Unit II: Magnetism & AC Currents", topics: ["Biot-Savart & Ampere Laws", "Electromagnetic Induction", "Alternating Current", "Transformers"] },
+      { title: "Unit III: Optics & Wave Phenomena", topics: ["Ray Optics & Lenses", "Wave Optics & Interference", "Diffraction", "Polarization"] },
+      { title: "Unit IV: Dual Nature & Atomic Structure", topics: ["Photoelectric Effect", "Bohr Atomic Model", "Nuclear Physics & Radioactivity", "Mass Defect"] },
+      { title: "Unit V: Semiconductor Devices", topics: ["PN Junction Diodes", "Transistors & Amplifiers", "Logic Gates", "Solar Cells & Optoelectronics"] }
+    ];
+  } else if (subLower.includes("chem")) {
+    unitTemplates = [
+      { title: "Unit I: Solid State & Electrochemistry", topics: ["Crystal Lattices", "Nernst Equation", "Conductance in Solutions", "Batteries & Corrosion"] },
+      { title: "Unit II: Chemical Kinetics & Surface Chem", topics: ["Rate Laws & Order of Reaction", "Catalysis & Adsorption", "Colloids & Emulsions", "Arrhenius Equation"] },
+      { title: "Unit III: Organic Reaction Mechanisms", topics: ["Haloalkanes & Haloarenes", "Alcohols, Phenols & Ethers", "Aldehydes & Ketones", "Carboxylic Acid Derivatives"] },
+      { title: "Unit IV: Coordination Chemistry & Biomolecules", topics: ["IUPAC Nomenclature & Ligands", "Crystal Field Theory", "Proteins & Carbohydrates", "Nucleic Acids"] }
+    ];
+  } else if (subLower.includes("english")) {
+    unitTemplates = [
+      { title: "Unit I: Prose & Critical Reading", topics: ["Theme Analysis & Characterization", "Vocabulary Building", "Reading Comprehension", "Short Story Analysis"] },
+      { title: "Unit II: Poetry & Literary Appreciation", topics: ["Rhyme Scheme & Meter", "Figures of Speech", "Poetic Diction", "Theme Interpretation"] },
+      { title: "Unit III: Grammar & Transformations", topics: ["Tenses & Subject-Verb Agreement", "Active & Passive Voice", "Direct & Indirect Speech", "Clause Analysis"] },
+      { title: "Unit IV: Composition & Essay Writing", topics: ["Formal & Informal Letters", "Report & Essay Writing", "Notice & Speech Writing", "Précis Writing"] }
+    ];
+  }
+
+  const syllabus: SyllabusUnit[] = unitTemplates.map((ut, idx) => ({
+    id: `${baseId}-syl-${idx + 1}`,
+    unitNumber: `Unit ${["I", "II", "III", "IV", "V"][idx] || idx + 1}`,
+    title: ut.title,
+    subject: subjectName,
+    class: className,
+    term: idx < 2 ? "Term 1" : idx < 4 ? "Term 2" : "Term 3",
+    topics: ut.topics,
+    status: idx === 0 ? "completed" : idx < 3 ? "in-progress" : "upcoming",
+    completionPct: idx === 0 ? 100 : idx === 1 ? 75 : idx === 2 ? 40 : 0,
+  }));
 
   const resources: Resource[] = [
     // Textbooks
@@ -227,7 +241,7 @@ function generateStructuredData(subjectName: string, className: string, teacherN
       category: "materials",
       type: "PDF",
       meta: "4.8 MB · 250 Questions",
-      description: `Comprehensive 250+ short, medium and long answer questions with step-by-step model answers for Class ${cleanClass}.`,
+      description: `${unitTemplates[0]?.topics.join(" • ") || "Comprehensive questions and model answers."}`,
       addedBy: teacherName,
       date: "Recent",
       isNew: true,
@@ -252,60 +266,31 @@ function generateStructuredData(subjectName: string, className: string, teacherN
     // Notes
     {
       id: `${baseId}-note-1`,
-      title: `Classroom Lecture Notes - ${subjectName} Units 1 & 2`,
+      title: `Classroom Lecture Notes - ${subjectName} (${unitTemplates[1]?.title || "Core Units"})`,
       subject: subjectName,
       category: "notes",
       type: "DOC",
-      meta: "3.2 MB · Handwritten Notes",
-      description: `Detailed teacher lecture notes, highlighted key board exam hints, and solved sample problems.`,
+      meta: "AI OCR Parsed • Auto Extracted",
+      description: `Detailed teacher lecture notes covering ${unitTemplates[1]?.topics.join(" • ") || "key topics"}.`,
       addedBy: teacherName,
       date: "Recent",
       popular: true,
-      url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      class: className,
-    },
-    {
-      id: `${baseId}-note-2`,
-      title: `Board Examination Important 5-Mark Questions Guide`,
-      subject: subjectName,
-      category: "notes",
-      type: "PDF",
-      meta: "2.1 MB · Top 20 Questions",
-      description: `Curated list of top 20 most frequently asked long-answer questions with neat diagram guidelines.`,
-      addedBy: teacherName,
-      date: "Recent",
-      isNew: true,
       url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
       class: className,
     },
     // Video Lessons
     {
       id: `${baseId}-vid-1`,
-      title: `Class ${cleanClass} ${subjectName} - Complete Unit 1 Concept Masterclass`,
+      title: `Class ${cleanClass} ${subjectName} - ${unitTemplates[0]?.title || "Concept Masterclass"}`,
       subject: subjectName,
       category: "videos",
       type: "Video",
       meta: "42 mins · HD Video",
-      description: `Detailed video lecture breaking down fundamental concepts, diagram derivations, and key exam questions.`,
+      description: `Detailed video lecture breaking down ${unitTemplates[0]?.topics.slice(0, 2).join(" & ") || "fundamental concepts"}.`,
       addedBy: teacherName,
       date: "Recent",
       progress: 60,
       popular: true,
-      url: "https://www.youtube.com/watch?v=d7n7DdB-bHY",
-      class: className,
-    },
-    {
-      id: `${baseId}-vid-2`,
-      title: `${subjectName} Step-by-Step Problem Solving & Numerical Tutorial`,
-      subject: subjectName,
-      category: "videos",
-      type: "Video",
-      meta: "28 mins · Practice Session",
-      description: `Live worked out solutions for difficult numericals and past board paper questions.`,
-      addedBy: teacherName,
-      date: "Recent",
-      progress: 0,
-      isNew: true,
       url: "https://www.youtube.com/watch?v=d7n7DdB-bHY",
       class: className,
     },
@@ -316,25 +301,12 @@ function generateStructuredData(subjectName: string, className: string, teacherN
       subject: subjectName,
       category: "digital",
       type: "Interactive",
-      meta: "Interactive Module",
-      description: `Interactive 3D model allowing students to rotate, inspect, and simulate key physical and conceptual processes.`,
-      addedBy: "EdTech Portal",
+      meta: "AI OCR Parsed • Auto Extracted",
+      description: `${unitTemplates[2]?.topics.join(" • ") || "Interactive 3D models and simulation modules."}`,
+      addedBy: teacherName,
       date: "Recent",
       popular: true,
       url: "https://phET.colorado.edu",
-      class: className,
-    },
-    {
-      id: `${baseId}-dig-2`,
-      title: `${subjectName} Rapid Audio Revision Podcast (Units 1 - 4)`,
-      subject: subjectName,
-      category: "digital",
-      type: "Audio",
-      meta: "18 mins Audio",
-      description: `Listen on the go! High-impact audio summary covering all key terminology, definitions, and laws.`,
-      addedBy: teacherName,
-      date: "Recent",
-      url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
       class: className,
     },
     // Reference Materials
@@ -352,22 +324,9 @@ function generateStructuredData(subjectName: string, className: string, teacherN
       url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
       class: className,
     },
-    {
-      id: `${baseId}-ref-2`,
-      title: `${subjectName} State Board Official Blueprint & Weightage Breakdown`,
-      subject: subjectName,
-      category: "reference",
-      type: "PDF",
-      meta: "1.2 MB · Marks Distribution",
-      description: `Official chapter-wise mark distribution, section breakdowns, and question pattern blueprint for 2024-25.`,
-      addedBy: "Superintendent of Exams",
-      date: "2024-06-01",
-      url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      class: className,
-    },
   ];
 
-  return { syllabus, resources };
+  return { resources, syllabus };
 }
 
 const getCategoryGradient = (key: CategoryKey) => {
@@ -523,7 +482,7 @@ export default function AcademicsHubPage() {
     const allSyllabus: SyllabusUnit[] = [];
     const teacherName = session?.user?.name || "Class Teacher";
 
-    // 1. Process DB resources
+    // 1. Process DB resources matching assigned teacher classes ONLY
     dbResources.forEach((r) => {
       let subName = r.subject?.name || "General";
       if (!subName || subName === "General") {
@@ -531,6 +490,18 @@ export default function AcademicsHubPage() {
         if (foundSub) subName = foundSub.name;
       }
       
+      // Strict check: Only include resources matching one of the teacher's created/assigned classes and subjects
+      if (assignedClasses.length > 0) {
+        const isTeacherClass = assignedClasses.some((c) => {
+          const subMatch = c.subject.toLowerCase() === subName.toLowerCase();
+          const cleanRClass = (r.class || "").replace(/^Class\s*/i, "").trim().toLowerCase();
+          const cleanCClass = c.className.trim().toLowerCase();
+          const gradeMatch = !cleanRClass || cleanRClass.includes(cleanCClass) || cleanCClass.includes(cleanRClass);
+          return subMatch && gradeMatch;
+        });
+        if (!isTeacherClass) return; // Exclude resources for classes/subjects not taught by this teacher
+      }
+
       // Standardize category
       let category: Resource["category"] = "materials";
       const catLower = (r.category || "").toLowerCase();
@@ -559,11 +530,11 @@ export default function AcademicsHubPage() {
         isNew: r.isNew || false,
         popular: r.popular || true,
         url: r.url || r.youtubeUrl || "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-        class: r.class || "11",
+        class: r.class || assignedClasses[0]?.className || "11",
       });
     });
 
-    // 2. Generate rich data for each assigned class subject to guarantee ALL tabs are 100% populated
+    // 2. Generate rich data ONLY for each created & assigned class subject
     assignedClasses.forEach((c) => {
       const fullClassName = `Class ${c.className}${c.section ? "-" + c.section : ""}`;
       const generated = generateStructuredData(c.subject, fullClassName, teacherName);
@@ -575,7 +546,7 @@ export default function AcademicsHubPage() {
     return { resources: allResources, syllabus: allSyllabus };
   }, [dbResources, dbSubjects, assignedClasses, session]);
 
-  // Filtering function
+  // Filtering function strictly enforcing Class & Subject condition
   const isMatchClassAndSubject = useCallback((itemClass?: string, itemSubject?: string) => {
     // Subject filter
     if (selectedSubject !== "All") {
@@ -584,22 +555,25 @@ export default function AcademicsHubPage() {
       }
     }
 
-    // Class filter
+    // Class filter condition
     if (selectedClass !== "ALL") {
       if (!itemClass) return true; // General applies to all
       const cleanSelected = selectedClass.replace(/^Class\s*/i, "").trim().toLowerCase();
       const cleanItem = itemClass.replace(/^Class\s*/i, "").trim().toLowerCase();
 
-      // Check numeric part or full string match (e.g. 11-A vs 11)
       const selNum = cleanSelected.match(/\d+/)?.[0];
       const itemNum = cleanItem.match(/\d+/)?.[0];
 
       if (cleanSelected.includes("-")) {
-        // Exact class-section match e.g. "11-a"
-        if (cleanItem !== cleanSelected && selNum !== itemNum) return false;
+        // Class-section filter e.g. "7-a"
+        if (cleanItem === cleanSelected) return true;
+        if (itemNum && selNum && selNum === itemNum && !cleanItem.includes("-")) return true;
+        return false;
       } else {
-        // Grade match e.g. "11"
-        if (selNum && itemNum && selNum !== itemNum) return false;
+        // Grade level filter e.g. "7"
+        if (selNum && itemNum && selNum === itemNum) return true;
+        if (cleanItem === cleanSelected) return true;
+        return false;
       }
     }
 
@@ -1023,9 +997,9 @@ export default function AcademicsHubPage() {
           <select
             value={selectedClass}
             onChange={(e) => setSelectedClass(e.target.value)}
-            className="px-3.5 py-2 glass border border-[var(--border)] rounded-xl text-xs font-bold text-[var(--text-heading)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all cursor-pointer"
+            className="px-3.5 py-2 glass border border-[var(--border)] rounded-xl text-xs font-bold text-[var(--text-heading)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all cursor-pointer bg-[var(--bg-card)]"
           >
-            <option value="ALL">All My Assigned Classes</option>
+            <option value="ALL">All My Assigned Classes ({assignedClasses.length})</option>
             {assignedClasses.map((c) => {
               const val = `Class ${c.className}-${c.section}`;
               return (
@@ -1210,9 +1184,23 @@ export default function AcademicsHubPage() {
 
           {/* Recent Resources */}
           <div>
-            <h2 className="text-base font-black text-[var(--text-heading)] flex items-center gap-2 mb-3">
-              <Fi name="sparkles" className="text-base text-emerald-500" /> Featured Academic Resources
-            </h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-black text-[var(--text-heading)] flex items-center gap-2">
+                <Fi name="sparkles" className="text-base text-emerald-500" /> Featured Academic Resources
+              </h2>
+              {selectedClass !== "ALL" && (
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center gap-1.5">
+                  <Fi name="filter" className="text-xs" /> Class Condition: <strong className="font-black">{selectedClass}</strong>
+                  <button
+                    onClick={() => setSelectedClass("ALL")}
+                    className="ml-1 hover:text-red-500 text-xs font-bold"
+                    title="Clear Class Condition"
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredResources.slice(0, 6).map((r) => (
                 <ResourceCard key={r.id} r={r} />
