@@ -1,6 +1,6 @@
 "use client";
 import PortalLayout from "@/components/PortalLayout";
-import { Trophy, Medal, Award, Plus, Trash2, CheckCircle2, Clock } from "lucide-react";
+import { Trophy, Medal, Award, Plus, Trash2, CheckCircle2, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { ModalShell, Field, inputCls } from "@/components/pet/PetUi";
@@ -21,6 +21,8 @@ export default function AwardsPage() {
   const [loaded, setLoaded] = useState(false);
   const [levelFilter, setLevelFilter] = useState<"All" | EventLevel>("All");
   const [showAdd, setShowAdd] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchAwards();
@@ -55,6 +57,17 @@ export default function AwardsPage() {
         .sort((a, b) => b.date.localeCompare(a.date)),
     [awards, levelFilter]
   );
+
+  // Reset to first page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [levelFilter]);
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedAwards = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
 
   const pendingCerts = awards.filter((a) => !a.certificateIssued).length;
 
@@ -106,18 +119,18 @@ export default function AwardsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg">
-            <Trophy size={40} className="opacity-80 mb-4" />
+          <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-900/10 rounded-3xl p-6 text-amber-700 dark:text-amber-400 shadow-sm border border-amber-200/50 dark:border-amber-800/50 transition-all hover:shadow-md hover:-translate-y-1">
+            <Trophy size={40} className="mb-4" />
             <div className="text-4xl font-black mb-1">{tally.Gold}</div>
             <div className="text-sm font-semibold opacity-90">Gold Medals This Year</div>
           </div>
-          <div className="bg-gradient-to-br from-slate-400 to-slate-600 rounded-2xl p-6 text-white shadow-lg">
-            <Medal size={40} className="opacity-80 mb-4" />
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/40 dark:to-slate-800/20 rounded-3xl p-6 text-slate-700 dark:text-slate-300 shadow-sm border border-slate-200/50 dark:border-slate-700/50 transition-all hover:shadow-md hover:-translate-y-1">
+            <Medal size={40} className="mb-4" />
             <div className="text-4xl font-black mb-1">{tally.Silver}</div>
             <div className="text-sm font-semibold opacity-90">Silver Medals This Year</div>
           </div>
-          <div className="bg-gradient-to-br from-amber-700 to-amber-900 rounded-2xl p-6 text-white shadow-lg">
-            <Award size={40} className="opacity-80 mb-4" />
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-900/10 rounded-3xl p-6 text-orange-800 dark:text-orange-400 shadow-sm border border-orange-200/50 dark:border-orange-800/50 transition-all hover:shadow-md hover:-translate-y-1">
+            <Award size={40} className="mb-4" />
             <div className="text-4xl font-black mb-1">{tally.Bronze}</div>
             <div className="text-sm font-semibold opacity-90">Bronze Medals This Year</div>
           </div>
@@ -142,7 +155,7 @@ export default function AwardsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-light)]">
-                {filtered.map((a) => (
+                {paginatedAwards.map((a) => (
                   <tr key={a.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
                     <td className="p-4 font-bold text-[var(--text-heading)]">
                       {a.student}
@@ -201,6 +214,45 @@ export default function AwardsPage() {
               </tbody>
             </table>
           </div>
+          
+          {totalPages > 1 && (
+            <div className="p-4 border-t border-[var(--border)] flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+              <span className="text-sm text-[var(--text-muted)] font-medium">
+                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filtered.length)} of {filtered.length} entries
+              </span>
+              <div className="flex gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className="p-2 border border-[var(--border)] rounded-lg hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`w-8 h-8 rounded-lg text-sm font-bold transition-colors ${
+                        currentPage === i + 1
+                          ? "bg-blue-600 text-white"
+                          : "hover:bg-[var(--bg-hover)] text-[var(--text-muted)]"
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  className="p-2 border border-[var(--border)] rounded-lg hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
