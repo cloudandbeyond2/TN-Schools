@@ -770,49 +770,62 @@ export default function ExtracurricularsPage() {
                 const isEligible = !studentProfile || eligibility.levels.includes(targetStandard);
 
                 return (
-                  <div key={club.id} className={`rounded-2xl p-5 border ${theme.bg} transition-all hover:-translate-y-1 cursor-pointer group flex flex-col justify-between h-full bg-slate-950/20`}>
-                    <div onClick={() => setSelectedClubForModal(club)}>
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="bg-slate-100 dark:bg-slate-900/50 w-14 h-14 rounded-xl flex items-center justify-center border border-slate-250 dark:border-slate-800 group-hover:scale-110 transition-transform shrink-0">
+                  <div 
+                    key={club.id} 
+                    className="relative rounded-2xl p-5 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-900 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-purple-500/10 cursor-pointer group flex flex-col justify-between h-full overflow-hidden"
+                  >
+                    {/* Decorative Background Glow based on Theme */}
+                    <div className={`absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-20 blur-3xl transition-transform duration-500 group-hover:scale-150 ${theme.bg.split(' ')[0]}`}></div>
+                    
+                    <div onClick={() => setSelectedClubForModal(club)} className="relative z-10 flex-1">
+                      <div className="flex justify-between items-start mb-5">
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shadow-sm ${theme.bg}`}>
                           {renderFlaticon(club.icon, "text-2xl", theme.color)}
                         </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${theme.tagBg} ${theme.color}`}>
+                        <div className="flex flex-col items-end gap-1.5">
+                          <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-sm border ${theme.tagBg} ${theme.color} border-current/20`}>
                             {club.category}
                           </span>
-                          <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700/50">
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/50">
                             {eligibility.label}
                           </span>
                         </div>
                       </div>
-                      <h3 className="text-base font-bold text-black dark:text-white mb-1 line-clamp-1">{club.name}</h3>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-1 font-semibold">
-                        <i className="fi fi-rr-users text-slate-400" /> {memberCounts[club.id] ?? 0} Active Members
+                      <h3 className="text-base font-bold text-slate-800 dark:text-white mb-1.5 leading-tight group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-1">{club.name}</h3>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-6 flex items-center gap-1.5 font-semibold">
+                        <i className="fi fi-rr-users text-slate-400" /> 
+                        <span className="text-slate-700 dark:text-slate-300 font-bold">{memberCounts[club.id] ?? 0}</span> Active Members
                       </p>
                     </div>
                     
-                    {isMember ? (
-                      <button 
-                        disabled
-                        className="block text-center w-full py-2.5 rounded-xl text-xs font-bold border bg-emerald-50 dark:bg-emerald-950/10 text-emerald-700 dark:text-emerald-500 border-emerald-200 dark:border-emerald-900/60 cursor-default"
-                      >
-                        ✓ Joined Member
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => setSelectedClubForModal(club)}
-                        className={`block text-center w-full py-2.5 rounded-xl text-xs font-bold transition-all border ${
-                          !isEligible && studentProfile
-                            ? 'bg-slate-105 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 cursor-not-allowed'
-                            : `bg-white dark:bg-slate-900 hover:bg-purple-600 hover:text-white border-slate-200 dark:border-slate-800 hover:border-purple-600 ${theme.color}`
-                        }`}
-                        disabled={!isEligible && !!studentProfile}
-                      >
-                        {!isEligible && studentProfile 
-                          ? 'Restricted Standard' 
-                          : 'Learn More & Join'}
-                      </button>
-                    )}
+                    <div className="relative z-10 mt-auto">
+                      {isMember ? (
+                        <button 
+                          disabled
+                          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-bold border-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50 cursor-default"
+                        >
+                          <i className="fi fi-rr-check-circle" /> Joined Member
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => setSelectedClubForModal(club)}
+                          className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-bold transition-all duration-300 border-2 ${
+                            !isEligible && studentProfile
+                              ? 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 cursor-not-allowed'
+                              : `bg-transparent hover:text-white ${theme.color.replace('text-', 'border-').split(' ')[0]} ${theme.color.replace('text-', 'hover:bg-').split(' ')[0]} ${theme.color}`
+                          }`}
+                          disabled={!isEligible && !!studentProfile}
+                        >
+                          {!isEligible && studentProfile ? (
+                            <>Restricted Standard</>
+                          ) : (
+                            <>
+                              Learn More <i className="fi fi-rr-arrow-right transition-transform group-hover:translate-x-1" />
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}

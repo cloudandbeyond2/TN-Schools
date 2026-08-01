@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
+import Link from "next/link";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -311,9 +312,14 @@ export default function HeadmasterClubsPage() {
 
         {/* List of Clubs */}
         <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <h2 className="text-base sm:text-lg font-bold mb-4 flex items-center gap-2 text-slate-800 dark:text-white">
-            <i className="fi fi-rr-users text-blue-500" /> {lang === "தமிழ்" ? `செயலில் உள்ள மன்றங்கள் (${clubs.length})` : `Existing Clubs (${clubs.length})`}
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-base sm:text-lg font-bold flex items-center gap-2 text-slate-800 dark:text-white">
+              <i className="fi fi-rr-users text-blue-500" /> {lang === "தமிழ்" ? `செயலில் உள்ள மன்றங்கள் (${clubs.length})` : `Existing Clubs (${clubs.length})`}
+            </h2>
+            <Link href="/headmaster/club-members" className="text-[10px] uppercase tracking-wider font-bold text-amber-500 hover:text-amber-600 transition-colors bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-900/50">
+              View Club Members
+            </Link>
+          </div>
           {isLoading ? (
             <div className="flex flex-col items-center justify-center p-12 text-slate-500 text-xs gap-3">
               <div className="w-8 h-8 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin" />
