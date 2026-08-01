@@ -544,6 +544,29 @@ export default function StudentExamsPage() {
       themeClass="theme-student"
       accentColor="#6366f1"
     >
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <i className="fi fi-sr-clipboard-list text-2xl text-indigo-600 dark:text-indigo-400 flex items-center" />
+          <div>
+            <h2 className="text-lg sm:text-xl font-black text-black dark:text-white uppercase tracking-wider leading-tight">
+              {lang === "ta" ? "பள்ளி தேர்வுகள் & அட்டவணை" : "School Exams & Timetable"}
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {lang === "ta" ? "உங்கள் பள்ளியின் தேர்வு அட்டவணை, ஹால் அனுமதி மற்றும் அதிகாரப்பூர்வ முடிவுகள்." : "Official school examination timetables, seat allocation, hall permissions, and term report cards."}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 whitespace-nowrap shrink-0 self-start sm:self-auto">
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{lang === "ta" ? "வகுப்பு:" : "Your Grade:"}</span>
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+            <i className="fi fi-sr-graduation-cap flex items-center text-sm" />
+            {lang === "ta" ? `வகுப்பு ${studentClass}` : `Class ${studentClass || "10"}th Standard`}
+          </span>
+        </div>
+      </div>
+
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-4 sm:mb-6 gap-3 print:hidden">
         {/* Navigation tabs */}
         <div className="flex bg-slate-950 border border-slate-800 p-1 sm:p-1.5 rounded-2xl w-full sm:w-fit">
