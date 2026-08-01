@@ -125,6 +125,29 @@ export default function PredictionsPage() {
       title="Performance Predictions"
       subtitle="AI-projected board scores from your exams, model tests and mock attempts."
     >
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <i className="fi fi-sr-chart-line-up text-2xl text-indigo-600 dark:text-indigo-400 flex items-center" />
+          <div>
+            <h2 className="text-lg sm:text-xl font-black text-black dark:text-white uppercase tracking-wider leading-tight">
+              Performance Predictions
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              AI-projected board scores generated from your exam history, model test marks, and mock attempts.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 whitespace-nowrap shrink-0 self-start sm:self-auto">
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Grade:</span>
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+            <i className="fi fi-sr-graduation-cap flex items-center text-sm" />
+            Class 10th Standard
+          </span>
+        </div>
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500" />
