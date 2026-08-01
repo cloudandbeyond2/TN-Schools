@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import https from "https";
 import { PrismaClient } from "@prisma/client";
 import multer from "multer";
 import { randomUUID } from "crypto";
@@ -501,7 +502,7 @@ router.get("/resources", async (req: Request, res: Response) => {
 });
 
 // Create a resource
-router.post("/resources", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
+router.post("/resources", requireMinRole("TEACHER"), async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
     const { 
@@ -535,7 +536,7 @@ router.post("/resources", requireMinRole("HEADMASTER"), async (req: Request, res
 });
 
 // Update a resource
-router.put("/resources/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
+router.put("/resources/:id", requireMinRole("TEACHER"), async (req: Request, res: Response) => {
   try {
     await ensureAcademicTablesExist();
     const { id } = req.params;
@@ -567,7 +568,7 @@ router.put("/resources/:id", requireMinRole("HEADMASTER"), async (req: Request, 
 });
 
 // Delete a resource
-router.delete("/resources/:id", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
+router.delete("/resources/:id", requireMinRole("TEACHER"), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.academicResource.delete({
@@ -577,6 +578,106 @@ router.delete("/resources/:id", requireMinRole("HEADMASTER"), async (req: Reques
   } catch (error) {
     console.error("Error deleting resource:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// --- AI Parsing ---
+
+async function callGeminiMultimodal(prompt: string, base64Image: string, mimeType: string): Promise<any> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY is missing. Please add it to your environment.');
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
+
+  let cleanBase64 = base64Image;
+  if (base64Image.includes(';base64,')) {
+    cleanBase64 = base64Image.split(';base64,')[1];
+  }
+
+  const payload = {
+    contents: [
+      {
+        parts: [
+          { text: prompt },
+          {
+            inlineData: {
+              mimeType: mimeType || 'image/png',
+              data: cleanBase64
+            }
+          }
+        ]
+      }
+    ],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      maxOutputTokens: 8192
+    }
+  };
+
+  return new Promise((resolve, reject) => {
+    const postData = JSON.stringify(payload);
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData),
+        'x-goog-api-key': apiKey,
+      },
+    };
+
+    const req = https.request(url, options, (res) => {
+      const chunks: Buffer[] = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('end', () => {
+        const body = Buffer.concat(chunks).toString('utf8');
+        if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
+          reject(new Error(`Gemini API error ${res.statusCode}: ${body}`));
+          return;
+        }
+        try {
+          const parsed = JSON.parse(body);
+          const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!text) {
+            reject(new Error('Empty content from Gemini.'));
+            return;
+          }
+          resolve(JSON.parse(text));
+        } catch (e) {
+          reject(new Error(`Failed to parse response: ${String(e)}`));
+        }
+      });
+    });
+
+    req.on('error', (err) => reject(err));
+    req.setTimeout(60000, () => req.destroy(new Error('Gemini API timed out')));
+    req.write(postData);
+    req.end();
+  });
+}
+
+router.post("/parse-syllabus-ai", requireMinRole("HEADMASTER"), async (req: Request, res: Response) => {
+  try {
+    const { image, mimeType } = req.body;
+
+    if (!image) {
+      return res.status(400).json({ error: "Image base64 data is required." });
+    }
+
+    const prompt = `Analyze this syllabus image (which lists chapters/units and their sub-chapters/topics) and extract the entire structure. Return a JSON array of Units, where each unit has 'title' (string, e.g., 'Unit 1: Prose, Poem & Supplementary'), 'term' (string, e.g., 'Term 1' or 'Full Year' if not specified), and 'subtopics' (an array of strings representing the subtopics). Do not include any formatting, markdown, backticks, or code blocks. Return a raw JSON array: [ { "title": "Unit 1: Prose & Poetry", "term": "Term 1", "subtopics": [ "Prose: His First Flight", "Poem: Life" ] } ]`;
+    
+    console.log("Calling Gemini multimodal to parse syllabus screenshot for academics hub...");
+    const parsedData = await callGeminiMultimodal(prompt, image, mimeType || 'image/png');
+    
+    if (!Array.isArray(parsedData)) {
+      throw new Error("Invalid response format from AI. Expected JSON array.");
+    }
+
+    res.json({ success: true, data: parsedData });
+  } catch (error: any) {
+    console.error("AI Syllabus Parser Error:", error);
+    res.status(500).json({ error: error.message || "Failed to process syllabus image with AI" });
   }
 });
 
