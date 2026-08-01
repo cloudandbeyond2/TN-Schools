@@ -164,8 +164,9 @@ export default function AcademicsHubPage() {
         const fetchedSyllabus: Record<string, SyllabusUnit[]> = {};
         if (Array.isArray(resourcesJson)) {
           resourcesJson.forEach((res: any) => {
-            if (res.category === "syllabus") {
-              const subName = res.subject?.name || "General";
+            const catLower = (res.category || "").toLowerCase();
+            if (catLower === "syllabus") {
+              const subName = (typeof res.subject === "object" ? res.subject?.name : res.subject) || res.subjectName || "General";
               if (!fetchedSyllabus[subName]) {
                 fetchedSyllabus[subName] = [];
               }
@@ -233,17 +234,14 @@ export default function AcademicsHubPage() {
 
         if (Array.isArray(resourcesJson)) {
           const fetchedResources: Resource[] = resourcesJson
-            .filter((res: any) => {
-              const sName = res.subject?.name;
-              if (!sName || sName === "General") return true;
-              return allowedSubNames.has(sName.toLowerCase());
-            })
             .map((res: any) => {
+              const subName = (typeof res.subject === "object" ? res.subject?.name : res.subject) || res.subjectName || "General";
+              const catLower = (res.category || "").toLowerCase();
               return {
                 id: res.id,
                 title: res.title,
-                subject: res.subject?.name || "General",
-                category: res.category as any,
+                subject: subName,
+                category: catLower as any,
                 type: res.type as any,
                 meta: res.meta || "N/A",
                 description: res.description || "",
@@ -394,8 +392,8 @@ export default function AcademicsHubPage() {
   /* Filtered resource list for the active tab */
   const filteredResources = useMemo(() => {
     return resources.filter((r) => {
-      if (activeTab !== "overview" && activeTab !== "subjects" && activeTab !== "syllabus" && r.category !== activeTab) return false;
-      if (selectedSubject !== "All" && r.subject !== selectedSubject) return false;
+      if (activeTab !== "overview" && activeTab !== "subjects" && activeTab !== "syllabus" && r.category?.toLowerCase() !== activeTab.toLowerCase()) return false;
+      if (selectedSubject !== "All" && r.subject.toLowerCase() !== selectedSubject.toLowerCase()) return false;
       if (showSavedOnly && !bookmarks.includes(r.id)) return false;
       if (search.trim()) {
         const q = search.toLowerCase();
@@ -411,7 +409,7 @@ export default function AcademicsHubPage() {
 
   const countByCategory = (cat: string) =>
     resources.filter(
-      (r) => r.category === cat && (selectedSubject === "All" || r.subject === selectedSubject)
+      (r) => r.category?.toLowerCase() === cat.toLowerCase() && (selectedSubject === "All" || r.subject.toLowerCase() === selectedSubject.toLowerCase())
     ).length;
 
   const continueWatching = resources.filter(
