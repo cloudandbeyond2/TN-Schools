@@ -373,7 +373,7 @@ export default function StaffManagementPage() {
         const body = {
           name: formName,
           emisId: formEmisId,
-          subject: formType === "Teaching" ? formSubjectOrRole : "Non-Teaching",
+          subject: formSubjectOrRole || (formType === "Teaching" ? "General" : "Non-Teaching"),
           phone: formPhone || "N/A",
           email: formEmail || null,
           attendance: formAttendance,
@@ -504,7 +504,7 @@ export default function StaffManagementPage() {
 
         const body = {
           name: formName,
-          subject: formType === "Teaching" ? formSubjectOrRole : "Non-Teaching",
+          subject: formSubjectOrRole || (formType === "Teaching" ? "General" : "Non-Teaching"),
           phone: formPhone,
           email: formEmail,
           attendance: formAttendance,
@@ -1842,17 +1842,31 @@ export default function StaffManagementPage() {
                 </div>
 
                 {formType !== "Temporary" && (
-                  <div>
-                    <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">EMIS ID / Staff ID *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formEmisId}
-                      onChange={e => setFormEmisId(e.target.value)}
-                      placeholder="e.g. TCH206"
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
+                  <>
+                    <div>
+                      <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">EMIS ID / Staff ID *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formEmisId}
+                        onChange={e => setFormEmisId(e.target.value)}
+                        placeholder="e.g. TCH206"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    {formType === "Non-Teaching" && (
+                      <div>
+                        <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Role (Optional)</label>
+                        <input
+                          type="text"
+                          value={formSubjectOrRole}
+                          onChange={e => setFormSubjectOrRole(e.target.value)}
+                          placeholder="e.g. PET, Librarian, Clerk"
+                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -2137,6 +2151,19 @@ export default function StaffManagementPage() {
                   />
                 </div>
               </div>
+
+              {formType === "Non-Teaching" && (
+                <div>
+                  <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Role (Optional)</label>
+                  <input
+                    type="text"
+                    value={formSubjectOrRole}
+                    onChange={e => setFormSubjectOrRole(e.target.value)}
+                    placeholder="e.g. PET, Librarian, Clerk"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
+                  />
+                </div>
+              )}
 
               {/* Phone Number */}
               <div>
