@@ -3,13 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
-import {
-  Mic, BookOpen, Headphones, PenTool, MessageSquare, Users, Search,
-  Volume2, VolumeX, Book, Gamepad2, ListPlus, Mic2,
-  Calendar, Send, Target, BrainCircuit,
-  MessageCircle, X, Zap, Clock, Loader2, ChevronRight, Star, RefreshCw,
-  ArrowRight, Sparkles, Languages, Trophy, Check, Sliders, Play, Square, Heart, Smile, Pause
-} from "lucide-react";
+
 import Swal from "sweetalert2";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -458,28 +452,28 @@ export default function LanguageCoachingPage() {
   // ─── Tier-based 6 Feature Cards ──────────────────────────────────────────────
   const TIER_CARDS: Record<Tier, Array<{ icon: React.ReactElement; title: string; desc: string; color: string; modal: string }>> = {
     explorer: [
-      { icon: <Mic2 />, title: selectedLang === "Tamil" ? "AI பேச்சுப் பயிற்சி" : "AI Speaking Coach", desc: selectedLang === "Tamil" ? "உச்சரிப்பு பரிசோதனை" : "Pronunciation test", color: "rose", modal: "AI Speaking Coach" },
-      { icon: <Search />, title: selectedLang === "Tamil" ? "சொற்களஞ்சியம்" : "Vocab Builder", desc: selectedLang === "Tamil" ? "அட்டைப் பயிற்சி" : "AI Flashcards", color: "emerald", modal: "Vocab Builder" },
-      { icon: <Book />, title: selectedLang === "Tamil" ? "கதை வாசிப்பு" : "Story Reading", desc: selectedLang === "Tamil" ? "AI உருவாக்கிக் கதைகள்" : "AI-generated stories", color: "purple", modal: "Story Reading" },
-      { icon: <ListPlus />, title: selectedLang === "Tamil" ? "வாக்கிய அமைப்பு" : "Sentence Builder", desc: selectedLang === "Tamil" ? "சொல் புதிர்கள்" : "AI word puzzles", color: "cyan", modal: "Sentence Builder" },
-      { icon: <Sparkles />, title: selectedLang === "Tamil" ? "சொல் விளையாட்டுகள்" : "Language Games", desc: selectedLang === "Tamil" ? "சொல் புதிர் விளையாட்டு" : "Word Scramble fun", color: "pink", modal: "Language Games" },
-      { icon: <Target />, title: selectedLang === "Tamil" ? "தினசரி சவால்" : "Daily Challenge", desc: selectedLang === "Tamil" ? "புள்ளிகள் பெறும் பணிகள்" : "AI XP tasks", color: "blue", modal: "Daily Challenge" },
+      { icon: <i className="fi fi-sr-microphone flex items-center" />, title: selectedLang === "Tamil" ? "AI பேச்சுப் பயிற்சி" : "AI Speaking Coach", desc: selectedLang === "Tamil" ? "உச்சரிப்பு பரிசோதனை" : "Pronunciation test", color: "rose", modal: "AI Speaking Coach" },
+      { icon: <i className="fi fi-sr-search flex items-center" />, title: selectedLang === "Tamil" ? "சொற்களஞ்சியம்" : "Vocab Builder", desc: selectedLang === "Tamil" ? "அட்டைப் பயிற்சி" : "AI Flashcards", color: "emerald", modal: "Vocab Builder" },
+      { icon: <i className="fi fi-sr-book-bookmark flex items-center" />, title: selectedLang === "Tamil" ? "கதை வாசிப்பு" : "Story Reading", desc: selectedLang === "Tamil" ? "AI உருவாக்கிக் கதைகள்" : "AI-generated stories", color: "purple", modal: "Story Reading" },
+      { icon: <i className="fi fi-sr-list flex items-center" />, title: selectedLang === "Tamil" ? "வாக்கிய அமைப்பு" : "Sentence Builder", desc: selectedLang === "Tamil" ? "சொல் புதிர்கள்" : "AI word puzzles", color: "cyan", modal: "Sentence Builder" },
+      { icon: <i className="fi fi-sr-sparkles flex items-center" />, title: selectedLang === "Tamil" ? "சொல் விளையாட்டுகள்" : "Language Games", desc: selectedLang === "Tamil" ? "சொல் புதிர் விளையாட்டு" : "Word Scramble fun", color: "pink", modal: "Language Games" },
+      { icon: <i className="fi fi-sr-target flex items-center" />, title: selectedLang === "Tamil" ? "தினசரி சவால்" : "Daily Challenge", desc: selectedLang === "Tamil" ? "புள்ளிகள் பெறும் பணிகள்" : "AI XP tasks", color: "blue", modal: "Daily Challenge" },
     ],
     communicator: [
-      { icon: <Mic2 />, title: selectedLang === "Tamil" ? "AI பேச்சுப் பயிற்சி" : "AI Speaking Coach", desc: selectedLang === "Tamil" ? "உச்சரிப்பு பரிசோதனை" : "Pronunciation test", color: "rose", modal: "AI Speaking Coach" },
-      { icon: <Search />, title: selectedLang === "Tamil" ? "சொற்களஞ்சியம்" : "Vocab Builder", desc: selectedLang === "Tamil" ? "அட்டைப் பயிற்சி" : "AI Flashcards", color: "emerald", modal: "Vocab Builder" },
-      { icon: <Users />, title: selectedLang === "Tamil" ? "சமூக உரையாடல்" : "Real-Life Convo", desc: selectedLang === "Tamil" ? "நடைமுறைப் பேச்சு" : "Roleplay scenarios", color: "indigo", modal: "Real-Life Convo" },
-      { icon: <Book />, title: selectedLang === "Tamil" ? "கதை வாசிப்பு" : "Story Reading", desc: selectedLang === "Tamil" ? "AI உருவாக்கிக் கதைகள்" : "AI-generated stories", color: "purple", modal: "Story Reading" },
-      { icon: <PenTool />, title: selectedLang === "Tamil" ? "எழுத்துப் பயிற்சி" : "Writing Practice", desc: selectedLang === "Tamil" ? "AI வழிகாட்டுதல்" : "AI writing prompts", color: "amber", modal: "Writing Practice" },
-      { icon: <Target />, title: selectedLang === "Tamil" ? "தினசரி சவால்" : "Daily Challenge", desc: selectedLang === "Tamil" ? "புள்ளிகள் பெறும் பணிகள்" : "AI XP tasks", color: "blue", modal: "Daily Challenge" },
+      { icon: <i className="fi fi-sr-microphone flex items-center" />, title: selectedLang === "Tamil" ? "AI பேச்சுப் பயிற்சி" : "AI Speaking Coach", desc: selectedLang === "Tamil" ? "உச்சரிப்பு பரிசோதனை" : "Pronunciation test", color: "rose", modal: "AI Speaking Coach" },
+      { icon: <i className="fi fi-sr-search flex items-center" />, title: selectedLang === "Tamil" ? "சொற்களஞ்சியம்" : "Vocab Builder", desc: selectedLang === "Tamil" ? "அட்டைப் பயிற்சி" : "AI Flashcards", color: "emerald", modal: "Vocab Builder" },
+      { icon: <i className="fi fi-sr-users flex items-center" />, title: selectedLang === "Tamil" ? "சமூக உரையாடல்" : "Real-Life Convo", desc: selectedLang === "Tamil" ? "நடைமுறைப் பேச்சு" : "Roleplay scenarios", color: "indigo", modal: "Real-Life Convo" },
+      { icon: <i className="fi fi-sr-book-bookmark flex items-center" />, title: selectedLang === "Tamil" ? "கதை வாசிப்பு" : "Story Reading", desc: selectedLang === "Tamil" ? "AI உருவாக்கிக் கதைகள்" : "AI-generated stories", color: "purple", modal: "Story Reading" },
+      { icon: <i className="fi fi-sr-pen-field flex items-center" />, title: selectedLang === "Tamil" ? "எழுத்துப் பயிற்சி" : "Writing Practice", desc: selectedLang === "Tamil" ? "AI வழிகாட்டுதல்" : "AI writing prompts", color: "amber", modal: "Writing Practice" },
+      { icon: <i className="fi fi-sr-target flex items-center" />, title: selectedLang === "Tamil" ? "தினசரி சவால்" : "Daily Challenge", desc: selectedLang === "Tamil" ? "புள்ளிகள் பெறும் பணிகள்" : "AI XP tasks", color: "blue", modal: "Daily Challenge" },
     ],
     orator: [
-      { icon: <Mic2 />, title: selectedLang === "Tamil" ? "AI பேச்சுப் பயிற்சி" : "AI Speaking Coach", desc: selectedLang === "Tamil" ? "உச்சரிப்பு பரிசோதனை" : "Pronunciation test", color: "rose", modal: "AI Speaking Coach" },
-      { icon: <MessageSquare />, title: selectedLang === "Tamil" ? "பட்டிமன்றப் பயிற்சி" : "Debate Practice", desc: selectedLang === "Tamil" ? "கருத்துரைத்தல்" : "Argue your point", color: "indigo", modal: "Debate Practice" },
-      { icon: <MessageCircle />, title: selectedLang === "Tamil" ? "பொதுப் பேச்சு" : "Public Speaking", desc: selectedLang === "Tamil" ? "பேச்சுத் தலைப்புகள்" : "AI debate topics", color: "purple", modal: "Public Speaking" },
-      { icon: <Gamepad2 />, title: selectedLang === "Tamil" ? "இலக்கண விளையாட்டுகள்" : "Grammar Games", desc: selectedLang === "Tamil" ? "இலக்கணப் பிழை திருத்தம்" : "Grammar check & tips", color: "pink", modal: "Grammar Games" },
-      { icon: <PenTool />, title: selectedLang === "Tamil" ? "எழுத்துப் பயிற்சி" : "Writing Practice", desc: selectedLang === "Tamil" ? "AI வழிகாட்டுதல்" : "AI writing prompts", color: "amber", modal: "Writing Practice" },
-      { icon: <Target />, title: selectedLang === "Tamil" ? "தினசரி சவால்" : "Daily Challenge", desc: selectedLang === "Tamil" ? "புள்ளிகள் பெறும் பணிகள்" : "AI XP tasks", color: "blue", modal: "Daily Challenge" },
+      { icon: <i className="fi fi-sr-microphone flex items-center" />, title: selectedLang === "Tamil" ? "AI பேச்சுப் பயிற்சி" : "AI Speaking Coach", desc: selectedLang === "Tamil" ? "உச்சரிப்பு பரிசோதனை" : "Pronunciation test", color: "rose", modal: "AI Speaking Coach" },
+      { icon: <i className="fi fi-sr-comment-alt flex items-center" />, title: selectedLang === "Tamil" ? "பட்டிமன்றப் பயிற்சி" : "Debate Practice", desc: selectedLang === "Tamil" ? "கருத்துரைத்தல்" : "Argue your point", color: "indigo", modal: "Debate Practice" },
+      { icon: <i className="fi fi-sr-comment flex items-center" />, title: selectedLang === "Tamil" ? "பொதுப் பேச்சு" : "Public Speaking", desc: selectedLang === "Tamil" ? "பேச்சுத் தலைப்புகள்" : "AI debate topics", color: "purple", modal: "Public Speaking" },
+      { icon: <i className="fi fi-sr-gamepad flex items-center" />, title: selectedLang === "Tamil" ? "இலக்கண விளையாட்டுகள்" : "Grammar Games", desc: selectedLang === "Tamil" ? "இலக்கணப் பிழை திருத்தம்" : "Grammar check & tips", color: "pink", modal: "Grammar Games" },
+      { icon: <i className="fi fi-sr-pen-field flex items-center" />, title: selectedLang === "Tamil" ? "எழுத்துப் பயிற்சி" : "Writing Practice", desc: selectedLang === "Tamil" ? "AI வழிகாட்டுதல்" : "AI writing prompts", color: "amber", modal: "Writing Practice" },
+      { icon: <i className="fi fi-sr-target flex items-center" />, title: selectedLang === "Tamil" ? "தினசரி சவால்" : "Daily Challenge", desc: selectedLang === "Tamil" ? "புள்ளிகள் பெறும் பணிகள்" : "AI XP tasks", color: "blue", modal: "Daily Challenge" },
     ],
   };
 
@@ -998,36 +992,35 @@ export default function LanguageCoachingPage() {
   // ═══════════════════════════════════════════════════════════════════════════════
   return (
     <PortalLayout title={t.hubTitle} subtitle={`AI-Powered · ${t.langPractice}: ${selectedLang}`}>
-      <div className="flex flex-col gap-8 text-left max-w-7xl mx-auto w-full">
+      <div className="flex flex-col gap-8 text-left w-full pb-16">
 
-        {/* Hero Header Section */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 p-6 md:p-8 shadow-2xl text-white">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.12),transparent)]" />
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-2 max-w-xl">
-              <span className="bg-white/20 text-white font-extrabold text-[10px] uppercase tracking-widest px-3 py-1 rounded-full backdrop-blur-md inline-block">
+        {/* Premium Glassmorphism Banner */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 glass rounded-3xl py-4 px-6 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center border border-indigo-200/20 shrink-0 shadow-sm">
+              <i className="fi fi-sr-language text-indigo-600 dark:text-indigo-400 text-xl flex items-center" style={{ color: "#4f46e5", WebkitTextFillColor: "#4f46e5" }} />
+            </div>
+            <div className="text-left">
+              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-650 dark:text-indigo-400 block mb-1">
                 {t.deptBanner}
               </span>
-              <h1 className="text-2xl md:text-4xl font-black tracking-tight leading-tight">
-                {t.hubTitle}
+              <h1 className="text-xl md:text-2xl font-black text-black dark:text-white uppercase tracking-wider leading-none mb-1.5">
+                {selectedLang === "Tamil" ? "தமிழ் மொழிப் பயிற்சி" : "Language Coaching"}
               </h1>
-              <p className="text-indigo-100 text-xs md:text-sm font-medium leading-relaxed">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold leading-tight">
                 {t.hubSubtitle}
               </p>
             </div>
-            {!tierLoading && (
-              <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 sm:p-5 rounded-2xl flex flex-col items-center text-center shadow-lg shrink-0 w-full md:w-52 transition-all hover:scale-[1.02]">
-                <span className="bg-emerald-400 text-slate-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest mb-1.5 shadow-sm">
-                  {TIER_LABELS[gradeTier].label}
-                </span>
-                <h4 className="font-extrabold text-sm text-white">{TIER_LABELS[gradeTier].badge}</h4>
-                <p className="text-[10px] text-indigo-200 mt-1 max-w-[180px] leading-relaxed">
-                  {TIER_LABELS[gradeTier].desc}
-                </p>
-              </div>
-            )}
           </div>
-        </section>
+          {!tierLoading && (
+            <div className="bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/30 p-3 px-4 rounded-2xl flex flex-col items-center text-center shadow-sm shrink-0 w-full sm:w-auto transition-all">
+              <span className="bg-emerald-400 text-slate-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest mb-1 shadow-sm">
+                {TIER_LABELS[gradeTier].label}
+              </span>
+              <h4 className="font-extrabold text-xs text-slate-800 dark:text-slate-200">{TIER_LABELS[gradeTier].badge}</h4>
+            </div>
+          )}
+        </div>
 
         {/* 1. Audio Control Bar & Language Selector Header */}
         <section className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-5">
@@ -1035,7 +1028,7 @@ export default function LanguageCoachingPage() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 rounded-xl">
-                <Languages className="w-5 h-5" />
+                <i className="fi fi-sr-language w-5 h-5 flex items-center" />
               </div>
               <h2 className="text-sm font-black text-slate-800 dark:text-slate-100">{t.langPractice}</h2>
             </div>
@@ -1053,7 +1046,7 @@ export default function LanguageCoachingPage() {
           <div className="flex flex-wrap items-center gap-3 bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
             {/* Speed / Rate Toggle */}
             <div className="flex items-center gap-1.5">
-              <Sliders className="w-3.5 h-3.5 text-indigo-500" />
+              <i className="fi fi-sr-settings-sliders w-3.5 h-3.5 text-indigo-500 flex items-center" />
               <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">{t.audioSpeed}:</span>
               <div className="flex gap-1">
                 {[
@@ -1072,7 +1065,7 @@ export default function LanguageCoachingPage() {
             {/* Volume Control */}
             <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-3">
               <button onClick={() => setAudioVolume(v => (v > 0 ? 0 : 1.0))} className="text-slate-500 hover:text-indigo-600 dark:text-slate-400">
-                {audioVolume === 0 ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-indigo-600" />}
+                {audioVolume === 0 ? <i className="fi fi-sr-volume-slash w-4 h-4 text-rose-500 flex items-center" /> : <i className="fi fi-sr-volume w-4 h-4 text-indigo-600 flex items-center" />}
               </button>
               <input type="range" min="0" max="1" step="0.1" value={audioVolume} onChange={e => setAudioVolume(parseFloat(e.target.value))}
                 className="w-16 sm:w-20 accent-indigo-600 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg" title={`Volume: ${Math.round(audioVolume * 100)}%`} />
@@ -1083,13 +1076,13 @@ export default function LanguageCoachingPage() {
               <AudioEqualizerWave active={isPlayingAudio || isRecording} color={isPlayingAudio ? "bg-emerald-500" : "bg-rose-500"} />
               {isPlayingAudio ? (
                 <button onClick={stopAudio} className="bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1">
-                  <Square className="w-3 h-3 fill-current" /> {t.stopAudio}
+                  <i className="fi fi-sr-square w-3 h-3 fill-current flex items-center" /> {t.stopAudio}
                 </button>
               ) : (
                 <div className="flex items-center gap-1.5">
                   <button onClick={() => speakWord(selectedLang === "Tamil" ? "வணக்கம்! தெளிவான தமிழ் ஒலி கேட்கிறதா?" : "Hello! Testing audio clarity.")}
                     className="bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors">
-                    <Volume2 className="w-3 h-3" /> {t.testAudio}
+                    <i className="fi fi-sr-volume w-3 h-3 flex items-center" /> {t.testAudio}
                   </button>
                   <button onClick={() => {
                     Swal.fire({
@@ -1109,7 +1102,7 @@ export default function LanguageCoachingPage() {
                       confirmButtonColor: "#4f46e5"
                     });
                   }} className="bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 hover:bg-amber-100 text-[10px] font-extrabold px-2 py-1 rounded-lg flex items-center gap-1 transition-colors">
-                    <Sparkles className="w-3 h-3 text-amber-500" /> HD Voice Guide
+                    <i className="fi fi-sr-sparkles w-3 h-3 text-amber-500 flex items-center" /> HD Voice Guide
                   </button>
                 </div>
               )}
@@ -1122,7 +1115,7 @@ export default function LanguageCoachingPage() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
               <span className="inline-flex items-center gap-1.5 bg-indigo-600 text-white font-extrabold text-[10px] uppercase tracking-wider px-3 py-1 rounded-full shadow-xs">
-                <Heart className="w-3 h-3 text-rose-300 fill-current" /> Comfort Learning Plan
+                <i className="fi fi-sr-heart w-3 h-3 text-rose-300 fill-current flex items-center" /> Comfort Learning Plan
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1.5">
                 {t.comfortPlanTitle}
@@ -1136,11 +1129,11 @@ export default function LanguageCoachingPage() {
             <div className="bg-white dark:bg-slate-950 p-1.5 rounded-2xl flex items-center gap-1 border border-slate-200 dark:border-slate-800 shadow-xs self-stretch sm:self-auto justify-center">
               <button onClick={() => setComfortMode("relaxed")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${comfortMode === "relaxed" ? "bg-emerald-500 text-white shadow-sm" : "text-slate-600 dark:text-slate-400 hover:text-slate-900"}`}>
-                <Smile className="w-4 h-4" /> {t.relaxedPace}
+                <i className="fi fi-sr-smile w-4 h-4 flex items-center" /> {t.relaxedPace}
               </button>
               <button onClick={() => setComfortMode("standard")}
                 className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${comfortMode === "standard" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 dark:text-slate-400 hover:text-slate-900"}`}>
-                <Zap className="w-4 h-4" /> {t.standardPace}
+                <i className="fi fi-sr-bolt w-4 h-4 flex items-center" /> {t.standardPace}
               </button>
             </div>
           </div>
@@ -1153,7 +1146,7 @@ export default function LanguageCoachingPage() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded-md">Step 1 • 2 mins</span>
                   <button onClick={() => toggleComfortStep(0)} className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all ${comfortStepsDone[0] ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-300 text-transparent hover:border-indigo-400"}`}>
-                    <Check className="w-3.5 h-3.5" />
+                    <i className="fi fi-sr-check w-3.5 h-3.5 flex items-center" />
                   </button>
                 </div>
                 <h4 className="font-extrabold text-sm text-slate-800 dark:text-white">{t.step1Title}</h4>
@@ -1164,7 +1157,7 @@ export default function LanguageCoachingPage() {
                 else speakWord(selectedLang === "Tamil" ? "வணக்கம், இன்றைய தமிழ் வார்த்தையைக் கேட்கவும்." : "Welcome to today's audio warmup lesson.", 0.75);
                 toggleComfortStep(0);
               }} className="bg-indigo-50 dark:bg-indigo-950 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 text-xs font-bold py-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
-                <Volume2 className="w-4 h-4" /> {t.listenAudio}
+                <i className="fi fi-sr-volume w-4 h-4 flex items-center" /> {t.listenAudio}
               </button>
             </div>
 
@@ -1174,14 +1167,14 @@ export default function LanguageCoachingPage() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-black uppercase text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950 px-2 py-0.5 rounded-md">Step 2 • 3 mins</span>
                   <button onClick={() => toggleComfortStep(1)} className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all ${comfortStepsDone[1] ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-300 text-transparent hover:border-indigo-400"}`}>
-                    <Check className="w-3.5 h-3.5" />
+                    <i className="fi fi-sr-check w-3.5 h-3.5 flex items-center" />
                   </button>
                 </div>
                 <h4 className="font-extrabold text-sm text-slate-800 dark:text-white">{t.step2Title}</h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t.step2Desc}</p>
               </div>
               <button onClick={() => openModal("Story Reading")} className="bg-purple-50 dark:bg-purple-950 hover:bg-purple-100 text-purple-700 dark:text-purple-300 text-xs font-bold py-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
-                <BookOpen className="w-4 h-4" /> {t.readPassage}
+                <i className="fi fi-sr-book-open-reader w-4 h-4 flex items-center" /> {t.readPassage}
               </button>
             </div>
 
@@ -1191,14 +1184,14 @@ export default function LanguageCoachingPage() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-black uppercase text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950 px-2 py-0.5 rounded-md">Step 3 • 3 mins</span>
                   <button onClick={() => toggleComfortStep(2)} className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all ${comfortStepsDone[2] ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-300 text-transparent hover:border-indigo-400"}`}>
-                    <Check className="w-3.5 h-3.5" />
+                    <i className="fi fi-sr-check w-3.5 h-3.5 flex items-center" />
                   </button>
                 </div>
                 <h4 className="font-extrabold text-sm text-slate-800 dark:text-white">{t.step3Title}</h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t.step3Desc}</p>
               </div>
               <button onClick={() => openModal("AI Speaking Coach")} className="bg-rose-50 dark:bg-rose-950 hover:bg-rose-100 text-rose-700 dark:text-rose-300 text-xs font-bold py-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
-                <Mic className="w-4 h-4" /> {t.speakMic}
+                <i className="fi fi-sr-mic w-4 h-4 flex items-center" /> {t.speakMic}
               </button>
             </div>
 
@@ -1208,14 +1201,14 @@ export default function LanguageCoachingPage() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-md">Step 4 • 2 mins</span>
                   <button onClick={() => toggleComfortStep(3)} className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all ${comfortStepsDone[3] ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-300 text-transparent hover:border-indigo-400"}`}>
-                    <Check className="w-3.5 h-3.5" />
+                    <i className="fi fi-sr-check w-3.5 h-3.5 flex items-center" />
                   </button>
                 </div>
                 <h4 className="font-extrabold text-sm text-slate-800 dark:text-white">{t.step4Title}</h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t.step4Desc}</p>
               </div>
               <button onClick={() => openModal("Language Games")} className="bg-amber-50 dark:bg-amber-950 hover:bg-amber-100 text-amber-700 dark:text-amber-300 text-xs font-bold py-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
-                <Gamepad2 className="w-4 h-4" /> {t.playPuzzle}
+                <i className="fi fi-sr-gamepad w-4 h-4 flex items-center" /> {t.playPuzzle}
               </button>
             </div>
           </div>
@@ -1224,7 +1217,7 @@ export default function LanguageCoachingPage() {
           {comfortStepsDone.every(Boolean) && (
             <div className="mt-5 p-4 bg-emerald-500 text-white rounded-2xl flex items-center justify-between animate-bounce">
               <div className="flex items-center gap-3">
-                <Trophy className="w-7 h-7 text-amber-300" />
+                <i className="fi fi-sr-trophy w-7 h-7 text-amber-300 flex items-center" />
                 <div>
                   <h4 className="font-black text-sm">🎉 Daily Comfort Path Complete!</h4>
                   <p className="text-xs text-emerald-100">You earned +100 XP today. Great consistency!</p>
@@ -1240,13 +1233,13 @@ export default function LanguageCoachingPage() {
         {/* 3. Today's Quick Practice */}
         <section>
           <h2 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2.5">
-            <Calendar className="w-5 h-5 text-emerald-500" /> {t.skillModules}
+            <i className="fi fi-sr-calendar w-5 h-5 text-emerald-500 flex items-center" /> {t.skillModules}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <PracticeCard icon={<Mic />} title={selectedLang === "Tamil" ? "பேச்சுப் பயிற்சி" : "Speaking"} color="rose" onClick={() => openModal("AI Speaking Coach")} />
-            <PracticeCard icon={<BookOpen />} title={selectedLang === "Tamil" ? "வாசிப்புப் பயிற்சி" : "Reading"} color="blue" onClick={() => openModal("Story Reading")} />
-            <PracticeCard icon={<Headphones />} title={selectedLang === "Tamil" ? "கேட்கும் பயிற்சி" : "Listening"} color="amber" onClick={() => openModal("Listening Ex.")} />
-            <PracticeCard icon={<PenTool />} title={selectedLang === "Tamil" ? "எழுத்துப் பயிற்சி" : "Writing"} color="emerald" onClick={() => openModal("Writing Practice")} />
+            <PracticeCard icon={<i className="fi fi-sr-mic flex items-center" />} title={selectedLang === "Tamil" ? "பேச்சுப் பயிற்சி" : "Speaking"} color="rose" onClick={() => openModal("AI Speaking Coach")} />
+            <PracticeCard icon={<i className="fi fi-sr-book-open-reader flex items-center" />} title={selectedLang === "Tamil" ? "வாசிப்புப் பயிற்சி" : "Reading"} color="blue" onClick={() => openModal("Story Reading")} />
+            <PracticeCard icon={<i className="fi fi-sr-headphones flex items-center" />} title={selectedLang === "Tamil" ? "கேட்கும் பயிற்சி" : "Listening"} color="amber" onClick={() => openModal("Listening Ex.")} />
+            <PracticeCard icon={<i className="fi fi-sr-pen-field flex items-center" />} title={selectedLang === "Tamil" ? "எழுத்துப் பயிற்சி" : "Writing"} color="emerald" onClick={() => openModal("Writing Practice")} />
           </div>
         </section>
 
@@ -1259,7 +1252,7 @@ export default function LanguageCoachingPage() {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-3">
                     <div className="p-3 bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 rounded-2xl">
-                      <BrainCircuit className="w-6 h-6" />
+                      <i className="fi fi-sr-brain w-6 h-6 flex items-center" />
                     </div>
                     {t.aiLab}
                   </h2>
@@ -1272,7 +1265,7 @@ export default function LanguageCoachingPage() {
 
                 {tierLoading ? (
                   <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-400">
-                    <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                    <i className="fi fi-sr-spinner animate-spin w-8 h-8 animate-spin text-indigo-500 flex items-center" />
                     <span className="font-bold text-sm">Personalising your lab…</span>
                   </div>
                 ) : (
@@ -1300,11 +1293,11 @@ export default function LanguageCoachingPage() {
               <div className="flex items-center justify-between mb-4">
                 <span className="bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">{t.wodTitle}</span>
                 <button onClick={loadWordOfDay} className="text-slate-400 hover:text-indigo-500 transition-colors">
-                  <RefreshCw className="w-4 h-4" />
+                  <i className="fi fi-sr-rotate-right w-4 h-4 flex items-center" />
                 </button>
               </div>
               {wodLoading ? (
-                <div className="flex items-center gap-3 text-slate-400 py-6"><Loader2 className="w-5 h-5 animate-spin" /> Loading word…</div>
+                <div className="flex items-center gap-3 text-slate-400 py-6"><i className="fi fi-sr-spinner animate-spin w-5 h-5 animate-spin flex items-center" /> Loading word…</div>
               ) : wordOfDay ? (
                 <div className="space-y-4">
                   <div>
@@ -1322,7 +1315,7 @@ export default function LanguageCoachingPage() {
                       : `${wordOfDay.word}. ${wordOfDay.meaning}`;
                     speakWord(textToSpeak);
                   }} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-4 py-2.5 font-bold text-xs transition-all flex items-center gap-2 shadow-xs">
-                    <Volume2 className="w-4 h-4" /> {t.listenAudio}
+                    <i className="fi fi-sr-volume w-4 h-4 flex items-center" /> {t.listenAudio}
                   </button>
 
                 </div>
@@ -1336,7 +1329,7 @@ export default function LanguageCoachingPage() {
               <div className="bg-indigo-50/50 dark:bg-indigo-950/30 p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm">
-                    <BrainCircuit className="w-5 h-5" />
+                    <i className="fi fi-sr-brain w-5 h-5 flex items-center" />
                   </div>
                   <div>
                     <h3 className="font-extrabold text-sm text-slate-800 dark:text-slate-100">{t.aiTutor}</h3>
@@ -1355,7 +1348,7 @@ export default function LanguageCoachingPage() {
                       {msg.content}
                       {msg.role === "ai" && (
                         <button onClick={() => speakWord(msg.content)} className="mt-2 text-[10px] text-indigo-500 hover:text-indigo-600 font-bold flex items-center gap-1">
-                          <Volume2 className="w-3 h-3" /> {t.listenAudio}
+                          <i className="fi fi-sr-volume w-3 h-3 flex items-center" /> {t.listenAudio}
                         </button>
                       )}
                     </div>
@@ -1364,7 +1357,7 @@ export default function LanguageCoachingPage() {
                 {chatLoading && (
                   <div className="flex justify-start animate-pulse">
                     <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-2xl rounded-bl-none flex items-center gap-2 text-slate-400 text-xs">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> AI Tutor is thinking…
+                      <i className="fi fi-sr-spinner animate-spin w-3.5 h-3.5 animate-spin flex items-center" /> AI Tutor is thinking…
                     </div>
                   </div>
                 )}
@@ -1374,7 +1367,7 @@ export default function LanguageCoachingPage() {
                   <input value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Type a message to practice…"
                     className="flex-1 bg-slate-100 dark:bg-slate-950 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-white border-none" />
                   <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl shadow-sm transition-colors">
-                    <Send className="w-4 h-4" />
+                    <i className="fi fi-sr-paper-plane w-4 h-4 flex items-center" />
                   </button>
                 </form>
               </div>
@@ -1388,10 +1381,10 @@ export default function LanguageCoachingPage() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl p-6 sm:p-8 border-2 border-indigo-500 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onClick={closeModal} className="absolute top-5 right-5 text-slate-400 hover:text-rose-500 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 p-2 rounded-full transition-colors">
-              <X className="w-5 h-5" />
+              <i className="fi fi-sr-cross-small w-5 h-5 flex items-center" />
             </button>
             <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2 flex items-center gap-2.5">
-              <Zap className="w-5 h-5 text-amber-500" /> {MODAL_TITLES[selectedLang][activeModal] || activeModal}
+              <i className="fi fi-sr-bolt w-5 h-5 text-amber-500 flex items-center" /> {MODAL_TITLES[selectedLang][activeModal] || activeModal}
             </h3>
             <div className="w-full h-px bg-slate-200 dark:bg-slate-800 mb-6" />
 
@@ -1402,11 +1395,11 @@ export default function LanguageCoachingPage() {
                 <div className="bg-slate-100 dark:bg-slate-950 p-1 rounded-xl flex gap-1 border border-slate-200 dark:border-slate-800 w-full">
                   <button onClick={() => setSpeakingMode("mic")}
                     className={`flex-1 py-2 rounded-lg font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all ${speakingMode === "mic" ? "bg-indigo-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900"}`}>
-                    <Mic className="w-4 h-4" /> {t.micMode}
+                    <i className="fi fi-sr-mic w-4 h-4 flex items-center" /> {t.micMode}
                   </button>
                   <button onClick={() => setSpeakingMode("type")}
                     className={`flex-1 py-2 rounded-lg font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all ${speakingMode === "type" ? "bg-indigo-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900"}`}>
-                    <PenTool className="w-4 h-4" /> {t.typeMode}
+                    <i className="fi fi-sr-pen-field w-4 h-4 flex items-center" /> {t.typeMode}
                   </button>
                 </div>
 
@@ -1419,7 +1412,7 @@ export default function LanguageCoachingPage() {
                   {/* Audio narration button */}
                   <button onClick={() => speakWord(PRACTICE_SENTENCES[selectedLang][speakingIndex] || PRACTICE_SENTENCES[selectedLang][0])}
                     className="mt-4 bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-xs font-bold px-4 py-2 rounded-xl inline-flex items-center gap-1.5 hover:bg-indigo-200 transition-colors">
-                    <Volume2 className="w-4 h-4" /> {t.listenAudio}
+                    <i className="fi fi-sr-volume w-4 h-4 flex items-center" /> {t.listenAudio}
                   </button>
                 </div>
 
@@ -1429,7 +1422,7 @@ export default function LanguageCoachingPage() {
                     <div className="flex gap-4">
                       <button onClick={toggleRecording}
                         className={`w-20 h-20 rounded-full flex items-center justify-center text-white shadow-xl transition-all ${isRecording ? "bg-rose-500 scale-110 animate-pulse" : "bg-indigo-600 hover:scale-105 hover:bg-indigo-700"}`}>
-                        <Mic className="w-8 h-8" />
+                        <i className="fi fi-sr-mic w-8 h-8 flex items-center" />
                       </button>
                       {!isRecording && (
                         <button onClick={() => {
@@ -1437,7 +1430,7 @@ export default function LanguageCoachingPage() {
                           setSpeakingScore(null);
                           setTranscript("");
                         }} className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold px-5 py-3 rounded-full flex items-center gap-2 self-center transition-all text-xs border border-slate-200 dark:border-slate-700">
-                          <RefreshCw className="w-4 h-4" /> {t.nextSentence}
+                          <i className="fi fi-sr-rotate-right w-4 h-4 flex items-center" /> {t.nextSentence}
                         </button>
                       )}
                     </div>
@@ -1467,14 +1460,14 @@ export default function LanguageCoachingPage() {
                         });
                         toggleComfortStep(2);
                       }} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-xs shadow-xs transition-colors flex items-center justify-center gap-2">
-                        <Check className="w-4 h-4" /> {selectedLang === "Tamil" ? "மதிப்பீடு & ஒலி கேட்க" : "Grade & Listen Audio"}
+                        <i className="fi fi-sr-check w-4 h-4 flex items-center" /> {selectedLang === "Tamil" ? "மதிப்பீடு & ஒலி கேட்க" : "Grade & Listen Audio"}
                       </button>
                       <button onClick={() => {
                         setSpeakingIndex(prev => (prev + 1) % (PRACTICE_SENTENCES[selectedLang]?.length || 1));
                         setSpeakingScore(null);
                         setTypedInput("");
                       }} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-bold px-4 py-3 rounded-xl text-xs transition-colors">
-                        <RefreshCw className="w-4 h-4" /> {t.nextSentence}
+                        <i className="fi fi-sr-rotate-right w-4 h-4 flex items-center" /> {t.nextSentence}
                       </button>
                     </div>
                   </div>
@@ -1483,7 +1476,7 @@ export default function LanguageCoachingPage() {
 
                 {isRecording && <p className="text-rose-500 font-bold animate-pulse text-xs">Microphone Recording… Click button to stop & grade.</p>}
                 {transcript && isRecording && <p className="text-xs text-slate-500 italic max-w-sm">&ldquo;{transcript}&rdquo;</p>}
-                {isAnalyzing && <div className="flex flex-col items-center gap-2"><Loader2 className="w-6 h-6 text-indigo-500 animate-spin" /><p className="text-indigo-500 font-bold text-xs">Analysing pronunciation…</p></div>}
+                {isAnalyzing && <div className="flex flex-col items-center gap-2"><i className="fi fi-sr-spinner animate-spin w-6 h-6 text-indigo-500 animate-spin flex items-center" /><p className="text-indigo-500 font-bold text-xs">Analysing pronunciation…</p></div>}
                 
                 {speakingScore && (
                   <div className="w-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 p-5 rounded-2xl text-left">
@@ -1521,7 +1514,7 @@ export default function LanguageCoachingPage() {
                           <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-relaxed">{cleanUnicodeText(vocabCards[vocabIndex]?.meaning)}</h3>
                           <p className="text-xs italic text-indigo-600 dark:text-indigo-300 font-medium max-w-[300px]">&quot;{cleanUnicodeText(vocabCards[vocabIndex]?.sentence)}&quot;</p>
                           <span className="absolute bottom-4 text-[10px] text-slate-400 font-black uppercase tracking-wider flex items-center gap-1">
-                            {t.tapToSeeWord} <RefreshCw className="w-3 h-3 text-indigo-500" />
+                            {t.tapToSeeWord} <i className="fi fi-sr-rotate-right w-3 h-3 text-indigo-500 flex items-center" />
                           </span>
                         </div>
                       ) : (
@@ -1531,17 +1524,17 @@ export default function LanguageCoachingPage() {
                           </span>
                           <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{cleanUnicodeText(vocabCards[vocabIndex]?.word)}</h2>
                           <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold flex items-center gap-1">
-                            {t.tapToReveal} <Sparkles className="w-3 h-3 text-indigo-500" />
+                            {t.tapToReveal} <i className="fi fi-sr-sparkles w-3 h-3 text-indigo-500 flex items-center" />
                           </p>
                         </div>
                       )}
                     </div>
                     <div className="flex gap-4">
                       <button onClick={() => speakWord(`${vocabCards[vocabIndex]?.word}. ${vocabCards[vocabIndex]?.meaning}`)} className="bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-100 transition-colors text-xs">
-                        <Volume2 className="w-4 h-4" /> {t.listenAudio}
+                        <i className="fi fi-sr-volume w-4 h-4 flex items-center" /> {t.listenAudio}
                       </button>
                       <button onClick={() => { setShowMeaning(false); setVocabIndex(p => (p + 1) % vocabCards.length); }} className="bg-indigo-600 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 hover:bg-indigo-700 transition-colors text-xs">
-                        {t.nextWord} <ArrowRight className="w-4 h-4" />
+                        {t.nextWord} <i className="fi fi-sr-arrow-right w-4 h-4 flex items-center" />
                       </button>
                     </div>
                     <p className="text-xs text-slate-400 font-bold">{vocabIndex + 1} / {vocabCards.length}</p>
@@ -1585,7 +1578,7 @@ export default function LanguageCoachingPage() {
                         }
                       }} className="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-emerald-600 transition-colors">{t.check}</button>
 
-                      <button onClick={loadSentence} className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 hover:bg-slate-200 transition-colors"><RefreshCw className="w-3.5 h-3.5" /> {selectedLang === "Tamil" ? "புதிய புதிர்" : "New"}</button>
+                      <button onClick={loadSentence} className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 hover:bg-slate-200 transition-colors"><i className="fi fi-sr-rotate-right w-3.5 h-3.5 flex items-center" /> {selectedLang === "Tamil" ? "புதிய புதிர்" : "New"}</button>
                     </div>
                   </>
                 ) : null}
@@ -1614,37 +1607,37 @@ export default function LanguageCoachingPage() {
                         {/* Multi-state Audio Controller (Listen / Pause / Resume / Stop) */}
                         {audioState === "stopped" && (
                           <button onClick={() => speakWord(storyData.passage, 0.75)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-colors text-xs shadow-xs">
-                            <Volume2 className="w-4 h-4" /> {t.listenAudio}
+                            <i className="fi fi-sr-volume w-4 h-4 flex items-center" /> {t.listenAudio}
                           </button>
                         )}
                         {audioState === "playing" && (
                           <>
                             <button onClick={pauseAudio} className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-colors text-xs shadow-xs">
-                              <Pause className="w-4 h-4" /> {t.pauseAudio}
+                              <i className="fi fi-sr-pause w-4 h-4 flex items-center" /> {t.pauseAudio}
                             </button>
                             <button onClick={stopAudio} className="bg-rose-500 hover:bg-rose-600 text-white font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-colors text-xs shadow-xs">
-                              <Square className="w-4 h-4 fill-current" /> {t.stop}
+                              <i className="fi fi-sr-square w-4 h-4 fill-current flex items-center" /> {t.stop}
                             </button>
                           </>
                         )}
                         {audioState === "paused" && (
                           <>
                             <button onClick={resumeAudio} className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-colors text-xs shadow-xs">
-                              <Play className="w-4 h-4 fill-current" /> {t.resumeAudio}
+                              <i className="fi fi-sr-play w-4 h-4 fill-current flex items-center" /> {t.resumeAudio}
                             </button>
                             <button onClick={stopAudio} className="bg-rose-500 hover:bg-rose-600 text-white font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-colors text-xs shadow-xs">
-                              <Square className="w-4 h-4 fill-current" /> {t.stop}
+                              <i className="fi fi-sr-square w-4 h-4 fill-current flex items-center" /> {t.stop}
                             </button>
                           </>
                         )}
 
                         <button onClick={toggleStoryRecording} className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all text-white ${isStoryRecording ? "bg-rose-500 animate-pulse" : "bg-indigo-600 hover:bg-indigo-700 shadow-xs"}`}>
-                          <Mic className="w-4 h-4" /> {isStoryRecording ? "Stop & Grade Speech" : t.readAloudMic}
+                          <i className="fi fi-sr-mic w-4 h-4 flex items-center" /> {isStoryRecording ? "Stop & Grade Speech" : t.readAloudMic}
                         </button>
                       </div>
 
                       <button onClick={loadStory} className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-2.5 rounded-xl font-bold flex items-center gap-1.5 text-xs hover:bg-slate-200 transition-colors">
-                        <RefreshCw className="w-3.5 h-3.5" /> {t.nextStory}
+                        <i className="fi fi-sr-rotate-right w-3.5 h-3.5 flex items-center" /> {t.nextStory}
                       </button>
                     </div>
 
@@ -1692,7 +1685,7 @@ export default function LanguageCoachingPage() {
                         <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                           <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{turn.aiLine}</p>
                           <button onClick={() => speakWord(turn.aiLine)} className="text-indigo-600 hover:text-indigo-700 p-1">
-                            <Volume2 className="w-4 h-4" />
+                            <i className="fi fi-sr-volume w-4 h-4 flex items-center" />
                           </button>
                         </div>
                         {ti === roleplayStep && !selectedOption && turn.options?.map((opt: any, oi: number) => (
@@ -1711,7 +1704,7 @@ export default function LanguageCoachingPage() {
                     {roleplayStep >= (roleplayData.turns?.length || 1) - 1 && selectedOption && (
                       <div className="text-center font-black text-emerald-500 text-base my-2">{selectedLang === "Tamil" ? "🎉 உரையாடல் பயிற்சி நிறைவு பெற்றது! +25 XP" : "🎉 Roleplay Complete! +25 XP"}</div>
                     )}
-                    <button onClick={loadRoleplay} className="self-center bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-slate-200 transition-colors"><RefreshCw className="w-4 h-4" /> {selectedLang === "Tamil" ? "மீண்டும் தொடங்கு" : "Reset Scenario"}</button>
+                    <button onClick={loadRoleplay} className="self-center bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-slate-200 transition-colors"><i className="fi fi-sr-rotate-right w-4 h-4 flex items-center" /> {selectedLang === "Tamil" ? "மீண்டும் தொடங்கு" : "Reset Scenario"}</button>
                   </>
                 ) : null}
               </div>
@@ -1730,18 +1723,18 @@ export default function LanguageCoachingPage() {
                       <div className="bg-slate-50 dark:bg-slate-950 p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{t.guidingPoints}</p>
                         <div className="space-y-1.5">
-                          {debateData.guidingPoints.map((pt: string, i: number) => <p key={i} className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2"><ChevronRight className="w-4 h-4 text-indigo-400" /> {pt}</p>)}
+                          {debateData.guidingPoints.map((pt: string, i: number) => <p key={i} className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2"><i className="fi fi-sr-angle-right w-4 h-4 text-indigo-400 flex items-center" /> {pt}</p>)}
                         </div>
                       </div>
                     )}
                     <div className="text-5xl font-black font-mono text-slate-800 dark:text-white flex items-center justify-center gap-4 py-2">
-                      <Clock className="w-8 h-8 text-rose-500" /> 00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
+                      <i className="fi fi-sr-time-past w-8 h-8 text-rose-500 flex items-center" /> 00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
                     </div>
                     <div className="flex gap-3 justify-center">
                       <button onClick={() => setTimerRunning(!timerRunning)} className={`${timerRunning ? "bg-rose-500 hover:bg-rose-600" : "bg-emerald-500 hover:bg-emerald-600"} text-white font-bold px-8 py-3 rounded-2xl shadow-md transition-colors text-xs`}>
                         {timerRunning ? t.pauseTimer : t.startSpeaking}
                       </button>
-                      <button onClick={() => { setTimeLeft(debateData.speakTimeSeconds || 60); setTimerRunning(false); }} className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold px-5 py-3 rounded-2xl hover:bg-slate-200 transition-colors text-xs"><RefreshCw className="w-4 h-4" /></button>
+                      <button onClick={() => { setTimeLeft(debateData.speakTimeSeconds || 60); setTimerRunning(false); }} className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold px-5 py-3 rounded-2xl hover:bg-slate-200 transition-colors text-xs"><i className="fi fi-sr-rotate-right w-4 h-4 flex items-center" /></button>
                     </div>
                     <button onClick={loadDebate} className="self-center bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs font-bold px-4 py-2 rounded-xl">{t.newTopic}</button>
                   </>
@@ -1760,12 +1753,12 @@ export default function LanguageCoachingPage() {
                   <AudioEqualizerWave active={isPlayingAudio} color="bg-blue-500" />
                   <div className="flex gap-4">
                     <button onClick={() => speakWord(PRACTICE_SENTENCES[selectedLang][speakingIndex] || PRACTICE_SENTENCES[selectedLang][0])} className="w-20 h-20 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center text-white shadow-xl transition-all hover:scale-105">
-                      <Volume2 className="w-10 h-10" />
+                      <i className="fi fi-sr-volume w-10 h-10 flex items-center" />
                     </button>
                     <button onClick={() => {
                       setSpeakingIndex(prev => (prev + 1) % (PRACTICE_SENTENCES[selectedLang]?.length || 1));
                     }} className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold px-6 py-4 rounded-full flex items-center gap-2 self-center transition-all shadow-md text-xs border border-slate-200 dark:border-slate-700">
-                      <RefreshCw className="w-4 h-4" /> {t.nextSentence}
+                      <i className="fi fi-sr-rotate-right w-4 h-4 flex items-center" /> {t.nextSentence}
                     </button>
                   </div>
                 </div>
@@ -1785,7 +1778,7 @@ export default function LanguageCoachingPage() {
                     </div>
                     {writingData.rubricTips?.length > 0 && (
                       <div className="flex flex-wrap gap-2.5 my-1">
-                        {writingData.rubricTips.map((tip: string, i: number) => <p key={i} className="text-[11px] text-slate-500 flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-amber-400 shrink-0" /> {tip}</p>)}
+                        {writingData.rubricTips.map((tip: string, i: number) => <p key={i} className="text-[11px] text-slate-500 flex items-center gap-1.5"><i className="fi fi-sr-star w-3.5 h-3.5 text-amber-400 shrink-0 flex items-center" /> {tip}</p>)}
                       </div>
                     )}
                     <textarea value={writingText} onChange={e => setWritingText(e.target.value)}
@@ -1794,9 +1787,9 @@ export default function LanguageCoachingPage() {
                     <div className="flex gap-3">
                       <button onClick={submitGrammarCheck} disabled={checkingGrammar}
                         className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-xs">
-                        {checkingGrammar ? <><Loader2 className="w-4 h-4 animate-spin" /> {selectedLang === "Tamil" ? "இலக்கணம் & எழுத்துப்பிழை சோதிக்கப்படுகிறது…" : "Analyzing spelling & grammar…"}</> : <><BrainCircuit className="w-4 h-4" /> {t.aiCheck}</>}
+                        {checkingGrammar ? <><i className="fi fi-sr-spinner animate-spin w-4 h-4 animate-spin flex items-center" /> {selectedLang === "Tamil" ? "இலக்கணம் & எழுத்துப்பிழை சோதிக்கப்படுகிறது…" : "Analyzing spelling & grammar…"}</> : <><i className="fi fi-sr-brain w-4 h-4 flex items-center" /> {t.aiCheck}</>}
                       </button>
-                      <button onClick={loadWritingPrompt} className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-4 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors"><RefreshCw className="w-4 h-4" /></button>
+                      <button onClick={loadWritingPrompt} className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-4 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors"><i className="fi fi-sr-rotate-right w-4 h-4 flex items-center" /></button>
                     </div>
                     {grammarFeedback && (
                       <div className="bg-emerald-50 dark:bg-emerald-950/40 p-5 rounded-2xl border border-emerald-300 dark:border-emerald-800 flex flex-col gap-3">
@@ -1829,7 +1822,7 @@ export default function LanguageCoachingPage() {
                       <div key={i} onClick={() => { const n = [...tasksDone]; n[i] = !n[i]; setTasksDone(n); }}
                         className="flex items-center gap-4 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-indigo-300 transition-all">
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center border shrink-0 transition-all ${tasksDone[i] ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-300"}`}>
-                          {tasksDone[i] && <Check className="w-3.5 h-3.5" />}
+                          {tasksDone[i] && <i className="fi fi-sr-check w-3.5 h-3.5 flex items-center" />}
                         </div>
                         <div className="flex-1">
                           <p className={`font-black text-xs ${tasksDone[i] ? "line-through text-slate-400" : "text-slate-800 dark:text-slate-200"}`}>{task.title}</p>
@@ -1839,7 +1832,7 @@ export default function LanguageCoachingPage() {
                       </div>
                     ))}
                     {tasksDone.every(Boolean) && <div className="text-center font-black text-emerald-500 text-base py-2">{selectedLang === "Tamil" ? "🏆 அனைத்து சவால்களும் நிறைவு பெற்றன! +100 XP" : "🏆 All Challenges Complete! +100 Bonus XP"}</div>}
-                    <button onClick={loadDailyChallenge} className="self-center bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-200 transition-colors"><RefreshCw className="w-3.5 h-3.5" /> {t.refreshChallenges}</button>
+                    <button onClick={loadDailyChallenge} className="self-center bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-200 transition-colors"><i className="fi fi-sr-rotate-right w-3.5 h-3.5 flex items-center" /> {t.refreshChallenges}</button>
                   </>
                 ) : null}
 
@@ -1892,7 +1885,7 @@ function WordScrambleGame({ lang, speakFn }: { lang: Lang; speakFn: (t: string) 
       <button onClick={() => {
         setIndex(prev => (prev + 1) % wordsList[lang].length);
       }} className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition-all mt-4 text-xs border border-slate-200 dark:border-slate-700">
-        <RefreshCw className="w-3.5 h-3.5" /> {lang === "Tamil" ? "அடுத்த சொல்" : "Next Scrambled Word"}
+        <i className="fi fi-sr-rotate-right w-3.5 h-3.5 flex items-center" /> {lang === "Tamil" ? "அடுத்த சொல்" : "Next Scrambled Word"}
       </button>
     </div>
   );
@@ -1903,7 +1896,7 @@ function WordScrambleGame({ lang, speakFn }: { lang: Lang; speakFn: (t: string) 
 function LoadingSpinner({ label }: { label: string }) {
   return (
     <div className="flex flex-col items-center gap-3 py-10">
-      <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+      <i className="fi fi-sr-spinner animate-spin w-8 h-8 text-indigo-500 animate-spin flex items-center" />
       <p className="text-indigo-500 font-bold text-xs">{label}</p>
     </div>
   );
@@ -1919,28 +1912,42 @@ function PracticeCard({ icon, title, color, onClick }: any) {
   };
   return (
     <button onClick={onClick} className={`p-5 rounded-2xl border flex flex-col items-center justify-center gap-3 transition-all active:scale-95 group shadow-xs ${colors[color]}`}>
-      <div className="group-hover:scale-110 transition-transform">{React.cloneElement(icon, { className: "w-7 h-7" })}</div>
+      <div className="group-hover:scale-110 transition-transform text-2xl flex items-center justify-center">{icon}</div>
       <span className="font-extrabold text-xs">{title}</span>
     </button>
   );
 }
 
 function FeatureCard({ icon, title, desc, color, onClick }: any) {
+  const iconColors: Record<string, string> = {
+    rose: "text-rose-500",
+    indigo: "text-indigo-500",
+    emerald: "text-emerald-500",
+    blue: "text-blue-500",
+    amber: "text-amber-500",
+    purple: "text-purple-500",
+    pink: "text-pink-500",
+    cyan: "text-cyan-500",
+    orange: "text-orange-500"
+  };
   const bg: Record<string, string> = {
-    rose: "bg-rose-50/70 hover:bg-rose-100 border-rose-200 text-rose-700 dark:bg-rose-950/30 dark:border-rose-900",
-    indigo: "bg-indigo-50/70 hover:bg-indigo-100 border-indigo-200 text-indigo-700 dark:bg-indigo-950/30 dark:border-indigo-900",
-    emerald: "bg-emerald-50/70 hover:bg-emerald-100 border-emerald-200 text-emerald-700 dark:bg-emerald-950/30 dark:border-emerald-900",
-    blue: "bg-blue-50/70 hover:bg-blue-100 border-blue-200 text-blue-700 dark:bg-blue-950/30 dark:border-blue-900",
-    amber: "bg-amber-50/70 hover:bg-amber-100 border-amber-200 text-amber-700 dark:bg-amber-955/30 dark:border-amber-900",
-    purple: "bg-purple-50/70 hover:bg-purple-100 border-purple-200 text-purple-700 dark:bg-purple-950/30 dark:border-purple-900",
-    pink: "bg-pink-50/70 hover:bg-pink-100 border-pink-200 text-pink-700 dark:bg-pink-950/30 dark:border-pink-900",
-    cyan: "bg-cyan-50/70 hover:bg-cyan-100 border-cyan-200 text-cyan-700 dark:bg-cyan-950/30 dark:border-cyan-900",
-    orange: "bg-orange-50/70 hover:bg-orange-100 border-orange-200 text-orange-700 dark:bg-orange-950/30 dark:border-orange-900"
+    rose: "bg-rose-50/70 hover:bg-rose-100 border-rose-200 dark:bg-rose-950/30 dark:border-rose-900",
+    indigo: "bg-indigo-50/70 hover:bg-indigo-100 border-indigo-200 dark:bg-indigo-950/30 dark:border-indigo-900",
+    emerald: "bg-emerald-50/70 hover:bg-emerald-100 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900",
+    blue: "bg-blue-50/70 hover:bg-blue-100 border-blue-200 dark:bg-blue-950/30 dark:border-blue-900",
+    amber: "bg-amber-50/70 hover:bg-amber-100 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900",
+    purple: "bg-purple-50/70 hover:bg-purple-100 border-purple-200 dark:bg-purple-950/30 dark:border-purple-900",
+    pink: "bg-pink-50/70 hover:bg-pink-100 border-pink-200 dark:bg-pink-950/30 dark:border-pink-900",
+    cyan: "bg-cyan-50/70 hover:bg-cyan-100 border-cyan-200 dark:bg-cyan-950/30 dark:border-cyan-900",
+    orange: "bg-orange-50/70 hover:bg-orange-100 border-orange-200 dark:bg-orange-950/30 dark:border-orange-900"
   };
   return (
-    <button onClick={onClick} className={`p-5 rounded-2xl border transition-all flex flex-col gap-3 text-left shadow-xs hover:shadow-md hover:-translate-y-0.5 ${bg[color] || bg.indigo} dark:text-slate-300`}>
-      <div className="bg-white dark:bg-slate-800 p-2 rounded-xl w-fit shadow-xs">{React.cloneElement(icon, { className: "w-5 h-5" })}</div>
-      <div><h4 className="font-extrabold text-xs tracking-tight leading-snug">{title}</h4><p className="text-[10px] opacity-75 mt-0.5 line-clamp-1">{desc}</p></div>
+    <button onClick={onClick} className={`p-5 rounded-2xl border transition-all flex flex-col gap-3 text-left shadow-xs hover:shadow-md hover:-translate-y-0.5 ${bg[color] || bg.indigo}`}>
+      <div className={`p-2 rounded-xl w-fit shadow-xs bg-white dark:bg-slate-800 text-xl flex items-center justify-center ${iconColors[color] || iconColors.indigo}`}>{icon}</div>
+      <div>
+        <h4 className="font-extrabold text-xs tracking-tight leading-snug text-slate-800 dark:text-slate-100">{title}</h4>
+        <p className="text-[10px] opacity-75 mt-0.5 line-clamp-1 text-slate-600 dark:text-slate-400">{desc}</p>
+      </div>
     </button>
   );
 }

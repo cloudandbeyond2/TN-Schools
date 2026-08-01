@@ -1,41 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
-import {
-  Sparkles,
-  Waves,
-  Globe,
-  FlaskConical,
-  Lightbulb,
-  CheckCircle2,
-  HelpCircle,
-  Brain,
-  Award,
-  ArrowRight,
-  CheckSquare,
-  Volume2,
-  VolumeX,
-  BookOpen,
-  Zap,
-  RefreshCw,
-  Eye,
-  EyeOff,
-  Flame,
-  Sun,
-  Bookmark,
-  Search,
-  Share2,
-  Check,
-  Atom,
-  Dna,
-  Trophy,
-  Star,
-  Filter,
-  Clock,
-  Compass
-} from "lucide-react";
 
 interface FactTopic {
   id: string;
@@ -43,7 +10,7 @@ interface FactTopic {
   category: "Physics & Waves" | "Space & Astronomy" | "Biology & Nature" | "Chemistry & Fluids" | "Quantum & Energy";
   accentGradient: string;
   badgeBg: string;
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  iconClass: string;
   scienceFact: string;
   whyItHappens: string;
   didYouKnow: string;
@@ -66,7 +33,7 @@ const FACT_TOPICS: FactTopic[] = [
     category: "Physics & Waves",
     accentGradient: "from-cyan-600 via-teal-600 to-indigo-700",
     badgeBg: "bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300 border-cyan-300 dark:border-cyan-800",
-    icon: Waves,
+    iconClass: "fi fi-sr-waves",
     scienceFact:
       "Have you ever tried calling out to a friend across a swimming pool versus shouting through the air? In air, sound moves fast, but in water, it travels nearly four times faster! When you speak in air, sound waves bump into gas molecules spread far apart. Water is a liquid, so its molecules are packed much closer together. Because of this tight molecular packing, water molecules quickly pass sound energy to their neighbors like a lightning-fast game of tag. This allows sound waves to travel through oceans at over 1,480 meters per second, enabling whales and marine life to communicate across hundreds of miles underwater.",
     whyItHappens:
@@ -128,7 +95,7 @@ const FACT_TOPICS: FactTopic[] = [
     category: "Space & Astronomy",
     accentGradient: "from-amber-600 via-orange-600 to-rose-700",
     badgeBg: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-300 dark:border-amber-800",
-    icon: Sun,
+    iconClass: "fi fi-sr-sun",
     scienceFact:
       "Mercury is the closest planet to the Sun, so logic suggests it should be the hottest planet in our solar system. However, Venus holds the title as the hottest planet, reaching a scorching 465°C—even though it is nearly twice as far from the Sun as Mercury! Why? Mercury has almost no atmosphere to hold heat, causing its night side to freeze down to -180°C. Venus is wrapped in an ultra-thick, heavy atmosphere composed of 96% carbon dioxide and clouds of sulfuric acid. This creates an extreme runaway greenhouse effect that permanently traps solar heat like a closed oven.",
     whyItHappens:
@@ -190,7 +157,7 @@ const FACT_TOPICS: FactTopic[] = [
     category: "Biology & Nature",
     accentGradient: "from-emerald-600 via-teal-600 to-cyan-700",
     badgeBg: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800",
-    icon: Dna,
+    iconClass: "fi fi-sr-dna",
     scienceFact:
       "Fireflies, jellyfish, deep-sea anglerfish, and certain mushrooms can produce their own brilliant light without creating heat! This phenomenon is called bioluminescence. Unlike a lightbulb which wastes 90% of its energy as heat, bioluminescence is almost 100% efficient—producing 'cold light.' Creatures combine a light-emitting compound called luciferin with oxygen and an enzyme called luciferase. This chemical reaction releases glowing light photons, used by organisms to attract mates, lure prey, or startle ocean predators in pitch darkness.",
     whyItHappens:
@@ -252,7 +219,7 @@ const FACT_TOPICS: FactTopic[] = [
     category: "Chemistry & Fluids",
     accentGradient: "from-blue-600 via-indigo-600 to-violet-700",
     badgeBg: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border-blue-300 dark:border-blue-800",
-    icon: FlaskConical,
+    iconClass: "fi fi-sr-flask",
     scienceFact:
       "Water strider insects can walk effortlessly across the surface of a pond without sinking! This is made possible by a property called surface tension. Water molecules (H₂O) are cohesive—they love to stick together. Below the surface, water molecules are pulled equally in all directions by neighboring molecules. However, molecules at the top surface have no water molecules above them, so they cling extra tightly to their neighbors alongside and below. This creates an invisible, elastic 'skin' on top of the water that supports lightweight objects.",
     whyItHappens:
@@ -314,7 +281,7 @@ const FACT_TOPICS: FactTopic[] = [
     category: "Quantum & Energy",
     accentGradient: "from-purple-600 via-fuchsia-600 to-rose-700",
     badgeBg: "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border-purple-300 dark:border-purple-800",
-    icon: Atom,
+    iconClass: "fi fi-sr-atom",
     scienceFact:
       "The Sun's core burns at 15 million degrees Celsius, fusing hydrogen protons into helium and releasing sunshine. But according to classical physics, the Sun isn't hot enough! Protons have positive electrical charges, so they repel each other with immense electrostatic force. Classical physics says they shouldn't collide often enough to keep the Sun shining. The secret is Quantum Tunneling! In the quantum realm, subatomic particles behave like waves of probability. A proton can magically 'tunnel' straight through the electrical energy barrier, allowing fusion to happen continuously and power life on Earth.",
     whyItHappens:
@@ -449,7 +416,7 @@ export default function ScienceFactPage() {
           category: (publishedFact.category as any) || "Physics & Waves",
           accentGradient: "from-teal-600 via-emerald-600 to-indigo-700",
           badgeBg: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800",
-          icon: Sparkles,
+          iconClass: "fi fi-sr-sparkles",
           scienceFact: publishedFact.scienceFact,
           whyItHappens: publishedFact.whyItHappens,
           didYouKnow: publishedFact.didYouKnow,
@@ -489,7 +456,6 @@ export default function ScienceFactPage() {
   });
 
   const currentTopic = topics.find((t) => t.id === activeTopicId) || filteredTopics[0] || topics[0];
-  const TopicIcon = currentTopic.icon || Waves;
   const isCurrentBookmarked = bookmarkedIds.includes(currentTopic.id);
 
   // Audio Speech Handler
@@ -562,13 +528,76 @@ export default function ScienceFactPage() {
 
   return (
     <PortalLayout title="Science Fact & Discoveries" subtitle="Explore fascinating scientific phenomena through everyday observations, experiments, and interactive quizzes">
-      <div className="w-full space-y-8 animate-in fade-in duration-300 pb-16">
+      <div className="w-full space-y-6 animate-in fade-in duration-300 pb-16">
         
+        {/* Hero Banner (Compact & Modern UI, Full Width) */}
+        <div className={`hero-band w-full bg-gradient-to-br ${currentTopic.accentGradient} !text-white rounded-3xl p-5 sm:p-7 shadow-xl relative overflow-hidden group`}>
+          <div className="absolute right-4 top-4 opacity-10 pointer-events-none transition-transform duration-700 group-hover:scale-110">
+            <i className={`${currentTopic.iconClass} text-[15rem] text-white flex items-center justify-center`} />
+          </div>
+          <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div className="relative z-10 space-y-3.5 max-w-3xl text-left">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center gap-1.5 shadow-sm !text-white">
+                <i className="fi fi-sr-sparkles text-amber-300 flex items-center text-[10px]" />
+                Middle School Science (Classes 6–8)
+              </span>
+              <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-black/30 backdrop-blur-md shadow-sm !text-white">
+                {currentTopic.category}
+              </span>
+            </div>
+
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight leading-snug drop-shadow-md !text-white" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+              {currentTopic.title}
+            </h1>
+
+            <p className="text-xs sm:text-sm leading-relaxed font-medium drop-shadow-sm !text-white/90" style={{ color: "rgba(255, 255, 255, 0.90)", WebkitTextFillColor: "rgba(255, 255, 255, 0.90)" }}>
+              Discover real-world scientific phenomena explained through everyday observations, simple experiments, and interactive knowledge checks.
+            </p>
+
+            {/* Hero Quick Controls: Audio Reader, Bookmark, Share */}
+            <div className="pt-2 flex flex-wrap items-center gap-3">
+              <button
+                onClick={handleToggleSpeech}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-extrabold text-xs transition-all shadow-md backdrop-blur-md ${
+                  isPlayingAudio
+                    ? "bg-amber-400 !text-slate-900 shadow-amber-500/30 animate-pulse"
+                    : "bg-white/20 hover:bg-white/30 !text-white border border-white/40"
+                }`}
+              >
+                {isPlayingAudio ? <i className="fi fi-sr-volume-mute flex items-center" /> : <i className="fi fi-sr-volume flex items-center !text-white" />}
+                <span className={isPlayingAudio ? "!text-slate-900" : "!text-white"}>{isPlayingAudio ? "Pause Audio Reader" : "Listen to Science Fact"}</span>
+              </button>
+
+              <button
+                onClick={() => toggleBookmark(currentTopic.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-extrabold text-xs transition-all shadow-md backdrop-blur-md ${
+                  isCurrentBookmarked
+                    ? "bg-amber-405 !text-slate-900 border border-amber-300"
+                    : "bg-white/20 hover:bg-white/30 !text-white border border-white/40"
+                }`}
+              >
+                <i className={`fi fi-sr-bookmark flex items-center ${isCurrentBookmarked ? "text-slate-900" : "!text-white"}`} />
+                <span className={isCurrentBookmarked ? "!text-slate-900" : "!text-white"}>{isCurrentBookmarked ? "Bookmarked" : "Bookmark Fact"}</span>
+              </button>
+
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl font-extrabold text-xs bg-white/20 hover:bg-white/30 !text-white border border-white/40 transition-all shadow-md backdrop-blur-md"
+              >
+                {copiedLink ? <i className="fi fi-sr-check text-emerald-350 flex items-center" /> : <i className="fi fi-sr-share flex items-center !text-white" />}
+                <span className="!text-white">{copiedLink ? "Link Copied!" : "Share Fact"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Top Gamification & Stats Ribbon */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
-              <Flame className="w-5 h-5 fill-amber-500 text-amber-500" />
+              <i className="fi fi-sr-flame text-amber-500 flex items-center text-lg" style={{ color: "#d97706", WebkitTextFillColor: "#d97706" }} />
             </div>
             <div>
               <div className="text-xs text-slate-400 font-medium">Daily Streak</div>
@@ -578,7 +607,7 @@ export default function ScienceFactPage() {
 
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-              <Atom className="w-5 h-5" />
+              <i className="fi fi-sr-atom text-indigo-500 flex items-center text-lg" />
             </div>
             <div>
               <div className="text-xs text-slate-400 font-medium">Curious Topics</div>
@@ -588,7 +617,7 @@ export default function ScienceFactPage() {
 
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
-              <Trophy className="w-5 h-5" />
+              <i className="fi fi-sr-trophy text-emerald-500 flex items-center text-lg" />
             </div>
             <div>
               <div className="text-xs text-slate-400 font-medium">Quiz Mastery</div>
@@ -597,87 +626,12 @@ export default function ScienceFactPage() {
           </div>
 
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
-              <Bookmark className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-650 dark:text-purple-400 flex items-center justify-center font-bold">
+              <i className="fi fi-sr-bookmark text-purple-500 flex items-center text-lg" />
             </div>
             <div>
               <div className="text-xs text-slate-400 font-medium">Saved Facts</div>
               <div className="text-lg font-black text-slate-800 dark:text-white">{bookmarkedIds.length} Saved</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Hero Banner (Full Width Premium Styling) */}
-        <div className={`hero-band w-full bg-gradient-to-br ${currentTopic.accentGradient} !text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden group`}>
-          <div className="absolute right-4 top-4 opacity-10 pointer-events-none transition-transform duration-700 group-hover:scale-110">
-            <TopicIcon className="w-72 h-72 text-white" />
-          </div>
-          <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-
-          <div className="relative z-10 space-y-4 max-w-4xl">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center gap-1.5 shadow-sm !text-white">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                Middle School Science (Classes 6–8)
-              </span>
-              <span className="text-xs font-bold px-3 py-1 rounded-full bg-black/30 backdrop-blur-md shadow-sm !text-white">
-                {currentTopic.category}
-              </span>
-              {publishedByInfo && (
-                <span className="text-xs font-bold px-3.5 py-1 rounded-full bg-emerald-500/90 backdrop-blur-md border border-emerald-300 shadow-sm flex items-center gap-1 !text-white">
-                  <Star className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
-                  {publishedByInfo}
-                </span>
-              )}
-            </div>
-
-            <style>{`
-              .hero-banner-title {
-                color: #ffffff !important;
-                -webkit-text-fill-color: #ffffff !important;
-              }
-            `}</style>
-            <h1 className="hero-banner-title text-2xl sm:text-4xl font-black tracking-tight leading-tight drop-shadow-md !text-white" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
-              {currentTopic.title}
-            </h1>
-
-            <p className="text-sm sm:text-base leading-relaxed max-w-3xl font-medium drop-shadow-sm !text-white/95" style={{ color: "rgba(255, 255, 255, 0.95)", WebkitTextFillColor: "rgba(255, 255, 255, 0.95)" }}>
-              Discover real-world scientific phenomena explained through everyday observations, simple experiments, and interactive knowledge checks.
-            </p>
-
-            {/* Hero Quick Controls: Audio Reader, Bookmark, Share */}
-            <div className="pt-3 flex flex-wrap items-center gap-3">
-              <button
-                onClick={handleToggleSpeech}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm transition-all shadow-md backdrop-blur-md ${
-                  isPlayingAudio
-                    ? "bg-amber-400 !text-slate-900 shadow-amber-500/30 animate-pulse"
-                    : "bg-white/20 hover:bg-white/30 !text-white border border-white/40"
-                }`}
-              >
-                {isPlayingAudio ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 !text-white" />}
-                <span className={isPlayingAudio ? "!text-slate-900" : "!text-white"}>{isPlayingAudio ? "Pause Audio Reader" : "Listen to Science Fact"}</span>
-              </button>
-
-              <button
-                onClick={() => toggleBookmark(currentTopic.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm transition-all shadow-md backdrop-blur-md ${
-                  isCurrentBookmarked
-                    ? "bg-amber-400 !text-slate-900 border border-amber-300"
-                    : "bg-white/20 hover:bg-white/30 !text-white border border-white/40"
-                }`}
-              >
-                <Bookmark className={`w-4 h-4 ${isCurrentBookmarked ? "fill-slate-900" : "!text-white"}`} />
-                <span className={isCurrentBookmarked ? "!text-slate-900" : "!text-white"}>{isCurrentBookmarked ? "Bookmarked" : "Bookmark Fact"}</span>
-              </button>
-
-              <button
-                onClick={handleShare}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm bg-white/20 hover:bg-white/30 !text-white border border-white/40 transition-all shadow-md backdrop-blur-md"
-              >
-                {copiedLink ? <Check className="w-4 h-4 text-emerald-300" /> : <Share2 className="w-4 h-4 !text-white" />}
-                <span className="!text-white">{copiedLink ? "Link Copied!" : "Share Fact"}</span>
-              </button>
             </div>
           </div>
         </div>
@@ -688,7 +642,7 @@ export default function ScienceFactPage() {
             
             {/* Search Input */}
             <div className="w-full md:w-80 relative">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <i className="fi fi-sr-search text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center text-sm" />
               <input
                 type="text"
                 value={searchQuery}
@@ -735,7 +689,7 @@ export default function ScienceFactPage() {
                     : { backgroundColor: "#f1f5f9", color: "#334155", borderColor: "#e2e8f0" }
                 }
               >
-                <Bookmark className={`w-3.5 h-3.5 ${showBookmarksOnly ? "fill-white" : ""}`} />
+                <i className={`fi fi-sr-bookmark flex items-center ${showBookmarksOnly ? "text-white" : ""}`} />
                 <span>Saved ({bookmarkedIds.length})</span>
               </button>
             </div>
@@ -745,13 +699,13 @@ export default function ScienceFactPage() {
           {/* Topic Selectors Bar */}
           <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
-              <Compass className="w-3.5 h-3.5 text-teal-500" />
+              <i className="fi fi-sr-compass text-teal-500 flex items-center text-sm" />
               <span>Select Science Discovery Topic ({filteredTopics.length}):</span>
             </div>
+
             <div className="flex flex-wrap items-center gap-2">
               {filteredTopics.map((topic) => {
                 const isActive = topic.id === activeTopicId;
-                const IconComp = topic.icon || Waves;
                 return (
                   <button
                     key={topic.id}
@@ -767,7 +721,7 @@ export default function ScienceFactPage() {
                         : { backgroundColor: "#f1f5f9", color: "#334155", borderColor: "#e2e8f0" }
                     }
                   >
-                    <IconComp className={`w-4 h-4 shrink-0 ${isActive ? "text-amber-300" : "text-teal-600"}`} />
+                    <i className={`${topic.iconClass} shrink-0 text-sm flex items-center ${isActive ? "text-amber-300" : "text-teal-600"}`} />
                     <span style={{ color: isActive ? "#ffffff" : "#334155" }}>{topic.title}</span>
                   </button>
                 );
@@ -790,45 +744,45 @@ export default function ScienceFactPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-teal-100 dark:bg-teal-950/80 flex items-center justify-center text-teal-600 dark:text-teal-400">
-                    <Sparkles className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded-2xl bg-teal-50 dark:bg-teal-950/80 flex items-center justify-center text-teal-600 dark:text-teal-400 border border-teal-200/20">
+                    <i className="fi fi-sr-sparkles text-teal-600 dark:text-teal-400 flex items-center text-lg" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-slate-900 dark:text-white">Science Fact</h2>
+                    <h2 className="text-lg font-black text-slate-900 dark:text-white leading-none mb-1">Science Fact</h2>
                     <p className="text-xs text-slate-400 font-medium">Core scientific phenomenon explained</p>
                   </div>
                 </div>
 
                 <button
                   onClick={handleToggleSpeech}
-                  className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-teal-950 text-slate-600 dark:text-slate-300 hover:text-teal-600 transition-all"
+                  className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-teal-55 dark:hover:bg-teal-950 text-slate-650 dark:text-slate-300 hover:text-teal-600 transition-all border border-slate-200/10"
                   title="Read Aloud"
                 >
-                  {isPlayingAudio ? <VolumeX className="w-4 h-4 text-amber-500" /> : <Volume2 className="w-4 h-4" />}
+                  {isPlayingAudio ? <i className="fi fi-sr-volume-mute text-amber-500 flex items-center text-sm" /> : <i className="fi fi-sr-volume flex items-center text-sm" />}
                 </button>
               </div>
 
-              <p className="text-slate-700 dark:text-slate-200 text-base sm:text-lg leading-relaxed font-normal">
+              <p className="text-slate-700 dark:text-slate-200 text-sm sm:text-base leading-relaxed font-normal text-left">
                 {currentTopic.scienceFact}
               </p>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-950/80 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 flex items-start gap-3">
-              <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-              <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-normal">
-                <strong className="text-slate-900 dark:text-white">Key Takeaway: </strong>
+            <div className="bg-slate-50 dark:bg-slate-950/80 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 flex items-start gap-3 text-left">
+              <i className="fi fi-sr-lightbulb text-amber-500 shrink-0 mt-0.5 flex items-center text-base" />
+              <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-350 leading-normal">
+                <strong className="text-slate-900 dark:text-white font-bold">Key Takeaway: </strong>
                 Scientific principles explain how molecular interactions, atmospheric composition, and kinetic energy create the world around us.
               </div>
             </div>
           </div>
 
           {/* Side Column: Why It Happens & Did You Know */}
-          <div className="space-y-6 flex flex-col">
+          <div className="space-y-6 flex flex-col text-left">
             
             {/* Why It Happens Card */}
             <div className="bg-gradient-to-br from-cyan-50/80 to-teal-50/50 dark:from-slate-900 dark:to-slate-900 border border-cyan-200/70 dark:border-cyan-900/60 rounded-3xl p-6 shadow-sm flex-1 space-y-3">
-              <div className="flex items-center gap-2 text-cyan-950 dark:text-cyan-300 font-extrabold text-lg">
-                <Brain className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+              <div className="flex items-center gap-2 text-cyan-950 dark:text-cyan-300 font-extrabold text-lg leading-none">
+                <i className="fi fi-sr-brain text-cyan-600 dark:text-cyan-400 flex items-center text-lg" />
                 <h3>Why It Happens</h3>
               </div>
               <p className="text-slate-700 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">
@@ -838,8 +792,8 @@ export default function ScienceFactPage() {
 
             {/* Did You Know? Card */}
             <div className="bg-gradient-to-br from-amber-50/80 to-orange-50/50 dark:from-slate-900 dark:to-slate-900 border border-amber-200/70 dark:border-amber-900/60 rounded-3xl p-6 shadow-sm flex-1 space-y-3">
-              <div className="flex items-center gap-2 text-amber-950 dark:text-amber-300 font-extrabold text-lg">
-                <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              <div className="flex items-center gap-2 text-amber-950 dark:text-amber-300 font-extrabold text-lg leading-none">
+                <i className="fi fi-sr-bolt text-amber-600 dark:text-amber-400 flex items-center text-lg" />
                 <h3>Did You Know?</h3>
               </div>
               <p className="text-slate-700 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">
@@ -851,17 +805,17 @@ export default function ScienceFactPage() {
         </div>
 
         {/* 2-Column Grid: Hands-On Experiment & Reflection */}
-        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-6 text-left">
           
           {/* Try It Yourself Card (Interactive Checklist) */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                  <FlaskConical className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400 border border-emerald-200/20">
+                  <i className="fi fi-sr-flask text-emerald-600 dark:text-emerald-400 flex items-center text-lg" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 dark:text-white">Try It Yourself</h2>
+                  <h2 className="text-lg font-black text-slate-900 dark:text-white leading-none mb-1">Try It Yourself</h2>
                   <p className="text-xs text-slate-400 font-medium">Safe hands-on home observation</p>
                 </div>
               </div>
@@ -871,7 +825,7 @@ export default function ScienceFactPage() {
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+            <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
               <div
                 className="bg-emerald-500 h-full transition-all duration-300 rounded-full"
                 style={{ width: `${activityProgressPct}%` }}
@@ -888,12 +842,12 @@ export default function ScienceFactPage() {
                     className={`w-full text-left p-4 rounded-2xl border transition-all flex items-start gap-3 ${
                       isDone
                         ? "bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200"
-                        : "bg-slate-50 dark:bg-slate-950 border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-emerald-400"
+                        : "bg-slate-50 dark:bg-slate-950 border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-350 hover:border-emerald-450"
                     }`}
                   >
-                    <CheckSquare className={`w-5 h-5 shrink-0 mt-0.5 ${isDone ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`} />
+                    <i className={`${isDone ? "fi fi-sr-checkbox text-emerald-600 dark:text-emerald-400" : "fi fi-rr-square text-slate-400"} text-lg shrink-0 mt-0.5`} />
                     <div className="text-xs sm:text-sm font-medium leading-relaxed">
-                      <span className="font-extrabold mr-1.5 text-slate-900 dark:text-slate-100">Step {idx + 1}:</span>
+                      <span className="font-extrabold mr-1.5 text-slate-905 dark:text-slate-100">Step {idx + 1}:</span>
                       {stepText}
                     </div>
                   </button>
@@ -906,11 +860,11 @@ export default function ScienceFactPage() {
           <div className="bg-gradient-to-br from-indigo-50/80 to-purple-50/50 dark:from-slate-900 dark:to-slate-900 border border-indigo-200/70 dark:border-indigo-900/60 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div className="flex items-center gap-3 border-b border-indigo-100 dark:border-indigo-950 pb-4">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-100 dark:bg-indigo-950/80 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                  <HelpCircle className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-2xl bg-indigo-55/10 dark:bg-indigo-950/80 flex items-center justify-center text-indigo-600 dark:text-indigo-400 border border-indigo-200/10">
+                  <i className="fi fi-sr-interrogation text-indigo-600 dark:text-indigo-400 flex items-center text-lg" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-indigo-950 dark:text-indigo-200">Think About It</h2>
+                  <h2 className="text-lg font-black text-indigo-950 dark:text-indigo-250 leading-none mb-1">Think About It</h2>
                   <p className="text-xs text-indigo-500/80 font-medium">Curiosity discussion question</p>
                 </div>
               </div>
@@ -925,13 +879,13 @@ export default function ScienceFactPage() {
                 onClick={() => setShowHint(!showHint)}
                 className="flex items-center gap-2 text-xs font-black text-indigo-700 dark:text-indigo-300 hover:underline"
               >
-                {showHint ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showHint ? <i className="fi fi-sr-eye-crossed flex items-center" /> : <i className="fi fi-sr-eye flex items-center" />}
                 <span>{showHint ? "Hide Curiosity Hint" : "Reveal Curiosity Hint"}</span>
               </button>
 
               {showHint && (
-                <div className="bg-white dark:bg-slate-950 p-4 rounded-2xl border border-indigo-200 dark:border-indigo-900 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed animate-in fade-in duration-200 shadow-sm">
-                  <strong className="text-indigo-600 dark:text-indigo-400">Hint: </strong>
+                <div className="bg-white dark:bg-slate-950 p-4 rounded-2xl border border-indigo-200 dark:border-indigo-900 text-xs sm:text-sm text-slate-700 dark:text-slate-355 leading-relaxed animate-in fade-in duration-200 shadow-sm">
+                  <strong className="text-indigo-650 dark:text-indigo-400 font-bold">Hint: </strong>
                   {currentTopic.thinkHint}
                 </div>
               )}
@@ -941,14 +895,14 @@ export default function ScienceFactPage() {
         </div>
 
         {/* Fun Quiz Section (Full Width Card) */}
-        <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 text-left">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-teal-100 dark:bg-teal-950/80 flex items-center justify-center text-teal-600 dark:text-teal-400">
-                <Award className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-2xl bg-teal-50 dark:bg-teal-950/80 flex items-center justify-center text-teal-600 dark:text-teal-400 border border-teal-200/20">
+                <i className="fi fi-sr-award text-teal-600 dark:text-teal-400 flex items-center text-lg" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-slate-900 dark:text-white">Fun Knowledge Quiz</h2>
+                <h2 className="text-lg font-black text-slate-900 dark:text-white leading-none mb-1">Fun Knowledge Quiz</h2>
                 <p className="text-xs text-slate-400 font-medium">Test your understanding (3 Questions)</p>
               </div>
             </div>
@@ -1004,7 +958,7 @@ export default function ScienceFactPage() {
                             <span>
                               <strong className="mr-2">{opt.key})</strong> {opt.text}
                             </span>
-                            {showResults && isCorrect && <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />}
+                            {showResults && isCorrect && <i className="fi fi-sr-check-circle text-emerald-600 dark:text-emerald-400 flex items-center text-sm shrink-0" />}
                           </button>
                         );
                       })}
@@ -1013,7 +967,7 @@ export default function ScienceFactPage() {
 
                   {showResults && (
                     <div className="text-xs text-slate-500 dark:text-slate-400 italic pt-2 border-t border-slate-200 dark:border-slate-800">
-                      <strong className="text-slate-700 dark:text-slate-300">Explanation: </strong>
+                      <strong className="text-slate-700 dark:text-slate-350">Explanation: </strong>
                       {q.explanation}
                     </div>
                   )}
@@ -1031,7 +985,7 @@ export default function ScienceFactPage() {
                 className="w-full sm:w-auto px-8 py-3 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-extrabold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
               >
                 <span>Submit & Check Answers</span>
-                <ArrowRight className="w-4 h-4" />
+                <i className="fi fi-sr-arrow-right flex items-center text-sm" />
               </button>
             ) : (
               <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 bg-teal-50 dark:bg-teal-950/40 p-4 rounded-2xl border border-teal-200 dark:border-teal-900">
@@ -1056,7 +1010,7 @@ export default function ScienceFactPage() {
                   }}
                   className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-black hover:bg-teal-700 transition-all shadow-sm"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
+                  <i className="fi fi-sr-rotate-right flex items-center text-sm" />
                   <span>Retake Quiz</span>
                 </button>
               </div>
@@ -1064,7 +1018,7 @@ export default function ScienceFactPage() {
 
             {/* Answer Key Footer */}
             <div className="text-xs text-slate-400 flex items-center gap-4">
-              <span className="font-bold text-slate-600 dark:text-slate-400">Answer Key:</span>
+              <span className="font-bold text-slate-655 dark:text-slate-400">Answer Key:</span>
               {currentTopic.quiz.map((q) => (
                 <span key={q.id}>
                   {q.id}. <strong className="text-slate-700 dark:text-slate-300">{q.correct}</strong>
