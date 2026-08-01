@@ -138,197 +138,6 @@ const SUBJECT_THEMES: Record<string, { color: string; gradient: string; icon: st
   "Computer Science": { color: "#14b8a6", gradient: "from-teal-500 to-emerald-600", icon: "💻" },
 };
 
-/* Helper generator for structured subject data */
-function generateStructuredData(subjectName: string, className: string, teacherName: string) {
-  const cleanClass = className.replace(/^Class\s*/i, "");
-  const baseId = `${subjectName.toLowerCase()}-${cleanClass.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
-  const subLower = subjectName.toLowerCase();
-
-  let unitTemplates = [
-    { title: `Fundamentals of ${subjectName}`, topics: ["Introduction & Key Principles", "Standard Definitions & Laws", "Core Formulations & Equations", "Sample Problem Solving"] },
-    { title: `Advanced ${subjectName} Concepts`, topics: ["Theoretical Derivations", "Step-by-step Analytical Methods", "Classroom Experiments & Diagrams", "Numerical Applications"] },
-    { title: `${subjectName} Applied Analysis`, topics: ["Real-world Industry Case Studies", "Interactive Problem Sets", "Laboratory Protocol & Safety", "Term-End Review"] },
-    { title: `Board Exam & Master Review - ${subjectName}`, topics: ["5-Mark & 10-Mark High Yield Topics", "Past 10 Years Questions Breakdown", "Model Paper Solutions", "Speed & Accuracy Tips"] },
-    { title: `${subjectName} Advanced Topics & Practice`, topics: ["Higher Order Thinking Skills", "Self-Assessment Quizzes", "Project Protocols", "Comprehensive Revision"] }
-  ];
-
-  if (subLower.includes("bio") || subLower.includes("botan") || subLower.includes("zool")) {
-    unitTemplates = [
-      { title: "Unit I: Reproduction in Organisms", topics: ["Reproduction in Organisms", "Human Reproduction", "Reproductive Health", "Plant Embryology"] },
-      { title: "Unit II: Genetics and Evolution", topics: ["Principles of Inheritance and Variation", "Molecular Genetics", "Evolutionary Biology", "Gene Expression"] },
-      { title: "Unit III: Biology in Human Welfare", topics: ["Human Health and Diseases", "Microbes in Human Welfare", "Immunology & Vaccines", "Disease Prevention"] },
-      { title: "Unit IV: Biotechnology", topics: ["Principles of Biotechnology", "Applications of Biotechnology", "Recombinant DNA", "Bioprocess Engineering"] },
-      { title: "Unit V: Ecology and Environment", topics: ["Organisms and Populations", "Biodiversity and Its Conservation", "Environmental Issues", "Ecosystem Dynamics"] }
-    ];
-  } else if (subLower.includes("math")) {
-    unitTemplates = [
-      { title: "Unit I: Real Numbers & Algebra", topics: ["Polynomials & Equations", "Matrices & Determinants", "Sequence & Series", "Algebraic Proofs"] },
-      { title: "Unit II: Geometry & Trigonometry", topics: ["Triangles & Coordinate Geometry", "Trigonometric Identities", "Heights & Distances", "Circle Theorems"] },
-      { title: "Unit III: Calculus & Analysis", topics: ["Limits & Continuity", "Differential Calculus", "Integral Calculus", "Applications of Derivatives"] },
-      { title: "Unit IV: Analytical Geometry & Vectors", topics: ["Two-Dimensional Geometry", "Vector Algebra", "Three-Dimensional Lines", "Conic Sections"] },
-      { title: "Unit V: Economic Botany & Quantitative Methods", topics: ["Plant Breeding", "Economically Useful Plants", "Entrepreneurial Botany", "Statistical Probability"] }
-    ];
-  } else if (subLower.includes("physic")) {
-    unitTemplates = [
-      { title: "Unit I: Electrostatics & Current Electricity", topics: ["Coulomb's Law & Electric Fields", "Gauss Theorem", "Ohm's Law & Kirchhoff Rules", "Potentiometer Applications"] },
-      { title: "Unit II: Magnetism & AC Currents", topics: ["Biot-Savart & Ampere Laws", "Electromagnetic Induction", "Alternating Current", "Transformers"] },
-      { title: "Unit III: Optics & Wave Phenomena", topics: ["Ray Optics & Lenses", "Wave Optics & Interference", "Diffraction", "Polarization"] },
-      { title: "Unit IV: Dual Nature & Atomic Structure", topics: ["Photoelectric Effect", "Bohr Atomic Model", "Nuclear Physics & Radioactivity", "Mass Defect"] },
-      { title: "Unit V: Semiconductor Devices", topics: ["PN Junction Diodes", "Transistors & Amplifiers", "Logic Gates", "Solar Cells & Optoelectronics"] }
-    ];
-  } else if (subLower.includes("chem")) {
-    unitTemplates = [
-      { title: "Unit I: Solid State & Electrochemistry", topics: ["Crystal Lattices", "Nernst Equation", "Conductance in Solutions", "Batteries & Corrosion"] },
-      { title: "Unit II: Chemical Kinetics & Surface Chem", topics: ["Rate Laws & Order of Reaction", "Catalysis & Adsorption", "Colloids & Emulsions", "Arrhenius Equation"] },
-      { title: "Unit III: Organic Reaction Mechanisms", topics: ["Haloalkanes & Haloarenes", "Alcohols, Phenols & Ethers", "Aldehydes & Ketones", "Carboxylic Acid Derivatives"] },
-      { title: "Unit IV: Coordination Chemistry & Biomolecules", topics: ["IUPAC Nomenclature & Ligands", "Crystal Field Theory", "Proteins & Carbohydrates", "Nucleic Acids"] }
-    ];
-  } else if (subLower.includes("english")) {
-    unitTemplates = [
-      { title: "Unit I: Prose & Critical Reading", topics: ["Theme Analysis & Characterization", "Vocabulary Building", "Reading Comprehension", "Short Story Analysis"] },
-      { title: "Unit II: Poetry & Literary Appreciation", topics: ["Rhyme Scheme & Meter", "Figures of Speech", "Poetic Diction", "Theme Interpretation"] },
-      { title: "Unit III: Grammar & Transformations", topics: ["Tenses & Subject-Verb Agreement", "Active & Passive Voice", "Direct & Indirect Speech", "Clause Analysis"] },
-      { title: "Unit IV: Composition & Essay Writing", topics: ["Formal & Informal Letters", "Report & Essay Writing", "Notice & Speech Writing", "Précis Writing"] }
-    ];
-  }
-
-  const syllabus: SyllabusUnit[] = unitTemplates.map((ut, idx) => ({
-    id: `${baseId}-syl-${idx + 1}`,
-    unitNumber: `Unit ${["I", "II", "III", "IV", "V"][idx] || idx + 1}`,
-    title: ut.title,
-    subject: subjectName,
-    class: className,
-    term: idx < 2 ? "Term 1" : idx < 4 ? "Term 2" : "Term 3",
-    topics: ut.topics,
-    status: idx === 0 ? "completed" : idx < 3 ? "in-progress" : "upcoming",
-    completionPct: idx === 0 ? 100 : idx === 1 ? 75 : idx === 2 ? 40 : 0,
-  }));
-
-  const resources: Resource[] = [
-    // Textbooks
-    {
-      id: `${baseId}-tb-1`,
-      title: `Samacheer Kalvi Class ${cleanClass} ${subjectName} Textbook - Term 1`,
-      subject: subjectName,
-      category: "textbooks",
-      type: "PDF",
-      meta: "14.2 MB · 180 Pages",
-      description: `Official Tamil Nadu State Board Samacheer Kalvi textbook for Class ${cleanClass} ${subjectName}. Complete Term 1 units.`,
-      addedBy: "TN School Board",
-      date: "2024-06-01",
-      popular: true,
-      url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      class: className,
-    },
-    {
-      id: `${baseId}-tb-2`,
-      title: `Class ${cleanClass} ${subjectName} Laboratory & Practical Manual`,
-      subject: subjectName,
-      category: "textbooks",
-      type: "eBook",
-      meta: "8.5 MB · 96 Pages",
-      description: `Step-by-step practical experiment procedures, circuit/diagram setups, observation tables and viva questions.`,
-      addedBy: "Department of Education",
-      date: "2024-06-10",
-      url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      class: className,
-    },
-    // Study Materials
-    {
-      id: `${baseId}-mat-1`,
-      title: `${subjectName} Chapter-wise Question Bank with Solutions`,
-      subject: subjectName,
-      category: "materials",
-      type: "PDF",
-      meta: "4.8 MB · 250 Questions",
-      description: `${unitTemplates[0]?.topics.join(" • ") || "Comprehensive questions and model answers."}`,
-      addedBy: teacherName,
-      date: "Recent",
-      isNew: true,
-      popular: true,
-      url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      class: className,
-    },
-    {
-      id: `${baseId}-mat-2`,
-      title: `${subjectName} Formula & Key Concept Revision Chart`,
-      subject: subjectName,
-      category: "materials",
-      type: "PDF",
-      meta: "1.5 MB · 4 Pages Summary",
-      description: `Quick 1-page summary chart with all essential formulas, definitions, units, and constants for quick revision.`,
-      addedBy: teacherName,
-      date: "Recent",
-      isNew: true,
-      url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      class: className,
-    },
-    // Notes
-    {
-      id: `${baseId}-note-1`,
-      title: `Classroom Lecture Notes - ${subjectName} (${unitTemplates[1]?.title || "Core Units"})`,
-      subject: subjectName,
-      category: "notes",
-      type: "DOC",
-      meta: "AI OCR Parsed • Auto Extracted",
-      description: `Detailed teacher lecture notes covering ${unitTemplates[1]?.topics.join(" • ") || "key topics"}.`,
-      addedBy: teacherName,
-      date: "Recent",
-      popular: true,
-      url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      class: className,
-    },
-    // Video Lessons
-    {
-      id: `${baseId}-vid-1`,
-      title: `Class ${cleanClass} ${subjectName} - ${unitTemplates[0]?.title || "Concept Masterclass"}`,
-      subject: subjectName,
-      category: "videos",
-      type: "Video",
-      meta: "42 mins · HD Video",
-      description: `Detailed video lecture breaking down ${unitTemplates[0]?.topics.slice(0, 2).join(" & ") || "fundamental concepts"}.`,
-      addedBy: teacherName,
-      date: "Recent",
-      progress: 60,
-      popular: true,
-      url: "https://www.youtube.com/watch?v=d7n7DdB-bHY",
-      class: className,
-    },
-    // Digital Content
-    {
-      id: `${baseId}-dig-1`,
-      title: `Interactive 3D Simulation & Diagram Explorer - ${subjectName}`,
-      subject: subjectName,
-      category: "digital",
-      type: "Interactive",
-      meta: "AI OCR Parsed • Auto Extracted",
-      description: `${unitTemplates[2]?.topics.join(" • ") || "Interactive 3D models and simulation modules."}`,
-      addedBy: teacherName,
-      date: "Recent",
-      popular: true,
-      url: "https://phET.colorado.edu",
-      class: className,
-    },
-    // Reference Materials
-    {
-      id: `${baseId}-ref-1`,
-      title: `Class ${cleanClass} ${subjectName} TN State Board Past 5 Years Question Papers`,
-      subject: subjectName,
-      category: "reference",
-      type: "PDF",
-      meta: "12.4 MB · 2019-2024 Papers",
-      description: `Official compiled question papers from past Public Board examinations with answer keys and scheme of evaluation.`,
-      addedBy: "Exam Board",
-      date: "2024-05-15",
-      popular: true,
-      url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      class: className,
-    },
-  ];
-
-  return { resources, syllabus };
-}
-
 const getCategoryGradient = (key: CategoryKey) => {
   switch (key) {
     case "overview": return "linear-gradient(135deg, #64748b, #475569)";
@@ -360,6 +169,11 @@ export default function AcademicsHubPage() {
   const [dbSubjects, setDbSubjects] = useState<any[]>([]);
   const [dbResources, setDbResources] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Dedicated Syllabus Management UI States
+  const [syllabusClass, setSyllabusClass] = useState<string>("11");
+  const [selectedSyllabusSubject, setSelectedSyllabusSubject] = useState<string>("Mathematics");
+  const [syllabusSearchQuery, setSyllabusSearchQuery] = useState<string>("");
 
   // AI Modal State
   const [teacherAIModal, setTeacherAIModal] = useState<{
@@ -448,6 +262,15 @@ export default function AcademicsHubPage() {
     fetchData();
   }, [session]);
 
+  // Sync default syllabus class and subject with assignedClasses
+  useEffect(() => {
+    if (assignedClasses.length > 0) {
+      const firstClass = assignedClasses[0];
+      setSyllabusClass(firstClass.className);
+      setSelectedSyllabusSubject(firstClass.subject);
+    }
+  }, [assignedClasses]);
+
   // Unique subject list for filter buttons
   const availableSubjectsList = useMemo(() => {
     const subjectsMap = new Map<string, { name: string; classes: string[]; color: string; icon: string }>();
@@ -532,15 +355,31 @@ export default function AcademicsHubPage() {
         url: r.url || r.youtubeUrl || "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
         class: r.class || assignedClasses[0]?.className || "11",
       });
-    });
 
-    // 2. Generate rich data ONLY for each created & assigned class subject
-    assignedClasses.forEach((c) => {
-      const fullClassName = `Class ${c.className}${c.section ? "-" + c.section : ""}`;
-      const generated = generateStructuredData(c.subject, fullClassName, teacherName);
+      // Populate syllabus units from DB resources
+      if (category === "syllabus" || catLower.includes("syllabus")) {
+        const rawTopics = (r.description || "")
+          .split(/•|\n/)
+          .map((s: string) => s.trim())
+          .filter(Boolean);
 
-      allSyllabus.push(...generated.syllabus);
-      allResources.push(...generated.resources);
+        const topics = rawTopics.length > 0 ? rawTopics : [r.topicName || "1 Subunits"];
+        const unitNum = r.chapterNumber ? `Unit ${r.chapterNumber}` : `Unit ${allSyllabus.length + 1}`;
+        const clsStr = r.class ? (r.class.startsWith("Class") ? r.class : `Class ${r.class}`) : `Class ${assignedClasses[0]?.className || "11"}`;
+
+        allSyllabus.push({
+          id: r.id || `syl-${Math.random()}`,
+          unitNumber: unitNum,
+          title: r.chapter || r.title || r.lessonTitle || "Syllabus Unit",
+          subject: subName,
+          class: clsStr,
+          term: r.term || "Term 1",
+          topics,
+          status: (r.status?.toLowerCase() === "completed" || r.status?.toLowerCase() === "enabled" || r.status?.toLowerCase() === "active") ? "completed" : "in-progress",
+          completionPct: (r.status?.toLowerCase() === "completed" || r.status?.toLowerCase() === "enabled" || r.status?.toLowerCase() === "active") ? 100 : 75,
+          url: r.url || "#",
+        });
+      }
     });
 
     return { resources: allResources, syllabus: allSyllabus };
@@ -604,6 +443,29 @@ export default function AcademicsHubPage() {
       return isMatchClassAndSubject(s.class, s.subject);
     });
   }, [masterAcademicsData.syllabus, isMatchClassAndSubject]);
+
+  const syllabusSubjectsForClass = useMemo(() => {
+    const subsMap = new Map<string, { name: string; icon: string }>();
+
+    assignedClasses.forEach((c) => {
+      const theme = SUBJECT_THEMES[c.subject] || { icon: "📚" };
+      subsMap.set(c.subject.toLowerCase(), { name: c.subject, icon: theme.icon });
+    });
+
+    return Array.from(subsMap.values());
+  }, [assignedClasses]);
+
+  const teacherSyllabusChapters = useMemo(() => {
+    return masterAcademicsData.syllabus.filter((unit) => {
+      const matchSubject = !selectedSyllabusSubject || unit.subject.toLowerCase() === selectedSyllabusSubject.toLowerCase();
+      const matchClass = !syllabusClass || unit.class.toLowerCase().includes(syllabusClass.toLowerCase());
+      const matchSearch = !syllabusSearchQuery.trim() ||
+        unit.title.toLowerCase().includes(syllabusSearchQuery.toLowerCase()) ||
+        unit.topics.some((t) => t.toLowerCase().includes(syllabusSearchQuery.toLowerCase()));
+
+      return matchSubject && matchClass && matchSearch;
+    });
+  }, [masterAcademicsData.syllabus, selectedSyllabusSubject, syllabusClass, syllabusSearchQuery]);
 
   // Category counts
   const countByCategory = useCallback((catKey: CategoryKey) => {
@@ -1194,11 +1056,25 @@ export default function AcademicsHubPage() {
                 </span>
               )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredResources.slice(0, 6).map((r) => (
-                <ResourceCard key={r.id} r={r} />
-              ))}
-            </div>
+            {filteredResources.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredResources.slice(0, 6).map((r) => (
+                  <ResourceCard key={r.id} r={r} />
+                ))}
+              </div>
+            ) : (
+              <div className="glass rounded-2xl p-8 text-center border border-[var(--border)] flex flex-col items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-xl mb-2">
+                  <Fi name="document" />
+                </div>
+                <h4 className="text-sm font-black text-[var(--text-heading)] mb-1">
+                  No Academic Resources Posted Yet
+                </h4>
+                <p className="text-xs text-[var(--text-muted)] max-w-sm mb-3">
+                  Super Admin has not posted resources in PostgreSQL for your assigned classes ({assignedClasses.map(c => `Class ${c.className} ${c.subject}`).join(", ")}) yet.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1217,6 +1093,13 @@ export default function AcademicsHubPage() {
             })
             .map((c) => {
               const theme = SUBJECT_THEMES[c.subject] || { color: "#6366f1", icon: "📚", gradient: "from-indigo-500 to-violet-600" };
+              const subSyllabus = masterAcademicsData.syllabus.filter(
+                (s) => s.subject.toLowerCase() === c.subject.toLowerCase() && isMatchClassAndSubject(s.class, s.subject)
+              );
+              const doneUnits = subSyllabus.filter((s) => s.status === "completed").length;
+              const totalUnits = subSyllabus.length;
+              const progressPct = totalUnits > 0 ? Math.round((doneUnits / totalUnits) * 100) : 0;
+
               return (
                 <div
                   key={c.id}
@@ -1233,7 +1116,7 @@ export default function AcademicsHubPage() {
                       {theme.icon}
                     </div>
                     <div className="text-right">
-                      <span className="text-2xl font-black text-[var(--text-heading)]">75%</span>
+                      <span className="text-2xl font-black text-[var(--text-heading)]">{progressPct}%</span>
                       <span className="block text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-wider">
                         Syllabus done
                       </span>
@@ -1250,14 +1133,14 @@ export default function AcademicsHubPage() {
 
                   <div className="mb-4 relative z-10">
                     <div className="flex justify-between text-[10px] font-bold text-[var(--text-muted)] mb-1.5">
-                      <span>3 of 4 Units Completed</span>
-                      <span>75% Progress</span>
+                      <span>{doneUnits} of {totalUnits} Units Completed</span>
+                      <span>{progressPct}% Progress</span>
                     </div>
                     <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-700"
                         style={{
-                          width: "75%",
+                          width: `${progressPct}%`,
                           background: `linear-gradient(90deg, ${theme.color}, ${theme.color}bb)`,
                         }}
                       />
@@ -1293,117 +1176,313 @@ export default function AcademicsHubPage() {
         </div>
       )}
 
-      {/* ══ SYLLABUS TAB ═════════════════════════════════ */}
+      {/* ══ DEDICATED SYLLABUS MANAGEMENT TAB ════════════════════ */}
       {activeTab === "syllabus" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-base font-black text-[var(--text-heading)] flex items-center gap-2">
-              <Fi name="book-alt" className="text-emerald-500 text-lg" /> Curriculum & Unit Breakdown
-            </h2>
-            <span className="text-xs font-bold text-[var(--text-muted)]">
-              Showing {filteredSyllabus.length} units
-            </span>
+        <div className="space-y-6 text-left font-sans">
+          {/* Header Banner */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black">
+                  <Fi name="book-alt" className="text-xl" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-[var(--text-heading)]">
+                    Syllabus Management
+                  </h2>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                    Manage state curriculum by class, subject, and chapter. Control AI mapping and chapter visibility.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredSyllabus.map((unit) => {
-              const theme = SUBJECT_THEMES[unit.subject] || { color: "#10b981", icon: "📚" };
+          {/* Horizontal Class Pills Selection Bar */}
+          <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+            {assignedClasses.map((cls) => {
+              const fullClassName = `Class ${cls.className}-${cls.section}`;
+              const isSelected = syllabusClass === cls.className || syllabusClass === fullClassName;
               return (
-                <div
-                  key={unit.id}
-                  className="glass rounded-2xl p-5 border border-[var(--border)] hover:shadow-lg transition-all flex flex-col"
+                <button
+                  key={cls.id}
+                  onClick={() => {
+                    setSyllabusClass(cls.className);
+                    setSelectedSyllabusSubject(cls.subject);
+                    setSelectedClass(fullClassName);
+                  }}
+                  className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${isSelected
+                      ? "bg-amber-500 text-white shadow-md shadow-amber-500/25 scale-[1.02]"
+                      : "glass border border-[var(--border)] text-[var(--text-main)] hover:border-amber-400"
+                    }`}
                 >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span
-                          className="text-[10px] font-extrabold px-2 py-0.5 rounded-full"
-                          style={{ backgroundColor: `${theme.color}20`, color: theme.color }}
-                        >
-                          {unit.unitNumber}
-                        </span>
-                        <span className="text-[10px] font-bold text-[var(--text-muted)]">
-                          {unit.term} · {unit.class}
-                        </span>
-                      </div>
-                      <h3 className="text-sm font-black text-[var(--text-heading)]">{unit.title}</h3>
-                    </div>
-                    <span
-                      className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full shrink-0 ${unit.status === "completed"
-                        ? "bg-emerald-500/15 text-emerald-600"
-                        : unit.status === "in-progress"
-                          ? "bg-amber-500/15 text-amber-600"
-                          : "bg-slate-500/15 text-slate-500"
+                  <span>{fullClassName}</span>
+                  <span
+                    className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md transition-colors ${isSelected
+                        ? "bg-white/20 text-white"
+                        : "bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50"
+                      }`}
+                  >
+                    {cls.subject}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 2-Column Main Layout: Left Subjects Panel & Right Chapters Panel */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Column: SUBJECTS List */}
+            <div className="lg:col-span-3 space-y-3">
+              <div className="text-[11px] font-black uppercase tracking-wider text-[var(--text-muted)] px-1">
+                SUBJECTS
+              </div>
+              <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1 custom-scrollbar">
+                {syllabusSubjectsForClass.map((sub) => {
+                  const isSelected = selectedSyllabusSubject.toLowerCase() === sub.name.toLowerCase();
+                  const chapters = masterAcademicsData.syllabus.filter((unit) => {
+                    const matchSubject = unit.subject.toLowerCase() === sub.name.toLowerCase();
+                    const matchClass = !syllabusClass || unit.class.toLowerCase().includes(syllabusClass.toLowerCase());
+                    return matchSubject && matchClass;
+                  });
+                  const totalCount = chapters.length;
+                  const aiCount = chapters.filter((c) => c.topics.some((t) => t.toLowerCase().includes("ai"))).length;
+
+                  return (
+                    <div
+                      key={sub.name}
+                      onClick={() => {
+                        setSelectedSyllabusSubject(sub.name);
+                        setSelectedSubject(sub.name);
+                      }}
+                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isSelected
+                          ? "bg-amber-50/70 dark:bg-amber-950/30 border-amber-400 dark:border-amber-500/80 ring-2 ring-amber-400/20 shadow-sm"
+                          : "glass border-[var(--border)] hover:border-amber-300 dark:hover:border-amber-700/50 shadow-sm"
                         }`}
                     >
-                      {unit.status}
-                    </span>
-                  </div>
-
-                  <div className="my-3">
-                    <div className="text-[11px] font-bold text-[var(--text-muted)] mb-1.5">Topic Breakdown:</div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {unit.topics.map((t, idx) => (
-                        <span
-                          key={idx}
-                          className="text-[10px] font-semibold px-2 py-1 rounded-lg bg-[var(--bg-card-hover)] border border-[var(--border)] text-[var(--text-heading)]"
-                        >
-                          • {t}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-auto pt-3 border-t border-[var(--border)] flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-500"
-                          style={{ width: `${unit.completionPct}%` }}
-                        />
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl shrink-0">{sub.icon}</span>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-[var(--text-heading)] leading-snug">
+                            {sub.name}
+                          </h4>
+                          <p className="text-[10px] text-[var(--text-muted)] font-semibold mt-0.5">
+                            {totalCount} chapters · {aiCount} AI
+                          </p>
+                        </div>
                       </div>
-                      <span className="text-[10px] font-bold text-[var(--text-muted)]">{unit.completionPct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Column: Chapters Detail Table & Controls */}
+            <div className="lg:col-span-9 glass border border-[var(--border)] rounded-3xl p-6 shadow-sm min-h-[500px] flex flex-col justify-between">
+              <div>
+                {/* Header Bar */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-[var(--border)]">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{SUBJECT_THEMES[selectedSyllabusSubject]?.icon || "📐"}</span>
+                      <h3 className="text-lg font-black text-[var(--text-heading)]">
+                        {selectedSyllabusSubject} — Class {syllabusClass}
+                      </h3>
+                    </div>
+                    <p className="text-xs text-[var(--text-muted)] font-semibold mt-0.5">
+                      {teacherSyllabusChapters.length} chapters · {teacherSyllabusChapters.filter((c) => c.status === "completed").length} enabled · 0 AI-mapped
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Fi name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-xs" />
+                      <input
+                        type="text"
+                        placeholder="Search chapters..."
+                        value={syllabusSearchQuery}
+                        onChange={(e) => setSyllabusSearchQuery(e.target.value)}
+                        className="pl-8 pr-3 py-2 border border-[var(--border)] rounded-xl text-xs bg-[var(--bg-card)] outline-none text-[var(--text-heading)] focus:ring-2 focus:ring-amber-500/20 w-48 md:w-60"
+                      />
+                      {syllabusSearchQuery && (
+                        <button
+                          onClick={() => setSyllabusSearchQuery("")}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-heading)]"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
 
                     <button
-                      onClick={() =>
+                      onClick={() => {
                         setTeacherAIModal({
                           isOpen: true,
                           resource: null,
-                          syllabusUnit: unit,
+                          syllabusUnit: null,
                           option: "lesson-plan",
                           responseText: "",
                           isGenerating: false,
-                        })
-                      }
-                      className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-all"
+                        });
+                      }}
+                      className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-md shadow-indigo-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                      style={{ color: "#ffffff" }}
                     >
-                      <Fi name="sparkles" className="text-xs" /> Generate AI Lesson Plan
+                      <Fi name="upload" className="text-xs !text-white" />
+                      <span style={{ color: "#ffffff" }}>Upload Image / Screenshot</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setTeacherAIModal({
+                          isOpen: true,
+                          resource: null,
+                          syllabusUnit: null,
+                          option: "lesson-plan",
+                          responseText: "",
+                          isGenerating: false,
+                        });
+                      }}
+                      className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                    >
+                      + Chapter
                     </button>
                   </div>
                 </div>
-              );
-            })}
+
+                {/* Table Area */}
+                <div className="mt-5 overflow-x-auto rounded-2xl border border-[var(--border)]">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-[var(--bg-card-hover)] border-b border-[var(--border)] text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)]">
+                        <th className="py-3 px-4 w-12 text-center">NO</th>
+                        <th className="py-3 px-4">CHAPTER TITLE</th>
+                        <th className="py-3 px-4">TOPICS</th>
+                        <th className="py-3 px-4">AI MAPPING</th>
+                        <th className="py-3 px-4 text-right">STATUS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--border)] text-xs font-medium">
+                      {teacherSyllabusChapters.length > 0 ? (
+                        teacherSyllabusChapters.map((ch, idx) => (
+                          <tr key={ch.id} className="hover:bg-[var(--bg-card-hover)] transition-colors">
+                            <td className="py-3.5 px-4 font-extrabold text-[var(--text-muted)] text-center">
+                              {String(idx + 1).padStart(2, "0")}
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <div className="font-bold text-[var(--text-heading)]">{ch.title}</div>
+                              {ch.topics && ch.topics.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {ch.topics.map((t, sIdx) => (
+                                    <span
+                                      key={sIdx}
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[var(--bg-card-hover)] text-[var(--text-main)] border border-[var(--border)]"
+                                    >
+                                      • {t}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-4 text-[var(--text-muted)]">
+                              {ch.topics.length} Subunits
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+                                Not Mapped
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/20">
+                                  Enabled
+                                </span>
+                                <button
+                                  onClick={() =>
+                                    setTeacherAIModal({
+                                      isOpen: true,
+                                      resource: null,
+                                      syllabusUnit: ch,
+                                      option: "lesson-plan",
+                                      responseText: "",
+                                      isGenerating: false,
+                                    })
+                                  }
+                                  className="p-1.5 rounded-lg text-emerald-500 hover:bg-emerald-500/10 transition-all"
+                                  title="Generate AI Lesson Plan"
+                                >
+                                  <Fi name="sparkles" className="text-xs" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="py-16 text-center text-[var(--text-muted)]">
+                            <div className="flex flex-col items-center justify-center">
+                              <Fi name="book-alt" className="text-4xl text-amber-500/40 mb-2" />
+                              <p className="font-bold text-sm text-[var(--text-heading)]">No chapters found</p>
+                              <p className="text-xs text-[var(--text-muted)] mt-1">
+                                Super Admin has not created chapters for {selectedSyllabusSubject} (Class {syllabusClass}) yet.
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {/* ══ VIDEO LESSONS TAB ════════════════════════════ */}
       {activeTab === "videos" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredResources.map((r) => (
-            <VideoCard key={r.id} r={r} />
-          ))}
-        </div>
+        filteredResources.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredResources.map((r) => (
+              <VideoCard key={r.id} r={r} />
+            ))}
+          </div>
+        ) : (
+          <div className="glass rounded-3xl p-12 text-center border border-[var(--border)] my-6 flex flex-col items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center text-3xl mb-3">
+              <Fi name="play-alt" />
+            </div>
+            <h3 className="text-base font-black text-[var(--text-heading)] mb-1">
+              No Video Lessons Posted Yet
+            </h3>
+            <p className="text-xs text-[var(--text-muted)] max-w-md">
+              No video lesson resources found in PostgreSQL for your assigned classes ({assignedClasses.map(c => `Class ${c.className} ${c.subject}`).join(", ")}) yet.
+            </p>
+          </div>
+        )
       )}
 
       {/* ══ RESOURCE GRID TABS (textbooks / materials / notes / digital / reference) ══ */}
       {["textbooks", "materials", "notes", "digital", "reference"].includes(activeTab) && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredResources.map((r) => (
-            <ResourceCard key={r.id} r={r} />
-          ))}
-        </div>
+        filteredResources.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredResources.map((r) => (
+              <ResourceCard key={r.id} r={r} />
+            ))}
+          </div>
+        ) : (
+          <div className="glass rounded-3xl p-12 text-center border border-[var(--border)] my-6 flex flex-col items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-3xl mb-3">
+              <Fi name="book" />
+            </div>
+            <h3 className="text-base font-black text-[var(--text-heading)] mb-1">
+              No {CATEGORIES.find(c => c.key === activeTab)?.label} Posted Yet
+            </h3>
+            <p className="text-xs text-[var(--text-muted)] max-w-md">
+              No original resources posted by Super Admin in PostgreSQL for your assigned classes ({assignedClasses.map(c => `Class ${c.className} ${c.subject}`).join(", ")}) under this category.
+            </p>
+          </div>
+        )
       )}
 
       {/* ══ PREVIEW MODAL ════════════════════════════════ */}
