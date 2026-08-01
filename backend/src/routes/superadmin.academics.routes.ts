@@ -448,7 +448,12 @@ router.get("/resources", async (req: Request, res: Response) => {
     const targetSchoolId = (schoolId as string) || req.user?.schoolId || null;
 
     const where: any = {};
-    if (category) where.category = String(category);
+    if (category) {
+      const catStr = String(category).trim();
+      where.category = {
+        in: Array.from(new Set([catStr, catStr.toLowerCase(), catStr.toUpperCase()]))
+      };
+    }
     if (subjectId) where.subjectId = String(subjectId);
 
     if (className) {
@@ -465,9 +470,11 @@ router.get("/resources", async (req: Request, res: Response) => {
         numMatch ? `CLASS ${numMatch}` : "",
       ])).filter(Boolean);
 
-      // Only return resources that exactly match the requested class.
-      // Do NOT include null/empty class rows — those are unassigned resources.
-      where.OR = classVariants.map(c => ({ class: c }));
+      const orConditions: any[] = classVariants.map(c => ({ class: c }));
+      if (numMatch) {
+        orConditions.push({ class: { contains: numMatch, mode: "insensitive" } });
+      }
+      where.OR = orConditions;
     }
 
     if (status) {

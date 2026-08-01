@@ -410,23 +410,23 @@ export default function CentralizedContentPage() {
     >
 
       {/* 1. Header Filter Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <i className="fi fi-sr-book-open-reader text-2xl text-indigo-600 dark:text-indigo-400 flex items-center" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 glass rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+        <div className="flex items-start sm:items-center gap-3">
+          <i className="fi fi-sr-book-open-reader text-xl sm:text-2xl text-indigo-600 dark:text-indigo-400 flex items-center shrink-0 mt-0.5 sm:mt-0" />
           <div>
-            <h2 className="text-lg sm:text-xl font-black text-black dark:text-white uppercase tracking-wider leading-tight">
+            <h2 className="text-base sm:text-lg md:text-xl font-black text-black dark:text-white uppercase tracking-wider leading-tight">
               TN State Board Curriculum
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
               Bilingual educational materials tailored for your grade.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 whitespace-nowrap shrink-0 self-start sm:self-auto">
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Grade:</span>
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm">
-            <i className="fi fi-sr-graduation-cap flex items-center text-sm" />
+        <div className="flex items-center gap-2 whitespace-nowrap shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-end">
+          <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Grade:</span>
+          <span className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+            <i className="fi fi-sr-graduation-cap flex items-center text-xs sm:text-sm" />
             Class {selectedClass}th Standard
           </span>
         </div>
@@ -449,37 +449,36 @@ export default function CentralizedContentPage() {
               <p className="text-xs text-slate-500 mt-2">Syllabus is being updated for Class {selectedClass}th. Check back soon!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3.5 sm:gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
               {subjects.map((sub) => {
                 const theme = getSubjectTheme(sub.name);
-                const SubjectIcon = theme.icon;
                 return (
                   <div
                     key={sub.id}
                     onClick={() => handleSelectSubject(sub)}
-                    className="glass rounded-2xl p-5 border border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-650 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col justify-between h-44 bg-white/70 dark:bg-slate-900/35 shadow-sm hover:shadow-md"
+                    className="glass rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-650 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col justify-between min-h-[160px] h-full bg-white/70 dark:bg-slate-900/35 shadow-sm hover:shadow-md"
                   >
                     {/* Dynamic Glow Backdrops */}
                     <div
-                      className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-all duration-500"
+                      className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-all duration-500 pointer-events-none"
                       style={{ background: theme.gradient }}
                     ></div>
 
                     {/* Subject Icon & Class Tag in Row */}
-                    <div className="flex justify-between items-start w-full relative z-10">
+                    <div className="flex justify-between items-start w-full relative z-10 gap-2">
                       <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center shadow-md transition-all duration-500 group-hover:scale-105 group-hover:rotate-3 text-white text-lg"
+                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shadow-md transition-all duration-500 group-hover:scale-105 group-hover:rotate-3 text-white text-base sm:text-lg shrink-0"
                         style={{ background: theme.gradient }}
                       >
                         <i className={`fi ${theme.icon} text-white flex items-center`} style={{ color: '#fff' }} />
                       </div>
-                      <span className="text-[9px] uppercase font-extrabold tracking-wider px-2.5 py-1 rounded-lg bg-slate-100/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border border-slate-200/20 shadow-xs">
+                      <span className="text-[9px] uppercase font-extrabold tracking-wider px-2 sm:px-2.5 py-1 rounded-lg bg-slate-100/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border border-slate-200/20 shadow-xs shrink-0">
                         Class {sub.class}
                       </span>
                     </div>
 
-                    <div className="mt-4 relative z-10">
-                      <h3 className="text-sm font-black text-slate-805 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+                    <div className="mt-3 sm:mt-4 relative z-10">
+                      <h3 className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors leading-snug break-words">
                         {sub.name}
                       </h3>
                       <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 leading-snug line-clamp-2">

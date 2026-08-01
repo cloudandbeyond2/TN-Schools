@@ -129,6 +129,29 @@ export default function RevisionPlanPage() {
       title="AI Revision Plan"
       subtitle="A personalised 7-day plan generated from your marks, mock tests and syllabus gaps."
     >
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 glass rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+        <div className="flex items-start sm:items-center gap-3">
+          <i className="fi fi-sr-robot text-xl sm:text-2xl text-indigo-600 dark:text-indigo-400 flex items-center shrink-0 mt-0.5 sm:mt-0" />
+          <div>
+            <h2 className="text-base sm:text-lg md:text-xl font-black text-black dark:text-white uppercase tracking-wider leading-tight">
+              AI Revision Plan
+            </h2>
+            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+              Personalized 7-day adaptive revision plan generated from your marks, mock tests, and syllabus gaps.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 whitespace-nowrap shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-end">
+          <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Grade:</span>
+          <span className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+            <i className="fi fi-sr-graduation-cap flex items-center text-xs sm:text-sm" />
+            Class {selectedGrade}th Standard
+          </span>
+        </div>
+      </div>
+
       {/* Controls */}
       <div className="glass rounded-2xl p-4 sm:p-6 mb-6 border border-red-500/30 bg-gradient-to-br from-red-900/10 to-transparent fade-in">
         <div className="flex flex-col lg:flex-row lg:items-center gap-5 justify-between">
