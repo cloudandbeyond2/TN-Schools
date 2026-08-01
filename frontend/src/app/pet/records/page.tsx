@@ -6,6 +6,7 @@ import {
   LayoutGrid, List, Download, ClipboardCheck, CalendarCheck, AlertTriangle, Cloud,
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import { ModalShell, Field, inputCls } from "@/components/pet/PetUi";
 import {
   FitnessRecord,
@@ -70,6 +71,8 @@ function needsAttention(r: FitnessRecord): string[] {
 }
 
 export default function StudentRecordsPage() {
+  const { data: session } = useSession();
+  const schoolId = (session?.user as any)?.schoolId;
   const [records, setRecords] = useState<FitnessRecord[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [search, setSearch] = useState("");
@@ -242,7 +245,7 @@ export default function StudentRecordsPage() {
 
   return (
     <PortalLayout>
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-6 w-full space-y-6">
         {/* ── Header ─────────────────────────────────────────────── */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -430,7 +433,8 @@ export default function StudentRecordsPage() {
       )}
 
       {showClassAdd && (
-        <ClassAddModal
+        <ClassRosterModal
+          schoolId={schoolId}
           existingNames={new Set(records.map((r) => `${r.name}|${r.class}`))}
           onClose={() => setShowClassAdd(false)}
           onAdd={(students) => {
@@ -885,12 +889,14 @@ interface RosterStudent {
   section: string;
 }
 
-function ClassAddModal({
+function ClassRosterModal({
   existingNames,
+  schoolId,
   onClose,
   onAdd,
 }: {
   existingNames: Set<string>;
+  schoolId?: string;
   onClose: () => void;
   onAdd: (students: { name: string; class: string; sport: string }[]) => void;
 }) {
@@ -907,10 +913,9 @@ function ClassAddModal({
     setLoading(true);
     setOffline(false);
     try {
-      const res = await fetch(
-        `${PET_API_BASE}/api/students?class=${encodeURIComponent(cls)}&section=${encodeURIComponent(section)}`,
-        { signal: AbortSignal.timeout(12000) }
-      );
+      let url = `${PET_API_BASE}/api/students?class=${encodeURIComponent(cls)}&section=${encodeURIComponent(section)}`;
+      if (schoolId) url += `&schoolId=${schoolId}`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
       const json = await res.json();
       if (!json.success) throw new Error("api error");
       const roster: RosterStudent[] = (json.data || []).map((s: any) => ({

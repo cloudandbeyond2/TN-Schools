@@ -36,9 +36,16 @@ router.get('/', async (req: Request, res: Response) => {
       });
     }
 
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const todayStr = `${startOfToday.getFullYear()}-${String(startOfToday.getMonth() + 1).padStart(2, '0')}-${String(startOfToday.getDate()).padStart(2, '0')}`;
+
     // Fetch actual sports events logged by the PET teacher
     const petEvents = await prisma.petSportsEvent.findMany({
-      where: schoolId ? { schoolId: String(schoolId) } : undefined,
+      where: {
+        ...(schoolId ? { schoolId: String(schoolId) } : {}),
+        date: { gte: todayStr }
+      },
       orderBy: { date: 'asc' },
     });
 
@@ -64,6 +71,29 @@ router.get('/', async (req: Request, res: Response) => {
       };
     });
 
+    // Fetch club events created by teachers
+    const clubEvents = await prisma.clubEvent.findMany({
+      where: {
+        ...(schoolId ? { schoolId: String(schoolId) } : {}),
+        eventDate: { gte: startOfToday }
+      },
+      orderBy: { eventDate: 'asc' },
+      include: { club: true }
+    });
+
+    const formattedClubEvents = clubEvents.map(ce => ({
+      id: ce.id,
+      title: ce.title,
+      type: ce.type,
+      icon: ce.icon || "fi fi-rr-star",
+      themeColor: ce.themeColor || "text-blue-500",
+      eventDate: ce.eventDate,
+      clubName: ce.club?.name
+    }));
+
+    const allEvents = [...events, ...formattedClubEvents].sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
+
+
     let formattedMyClubs: any[] = [];
     if (studentId && studentId !== 'undefined') {
       const myClubs = await prisma.clubMember.findMany({
@@ -79,7 +109,42 @@ router.get('/', async (req: Request, res: Response) => {
       }));
     }
 
-    res.json({ success: true, data: { discoverClubs: clubs, upcomingEvents: events, myClubs: formattedMyClubs } });
+    res.json({ success: true, data: { discoverClubs: clubs, upcomingEvents: allEvents, myClubs: formattedMyClubs } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// GET /api/activities/all-members — Fetch all club members for a school
+router.get('/all-members', async (req: Request, res: Response) => {
+  try {
+    const { schoolId } = req.query;
+    if (!schoolId) {
+      return res.status(400).json({ success: false, error: "schoolId is required" });
+    }
+
+    const members = await prisma.clubMember.findMany({
+      where: { club: { schoolId: String(schoolId) } },
+      include: { 
+        club: true,
+        student: { include: { user: { select: { name: true } } } } 
+      },
+      orderBy: { joinedAt: 'asc' }
+    });
+
+    const formatted = members.map(m => ({
+      id: m.id,
+      studentId: m.studentId,
+      name: m.student.user?.name || 'Student',
+      class: m.student.class,
+      section: m.student.section,
+      role: m.role,
+      joinedAt: m.joinedAt,
+      clubName: m.club.name,
+      clubCategory: m.club.category
+    }));
+
+    res.json({ success: true, count: formatted.length, data: formatted });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -143,6 +208,14 @@ router.post('/events', async (req: Request, res: Response) => {
   try {
     const { title, eventDate, type, icon, themeColor, clubId, schoolId } = req.body;
     
+    let actualSchoolId = schoolId;
+    if (!actualSchoolId && clubId) {
+      const club = await prisma.club.findUnique({ where: { id: clubId } });
+      if (club && club.schoolId) {
+        actualSchoolId = club.schoolId;
+      }
+    }
+
     const event = await prisma.clubEvent.create({
       data: {
         title,
@@ -151,7 +224,7 @@ router.post('/events', async (req: Request, res: Response) => {
         icon,
         themeColor,
         clubId,
-        schoolId
+        schoolId: actualSchoolId
       }
     });
     
@@ -271,6 +344,19 @@ router.delete('/leave', async (req: Request, res: Response) => {
       where: { clubId_studentId: { clubId, studentId } }
     });
     res.json({ success: true, message: 'Left club successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+// DELETE /api/activities/members/:id — Remove a student from a club (Teacher/Headmaster)
+router.delete('/members/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.clubMember.delete({
+      where: { id }
+    });
+    res.json({ success: true, message: 'Member removed successfully' });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }

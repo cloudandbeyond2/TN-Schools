@@ -21,6 +21,7 @@ interface Props {
   studentId: string | null;
   title?: string;
   variant?: "dark" | "light";
+  hideHeader?: boolean;
 }
 
 /**
@@ -28,7 +29,7 @@ interface Props {
  * Always shows live data for the student's most recent academic year — no year selector.
  * The backend auto-detects the correct year from the student's own mark records.
  */
-export default function PersonalKpiStrip({ studentId, title, variant = "light" }: Props) {
+export default function PersonalKpiStrip({ studentId, title, variant = "light", hideHeader = false }: Props) {
   const { lang } = usePortalLanguage();
   const [data, setData] = useState<PersonalKpis | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,16 +61,18 @@ export default function PersonalKpiStrip({ studentId, title, variant = "light" }
 
   return (
     <div className="mb-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <div>
-          <h2 className={`text-base font-semibold flex items-center ${dark ? "text-white" : "text-slate-800 dark:text-white"}`}>
-            <i className="fi fi-rr-chart-histogram text-emerald-500 mr-2"></i> {displayTitle}
-          </h2>
-          <p className="text-[11px] text-slate-500">
-            {lang === "தமிழ்" ? "கல்வி ஆண்டிற்கான நேரடி தரவு" : "Live data for academic year"}{data?.academicYear ? ` ${data.academicYear}` : ""}
-          </p>
+      {!hideHeader && (
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div>
+            <h2 className={`text-base font-semibold flex items-center ${dark ? "text-white" : "text-slate-800 dark:text-white"}`}>
+              <i className="fi fi-rr-chart-histogram text-emerald-500 mr-2"></i> {displayTitle}
+            </h2>
+            <p className="text-[11px] text-slate-500">
+              {lang === "தமிழ்" ? "கல்வி ஆண்டிற்கான நேரடி தரவு" : "Live data for academic year"}{data?.academicYear ? ` ${data.academicYear}` : ""}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard
           label={lang === "தமிழ்" ? "வகுப்பு" : "Class"}

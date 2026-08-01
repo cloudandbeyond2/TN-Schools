@@ -4,20 +4,6 @@ import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
-import {
-  BookOpen,
-  Clock,
-  Send,
-  Inbox,
-  ChevronDown,
-  ChevronUp,
-  Brain,
-  Sparkles,
-  Heart,
-  Compass,
-  ChevronLeft,
-  ChevronRight
-} from "lucide-react";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -46,12 +32,12 @@ const uiTranslations: Record<string, any> = {
     page: "Page",
     of: "of",
     mentorsHub: "Mentor's Support Hub",
-    yogaPoseTitle: "🧘 Mind Yoga Pose",
+    yogaPoseTitle: "Mind Yoga Pose",
     howToDoIt: "How to do it:",
-    goal: "🎯 Goal:",
+    goal: "Goal:",
     suggestedMaterials: "Suggested Study Materials",
     prepTips: "Preparation Tips",
-    studyFocus: "💡 Study Focus:",
+    studyFocus: "Study Focus:",
     targetingImprovement: "Targeting improvement from",
     score: "score",
     taskTypes: {
@@ -74,7 +60,7 @@ const uiTranslations: Record<string, any> = {
     feedbackReceived: "பின்னூட்டம்",
     taskInbox: "ஆசிரியரிடமிருந்து பணி இன்பாக்ஸ்",
     noTasksTitle: "இன்னும் பணிகள் இல்லை!",
-    noTasksDesc: "உங்கள் ஆசிரியர் இன்னும் எந்த பணிகளையும் அனுப்பவில்லை. வழிகாட்டி உங்களுக்கு ஒரு பணியை ஒதுக்கிய பிறகு மீண்டும் பார்க்கவும்.",
+    noTasksDesc: "உங்கள் ஆசிரியர் இன்னும் எந்த பணிகளையும் அனுப்பவில்லை. வழிகாட்டி உங்களுக்கு ஒரு பணி ஒதுக்கிய பிறகு மீண்டும் பார்க்கவும்.",
     due: "கெடு:",
     teacherAsks: "உங்கள் ஆசிரியர் கேட்கிறார்:",
     yourAnswer: "உங்கள் பதில்",
@@ -90,12 +76,12 @@ const uiTranslations: Record<string, any> = {
     page: "பக்கம்",
     of: "இல்",
     mentorsHub: "வழிகாட்டியின் ஆதரவு மையம்",
-    yogaPoseTitle: "🧘 மன யோகாசனம்",
+    yogaPoseTitle: "மன யோகாசனம்",
     howToDoIt: "இதை எப்படி செய்வது:",
-    goal: "🎯 இலக்கு:",
+    goal: "இலக்கு:",
     suggestedMaterials: "பரிந்துரைக்கப்பட்ட படிப்பு பொருட்கள்",
     prepTips: "தயாரிப்பு குறிப்புகள்",
-    studyFocus: "💡 படிப்பு கவனம்:",
+    studyFocus: "படிப்பு கவனம்:",
     targetingImprovement: "முன்னேற்றத்தை இலக்காகக் கொண்ட மதிப்பெண்",
     score: "",
     taskTypes: {
@@ -296,9 +282,13 @@ const getSubjectStudyTips = (lang: string): Record<string, string> => ({
 });
 
 function StatusIcon({ status }: { status: string }) {
-  if (status === "answered") return <span className="text-2xl">&#128172;</span>;
-  if (status === "reviewed") return <span className="text-2xl">&#9989;</span>;
-  return <span className="text-2xl">&#9203;</span>;
+  if (status === "answered") {
+    return <i className="fi fi-sr-comment-alt text-blue-500 text-lg flex items-center" />;
+  }
+  if (status === "reviewed") {
+    return <i className="fi fi-sr-checkbox text-emerald-500 text-lg flex items-center" />;
+  }
+  return <i className="fi fi-sr-clock text-amber-500 text-lg flex items-center" />;
 }
 
 export default function StudentPersonalGuidePage() {
@@ -450,11 +440,11 @@ export default function StudentPersonalGuidePage() {
 
   return (
     <PortalLayout title={t.personalGuide} subtitle={t.subtitle}>
-      <div className="w-full space-y-8 animate-in fade-in duration-300 pb-16 text-left">
+      <div className="w-full space-y-6 animate-in fade-in duration-300 pb-16 text-left">
 
-        {/* Full Width Dynamic & Premium Hero Banner */}
+        {/* Full Width Dynamic & Premium Hero Banner - Slightly reduced size */}
         <div
-          className="hero-band relative w-full overflow-hidden rounded-3xl shadow-xl p-6 sm:p-8 lg:p-10 !text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all duration-300 group"
+          className="hero-band relative w-full overflow-hidden rounded-3xl shadow-xl p-5 sm:p-6 lg:p-7 !text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all duration-300 group"
           style={{
             background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #9333ea 100%)",
             color: "#ffffff"
@@ -466,31 +456,31 @@ export default function StudentPersonalGuidePage() {
 
           <div className="relative z-10 space-y-4 max-w-3xl">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-sm">
-                <BookOpen className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-sm">
+                <i className="fi fi-sr-book-bookmark text-white text-lg flex items-center" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }} />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight !text-white drop-shadow-md" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight leading-tight !text-white drop-shadow-md" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
                   {t.personalGuide}
                 </h1>
-                <p className="text-indigo-100 text-xs sm:text-sm font-medium drop-shadow-sm">
+                <p className="text-indigo-100 text-xs font-medium drop-shadow-sm">
                   {t.subtitle}
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-lg">
-              <div className="bg-black/25 backdrop-blur-md rounded-2xl p-3 text-center border border-white/20 flex flex-col justify-center shadow-sm">
-                <p className="text-xl sm:text-2xl font-black text-amber-300">{pendingCount}</p>
-                <p className="text-[10px] sm:text-xs text-indigo-100 font-bold leading-tight">{t.awaitingReply}</p>
+            <div className="grid grid-cols-3 gap-3 max-w-md">
+              <div className="bg-black/25 backdrop-blur-md rounded-2xl p-2.5 text-center border border-white/20 flex flex-col justify-center shadow-sm">
+                <p className="text-lg sm:text-xl font-black text-amber-300">{pendingCount}</p>
+                <p className="text-[10px] text-indigo-100 font-bold leading-tight">{t.awaitingReply}</p>
               </div>
-              <div className="bg-black/25 backdrop-blur-md rounded-2xl p-3 text-center border border-white/20 flex flex-col justify-center shadow-sm">
-                <p className="text-xl sm:text-2xl font-black text-blue-200">{answeredCount}</p>
-                <p className="text-[10px] sm:text-xs text-indigo-100 font-bold leading-tight">{t.replied}</p>
+              <div className="bg-black/25 backdrop-blur-md rounded-2xl p-2.5 text-center border border-white/20 flex flex-col justify-center shadow-sm">
+                <p className="text-lg sm:text-xl font-black text-blue-200">{answeredCount}</p>
+                <p className="text-[10px] text-indigo-100 font-bold leading-tight">{t.replied}</p>
               </div>
-              <div className="bg-black/25 backdrop-blur-md rounded-2xl p-3 text-center border border-white/20 flex flex-col justify-center shadow-sm">
-                <p className="text-xl sm:text-2xl font-black text-emerald-300">{reviewedCount}</p>
-                <p className="text-[10px] sm:text-xs text-indigo-100 font-bold leading-tight">{t.feedbackReceived}</p>
+              <div className="bg-black/25 backdrop-blur-md rounded-2xl p-2.5 text-center border border-white/20 flex flex-col justify-center shadow-sm">
+                <p className="text-lg sm:text-xl font-black text-emerald-300">{reviewedCount}</p>
+                <p className="text-[10px] text-indigo-100 font-bold leading-tight">{t.feedbackReceived}</p>
               </div>
             </div>
           </div>
@@ -508,14 +498,14 @@ export default function StudentPersonalGuidePage() {
           <div className="relative z-10 flex bg-black/30 backdrop-blur-md border border-white/30 p-1.5 rounded-2xl shadow-md">
             <button
               onClick={() => setLang("en")}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${lang === "en" ? "active-lang-btn shadow-md" : "!text-white hover:opacity-90"}`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${lang === "en" ? "active-lang-btn shadow-md" : "!text-white hover:opacity-90"}`}
               style={lang === "en" ? { backgroundColor: "#ffffff", color: "#0f172a", WebkitTextFillColor: "#0f172a" } : { color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
             >
               English
             </button>
             <button
               onClick={() => setLang("ta")}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${lang === "ta" ? "active-lang-btn shadow-md" : "!text-white hover:opacity-90"}`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${lang === "ta" ? "active-lang-btn shadow-md" : "!text-white hover:opacity-90"}`}
               style={lang === "ta" ? { backgroundColor: "#ffffff", color: "#0f172a", WebkitTextFillColor: "#0f172a" } : { color: "#ffffff", WebkitTextFillColor: "#ffffff" }}
             >
               தமிழ்
@@ -529,30 +519,30 @@ export default function StudentPersonalGuidePage() {
           {/* LEFT: Task Inbox */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-2 px-1">
-              <Inbox className="w-4 h-4 text-indigo-500" />
+              <i className="fi fi-sr-envelope-open-text text-indigo-500 flex items-center text-sm" />
               <h2 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                 {t.taskInbox}
               </h2>
             </div>
 
-              {tasks.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center py-20 text-center">
-                  <Inbox className="w-12 h-12 text-slate-200 dark:text-slate-700 mb-3" />
-                  <p className="text-sm font-bold text-slate-400">{t.noTasksTitle}</p>
-                  <p className="text-xs text-slate-400 mt-1 max-w-xs">
-                    {t.noTasksDesc}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {currentTasks.map((task) => {
-                    const statusCfg = getStatusConfig(lang);
-                    const cfg = statusCfg[task.status as keyof typeof statusCfg] || statusCfg.pending;
-                    const isExp = expandedId === task._id;
-                    const hasRes = !!task.response;
+            {tasks.length === 0 ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center py-20 text-center">
+                <i className="fi fi-sr-envelope-open-text text-slate-200 dark:text-slate-700 text-5xl mb-3 flex justify-center" />
+                <p className="text-sm font-bold text-slate-400">{t.noTasksTitle}</p>
+                <p className="text-xs text-slate-400 mt-1 max-w-xs">
+                  {t.noTasksDesc}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {currentTasks.map((task) => {
+                  const statusCfg = getStatusConfig(lang);
+                  const cfg = statusCfg[task.status as keyof typeof statusCfg] || statusCfg.pending;
+                  const isExp = expandedId === task._id;
+                  const hasRes = !!task.response;
 
-                    return (
-                      <div
+                  return (
+                    <div
                       key={task._id}
                       className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm overflow-hidden transition-colors ${cfg.border}`}
                     >
@@ -580,25 +570,25 @@ export default function StudentPersonalGuidePage() {
                               {cfg.label}
                             </span>
                             {task.dueDate && (
-                              <span className="text-xs text-amber-500">
+                              <span className="text-xs text-amber-500 font-medium">
                                 {t.due} {task.dueDate}
                               </span>
                             )}
                           </div>
                         </div>
-                        <div className="shrink-0 text-slate-400">
+                        <div className="shrink-0 text-slate-400 flex items-center">
                           {isExp ? (
-                            <ChevronUp className="w-4 h-4" />
+                            <i className="fi fi-sr-angle-small-up text-lg flex items-center" />
                           ) : (
-                            <ChevronDown className="w-4 h-4" />
+                            <i className="fi fi-sr-angle-small-down text-lg flex items-center" />
                           )}
                         </div>
                       </div>
 
                       {isExp && (
                         <div className="border-t border-slate-100 dark:border-slate-800 p-5 space-y-4 bg-white dark:bg-slate-900">
-                          <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900 rounded-xl p-4">
-                            <p className="text-xs font-black text-indigo-400 uppercase tracking-wider mb-1">
+                          <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100/40 dark:border-indigo-900/40 rounded-xl p-4">
+                            <p className="text-xs font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-wider mb-1">
                               {t.teacherAsks}
                             </p>
                             <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
@@ -608,7 +598,7 @@ export default function StudentPersonalGuidePage() {
 
                           {hasRes ? (
                             <div className="space-y-3">
-                              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-xl p-4">
+                              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100/40 dark:border-blue-900/40 rounded-xl p-4">
                                 <p className="text-xs font-black text-blue-500 uppercase tracking-wider mb-1">
                                   {t.yourAnswer}
                                 </p>
@@ -634,7 +624,7 @@ export default function StudentPersonalGuidePage() {
                                 </div>
                               ) : (
                                 <div className="flex items-center gap-2 text-xs text-amber-500 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 rounded-xl px-4 py-3">
-                                  <Clock className="w-3.5 h-3.5 shrink-0" />
+                                  <i className="fi fi-sr-clock text-amber-500 flex items-center" />
                                   {t.teacherReviewing}
                                 </div>
                               )}
@@ -654,7 +644,7 @@ export default function StudentPersonalGuidePage() {
                                   }))
                                 }
                                 placeholder={t.placeholder}
-                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-400 resize-none leading-relaxed"
+                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 resize-none leading-relaxed"
                               />
                               <button
                                 onClick={() => handleSubmitResponse(task._id)}
@@ -664,7 +654,7 @@ export default function StudentPersonalGuidePage() {
                                 }
                                 className="flex items-center gap-2 px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors shadow-sm"
                               >
-                                <Send className="w-3.5 h-3.5" />
+                                <i className="fi fi-sr-paper-plane flex items-center text-xs" />
                                 {submitting === task._id
                                   ? t.submitting
                                   : t.submitAnswer}
@@ -677,187 +667,187 @@ export default function StudentPersonalGuidePage() {
                   );
                 })}
 
-                  {/* Pagination Controls */}
-                  {totalPages > 1 && (
-                    <div className="flex items-center justify-between pt-4 pb-2">
-                      <button
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
-                      >
-                        <ChevronLeft className="w-4 h-4" /> {t.previous}
-                      </button>
-                      <span className="text-xs font-bold text-slate-500">
-                        {t.page} {currentPage} {t.of} {totalPages}
-                      </span>
-                      <button
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
-                      >
-                        {t.next} <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-4 pb-2">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+                    >
+                      <i className="fi fi-sr-angle-small-left text-base flex items-center" /> {t.previous}
+                    </button>
+                    <span className="text-xs font-bold text-slate-500">
+                      {t.page} {currentPage} {t.of} {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+                    >
+                      {t.next} <i className="fi fi-sr-angle-small-right text-base flex items-center" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT: Mentor Support Hub */}
+          <div className="lg:col-span-1 space-y-5">
+
+            <div className="flex items-center gap-2 px-1">
+              <i className="fi fi-sr-sparkles text-violet-500 flex items-center text-sm" />
+              <h2 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                {t.mentorsHub}
+              </h2>
             </div>
 
-            {/* RIGHT: Mentor Support Hub */}
-            <div className="lg:col-span-1 space-y-5">
-
-              <div className="flex items-center gap-2 px-1">
-                <Sparkles className="w-4 h-4 text-violet-500" />
-                <h2 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                  {t.mentorsHub}
-                </h2>
-              </div>
-
-              {/* Widget 1: Yoga Poses Widget (with Image steps) */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                  <div className="flex items-center gap-2">
-                    <Heart className="w-4 h-4 text-rose-500" />
-                    <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
-                      {t.yogaPoseTitle}
-                    </h3>
-                  </div>
-                  {/* Navigation controls */}
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={handlePrevPose}
-                      className="p-1 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 transition-colors"
-                    >
-                      <ChevronLeft className="w-3 h-3" />
-                    </button>
-                    <span className="text-[10px] text-slate-400 font-bold px-1">
-                      {yogaIdx + 1}/{getYogaPoses(lang).length}
-                    </span>
-                    <button
-                      onClick={handleNextPose}
-                      className="p-1 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 transition-colors"
-                    >
-                      <ChevronRight className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Active Yoga Pose details */}
-                <div className="space-y-3">
-                  <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
-                    <img
-                      src={activePose.image}
-                      alt={activePose.name}
-                      className="object-cover w-full h-full"
-                    />
-                    <span className="absolute bottom-2 right-2 text-[9px] bg-white/80 dark:bg-black/60 backdrop-blur-sm text-slate-800 dark:text-white px-2 py-0.5 rounded-full font-bold shadow-sm">
-                      ⏱️ {activePose.duration}
-                    </span>
-                  </div>
-
-                  <div>
-                    <h4 className="text-xs font-black text-slate-800 dark:text-white">
-                      {activePose.name}
-                    </h4>
-                    <p className="text-[10px] font-bold text-indigo-500">
-                      {activePose.localName}
-                    </p>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                      {activePose.benefits}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1.5 border-t border-slate-100 dark:border-slate-800 pt-3">
-                    <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">
-                      {t.howToDoIt}
-                    </p>
-                    <ol className="space-y-1">
-                      {activePose.steps.map((step, idx) => (
-                        <li
-                          key={idx}
-                          className="text-[11px] text-slate-600 dark:text-slate-300 flex items-start gap-1 leading-relaxed"
-                        >
-                          <span className="font-bold text-indigo-400 min-w-[12px]">{idx + 1}.</span>
-                          <span>{step}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                </div>
-              </div>
-
-              {/* Widget 2: Career Goal Reference Links */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-                <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
-                  <Compass className="w-4 h-4 text-violet-500" />
+            {/* Widget 1: Yoga Poses Widget (with Image steps) */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                <div className="flex items-center gap-2">
+                  <i className="fi fi-sr-heart text-rose-500 flex items-center text-sm" />
                   <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
-                    {t.goal} {resources.title}
+                    {t.yogaPoseTitle}
                   </h3>
                 </div>
-
-                <div className="space-y-3">
-                  <p className="text-[11px] font-black uppercase text-slate-400 tracking-wider">
-                    {t.suggestedMaterials}
-                  </p>
-                  <ul className="space-y-2">
-                    {resources.links.map((link, idx) => (
-                      <li key={idx} className="text-xs">
-                        <a
-                          href={link.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-indigo-500 hover:underline flex items-start gap-1 font-medium leading-tight"
-                        >
-                          <span>🔗</span>
-                          <span>{link.name}</span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-3">
-                  <p className="text-[11px] font-black uppercase text-slate-400 tracking-wider">
-                    {t.prepTips}
-                  </p>
-                  <ul className="space-y-1.5">
-                    {resources.tips.map((tip, idx) => (
-                      <li key={idx} className="text-xs text-slate-600 dark:text-slate-300 flex items-start gap-1.5 leading-relaxed">
-                        <span className="text-indigo-400 mt-0.5">•</span>
-                        <span>{tip}</span>
-                      </li>
-                    ))}
-                  </ul>
+                {/* Navigation controls */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={handlePrevPose}
+                    className="p-1 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 transition-colors flex items-center"
+                  >
+                    <i className="fi fi-sr-angle-left text-[10px] flex items-center" />
+                  </button>
+                  <span className="text-[10px] text-slate-400 font-bold px-1">
+                    {yogaIdx + 1}/{getYogaPoses(lang).length}
+                  </span>
+                  <button
+                    onClick={handleNextPose}
+                    className="p-1 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 transition-colors flex items-center"
+                  >
+                    <i className="fi fi-sr-angle-right text-[10px] flex items-center" />
+                  </button>
                 </div>
               </div>
 
-              {/* Widget 3: Subject wise study tips */}
-              {lowestSubject && (
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
-                  <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
-                    <Brain className="w-4 h-4 text-amber-500" />
-                    <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
-                      {t.studyFocus} {lowestSubject}
-                    </h3>
-                  </div>
-                  <div className="bg-amber-50/50 dark:bg-amber-950/10 border border-amber-100 dark:border-amber-900/50 rounded-xl p-3">
-                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-                      {subjectStudyTip}
-                    </p>
-                    {lowestScore > 0 && (
-                      <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-2 font-bold">
-                        {t.targetingImprovement} {lowestScore}% {t.score}
-                      </p>
-                    )}
-                  </div>
+              {/* Active Yoga Pose details */}
+              <div className="space-y-3">
+                <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+                  <img
+                    src={activePose.image}
+                    alt={activePose.name}
+                    className="object-cover w-full h-full"
+                  />
+                  <span className="absolute bottom-2 right-2 text-[9px] bg-white/80 dark:bg-black/60 backdrop-blur-sm text-slate-800 dark:text-white px-2 py-0.5 rounded-full font-bold shadow-sm">
+                    ⏱️ {activePose.duration}
+                  </span>
                 </div>
-              )}
 
+                <div>
+                  <h4 className="text-xs font-black text-slate-800 dark:text-white">
+                    {activePose.name}
+                  </h4>
+                  <p className="text-[10px] font-bold text-indigo-500">
+                    {activePose.localName}
+                  </p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                    {activePose.benefits}
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">
+                    {t.howToDoIt}
+                  </p>
+                  <ol className="space-y-1">
+                    {activePose.steps.map((step, idx) => (
+                      <li
+                        key={idx}
+                        className="text-[11px] text-slate-600 dark:text-slate-300 flex items-start gap-1 leading-relaxed"
+                      >
+                        <span className="font-bold text-indigo-400 min-w-[12px]">{idx + 1}.</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
             </div>
+
+            {/* Widget 2: Career Goal Reference Links */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                <i className="fi fi-sr-target text-violet-500 flex items-center text-sm" />
+                <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
+                  {t.goal} {resources.title}
+                </h3>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-[11px] font-black uppercase text-slate-400 tracking-wider">
+                  {t.suggestedMaterials}
+                </p>
+                <ul className="space-y-2">
+                  {resources.links.map((link, idx) => (
+                    <li key={idx} className="text-xs">
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-indigo-500 hover:underline flex items-start gap-1 font-medium leading-tight"
+                      >
+                        <span>🔗</span>
+                        <span>{link.name}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-3">
+                <p className="text-[11px] font-black uppercase text-slate-400 tracking-wider">
+                  {t.prepTips}
+                </p>
+                <ul className="space-y-1.5">
+                  {resources.tips.map((tip, idx) => (
+                    <li key={idx} className="text-xs text-slate-600 dark:text-slate-300 flex items-start gap-1.5 leading-relaxed">
+                      <span className="text-indigo-400 mt-0.5">•</span>
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Widget 3: Subject wise study tips */}
+            {lowestSubject && (
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+                <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <i className="fi fi-sr-brain text-amber-500 flex items-center text-sm" />
+                  <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
+                    {t.studyFocus} {lowestSubject}
+                  </h3>
+                </div>
+                <div className="bg-amber-50/50 dark:bg-amber-950/10 border border-amber-100 dark:border-amber-900/50 rounded-xl p-3">
+                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                    {subjectStudyTip}
+                  </p>
+                  {lowestScore > 0 && (
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-2 font-bold">
+                      {t.targetingImprovement} {lowestScore}% {t.score}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
 
           </div>
 
         </div>
+
+      </div>
     </PortalLayout>
   );
 }

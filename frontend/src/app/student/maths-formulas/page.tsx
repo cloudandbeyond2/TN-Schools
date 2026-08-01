@@ -3,37 +3,26 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import {
-  Calculator,
-  Search,
-  Sigma,
-  Pi,
-  DivideSquare,
-  BookOpen,
-  Copy,
-  Star,
-  Check,
-  Zap,
-  Gamepad2,
-  BrainCircuit,
-  Joystick,
-  GraduationCap
-} from "lucide-react";
-
 import { samacheerFormulas, SamacheerFormula } from "@/data/samacheer-formulas";
 
 const getCategoryIcon = (catId: string) => {
-  if (catId === "measurements" || catId === "geometry") return <DivideSquare />;
-  if (catId === "profit-loss" || catId === "algebra") return <Sigma />;
-  if (catId === "trigonometry") return <Pi />;
-  return <Calculator />;
+  if (catId === "measurements" || catId === "geometry") {
+    return <i className="fi fi-sr-ruler-combined flex items-center text-sm" />;
+  }
+  if (catId === "profit-loss" || catId === "algebra") {
+    return <i className="fi fi-sr-stats flex items-center text-sm" />;
+  }
+  if (catId === "trigonometry") {
+    return <i className="fi fi-sr-chart-histogram flex items-center text-sm" />;
+  }
+  return <i className="fi fi-sr-calculator flex items-center text-sm" />;
 };
 
 const getCategoryColor = (catId: string) => {
-  if (catId === "measurements" || catId === "geometry") return "text-emerald-600 bg-emerald-100 border-emerald-400";
-  if (catId === "profit-loss" || catId === "algebra") return "text-blue-600 bg-blue-100 border-blue-400";
-  if (catId === "trigonometry") return "text-purple-600 bg-purple-100 border-purple-400";
-  return "text-orange-600 bg-orange-100 border-orange-400";
+  if (catId === "measurements" || catId === "geometry") return "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200/50";
+  if (catId === "profit-loss" || catId === "algebra") return "text-blue-600 bg-blue-50 dark:bg-blue-950/20 border-blue-200/50";
+  if (catId === "trigonometry") return "text-purple-600 bg-purple-50 dark:bg-purple-950/20 border-purple-200/50";
+  return "text-orange-600 bg-orange-50 dark:bg-orange-950/20 border-orange-200/50";
 };
 
 const getFormulaBgStyle = (formula: any): React.CSSProperties => {
@@ -97,56 +86,55 @@ const FormulaQuizSection = ({ formulas, lang }: { formulas: SamacheerFormula[]; 
   const quizTitle = currentQuiz.formulaObj.title[lang] || currentQuiz.formulaObj.title.en;
 
   return (
-    <div className="mt-8 md:mt-12 bg-indigo-900 rounded-3xl md:rounded-[2.5rem] p-5 md:p-8 border-4 border-indigo-700 shadow-2xl relative overflow-hidden text-left">
-       <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl"></div>
-       <div className="relative z-10 flex flex-col md:flex-row gap-5 md:gap-8 items-center">
-         <div className="flex-1 text-white">
-           <div className="flex items-center gap-2 font-black tracking-widest text-xs md:text-sm uppercase mb-2" style={{ color: "#fde047", WebkitTextFillColor: "#fde047" }}>
-             <Zap className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-yellow-400" />
-             Fill in the Blanks
-           </div>
-           <h2 className="text-xl md:text-3xl font-black mb-3 md:mb-4 leading-tight !text-white" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
-             {quizTitle}
-           </h2>
-           <div className="bg-white/10 border-2 border-white/20 p-4 md:p-6 rounded-xl md:rounded-2xl text-center backdrop-blur-md">
-             <span className="font-mono text-2xl md:text-4xl font-black text-yellow-300 drop-shadow-md" style={{ color: "#fde047", WebkitTextFillColor: "#fde047" }}>
-               {currentQuiz.questionStr}
-             </span>
-           </div>
-           {feedback === "correct" && <div className="text-emerald-400 font-black mt-3 md:mt-4 text-sm md:text-base animate-bounce">Great Job! +10 Points 🌟</div>}
-           {feedback === "wrong" && <div className="text-rose-400 font-black mt-3 md:mt-4 text-sm md:text-base animate-pulse">Oops! Try again! 🤔</div>}
-         </div>
-         <div className="flex-1 w-full flex flex-col gap-3">
-           <div className="text-right font-black mb-2 text-sm md:text-base" style={{ color: "#c7d2fe", WebkitTextFillColor: "#c7d2fe" }}>
-             Score: <span className="text-white text-lg md:text-xl font-mono" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>{score}</span>
-           </div>
-           <div className="grid grid-cols-2 gap-2 md:gap-3">
-             {currentQuiz.options.map((opt: string, i: number) => (
-               <button 
-                 key={i} 
-                 onClick={() => {
-                   if (opt === currentQuiz.answer) {
-                     setFeedback("correct");
-                     setScore(s => s + 10);
-                     setTimeout(generateQuiz, 1500);
-                   } else {
-                     setFeedback("wrong");
-                   }
-                 }}
-                 disabled={feedback === "correct"}
-                 className="p-3 md:p-4 bg-white hover:bg-indigo-50 text-indigo-900 font-mono font-black text-lg md:text-xl rounded-xl md:rounded-2xl shadow-lg border-b-4 border-indigo-200 active:border-b-0 active:translate-y-1 transition-all"
-               >
-                 {opt}
-               </button>
-             ))}
-           </div>
-           <button onClick={generateQuiz} className="mt-4 text-indigo-300 hover:text-white font-bold text-sm underline text-right">Skip Question</button>
-         </div>
-       </div>
+    <div className="mt-8 md:mt-12 bg-indigo-950 rounded-3xl md:rounded-[2.5rem] p-6 md:p-8 border border-indigo-800/40 shadow-xl relative overflow-hidden text-left">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl"></div>
+      <div className="relative z-10 flex flex-col md:flex-row gap-6 md:gap-8 items-center">
+        <div className="flex-1 text-white">
+          <div className="flex items-center gap-2 font-black tracking-widest text-xs md:text-sm uppercase mb-2" style={{ color: "#fde047", WebkitTextFillColor: "#fde047" }}>
+            <i className="fi fi-sr-play-alt text-yellow-400 text-sm flex items-center" />
+            Fill in the Blanks
+          </div>
+          <h2 className="text-xl md:text-3xl font-black mb-3 md:mb-4 leading-tight !text-white" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+            {quizTitle}
+          </h2>
+          <div className="bg-white/5 border border-white/10 p-4 md:p-6 rounded-xl md:rounded-2xl text-center backdrop-blur-md">
+            <span className="font-mono text-2xl md:text-4xl font-black text-yellow-300 drop-shadow-md" style={{ color: "#fde047", WebkitTextFillColor: "#fde047" }}>
+              {currentQuiz.questionStr}
+            </span>
+          </div>
+          {feedback === "correct" && <div className="text-emerald-400 font-black mt-3 md:mt-4 text-sm md:text-base animate-bounce">Great Job! +10 Points 🌟</div>}
+          {feedback === "wrong" && <div className="text-rose-400 font-black mt-3 md:mt-4 text-sm md:text-base animate-pulse">Oops! Try again! 🤔</div>}
+        </div>
+        <div className="flex-1 w-full flex flex-col gap-3">
+          <div className="text-right font-black mb-2 text-sm md:text-base" style={{ color: "#c7d2fe", WebkitTextFillColor: "#c7d2fe" }}>
+            Score: <span className="text-white text-lg md:text-xl font-mono" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>{score}</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 md:gap-3">
+            {currentQuiz.options.map((opt: string, i: number) => (
+              <button 
+                key={i} 
+                onClick={() => {
+                  if (opt === currentQuiz.answer) {
+                    setFeedback("correct");
+                    setScore(s => s + 10);
+                    setTimeout(generateQuiz, 1500);
+                  } else {
+                    setFeedback("wrong");
+                  }
+                }}
+                disabled={feedback === "correct"}
+                className="p-3 md:p-4 bg-white dark:bg-slate-900 text-indigo-900 dark:text-indigo-200 font-mono font-black text-lg md:text-xl rounded-xl md:rounded-2xl shadow-md border border-slate-200 dark:border-slate-800 active:translate-y-1 transition-all"
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+          <button onClick={generateQuiz} className="mt-4 text-indigo-300 hover:text-white font-bold text-sm underline text-right">Skip Question</button>
+        </div>
+      </div>
     </div>
   );
 };
-
 
 export default function MathsFormulasPage() {
   const { data: session } = useSession();
@@ -162,7 +150,6 @@ export default function MathsFormulasPage() {
 
       const availableStandards = new Set(samacheerFormulas.map(f => f.standard));
 
-      // 1. Check session user object first
       const sessionClass = (session.user as any)?.classId || (session.user as any)?.class;
       if (sessionClass) {
         const match = String(sessionClass).match(/\d+/);
@@ -173,7 +160,6 @@ export default function MathsFormulasPage() {
         }
       }
 
-      // 2. Fetch student profile from API
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const userId = (session.user as any).id;
@@ -199,7 +185,6 @@ export default function MathsFormulasPage() {
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [toastMsg, setToastMsg] = useState("");
 
-  // Game Mode & Sandbox State
   const [gameMode, setGameMode] = useState(false);
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
 
@@ -248,13 +233,11 @@ export default function MathsFormulasPage() {
     });
   };
 
-  // Filter logic
   let filteredFormulas = samacheerFormulas.filter(f => f.standard === activeStandard);
   if (activeTerm !== "all") {
     filteredFormulas = filteredFormulas.filter(f => f.term === activeTerm);
   }
 
-  // Dynamically compute categories from filtered formulas
   const dynamicCategoriesMap = new Map();
   filteredFormulas.forEach(f => {
     if (!dynamicCategoriesMap.has(f.category)) {
@@ -286,29 +269,45 @@ export default function MathsFormulasPage() {
       title="Maths Magic Formulas"
       subtitle={`Interactive syllabus formulas tailored for Standard ${activeStandard}`}
     >
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-6 text-left">
+
+        {/* Premium Glassmorphism Banner */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+          <div>
+            <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
+              <i className="fi fi-sr-calculator text-emerald-600 dark:text-emerald-400 flex items-center text-xl" />
+              {lang === "en" ? "Maths Magic Formulas" : "கணித சூத்திரங்கள்"}
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {lang === "en" ? "Interactive syllabus formulas tailored for Standards 6-10" : "6-10 வகுப்புகளுக்கான ஊடாடும் கணித சூத்திரங்கள்"}
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm rounded-xl border border-emerald-200/20 shadow-sm whitespace-nowrap shrink-0">
+            <i className="fi fi-sr-school flex items-center text-sm" />
+            Standard {activeStandard} Portal
+          </span>
+        </div>
 
         {/* Playful Search and Categories Header */}
-        <div className="bg-white dark:bg-slate-800 p-6 flex flex-col xl:flex-row gap-6 justify-between items-center rounded-[2rem] border-4 border-indigo-100 dark:border-slate-700 shadow-xl shadow-indigo-500/10 relative overflow-hidden text-left">
-
-          <div className="absolute right-0 top-0 w-64 h-64 bg-yellow-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+        <div className="bg-white dark:bg-slate-900/40 p-6 flex flex-col xl:flex-row gap-6 justify-between items-center rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden text-left">
+          <div className="absolute right-0 top-0 w-64 h-64 bg-yellow-400/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
 
           <div className="w-full xl:w-2/3 flex flex-wrap lg:flex-nowrap items-center gap-3">
             <div className="relative w-full sm:flex-1 min-w-[200px]">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 font-bold" />
+              <i className="fi fi-sr-search absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 flex items-center text-sm" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search formulas..."
-                className="w-full bg-slate-50 dark:bg-slate-900 border-4 border-indigo-100 dark:border-slate-700 text-indigo-900 dark:text-indigo-100 rounded-3xl py-3 pl-12 pr-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all shadow-inner placeholder:text-indigo-300 dark:placeholder:text-indigo-700"
+                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-indigo-900 dark:text-indigo-100 rounded-2xl py-3 pl-12 pr-4 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:focus:ring-indigo-900 transition-all shadow-inner placeholder:text-indigo-350 dark:placeholder:text-indigo-700"
               />
             </div>
 
             {/* Read-only Grade Indicator Badge & Term Filter */}
             <div className="relative flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto items-center">
-              <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/60 border-4 border-indigo-100 dark:border-indigo-900/60 text-indigo-900 dark:text-indigo-200 px-4 py-3 rounded-2xl text-xs font-black shadow-sm shrink-0">
-                <GraduationCap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100/30 dark:border-indigo-900/30 text-indigo-900 dark:text-indigo-200 px-4 py-3 rounded-2xl text-xs font-black shadow-sm shrink-0">
+                <i className="fi fi-sr-graduation-cap text-indigo-600 dark:text-indigo-400 flex items-center text-sm" />
                 <span>Standard {activeStandard}</span>
               </div>
 
@@ -318,7 +317,7 @@ export default function MathsFormulasPage() {
                   setActiveTerm(e.target.value);
                   setActiveCat("all");
                 }}
-                className="appearance-none bg-white dark:bg-slate-900 border-4 border-indigo-100 dark:border-slate-700 text-indigo-900 dark:text-indigo-100 rounded-2xl py-3 px-4 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all shadow-sm cursor-pointer"
+                className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-indigo-900 dark:text-indigo-100 rounded-2xl py-3 px-4 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all shadow-sm cursor-pointer"
               >
                 <option value="all">All Terms</option>
                 <option value="1">Term I</option>
@@ -331,46 +330,46 @@ export default function MathsFormulasPage() {
             <div className="flex items-center gap-2 w-full sm:w-auto justify-end sm:justify-start">
               <button
                 onClick={() => setLang(l => l === "en" ? "ta" : "en")}
-                className="p-3 px-4 rounded-2xl border-4 bg-fuchsia-50 border-fuchsia-200 text-fuchsia-700 font-bold hover:bg-fuchsia-100 transition-all shadow-sm flex items-center gap-2 flex-1 sm:flex-none justify-center"
+                className="p-3 px-4 rounded-2xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm flex items-center gap-2 flex-1 sm:flex-none justify-center"
                 title="Toggle Language"
               >
-              {lang === "en" ? "English" : "தமிழ்"}
-            </button>
+                {lang === "en" ? "English" : "தமிழ்"}
+              </button>
 
               <button
                 onClick={toggleGameMode}
-                className={`p-3 rounded-2xl border-4 transition-all flex-shrink-0 flex-1 sm:flex-none flex items-center justify-center ${gameMode
-                    ? "bg-amber-400 border-amber-500 text-amber-900 shadow-lg shadow-amber-500/40 scale-110 rotate-3 animate-pulse"
-                    : "bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 hover:bg-slate-200"
+                className={`p-3 rounded-2xl border transition-all flex-shrink-0 flex-1 sm:flex-none flex items-center justify-center ${gameMode
+                    ? "bg-amber-400 border-amber-500 text-amber-900 shadow-md scale-105"
+                    : "bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800"
                   }`}
                 title="Toggle Game Mode"
               >
-                <Gamepad2 className="w-6 h-6" />
+                <i className="fi fi-sr-play-alt text-lg flex items-center" />
               </button>
             </div>
           </div>
 
-          <div className="flex gap-3 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+          <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
             <button
               onClick={() => setActiveCat("all")}
-              className={`px-5 py-2.5 rounded-2xl text-xs font-black transition-all whitespace-nowrap flex items-center gap-2 ${activeCat === "all"
-                  ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-purple-500/30 scale-105"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 border-2 border-transparent"
+              className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all whitespace-nowrap flex items-center gap-1.5 ${activeCat === "all"
+                  ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md scale-105"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-550 dark:text-slate-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:text-emerald-600 border border-transparent"
                 }`}
             >
-              <BookOpen className="w-4 h-4" />
+              <i className="fi fi-sr-book-open-cover flex items-center text-xs" />
               All
             </button>
             {categories.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCat(cat.id)}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all whitespace-nowrap flex items-center gap-2 border-2 ${activeCat === cat.id
-                    ? `${cat.color.split(' ')[1]} ${cat.color.split(' ')[2]} ${cat.color.split(' ')[0]} shadow-lg scale-105`
-                    : `bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:scale-105`
+                className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all whitespace-nowrap flex items-center gap-1.5 border ${activeCat === cat.id
+                    ? `${cat.color} border-slate-300 shadow-md scale-105`
+                    : `bg-slate-50 dark:bg-slate-800 text-slate-550 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:scale-105`
                   }`}
               >
-                {React.cloneElement(cat.icon as React.ReactElement, { className: "w-4 h-4" })}
+                {cat.icon}
                 {cat.name[lang]}
               </button>
             ))}
@@ -378,30 +377,30 @@ export default function MathsFormulasPage() {
         </div>
 
         {/* Playful Formulas Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredFormulas.map(formula => {
             const cat = categories.find(c => c.id === formula.category);
             return (
-              <div key={formula.id} className="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col relative overflow-hidden border-4 border-slate-100 dark:border-slate-700 p-2">
+              <div key={formula.id} className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col relative overflow-hidden border border-slate-200 dark:border-slate-800 p-2">
 
                 {/* Dynamic Formula Display based on Game Mode */}
                 {gameMode ? (
                   <div
                     onClick={() => toggleReveal(formula.id)}
-                    className={`w-full h-36 rounded-t-[2rem] rounded-b-2xl flex flex-col items-center justify-center p-6 cursor-pointer transition-all duration-300 ${revealed.has(formula.id)
-                        ? "shadow-md"
-                        : "bg-slate-800 dark:bg-slate-900 border-2 border-dashed border-slate-600 hover:bg-slate-700"
+                    className={`w-full h-36 rounded-t-2xl rounded-b-xl flex flex-col items-center justify-center p-6 cursor-pointer transition-all duration-300 ${revealed.has(formula.id)
+                        ? "shadow-sm"
+                        : "bg-slate-800 dark:bg-slate-950 border border-slate-600/40 hover:bg-slate-700"
                       }`}
                     style={revealed.has(formula.id) ? getFormulaBgStyle(formula) : {}}
                   >
                     {revealed.has(formula.id) ? (
-                      <span className="font-mono text-2xl font-black !text-white text-center drop-shadow-md animate-in zoom-in duration-300" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+                      <span className="font-mono text-xl sm:text-2xl font-black !text-white text-center drop-shadow-md animate-in zoom-in duration-300" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
                         {formula.formula}
                       </span>
                     ) : (
                       <div className="flex flex-col items-center justify-center text-slate-500 group-hover:text-amber-400 transition-colors">
-                        <Gamepad2 className="w-10 h-10 mb-2 opacity-50 group-hover:opacity-100 group-hover:animate-bounce" />
-                        <span className="font-black text-xs tracking-widest uppercase text-center">
+                        <i className="fi fi-sr-play-alt text-3xl mb-2 opacity-50 group-hover:opacity-100 group-hover:animate-bounce flex items-center justify-center" />
+                        <span className="font-black text-[10px] tracking-widest uppercase text-center">
                           Tap to Reveal
                         </span>
                       </div>
@@ -409,10 +408,10 @@ export default function MathsFormulasPage() {
                   </div>
                 ) : (
                   <div
-                    className="w-full h-36 rounded-t-[2rem] rounded-b-2xl flex items-center justify-center p-6 relative shadow-md"
+                    className="w-full h-36 rounded-t-2xl rounded-b-xl flex items-center justify-center p-6 relative shadow-sm"
                     style={getFormulaBgStyle(formula)}
                   >
-                    <span className="font-mono text-2xl sm:text-3xl font-black !text-white text-center drop-shadow-md" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+                    <span className="font-mono text-xl sm:text-2xl font-black !text-white text-center drop-shadow-md" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
                       {formula.formula}
                     </span>
 
@@ -422,20 +421,20 @@ export default function MathsFormulasPage() {
                       title="Copy Formula"
                     >
                       {copiedId === formula.id ? (
-                        <Check className="w-4 h-4" />
+                        <i className="fi fi-sr-check flex items-center text-xs" />
                       ) : (
-                        <Copy className="w-4 h-4" />
+                        <i className="fi fi-sr-copy flex items-center text-xs" />
                       )}
                     </button>
 
                     {/* Grade Badge */}
-                    <div className="absolute bottom-4 right-4 flex items-center gap-1 text-[9px] font-black text-slate-700 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-xl shadow-sm">
+                    <div className="absolute bottom-4 right-4 flex items-center gap-1 text-[9px] font-black text-slate-700 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-lg shadow-sm">
                       Standard {formula.standard}
                     </div>
 
                     {formula.popular && (
-                      <div className="absolute top-4 left-4 flex items-center gap-1 text-[9px] font-black text-amber-900 bg-amber-400 px-2.5 py-1 rounded-xl shadow-md rotate-[-5deg]">
-                        <Star className="w-3 h-3 fill-amber-900" />
+                      <div className="absolute top-4 left-4 flex items-center gap-1 text-[9px] font-black text-amber-900 bg-amber-400 px-2.5 py-1 rounded-lg shadow-md rotate-[-5deg]">
+                        <i className="fi fi-sr-star text-[10px] flex items-center text-amber-900" />
                         POPULAR
                       </div>
                     )}
@@ -444,58 +443,57 @@ export default function MathsFormulasPage() {
 
                 <div className="p-5 flex flex-col flex-1">
                   <div className="flex justify-between items-center mb-3">
-                    <div className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border-2 flex items-center gap-1.5 ${cat?.color}`}>
-                      {cat?.icon ? React.cloneElement(cat.icon as React.ReactElement, { className: "w-3 h-3" }) : <Sigma className="w-3 h-3" />}
+                    <div className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider border flex items-center gap-1.5 ${cat?.color}`}>
+                      {cat?.icon ? React.cloneElement(cat.icon as React.ReactElement, { className: "w-3 h-3 flex items-center" }) : <i className="fi fi-sr-stats flex items-center text-[10px]" />}
                       {cat?.name[lang]}
                     </div>
+                    <span className="text-[10px] text-slate-400 font-bold">
+                      Term {formula.term}
+                    </span>
                   </div>
 
-                  <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 mb-5 leading-tight">{formula.title[lang]}</h3>
+                  <h3 className="text-sm font-black text-slate-800 dark:text-slate-200 mb-2 line-clamp-1">
+                    {formula.title[lang]}
+                  </h3>
+                  {formula.description && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4 line-clamp-2">
+                      {formula.description[lang]}
+                    </p>
+                  )}
 
-                  <div className="flex gap-2 mt-auto">
-                    <button
-                      onClick={() => openSandbox(formula, cat)}
-                      className="flex-1 py-3 rounded-2xl text-xs font-black text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-all active:scale-95 border-2 border-indigo-200 flex items-center justify-center gap-2">
-                      <Joystick className="w-4 h-4" /> Interactive Sandbox
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => openSandbox(formula, cat)}
+                    className="w-full mt-auto bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-350 font-black text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700 shadow-sm"
+                  >
+                    Interactive Sandbox
+                  </button>
                 </div>
+
               </div>
             );
           })}
-
-          {filteredFormulas.length === 0 && (
-            <div className="col-span-full py-20 flex flex-col items-center justify-center text-slate-500 bg-white dark:bg-slate-800 rounded-[2.5rem] border-4 border-dashed border-slate-200 dark:border-slate-700">
-              <BookOpen className="w-16 h-16 text-slate-300 mb-4" />
-              <h3 className="text-xl font-black text-slate-400">No magical formulas found!</h3>
-              <p className="text-sm font-bold mt-2">Try selecting a different category or grade level.</p>
-            </div>
-          )}
         </div>
 
-        {/* Fill in the Blanks Section */}
+        {/* Global fill quiz section */}
         {filteredFormulas.length > 0 && (
           <FormulaQuizSection formulas={filteredFormulas} lang={lang} />
         )}
 
       </div>
 
-      {/* Toast Notification */}
+      {/* Toast Alert */}
       {toastMsg && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl shadow-indigo-500/20 text-sm font-bold animate-[bounce_0.5s_ease-out] z-[150] flex items-center gap-2 border-4 border-indigo-500/30">
-          <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping"></div>
+        <div className="fixed bottom-6 right-6 z-[120] bg-indigo-900 text-white font-extrabold text-xs px-5 py-3 rounded-2xl border border-indigo-750 shadow-2xl animate-in slide-in-from-bottom duration-300">
           {toastMsg}
         </div>
       )}
 
-      {/* Interactive Sandbox & Memory Modal */}
+      {/* Formula Sandbox Modal */}
       {modalOpen && selectedFormula && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] w-full max-w-lg shadow-2xl border-4 border-slate-100 dark:border-slate-700 animate-in zoom-in-95 flex flex-col overflow-hidden">
-
-            {/* Modal Header (Formula Display) */}
+        <div className="fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-200">
+          <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in duration-300">
             <div
-              className="w-full h-32 flex items-center justify-center p-6 relative shadow-inner"
+              className="w-full h-40 flex items-center justify-center p-6 relative"
               style={getFormulaBgStyle(selectedFormula)}
             >
               <span className="font-mono text-3xl font-black !text-white text-center drop-shadow-md" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
@@ -512,25 +510,25 @@ export default function MathsFormulasPage() {
             <div className="p-6 flex flex-col flex-1">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">{selectedFormula.title[lang]}</h3>
-                <div className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border-2 bg-white ${selectedFormula.cat?.color}`}>
+                <div className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider border bg-white dark:bg-slate-800 ${selectedFormula.cat?.color}`}>
                   {selectedFormula.cat?.name[lang]}
                 </div>
               </div>
 
-              <div className="flex gap-2 mb-6 p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700">
+              <div className="flex gap-2 mb-6 p-1 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <button
                   onClick={() => setActiveTab("playground")}
-                  className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${activeTab === "playground" ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${activeTab === "playground" ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-slate-500 hover:text-slate-700"
                     }`}
                 >
-                  <Joystick className="w-4 h-4" /> Sandbox
+                  <i className="fi fi-sr-play flex items-center text-xs" /> Sandbox
                 </button>
                 <button
                   onClick={() => setActiveTab("memory")}
                   className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${activeTab === "memory" ? "bg-white dark:bg-slate-800 text-pink-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
                     }`}
                 >
-                  <BrainCircuit className="w-4 h-4" /> Memory Trick
+                  <i className="fi fi-sr-brain flex items-center text-xs" /> Memory Trick
                 </button>
               </div>
 
@@ -544,7 +542,7 @@ export default function MathsFormulasPage() {
 
                 {activeTab === "memory" && (
                   <div className="space-y-4 animate-in fade-in duration-500">
-                    <div className="w-full h-44 bg-slate-900 rounded-2xl overflow-hidden relative border border-slate-200 shadow-inner group">
+                    <div className="w-full h-44 bg-slate-900 rounded-2xl overflow-hidden relative border border-slate-200 dark:border-slate-800 shadow-inner group">
                       <img
                         src={`https://image.pollinations.ai/prompt/${encodeURIComponent(selectedFormula.mnemonicPrompt)}?width=600&height=400&nologo=true`}
                         alt="Memory Mnemonic"
@@ -552,11 +550,11 @@ export default function MathsFormulasPage() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
                         <span className="text-white text-[10px] font-bold uppercase tracking-widest opacity-80 flex items-center gap-1">
-                          <BrainCircuit className="w-3 h-3" /> AI Generated Mnemonic
+                          <i className="fi fi-sr-brain flex items-center text-[10px]" /> AI Generated Mnemonic
                         </span>
                       </div>
                     </div>
-                    <p className="font-bold text-slate-700 text-sm leading-relaxed p-4 bg-amber-50 rounded-2xl border-2 border-amber-200 text-center">
+                    <p className="font-bold text-slate-700 dark:text-slate-350 text-sm leading-relaxed p-4 bg-amber-50 dark:bg-amber-950/20 rounded-2xl border border-amber-200 dark:border-amber-900/60 text-center">
                       "{selectedFormula.mnemonicText}"
                     </p>
                   </div>

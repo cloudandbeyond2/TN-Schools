@@ -5,6 +5,8 @@ import { Calendar } from "lucide-react";
 import PortalLayout from "@/components/PortalLayout";
 import { useState, useEffect } from "react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -36,6 +38,8 @@ interface ClubEvent {
 }
 
 export default function TeacherEventsPage() {
+  const { data: session } = useSession();
+  const schoolId = (session?.user as any)?.schoolId;
   const { lang } = usePortalLanguage();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [events, setEvents] = useState<ClubEvent[]>([]);
@@ -51,18 +55,24 @@ export default function TeacherEventsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (schoolId) {
+      fetchData(schoolId);
+    }
+  }, [schoolId]);
 
-  const fetchData = async () => {
+  const fetchData = async (sId: string) => {
     try {
-      const res = await fetch(`${API_BASE}/api/activities`);
+      const res = await fetch(`${API_BASE}/api/activities?schoolId=${sId}`);
       const json = await res.json();
       if (json.success) {
-        setClubs(json.data.discoverClubs || []);
+        const fetchedClubs = json.data.discoverClubs || [];
+        // Deduplicate clubs by name to prevent multiple entries in dropdown
+        const uniqueClubs = Array.from(new Map(fetchedClubs.map((c: Club) => [c.name, c])).values()) as Club[];
+        
+        setClubs(uniqueClubs);
         setEvents(json.data.upcomingEvents || []);
-        if (json.data.discoverClubs?.length > 0) {
-          setClubId(json.data.discoverClubs[0].id);
+        if (uniqueClubs.length > 0) {
+          setClubId(uniqueClubs[0].id);
         }
       }
     } catch (err) {
@@ -109,7 +119,12 @@ export default function TeacherEventsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 text-left">
         {/* Create Event Form */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <h2 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Calendar className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "புதிய நிகழ்வை திட்டமிடு" : "Schedule New Event"}</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-sm font-bold text-slate-800 dark:text-white"><Calendar className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "புதிய நிகழ்வை திட்டமிடு" : "Schedule New Event"}</h2>
+            <Link href="/teacher/club-members" className="text-[10px] uppercase tracking-wider font-bold text-amber-500 hover:text-amber-600 transition-colors bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-900/50">
+              View Club Members
+            </Link>
+          </div>
           <form onSubmit={handleCreateEvent} className="space-y-4">
             <div>
               <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "நிகழ்வின் தலைப்பு *" : "Event Title *"}</label>
@@ -161,13 +176,26 @@ export default function TeacherEventsPage() {
                 </div>
                 <div>
                   <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "சின்னம் (ஈமோஜி) *" : "Icon (Emoji) *"}</label>
-                  <input 
+                  <select 
                     required 
-                    type="text" 
                     value={icon} 
                     onChange={(e) => setIcon(e.target.value)} 
-                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-white placeholder-slate-405 placeholder:text-xs focus:outline-none focus:border-amber-500 transition-colors"
-                  />
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
+                  >
+                    <option value="" disabled className="dark:bg-slate-900">{lang === "தமிழ்" ? "சின்னத்தை தேர்ந்தெடுக்கவும்" : "Select an icon"}</option>
+                    <option value="fi-rr-flask" className="dark:bg-slate-900">Science / Lab</option>
+                    <option value="fi-rr-trophy" className="dark:bg-slate-900">Competition / Award</option>
+                    <option value="fi-rr-palette" className="dark:bg-slate-900">Art / Creative</option>
+                    <option value="fi-rr-basketball" className="dark:bg-slate-900">Sports / Athletics</option>
+                    <option value="fi-rr-masks" className="dark:bg-slate-900">Drama / Theater</option>
+                    <option value="fi-rr-leaf" className="dark:bg-slate-900">Environment / Eco</option>
+                    <option value="fi-rr-book-alt" className="dark:bg-slate-900">Literature / Reading</option>
+                    <option value="fi-rr-microphone" className="dark:bg-slate-900">Debate / Speech</option>
+                    <option value="fi-rr-robot" className="dark:bg-slate-900">Robotics / Tech</option>
+                    <option value="fi-rr-telescope" className="dark:bg-slate-900">Astronomy</option>
+                    <option value="fi-rr-camera" className="dark:bg-slate-900">Photography</option>
+                    <option value="fi-rr-star" className="dark:bg-slate-900">General / Star</option>
+                  </select>
                 </div>
             </div>
             <button 
