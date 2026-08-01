@@ -2529,15 +2529,9 @@ export default function SuperadminAcademicsPage() {
                         <input type="text" value={resourceForm.publisher} onChange={e => setResourceForm({ ...resourceForm, publisher: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" placeholder="SCERT / NCERT" />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Language</label>
-                        <input type="text" value={resourceForm.language} onChange={e => setResourceForm({ ...resourceForm, language: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Cover Image URL</label>
-                        <input type="text" value={resourceForm.coverImage} onChange={e => setResourceForm({ ...resourceForm, coverImage: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" />
-                      </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Cover Image URL</label>
+                      <input type="text" value={resourceForm.coverImage} onChange={e => setResourceForm({ ...resourceForm, coverImage: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 outline-none" placeholder="https://..." />
                     </div>
                   </>
                 )}
