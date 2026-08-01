@@ -5,6 +5,7 @@ import { Calendar } from "lucide-react";
 import PortalLayout from "@/components/PortalLayout";
 import { useState, useEffect } from "react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
+import { useSession } from "next-auth/react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -36,6 +37,8 @@ interface ClubEvent {
 }
 
 export default function TeacherEventsPage() {
+  const { data: session } = useSession();
+  const schoolId = (session?.user as any)?.schoolId;
   const { lang } = usePortalLanguage();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [events, setEvents] = useState<ClubEvent[]>([]);
@@ -50,19 +53,60 @@ export default function TeacherEventsPage() {
   const [themeColor, setThemeColor] = useState("text-amber-600 dark:text-amber-400");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // Members Modal State
+  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [membersData, setMembersData] = useState<Record<string, Record<string, string[]>>>({});
+  const [loadingMembers, setLoadingMembers] = useState(false);
 
-  const fetchData = async () => {
+  const fetchMembers = async () => {
+    if (!schoolId) return;
+    setLoadingMembers(true);
     try {
-      const res = await fetch(`${API_BASE}/api/activities`);
+      const res = await fetch(`${API_BASE}/api/activities/all-members?schoolId=${schoolId}`);
       const json = await res.json();
       if (json.success) {
-        setClubs(json.data.discoverClubs || []);
+        const grouped: Record<string, Record<string, string[]>> = {};
+        json.data.forEach((m: any) => {
+          const cName = m.clubName;
+          const grade = m.class || "Unknown";
+          if (!grouped[cName]) grouped[cName] = {};
+          if (!grouped[cName][grade]) grouped[cName][grade] = [];
+          grouped[cName][grade].push(m.name);
+        });
+        setMembersData(grouped);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingMembers(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showMembersModal) {
+      fetchMembers();
+    }
+  }, [showMembersModal, schoolId]);
+
+  useEffect(() => {
+    if (schoolId) {
+      fetchData(schoolId);
+    }
+  }, [schoolId]);
+
+  const fetchData = async (sId: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/activities?schoolId=${sId}`);
+      const json = await res.json();
+      if (json.success) {
+        const fetchedClubs = json.data.discoverClubs || [];
+        // Deduplicate clubs by name to prevent multiple entries in dropdown
+        const uniqueClubs = Array.from(new Map(fetchedClubs.map((c: Club) => [c.name, c])).values()) as Club[];
+        
+        setClubs(uniqueClubs);
         setEvents(json.data.upcomingEvents || []);
-        if (json.data.discoverClubs?.length > 0) {
-          setClubId(json.data.discoverClubs[0].id);
+        if (uniqueClubs.length > 0) {
+          setClubId(uniqueClubs[0].id);
         }
       }
     } catch (err) {
@@ -109,7 +153,10 @@ export default function TeacherEventsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 text-left">
         {/* Create Event Form */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <h2 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><Calendar className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "புதிய நிகழ்வை திட்டமிடு" : "Schedule New Event"}</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-sm font-bold text-slate-800 dark:text-white"><Calendar className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "புதிய நிகழ்வை திட்டமிடு" : "Schedule New Event"}</h2>
+            <button onClick={() => setShowMembersModal(true)} type="button" className="text-[10px] uppercase tracking-wider font-bold text-amber-500 hover:text-amber-600 transition-colors bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-900/50">View Club Members</button>
+          </div>
           <form onSubmit={handleCreateEvent} className="space-y-4">
             <div>
               <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "நிகழ்வின் தலைப்பு *" : "Event Title *"}</label>
@@ -161,13 +208,26 @@ export default function TeacherEventsPage() {
                 </div>
                 <div>
                   <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "சின்னம் (ஈமோஜி) *" : "Icon (Emoji) *"}</label>
-                  <input 
+                  <select 
                     required 
-                    type="text" 
                     value={icon} 
                     onChange={(e) => setIcon(e.target.value)} 
-                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-white placeholder-slate-405 placeholder:text-xs focus:outline-none focus:border-amber-500 transition-colors"
-                  />
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
+                  >
+                    <option value="" disabled className="dark:bg-slate-900">{lang === "தமிழ்" ? "சின்னத்தை தேர்ந்தெடுக்கவும்" : "Select an icon"}</option>
+                    <option value="fi-rr-flask" className="dark:bg-slate-900">Science / Lab</option>
+                    <option value="fi-rr-trophy" className="dark:bg-slate-900">Competition / Award</option>
+                    <option value="fi-rr-palette" className="dark:bg-slate-900">Art / Creative</option>
+                    <option value="fi-rr-basketball" className="dark:bg-slate-900">Sports / Athletics</option>
+                    <option value="fi-rr-masks" className="dark:bg-slate-900">Drama / Theater</option>
+                    <option value="fi-rr-leaf" className="dark:bg-slate-900">Environment / Eco</option>
+                    <option value="fi-rr-book-alt" className="dark:bg-slate-900">Literature / Reading</option>
+                    <option value="fi-rr-microphone" className="dark:bg-slate-900">Debate / Speech</option>
+                    <option value="fi-rr-robot" className="dark:bg-slate-900">Robotics / Tech</option>
+                    <option value="fi-rr-telescope" className="dark:bg-slate-900">Astronomy</option>
+                    <option value="fi-rr-camera" className="dark:bg-slate-900">Photography</option>
+                    <option value="fi-rr-star" className="dark:bg-slate-900">General / Star</option>
+                  </select>
                 </div>
             </div>
             <button 
@@ -247,6 +307,65 @@ export default function TeacherEventsPage() {
           )}
         </div>
       </div>
+
+      {showMembersModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowMembersModal(false)}>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800" onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 rounded-t-2xl">
+              <h2 className="text-lg font-bold text-slate-800 dark:text-white">Club Members Overview</h2>
+              <button onClick={() => setShowMembersModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                <i className="fi fi-rr-cross"></i>
+              </button>
+            </div>
+            
+            <div className="p-5 overflow-y-auto flex-1 text-left">
+              {loadingMembers ? (
+                <div className="flex justify-center py-10">
+                  <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : Object.keys(membersData).length === 0 ? (
+                <p className="text-center text-slate-500 py-10 text-sm">No club members found.</p>
+              ) : (
+                <div className="space-y-4">
+                  {Object.entries(membersData).map(([clubName, grades]) => {
+                    const totalMembers = Object.values(grades).flat().length;
+                    return (
+                      <details key={clubName} className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden group bg-white dark:bg-slate-900" open>
+                        <summary className="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 cursor-pointer list-none flex justify-between items-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                          <h3 className="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
+                            <i className="fi fi-rr-angle-small-down transform transition-transform group-open:-rotate-180 text-slate-400"></i>
+                            {clubName}
+                          </h3>
+                          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full">
+                            {totalMembers} {totalMembers === 1 ? 'Member' : 'Members'}
+                          </span>
+                        </summary>
+                        <div className="p-4 space-y-4 max-h-64 overflow-y-auto border-t border-slate-100 dark:border-slate-800">
+                          {Object.entries(grades).map(([grade, students]) => (
+                            <div key={grade}>
+                              <div className="flex justify-between items-center mb-2 border-b border-slate-100 dark:border-slate-800 pb-1">
+                                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400">Class {grade}</h4>
+                                <span className="text-[9px] text-slate-400 font-semibold">{students.length}</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1.5">
+                                {students.map((studentName, idx) => (
+                                  <span key={idx} className="inline-flex items-center px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-[10px] text-slate-700 dark:text-slate-300 font-medium">
+                                    {studentName}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </PortalLayout>
   );
 }
