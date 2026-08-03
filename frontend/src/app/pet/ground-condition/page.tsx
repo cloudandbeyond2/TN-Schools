@@ -85,7 +85,7 @@ export default function GroundConditionPage() {
 
   return (
     <PortalLayout>
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-6 w-full mx-auto space-y-6">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-[var(--text-heading)]">Ground Condition & Maintenance</h1>
