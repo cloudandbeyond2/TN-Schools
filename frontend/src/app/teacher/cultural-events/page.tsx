@@ -610,10 +610,13 @@ export default function TeacherCulturalEventsPage() {
                     <div className="px-6 pb-6 pt-1.5 border-t border-slate-100 dark:border-slate-800 mt-auto bg-slate-50/20 dark:bg-slate-900/10 flex flex-col gap-2">
                       <button
                         onClick={() => openRegistrationsModal(evt)}
-                        className={`w-full py-3 rounded-2xl text-xs font-black ${theme.btnBg} text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2 active:scale-95 border-b-4 border-black/20`}
+                        className={`w-full py-3 rounded-2xl text-xs font-black ${theme.btnBg} !text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2 active:scale-95 border-b-4 border-black/20`}
+                        style={{ color: "#ffffff" }}
                       >
-                        <i className="fi fi-rr-users text-sm text-white" />
-                        <span className="text-white">View Registered ({getRegistrationCountForEvent(evt.id, evt.title)})</span>
+                        <i className="fi fi-rr-users text-sm !text-white" style={{ color: "#ffffff" }} />
+                        <span className="!text-white font-black" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+                          View Registered ({getRegistrationCountForEvent(evt.id, evt.title)})
+                        </span>
                       </button>
                       <div className="text-center text-[9px] font-black uppercase tracking-wider text-slate-400 mt-1 flex items-center justify-center gap-1.5">
                         <i className="fi fi-rr-info text-indigo-500 text-sm" />

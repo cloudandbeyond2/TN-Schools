@@ -154,43 +154,44 @@ export default function TeacherScienceFactPage() {
       <div className="w-full space-y-8 animate-in fade-in duration-300">
         
         {/* Top Control Hero (Full Width) */}
-        <div className="w-full bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden">
-          <div className="absolute right-4 top-4 opacity-10 pointer-events-none">
-            <Sparkles className="w-64 h-64 text-white" />
+        <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 relative overflow-hidden">
+          <div className="absolute right-4 top-4 opacity-5 pointer-events-none">
+            <Sparkles className="w-64 h-64 text-amber-500" />
           </div>
 
-          <div className="relative z-10 space-y-6 max-w-4xl">
+          <div className="relative z-10 space-y-4 max-w-4xl">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/30">
+              <span className="text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-800 flex items-center gap-1.5 shadow-sm">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                 Teacher AI Control Center
               </span>
-              <span className="text-xs font-bold px-3 py-1 rounded-full bg-black/20 backdrop-blur-md text-white/90">
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
                 Powered by Gemini AI
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
-              Generate & Publish Today&apos;s Science Fact
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+              Generate &amp; Publish Today&apos;s Science Fact
             </h1>
 
-            <p className="text-amber-100 text-sm sm:text-base max-w-2xl leading-relaxed">
-              Clicking <strong className="text-white">&quot;Generate Today Fact&quot;</strong> uses Gemini AI to generate a complete, engaging science fact with an activity, curiosity reflection, and quiz for middle school students!
+            <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base max-w-2xl leading-relaxed">
+              Clicking <strong className="text-slate-900 dark:text-white font-bold">&quot;Generate Today Fact&quot;</strong> uses Gemini AI to generate a complete, engaging science fact with an activity, curiosity reflection, and quiz for middle school students!
             </p>
 
             {/* Target Class Dropdown, Teacher Name & AI Prompt Input Controls */}
-            <div className="flex flex-wrap items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
+            <div className="flex flex-wrap items-center gap-4 bg-slate-50 dark:bg-slate-950 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-inner">
               
               {/* Class Dropdown */}
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-100">
-                <Users className="w-4 h-4 text-amber-200" />
-                <span>Class:</span>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+                <Users className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span className="text-slate-900 dark:text-slate-100 font-bold whitespace-nowrap">Class:</span>
                 <select
                   value={targetClass}
                   onChange={(e) => setTargetClass(e.target.value)}
-                  className="bg-slate-900/90 text-white border border-white/30 text-xs rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-amber-300 cursor-pointer shadow-inner"
+                  className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 text-xs rounded-xl px-3 py-2 font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer shadow-sm"
                 >
                   {HANDLED_CLASSES.map((cls) => (
-                    <option key={cls} value={cls} className="bg-slate-900 text-white font-bold">
+                    <option key={cls} value={cls} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold">
                       {cls}
                     </option>
                   ))}
@@ -198,28 +199,28 @@ export default function TeacherScienceFactPage() {
               </div>
 
               {/* Logged in Teacher Name */}
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-100">
-                <User className="w-4 h-4 text-amber-200" />
-                <span>Teacher:</span>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+                <User className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span className="text-slate-900 dark:text-slate-100 font-bold whitespace-nowrap">Teacher:</span>
                 <input
                   type="text"
                   value={teacherName || loggedInUserName}
                   onChange={(e) => setTeacherName(e.target.value)}
                   placeholder="Teacher Name"
-                  className="bg-slate-900/90 text-white placeholder-white/60 border border-white/30 text-xs rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-amber-300 shadow-inner"
+                  className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 border border-slate-300 dark:border-slate-700 text-xs rounded-xl px-3 py-2 font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm min-w-[140px]"
                 />
               </div>
 
               {/* AI Topic Focus */}
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-100 flex-1 min-w-[200px]">
-                <Sparkles className="w-4 h-4 text-amber-200" />
-                <span>AI Topic Focus (Optional):</span>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 flex-1 min-w-[220px]">
+                <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span className="text-slate-900 dark:text-slate-100 font-bold whitespace-nowrap">AI Topic Focus:</span>
                 <input
                   type="text"
                   placeholder="e.g. Magnetism, Volcanoes, Gravity"
                   value={promptTopic}
                   onChange={(e) => setPromptTopic(e.target.value)}
-                  className="w-full bg-slate-900/90 text-white placeholder-white/60 border border-white/30 text-xs rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-amber-300 shadow-inner"
+                  className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 border border-slate-300 dark:border-slate-700 text-xs rounded-xl px-3 py-2 font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm"
                 />
               </div>
 
@@ -227,17 +228,20 @@ export default function TeacherScienceFactPage() {
               <button
                 onClick={() => handleGenerateTodayFact()}
                 disabled={generating}
-                className="px-6 py-2.5 bg-white text-amber-950 hover:bg-amber-100 font-black text-sm rounded-xl transition-all shadow-lg flex items-center gap-2 disabled:opacity-50 shrink-0"
+                className="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 !text-white font-black text-sm rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-50 shrink-0 cursor-pointer"
+                style={{ color: "#ffffff" }}
               >
-                <Sparkles className={`w-4 h-4 text-amber-600 ${generating ? "animate-spin" : ""}`} />
-                <span>{generating ? "AI Generating..." : "Generate Today Fact"}</span>
+                <Sparkles className={`w-4 h-4 text-amber-200 ${generating ? "animate-spin" : ""}`} />
+                <span className="!text-white font-black" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+                  {generating ? "AI Generating..." : "Generate Today Fact"}
+                </span>
               </button>
             </div>
 
             {successMsg && (
-              <div className="bg-emerald-500 text-white px-4 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 shadow-md animate-in fade-in">
-                <CheckCircle2 className="w-5 h-5 shrink-0" />
-                <span>{successMsg}</span>
+              <div className="bg-emerald-600 text-white px-4 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 shadow-md animate-in fade-in">
+                <CheckCircle2 className="w-5 h-5 shrink-0 text-white" />
+                <span className="text-white">{successMsg}</span>
               </div>
             )}
           </div>
@@ -289,12 +293,13 @@ export default function TeacherScienceFactPage() {
                     disabled={generating}
                     className={`w-full text-xs font-bold py-2 rounded-xl border transition-all flex items-center justify-center gap-1.5 ${
                       isCurrent
-                        ? "bg-amber-500 text-white border-amber-500"
-                        : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-amber-500 hover:text-white hover:border-amber-500"
+                        ? "bg-amber-600 !text-white border-amber-600 shadow-sm"
+                        : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-amber-600 hover:!text-white hover:border-amber-600"
                     }`}
+                    style={isCurrent ? { color: "#ffffff", WebkitTextFillColor: "#ffffff" } : {}}
                   >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>{isCurrent ? "Currently Active" : "Publish This Fact To Class"}</span>
+                    <Send className={`w-3.5 h-3.5 ${isCurrent ? "text-white" : ""}`} />
+                    <span style={isCurrent ? { color: "#ffffff", WebkitTextFillColor: "#ffffff" } : {}}>{isCurrent ? "Currently Active" : "Publish This Fact To Class"}</span>
                   </button>
                 </div>
               );
