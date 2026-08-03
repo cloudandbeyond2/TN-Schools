@@ -1088,6 +1088,22 @@ function DigitalPortfolioContent() {
       themeClass={themeClass}
       accentColor="#6366f1"
     >
+      {/* 🎓 Hero Banner – Digital Portfolio */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 glass rounded-3xl p-5 border border-indigo-200 dark:border-indigo-800/40 bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-indigo-950/30 dark:via-slate-900/60 dark:to-purple-950/30 backdrop-blur-md shadow-sm">
+        {/* Left */}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-wide mb-1 flex items-center gap-2">
+            <i className="fi fi-sr-briefcase text-indigo-600 dark:text-indigo-400 flex items-center" />
+            Digital Portfolio
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            A dynamic showcase of {data.profile.name}&apos;s achievements, projects, skills &amp; academic journey — {data.profile.class} {data.profile.section} · {data.profile.schoolName}
+          </p>
+        </div>
+
+
+      </div>
+
       {/* Top Banner / Action Bar */}
       <div className="mb-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div className="flex flex-wrap bg-slate-900/50 p-1.5 rounded-xl border border-slate-700/50 w-fit gap-1">

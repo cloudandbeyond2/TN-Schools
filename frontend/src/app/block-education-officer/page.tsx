@@ -35,6 +35,7 @@ export default function BEODashboard() {
   const { years, selected: academicYear, setSelected: setAcademicYear } = useAcademicYears();
   const { data: kpis, loading } = useKpis(myUserId ? "/api/analytics/block" : null, academicYear, {
     beoUserId: myUserId,
+    block: myBlock,
   });
 
   const bySchool = kpis?.bySchool || [];

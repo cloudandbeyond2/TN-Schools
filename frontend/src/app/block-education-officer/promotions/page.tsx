@@ -47,6 +47,7 @@ interface BatchDetail extends PendingBatch {
 export default function BeoPromotionApprovalsPage() {
   const { data: session } = useSession();
   const myUserId: string = (session?.user as any)?.id || "";
+  const myBlock: string = (session?.user as any)?.block || "";
 
   const [pending, setPending] = useState<PendingBatch[]>([]);
   const [blockFilter, setBlockFilter] = useState("");
@@ -55,10 +56,12 @@ export default function BeoPromotionApprovalsPage() {
   const [acting, setActing] = useState(false);
 
   const loadPending = useCallback(async () => {
-    if (!myUserId && !blockFilter) return;
+    if (!myUserId && !myBlock && !blockFilter) return;
     const params = new URLSearchParams();
     if (myUserId) params.set("beoUserId", myUserId);
-    if (blockFilter) params.set("block", blockFilter);
+    
+    const activeBlock = blockFilter || myBlock;
+    if (activeBlock) params.set("block", activeBlock);
     try {
       const res = await fetch(`${API_BASE}/api/promotions/pending?${params.toString()}`);
       const json = await res.json();
@@ -66,7 +69,7 @@ export default function BeoPromotionApprovalsPage() {
     } catch {
       /* noop */
     }
-  }, [myUserId, blockFilter]);
+  }, [myUserId, myBlock, blockFilter]);
 
   useEffect(() => {
     loadPending();

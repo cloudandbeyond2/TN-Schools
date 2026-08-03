@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import ParentPortalBanner from "@/components/ParentPortalBanner";
 import { useSession } from "next-auth/react";
 import { getApiBase } from "@/lib/useParentChildren";
 import { motion, AnimatePresence } from "framer-motion";
@@ -466,6 +467,7 @@ export default function NotificationsPage() {
 
       {/* Main Container expanded to match other portal modules */}
       <div className="w-full py-2 space-y-6 md:space-y-8">
+        <ParentPortalBanner pageKey="notifications" />
         
         {/* ── Stats Overview Row ──────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
