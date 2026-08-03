@@ -124,34 +124,41 @@ export default function SchoolPressPage() {
   }, [feedFilter, recentActivities, mySubmissions, pendingSubmissions]);
 
   return (
-    <PortalLayout title="School Press 📰" subtitle="Publish student activities and achievements" accentColor="#10b981">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-left animate-in fade-in duration-300">
+    <PortalLayout title="School Press" subtitle="Publish student activities and achievements - Tamil Nadu Schools" accentColor="#7c3aed" themeClass="theme-student">
+      <div className="flex flex-col gap-6 w-full text-left animate-in fade-in duration-300">
         
-        {/* Left Column - Submission Form */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Playful Hero Banner */}
-          <div className="relative overflow-hidden rounded-2xl md:rounded-[2.5rem] bg-gradient-to-r from-emerald-400 to-teal-500 text-white p-5 md:p-8 shadow-xl border-2 md:border-4 border-emerald-100">
-            <div className="absolute right-0 top-0 opacity-20 transform translate-x-1/4 -translate-y-1/4 scale-150 pointer-events-none mix-blend-overlay">
-              <Camera className="w-64 h-64" />
-            </div>
-            
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl font-black tracking-wider text-[10px] md:text-xs uppercase mb-4 border-2 border-white/30 rotate-[-2deg]">
-                <Star className="w-4 h-4 text-yellow-300" /> Share Your Moments
-              </div>
-              <h2 className="text-2xl md:text-4xl font-black tracking-tight mb-3 drop-shadow-md font-mono">The School Press!</h2>
+        {/* 📰 Hero Banner - School Press */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2 glass rounded-3xl p-5 border border-violet-200 dark:border-violet-800/40 bg-gradient-to-br from-violet-50 via-white to-blue-50 dark:from-violet-950/30 dark:via-slate-900/60 dark:to-blue-950/30 backdrop-blur-md shadow-sm">
+          {/* Left */}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-wide mb-1 flex items-center gap-2">
+              <i className="fi fi-sr-newspaper text-violet-600 dark:text-violet-400 flex items-center" />
+              The School Press
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
               {studentProfile ? (
-                <p className="text-emerald-50 font-bold max-w-xl text-xs md:text-base leading-relaxed">
-                  Record your special moments, sports awards, academic accomplishments, and projects to display in the feed for <strong className="text-yellow-300">Class {studentProfile.class}</strong>!
-                </p>
+                <>Record your special moments, sports awards, academic accomplishments, and projects to display in the feed for Class {studentProfile.class}!</>
               ) : (
-                <p className="text-emerald-50 font-bold max-w-xl text-xs md:text-base leading-relaxed">
-                  Record your special moments, sports awards, and accomplishments to display in the feed!
-                </p>
+                <>Record your special moments, sports awards, and accomplishments to display in the feed!</>
               )}
-            </div>
+            </p>
           </div>
+          {/* Right - chips */}
+          <div className="flex flex-row sm:flex-col items-start sm:items-end gap-2 shrink-0 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 font-bold text-xs rounded-xl border border-violet-200/40 dark:border-violet-700/30 whitespace-nowrap">
+              <i className="fi fi-sr-camera flex items-center text-xs" />
+              Share Your Moments
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 font-bold text-xs rounded-xl border border-blue-200/40 dark:border-blue-700/30 whitespace-nowrap">
+              <i className="fi fi-sr-star flex items-center text-xs" />
+              Student Achievements
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Submission Form */}
+          <div className="lg:col-span-2 space-y-6">
 
           {/* Submission Form Card */}
           <div className="bg-[var(--bg-card)] border-2 md:border-4 border-slate-100 dark:border-slate-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 shadow-sm">
@@ -382,6 +389,7 @@ export default function SchoolPressPage() {
           </div>
         </div>
       </div>
+    </div>
     </PortalLayout>
   );
 }

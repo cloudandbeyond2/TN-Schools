@@ -29,13 +29,21 @@ interface DistributionItem {
   height: string;
 }
 
+interface TeacherClass {
+  id: string;
+  className: string;
+  section: string;
+  subject: string;
+}
+
 export default function AnalyticsPage() {
   const { lang, t } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  const [selectedClassId, setSelectedClassId] = useState("10a");
+  const [teacherClasses, setTeacherClasses] = useState<TeacherClass[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"All" | "Good" | "Average" | "Risk">("All");
 
@@ -49,13 +57,52 @@ export default function AnalyticsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // 1. Fetch teacher's assigned classes from API
+  useEffect(() => {
+    const fetchTeacherClasses = async () => {
+      if (!schoolId || !session?.user) return;
+      const teacherId = (session.user as any).id;
+      try {
+        let url = `${API_URL}/api/classes?schoolId=${schoolId}&teacherId=${teacherId}`;
+        let res = await fetch(url);
+        let data = await res.json();
+        let classesList: TeacherClass[] = data.success && Array.isArray(data.data) ? data.data : [];
+
+        // Fallback to fetching all school classes if specific teacher has no assignments returned
+        if (classesList.length === 0) {
+          const fallbackRes = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}`);
+          const fallbackData = await fallbackRes.json();
+          if (fallbackData.success && Array.isArray(fallbackData.data)) {
+            classesList = fallbackData.data;
+          }
+        }
+
+        setTeacherClasses(classesList);
+        if (classesList.length > 0) {
+          setSelectedClassId((prev) => prev || classesList[0].id);
+        }
+      } catch (err) {
+        console.error("Error fetching teacher classes:", err);
+      }
+    };
+    fetchTeacherClasses();
+  }, [schoolId, session, API_URL]);
+
   useEffect(() => {
     const fetchClassAnalytics = async () => {
       try {
         setLoading(true);
-        // Map selectedClassId ("10a" / "10b") to class & section query params
-        const clsNum = selectedClassId.substring(0, 2);
-        const secLetter = selectedClassId.substring(2).toUpperCase();
+        const selectedClass = teacherClasses.find((c) => c.id === selectedClassId) || teacherClasses[0];
+
+        let clsNum = "";
+        let secLetter = "";
+        if (selectedClass) {
+          clsNum = selectedClass.className;
+          secLetter = selectedClass.section;
+        } else if (selectedClassId) {
+          clsNum = selectedClassId.substring(0, 2);
+          secLetter = selectedClassId.substring(2).toUpperCase();
+        }
 
         const res = await fetch(
           `${API_URL}/api/teacher/analytics/class?schoolId=${schoolId || ""}&class=${clsNum}&section=${secLetter}`
@@ -213,7 +260,7 @@ export default function AnalyticsPage() {
     };
 
     fetchClassAnalytics();
-  }, [schoolId, selectedClassId, API_URL]);
+  }, [schoolId, selectedClassId, teacherClasses, API_URL]);
 
   const filteredStudents = students.filter((student) => {
     const matchesSearch =
@@ -240,23 +287,31 @@ export default function AnalyticsPage() {
       <div className="flex flex-col gap-6">
         {/* Filter Controls Bar */}
         <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-4 bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] p-4 rounded-2xl border border-[var(--border)]">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setSelectedClassId("10a")}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                selectedClassId === "10a" ? "bg-[var(--primary)] text-white shadow-sm" : "bg-[var(--bg-main)] text-[var(--text-muted)] hover:bg-slate-850"
-              }`}
-            >
-              Class 10A - Maths
-            </button>
-            <button
-              onClick={() => setSelectedClassId("10b")}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                selectedClassId === "10b" ? "bg-[var(--primary)] text-white shadow-sm" : "bg-[var(--bg-main)] text-[var(--text-muted)] hover:bg-slate-850"
-              }`}
-            >
-              Class 10B - Maths
-            </button>
+          <div className="flex gap-2 flex-wrap">
+            {teacherClasses.length > 0 ? (
+              teacherClasses.map((cls) => {
+                const isSelected = selectedClassId === cls.id;
+                return (
+                  <button
+                    key={cls.id}
+                    onClick={() => setSelectedClassId(cls.id)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                      isSelected
+                        ? "bg-[var(--primary)] text-white shadow-sm"
+                        : "bg-[var(--bg-main)] text-[var(--text-muted)] hover:bg-slate-800"
+                    }`}
+                  >
+                    {lang === "தமிழ்"
+                      ? `வகுப்பு ${cls.className}${cls.section} - ${cls.subject}`
+                      : `Class ${cls.className}${cls.section} - ${cls.subject}`}
+                  </button>
+                );
+              })
+            ) : (
+              <span className="text-xs text-[var(--text-muted)] italic font-medium py-2">
+                {lang === "தமிழ்" ? "வகுப்புகள் ஏதும் கிடைக்கவில்லை" : "No classes assigned"}
+              </span>
+            )}
           </div>
 
           <div className="text-xs text-[var(--text-muted)] font-medium">
