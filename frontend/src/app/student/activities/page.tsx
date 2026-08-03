@@ -46,46 +46,60 @@ const API_BASE = getApiBase();
 const getCategoryTheme = (cat: string) => {
   switch (cat) {
     case "Environment": return {
-      color: "text-emerald-400",
+      color: "text-emerald-500",
       bg: "bg-emerald-500/10 border-emerald-500/20",
       tagBg: "bg-emerald-500/20",
-      gradient: "from-emerald-500 to-teal-600"
+      gradient: "from-emerald-500 to-teal-600",
+      btnBorder: "border-emerald-500/40",
+      btnHover: "hover:bg-emerald-500/10"
     };
     case "Arts": return {
-      color: "text-amber-400",
+      color: "text-amber-500",
       bg: "bg-amber-500/10 border-amber-500/20",
       tagBg: "bg-amber-500/20",
-      gradient: "from-amber-500 to-orange-600"
+      gradient: "from-amber-500 to-orange-600",
+      btnBorder: "border-amber-500/40",
+      btnHover: "hover:bg-amber-500/10"
     };
     case "Science": return {
-      color: "text-purple-400",
+      color: "text-purple-500",
       bg: "bg-purple-500/10 border-purple-500/20",
       tagBg: "bg-purple-500/20",
-      gradient: "from-purple-500 to-indigo-650"
+      gradient: "from-purple-500 to-indigo-650",
+      btnBorder: "border-purple-500/40",
+      btnHover: "hover:bg-purple-500/10"
     };
     case "Literature": return {
-      color: "text-blue-400",
+      color: "text-blue-500",
       bg: "bg-blue-500/10 border-blue-500/20",
       tagBg: "bg-blue-500/20",
-      gradient: "from-blue-500 to-cyan-600"
+      gradient: "from-blue-500 to-cyan-600",
+      btnBorder: "border-blue-500/40",
+      btnHover: "hover:bg-blue-500/10"
     };
     case "Academics": return {
-      color: "text-indigo-400",
+      color: "text-indigo-500",
       bg: "bg-indigo-500/10 border-indigo-500/20",
       tagBg: "bg-indigo-500/20",
-      gradient: "from-indigo-500 to-violet-600"
+      gradient: "from-indigo-500 to-violet-600",
+      btnBorder: "border-indigo-500/40",
+      btnHover: "hover:bg-indigo-500/10"
     };
     case "Sports": return {
-      color: "text-orange-400",
+      color: "text-orange-500",
       bg: "bg-orange-500/10 border-orange-500/20",
       tagBg: "bg-orange-500/20",
-      gradient: "from-orange-500 to-red-600"
+      gradient: "from-orange-500 to-red-600",
+      btnBorder: "border-orange-500/40",
+      btnHover: "hover:bg-orange-500/10"
     };
     default: return {
-      color: "text-slate-400",
+      color: "text-slate-500",
       bg: "bg-slate-500/10 border-slate-500/20",
       tagBg: "bg-slate-500/20",
-      gradient: "from-slate-500 to-slate-700"
+      gradient: "from-slate-500 to-slate-700",
+      btnBorder: "border-slate-500/40",
+      btnHover: "hover:bg-slate-500/10"
     };
   }
 };
@@ -812,7 +826,7 @@ export default function ExtracurricularsPage() {
                           className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-bold transition-all duration-300 border-2 ${
                             !isEligible && studentProfile
                               ? 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 cursor-not-allowed'
-                              : `bg-transparent hover:text-white ${theme.color.replace('text-', 'border-').split(' ')[0]} ${theme.color.replace('text-', 'hover:bg-').split(' ')[0]} ${theme.color}`
+                              : `bg-transparent ${theme.btnBorder} ${theme.btnHover} ${theme.color}`
                           }`}
                           disabled={!isEligible && !!studentProfile}
                         >
