@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import ParentPortalBanner from "@/components/ParentPortalBanner";
 import { useParentChildren, getApiBase, Child } from "@/lib/useParentChildren";
 
 interface ChatMessage {
@@ -436,6 +437,8 @@ I can assist you with ${childName}'s performance summary, attendance logs, pendi
       subtitle={`Bilingual AI advisor to help you stay updated and guide ${childName}'s studies`}
     >
       <ChildSwitcher childList={children} active={activeChild} onChange={setActiveChild} />
+
+      <ParentPortalBanner pageKey="ai-assistant" />
 
       <div className="flex flex-col lg:flex-row gap-6 items-stretch w-full min-h-[calc(100vh-220px)] lg:h-[calc(100vh-220px)] relative overflow-hidden">
         

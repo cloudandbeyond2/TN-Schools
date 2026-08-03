@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import ParentPortalBanner from "@/components/ParentPortalBanner";
 import { useParentChildren, getApiBase, Child } from "@/lib/useParentChildren";
 import { 
   TrendingUp, 
@@ -340,6 +341,8 @@ export default function PerformancePage() {
     <PortalLayout>
       {/* sibling selector */}
       <ChildSwitcher childList={children} active={activeChild} onChange={setActiveChild} />
+
+      <ParentPortalBanner pageKey="performance" />
 
       {/* KPI Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">

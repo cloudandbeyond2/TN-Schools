@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import PersonalKpiStrip from "@/components/kpi/PersonalKpiStrip";
 import Link from "next/link";
+import ParentPortalBanner from "@/components/ParentPortalBanner";
 
 const API = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -315,25 +316,19 @@ export default function ParentDashboard() {
 
   return (
     <PortalLayout>
-      {/* ── Welcome Header with Live Refresh Button ────────────────── */}
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-2.5">
-            <i className="fi fi-rr-apps text-emerald-500"></i> Parent Dashboard
-          </h1>
-          <p className="text-slate-550 dark:text-slate-400 text-xs mt-0.5 font-normal">
-            Summarized look at your child&apos;s attendance, academic metrics, and notifications.
-          </p>
-        </div>
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing || loading}
-          className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-655 dark:text-slate-400 hover:text-emerald-500 disabled:opacity-50 transition-all flex items-center justify-center w-10 h-10 shrink-0 shadow-sm"
-          title="Sync Live Data"
-        >
-          <i className={`fi fi-rr-refresh ${refreshing ? "animate-spin" : ""}`}></i>
-        </button>
-      </div>
+      <ParentPortalBanner
+        pageKey="dashboard"
+        rightElement={
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing || loading}
+            className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-655 dark:text-slate-400 hover:text-emerald-500 disabled:opacity-50 transition-all flex items-center justify-center w-10 h-10 shrink-0 shadow-sm"
+            title="Sync Live Data"
+          >
+            <i className={`fi fi-rr-refresh ${refreshing ? "animate-spin" : ""}`}></i>
+          </button>
+        }
+      />
 
       {/* ── Children Selector & Profile Info Card (Spacious paddings) ── */}
       {children.length > 0 && activeChild && (

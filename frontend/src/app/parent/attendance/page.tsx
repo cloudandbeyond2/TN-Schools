@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import ParentPortalBanner from "@/components/ParentPortalBanner";
 import { useParentChildren, getApiBase, Child } from "@/lib/useParentChildren";
 import { Calendar, ChevronRight, Info, CheckCircle2, XCircle, BarChart3, AlertCircle } from "lucide-react";
 
@@ -125,6 +126,8 @@ export default function AttendancePage() {
       accentColor="#10b981"
     >
       <ChildSwitcher childList={children} active={activeChild} onChange={setActiveChild} />
+
+      <ParentPortalBanner pageKey="attendance" />
 
       {/* Header KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
