@@ -125,10 +125,7 @@ export default function RevisionPlanPage() {
   const progressPct = allTasks.length ? Math.round((doneCount / allTasks.length) * 100) : 0;
 
   return (
-    <PortalLayout
-      title="AI Revision Plan"
-      subtitle="A personalised 7-day plan generated from your marks, mock tests and syllabus gaps."
-    >
+    <PortalLayout>
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 glass rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
         <div className="flex items-start sm:items-center gap-3">

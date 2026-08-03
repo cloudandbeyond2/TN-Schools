@@ -198,14 +198,12 @@ export default function StudyBoostPage() {
 
   return (
     <PortalLayout 
-      title="Study Boost" 
-      subtitle={`Supercharge focus and memory with AI tools customized for Class ${studentClass}th Standard.`}
       avatarLetter="A"
       avatarColor="#4f46e5"
       themeClass="theme-student"
       accentColor="#4f46e5"
     >
-      <div className="max-w-7xl mx-auto space-y-6 mt-6 font-sans text-slate-800 dark:text-slate-100">
+      <div className="w-full space-y-6 mt-6 font-sans text-slate-800 dark:text-slate-100">
         
         {/* Header Banner */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 glass rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
