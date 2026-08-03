@@ -1276,42 +1276,48 @@ export default function RedesignedDigitalLibraryPage() {
     setQuizSubmitted(false);
   };
 
+  const classDescriptions: Record<string, string> = {
+    "Class 6": "Dive into Class 6 story books — seed science wonders, Kalam's rocket dreams, Sangam poetry, ancient maths & everyday Tamil heroes.",
+    "Class 7": "Dive into Class 7 story books — climate heroes, space explorers, Thiruvalluvar's wisdom, river ecosystem tales & technology innovators.",
+    "Class 8": "Dive into Class 8 story books — inspiring biographies, science breakthroughs, Tamil heritage stories, space adventures & life skill narratives.",
+  };
+  const bannerDescription = classDescriptions[selectedClassFilter] || `Dive into ${selectedClassFilter} curated story books — inspiring stories, science explorations, Tamil heritage & life skill narratives.`;
+
   return (
     <PortalLayout
-      title="Middle School Digital Learning & Explorations"
-      subtitle="Factual Learning Explorations & Standard-Curated Resources · Tamil Nadu Schools"
-      avatarLetter="D"
-      avatarColor="#2563eb"
+      title="Story Books"
+      subtitle="Middle School · Read & Discover Learning Explorations · Tamil Nadu Schools"
+      avatarLetter="S"
+      avatarColor="#7c3aed"
       themeClass="theme-student"
-      accentColor="#2563eb"
+      accentColor="#7c3aed"
     >
-      <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full text-left font-sans">
+      <div className="flex flex-col gap-6 w-full text-left font-sans">
 
-        {/* 🏛️ Top Header Section */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 px-3 py-1 font-bold text-xs uppercase rounded-lg border border-blue-200 dark:border-blue-800 mb-2">
-                <i className="fi fi-rr-book-alt text-xs" /> Standard Curriculum Platform
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-                {selectedClassFilter} Digital Library & Read & Discover
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">
-                Explore 10 verified educational learning modules covering Real-World Explorations, Science, Tamil Heritage, Space, and Sustainability.
-              </p>
-            </div>
+        {/* 📚 Hero Banner – Story Books */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2 glass rounded-3xl p-5 border border-violet-200 dark:border-violet-800/40 bg-gradient-to-br from-violet-50 via-white to-blue-50 dark:from-violet-950/30 dark:via-slate-900/60 dark:to-blue-950/30 backdrop-blur-md shadow-sm">
+          {/* Left */}
+          <div className="flex-1 min-w-0">
 
-            {/* Total Resources Badge */}
-            <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0">
-              <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center text-lg">
-                <i className="fi fi-rr-books" />
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Available Modules</span>
-                <span className="text-base font-black text-slate-800 dark:text-white">{filteredResources.length} Modules</span>
-              </div>
-            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-wide mb-1 flex items-center gap-2">
+              <i className="fi fi-sr-book-open-cover text-violet-600 dark:text-violet-400 flex items-center" />
+              {selectedClassFilter} Story Books &amp; Read &amp; Discover
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {bannerDescription}
+            </p>
+          </div>
+
+          {/* Right – Stats badges */}
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 font-extrabold text-sm rounded-xl border border-violet-200/30 dark:border-violet-700/30 shadow-sm whitespace-nowrap">
+              <i className="fi fi-sr-books flex items-center text-sm" />
+              {filteredResources.length} Story Modules
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-bold text-xs rounded-lg border border-amber-200/30 dark:border-amber-700/30 whitespace-nowrap">
+              <i className="fi fi-sr-globe flex items-center text-xs" />
+              Bilingual · Tamil &amp; English
+            </span>
           </div>
         </div>
 

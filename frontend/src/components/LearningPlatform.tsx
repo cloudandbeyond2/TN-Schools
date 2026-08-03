@@ -211,7 +211,40 @@ export default function LearningPlatform({ level }: { level?: string }) {
   };
 
   return (
-    <PortalLayout>
+    <PortalLayout
+      title="Learning Platform"
+      subtitle="Daily Discovery Hub · Mind-Blowing Concepts Every Day · Middle School"
+      accentColor="#10b981"
+      themeClass="theme-student"
+    >
+      {/* 🚀 Hero Banner – Learning Platform */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 glass rounded-3xl p-4 sm:p-5 border border-violet-200 dark:border-violet-800/40 bg-gradient-to-br from-violet-50 via-white to-blue-50 dark:from-violet-950/30 dark:via-slate-900/60 dark:to-blue-950/30 backdrop-blur-md shadow-sm">
+        {/* Left */}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-wide mb-1 flex items-center gap-2 flex-wrap">
+            <i className="fi fi-sr-rocket-lunch text-violet-600 dark:text-violet-400 flex items-center" />
+            Daily Discovery Hub
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            {language === 'en'
+              ? 'Swipe through mind-blowing science, history & space concepts — answer quizzes to earn XP every day!'
+              : 'தினமும் அறிவியல், வரலாறு & விண்வெளி கருத்துக்களை ஆராயுங்கள் — வினாடி வினா விளையாடி XP சம்பாதிக்கவும்!'}
+          </p>
+        </div>
+
+        {/* Right – info chips */}
+        <div className="flex flex-row sm:flex-col items-start sm:items-end gap-2 shrink-0 flex-wrap">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 font-bold text-xs rounded-xl border border-violet-200/40 dark:border-violet-700/30 whitespace-nowrap">
+            <i className="fi fi-sr-flame flex items-center text-xs" />
+            {language === 'en' ? '12 Day Streak' : '12 நாள் தொடர்'}
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 font-bold text-xs rounded-xl border border-blue-200/40 dark:border-blue-700/30 whitespace-nowrap">
+            <i className="fi fi-sr-brain flex items-center text-xs" />
+            {language === 'en' ? 'New Every Day' : 'தினம் புதிது'}
+          </span>
+        </div>
+      </div>
+
       <div className="relative w-full h-[calc(100vh-80px)] bg-[var(--bg-main)] overflow-hidden flex justify-center items-center">
         
         {/* Language Toggle for mobile (absolute top) */}

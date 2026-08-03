@@ -260,10 +260,37 @@ export default function UnifiedWelfarePage() {
       title={lang === "EN" ? "Student Welfare & Benefits" : "மாணவர் நலத் திட்டங்கள்"}
       subtitle={lang === "EN" ? "Learn about all the amazing welfare schemes provided to you by the Tamil Nadu Government!" : "தமிழ்நாடு அரசு உங்களுக்கு வழங்கும் அனைத்து நலத்திட்டங்கள் பற்றிய விவரங்கள்!"}
       avatarLetter={student?.user?.name?.charAt(0) || "S"}
-      avatarColor="#10b981"
+      avatarColor="#7c3aed"
       themeClass="theme-student"
-      accentColor="#10b981"
+      accentColor="#7c3aed"
     >
+      {/* 🎁 Hero Banner – Welfare & Benefits */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 glass rounded-3xl p-5 border border-violet-200 dark:border-violet-800/40 bg-gradient-to-br from-violet-50 via-white to-blue-50 dark:from-violet-950/30 dark:via-slate-900/60 dark:to-blue-950/30 backdrop-blur-md shadow-sm">
+        {/* Left */}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-wide mb-1 flex items-center gap-2">
+            <i className="fi fi-sr-hand-holding-heart text-violet-600 dark:text-violet-400 flex items-center" />
+            {lang === "EN" ? "Welfare & Benefits" : "நலத் திட்டங்கள்"}
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            {lang === "EN" 
+              ? "Learn about all the amazing welfare schemes provided to you by the Tamil Nadu Government!" 
+              : "தமிழ்நாடு அரசு உங்களுக்கு வழங்கும் அனைத்து நலத்திட்டங்கள் பற்றிய விவரங்கள்!"}
+          </p>
+        </div>
+        {/* Right - chips */}
+        <div className="flex flex-row sm:flex-col items-start sm:items-end gap-2 shrink-0 flex-wrap">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 font-bold text-xs rounded-xl border border-violet-200/40 dark:border-violet-700/30 whitespace-nowrap">
+            <i className="fi fi-sr-diploma flex items-center text-xs" />
+            {lang === "EN" ? "Eligibility Checker" : "தகுதி சரிபார்ப்பு"}
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 font-bold text-xs rounded-xl border border-blue-200/40 dark:border-blue-700/30 whitespace-nowrap">
+            <i className="fi fi-sr-gift flex items-center text-xs" />
+            {lang === "EN" ? "Government Schemes" : "அரசு நலத்திட்டங்கள்"}
+          </span>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between mb-6">
         <Link href={backDashboardPath} className="text-sm font-bold text-black dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-2 transition-colors w-fit">
           <span>←</span> {lang === "EN" ? "Back to Dashboard" : "டாஷ்போர்டுக்கு திரும்பு"}
