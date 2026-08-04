@@ -42,10 +42,10 @@ interface Question {
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const studyTips = [
-  { icon: "🧠", title: "Active Recall", desc: "After each chapter, close your notes and write everything you remember. Repeat 3 times." },
-  { icon: "⏱️", title: "Pomodoro Method", desc: "Study 45 min, break 10 min. Deep focused sessions beat long aimless sessions." },
-  { icon: "📅", title: "Spaced Repetition", desc: "Revisit Biology formulas today, Chemistry in 3 days, Physics in 7 days." },
-  { icon: "📝", title: "Previous Year Papers", desc: "Solve 10 years of NEET PYQs — 70% of real questions repeat from previous years!" },
+  { icon: "fi-rr-brain", title: "Active Recall", desc: "After each chapter, close your notes and write everything you remember. Repeat 3 times." },
+  { icon: "fi-rr-clock", title: "Pomodoro Method", desc: "Study 45 min, break 10 min. Deep focused sessions beat long aimless sessions." },
+  { icon: "fi-rr-calendar", title: "Spaced Repetition", desc: "Revisit Biology formulas today, Chemistry in 3 days, Physics in 7 days." },
+  { icon: "fi-rr-edit", title: "Previous Year Papers", desc: "Solve 10 years of NEET PYQs — 70% of real questions repeat from previous years!" },
 ];
 
 const subjectGradient: Record<Subject, string> = {
@@ -400,34 +400,56 @@ export default function StudentNEETPrepPage() {
   );
 
   return (
-    <PortalLayout title="NEET Preparation 🧬" subtitle="Track your syllabus, mock tests & performance for NEET success" accentColor="#ef4444">
+    <PortalLayout title="NEET Preparation" subtitle="Track your syllabus, mock tests & performance for NEET success" accentColor="#ef4444">
       <div className="space-y-6 animate-in fade-in duration-300">
 
-        {/* ── Hero Banner ─────────────────────────────────────── */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-red-500 via-rose-500 to-pink-600 text-white p-6 md:p-8 shadow-xl">
-          <div className="absolute right-0 top-0 opacity-10 translate-x-8 -translate-y-8 pointer-events-none">
-            <span className="text-[12rem] leading-none">🧬</span>
+        {/* ── Hero Banner Icon Update ──────────────────────────── */}
+        <div 
+          className="relative overflow-hidden rounded-3xl text-white p-6 md:p-8 shadow-xl border border-rose-500/20"
+          style={{ background: "linear-gradient(135deg, #dc2626 0%, #f43f5e 50%, #db2777 100%)" }}
+        >
+          <style dangerouslySetInnerHTML={{ __html: `
+            :root:not(.dark) .banner-title,
+            .banner-title {
+              color: #ffffff !important;
+            }
+            :root:not(.dark) .banner-desc,
+            .banner-desc {
+              color: rgba(255, 255, 255, 0.85) !important;
+            }
+            .banner-stat-val {
+              color: #ffffff !important;
+            }
+            .banner-stat-lbl {
+              color: rgba(255, 255, 255, 0.7) !important;
+            }
+            .banner-stat-icon {
+              color: rgba(255, 255, 255, 0.9) !important;
+            }
+          ` }} />
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none text-white">
+            <i className="fi fi-rr-dna text-[120px] leading-none" />
           </div>
-          <div className="relative z-10">
-            <span className="inline-flex items-center gap-1.5 bg-red-500 text-white px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider mb-3 shadow-sm">
-              🎯 NEET UG 2026 Target
+          <div className="relative z-10 text-left">
+            <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider mb-3 shadow-sm border border-white/10">
+              <i className="fi fi-rr-bullseye mr-1 text-[10px]" /> NEET UG 2026 Target
             </span>
-            <h2 className="text-2xl md:text-3xl font-black tracking-tight mb-2 text-slate-800 dark:text-white">Your NEET Dashboard</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm font-medium max-w-lg">
+            <h2 className="banner-title text-2xl md:text-3xl font-black tracking-tight mb-2">Your NEET Dashboard</h2>
+            <p className="banner-desc text-xs md:text-sm font-medium max-w-lg leading-relaxed">
               Every chapter you complete brings you one step closer to your medical dream. Track your Biology, Chemistry & Physics progress here.
             </p>
 
             {/* Quick stats row */}
-            <div className="flex flex-wrap gap-4 mt-5">
+            <div className="flex flex-wrap gap-4 mt-6">
               {[
-                { label: "Chapters Done", value: `${completed}/${chapters.length}`, icon: "📖" },
-                { label: "Overall Accuracy", value: `${overallAccuracy}%`, icon: "🎯" },
-                { label: "Best Mock Score", value: `${myBestScore}%`, icon: "🏆" },
-                { label: "Mock Tests Taken", value: myTests.length, icon: "📝" },
+                { label: "Chapters Done", value: `${completed}/${chapters.length}`, icon: <i className="banner-stat-icon fi fi-rr-book-alt text-sm" /> },
+                { label: "Overall Accuracy", value: `${overallAccuracy}%`, icon: <i className="banner-stat-icon fi fi-rr-bullseye text-sm" /> },
+                { label: "Best Mock Score", value: `${myBestScore}%`, icon: <i className="banner-stat-icon fi fi-rr-trophy text-sm" /> },
+                { label: "Mock Tests Taken", value: myTests.length, icon: <i className="banner-stat-icon fi fi-rr-list text-sm" /> },
               ].map((s) => (
-                <div key={s.label} className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-2.5 min-w-[120px] shadow-sm">
-                  <div className="text-sm font-black text-slate-800 dark:text-white">{s.icon} {s.value}</div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-1">{s.label}</div>
+                <div key={s.label} className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-2.5 min-w-[120px] shadow-sm flex flex-col justify-between hover:bg-white/15 transition-all">
+                  <div className="banner-stat-val text-sm font-black flex items-center gap-1.5">{s.icon} <span>{s.value}</span></div>
+                  <div className="banner-stat-lbl text-[10px] font-bold mt-1.5 uppercase tracking-wider">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -435,8 +457,10 @@ export default function StudentNEETPrepPage() {
         </div>
 
         {/* ── Subject Progress Bars ────────────────────────────── */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4">📊 Subject-wise Progress</h3>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm text-left">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-1.5">
+            <i className="fi fi-rr-chart-histogram text-red-500" /> Subject-wise Progress
+          </h3>
           <div className="space-y-3">
             {(["Biology", "Chemistry", "Physics"] as Subject[]).map((sub) => {
               const subChapters = chapters.filter((c) => c.subject === sub);
@@ -469,19 +493,20 @@ export default function StudentNEETPrepPage() {
         {/* ── Tabs ────────────────────────────────────────────── */}
         <div className="flex gap-1 bg-slate-100 dark:bg-slate-900 rounded-xl p-1 w-fit">
           {([
-            { key: "syllabus", label: "📚 Syllabus" },
-            { key: "tests", label: "📝 My Tests" },
-            { key: "gemini", label: "🤖 AI Gemini Generator" },
-            { key: "tips", label: "💡 Study Tips" },
+            { key: "syllabus", label: "Syllabus", icon: "fi-rr-book-alt" },
+            { key: "tests", label: "My Tests", icon: "fi-rr-list" },
+            { key: "gemini", label: "AI Gemini Generator", icon: "fi-rr-robot" },
+            { key: "tips", label: "Study Tips", icon: "fi-rr-star" },
           ] as const).map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === tab.key
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1.5 ${activeTab === tab.key
                 ? "bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm"
                 : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                 }`}
             >
+              <i className={`fi ${tab.icon} flex items-center`} />
               {tab.label}
             </button>
           ))}
@@ -577,7 +602,13 @@ export default function StudentNEETPrepPage() {
                               : "bg-red-500 hover:bg-red-600"
                             }`}
                         >
-                          {ch.status === "Pending" ? "🚀 Start Practice" : ch.status === "In Progress" ? "▶ Continue" : "🔁 Revise Again"}
+                          {ch.status === "Pending" ? (
+                            <span className="flex items-center gap-1"><i className="fi fi-rr-rocket" /> Start Practice</span>
+                          ) : ch.status === "In Progress" ? (
+                            <span className="flex items-center gap-1"><i className="fi fi-rr-play" /> Continue</span>
+                          ) : (
+                            <span className="flex items-center gap-1"><i className="fi fi-rr-refresh" /> Revise Again</span>
+                          )}
                         </button>
                       </div>
                     </div>
@@ -590,8 +621,10 @@ export default function StudentNEETPrepPage() {
 
         {/* ── My Tests Tab ──────────────────────────────────────── */}
         {activeTab === "tests" && (
-          <div className="space-y-4">
-            <h3 className="text-sm font-bold text-slate-700 dark:text-white">📝 My Mock Test Results</h3>
+          <div className="space-y-4 text-left">
+            <h3 className="text-sm font-bold text-slate-700 dark:text-white flex items-center gap-1.5">
+              <i className="fi fi-rr-list text-red-500" /> My Mock Test Results
+            </h3>
             {loading ? (
               <div className="flex justify-center py-16"><div className="w-8 h-8 rounded-full border-2 border-red-500/20 border-t-red-500 animate-spin" /></div>
             ) : myTests.length === 0 ? (
@@ -600,18 +633,18 @@ export default function StudentNEETPrepPage() {
               myTests.map((test) => {
                 const scorePct = test.maxScore > 0 ? Math.round((test.myScore / test.maxScore) * 100) : 0;
                 return (
-                  <div key={test.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all">
+                  <div key={test.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all text-left">
                     <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-base">📝</span>
-                          <h4 className="text-sm font-bold text-slate-800 dark:text-white">{test.title}</h4>
+                          <i className="fi fi-rr-list text-red-500 flex items-center" />
+                          <h4 className="text-sm font-bold text-slate-800 dark:text-white leading-tight">{test.title}</h4>
                           <span className="text-[9px] px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 rounded-full font-semibold">{test.subject}</span>
                         </div>
                         <div className="flex flex-wrap gap-3 text-[10px] text-slate-400">
-                          <span>📅 {test.examDate}</span>
-                          <span>⏱ {test.duration}</span>
-                          <span>👥 {test.totalStudents} students</span>
+                          <span className="flex items-center gap-1"><i className="fi fi-rr-calendar" /> {test.examDate}</span>
+                          <span className="flex items-center gap-1"><i className="fi fi-rr-clock" /> {test.duration}</span>
+                          <span className="flex items-center gap-1"><i className="fi fi-rr-users-alt" /> {test.totalStudents} students</span>
                         </div>
                       </div>
 
@@ -650,11 +683,11 @@ export default function StudentNEETPrepPage() {
 
         {/* ── Gemini AI Tab ────────────────────────────────────── */}
         {activeTab === "gemini" && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-5 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-5 animate-in fade-in duration-200 text-left">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">🤖</span>
+              <i className="fi fi-rr-robot text-violet-500 text-3xl shrink-0" />
               <div>
-                <h3 className="text-sm font-bold text-slate-800 dark:text-white">Gemini AI Question Generator</h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white leading-tight">Gemini AI Question Generator</h3>
                 <p className="text-[10px] text-slate-400 mt-0.5">Type any chapter title to generate custom mock practice questions instantly.</p>
               </div>
             </div>
@@ -714,7 +747,7 @@ export default function StudentNEETPrepPage() {
                     Generating Practice Questions...
                   </>
                 ) : (
-                  <>✨ Generate & Start Practice Session</>
+                  <span className="flex items-center gap-1.5"><i className="fi fi-rr-sparkles" /> Generate & Start Practice Session</span>
                 )}
               </button>
             </div>
@@ -726,9 +759,11 @@ export default function StudentNEETPrepPage() {
           <div className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {studyTips.map((tip, idx) => (
-                <div key={idx} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all">
-                  <div className="text-3xl mb-3">{tip.icon}</div>
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-2">{tip.title}</h4>
+                <div key={idx} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all text-left">
+                  <div className="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-950/20 flex items-center justify-center mb-3 shrink-0">
+                    <i className={`fi ${tip.icon} text-red-500 text-xl`} />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-2 leading-tight">{tip.title}</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{tip.desc}</p>
                 </div>
               ))}
@@ -752,9 +787,9 @@ export default function StudentNEETPrepPage() {
                 </div>
                 <button
                   onClick={() => savePracticeResults(true)}
-                  className="text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs px-3.5 py-2 rounded-xl font-bold transition-all shrink-0 flex items-center justify-center border border-slate-200/50 dark:border-slate-700 shadow-sm"
+                  className="text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs px-3.5 py-2 rounded-xl font-bold transition-all shrink-0 flex items-center justify-center border border-slate-200/50 dark:border-slate-700 shadow-sm inline-flex items-center gap-1"
                 >
-                  ✕ Close
+                  <i className="fi fi-rr-cross text-[10px]" /> Close
                 </button>
               </div>
 
@@ -815,9 +850,9 @@ export default function StudentNEETPrepPage() {
 
                 {/* Explanation */}
                 {showExplanation && (
-                  <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-3.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">
-                      💡 Explanation
+                  <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-3.5 animate-in fade-in slide-in-from-top-2 duration-300 text-left">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1">
+                      <i className="fi fi-rr-interrogation text-slate-400" /> Explanation
                     </div>
                     <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
                       {practiceQuestions[currentQIndex].exp}
@@ -834,9 +869,11 @@ export default function StudentNEETPrepPage() {
                   >
                     {savingPractice
                       ? "Saving..."
-                      : currentQIndex + 1 < practiceQuestions.length
-                        ? "Next Question ➡️"
-                        : "Finish & Save Session 🏁"}
+                      : currentQIndex + 1 < practiceQuestions.length ? (
+                        <span className="flex items-center gap-1">Next Question <i className="fi fi-rr-arrow-right" /></span>
+                      ) : (
+                        <span className="flex items-center gap-1">Finish & Save Session <i className="fi fi-rr-flag" /></span>
+                      )}
                   </button>
                 )}
               </div>
