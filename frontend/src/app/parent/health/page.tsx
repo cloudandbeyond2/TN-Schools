@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import ParentPortalBanner from "@/components/ParentPortalBanner";
 import { useParentChildren, getApiBase, Child } from "@/lib/useParentChildren";
 import { 
   Ruler, Scale, Droplet, Activity, Eye, Stethoscope, Ear, 
@@ -525,6 +526,8 @@ export default function ParentHealthReportPage() {
       accentColor="#10b981"
     >
       <ChildSwitcher childList={children} active={activeChild} onChange={setActiveChild} />
+      
+      <ParentPortalBanner pageKey="health" />
       
       {getHealthContent()}
     </PortalLayout>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { FlatIcon } from "@/components/FlatIcon";
 
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -11,6 +12,27 @@ const getApiBase = () => {
   return url;
 };
 const API_BASE = getApiBase();
+
+const getCategoryIconName = (category: string) => {
+  switch (category) {
+    case "All":
+      return "bysubject";
+    case "Medical":
+      return "doctor";
+    case "Engineering":
+      return "engineer";
+    case "Civil Services":
+      return "civilservices";
+    case "Defence":
+      return "defence";
+    case "Law":
+      return "lawyer";
+    case "Banking":
+      return "banking";
+    default:
+      return "learning";
+  }
+};
 
 interface Exam {
   id: string;
@@ -43,11 +65,6 @@ interface Recommendations {
   others: ExamWithReason[];
 }
 
-const categoryIcon: Record<string, string> = {
-  Medical: "🏥", Engineering: "⚙️", "Civil Services": "🏛️", Management: "📈",
-  Banking: "🏦", Defence: "🛡️", Law: "⚖️", Design: "🎨", "Government Jobs": "🏢", Other: "📖",
-};
-
 // Where "prepare this subject" should send the student
 function subjectPrepLink(subject: string): { href: string; label: string } {
   const s = subject.toLowerCase();
@@ -69,8 +86,8 @@ function ExamCard({ item, highlight }: { item: ExamWithReason; highlight: boolea
       }`}
     >
       <div className="flex items-start gap-3 mb-2">
-        <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shrink-0">
-          {categoryIcon[exam.category] || "📖"}
+        <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+          <FlatIcon name={getCategoryIconName(exam.category)} className="w-7 h-7" />
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="text-sm font-bold text-slate-800 dark:text-white">{exam.examName}</h4>
@@ -88,30 +105,39 @@ function ExamCard({ item, highlight }: { item: ExamWithReason; highlight: boolea
           ? "bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300"
           : "bg-slate-50 text-slate-500 dark:bg-slate-950 dark:text-slate-400"
       }`}>
-        {highlight ? "✅ " : "ℹ️ "}{reason}
+        <span className="flex items-center gap-1.5">
+          <i className={`fi ${highlight ? "fi-rr-checkbox text-emerald-500" : "fi-rr-interrogation text-slate-450"}`} />
+          <span>{reason}</span>
+        </span>
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div className="bg-slate-50 dark:bg-slate-950 rounded-lg p-2">
-          <div className="text-[9px] text-slate-400 font-semibold mb-0.5">📋 Reg. Deadline</div>
+          <div className="text-[9px] text-slate-400 font-semibold mb-0.5 flex items-center gap-1">
+            <i className="fi fi-rr-calendar-check text-violet-500" /> Reg. Deadline
+          </div>
           <div className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{exam.registrationDeadline}</div>
         </div>
         <div className="bg-slate-50 dark:bg-slate-950 rounded-lg p-2">
-          <div className="text-[9px] text-slate-400 font-semibold mb-0.5">📅 Exam Date</div>
+          <div className="text-[9px] text-slate-400 font-semibold mb-0.5 flex items-center gap-1">
+            <i className="fi fi-rr-calendar text-violet-500" /> Exam Date
+          </div>
           <div className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{exam.examDate}</div>
         </div>
       </div>
 
-      <p className="text-[10px] text-slate-400 mb-3">{exam.eligibility}</p>
+      <p className="text-[10px] text-slate-400 mb-3 flex items-center gap-1.5">
+        <i className="fi fi-rr-graduation-cap text-slate-400" /> {exam.eligibility}
+      </p>
 
       {exam.website && (
         <a
           href={exam.website.startsWith("http") ? exam.website : `https://${exam.website}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[10px] text-violet-500 hover:underline"
+          className="text-[10px] text-violet-500 hover:underline flex items-center gap-1"
         >
-          🌐 Official website →
+          <i className="fi fi-rr-globe text-violet-500" /> Official website →
         </a>
       )}
     </div>
@@ -126,7 +152,7 @@ interface Props {
 }
 
 /**
- * Group-aware competitive exam guidance for 11th–12th students.
+ * Group-aware competitive exam guidance for 11th-12th students.
  * Reads the student's HSC group (DGE Annexure-I code) and splits the
  * exam catalog into "recommended for your group" vs "other exams",
  * plus subject-wise preparation shortcuts.
@@ -185,29 +211,32 @@ export default function GroupAwareExamList({ studentId, studentClass, schoolId }
 
   return (
     <div className="space-y-6">
-      {/* Group banner */}
+      {/* Group Banner Section */}
       {recs.group ? (
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-violet-600 to-indigo-700 text-white p-6 shadow-xl">
-          <div className="relative z-10">
-            <span className="inline-flex items-center gap-1.5 bg-white/15 border border-white/25 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mb-2">
-              🎯 {recs.group.streamLabel}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm text-left">
+          <div className="relative z-10 text-left">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 font-extrabold text-[10px] rounded-lg border border-violet-200/20 shadow-sm mb-1.5">
+              <i className="fi fi-rr-bullseye mr-1 text-xs text-violet-500" /> {recs.group.streamLabel}
             </span>
-            <h3 className="text-xl md:text-2xl font-black tracking-tight">Group {recs.group.code}</h3>
-            <p className="text-white/85 text-xs md:text-sm font-medium mt-1">
+            <h3 className="text-sm font-black text-slate-800 dark:text-white leading-tight">Group {recs.group.code}</h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
               Your Part-III subjects: {recs.group.subjects.join(" · ")}
             </p>
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 text-xs text-amber-700 dark:text-amber-300 font-semibold">
-          ⚠️ Your HSC group is not set yet. Ask your school office to select your official group code (e.g. 2503) — then this page can recommend exams that match your subjects.
+        <div className="rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 text-xs text-amber-700 dark:text-amber-300 font-semibold text-left flex items-start gap-2">
+          <i className="fi fi-rr-interrogation text-amber-500 text-sm shrink-0 mt-0.5" />
+          <span>Your HSC group is not set yet. Ask your school office to select your official group code (e.g. 2503) — then this page can recommend exams that match your subjects.</span>
         </div>
       )}
 
       {/* Recommended */}
       {recs.recommended.length > 0 && (
-        <div>
-          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3">🌟 Recommended for your group</h3>
+        <div className="text-left">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-1.5">
+            <i className="fi fi-rr-star text-amber-500 text-sm" /> Recommended for your group
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {recs.recommended.map((item) => (
               <ExamCard key={item.exam.id} item={item} highlight />
@@ -218,8 +247,10 @@ export default function GroupAwareExamList({ studentId, studentClass, schoolId }
 
       {/* Subject-wise preparation */}
       {recs.group && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3">📚 Prepare subject by subject</h3>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm text-left">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-1.5">
+            <i className="fi fi-rr-book-alt text-violet-500 text-sm" /> Prepare subject by subject
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {recs.group.subjects.map((subject) => {
               const link = subjectPrepLink(subject);
@@ -242,12 +273,13 @@ export default function GroupAwareExamList({ studentId, studentClass, schoolId }
 
       {/* Other exams — collapsed */}
       {recs.others.length > 0 && (
-        <div>
+        <div className="text-left">
           <button
             onClick={() => setShowOthers(!showOthers)}
-            className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-violet-500 mb-3"
+            className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-violet-500 mb-3 inline-flex items-center gap-1"
           >
-            {showOthers ? "▲ Hide" : "▼ Show"} other exams ({recs.others.length})
+            <i className={`fi ${showOthers ? "fi-rr-angle-small-up" : "fi-rr-angle-small-down"}`} />
+            <span>{showOthers ? "Hide" : "Show"} other exams ({recs.others.length})</span>
           </button>
           {showOthers && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

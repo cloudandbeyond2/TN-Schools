@@ -3,11 +3,6 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import {
-  FileText, Plus, Trash2, CheckCircle, RefreshCw,
-  Sparkles, Layers, ChevronRight, ChevronDown, BookOpen, Clock,
-  Target, GraduationCap, LayoutList, Share2, Award, Calendar, Search, Eye, BarChart2, XCircle
-} from "lucide-react";
 import Swal from "sweetalert2";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
@@ -204,9 +199,36 @@ export default function TeacherMockTestsPage() {
   };
 
   const handleAssignTest = async (id: string, currentGrade: string) => {
-    const { value: formValues } = await Swal.fire({
-      title: 'Assign Mock Test to Class',
-      html: `
+    let htmlContent = "";
+    if (teacherClasses && teacherClasses.length > 0) {
+      const classOptions = teacherClasses.map(c => ({
+        value: `${c.className}-${c.section}`,
+        label: `Class ${c.className} - Section ${c.section}`
+      }));
+      const uniqueClassNames = Array.from(new Set(teacherClasses.map(c => c.className)));
+      uniqueClassNames.forEach(cls => {
+        classOptions.unshift({
+          value: `${cls}-all`,
+          label: `Class ${cls} (All Sections)`
+        });
+      });
+
+      htmlContent = `
+        <div class="space-y-4 text-left">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Target Class & Section</label>
+            <select id="swal-class-select" class="w-full border rounded-lg p-2 focus:ring-emerald-500">
+              ${classOptions.map(opt => `<option value="${opt.value}" ${opt.value.startsWith(currentGrade) ? 'selected' : ''}>${opt.label}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+            <input id="swal-date" type="datetime-local" class="w-full border rounded-lg p-2 focus:ring-emerald-500">
+          </div>
+        </div>
+      `;
+    } else {
+      htmlContent = `
         <div class="space-y-4 text-left">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Class</label>
@@ -221,16 +243,32 @@ export default function TeacherMockTestsPage() {
             <input id="swal-date" type="datetime-local" class="w-full border rounded-lg p-2 focus:ring-emerald-500">
           </div>
         </div>
-      `,
+      `;
+    }
+
+    const { value: formValues } = await Swal.fire({
+      title: 'Assign Mock Test to Class',
+      html: htmlContent,
       focusConfirm: false,
       showCancelButton: true,
       confirmButtonColor: '#10b981',
       confirmButtonText: 'Assign Now',
       preConfirm: () => {
-        return {
-          class: (document.getElementById('swal-class') as HTMLInputElement).value,
-          section: (document.getElementById('swal-section') as HTMLInputElement).value,
-          dueDate: (document.getElementById('swal-date') as HTMLInputElement).value
+        const selectEl = document.getElementById('swal-class-select') as HTMLSelectElement;
+        if (selectEl) {
+          const selectVal = selectEl.value;
+          const [cls, sec] = selectVal.split('-');
+          return {
+            class: cls,
+            section: sec === 'all' ? null : sec,
+            dueDate: (document.getElementById('swal-date') as HTMLInputElement).value
+          };
+        } else {
+          return {
+            class: (document.getElementById('swal-class') as HTMLInputElement).value,
+            section: (document.getElementById('swal-section') as HTMLInputElement).value,
+            dueDate: (document.getElementById('swal-date') as HTMLInputElement).value
+          };
         }
       }
     });
@@ -336,36 +374,30 @@ export default function TeacherMockTestsPage() {
       subtitle={lang === "தமிழ்" ? "உங்கள் வகுப்பிற்கான தேர்வுகளை உருவாக்கவும்" : "Create and assign custom mock exams for your classes"}
       accentColor="#10b981"
     >
-      <div className="w-full max-w-7xl mx-auto mb-10">
+      <div className="w-full mb-10">
 
         {/* Glassmorphism Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-800 p-8 md:p-12 mb-8 shadow-2xl shadow-emerald-500/20 text-white">
-          <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
-            <Target className="w-64 h-64 text-white" />
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-800 py-4 px-5 md:py-5 md:px-6 mb-8 shadow-2xl shadow-emerald-500/20 text-white">
+          <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none text-white">
+            <i className="fi fi-rr-bullseye text-[120px] leading-none" />
           </div>
           <div className="relative z-10 max-w-2xl">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/30">
-              <Sparkles className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "வகுப்பு மதிப்பீடுகள்" : "Class Assessments"}
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider mb-2 border border-white/30">
+              <i className="fi fi-rr-sparkles text-[10px]" /> {lang === "தமிழ்" ? "வகுப்பு மதிப்பீடுகள்" : "Class Assessments"}
             </span>
-            <p className="text-3xl md:text-5xl font-black mb-4 leading-tight !text-white">
+            <p className="text-2xl md:text-3xl font-black mb-1 leading-tight !text-white">
               {lang === "தமிழ்" ? "உங்கள் மாணவர்களை மேம்படுத்துங்கள்" : "Empower Your Students"}
             </p>
-            <p className="text-emerald-100 !text-white text-lg mb-8 leading-relaxed">
+            <p className="text-emerald-100 !text-white text-xs mb-4 leading-relaxed">
               {lang === "தமிழ்" ? "கொள்குறி தேர்வுகளை வடிவமைக்கவும், வினாக்களை உடனுக்குடன் உருவாக்க AI ஐ பயன்படுத்தவும்." : "Design tailored objective tests, use AI to build questions instantly, and track individual student performance with ease."}
             </p>
             <div className="flex gap-4">
               <button
                 onClick={handleOpenCreate}
-                className="px-6 py-3 bg-white text-emerald-700 hover:bg-emerald-50 transition-all rounded-2xl font-bold text-sm shadow-xl flex items-center gap-2"
+                className="px-5 py-2.5 bg-white text-emerald-700 hover:bg-emerald-55 transition-all rounded-2xl font-bold text-xs shadow-xl flex items-center gap-2"
               >
-                <Plus className="w-5 h-5" /> {lang === "தமிழ்" ? "புதிய மதிப்பீடு" : "New Assessment"}
+                <i className="fi fi-rr-plus text-xs" /> {lang === "தமிழ்" ? "புதிய மதிப்பீடு" : "New Assessment"}
               </button>
-              {/* <button
-                onClick={() => setActiveTab("repository")}
-                className="!text-white px-6 py-3 bg-emerald-500/30 hover:bg-emerald-500/40 backdrop-blur-md transition-all rounded-2xl font-bold text-sm border border-white/20 flex items-center gap-2"
-              >
-                <LayoutList className="w-5 h-5" /> View Repository
-              </button> */}
             </div>
           </div>
         </div>
@@ -373,10 +405,10 @@ export default function TeacherMockTestsPage() {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
             <h2 className="text-2xl font-black text-gray-800 dark:text-white flex items-center gap-2">
-              <Layers className="w-6 h-6 text-emerald-500" /> {lang === "தமிழ்" ? "தேர்வு களஞ்சியம்" : "Test Repository"}
+              <i className="fi fi-rr-layers text-xl text-emerald-500" /> {lang === "தமிழ்" ? "தேர்வு களஞ்சியம்" : "Test Repository"}
             </h2>
             <div className="relative w-full md:w-96">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <i className="fi fi-rr-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder={lang === "தமிழ்" ? "தலைப்பு அல்லது பாடம் மூலம் தேடவும்..." : "Search tests by title or subject..."}
@@ -389,11 +421,11 @@ export default function TeacherMockTestsPage() {
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
-              <RefreshCw className="w-8 h-8 text-emerald-500 animate-spin" />
+              <i className="fi fi-rr-refresh text-2xl text-emerald-500 animate-spin flex items-center justify-center" />
             </div>
           ) : filteredTests.length === 0 ? (
             <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-              <Target className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <i className="fi fi-rr-bullseye text-4xl text-gray-300 mx-auto mb-4 flex items-center justify-center" />
               <h3 className="text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">No mock tests found</h3>
               <p className="text-gray-500">Create your first assessment to start evaluating your class.</p>
             </div>
@@ -420,7 +452,7 @@ export default function TeacherMockTestsPage() {
                   <div className="flex items-start justify-between mb-4 mt-2">
                     <div className="flex items-center gap-2">
                       <span className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                        <BookOpen className="w-5 h-5" />
+                        <i className="fi fi-rr-book-alt text-lg flex items-center" />
                       </span>
                       <div>
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{test.subject}</p>
@@ -436,11 +468,11 @@ export default function TeacherMockTestsPage() {
 
                   <div className="grid grid-cols-2 gap-2 mb-6 mt-auto">
                     <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center">
-                      <Clock className="w-4 h-4 text-gray-400 mb-1" />
+                      <i className="fi fi-rr-clock text-xs text-gray-400 mb-1" />
                       <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test.duration} mins</span>
                     </div>
                     <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center">
-                      <Award className="w-4 h-4 text-gray-400 mb-1" />
+                      <i className="fi fi-rr-trophy text-xs text-gray-400 mb-1" />
                       <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test.totalMarks} Marks</span>
                     </div>
                     <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center col-span-2">
@@ -453,20 +485,20 @@ export default function TeacherMockTestsPage() {
                       onClick={() => handleAssignTest(test.id, test.grade)}
                       className="flex-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 font-bold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
                     >
-                      <Share2 className="w-4 h-4" /> Assign
+                      <i className="fi fi-rr-paper-plane text-xs" /> Assign
                     </button>
                     <button
                       onClick={() => handleViewResults(test.id, test.title)}
                       className="flex-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 font-bold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
                     >
-                      <BarChart2 className="w-4 h-4" /> Results
+                      <i className="fi fi-rr-chart-histogram text-xs" /> Results
                     </button>
                     {test.createdById === profile?.userId && (
                       <button
                         onClick={() => handleDeleteTest(test.id)}
                         className="px-4 bg-red-50 dark:bg-red-900/20 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl transition-colors flex items-center justify-center"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <i className="fi fi-rr-trash text-xs" />
                       </button>
                     )}
                   </div>
@@ -489,7 +521,7 @@ export default function TeacherMockTestsPage() {
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-10 mt-8 gap-4">
                 <div>
                   <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                    <FileText className="w-6 h-6 text-emerald-500" />
+                    <i className="fi fi-rr-document text-xl text-emerald-500" />
                     Mock Exam Builder
                   </h2>
                   <p className="text-sm text-gray-500 mt-2 font-medium">Design your assessment schema and rubrics.</p>
@@ -500,8 +532,8 @@ export default function TeacherMockTestsPage() {
                   disabled={isGenerating}
                   className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-black rounded-2xl px-6 py-3 text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 w-full sm:w-auto mt-4 md:mt-0"
                 >
-                  {isGenerating ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                  Generate with AI <ChevronDown className="w-4 h-4 ml-1" />
+                  {isGenerating ? <i className="fi fi-rr-refresh text-sm animate-spin" /> : <i className="fi fi-rr-sparkles text-sm" />}
+                  Generate with AI <i className="fi fi-rr-angle-small-down text-xs ml-1" />
                 </button>
               </div>
 
@@ -577,7 +609,7 @@ export default function TeacherMockTestsPage() {
                       type="button" onClick={handleAddQuestion}
                       className="text-sm text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 px-4 py-2 rounded-xl transition-colors"
                     >
-                      <Plus className="w-4 h-4" /> Add Question
+                      <i className="fi fi-rr-plus text-xs" /> Add Question
                     </button>
                   </div>
 
@@ -617,7 +649,7 @@ export default function TeacherMockTestsPage() {
                                 type="button" onClick={() => handleRemoveQuestion(idx)}
                                 className="w-9 h-9 flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-colors"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <i className="fi fi-rr-trash text-xs" />
                               </button>
                             </div>
                           </div>
@@ -658,7 +690,7 @@ export default function TeacherMockTestsPage() {
                     type="submit" disabled={isSubmitting || questions.length === 0}
                     className="w-full md:w-auto bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 rounded-2xl px-10 py-4 text-sm font-black tracking-wide transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-3"
                   >
-                    {isSubmitting ? <RefreshCw className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
+                    {isSubmitting ? <i className="fi fi-rr-refresh text-sm animate-spin" /> : <i className="fi fi-rr-checkbox text-sm mr-1" />}
                     Publish Mock Test
                   </button>
                 </div>
@@ -680,7 +712,7 @@ export default function TeacherMockTestsPage() {
 
               <div className="mb-8 mt-2">
                 <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                  <BarChart2 className="w-6 h-6 text-indigo-500" />
+                  <i className="fi fi-rr-chart-histogram text-xl text-indigo-500" />
                   Submissions Dashboard
                 </h2>
                 <p className="text-sm text-gray-500 mt-2 font-medium">Viewing results for: <strong className="text-gray-800 dark:text-gray-200">{currentTestName}</strong></p>
@@ -688,7 +720,7 @@ export default function TeacherMockTestsPage() {
 
               {loadingResults ? (
                 <div className="flex justify-center items-center h-40">
-                  <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
+                  <i className="fi fi-rr-refresh text-2xl text-indigo-500 animate-spin" />
                 </div>
               ) : selectedTestResults.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
@@ -723,7 +755,7 @@ export default function TeacherMockTestsPage() {
                               }`}>
                               {percent}%
                             </div>
-                            <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                            <i className={`fi fi-rr-angle-small-down text-lg text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                           </div>
                         </div>
 
@@ -731,7 +763,7 @@ export default function TeacherMockTestsPage() {
                         {isExpanded && (
                           <div className="p-6 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
                             <h4 className="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
-                              <Eye className="w-4 h-4" /> Answers Breakdown
+                              <i className="fi fi-rr-eye text-xs mr-1" /> Answers Breakdown
                             </h4>
                             <div className="space-y-4">
                               {sub.assignment.mockTest.questions.map((q: any, idx: number) => {
@@ -748,9 +780,9 @@ export default function TeacherMockTestsPage() {
                                       <div className="flex items-start gap-2">
                                         <div className="mt-0.5">
                                           {isCorrect ? (
-                                            <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                            <i className="fi fi-rr-checkbox text-xs text-emerald-500" />
                                           ) : (
-                                            <XCircle className="w-4 h-4 text-red-500" />
+                                            <i className="fi fi-rr-cross-small text-xs text-red-500" />
                                           )}
                                         </div>
                                         <div>
@@ -763,7 +795,7 @@ export default function TeacherMockTestsPage() {
                                       {!isCorrect && (
                                         <div className="flex items-start gap-2">
                                           <div className="mt-0.5">
-                                            <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                            <i className="fi fi-rr-checkbox text-xs text-emerald-500" />
                                           </div>
                                           <div>
                                             <p className="text-xs text-gray-500 mb-1">Correct Answer</p>

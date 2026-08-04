@@ -3,20 +3,7 @@
 import React, { useEffect, useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
-import { 
-  HeartPulse, 
-  Activity, 
-  Scale, 
-  Ruler, 
-  Eye, 
-  Stethoscope, 
-  Syringe, 
-  Droplet,
-  User,
-  CheckCircle2,
-  Calendar,
-  AlertCircle
-} from "lucide-react";
+// Only FlatIcons used - Clean
 
 export default function StudentHealthReportPage() {
   const { data: session } = useSession();
@@ -59,7 +46,7 @@ export default function StudentHealthReportPage() {
 
   if (loading) {
     return (
-      <PortalLayout title="My Health Report 🏥" subtitle="View your latest school medical checkup details.">
+      <PortalLayout title="My Health Report" subtitle="View your latest school medical checkup details.">
         <div className="flex justify-center items-center h-64">
           <p className="text-slate-500 font-bold">Loading health report...</p>
         </div>
@@ -69,9 +56,34 @@ export default function StudentHealthReportPage() {
 
   if (!healthData) {
     return (
-      <PortalLayout title="My Health Report 🏥" subtitle="View your latest school medical checkup details.">
-        <div className="flex justify-center items-center h-64">
-          <p className="text-slate-500 font-bold text-lg">No health report available yet.</p>
+      <PortalLayout title="My Health Report" subtitle="View your latest school medical checkup details.">
+        <div className="mt-4">
+          {/* Main header banner card */}
+          <div className="relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md text-left">
+            {/* Faded Background Icon on Right */}
+            <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-[0.03] dark:opacity-[0.05] pointer-events-none text-black dark:text-white">
+              <i className="fi fi-rr-heart text-[100px] leading-none" />
+            </div>
+            
+            <div className="relative z-10">
+              <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
+                <i className="fi fi-rr-heart text-rose-600 dark:text-rose-400 flex items-center" />
+                My Health Report
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                <i className="fi fi-rr-stethoscope text-rose-500 dark:text-rose-400 flex items-center mr-1" />
+                View your latest school medical checkup details, height, weight, and vaccination history.
+              </p>
+            </div>
+            <span className="relative z-10 inline-flex items-center gap-1.5 px-4 py-2 bg-rose-50 dark:bg-rose-955/40 text-rose-600 dark:text-rose-400 font-extrabold text-sm rounded-xl border border-rose-200/20 shadow-sm">
+              <i className="fi fi-rr-shield-check flex items-center text-sm" />
+              Student Wellness Registry
+            </span>
+          </div>
+
+          <div className="flex justify-center items-center h-64 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <p className="text-slate-500 font-bold text-base">No health report available yet.</p>
+          </div>
         </div>
       </PortalLayout>
     );
@@ -107,17 +119,40 @@ export default function StudentHealthReportPage() {
   }
 
   return (
-    <PortalLayout title="My Health Report 🏥" subtitle="View your latest school medical checkup details.">
+    <PortalLayout title="My Health Report" subtitle="View your latest school medical checkup details.">
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+      {/* Main header banner card */}
+      <div className="relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 mt-4 glass rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md text-left">
+        {/* Faded Background Icon on Right */}
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-[0.03] dark:opacity-[0.05] pointer-events-none text-black dark:text-white">
+          <i className="fi fi-rr-heart text-[100px] leading-none" />
+        </div>
+        
+        <div className="relative z-10">
+          <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-wider mb-1 flex items-center gap-2">
+            <i className="fi fi-rr-heart text-rose-600 dark:text-rose-400 flex items-center" />
+            My Health Report
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+            <i className="fi fi-rr-stethoscope text-rose-500 dark:text-rose-400 flex items-center mr-1" />
+            View your latest school medical checkup details, height, weight, and vaccination history.
+          </p>
+        </div>
+        <span className="relative z-10 inline-flex items-center gap-1.5 px-4 py-2 bg-rose-50 dark:bg-rose-955/40 text-rose-600 dark:text-rose-400 font-extrabold text-sm rounded-xl border border-rose-200/20 shadow-sm">
+          <i className="fi fi-rr-shield-check flex items-center text-sm" />
+          Student Wellness Registry
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
         
         {/* Left Column: Core Vitals */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-6 shadow-sm border-2 border-slate-100 dark:border-slate-700 flex items-center gap-6 relative overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-6 shadow-sm border-2 border-slate-100 dark:border-slate-700 flex items-center gap-6 relative overflow-hidden text-left">
             <div className="absolute top-0 right-0 w-32 h-32 bg-sky-50 dark:bg-sky-900/20 rounded-bl-full pointer-events-none"></div>
             
-            <div className="w-20 h-20 bg-sky-100 dark:bg-sky-900/50 rounded-2xl flex items-center justify-center text-sky-500 shrink-0">
-              <User className="w-10 h-10" />
+            <div className="w-20 h-20 bg-sky-100 dark:bg-sky-900/50 text-sky-500 rounded-2xl flex items-center justify-center shrink-0">
+              <i className="fi fi-rr-user text-3xl flex items-center" />
             </div>
             <div>
               <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-1">{studentName}</h2>
@@ -134,7 +169,7 @@ export default function StudentHealthReportPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border-2 border-slate-100 dark:border-slate-700 text-center relative overflow-hidden group hover:border-sky-300 transition-colors">
               <div className="w-10 h-10 mx-auto bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-500 mb-3 group-hover:scale-110 group-hover:text-sky-500 transition-all">
-                <Ruler className="w-5 h-5" />
+                <i className="fi fi-rr-ruler-vertical text-lg flex items-center" />
               </div>
               <h3 className="text-2xl font-black text-slate-800 dark:text-white">{healthData.height || "—"}</h3>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Height (cm)</p>
@@ -142,7 +177,7 @@ export default function StudentHealthReportPage() {
             
             <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border-2 border-slate-100 dark:border-slate-700 text-center relative overflow-hidden group hover:border-sky-300 transition-colors">
               <div className="w-10 h-10 mx-auto bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-500 mb-3 group-hover:scale-110 group-hover:text-sky-500 transition-all">
-                <Scale className="w-5 h-5" />
+                <i className="fi fi-rr-balance-scale text-lg flex items-center" />
               </div>
               <h3 className="text-2xl font-black text-slate-800 dark:text-white">{healthData.weight || "—"}</h3>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Weight (kg)</p>
@@ -150,7 +185,7 @@ export default function StudentHealthReportPage() {
 
             <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border-2 border-slate-100 dark:border-slate-700 text-center relative overflow-hidden group hover:border-sky-300 transition-colors">
               <div className="w-10 h-10 mx-auto bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-500 mb-3 group-hover:scale-110 group-hover:text-rose-500 transition-all">
-                <Droplet className="w-5 h-5 text-rose-500" />
+                <i className="fi fi-rr-drop text-lg text-rose-500 flex items-center" />
               </div>
               <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400">{healthData.bloodGroup || "—"}</h3>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Blood Group</p>
@@ -158,7 +193,7 @@ export default function StudentHealthReportPage() {
 
             <div className={`bg-${bmiStatus.color}-50 dark:bg-${bmiStatus.color}-900/20 p-5 rounded-3xl border-2 border-${bmiStatus.color}-200 dark:border-${bmiStatus.color}-800 text-center`}>
               <div className={`w-10 h-10 mx-auto bg-${bmiStatus.color}-100 dark:bg-${bmiStatus.color}-800/50 rounded-xl flex items-center justify-center text-${bmiStatus.color}-600 dark:text-${bmiStatus.color}-400 mb-3`}>
-                <Activity className="w-5 h-5" />
+                <i className="fi fi-rr-chart-line-up text-lg flex items-center" />
               </div>
               <h3 className={`text-2xl font-black text-${bmiStatus.color}-700 dark:text-${bmiStatus.color}-400`}>{bmiValue || "—"}</h3>
               <p className={`text-[10px] font-black text-${bmiStatus.color}-600 dark:text-${bmiStatus.color}-500 uppercase tracking-widest mt-1`}>BMI: {bmiValue ? bmiStatus.label : "N/A"}</p>
@@ -167,10 +202,10 @@ export default function StudentHealthReportPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Vision Check */}
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border-2 border-slate-100 dark:border-slate-700">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border-2 border-slate-100 dark:border-slate-700 text-left">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/50 text-sky-500 rounded-xl flex items-center justify-center">
-                  <Eye className="w-5 h-5" />
+                  <i className="fi fi-rr-eye text-lg flex items-center" />
                 </div>
                 <h3 className="font-black text-slate-700 dark:text-slate-200">Vision Check</h3>
               </div>
@@ -188,22 +223,22 @@ export default function StudentHealthReportPage() {
             </div>
 
             {/* Dental & Medical */}
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border-2 border-slate-100 dark:border-slate-700">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border-2 border-slate-100 dark:border-slate-700 text-left">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-500 rounded-xl flex items-center justify-center">
-                  <Stethoscope className="w-5 h-5" />
+                  <i className="fi fi-rr-stethoscope text-lg flex items-center" />
                 </div>
                 <h3 className="font-black text-slate-700 dark:text-slate-200">Dental & Checkup</h3>
               </div>
               
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-xl">
-                  <span className="text-xs font-bold text-slate-500 flex items-center gap-2"><Calendar className="w-4 h-4" /> Dental Details</span>
+                  <span className="text-xs font-bold text-slate-500 flex items-center gap-2"><i className="fi fi-rr-calendar text-sm flex items-center" /> Dental Details</span>
                   <span className="text-sm font-black text-slate-700 dark:text-white">{lastDentalStr}</span>
                 </div>
                 {healthData.lastCheckupDate && (
                   <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
-                    <span className="text-xs font-bold text-emerald-600 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Checkup Date</span>
+                    <span className="text-xs font-bold text-emerald-600 flex items-center gap-2"><i className="fi fi-rr-checkbox text-xs flex items-center" /> Checkup Date</span>
                     <span className="text-xs font-black text-emerald-700 dark:text-emerald-400">{formattedDentalDate}</span>
                   </div>
                 )}
@@ -214,15 +249,15 @@ export default function StudentHealthReportPage() {
         </div>
 
         {/* Right Column: Vaccines & Allergies */}
-        <div className="space-y-6">
+        <div className="space-y-6 text-left">
           <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border-2 border-slate-100 dark:border-slate-700">
             <h3 className="font-black text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-              <Syringe className="w-5 h-5 text-sky-500" /> Vaccinations
+              <i className="fi fi-rr-syringe text-lg text-sky-500 flex items-center" /> Vaccinations
             </h3>
             <ul className="space-y-3">
               {vaccines.map((v, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <i className="fi fi-rr-checkbox text-xs text-emerald-500 shrink-0 mt-0.5" />
                   <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{v}</span>
                 </li>
               ))}
@@ -231,11 +266,11 @@ export default function StudentHealthReportPage() {
 
           <div className="bg-amber-50 dark:bg-amber-900/20 p-6 rounded-3xl border-2 border-amber-200 dark:border-amber-800/50">
             <h3 className="font-black text-amber-700 dark:text-amber-400 mb-4 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" /> Known Allergies & Notes
+              <i className="fi fi-rr-info text-lg flex items-center" /> Known Allergies & Notes
             </h3>
             <div className="flex flex-wrap gap-2">
               {allergies.map((a, i) => (
-                <span key={i} className="px-3 py-1.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-xs font-black rounded-lg">
+                <span key={i} className="px-3 py-1.5 bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-xs font-black rounded-lg">
                   {a}
                 </span>
               ))}

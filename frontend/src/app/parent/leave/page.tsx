@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import ParentPortalBanner from "@/components/ParentPortalBanner";
 import { useParentChildren, getApiBase, Child } from "@/lib/useParentChildren";
 
 interface LeaveRequest {
@@ -208,6 +209,8 @@ export default function ParentLeavePage() {
       themeClass="theme-parent"
       accentColor="#10b981"
     >
+      <ParentPortalBanner pageKey="leave" />
+
       {/* Child Switcher / Filter */}
       {children.length > 1 && (
         <div className="flex items-center gap-3 mb-5 p-3 bg-white dark:bg-slate-900/40 rounded-2xl flex-wrap border border-slate-100 dark:border-slate-800">

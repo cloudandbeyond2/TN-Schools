@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import PortalLayout from "@/components/PortalLayout";
+import ParentPortalBanner from "@/components/ParentPortalBanner";
 import Link from "next/link";
 import Swal from "sweetalert2";
 
@@ -157,6 +158,8 @@ function ParentPortfolioContent() {
           <i className="fi fi-rr-users text-xs"></i> Parent Reflection & Endorsement Portal
         </span>
       </div>
+
+      <ParentPortalBanner pageKey="portfolio" />
 
       {/* Hero Card */}
       <div className="bg-gradient-to-r from-purple-950/80 via-indigo-950/80 to-slate-900 p-6 md:p-8 rounded-3xl border border-purple-500/30 text-white space-y-3 shadow-xl">

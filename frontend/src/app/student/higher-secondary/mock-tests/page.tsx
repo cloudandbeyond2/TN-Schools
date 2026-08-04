@@ -10,6 +10,7 @@ export default function MockTestsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [filter, setFilter] = useState("all");
+  const [studentProfile, setStudentProfile] = useState<any>(null);
   
   const [testHistory, setTestHistory] = useState<any[]>([]);
   const [upcomingTests, setUpcomingTests] = useState<any[]>([]);
@@ -24,15 +25,27 @@ export default function MockTestsPage() {
   useEffect(() => {
     if (status === "loading") return;
     
-    const fetchTests = async () => {
-      const studentId = (session?.user as any)?.id;
-      if (!studentId) {
+    const fetchTestsAndProfile = async () => {
+      const userId = (session?.user as any)?.id;
+      if (!userId) {
         setLoading(false);
         return;
       }
 
+      let actualStudentId = userId;
       try {
-        const res = await fetch(`${API_URL}/api/mock-tests/student/${studentId}`);
+        const studentRes = await fetch(`${API_URL}/api/students/profile?userId=${userId}`);
+        const studentResult = await studentRes.json();
+        if (studentResult.success && studentResult.data) {
+          setStudentProfile(studentResult.data);
+          actualStudentId = studentResult.data.id;
+        }
+      } catch (err) {
+        console.error("Failed to fetch student profile", err);
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/api/mock-tests/student/${actualStudentId}`);
         const data = await res.json();
         
         if (data.success && data.data) {
@@ -88,7 +101,7 @@ export default function MockTestsPage() {
       }
     };
 
-    fetchTests();
+    fetchTestsAndProfile();
   }, [session, status]);
 
   const handleTakeTest = (assignmentId: string) => {
@@ -109,6 +122,22 @@ export default function MockTestsPage() {
          <Link href="/student/higher-secondary" className="text-sm font-bold text-slate-400 hover:text-white flex items-center gap-2 transition-colors">
             <span>←</span> Back to Dashboard
          </Link>
+      </div>
+
+      {/* Header Banner card */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 glass rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-700/50 bg-slate-900/40 relative overflow-hidden text-left">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-3xl rounded-full pointer-events-none"></div>
+        <div className="flex items-start sm:items-center gap-3 relative z-10">
+          <i className="fi fi-sr-file-edit text-xl sm:text-2xl text-amber-500 flex items-center shrink-0 mt-0.5 sm:mt-0" />
+          <div>
+            <h2 className="text-base sm:text-lg md:text-xl font-black text-white uppercase tracking-wider leading-tight">
+              HSC Mock Exam Repository
+            </h2>
+            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 leading-relaxed">
+              Simulate Tamil Nadu HSC Board Exam conditions. Practice with timed mock tests, track your rank progress, and master your syllabus subjects.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

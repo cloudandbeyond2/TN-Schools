@@ -278,13 +278,13 @@ export default function HigherSecondaryDashboard() {
         extraLeft={
           <div className="space-y-4">
             {/* 1. Celebrations Card */}
-            <div className="glass rounded-2xl p-6 fade-in-2 border border-purple-500/20 shadow-sm relative overflow-hidden">
+            <div className="glass rounded-2xl p-6 fade-in-2 border border-purple-500/20 shadow-sm relative overflow-hidden text-left">
               <div className="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
               
               <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center text-xl shadow-inner">
-                    🎉
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center text-base shadow-inner">
+                    <i className="fi fi-rr-party-horn" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
@@ -305,24 +305,24 @@ export default function HigherSecondaryDashboard() {
                   <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                 </Link>
               </div>
-
+ 
               <div className="space-y-3">
                 {(celebrations.length > 0 ? celebrations.slice(0, 3) : defaultCelebrations).map((c: any) => {
                   const d = c.date ? new Date(c.date) : new Date();
                   const monthStr = d.toLocaleDateString(lang === "தமிழ்" ? "ta-IN" : "en-US", { month: "short" }).toUpperCase();
                   const dayStr = d.getDate();
-
+ 
                   return (
                     <div 
                       key={c.id || c.title} 
-                      className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 hover:bg-purple-500/5 border border-[var(--border)] hover:border-purple-500/30 transition-all group flex items-start gap-3.5"
+                      className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 hover:bg-purple-500/5 border border border-[var(--border)] hover:border-purple-500/30 transition-all group flex items-start gap-3.5"
                     >
                       <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex flex-col items-center justify-center text-purple-600 dark:text-purple-300 group-hover:scale-105 transition-transform">
                         <span className="text-[10px] font-black uppercase tracking-wider">{monthStr}</span>
                         <span className="text-base font-black leading-tight">{dayStr}</span>
                       </div>
-
-                      <div className="flex-1 min-w-0">
+ 
+                      <div className="flex-1 min-w-0 text-left">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h3 className="text-xs font-bold text-[var(--text-heading)] group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate">
                             {c.title}
@@ -342,15 +342,15 @@ export default function HigherSecondaryDashboard() {
                 })}
               </div>
             </div>
-
+ 
             {/* 2. School Press Card */}
-            <div className="glass rounded-2xl p-6 fade-in-2 border border-emerald-500/20 shadow-sm relative overflow-hidden">
+            <div className="glass rounded-2xl p-6 fade-in-2 border border-emerald-500/20 shadow-sm relative overflow-hidden text-left">
               <div className="absolute -top-12 -right-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
               
               <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-xl shadow-inner">
-                    📰
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-base shadow-inner">
+                    <i className="fi fi-rr-document-signed" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
@@ -371,15 +371,15 @@ export default function HigherSecondaryDashboard() {
                   <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                 </Link>
               </div>
-
+ 
               <div className="space-y-3">
                 {(pressArticles.length > 0 ? pressArticles.slice(0, 3) : defaultPressItems).map((p: any) => {
                   const dateStr = p.createdAt ? new Date(p.createdAt).toLocaleDateString(lang === "தமிழ்" ? "ta-IN" : "en-US", { month: "short", day: "numeric" }) : "";
-
+ 
                   return (
                     <div 
                       key={p.id || p.title} 
-                      className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 hover:bg-emerald-500/5 border border-[var(--border)] hover:border-emerald-500/30 transition-all group relative overflow-hidden"
+                      className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 hover:bg-emerald-500/5 border border border-[var(--border)] hover:border-emerald-500/30 transition-all group relative overflow-hidden text-left"
                     >
                       <div className="flex items-start justify-between gap-2 mb-1.5">
                         <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
@@ -391,18 +391,18 @@ export default function HigherSecondaryDashboard() {
                           </span>
                         )}
                       </div>
-
+ 
                       <h3 className="text-xs font-bold text-[var(--text-heading)] group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors mb-1 line-clamp-1">
                         {p.title}
                       </h3>
-
+ 
                       <p className="text-[11px] text-[var(--text-muted)] line-clamp-2 mb-2">
                         {p.description || p.content}
                       </p>
-
-                      <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] pt-2 border-t border-[var(--border)]">
-                        <span className="font-semibold text-emerald-600/80 dark:text-emerald-400/80">
-                          ✍️ {p.authorName || p.student?.user?.name || (lang === "தமிழ்" ? "மாணவர் செய்தி குழு" : "Student Reporter")}
+ 
+                      <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] pt-2 border-t border border-[var(--border)]">
+                        <span className="font-semibold text-emerald-600/80 dark:text-emerald-400/80 inline-flex items-center gap-1">
+                          <i className="fi fi-rr-edit" /> {p.authorName || p.student?.user?.name || (lang === "தமிழ்" ? "மாணவர் செய்தி குழு" : "Student Reporter")}
                         </span>
                         <span className="group-hover:translate-x-0.5 transition-transform text-emerald-600 dark:text-emerald-400 font-bold">
                           {lang === "தமிழ்" ? "படிக்க →" : "Read →"}
@@ -418,14 +418,16 @@ export default function HigherSecondaryDashboard() {
         extraRight={
           <>
             {/* Today's Learning Progress Card */}
-            <div className="glass rounded-2xl p-5 border border-[var(--border)]">
-              <h2 className="text-sm font-bold text-[var(--text-heading)] mb-4 flex items-center gap-2">
-                <span className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">⏱️</span> 
+            <div className="glass rounded-2xl p-5 border border border-[var(--border)]">
+              <h2 className="text-sm font-bold text-[var(--text-heading)] mb-4 flex items-center gap-2 text-left">
+                <span className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 flex items-center justify-center">
+                  <i className="fi fi-rr-clock text-xs flex items-center" />
+                </span> 
                 {lang === "தமிழ்" ? "இன்றைய படிப்பு முன்னேற்றம்" : "Today's Study Progress"}
               </h2>
               {todayProgress ? (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3 bg-slate-100/70 dark:bg-slate-950/60 p-3 rounded-xl border border-[var(--border)]">
+                  <div className="grid grid-cols-2 gap-3 bg-slate-100/70 dark:bg-slate-950/60 p-3 rounded-xl border border border-[var(--border)]">
                     <div className="text-left">
                       <div className="text-[10px] text-[var(--text-muted)] uppercase font-bold">{lang === "தமிழ்" ? "இன்று பதிவான நேரம்" : "Logged Today"}</div>
                       <div className="text-lg font-extrabold text-indigo-600 dark:text-indigo-400 mt-0.5">{todayProgress.totalTimeSpentMinutes} {lang === "தமிழ்" ? "நிமி" : "mins"}</div>
@@ -435,12 +437,12 @@ export default function HigherSecondaryDashboard() {
                       <div className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">{todayProgress.activeCount}</div>
                     </div>
                   </div>
-
+ 
                   {todayProgress.recentResources && todayProgress.recentResources.length > 0 ? (
                     <div className="space-y-2.5">
                       <div className="text-[10px] text-[var(--text-muted)] uppercase font-bold text-left">{lang === "தமிழ்" ? "சமீபத்திய செயல்பாடு" : "Recent Activity"}</div>
                       {todayProgress.recentResources.slice(0, 3).map((r: any) => (
-                        <div key={r.resourceId} className="bg-slate-50 dark:bg-slate-950/40 p-2.5 rounded-xl border border-[var(--border)] text-left space-y-1 hover:border-indigo-500/30 transition-colors">
+                        <div key={r.resourceId} className="bg-slate-50 dark:bg-slate-950/40 p-2.5 rounded-xl border border border-[var(--border)] text-left space-y-1 hover:border-indigo-500/30 transition-colors">
                           <div className="flex justify-between items-center">
                             <span className="text-xs font-bold text-[var(--text-heading)] truncate max-w-[70%]">{r.resourceTitle}</span>
                             <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400">{r.progressPercent}%</span>
@@ -459,19 +461,19 @@ export default function HigherSecondaryDashboard() {
                 <div className="text-xs text-[var(--text-muted)] py-4 text-center">{lang === "தமிழ்" ? "முன்னேற்றம் ஏற்றப்படுகிறது..." : "Loading progress..."}</div>
               )}
             </div>
-
+ 
             {/* Quick Links / Student Tools */}
-            <div className="glass rounded-2xl p-5 border border-[var(--border)]">
+            <div className="glass rounded-2xl p-5 border border border-[var(--border)] text-left">
               <h2 className="text-sm font-bold text-[var(--text-heading)] mb-4">{lang === "தமிழ்" ? "விரைவு இணைப்புகள்" : "Quick Links"}</h2>
               <div className="space-y-3">
-                <a href="/student/leave" className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-[var(--border)] hover:border-purple-500/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group">
+                <a href="/student/leave" className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border border-[var(--border)] hover:border-purple-500/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group">
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 text-purple-500" />
                     <span className="text-xs text-[var(--text-main)] group-hover:text-[var(--text-heading)]">{lang === "தமிழ்" ? "விடுப்பு அறிக்கைகள் & விண்ணப்பம்" : "Leave Reports & Application"}</span>
                   </div>
                   <span className="text-xs text-[var(--text-muted)] group-hover:text-purple-500">{lang === "தமிழ்" ? "பார் →" : "View →"}</span>
                 </a>
-                <a href="/student/health" className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-[var(--border)] hover:border-purple-500/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group">
+                <a href="/student/health" className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border border-[var(--border)] hover:border-purple-500/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group">
                   <div className="flex items-center gap-3">
                     <HeartPulse className="h-5 w-5 text-purple-500" />
                     <span className="text-xs text-[var(--text-main)] group-hover:text-[var(--text-heading)]">{lang === "தமிழ்" ? "எனது சுகாதார அறிக்கை" : "My Health Report"}</span>

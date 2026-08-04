@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import ParentPortalBanner from "@/components/ParentPortalBanner";
 import { useParentChildren, getApiBase, Child } from "@/lib/useParentChildren";
 
 interface Scheme {
@@ -279,19 +280,9 @@ export default function ScholarshipPage() {
 
   return (
     <PortalLayout>
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-2.5">
-            <i className="fi fi-rr-graduation-cap text-emerald-500"></i> Scholarships & Schemes
-          </h1>
-          <p className="text-slate-550 dark:text-slate-400 text-xs mt-1">
-            Track active scholarship disbursements and explore welfare schemes available for your children.
-          </p>
-        </div>
-      </div>
-
       <ChildSwitcher childList={children} active={activeChild} onChange={setActiveChild} />
+
+      <ParentPortalBanner pageKey="scholarship" />
 
       {/* KPI Cards Grid - Responsive columns to prevent text clipping */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

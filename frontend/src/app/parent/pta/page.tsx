@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import ParentPortalBanner from "@/components/ParentPortalBanner";
 import { useSession } from "next-auth/react";
 import { useParentChildren, getApiBase } from "@/lib/useParentChildren";
 import Swal from "sweetalert2";
@@ -232,6 +233,8 @@ export default function ParentPtaManagementPage() {
           ))}
         </div>
       )}
+
+      <ParentPortalBanner pageKey="pta" />
 
       {/* ─── KPI Row ─── */}
       <div className="grid grid-cols-3 gap-4 mb-6">

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import PortalLayout from "@/components/PortalLayout";
+import ParentPortalBanner from "@/components/ParentPortalBanner";
 import { useParentChildren, getApiBase, Child } from "@/lib/useParentChildren";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -267,6 +268,8 @@ export default function HomeworkPage() {
     <PortalLayout>
       {/* Child Selector */}
       <ChildSwitcher childList={children} active={activeChild} onChange={setActiveChild} />
+
+      <ParentPortalBanner pageKey="homework" />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
