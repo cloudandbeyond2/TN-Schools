@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
 import { Calendar, FileText, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
 interface LeaveRequest {
   id: string;
@@ -20,11 +21,28 @@ export default function StudentLeavePage() {
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string>("");
 
+  const { lang } = usePortalLanguage();
+  const isTa = lang === "தமிழ்";
+
   // Determine portal type from URL to adjust colors if needed
   const isParent = typeof window !== "undefined" && window.location.pathname.startsWith("/parent");
   
   const title = isParent ? "Child's Leave Reports" : "My Leave Reports";
   const subtitle = isParent ? "View leave requests submitted by teachers for your child." : "View leave requests submitted by teachers for you.";
+
+  const bannerData = {
+    title: isTa 
+      ? (isParent ? "குழந்தையின் விடுப்பு அறிக்கைகள்" : "எனது விடுப்பு அறிக்கைகள்")
+      : (isParent ? "Child's Leave Reports" : "My Leave Reports"),
+    desc: isTa
+      ? (isParent ? "உங்கள் குழந்தைக்கு ஆசிரியர்களால் சமர்ப்பிக்கப்பட்ட விடுப்பு விண்ணப்பங்களை இங்கே பார்க்கவும்." : "உங்களுக்காக ஆசிரியர்களால் சமர்ப்பிக்கப்பட்ட விடுப்பு விண்ணப்பங்களை இங்கே பார்க்கவும்.")
+      : (isParent ? "View leave requests submitted by teachers for your child." : "View leave requests submitted by teachers for you."),
+    portalTag: isTa
+      ? (isParent ? "பெற்றோர் வலைவாசல்" : "மாணவர் வலைவாசல்")
+      : (isParent ? "Parent Portal" : "Student Portal"),
+    yearTag: isTa ? "கல்வி ஆண்டு 2024-25" : "Academic Year 2024-25",
+    rightPill: isTa ? "விடுப்பு தளம்" : "Leave Desk"
+  };
 
   useEffect(() => {
     async function fetchLeaves() {
@@ -126,9 +144,38 @@ export default function StudentLeavePage() {
   });
 
   return (
-    <PortalLayout title={title} subtitle={subtitle}>
-      <div className="w-full mt-8">
+    <PortalLayout>
+      <div className="w-full space-y-6 mt-6 font-sans text-slate-800 dark:text-slate-100">
         
+        {/* Header Banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 mb-4 glass rounded-2xl p-4 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
+          {/* Left */}
+          <div>
+            <div className="flex items-center gap-1.5 flex-wrap mb-1">
+              <span className="text-[8.5px] font-black uppercase tracking-widest text-indigo-650 dark:text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">
+                {bannerData.portalTag}
+              </span>
+              <span className="text-[8.5px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                {bannerData.yearTag}
+              </span>
+            </div>
+            <h2 className="text-base sm:text-lg font-black text-slate-805 dark:text-white uppercase tracking-wider mb-0.5 flex items-center gap-1.5">
+              <i className="fi fi-sr-calendar-clock text-indigo-600 dark:text-indigo-400 flex items-center text-sm sm:text-base" />
+              {bannerData.title}
+            </h2>
+            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {bannerData.desc}
+            </p>
+          </div>
+          {/* Right */}
+          <div className="flex items-center gap-2.5 whitespace-nowrap shrink-0 self-end sm:self-auto">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-extrabold text-xs rounded-xl border border-indigo-200/20 shadow-sm">
+              <i className="fi fi-sr-document-signed flex items-center text-xs" />
+              {bannerData.rightPill}
+            </span>
+          </div>
+        </div>
+
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border-2 border-slate-100 dark:border-slate-700">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div className="flex items-center gap-4">
