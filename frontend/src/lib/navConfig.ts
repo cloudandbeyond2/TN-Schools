@@ -512,7 +512,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
 
       // Common Menu & Tools
       { label: "Admin & Tools", href: "#", icon: "" },
-      { label: "Class Syllabus Board", href: "/teacher/syllabus-board", icon: "LayoutGrid" },
+      // { label: "Class Syllabus Board", href: "/teacher/syllabus-board", icon: "LayoutGrid" },
       { label: "Smart Class", href: "/teacher/smart-class", icon: "Presentation" },
       { label: "AI Lesson Planner", href: "/teacher/lesson-planner", icon: "FileText" },
       { label: "Question Generator", href: "/teacher/questions", icon: "HelpCircle" },

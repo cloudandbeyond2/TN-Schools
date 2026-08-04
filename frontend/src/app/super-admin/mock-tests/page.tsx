@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
-import { 
-  FileText, Plus, Trash2, CheckCircle, RefreshCw, 
-  Sparkles, Layers, ChevronRight, ChevronDown, BookOpen, Clock, 
+import {
+  FileText, Plus, Trash2, CheckCircle, RefreshCw,
+  Sparkles, Layers, ChevronRight, ChevronDown, BookOpen, Clock,
   Target, GraduationCap, LayoutList, Share2, Award, Calendar, Search, Globe
 } from "lucide-react";
 import Swal from "sweetalert2";
@@ -22,7 +22,7 @@ interface QuestionInput {
 export default function SuperAdminMockTestsPage() {
   const { lang } = usePortalLanguage();
   const { data: session, status } = useSession();
-  
+
   // Form State
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -30,7 +30,7 @@ export default function SuperAdminMockTestsPage() {
   const [grade, setGrade] = useState("Grade 10");
   const [difficulty, setDifficulty] = useState("Medium");
   const [duration, setDuration] = useState("180");
-  
+
   const [questions, setQuestions] = useState<QuestionInput[]>([
     {
       type: "mcq",
@@ -40,7 +40,7 @@ export default function SuperAdminMockTestsPage() {
       marks: 1
     }
   ]);
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [existingTests, setExistingTests] = useState<any[]>([]);
@@ -220,11 +220,11 @@ export default function SuperAdminMockTestsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     setIsSubmitting(true);
     try {
       const totalMarks = questions.reduce((acc, q) => acc + q.marks, 0);
-      
+
       const res = await fetch(`${API_URL}/api/mock-tests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -259,7 +259,7 @@ export default function SuperAdminMockTestsPage() {
     }
   };
 
-  const filteredTests = existingTests.filter(t => 
+  const filteredTests = existingTests.filter(t =>
     t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.subject.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -271,7 +271,7 @@ export default function SuperAdminMockTestsPage() {
       accentColor="#8b5cf6"
     >
       <div className="w-full max-w-7xl mx-auto mb-10">
-        
+
         {/* Glassmorphism Header */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-900 p-8 md:p-12 mb-8 shadow-2xl shadow-violet-500/20 text-white">
           <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
@@ -281,14 +281,14 @@ export default function SuperAdminMockTestsPage() {
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/30">
               <Sparkles className="w-3.5 h-3.5" /> {lang === "தமிழ்" ? "மாநில மதிப்பீட்டு வாரியம்" : "State Assessment Board"}
             </span>
-            <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight !text-white">
+            <p className="text-3xl md:text-5xl font-black mb-4 leading-tight !text-white">
               {lang === "தமிழ்" ? "மாநில அளவிலான சிறப்பு" : "Statewide Excellence"}
-            </h1>
+            </p>
             <p className="text-violet-200 !text-white text-lg mb-8 leading-relaxed">
               {lang === "தமிழ்" ? "தரப்படுத்தப்பட்ட கொள்குறி தேர்வுகளை உருவாக்கவும், AI ஐ பயன்படுத்தி வினா வங்கிகளை விரிவுபடுத்தவும்." : "Create standardized objective tests, use AI to scale question banks, and instantly deploy assessments to all schools across the state."}
             </p>
             <div className="flex gap-4">
-              <button 
+              <button
                 onClick={() => setActiveTab("create")}
                 className="px-6 py-3 bg-white text-violet-800 hover:bg-violet-50 transition-all rounded-2xl font-bold text-sm shadow-xl flex items-center gap-2"
               >
@@ -305,99 +305,99 @@ export default function SuperAdminMockTestsPage() {
         </div>
 
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-              <h2 className="text-2xl font-black text-gray-800 dark:text-white flex items-center gap-2">
-                <Layers className="w-6 h-6 text-violet-500" /> {lang === "தமிழ்" ? "தேர்வு களஞ்சியம்" : "Test Repository"}
-              </h2>
-              <div className="relative w-full md:w-96">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input 
-                  type="text" 
-                  placeholder={lang === "தமிழ்" ? "தலைப்பு அல்லது பாடம் மூலம் தேடவும்..." : "Search tests by title or subject..."}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-white dark:bg-gray-800 border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-violet-500 transition-shadow text-sm font-medium"
-                />
-              </div>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+            <h2 className="text-2xl font-black text-gray-800 dark:text-white flex items-center gap-2">
+              <Layers className="w-6 h-6 text-violet-500" /> {lang === "தமிழ்" ? "தேர்வு களஞ்சியம்" : "Test Repository"}
+            </h2>
+            <div className="relative w-full md:w-96">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder={lang === "தமிழ்" ? "தலைப்பு அல்லது பாடம் மூலம் தேடவும்..." : "Search tests by title or subject..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 bg-white dark:bg-gray-800 border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-violet-500 transition-shadow text-sm font-medium"
+              />
             </div>
+          </div>
 
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <RefreshCw className="w-8 h-8 text-violet-500 animate-spin" />
-              </div>
-            ) : filteredTests.length === 0 ? (
-              <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-                <Globe className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">No mock tests found</h3>
-                <p className="text-gray-500">Create your first state-level assessment to start evaluating schools.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredTests.map((test) => (
-                  <div key={test.id} className="group bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all border border-gray-100 dark:border-gray-700 relative overflow-hidden flex flex-col h-full">
-                    
-                    {/* Badge */}
-                    <div className="absolute top-0 right-0 bg-violet-600 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-xl shadow-sm">
-                      State Board
-                    </div>
-                    
-                    <div className="flex items-start justify-between mb-4 mt-2">
-                      <div className="flex items-center gap-2">
-                        <span className="w-10 h-10 rounded-2xl bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400">
-                          <BookOpen className="w-5 h-5" />
-                        </span>
-                        <div>
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{test.subject}</p>
-                          <p className="text-xs font-medium text-violet-500">{test.grade}</p>
-                        </div>
-                      </div>
-                    </div>
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <RefreshCw className="w-8 h-8 text-violet-500 animate-spin" />
+            </div>
+          ) : filteredTests.length === 0 ? (
+            <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+              <Globe className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">No mock tests found</h3>
+              <p className="text-gray-500">Create your first state-level assessment to start evaluating schools.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredTests.map((test) => (
+                <div key={test.id} className="group bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all border border-gray-100 dark:border-gray-700 relative overflow-hidden flex flex-col h-full">
 
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">{test.title}</h3>
-                    {test.description && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-grow">{test.description}</p>
-                    )}
+                  {/* Badge */}
+                  <div className="absolute top-0 right-0 bg-violet-600 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-xl shadow-sm">
+                    State Board
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-2 mb-6 mt-auto">
-                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center">
-                        <Clock className="w-4 h-4 text-gray-400 mb-1" />
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test.duration} mins</span>
+                  <div className="flex items-start justify-between mb-4 mt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-10 h-10 rounded-2xl bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400">
+                        <BookOpen className="w-5 h-5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{test.subject}</p>
+                        <p className="text-xs font-medium text-violet-500">{test.grade}</p>
                       </div>
-                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center">
-                        <Award className="w-4 h-4 text-gray-400 mb-1" />
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test.totalMarks} Marks</span>
-                      </div>
-                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center col-span-2">
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test._count?.questions || 0} Questions</span>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => handleAssignTest(test.id, test.grade)}
-                        className="flex-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 font-bold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Share2 className="w-4 h-4" /> Global Assign
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteTest(test.id)}
-                        className="px-4 bg-red-50 dark:bg-red-900/20 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl transition-colors flex items-center justify-center"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">{test.title}</h3>
+                  {test.description && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-grow">{test.description}</p>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-2 mb-6 mt-auto">
+                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center">
+                      <Clock className="w-4 h-4 text-gray-400 mb-1" />
+                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test.duration} mins</span>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center">
+                      <Award className="w-4 h-4 text-gray-400 mb-1" />
+                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test.totalMarks} Marks</span>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center col-span-2">
+                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test._count?.questions || 0} Questions</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleAssignTest(test.id, test.grade)}
+                      className="flex-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 font-bold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Share2 className="w-4 h-4" /> Global Assign
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTest(test.id)}
+                      className="px-4 bg-red-50 dark:bg-red-900/20 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl transition-colors flex items-center justify-center"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Modal Overlay for Creating Mock Exam */}
         {activeTab === "create" && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-[2rem] p-8 md:p-10 shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-200">
-              
-              <button 
+
+              <button
                 onClick={() => setActiveTab("repository")}
                 className="absolute top-6 right-6 p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
               >
@@ -415,7 +415,7 @@ export default function SuperAdminMockTestsPage() {
                   type="button"
                   onClick={handleAIGenerateMock}
                   disabled={isGenerating}
-                  className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-black rounded-2xl px-6 py-3 text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-violet-500/30 w-full sm:w-auto mt-4 md:mt-0"
+                  className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-2xl px-6 py-3 text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-violet-500/30 w-full sm:w-auto mt-4 md:mt-0"
                 >
                   {isGenerating ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
                   Generate with AI <ChevronDown className="w-4 h-4 ml-1" />
@@ -447,7 +447,7 @@ export default function SuperAdminMockTestsPage() {
                       value={grade} onChange={(e) => setGrade(e.target.value)}
                       className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-violet-500 outline-none"
                     >
-                      {Array.from({length: 7}, (_, i) => 6 + i).map(n => <option key={n}>Grade {n}</option>)}
+                      {Array.from({ length: 7 }, (_, i) => 6 + i).map(n => <option key={n}>Grade {n}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -485,7 +485,7 @@ export default function SuperAdminMockTestsPage() {
                   <div className="space-y-6">
                     {questions.map((q, idx) => (
                       <div key={idx} className="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm relative group">
-                        
+
                         <div className="absolute top-6 left-6 w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center font-black text-gray-500">
                           {idx + 1}
                         </div>
