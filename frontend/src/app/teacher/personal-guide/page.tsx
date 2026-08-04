@@ -5,20 +5,9 @@ import { useCallback, useEffect, useState } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
-import {
-  Users,
-  Send,
-  MessageSquare,
-  Clock,
-  Star,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-  BookOpen,
-  Sparkles,
-} from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"; // Compile Trigger
 
 const TASK_TYPES = [
   { value: "reflection", label: "Reflection" },
@@ -269,19 +258,22 @@ export default function TeacherPersonalGuidePage() {
   return (
     <PortalLayout>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-6">
-        <div className="max-w-7xl mx-auto space-y-4">
+        <div className="w-full space-y-4">
 
-          {/* Header */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-500 flex items-center justify-center shadow">
-              <BookOpen className="w-5 h-5 text-white" />
+          {/* Glassmorphism Header */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-800 py-4 px-5 md:py-5 md:px-6 mb-6 shadow-2xl shadow-indigo-500/20 text-white">
+            <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none text-white">
+              <i className="fi fi-rr-compass text-[120px] leading-none" />
             </div>
-            <div>
-              <h1 className="text-lg font-black text-slate-900 dark:text-white">
+            <div className="relative z-10 max-w-2xl">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider mb-2 border border-white/30">
+                <i className="fi fi-rr-sparkles text-[10px]" /> {lang === "தமிழ்" ? "வழிகாட்டுதல்" : "Mentorship"}
+              </span>
+              <p className="text-2xl md:text-3xl font-black mb-1 leading-tight !text-white">
                 {lang === "தமிழ்" ? "தனிப்பட்ட வழிகாட்டி" : "Personal Guide"}
-              </h1>
-              <p className="text-xs text-slate-500">
-                {lang === "தமிழ்" ? "மாணவர்களுக்கு பணிகள் அனுப்பி மறும௻வினைகள் கண்டறி" : "Send tasks to students and track their responses"}
+              </p>
+              <p className="text-indigo-100 !text-white text-xs mb-0 leading-relaxed">
+                {lang === "தமிழ்" ? "மாணவர்களுக்கு தனிப்பணிகள் அனுப்பி, அவர்களின் பதில்களைக் கண்காணித்துக் கருத்துக்களை வழங்கவும்." : "Send personalized tasks to students, track their responses, and provide guidance."}
               </p>
             </div>
           </div>
@@ -294,7 +286,7 @@ export default function TeacherPersonalGuidePage() {
             >
               <div className="p-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
                 <div className="flex items-center gap-2 mb-3">
-                  <Users className="w-4 h-4 text-indigo-500" />
+                  <i className="fi fi-rr-users-alt text-indigo-500 text-sm" />
                   <h2 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
                     {lang === "தமிழ்" ? "மாணவர்கள்" : "Students"}
                   </h2>
@@ -373,7 +365,7 @@ export default function TeacherPersonalGuidePage() {
             <div className="lg:col-span-2 space-y-4">
               {!selectedStudent ? (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center py-28 text-center shadow-sm">
-                  <Users className="w-12 h-12 text-slate-200 dark:text-slate-700 mb-3" />
+                  <i className="fi fi-rr-users-alt text-5xl text-slate-200 dark:text-slate-700 mb-3 flex items-center justify-center" />
                   <p className="text-sm font-bold text-slate-400">
                     Select a student from the list
                   </p>
@@ -426,7 +418,7 @@ export default function TeacherPersonalGuidePage() {
                   {/* Send Task Form */}
                   <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
                     <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-                      <Send className="w-4 h-4 text-indigo-500" />
+                      <i className="fi fi-rr-paper-plane text-indigo-500 text-sm" />
                       <h3 className="text-xs font-black uppercase text-slate-800 dark:text-white tracking-wider">
                         Send New Task
                       </h3>
@@ -496,7 +488,7 @@ export default function TeacherPersonalGuidePage() {
                       disabled={sending}
                       className="flex items-center gap-2 px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-60 text-white font-bold rounded-xl text-xs transition-colors shadow-sm"
                     >
-                      <Send className="w-3.5 h-3.5" />
+                      <i className="fi fi-rr-paper-plane text-xs mr-1 flex items-center justify-center" />
                       {sending ? "Sending..." : `Send to ${selectedStudent.user?.name}`}
                     </button>
                   </div>
@@ -504,7 +496,7 @@ export default function TeacherPersonalGuidePage() {
                   {/* Sent Tasks */}
                   <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
                     <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-                      <MessageSquare className="w-4 h-4 text-indigo-500" />
+                      <i className="fi fi-rr-comment-alt-middle text-indigo-500 text-sm flex items-center justify-center" />
                       <h3 className="text-xs font-black uppercase text-slate-800 dark:text-white tracking-wider">
                         Sent Tasks and Responses
                       </h3>
@@ -516,7 +508,7 @@ export default function TeacherPersonalGuidePage() {
                       </div>
                     ) : tasks.length === 0 ? (
                       <div className="py-12 text-center text-slate-300 dark:text-slate-600">
-                        <Clock className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                        <i className="fi fi-rr-clock text-4xl text-slate-300 dark:text-slate-600 mx-auto mb-2 flex items-center justify-center opacity-40" />
                         <p className="text-xs">
                           No tasks sent yet. Use the form above to send the first
                           task!
@@ -575,12 +567,12 @@ export default function TeacherPersonalGuidePage() {
                                   }}
                                   className="p-1.5 text-slate-300 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <i className="fi fi-rr-trash text-xs" />
                                 </button>
                                 {isExp ? (
-                                  <ChevronUp className="w-4 h-4 text-slate-400" />
+                                  <i className="fi fi-rr-angle-small-up text-lg text-slate-400" />
                                 ) : (
-                                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                                  <i className="fi fi-rr-angle-small-down text-lg text-slate-400" />
                                 )}
                               </div>
                             </div>
@@ -647,7 +639,7 @@ export default function TeacherPersonalGuidePage() {
                                             disabled={generatingAI === task._id}
                                             className="flex items-center gap-1.5 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors"
                                           >
-                                            <Sparkles className="w-3 h-3" />
+                                            <i className="fi fi-rr-sparkles text-xs mr-1" />
                                             {generatingAI === task._id
                                               ? "Thinking..."
                                               : " Auto-Suggest AI"}
@@ -662,7 +654,7 @@ export default function TeacherPersonalGuidePage() {
                                             }
                                             className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors"
                                           >
-                                            <Star className="w-3 h-3" />
+                                            <i className="fi fi-rr-star text-xs mr-1" />
                                             {savingFeedback === task._id
                                               ? "Saving..."
                                               : "Send Feedback"}
@@ -673,7 +665,7 @@ export default function TeacherPersonalGuidePage() {
                                   </div>
                                 ) : (
                                   <div className="flex items-center gap-2 text-xs text-amber-500 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 rounded-lg px-3 py-2">
-                                    <Clock className="w-3 h-3 shrink-0" />
+                                    <i className="fi fi-rr-clock text-xs shrink-0" />
                                     Waiting for student response...
                                   </div>
                                 )}
