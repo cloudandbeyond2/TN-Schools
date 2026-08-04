@@ -127,13 +127,13 @@ export default function PromotionsPage() {
           setForm((f) => ({ ...f, fromAcademicYear: f.fromAcademicYear || json.current || json.data[0] || "" }));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
     fetch(`${API_BASE}/api/competitive-exams/groups`)
       .then((r) => r.json())
       .then((json) => {
         if (json.success) setGroups(json.data);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const openBatch = async (id: string) => {
@@ -389,7 +389,7 @@ export default function PromotionsPage() {
                 <ChevronLeft size={16} />
               </button>
               <div>
-                <h2 className="text-xs sm:text-sm font-bold text-white flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h2 className="text-xs sm:text-sm font-bold !text-black flex flex-wrap items-center gap-1.5 sm:gap-2">
                   <span>{isFinalClass ? "Class 12 Pass-out" : `Class ${detail.fromClass} → ${parseInt(detail.fromClass) + 1}`}</span>
                   <span className={`text-[8px] sm:text-[10px] font-bold px-2.5 py-1 rounded-full border ${STATUS_STYLES[detail.status]}`}>
                     {STATUS_LABELS[detail.status]}
@@ -491,13 +491,12 @@ export default function PromotionsPage() {
                           ))}
                         </select>
                       ) : (
-                        <span className={`text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full ${
-                          r.result === "PROMOTED" || r.result === "GRADUATED"
+                        <span className={`text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full ${r.result === "PROMOTED" || r.result === "GRADUATED"
                             ? "bg-emerald-500/10 text-emerald-400"
                             : r.result === "DETAINED"
-                            ? "bg-amber-500/10 text-amber-400"
-                            : "bg-slate-700/40 text-slate-300"
-                        }`}>
+                              ? "bg-amber-500/10 text-amber-400"
+                              : "bg-slate-700/40 text-slate-300"
+                          }`}>
                           {r.result}
                         </span>
                       )}
