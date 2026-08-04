@@ -138,14 +138,6 @@ export default function MockTestsPage() {
             </p>
           </div>
         </div>
-
-        <div className="flex items-center gap-2 whitespace-nowrap shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800 self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-end relative z-10">
-          <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Your Grade:</span>
-          <span className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 bg-amber-500/10 text-amber-400 font-extrabold text-xs sm:text-sm rounded-xl border border-amber-500/20 shadow-sm">
-            <i className="fi fi-sr-graduation-cap flex items-center text-xs sm:text-sm" />
-            Class {studentProfile?.class || "12"}th Standard
-          </span>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

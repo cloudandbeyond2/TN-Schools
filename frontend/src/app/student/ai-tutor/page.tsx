@@ -422,7 +422,7 @@ export default function AITutorPage() {
                       <div
                         className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm leading-relaxed ${
                           msg.role === "user"
-                            ? "bg-indigo-650 !text-white rounded-tr-sm shadow-md"
+                            ? "bg-indigo-600 !text-white rounded-tr-sm shadow-md"
                             : "bg-slate-800/80 text-slate-200 rounded-tl-sm border border-slate-700/60 shadow-sm"
                         }`}
                       >
