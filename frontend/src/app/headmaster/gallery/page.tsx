@@ -57,7 +57,7 @@ export default function GalleryPage() {
       if (json.success && json.data) {
         setSchoolName(json.data.school?.name || "");
         setSchoolDise(json.data.school?.dise || "");
-        
+
         const loadedImages = (json.data.portal?.gallery || []).map((img: any) => {
           let title = "Campus Highlight";
           let category: GalleryItem["category"] = "Academic";
@@ -77,7 +77,7 @@ export default function GalleryPage() {
               title = img.caption;
             }
           }
-          
+
           return {
             id: img.id,
             title,
@@ -239,11 +239,10 @@ export default function GalleryPage() {
                   <button
                     key={cat}
                     onClick={() => setFilterCategory(cat)}
-                    className={`flex-shrink-0 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-[9px] sm:text-[10px] font-bold transition-all ${
-                      filterCategory === cat
-                        ? "bg-blue-600 text-white font-extrabold"
-                        : "text-slate-400 hover:text-white hover:bg-slate-800"
-                    }`}
+                    className={`flex-shrink-0 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-[9px] sm:text-[10px] font-bold transition-all ${filterCategory === cat
+                      ? "bg-blue-600 text-white font-extrabold"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800"
+                      }`}
                   >
                     {cat === "All" ? (lang === "தமிழ்" ? "அனைத்தும்" : "All") : cat === "Academic" ? (lang === "தமிழ்" ? "கல்வி" : "Academic") : cat === "Sports" ? (lang === "தமிழ்" ? "விளையாட்டு" : "Sports") : cat === "Infrastructure" ? (lang === "தமிழ்" ? "கட்டமைப்பு" : "Infrastructure") : (lang === "தமிழ்" ? "கலாசாரம்" : "Culturals")}
                   </button>
@@ -284,9 +283,9 @@ export default function GalleryPage() {
                       </span>
                     </>
                   )}
-                  
+
                   {/* Category Pill */}
-                  <span className="absolute top-3 left-3 text-[9px] font-extrabold uppercase px-2 py-0.5 bg-black/45 text-white backdrop-blur-md rounded-md border border-white/10 z-10">
+                  <span className="absolute top-3 left-3 text-[9px] font-extrabold uppercase px-2 py-0.5 bg-black/45 !text-white backdrop-blur-md rounded-md border border-white/10 z-10">
                     {item.category}
                   </span>
 
@@ -297,7 +296,7 @@ export default function GalleryPage() {
                         e.stopPropagation();
                         startEditing(item);
                       }}
-                      className="p-1.5 bg-slate-900/80 hover:bg-blue-650 text-white rounded-lg border border-slate-700 transition-colors"
+                      className="p-1.5 bg-slate-900/80 hover:bg-blue-650 !text-black rounded-lg border border-slate-700 transition-colors"
                       title="Edit Details"
                     >
                       <i className="fi fi-rr-edit text-xs" />
@@ -307,7 +306,7 @@ export default function GalleryPage() {
                         e.stopPropagation();
                         handleDeleteItem(item.id, item.title);
                       }}
-                      className="p-1.5 bg-slate-900/80 hover:bg-red-650 text-white rounded-lg border border-slate-700 transition-colors"
+                      className="p-1.5 bg-slate-900/80 hover:bg-red-650 !text-black rounded-lg border border-slate-700 transition-colors"
                       title="Delete Photo"
                     >
                       <i className="fi fi-rr-trash text-xs" />
@@ -509,12 +508,11 @@ export default function GalleryPage() {
               ) : (
                 <>
                   <div className={`absolute inset-0 bg-gradient-to-br ${selectedItem.gradient}`} />
-                  <i className={`fi text-white text-5xl z-10 ${
-                    selectedItem.category === "Infrastructure" ? "fi-rr-building" :
+                  <i className={`fi text-white text-5xl z-10 ${selectedItem.category === "Infrastructure" ? "fi-rr-building" :
                     selectedItem.category === "Sports" ? "fi-rr-trophy" :
-                    selectedItem.category === "Culturals" ? "fi-rr-music" :
-                    "fi-rr-notebook"
-                  }`} />
+                      selectedItem.category === "Culturals" ? "fi-rr-music" :
+                        "fi-rr-notebook"
+                    }`} />
                 </>
               )}
             </div>
