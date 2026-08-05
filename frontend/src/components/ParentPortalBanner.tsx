@@ -13,7 +13,8 @@ export type ParentPageKey =
   | "ai-assistant"
   | "scholarship"
   | "pta"
-  | "portfolio";
+  | "portfolio"
+  | "messages";
 
 interface BannerDetail {
   icon: string;
@@ -171,6 +172,19 @@ const BANNER_CONFIGS: Record<ParentPageKey, BannerDetail> = {
       title: "டிஜிட்டல் போர்ட்ஃபோலியோ",
       desc: "உங்கள் குழந்தையின் கல்வி மைல்கற்கள், திட்டப்பணிகள், சான்றிதழ்கள் மற்றும் கூடுதல் பாடத்திட்ட சிறப்பம்சங்களை உலாவவும்.",
       rightPill: "மைல்கற்கள் தளம்",
+    },
+  },
+  messages: {
+    icon: "fi-sr-comment",
+    en: {
+      title: "Teacher Messages",
+      desc: "Chat with your child's teachers and school staff directly.",
+      rightPill: "Inbox Desk",
+    },
+    ta: {
+      title: "ஆசிரியர் தொடர்பு",
+      desc: "உங்கள் குழந்தையின் ஆசிரியர்களுடன் நேரடியாக அரட்டை அடிக்கவும்.",
+      rightPill: "அஞ்சல் தளம்",
     },
   },
 };

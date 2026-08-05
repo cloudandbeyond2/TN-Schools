@@ -1,12 +1,10 @@
 "use client";
-import { CheckCircle, MessageSquare, Bot, Zap, Megaphone } from "lucide-react";
-
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
+import { CheckCircle, MessageSquare } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
-
 import Swal from "sweetalert2";
 
 interface Parent {
@@ -25,11 +23,15 @@ interface Message {
   time: string;
 }
 
-export default function CommunicationPage() {
+function CommunicationContent() {
+  const router = useRouter();
   const { lang } = usePortalLanguage();
   const { data: session } = useSession();
-  const schoolId = (session?.user as any)?.schoolId;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  const searchParams = useSearchParams();
+  const parentPhoneParam = searchParams.get("parentPhone");
+  const studentNameParam = searchParams.get("studentName");
 
   const [parents, setParents] = useState<Parent[]>([]);
   const [selectedParentId, setSelectedParentId] = useState<string>("");
@@ -37,26 +39,65 @@ export default function CommunicationPage() {
   const [chatInput, setChatInput] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeSchoolId, setActiveSchoolId] = useState<string>("");
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
 
-  // AI draft selector states
-  const [draftType, setDraftType] = useState<"performance" | "attendance" | "general">("performance");
-  const [draftTone, setDraftTone] = useState<"supportive" | "urgent" | "encouraging">("supportive");
+  // Load school ID dynamically from session or direct profile query (bypassing session caches)
+  useEffect(() => {
+    const loadSchoolId = async () => {
+      const sessSchoolId = (session?.user as any)?.schoolId;
+      if (sessSchoolId) {
+        setActiveSchoolId(sessSchoolId);
+        return;
+      }
+      const userId = (session?.user as any)?.id;
+      if (!userId) return;
+      try {
+        const res = await fetch(`${API_URL}/api/teacher/profile/${userId}`);
+        const data = await res.json();
+        if (data.success && data.data && data.data.schoolId) {
+          setActiveSchoolId(data.data.schoolId);
+        }
+      } catch (err) {
+        console.error("Failed to load profile", err);
+      }
+    };
+    loadSchoolId();
+  }, [session, API_URL]);
 
-  const fetchParentsAndMessages = async () => {
+  const fetchParentsAndMessages = useCallback(async () => {
+    if (!activeSchoolId) return;
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/headmaster/parents${schoolId ? `?schoolId=${schoolId}` : ""}`);
+      const res = await fetch(`${API_URL}/api/headmaster/parents?schoolId=${activeSchoolId}`);
       const data = await res.json();
       if (data.success && data.data) {
         setParents(data.data);
         if (data.data.length > 0) {
-          const firstParent = data.data[0];
-          setSelectedParentId(firstParent.id);
-          // Fetch messages for first parent
-          const msgRes = await fetch(`${API_URL}/api/teacher/messages/${firstParent.id}`);
+          let targetParent = data.data[0];
+          let matched = false;
+          if (parentPhoneParam) {
+            const clean = (p: string) => p.replace(/[\s\-\+]/g, "").slice(-10);
+            const match = data.data.find((p: any) => clean(p.phone) === clean(parentPhoneParam));
+            if (match) {
+              targetParent = match;
+              matched = true;
+            }
+          }
+          if (!matched && studentNameParam) {
+            const match = data.data.find((p: any) => p.studentName.toLowerCase() === studentNameParam.toLowerCase());
+            if (match) {
+              targetParent = match;
+              matched = true;
+            }
+          }
+
+          setSelectedParentId(targetParent.id);
+          // Fetch messages for target parent
+          const msgRes = await fetch(`${API_URL}/api/teacher/messages/${targetParent.id}?teacherId=${(session?.user as any)?.id || ""}`);
           const msgData = await msgRes.json();
           if (msgData.success) {
-            setChats((prev) => ({ ...prev, [firstParent.id]: msgData.data }));
+            setChats((prev) => ({ ...prev, [targetParent.id]: msgData.data }));
           }
         }
       }
@@ -65,16 +106,19 @@ export default function CommunicationPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeSchoolId, API_URL, parentPhoneParam, studentNameParam, session]);
 
   useEffect(() => {
-    fetchParentsAndMessages();
-  }, [schoolId]);
+    if (activeSchoolId) {
+      fetchParentsAndMessages();
+    }
+  }, [activeSchoolId, fetchParentsAndMessages]);
 
   const handleSelectParent = async (id: string) => {
     setSelectedParentId(id);
+    setMobileView("chat");
     try {
-      const msgRes = await fetch(`${API_URL}/api/teacher/messages/${id}`);
+      const msgRes = await fetch(`${API_URL}/api/teacher/messages/${id}?teacherId=${(session?.user as any)?.id || ""}`);
       const msgData = await msgRes.json();
       if (msgData.success) {
         setChats((prev) => ({ ...prev, [id]: msgData.data }));
@@ -93,6 +137,7 @@ export default function CommunicationPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           parentId: selectedParentId,
+          teacherId: (session?.user as any)?.id,
           sender: "teacher",
           text: chatInput,
         }),
@@ -132,35 +177,13 @@ export default function CommunicationPage() {
     }
   };
 
-  const handleGenerateAIDraft = () => {
-    if (!selectedParent) return;
-    let text = "";
-    if (draftType === "performance") {
-      if (draftTone === "urgent") {
-        text = `வணக்கம், ${selectedParent.name}. ${selectedParent.studentName}-ன் கணிதத் தேர்வு மதிப்பெண்கள் மிகவும் குறைவாக உள்ளன. அவரது முன்னேற்றத்திற்கு உதவ, Remediations-ஐப் பின்பற்றவும். (Hello ${selectedParent.name}, ${selectedParent.studentName}'s maths exam marks have dropped significantly. Please ensure they practice remedial questions immediately.)`;
-      } else if (draftTone === "encouraging") {
-        text = `வணக்கம், ${selectedParent.name}. ${selectedParent.studentName} படிப்படியாக முன்னேறி வருகிறார். உங்கள் ஆதரவுக்கு நன்றி! (Hello ${selectedParent.name}, ${selectedParent.studentName} is showing steady progress in mathematical reasoning. Thank you for supporting their work!)`;
-      } else {
-        text = `வணக்கம், ${selectedParent.name}. ${selectedParent.studentName} சமன்பாடுகளைத் தீர்ப்பதில் கூடுதல் பயிற்சி தேவை. நாங்கள் சில பயிற்சித் தாள்களை வழங்குகிறோம். (Hello ${selectedParent.name}, ${selectedParent.studentName} needs practice in solving basic algebra worksheets. We are providing supportive practice sheets.)`;
-      }
-    } else if (draftType === "attendance") {
-      text = `வணக்கம், ${selectedParent.name}. ${selectedParent.studentName} கடந்த சில வகுப்புகளுக்கு வரவில்லை. வருகை இன்றியமையாதது. (Hello ${selectedParent.name}, ${selectedParent.studentName} has missed multiple classes recently. Regular attendance is critical for syllabus mastery.)`;
-    } else {
-      text = `வணக்கம், ${selectedParent.name}. பெற்றோர்-ஆசிரியர் கூட்டம் சனிக்கிழமை காலை 10 மணிக்கு நடைபெறும். (Hello ${selectedParent.name}, please note that our Parent-Teacher Meet is scheduled for Saturday at 10 AM. Looking forward to meeting you.)`;
-    }
-
-    setChatInput(text);
-    setToastMessage("AI Draft loaded into input text area!");
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
   const selectedParent = parents.find((p) => p.id === selectedParentId);
   const messages = selectedParent ? (chats[selectedParent.id] || []) : [];
 
   return (
     <PortalLayout
       title={lang === "தமிழ்" ? "பெற்றோர் தொடர்பு" : "Parent Communication"}
-      subtitle={lang === "தமிழ்" ? "பெற்றோர்கள் மற்றும் பாதுகாவலர்களுக்கு இருமொழி நேரடி செய்தி மற்றும் AI-உதவி அறிவிப்புகள்" : "Bilingual direct messaging and AI-assisted updates to parents and guardians"}
+      subtitle={lang === "தமிழ்" ? "பெற்றோர்கள் மற்றும் பாதுகாவலர்களுக்கு இருமொழி நேரடி செய்தி" : "Bilingual direct messaging to parents and guardians"}
     >
       {toastMessage && (
         <div className="fixed top-5 right-5 bg-emerald-500 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2">
@@ -171,11 +194,11 @@ export default function CommunicationPage() {
       {loading ? (
         <div className="text-center py-12 text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "தொடர்பு சேனல் ஏற்றப்படுகிறது..." : "Loading communication channel..."}</div>
       ) : parents.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-190px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-260px)] lg:h-[calc(100vh-190px)]">
           {/* Chat sidebar contacts */}
-          <div className="lg:col-span-1 theme-card p-4 flex flex-col gap-4 overflow-y-auto">
+          <div className={`lg:col-span-1 theme-card p-4 flex flex-col gap-4 overflow-y-auto ${mobileView === "list" ? "flex" : "hidden lg:flex"}`}>
             <div className="flex justify-between items-center border-b border-[var(--border)] pb-3">
-              <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider"><MessageSquare className="w-4 h-4 inline mr-1" /> {lang === "தமிழ்" ? "உள்வரும் அரட்டைகள்" : "Inbox Chats"}</h3>
+              <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider flex items-center gap-1"><MessageSquare className="w-4 h-4" /> {lang === "தமிழ்" ? "உள்வரும் அரட்டைகள்" : "Inbox Chats"}</h3>
               <span className="badge badge-yellow">{lang === "தமிழ்" ? "செயலில்" : "Active"}</span>
             </div>
 
@@ -206,16 +229,23 @@ export default function CommunicationPage() {
 
           {/* Messaging Box */}
           {selectedParent && (
-            <div className="lg:col-span-2 flex flex-col theme-card overflow-hidden">
+            <div className={`lg:col-span-3 flex flex-col theme-card overflow-hidden ${mobileView === "chat" ? "flex" : "hidden lg:flex"}`}>
               {/* Active parent header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)] bg-[var(--bg-main)]">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center text-sm font-bold text-[var(--primary)]">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-3 md:px-5 py-3 sm:py-4 border-b border-[var(--border)] bg-[var(--bg-main)] gap-2">
+                <div className="flex items-center gap-2 md:gap-3 min-w-0 w-full sm:w-auto">
+                  {/* Mobile Back Button */}
+                  <button
+                    onClick={() => setMobileView("list")}
+                    className="lg:hidden p-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-xs font-semibold text-[var(--text-heading)] mr-1 hover:bg-[var(--bg-card-hover)] transition-all shrink-0"
+                  >
+                    ←
+                  </button>
+                  <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center text-xs md:text-sm font-bold text-[var(--primary)] shrink-0">
                     {selectedParent.name[0]}
                   </div>
-                  <div>
-                    <h4 className="text-[var(--text-heading)] font-semibold text-xs">{selectedParent.name}</h4>
-                    <p className="text-[9px] text-[var(--text-muted)]">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-[var(--text-heading)] font-semibold text-xs truncate">{selectedParent.name}</h4>
+                    <p className="text-[10px] font-bold text-[var(--text-muted)] truncate">
                       {lang === "தமிழ்" 
                         ? `${selectedParent.studentName} -ன் பெற்றோர் (வகுப்பு ${selectedParent.studentClass})`
                         : `Parent of ${selectedParent.studentName} (Class ${selectedParent.studentClass})`
@@ -223,7 +253,15 @@ export default function CommunicationPage() {
                     </p>
                   </div>
                 </div>
-                <span className="badge badge-green text-[9px]">{lang === "தமிழ்" ? "செயலில் உள்ள அரட்டை" : "Active chat"}</span>
+                <div className="flex items-center gap-1.5 md:gap-2 w-full sm:w-auto justify-end shrink-0">
+                  <button
+                    onClick={() => router.push("/teacher/student-profiles")}
+                    className="px-2 md:px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-[9px] md:text-[10px] transition-all flex items-center gap-1 shadow-sm"
+                  >
+                    <span className="hidden md:inline">←</span> {lang === "தமிழ்" ? "விவரங்கள்" : "Profiles"}
+                  </button>
+                  <span className="badge badge-green text-[9px]">{lang === "தமிழ்" ? "செயலில்" : "Active"}</span>
+                </div>
               </div>
 
               {/* Conversation history list */}
@@ -274,78 +312,6 @@ export default function CommunicationPage() {
               </div>
             </div>
           )}
-
-          {/* AI Helper Column */}
-          <div className="lg:col-span-1 theme-card p-4 flex flex-col justify-between">
-            <div>
-              <div className="border-b border-[var(--border)] pb-3 mb-4">
-                <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider flex items-center gap-1.5">
-                  <span><Bot className="w-4 h-4 inline mr-1 text-blue-500" /></span> {lang === "தமிழ்" ? "AI ஸ்மார்ட் கம்போசர்" : "AI Smart Composer"}
-                </h3>
-                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{lang === "தமிழ்" ? "இருமொழி அறிவிப்புகளை உருவாக்கவும்" : "Generate translation-ready bilingual updates"}</p>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[10px] font-semibold text-[var(--text-muted)] block mb-1.5 uppercase tracking-wider">{lang === "தமிழ்" ? "தலைப்பு" : "Update Topic"}</label>
-                  <div className="grid grid-cols-3 gap-1">
-                    {(["performance", "attendance", "general"] as const).map((type) => {
-                      const typeTranslated =
-                        type === "performance" ? (lang === "தமிழ்" ? "செயல்திறன்" : "performance") :
-                        type === "attendance" ? (lang === "தமிழ்" ? "வருகை" : "attendance") :
-                        (lang === "தமிழ்" ? "பொதுவான" : "general");
-                      return (
-                        <button
-                          key={type}
-                          onClick={() => setDraftType(type)}
-                          className={`py-1.5 rounded-lg text-[9px] font-bold capitalize transition-all border ${
-                            draftType === type ? "bg-[var(--primary)] border-[var(--primary)] text-white shadow-sm" : "bg-[var(--bg-main)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
-                          }`}
-                        >
-                          {typeTranslated}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-semibold text-[var(--text-muted)] block mb-1.5 uppercase tracking-wider">{lang === "தமிழ்" ? "செய்தியின் குரல்" : "Message Tone"}</label>
-                  <div className="grid grid-cols-3 gap-1">
-                    {(["supportive", "urgent", "encouraging"] as const).map((tone) => {
-                      const toneTranslated =
-                        tone === "supportive" ? (lang === "தமிழ்" ? "ஆதரவான" : "supportive") :
-                        tone === "urgent" ? (lang === "தமிழ்" ? "அவசரமான" : "urgent") :
-                        (lang === "தமிழ்" ? "ஊக்கமளிக்கும்" : "encouraging");
-                      return (
-                        <button
-                          key={tone}
-                          onClick={() => setDraftTone(tone)}
-                          className={`py-1.5 rounded-lg text-[9px] font-bold capitalize transition-all border ${
-                            draftTone === tone ? "bg-[var(--primary)] border-[var(--primary)] text-white shadow-sm" : "bg-[var(--bg-main)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
-                          }`}
-                        >
-                          {toneTranslated}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3 mt-6">
-              <button
-                onClick={handleGenerateAIDraft}
-                className="w-full py-2.5 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] text-xs font-semibold text-[var(--text-heading)] border border-[var(--border)] flex items-center justify-center gap-1 shadow-sm transition-all"
-              >
-                <Zap className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "AI வரைவைச் செருகவும்" : "Insert AI Draft"}
-              </button>
-              <div className="p-3 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl text-[10px] text-[var(--text-muted)] leading-relaxed italic">
-                <Megaphone className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "AI செய்திகளை **தமிழ்** மற்றும் **ஆங்கிலம்** ஆகிய இரு மொழிகளிலும் உருவாக்குகிறது, இதனால் பெற்றோர் தங்களுக்கு விருப்பமான மொழியைத் தேர்ந்தெடுக்கலாம்." : "AI generates messages both in **Tamil** and **English** so parents can select their preferred reading medium."}
-              </div>
-            </div>
-          </div>
         </div>
       ) : (
         <div className="text-center py-12 text-xs text-[var(--text-muted)] italic">
@@ -353,5 +319,17 @@ export default function CommunicationPage() {
         </div>
       )}
     </PortalLayout>
+  );
+}
+
+export default function CommunicationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--bg-main)]">
+        <div className="w-12 h-12 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin" />
+      </div>
+    }>
+      <CommunicationContent />
+    </Suspense>
   );
 }

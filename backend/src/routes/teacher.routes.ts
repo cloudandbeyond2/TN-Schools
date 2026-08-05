@@ -1003,13 +1003,60 @@ async function resolveParentId(idStr: string): Promise<string> {
   return idStr;
 }
 
+// Helper to resolve teacherId from User ID, HeadmasterStaff ID, or Teacher ID to canonical Teacher ID if needed
+async function resolveTeacherId(idStr: string): Promise<string> {
+  // 1. Try to find by Teacher ID or Teacher's User ID
+  let teacher = await prisma.teacher.findFirst({
+    where: {
+      OR: [
+        { id: idStr },
+        { userId: idStr }
+      ]
+    }
+  });
+  if (teacher) {
+    return teacher.id;
+  }
+
+  // 2. Try to find if idStr is a HeadmasterStaff ID
+  const staff = await prisma.headmasterStaff.findUnique({
+    where: { id: idStr }
+  });
+
+  if (staff) {
+    const conditions = [];
+    if (staff.userId) conditions.push({ userId: staff.userId });
+    if (staff.email) conditions.push({ user: { email: staff.email } });
+    
+    if (conditions.length > 0) {
+      teacher = await prisma.teacher.findFirst({
+        where: {
+          OR: conditions
+        }
+      });
+      if (teacher) {
+        return teacher.id;
+      }
+    }
+    return staff.id;
+  }
+
+  return idStr;
+}
+
 // GET /api/teacher/messages/:parentId
 router.get('/messages/:parentId', async (req: Request, res: Response) => {
   try {
     const { parentId } = req.params;
+    const { teacherId } = req.query;
     const resolvedParentId = await resolveParentId(parentId);
+    const resolvedTeacherId = teacherId ? await resolveTeacherId(String(teacherId)) : null;
+
     const msgs = await prisma.message.findMany({
-      where: { parentId: resolvedParentId },
+      where: { 
+        parentId: resolvedParentId,
+        ...(resolvedTeacherId ? { teacherId: resolvedTeacherId } : {})
+      },
       orderBy: { createdAt: 'asc' },
       select: { id: true, sender: true, text: true, createdAt: true },
     });
@@ -1028,13 +1075,21 @@ router.get('/messages/:parentId', async (req: Request, res: Response) => {
 // POST /api/teacher/messages
 router.post('/messages', async (req: Request, res: Response) => {
   try {
-    const { parentId, sender, text, schoolId } = req.body;
+    const { parentId, sender, text, schoolId, teacherId } = req.body;
     if (!parentId || !sender || !text) {
       return res.status(400).json({ success: false, error: 'parentId, sender, and text are required' });
     }
     const resolvedParentId = await resolveParentId(parentId);
+    const resolvedTeacherId = teacherId ? await resolveTeacherId(String(teacherId)) : null;
+
     const msg = await prisma.message.create({
-      data: { parentId: resolvedParentId, sender, text, schoolId: schoolId || null },
+      data: { 
+        parentId: resolvedParentId, 
+        teacherId: resolvedTeacherId,
+        sender, 
+        text, 
+        schoolId: schoolId || null 
+      },
     });
     const newMsg = {
       id: msg.id,

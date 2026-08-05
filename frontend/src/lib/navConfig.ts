@@ -117,6 +117,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "AI Assistant", href: "/parent/ai-assistant", icon: "Bot" },
       { label: "Scholarship", href: "/parent/scholarship", icon: "GraduationCap" },
       { label: "PTA Meetings", href: "/parent/pta", icon: "Users" },
+      { label: "Teacher Messages", href: "/parent/messages", icon: "MessageSquare" },
     ],
   },
   STUDENT_MIDDLE: {
@@ -481,6 +482,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "Awards & Certifications", href: "/pet/awards", icon: "Trophy" },
       { label: "Ground Condition", href: "/pet/ground-condition", icon: "Map" },
       { label: "Clubs & Activities", href: "/pet/clubs", icon: "Users" },
+      { label: "Parent Messages", href: "/pet/messages", icon: "MessageSquare" },
     ],
   },
   TEACHER: {
@@ -518,6 +520,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // Student Management
       { label: "Student Management", href: "#", icon: "" },
       { label: "Student Profiles", href: "/teacher/student-profiles", icon: "User" },
+      { label: "Parent Communication", href: "/teacher/communication", icon: "MessageSquare" },
       { label: "Digital Portfolio", href: "/teacher/portfolio", icon: "FolderOpen" },
       { label: "Student Status", href: "/teacher/student-status", icon: "TrendingUp" },
       { label: "Student Progress", href: "/teacher/progress", icon: "BarChart2" },
@@ -572,6 +575,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "AI Assistant", href: "/parent/ai-assistant", icon: "Bot" },
       { label: "Scholarship", href: "/parent/scholarship", icon: "GraduationCap" },
       { label: "PTA Meetings", href: "/parent/pta", icon: "Users" },
+      { label: "Teacher Messages", href: "/parent/messages", icon: "MessageSquare" },
     ],
   },
   HEADMASTER: {

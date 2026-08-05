@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, X, MessageCircle } from "lucide-react";
-
+import { useRouter } from "next/navigation";
 
 
 import React, { useState, useEffect } from "react";
@@ -23,6 +23,7 @@ interface StudentProfile {
 }
 
 export default function StudentProfilesPage() {
+  const router = useRouter();
   const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
@@ -58,10 +59,11 @@ export default function StudentProfilesPage() {
   }, [schoolId, session, API_URL]);
 
   useEffect(() => {
+    if (!schoolId) return;
     const fetchStudents = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_URL}/api/students${schoolId ? `?schoolId=${schoolId}` : ""}`);
+        const res = await fetch(`${API_URL}/api/students?schoolId=${schoolId}`);
         const data = await res.json();
         if (data.success && data.data) {
           const mapped: StudentProfile[] = data.data.map((st: any, idx: number) => ({
@@ -225,7 +227,7 @@ export default function StudentProfilesPage() {
 
       {/* Profiles Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6 animate-pulse">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 animate-pulse">
           {[1, 2, 3, 4, 5, 6].map((n) => (
             <div key={n} className="bg-[var(--bg-card)] border border-[var(--border)] p-5 rounded-2xl flex flex-col justify-between space-y-5">
               <div>
@@ -262,7 +264,7 @@ export default function StudentProfilesPage() {
         <div className="text-center py-12 text-xs text-[var(--text-muted)]">{lang === "தமிழ்" ? "தேடலுக்குப் பொருந்தும் மாணவர் பதிவுகள் எதுவும் இல்லை." : "No student records found matching the query."}</div>
       ) : (
         <>
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
             {paginatedStudents.map((student) => (
             <div
               key={student.id}
@@ -446,7 +448,16 @@ export default function StudentProfilesPage() {
               >
                 {lang === "தமிழ்" ? "மூடுக" : "Close Profile"}
               </button>
-              <button className="px-5 py-2.5 bg-[var(--primary)] hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition-colors">
+              <button
+                onClick={() => {
+                  if (selectedStudent?.parentContact) {
+                    router.push(`/teacher/communication?parentPhone=${encodeURIComponent(selectedStudent.parentContact)}&studentName=${encodeURIComponent(selectedStudent.name)}`);
+                  } else {
+                    router.push(`/teacher/communication`);
+                  }
+                }}
+                className="px-5 py-2.5 bg-[var(--primary)] hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold transition-colors"
+              >
                 <MessageCircle className="w-4 h-4 inline-block mr-1 text-inherit" /> {lang === "தமிழ்" ? "பெற்றோருக்கு செய்தி அனுப்புக" : "Message Parent"}
               </button>
             </div>
