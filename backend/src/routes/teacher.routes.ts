@@ -27,6 +27,35 @@ async function createSafeNotification(userId: string, message: string) {
   }
 }
 
+async function dispatchSchoolPressNotification(studentId: string, description: string) {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      include: { user: { select: { name: true } } }
+    });
+    const studentName = student?.user?.name || "your child";
+
+    const links = await prisma.parentStudentLink.findMany({
+      where: { studentId }
+    });
+
+    for (const link of links) {
+      await prisma.parentNotification.create({
+        data: {
+          parentId: link.parentId,
+          studentId: studentId,
+          type: 'general',
+          title: 'School Press Activity Published',
+          message: `${studentName} has a new activity published in School Press: "${description}"`,
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Error dispatching school press parent notification:', err);
+  }
+}
+
+
 
 // =========================================================================
 // 1. Study Materials
@@ -1424,15 +1453,21 @@ router.post('/school-press', async (req: Request, res: Response) => {
     if (!studentId || !description) {
       return res.status(400).json({ success: false, error: 'Student ID and description are required' });
     }
+    const isApproved = teacherId ? true : false;
     const newActivity = await (prisma as any).schoolPressActivity.create({
       data: {
         studentId,
         teacherId,
         description,
         photos: photos || [],
-        isApproved: teacherId ? true : false // Auto-approve if created by teacher
+        isApproved
       }
     });
+
+    if (isApproved) {
+      await dispatchSchoolPressNotification(studentId, description);
+    }
+
     res.json({ success: true, data: newActivity });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
@@ -1443,10 +1478,23 @@ router.post('/school-press', async (req: Request, res: Response) => {
 router.put('/school-press/:id/approve', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const activity = await (prisma as any).schoolPressActivity.findUnique({
+      where: { id }
+    });
+
+    if (!activity) {
+      return res.status(404).json({ success: false, error: 'Activity not found' });
+    }
+
     const updated = await (prisma as any).schoolPressActivity.update({
       where: { id },
       data: { isApproved: true }
     });
+
+    if (!activity.isApproved) {
+      await dispatchSchoolPressNotification(activity.studentId, activity.description);
+    }
+
     res.json({ success: true, data: updated });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
