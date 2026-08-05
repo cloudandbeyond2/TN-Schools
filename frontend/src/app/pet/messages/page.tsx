@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
+import PETPortalBanner from "@/components/PETPortalBanner";
 import { MessageSquare, Send, CheckCircle, Bot, RefreshCw, User, Phone } from "lucide-react";
 import Swal from "sweetalert2";
 
@@ -134,20 +135,17 @@ export default function PetMessagesPage() {
       <div className="p-6 w-full space-y-6">
 
 
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--text-heading)] flex items-center gap-2">
-              <MessageSquare className="text-lime-500" /> Parent Correspondence
-            </h1>
-            <p className="text-sm text-[var(--text-muted)] mt-1">Read and reply to parents about physical education and sports progress</p>
-          </div>
-          <button
-            onClick={() => selectedParentId && fetchMessages(selectedParentId)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs text-[var(--text-muted)] hover:text-[var(--text-heading)] transition-colors cursor-pointer"
-          >
-            <RefreshCw size={14} className={loadingMessages ? "animate-spin" : ""} /> Refresh Chat
-          </button>
-        </div>
+        <PETPortalBanner
+          pageKey="messages"
+          rightElement={
+            <button
+              onClick={() => selectedParentId && fetchMessages(selectedParentId)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs text-[var(--text-muted)] hover:text-[var(--text-heading)] transition-colors cursor-pointer"
+            >
+              <RefreshCw size={14} className={loadingMessages ? "animate-spin" : ""} /> Refresh Chat
+            </button>
+          }
+        />
 
         {loading ? (
           <div className="text-center py-12 text-xs text-[var(--text-muted)]">Loading conversations...</div>

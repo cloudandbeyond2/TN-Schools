@@ -1,5 +1,6 @@
 "use client";
 import PortalLayout from "@/components/PortalLayout";
+import PETPortalBanner from "@/components/PETPortalBanner";
 import { Trophy, Medal, Award, Plus, Trash2, CheckCircle2, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -91,48 +92,58 @@ export default function AwardsPage() {
   return (
     <PortalLayout>
       <div className="p-6 w-full space-y-6">
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--text-heading)]">Awards & Certifications</h1>
-            <p className="text-sm text-[var(--text-muted)] mt-1">
-              School wall of fame · {awards.length} achievements · {pendingCerts} certificates pending
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <select
-              value={levelFilter}
-              onChange={(e) => setLevelFilter(e.target.value as any)}
-              className="px-3 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-sm font-semibold focus:outline-none"
-            >
-              <option value="All">All Levels</option>
-              {LEVELS.map((l) => (
-                <option key={l} value={l}>{l}</option>
-              ))}
-            </select>
-            <button
-              onClick={() => setShowAdd(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
-            >
-              <Plus size={16} /> Add Award
-            </button>
-          </div>
-        </div>
+        <PETPortalBanner
+          pageKey="awards"
+          customDesc={`School wall of fame · ${awards.length} achievements · ${pendingCerts} certificates pending`}
+          rightElement={
+            <div className="flex gap-3">
+              <select
+                value={levelFilter}
+                onChange={(e) => setLevelFilter(e.target.value as any)}
+                className="px-3 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-sm font-semibold focus:outline-none"
+              >
+                <option value="All">All Levels</option>
+                {LEVELS.map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => setShowAdd(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
+              >
+                <Plus size={16} /> Add Award
+              </button>
+            </div>
+          }
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-900/10 rounded-3xl p-6 text-amber-700 dark:text-amber-400 shadow-sm border border-amber-200/50 dark:border-amber-800/50 transition-all hover:shadow-md hover:-translate-y-1">
-            <Trophy size={40} className="mb-4" />
-            <div className="text-4xl font-black mb-1">{tally.Gold}</div>
-            <div className="text-sm font-semibold opacity-90">Gold Medals This Year</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center shrink-0">
+              <i className="fi fi-sr-trophy text-amber-500 text-lg flex items-center" />
+            </div>
+            <div>
+              <div className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Gold Medals This Year</div>
+              <div className="text-2xl font-black text-[var(--text-heading)] leading-none">{tally.Gold}</div>
+            </div>
           </div>
-          <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/40 dark:to-slate-800/20 rounded-3xl p-6 text-slate-700 dark:text-slate-300 shadow-sm border border-slate-200/50 dark:border-slate-700/50 transition-all hover:shadow-md hover:-translate-y-1">
-            <Medal size={40} className="mb-4" />
-            <div className="text-4xl font-black mb-1">{tally.Silver}</div>
-            <div className="text-sm font-semibold opacity-90">Silver Medals This Year</div>
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center shrink-0">
+              <i className="fi fi-sr-medal text-slate-500 text-lg flex items-center" />
+            </div>
+            <div>
+              <div className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Silver Medals This Year</div>
+              <div className="text-2xl font-black text-[var(--text-heading)] leading-none">{tally.Silver}</div>
+            </div>
           </div>
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-900/10 rounded-3xl p-6 text-orange-800 dark:text-orange-400 shadow-sm border border-orange-200/50 dark:border-orange-800/50 transition-all hover:shadow-md hover:-translate-y-1">
-            <Award size={40} className="mb-4" />
-            <div className="text-4xl font-black mb-1">{tally.Bronze}</div>
-            <div className="text-sm font-semibold opacity-90">Bronze Medals This Year</div>
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center shrink-0">
+              <i className="fi fi-sr-award text-orange-500 text-lg flex items-center" />
+            </div>
+            <div>
+              <div className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Bronze Medals This Year</div>
+              <div className="text-2xl font-black text-[var(--text-heading)] leading-none">{tally.Bronze}</div>
+            </div>
           </div>
         </div>
 

@@ -1,5 +1,7 @@
 "use client";
 import PortalLayout from "@/components/PortalLayout";
+import PETPortalBanner from "@/components/PETPortalBanner";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import { 
   Trophy, 
   Calendar, 
@@ -69,6 +71,7 @@ const SPORT_CATEGORIES = [
 const SPORTS = SPORT_CATEGORIES.flatMap(cat => cat.sports);
 
 export default function SportsConductedPage() {
+  const { lang } = usePortalLanguage();
   const [events, setEvents] = useState<SportsEvent[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [source, setSource] = useState<"local" | "server">("local");
@@ -231,47 +234,34 @@ export default function SportsConductedPage() {
       <div className="p-6 w-full mx-auto space-y-6">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)] shadow-sm">
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="text-2xl font-black text-[var(--text-heading)] tracking-tight">Sports Events & Competitions</h1>
-              
-              {/* Dynamic Connection Indicator */}
-              {loaded && (
-                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all shadow-sm ${
-                  source === "server" 
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50"
-                    : "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50"
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${source === "server" ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
-                  <Database size={12} className="opacity-80" />
-                  {source === "server" ? "Cloud Sync Active" : "Local Storage Fallback"}
-                </div>
+        <PETPortalBanner
+          pageKey="sports"
+          customDesc={
+            lang === "தமிழ்"
+              ? `பள்ளி விளையாட்டு நாட்காட்டி, போட்டிகள் மற்றும் முடிவுகள் — ${upcoming} வரவிருக்கும் போட்டிகள் · ${completed} முடிவடைந்தவை`
+              : `School games calendar, competition results and participation — ${upcoming} upcoming · ${completed} completed`
+          }
+          rightElement={
+            <div className="flex items-center gap-2 flex-wrap">
+              {events.length === 0 && loaded && (
+                <button
+                  onClick={handleImportDefaults}
+                  disabled={loadingAction}
+                  className="px-4 py-2 border border-[var(--border)] bg-white/50 dark:bg-slate-850/50 hover:border-blue-500 text-[var(--text-heading)] rounded-xl text-sm font-bold flex items-center gap-2 transition-all disabled:opacity-50"
+                >
+                  <RefreshCw size={14} className={loadingAction ? "animate-spin" : ""} /> Seed default calendar
+                </button>
               )}
-            </div>
-            <p className="text-sm text-[var(--text-muted)] font-semibold">
-              School games calendar, competition results and participation — {upcoming} upcoming · {completed} completed
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            {events.length === 0 && loaded && (
               <button
-                onClick={handleImportDefaults}
+                onClick={() => setShowAdd(true)}
                 disabled={loadingAction}
-                className="px-4 py-2 border border-slate-300 hover:border-blue-500 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold flex items-center gap-2 transition-all hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 disabled:opacity-50"
               >
-                <RefreshCw size={14} className={loadingAction ? "animate-spin" : ""} /> Seed default calendar
+                <Plus size={16} /> Log New Event
               </button>
-            )}
-            <button
-              onClick={() => setShowAdd(true)}
-              disabled={loadingAction}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 disabled:opacity-50"
-            >
-              <Plus size={16} /> Log New Event
-            </button>
-          </div>
-        </div>
+            </div>
+          }
+        />
 
         {/* Level Stats Summary Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">

@@ -1,5 +1,6 @@
 "use client";
 import PortalLayout from "@/components/PortalLayout";
+import PETPortalBanner from "@/components/PETPortalBanner";
 import {
   Search, HeartPulse, Brain, Plus, Pencil, Trash2, Users, WifiOff, Ruler, Scale,
   Activity, Flame, Dumbbell, Zap, Wind, Waves, Eye, Droplets, Stethoscope,
@@ -247,43 +248,33 @@ export default function StudentRecordsPage() {
     <PortalLayout>
       <div className="p-6 w-full space-y-6">
         {/* ── Header ─────────────────────────────────────────────── */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--text-heading)]">Student Fitness Records</h1>
-            <p className="text-sm text-[var(--text-muted)] mt-1">
-              Height, weight, BMI, fitness assessments, physical activity and health indicators
-            </p>
-            {loaded && (
-              <span className={`inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                source === "server" ? TONES.green : TONES.amber
-              }`}>
-                {source === "server" ? <Cloud size={11} /> : <WifiOff size={11} />}
-                {source === "server" ? "Synced to school database" : "Offline — records saved on this device only"}
-              </span>
-            )}
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={exportCsv}
-              className="px-3 py-2 bg-[var(--bg-card)] border border-[var(--border)] hover:border-blue-400 rounded-xl text-sm font-bold flex items-center gap-2 transition-colors text-[var(--text-heading)]"
-              title="Export filtered records as CSV"
-            >
-              <Download size={15} /> Export
-            </button>
-            <button
-              onClick={() => setShowClassAdd(true)}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
-            >
-              <Users size={16} /> Add by Class
-            </button>
-            <button
-              onClick={() => setShowAdd(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
-            >
-              <Plus size={16} /> Add Record
-            </button>
-          </div>
-        </div>
+        <PETPortalBanner
+          pageKey="records"
+          rightElement={
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={exportCsv}
+                className="px-3 py-2 bg-[var(--bg-card)] border border-[var(--border)] hover:border-blue-400 rounded-xl text-sm font-bold flex items-center gap-2 transition-colors text-[var(--text-heading)]"
+                title="Export filtered records as CSV"
+              >
+                <Download size={15} /> Export
+              </button>
+              <button
+                onClick={() => setShowClassAdd(true)}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
+              >
+                <Users size={16} /> Add by Class
+              </button>
+              <button
+                onClick={() => setShowAdd(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
+              >
+                <Plus size={16} /> Add Record
+              </button>
+            </div>
+          }
+        />
+
 
         {/* ── Summary stat cards ─────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
