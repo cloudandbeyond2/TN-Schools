@@ -40,6 +40,10 @@ export default function TeacherCulturalEventsPage() {
   const [viewRegistrationsOpen, setViewRegistrationsOpen] = useState(false);
   const [activeEventForReg, setActiveEventForReg] = useState<CulturalEvent | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [sortBy, setSortBy] = useState("soonest");
+
   const loadRegistrationsFromStorage = useCallback(async () => {
     // 1. Read local memory state
     try {
@@ -210,17 +214,39 @@ export default function TeacherCulturalEventsPage() {
     }
   };
 
-  const getEventCategory = (title: string, desc: string, locStr: string) => {
-    const parsedLoc = parseLocation(locStr);
-    if (parsedLoc.category && parsedLoc.category !== "General") return parsedLoc.category;
+  const getEventCategory = (title: string, desc: string, locStr: string): string => {
+    try {
+      const parsed = JSON.parse(locStr);
+      if (parsed.category) {
+        const cat = parsed.category.toLowerCase();
+        if (cat.includes("science") || cat.includes("tech") || cat.includes("expo") || cat.includes("exhibit")) return "Science & Exhibition";
+        if (cat.includes("sport") || cat.includes("game") || cat.includes("fun")) return "Sports & Fun";
+        if (cat.includes("art") || cat.includes("paint") || cat.includes("draw") || cat.includes("craft")) return "Art & Craft";
+        if (cat.includes("music") || cat.includes("dance") || cat.includes("song") || cat.includes("choir")) return "Music & Dance";
+        if (cat.includes("traditional") || cat.includes("heritage") || cat.includes("culture") || cat.includes("festival")) return "Traditional";
+        if (cat.includes("drama") || cat.includes("theatre") || cat.includes("debate") || cat.includes("quiz")) return "Drama & Literary";
+      }
+    } catch (e) {}
 
     const text = `${title} ${desc}`.toLowerCase();
-    if (text.includes("art") || text.includes("craft") || text.includes("drawing") || text.includes("paint")) return "Art & Craft";
-    if (text.includes("music") || text.includes("dance") || text.includes("sing") || text.includes("song")) return "Music & Dance";
-    if (text.includes("traditional") || text.includes("pongal") || text.includes("tamil") || text.includes("heritage")) return "Traditional";
-    if (text.includes("drama") || text.includes("play") || text.includes("skit") || text.includes("literary")) return "Drama & Literary";
-    if (text.includes("sport") || text.includes("game") || text.includes("race") || text.includes("kabaddi")) return "Sports & Fun";
-    if (text.includes("science") || text.includes("exhibition") || text.includes("expo") || text.includes("tech")) return "Science & Exhibition";
+    if (text.includes("science") || text.includes("tech") || text.includes("expo") || text.includes("robotics") || text.includes("innovat") || text.includes("experiment") || text.includes("math") || text.includes("exhibition") || text.includes("exhibit")) {
+      return "Science & Exhibition";
+    }
+    if (text.includes("art") || text.includes("paint") || text.includes("draw") || text.includes("craft") || text.includes("design") || text.includes("kala") || text.includes("utsav")) {
+      return "Art & Craft";
+    }
+    if (text.includes("music") || text.includes("dance") || text.includes("song") || text.includes("choir") || text.includes("singing") || text.includes("concert") || text.includes("drum") || text.includes("instrument") || text.includes("classical") || text.includes("performance") || text.includes("dance")) {
+      return "Music & Dance";
+    }
+    if (text.includes("pongal") || text.includes("heritage") || text.includes("diwali") || text.includes("harvest") || text.includes("tamil") || text.includes("culture") || text.includes("traditional") || text.includes("festival")) {
+      return "Traditional";
+    }
+    if (text.includes("drama") || text.includes("theatre") || text.includes("play") || text.includes("skit") || text.includes("acting") || text.includes("debate") || text.includes("quiz") || text.includes("literary") || text.includes("speech") || text.includes("elocution") || text.includes("poetry") || text.includes("write") || text.includes("reading")) {
+      return "Drama & Literary";
+    }
+    if (text.includes("sports") || text.includes("game") || text.includes("run") || text.includes("athletic") || text.includes("football") || text.includes("cricket") || text.includes("chess") || text.includes("fun") || text.includes("celebration")) {
+      return "Sports & Fun";
+    }
     return "General";
   };
 
@@ -322,32 +348,23 @@ export default function TeacherCulturalEventsPage() {
     }
   };
 
-  const TraditionalIcon = ({ className = "w-16 h-16" }: { className?: string }) => (
-    <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="32" cy="32" r="30" fill="#FEF3C7" />
-      <path d="M20 44C20 35.1634 25.3726 28 32 28C38.6274 28 44 35.1634 44 44H20Z" fill="#F59E0B" />
-      <path d="M32 12C25.3726 12 20 17.3726 20 24C20 30.6274 25.3726 36 32 36C38.6274 36 44 30.6274 44 24C44 17.3726 38.6274 12 32 12Z" fill="#D97706" />
-      <circle cx="32" cy="24" r="6" fill="#FEF3C7" />
-      <path d="M32 18V21M32 27V30M26 24H29M35 24H38" stroke="#B45309" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-
   const renderFlatIcon = (category: string, className = "w-12 h-12") => {
+    const sizeCls = className.includes("w-") ? "text-2xl" : "text-xl";
     switch (category) {
       case "Art & Craft":
-        return <i className={`fi fi-rr-palette text-violet-600 dark:text-violet-400 ${className} flex items-center justify-center`} />;
+        return <i className={`fi fi-sr-palette text-violet-600 dark:text-violet-400 ${sizeCls} ${className} flex items-center justify-center`} />;
       case "Music & Dance":
-        return <i className={`fi fi-rr-music text-pink-600 dark:text-pink-400 ${className} flex items-center justify-center`} />;
+        return <i className={`fi fi-sr-music text-pink-600 dark:text-pink-400 ${sizeCls} ${className} flex items-center justify-center`} />;
       case "Traditional":
-        return <TraditionalIcon className={className} />;
+        return <i className={`fi fi-sr-scroll text-amber-600 dark:text-amber-400 ${sizeCls} ${className} flex items-center justify-center`} />;
       case "Drama & Literary":
-        return <i className={`fi fi-rr-theater text-emerald-600 dark:text-emerald-400 ${className} flex items-center justify-center`} />;
+        return <i className={`fi fi-sr-book-open-reader text-emerald-600 dark:text-emerald-400 ${sizeCls} ${className} flex items-center justify-center`} />;
       case "Sports & Fun":
-        return <i className={`fi fi-rr-trophy text-rose-600 dark:text-rose-400 ${className} flex items-center justify-center`} />;
+        return <i className={`fi fi-sr-trophy text-rose-600 dark:text-rose-400 ${sizeCls} ${className} flex items-center justify-center`} />;
       case "Science & Exhibition":
-        return <i className={`fi fi-rr-flask text-sky-600 dark:text-sky-400 ${className} flex items-center justify-center`} />;
+        return <i className={`fi fi-sr-flask text-sky-600 dark:text-sky-400 ${sizeCls} ${className} flex items-center justify-center`} />;
       default:
-        return <i className={`fi fi-rr-star text-indigo-600 dark:text-indigo-400 ${className} flex items-center justify-center`} />;
+        return <i className={`fi fi-sr-sparkles text-indigo-600 dark:text-indigo-400 ${sizeCls} ${className} flex items-center justify-center`} />;
     }
   };
 
@@ -450,49 +467,63 @@ export default function TeacherCulturalEventsPage() {
       btnText: "text-white"
     }
   };
+  const filteredEvents = events
+    .filter((evt) => {
+      const matchesSearch =
+        evt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        evt.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        evt.location.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const cat = getEventCategory(evt.title, evt.description, evt.location);
+      const matchesCategory = selectedCategory === "All" || cat === selectedCategory;
+
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.eventDate).getTime();
+      const dateB = new Date(b.eventDate).getTime();
+      return sortBy === "soonest" ? dateA - dateB : dateB - dateA;
+    });
 
   return (
     <PortalLayout
       title={lang === "தமிழ்" ? "கலை மற்றும் திருவிழாக்கள்!" : "Culture & Fun!"}
       subtitle={lang === "தமிழ்" ? "நடனம், கலை மற்றும் இசைத் திருவிழாக்களில் இணையுங்கள்!" : "Manage school festivals, traditional assemblies, and creative expos!"}
     >
-      <div className="flex flex-col gap-8 w-full max-w-none px-4 sm:px-8 lg:px-12 text-left">
+      <div className="flex flex-col gap-8 w-full max-w-none text-left">
         
         {/* Dynamic & Premium Hero Banner */}
-        <div className="relative overflow-hidden rounded-[2rem] shadow-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 p-6 sm:p-10 lg:p-12 min-h-[380px] sm:min-h-[420px] flex items-center transition-all duration-300">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-rose-500/10 dark:bg-rose-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 pointer-events-none" />
-
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-5 gap-8 items-center text-left w-full">
-            <div className="lg:col-span-3 space-y-4">
-              <div className="inline-flex items-center gap-2 bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-400 px-3 py-1.5 font-bold tracking-wider text-xs uppercase rounded-xl border border-yellow-200 dark:border-yellow-900/30 shadow-sm">
-                <i className="fi fi-sr-star text-xs" /> Extracurricular Panel
+        <div className="relative overflow-hidden rounded-2xl shadow-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 md:p-6 transition-all duration-300">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 text-left w-full">
+            <div className="space-y-3 flex-1">
+              <div className="inline-flex items-center gap-2 bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-400 px-2.5 py-1 font-bold tracking-wider text-[10px] uppercase rounded-xl border border-yellow-200 dark:border-yellow-900/30 shadow-sm">
+                <i className="fi fi-sr-sparkles text-[10px]" /> Extracurricular Panel
               </div>
               
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-800 dark:text-white tracking-tight leading-tight">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-tight">
                 {lang === "தமிழ்" ? "தமிழ் மரபு மாதம்" : "Tamil Heritage Month"}
               </h2>
               
-              <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base font-semibold leading-relaxed max-w-2xl">
+              <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium leading-relaxed max-w-2xl">
                 {lang === "தமிழ்" ? "நமது வளமான கலாச்சாரத்தை ஒன்றாகக் கொண்டாடுவோம்! சுவையான உணவு, அழகான நடனங்கள், பாரம்பரிய விளையாட்டுகள் மற்றும் பல வேடிக்கைகள் இருக்கும்!" : "Let's celebrate our rich culture together! Schedule traditional games, art expos, folk dances, musical plays, and delicious traditional food!"}
               </p>
 
-              <div className="pt-4 flex flex-wrap gap-4 items-center justify-between bg-slate-50 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-                <p className="text-xs font-semibold text-slate-500 max-w-lg leading-relaxed">
+              <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800/40 p-3.5 rounded-xl border border-slate-100 dark:border-slate-850">
+                <p className="text-[11px] font-semibold text-slate-400 max-w-lg leading-relaxed">
                   {lang === "தமிழ்" ? "💡 கலாச்சார அறிவிப்புகளைப் பதிவிடவும், பங்கேற்பாளர்களின் பட்டியலை நிர்வகிக்கவும், மற்றும் செயல்பாடுகளை ஒருங்கிணைக்கவும் புதிய நிகழ்வைச் சேர் என்பதைத் தேர்ந்தெடுக்கவும்." : "💡 Click the button to schedule new cultural programs, manage participant rosters, and assign event coordinators."}
                 </p>
                 <button
                   onClick={handleOpenCreate}
-                  className="px-6 py-3.5 bg-primary hover:bg-opacity-95 text-white font-black text-xs sm:text-sm rounded-2xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95 border-b-4 border-black/20 flex items-center justify-center gap-2 shrink-0"
+                  className="px-4 py-2.5 bg-primary hover:bg-opacity-95 text-white font-black text-xs rounded-xl transition-all shadow-md shadow-indigo-500/10 active:scale-95 flex items-center justify-center gap-2 shrink-0"
                 >
                   <i className="fi fi-rr-plus text-xs" /> {lang === "தமிழ்" ? "புதிய நிகழ்வைச் சேர்" : "Add New Event"}
                 </button>
               </div>
             </div>
 
-            <div className="lg:col-span-2 flex justify-center lg:justify-end">
-              <div className="relative group p-4 bg-slate-50 dark:bg-slate-900/40 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-inner">
-                <TraditionalIcon className="w-44 h-44 sm:w-56 sm:h-56 transform group-hover:scale-105 group-hover:rotate-3 transition-transform duration-300 drop-shadow-lg" />
+            <div className="flex justify-center md:justify-end shrink-0">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/20 flex items-center justify-center shadow-sm">
+                <i className="fi fi-sr-scroll text-amber-500 text-3xl sm:text-4xl" />
               </div>
             </div>
           </div>
@@ -509,24 +540,68 @@ export default function TeacherCulturalEventsPage() {
             </h3>
           </div>
 
+          {/* 🔍 Search & Interactive Filters */}
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] border border-slate-200 dark:border-slate-700 shadow-sm">
+            {/* Search bar */}
+            <div className="relative w-full md:max-w-xs">
+              <i className="fi fi-rr-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+              <input
+                type="text"
+                placeholder={lang === "தமிழ்" ? "விழாக்கள், இடங்களைத் தேடுங்கள்..." : "Search festivals, staff..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner"
+              />
+            </div>
+
+            {/* Sort controls */}
+            <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl py-2.5 px-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="soonest">Sort by: Soonest</option>
+                <option value="latest">Sort by: Latest</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Categories Horizontal Scrolling Pill List */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+            {["All", "Art & Craft", "Music & Dance", "Traditional", "Drama & Literary", "Sports & Fun", "Science & Exhibition"].map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all border shadow-sm ${
+                  selectedCategory === cat
+                    ? "bg-primary text-white border-primary ring-2 ring-primary/20 shadow-md shadow-primary/10"
+                    : "bg-white text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
           {loading ? (
             <div className="text-center py-20 font-bold text-slate-400 dark:text-slate-500 flex flex-col items-center justify-center gap-3">
               <i className="fi fi-rr-hourglass text-4xl animate-spin text-indigo-500" />
               <span className="text-sm">{lang === "தமிழ்" ? "நிகழ்வுகள் ஏற்றப்படுகின்றன..." : "Fetching school cultural events..."}</span>
             </div>
-          ) : events.length === 0 ? (
-            <div className="text-center py-16 px-4 bg-white dark:bg-slate-850/40 rounded-3xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-3">
-              <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-1 shadow-inner">
-                <i className="fi fi-rr-party-horn text-3xl text-slate-400 dark:text-slate-600 animate-bounce" />
+          ) : filteredEvents.length === 0 ? (
+            <div className="text-center py-16 px-4 bg-white dark:bg-slate-855/40 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-3">
+              <div className="w-12 h-12 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-1 shadow-inner">
+                <i className="fi fi-rr-party-horn text-2xl text-slate-400 dark:text-slate-600 animate-bounce" />
               </div>
-              <h4 className="text-lg font-black text-slate-800 dark:text-slate-100">{lang === "தமிழ்" ? "நிகழ்வுகள் இன்னும் இல்லை!" : "No events scheduled"}</h4>
+              <h4 className="text-base font-extrabold text-slate-800 dark:text-slate-100">{lang === "தமிழ்" ? "நிகழ்வுகள் இன்னும் இல்லை!" : "No events found"}</h4>
               <p className="text-xs text-slate-400 font-semibold max-w-sm">
-                {lang === "தமிழ்" ? "புதிய நிகழ்வைச் சேர்க்க 'புதிய நிகழ்வைச் சேர்' என்பதை அழுத்தவும்." : "No upcoming cultural activities scheduled for this school yet. Click 'Add New Event' to create the first event!"}
+                Try modifying your filters, search terms, or check back later!
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              {events.map((evt) => {
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredEvents.map((evt) => {
                 const category = getEventCategory(evt.title, evt.description, evt.location);
                 const theme = THEMES[category] || THEMES["General"];
                 const loc = parseLocation(evt.location);
@@ -534,51 +609,51 @@ export default function TeacherCulturalEventsPage() {
                 return (
                   <div
                     key={evt.id}
-                    className={`flex flex-col h-full rounded-3xl border ${theme.cardBorder} ${theme.cardBg} ${theme.cardHoverBorder} hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 group overflow-hidden bg-white dark:bg-slate-800 relative text-left`}
+                    className={`flex flex-col h-full rounded-2xl border ${theme.cardBorder} ${theme.cardBg} ${theme.cardHoverBorder} hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group overflow-hidden bg-white dark:bg-slate-800 relative text-left`}
                   >
                     {/* Card Header: Icon + Status & Action Controls */}
-                    <div className="relative p-6 flex justify-between items-start pb-4">
-                      <div className={`p-1.5 rounded-2xl ${theme.iconContainerBg} transform group-hover:scale-105 group-hover:rotate-3 transition-transform duration-300 shadow-sm`}>
-                        {renderFlatIcon(category, "w-14 h-14 drop-shadow-sm")}
+                    <div className="relative p-4 flex justify-between items-center pb-3">
+                      <div className={`w-12 h-12 rounded-xl ${theme.iconContainerBg} flex items-center justify-center transform group-hover:scale-105 group-hover:rotate-3 transition-transform duration-300 shadow-sm shrink-0`}>
+                        {renderFlatIcon(category, "text-2xl")}
                       </div>
 
                       {/* Top-right Controls: Status Badge + Edit/Delete Buttons */}
-                      <div className="flex items-center gap-1.5">
-                        <span className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg border ${theme.badgeBorder} ${theme.badgeBg} ${theme.badgeText} shadow-sm`}>
+                      <div className="flex items-center gap-1">
+                        <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-lg border ${theme.badgeBorder} ${theme.badgeBg} ${theme.badgeText} shadow-sm`}>
                           {evt.status}
                         </span>
                         <button
                           onClick={() => handleOpenEdit(evt)}
                           title="Edit Event"
-                          className="w-7 h-7 flex items-center justify-center bg-white dark:bg-slate-800 rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all shadow-sm border border-slate-200 dark:border-slate-700 active:scale-95"
+                          className="w-6 h-6 flex items-center justify-center bg-white dark:bg-slate-800 rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all shadow-sm border border-slate-200 dark:border-slate-700 active:scale-95"
                         >
-                          <i className="fi fi-rr-edit text-xs" />
+                          <i className="fi fi-rr-edit text-[10px]" />
                         </button>
                         <button
                           onClick={() => handleDeleteEvent(evt.id, evt.title)}
                           title="Delete Event"
-                          className="w-7 h-7 flex items-center justify-center bg-white dark:bg-slate-800 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-700 transition-all shadow-sm border border-slate-200 dark:border-slate-700 active:scale-95"
+                          className="w-6 h-6 flex items-center justify-center bg-white dark:bg-slate-800 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-700 transition-all shadow-sm border border-slate-200 dark:border-slate-700 active:scale-95"
                         >
-                          <i className="fi fi-rr-trash text-xs" />
+                          <i className="fi fi-rr-trash text-[10px]" />
                         </button>
                       </div>
                     </div>
 
                     {/* Middle Text Info */}
-                    <div className="px-6 pb-4 space-y-2 flex-grow">
-                      <h4 className="text-lg font-black text-slate-800 dark:text-white leading-tight group-hover:text-indigo-600 dark:group-hover:text-emerald-400 transition-colors">
+                    <div className="px-4 pb-3 space-y-1.5 flex-grow">
+                      <h4 className="text-sm font-extrabold text-slate-800 dark:text-white leading-snug group-hover:text-indigo-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-1">
                         {evt.title}
                       </h4>
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">
+                      <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">
                         {evt.description}
                       </p>
                     </div>
 
                     {/* Event Meta Pills */}
-                    <div className="px-6 pb-5 space-y-2.5">
-                      <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300">
-                        <div className="flex items-center gap-2">
-                          <i className="fi fi-rr-calendar-lines text-indigo-500 text-sm" />
+                    <div className="px-4 pb-4 space-y-2">
+                      <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                        <div className="flex items-center gap-1">
+                          <i className="fi fi-rr-calendar-lines text-indigo-500 text-xs" />
                           <span>
                             {new Date(evt.eventDate).toLocaleDateString(undefined, {
                               month: "short",
@@ -589,9 +664,9 @@ export default function TeacherCulturalEventsPage() {
                         </div>
                         {loc.venue && (
                           <>
-                            <span className="text-slate-300 dark:text-slate-700">|</span>
-                            <div className="flex items-center gap-2 min-w-0 flex-1">
-                              <i className="fi fi-rr-marker text-rose-500 text-sm shrink-0" />
+                            <span className="text-slate-350 dark:text-slate-700">|</span>
+                            <div className="flex items-center gap-1 min-w-0 flex-1">
+                              <i className="fi fi-rr-marker text-rose-500 text-xs shrink-0" />
                               <span className="truncate">{loc.venue}</span>
                             </div>
                           </>
@@ -599,27 +674,27 @@ export default function TeacherCulturalEventsPage() {
                       </div>
 
                       {loc.coordinator && (
-                        <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 px-1 truncate">
-                          <i className="fi fi-rr-user text-slate-400" />
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-550 dark:text-slate-400 px-0.5 truncate">
+                          <i className="fi fi-rr-user text-slate-400 text-xs" />
                           <span className="truncate">Coord: {loc.coordinator}</span>
                         </div>
                       )}
                     </div>
 
                     {/* Action Hint / View Registrations */}
-                    <div className="px-6 pb-6 pt-1.5 border-t border-slate-100 dark:border-slate-800 mt-auto bg-slate-50/20 dark:bg-slate-900/10 flex flex-col gap-2">
+                    <div className="px-4 pb-4 pt-1.5 border-t border-slate-100 dark:border-slate-800 mt-auto bg-slate-50/20 dark:bg-slate-900/10 flex flex-col gap-2">
                       <button
                         onClick={() => openRegistrationsModal(evt)}
-                        className={`w-full py-3 rounded-2xl text-xs font-black ${theme.btnBg} !text-white shadow-md hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2 active:scale-95 border-b-4 border-black/20`}
+                        className={`w-full py-2.5 rounded-xl text-xs font-black ${theme.btnBg} !text-white shadow-md hover:shadow-xl hover:scale-[1.01] transition-all flex items-center justify-center gap-1.5 active:scale-95 border-b-4 border-black/20`}
                         style={{ color: "#ffffff" }}
                       >
-                        <i className="fi fi-rr-users text-sm !text-white" style={{ color: "#ffffff" }} />
-                        <span className="!text-white font-black" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
+                        <i className="fi fi-rr-users text-xs !text-white" style={{ color: "#ffffff" }} />
+                        <span className="!text-white font-black text-xs" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
                           View Registered ({getRegistrationCountForEvent(evt.id, evt.title)})
                         </span>
                       </button>
-                      <div className="text-center text-[9px] font-black uppercase tracking-wider text-slate-400 mt-1 flex items-center justify-center gap-1.5">
-                        <i className="fi fi-rr-info text-indigo-500 text-sm" />
+                      <div className="text-center text-[8px] font-black uppercase tracking-wider text-slate-400 mt-0.5 flex items-center justify-center gap-1 flex-wrap">
+                        <i className="fi fi-rr-info text-indigo-500 text-xs" />
                         <span>Managed on Student Portal</span>
                       </div>
                     </div>
