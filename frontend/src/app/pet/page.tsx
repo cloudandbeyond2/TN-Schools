@@ -1,5 +1,7 @@
 "use client";
 import PortalLayout from "@/components/PortalLayout";
+import PETPortalBanner from "@/components/PETPortalBanner";
+import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import {
   Activity,
   Users,
@@ -39,6 +41,7 @@ import {
 
 export default function PETDashboard() {
   const { data: session } = useSession();
+  const { lang } = usePortalLanguage();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [events, setEvents] = useState<SportsEvent[]>([]);
   const [awards, setAwards] = useState<AwardRecord[]>([]);
@@ -105,15 +108,7 @@ export default function PETDashboard() {
   return (
     <PortalLayout>
       <div className="p-6 w-full space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--text-heading)]">Physical Education Dashboard</h1>
-            <p className="text-sm text-[var(--text-muted)] mt-1">Overview of sports, health, clubs and facilities</p>
-          </div>
-          <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2">
-            <Activity size={16} /> Live Status: Active
-          </div>
-        </div>
+        <PETPortalBanner pageKey="dashboard" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Tracked Athletes" value={String(records.length)} sub={`Avg fitness ${avgFitness}%`} icon={Users} color="blue" href="/pet/records" />
@@ -193,65 +188,6 @@ export default function PETDashboard() {
               </Link>
             </div>
 
-            <div className="bg-[var(--bg-card)] rounded-2xl p-6 border border-[var(--border)] shadow-sm">
-              <h3 className="text-lg font-bold text-[var(--text-heading)] mb-4 flex items-center gap-2">
-                <Users size={18} className="text-emerald-500" /> PTA Meeting Requests
-              </h3>
-              <div className="space-y-3">
-                {loadingAppts ? (
-                  <div className="space-y-2">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="h-16 bg-slate-800/40 rounded-xl animate-pulse animate-duration-300" />
-                    ))}
-                  </div>
-                ) : appointments.length === 0 ? (
-                  <div className="text-sm text-[var(--text-muted)] text-center py-4">No meeting requests from parents.</div>
-                ) : (
-                  appointments.slice(0, 4).map((appt) => (
-                    <div key={appt.id} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-[var(--border-light)] text-xs text-left">
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="font-bold text-[var(--text-heading)]">{appt.parentName}</span>
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
-                          appt.status.toLowerCase() === "approved"
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                            : appt.status.toLowerCase() === "rejected"
-                            ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                            : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                        }`}>
-                          {appt.status}
-                        </span>
-                      </div>
-                      <div className="text-[var(--text-muted)] font-semibold mb-1">
-                        Student: <strong className="text-[var(--text-heading)]">{appt.studentName}</strong>
-                      </div>
-                      <div className="text-[var(--text-muted)] font-medium mb-2">
-                        📅 {appt.meetingDate} at {appt.timeSlot}
-                      </div>
-                      <div className="text-[var(--text-muted)] italic mb-2">
-                        &quot;{appt.reason}&quot;
-                      </div>
-
-                      {appt.status.toLowerCase() === "pending" && (
-                        <div className="flex gap-2 mt-2">
-                          <button
-                            onClick={() => handleUpdateStatus(appt.id, "Approved")}
-                            className="flex-1 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] transition-colors cursor-pointer"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleUpdateStatus(appt.id, "Rejected")}
-                            className="flex-1 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] transition-colors cursor-pointer"
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </div>

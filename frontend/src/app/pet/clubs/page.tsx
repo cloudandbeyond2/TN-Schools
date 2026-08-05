@@ -1,6 +1,7 @@
 "use client";
 
 import PortalLayout from "@/components/PortalLayout";
+import PETPortalBanner from "@/components/PETPortalBanner";
 import { Users, Tent, Plus, MapPin, Search, UserPlus, Trash2, WifiOff, Clock, Landmark } from "lucide-react";
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
@@ -312,50 +313,40 @@ export default function ClubsPage() {
   };
 
   return (
-    <PortalLayout
-      title="Clubs & Activities Hub"
-      subtitle="Extracurricular management for PE & Sports Staff"
-      avatarLetter="P"
-      avatarColor="#10b981"
-      themeClass="theme-pet"
-      accentColor="#10b981"
-    >
+    <PortalLayout>
       <div className="p-4 sm:p-6 w-full space-y-6 text-left">
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-              <i className="fi fi-rr-users text-emerald-500" /> Clubs & Activities
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">Create sports clubs, add students and track participation</p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <div className="relative w-full sm:w-auto">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input
-                type="text"
-                placeholder="Search clubs..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full sm:w-64 pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
-              />
+        <PETPortalBanner
+          pageKey="clubs"
+          rightElement={
+            <div className="flex flex-wrap gap-3">
+              <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input
+                  type="text"
+                  placeholder="Search clubs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full sm:w-64 pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                />
+              </div>
+              <button
+                onClick={handleAddSchoolUnits}
+                disabled={seedingUnits || mode === "loading" || !schoolId}
+                title="Create NCC, NSS, JRC, Scouts & Guides, Green Corps, RSP, Red Ribbon and Sports Club"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-md shadow-emerald-650/10"
+              >
+                <Landmark size={16} /> {seedingUnits ? "Adding..." : "Add School Units"}
+              </button>
+              <button
+                onClick={() => setShowCreate(true)}
+                disabled={!schoolId}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-md shadow-blue-500/10"
+              >
+                <Plus size={16} /> New Club
+              </button>
             </div>
-            <button
-              onClick={handleAddSchoolUnits}
-              disabled={seedingUnits || mode === "loading" || !schoolId}
-              title="Create NCC, NSS, JRC, Scouts & Guides, Green Corps, RSP, Red Ribbon and Sports Club"
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-md shadow-emerald-650/10"
-            >
-              <Landmark size={16} /> {seedingUnits ? "Adding..." : "Add School Units"}
-            </button>
-            <button
-              onClick={() => setShowCreate(true)}
-              disabled={!schoolId}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-md shadow-blue-500/10"
-            >
-              <Plus size={16} /> New Club
-            </button>
-          </div>
-        </div>
+          }
+        />
 
         {mode === "local" && (
           <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm font-semibold">
@@ -363,24 +354,33 @@ export default function ClubsPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="relative overflow-hidden bg-gradient-to-br from-rose-400 to-red-500 rounded-3xl p-6 text-white shadow-xl hover:shadow-red-500/20 transition-all hover:-translate-y-1 group">
-            <div className="absolute -right-4 -top-4 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all duration-500" />
-            <Tent size={44} className="opacity-80 mb-4 drop-shadow-md group-hover:scale-110 transition-transform duration-300" />
-            <div className="text-5xl font-black mb-1 drop-shadow-sm tracking-tight">{mode === "loading" ? "…" : clubCount}</div>
-            <div className="text-sm font-semibold opacity-90 tracking-wide">Active School Clubs</div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center shrink-0">
+              <i className="fi fi-sr-camping text-emerald-500 text-lg flex items-center" />
+            </div>
+            <div>
+              <div className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Active School Clubs</div>
+              <div className="text-2xl font-black text-[var(--text-heading)] leading-none">{mode === "loading" ? "…" : clubCount}</div>
+            </div>
           </div>
-          <div className="relative overflow-hidden bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl p-6 text-white shadow-xl hover:shadow-orange-500/20 transition-all hover:-translate-y-1 group">
-            <div className="absolute -right-4 -top-4 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all duration-500" />
-            <Users size={44} className="opacity-80 mb-4 drop-shadow-md group-hover:scale-110 transition-transform duration-300" />
-            <div className="text-5xl font-black mb-1 drop-shadow-sm tracking-tight">{mode === "loading" ? "…" : totalMembers}</div>
-            <div className="text-sm font-semibold opacity-90 tracking-wide">Total Student Participants</div>
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
+              <i className="fi fi-sr-users text-blue-500 text-lg flex items-center" />
+            </div>
+            <div>
+              <div className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Total Student Participants</div>
+              <div className="text-2xl font-black text-[var(--text-heading)] leading-none">{mode === "loading" ? "…" : totalMembers}</div>
+            </div>
           </div>
-          <div className="relative overflow-hidden bg-gradient-to-br from-sky-400 to-blue-500 rounded-3xl p-6 text-white shadow-xl hover:shadow-blue-500/20 transition-all hover:-translate-y-1 group">
-            <div className="absolute -right-4 -top-4 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all duration-500" />
-            <MapPin size={44} className="opacity-80 mb-4 drop-shadow-md group-hover:scale-110 transition-transform duration-300" />
-            <div className="text-5xl font-black mb-1 drop-shadow-sm tracking-tight">{mode === "api" ? "Live Data" : "Local Demo"}</div>
-            <div className="text-sm font-semibold opacity-90 tracking-wide">Data Source Connection</div>
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center shrink-0">
+              <i className="fi fi-sr-database text-violet-500 text-lg flex items-center" />
+            </div>
+            <div>
+              <div className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Data Source Connection</div>
+              <div className="text-2xl font-black text-[var(--text-heading)] leading-none">{mode === "api" ? "Live Data" : "Local Demo"}</div>
+            </div>
           </div>
         </div>
 

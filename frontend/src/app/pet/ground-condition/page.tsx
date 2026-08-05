@@ -1,5 +1,6 @@
 "use client";
 import PortalLayout from "@/components/PortalLayout";
+import PETPortalBanner from "@/components/PETPortalBanner";
 import { Map, Plus, Wrench, ClipboardList, Trash2, Landmark, TrendingUp } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { ModalShell, Field, inputCls } from "@/components/pet/PetUi";
@@ -86,20 +87,18 @@ export default function GroundConditionPage() {
   return (
     <PortalLayout>
       <div className="p-6 w-full mx-auto space-y-6">
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--text-heading)]">Ground Condition & Maintenance</h1>
-            <p className="text-sm text-[var(--text-muted)] mt-1">
-              {facilities.length} facilities · {readyCount} ready for use · {attention} need attention
-            </p>
-          </div>
-          <button
-            onClick={() => setShowAddFacility(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
-          >
-            <Plus size={16} /> Add Facility
-          </button>
-        </div>
+        <PETPortalBanner
+          pageKey="ground"
+          customDesc={`${facilities.length} facilities · ${readyCount} ready for use · ${attention} need attention`}
+          rightElement={
+            <button
+              onClick={() => setShowAddFacility(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
+            >
+              <Plus size={16} /> Add Facility
+            </button>
+          }
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {facilities.map((f) => (
