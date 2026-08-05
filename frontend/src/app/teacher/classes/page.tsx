@@ -7,7 +7,7 @@ import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
 import KpiStrip from "@/components/kpi/KpiStrip";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
-
+import { useMemo } from "react";
 // ─── Types ─────────────────────────────────────────────────────
 interface DailyClass {
   id: string;
@@ -105,6 +105,36 @@ export default function ClassesPage() {
   const [todayClasses, setTodayClasses] = useState<DailyClass[]>([]);
   const [schoolClasses, setSchoolClasses] = useState<string[]>([]);
 
+  const [activeTab, setActiveTab] = useState<"my_classes" | "master_classes" | "master_subjects">("my_classes");
+  const [masterClasses, setMasterClasses] = useState<any[]>([]);
+  const [masterSubjects, setMasterSubjects] = useState<any[]>([]);
+  const [masterLoading, setMasterLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchMasterData = async () => {
+      setMasterLoading(true);
+      try {
+        const [cRes, sRes] = await Promise.all([
+          fetch(`${API_URL}/api/superadmin/academics/classes?_t=${Date.now()}`),
+          fetch(`${API_URL}/api/superadmin/academics/subjects?_t=${Date.now()}`)
+        ]);
+        const cData = await cRes.json();
+        const sData = await sRes.json();
+        if (cRes.ok && Array.isArray(cData)) {
+          setMasterClasses(cData);
+        }
+        if (sRes.ok && Array.isArray(sData)) {
+          setMasterSubjects(sData);
+        }
+      } catch (err) {
+        console.error("Master data fetch error", err);
+      } finally {
+        setMasterLoading(false);
+      }
+    };
+    fetchMasterData();
+  }, [API_URL]);
+
   // Fetch school configuration for valid classes
   useEffect(() => {
     if (!schoolId) return;
@@ -131,6 +161,20 @@ export default function ClassesPage() {
   const [intimateHM, setIntimateHM] = useState(true);
 
   // ── Fetch ────────────────────────────────────────────────────
+  const availableClasses = useMemo(() => {
+    if (masterClasses && masterClasses.length > 0) {
+      return Array.from(new Set(masterClasses.map(c => c.name.replace(/^Class\s+/i, '').trim()))).sort((a, b) => parseInt(a) - parseInt(b));
+    }
+    return CLASS_NUMS;
+  }, [masterClasses]);
+
+  const availableSubjects = useMemo(() => {
+    if (masterSubjects && masterSubjects.length > 0) {
+      return Array.from(new Set(masterSubjects.map(s => s.name))).sort();
+    }
+    return SUBJECTS;
+  }, [masterSubjects]);
+
   const fetchClasses = useCallback(async () => {
     if (!schoolId || !teacherId) return;
     setLoading(true);
@@ -556,8 +600,38 @@ export default function ClassesPage() {
         ))}
       </div>
 
-      {/* Toolbar */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 mb-5 shadow-sm">
+      {/* ── Tabs ────────────────────────────────────────────── */}
+      <div className="flex flex-wrap gap-2 bg-slate-100 dark:bg-slate-900 rounded-xl p-1 w-fit mb-5">
+        <button
+          onClick={() => setActiveTab("my_classes")}
+          className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+            activeTab === "my_classes" ? "bg-white dark:bg-slate-800 text-amber-600 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+          }`}
+        >
+          <i className="fi fi-rr-chalkboard-user"></i> My Classes
+        </button>
+        <button
+          onClick={() => setActiveTab("master_classes")}
+          className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+            activeTab === "master_classes" ? "bg-white dark:bg-slate-800 text-teal-600 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+          }`}
+        >
+          <i className="fi fi-rr-graduation-cap"></i> School Classes
+        </button>
+        <button
+          onClick={() => setActiveTab("master_subjects")}
+          className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+            activeTab === "master_subjects" ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+          }`}
+        >
+          <i className="fi fi-rr-book-alt"></i> School Subjects
+        </button>
+      </div>
+
+      {activeTab === "my_classes" && (
+        <>
+          {/* Toolbar */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 mb-5 shadow-sm">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
@@ -602,7 +676,7 @@ export default function ClassesPage() {
                 className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-white focus:outline-none focus:border-amber-500 transition-colors min-w-[150px]"
               >
                 <option value="All">{t("all_subjects")}</option>
-                {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
+                {uniqueSubjects.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
 
@@ -860,6 +934,81 @@ export default function ClassesPage() {
           </div>
         </>
       )}
+        </>
+      )}
+
+      {activeTab === "master_classes" && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+          <h2 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><i className="fi fi-rr-graduation-cap mr-2 text-teal-500"></i>Academic Hub - All Classes</h2>
+          {masterLoading ? (
+             <div className="text-center text-xs text-slate-400 py-10">Loading classes...</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    <th className="px-5 py-3">Class Name</th>
+                    <th className="px-5 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {masterClasses.map(mc => (
+                    <tr key={mc.id} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="px-5 py-3 text-xs font-bold text-slate-700 dark:text-slate-200">{mc.name}</td>
+                      <td className="px-5 py-3 text-xs">
+                        <span className={`px-2 py-0.5 rounded-full font-semibold ${mc.status === 'Active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>{mc.status || 'Active'}</span>
+                      </td>
+                    </tr>
+                  ))}
+                  {masterClasses.length === 0 && (
+                    <tr><td colSpan={2} className="px-5 py-8 text-center text-xs text-slate-400">No classes found</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "master_subjects" && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+          <h2 className="text-sm font-bold text-slate-800 dark:text-white mb-4"><i className="fi fi-rr-book-alt mr-2 text-indigo-500"></i>Academic Hub - All Subjects</h2>
+          {masterLoading ? (
+             <div className="text-center text-xs text-slate-400 py-10">Loading subjects...</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    <th className="px-5 py-3">Subject Name</th>
+                    <th className="px-5 py-3">Class / Section</th>
+                    <th className="px-5 py-3">Medium</th>
+                    <th className="px-5 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {masterSubjects.map(ms => (
+                    <tr key={ms.id} className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="px-5 py-3 text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                         <span className="text-lg">{ms.icon || '📚'}</span>
+                         {ms.name}
+                      </td>
+                      <td className="px-5 py-3 text-xs text-slate-600 dark:text-slate-400">{ms.class || 'All'} {ms.section ? `- ${ms.section}` : ''}</td>
+                      <td className="px-5 py-3 text-xs text-slate-600 dark:text-slate-400">{ms.medium || 'English'}</td>
+                      <td className="px-5 py-3 text-xs">
+                        <span className={`px-2 py-0.5 rounded-full font-semibold ${ms.status === 'Active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>{ms.status || 'Active'}</span>
+                      </td>
+                    </tr>
+                  ))}
+                  {masterSubjects.length === 0 && (
+                    <tr><td colSpan={4} className="px-5 py-8 text-center text-xs text-slate-400">No subjects found</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Add / Edit Modal ─────────────────────────────────── */}
       {isModal && (
@@ -895,7 +1044,8 @@ export default function ClassesPage() {
                     onChange={(e) => setForm({ ...form, className: e.target.value })}
                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                   >
-                    {(schoolClasses.length > 0 ? schoolClasses : CLASS_NUMS).map((c) => (
+                    {availableClasses.length === 0 && <option disabled value="">No classes configured</option>}
+                    {availableClasses.map((c) => (
                       <option key={c} value={c}>Class {c}</option>
                     ))}
                   </select>
@@ -922,7 +1072,8 @@ export default function ClassesPage() {
                   onChange={(e) => setForm({ ...form, subject: e.target.value })}
                   className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                 >
-                  {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
+                  {availableSubjects.length === 0 && <option disabled value="">No subjects configured</option>}
+                  {availableSubjects.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
 
