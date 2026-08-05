@@ -109,10 +109,10 @@ export default function TeacherDigitalPortfolioPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [onlyMyClasses, setOnlyMyClasses] = useState<boolean>(!isHeadmaster);
   const [teacherAssignedClasses, setTeacherAssignedClasses] = useState<string[]>([]);
-  
+
   const [loadingStudents, setLoadingStudents] = useState<boolean>(true);
   const [loadingPortfolio, setLoadingPortfolio] = useState<boolean>(false);
-  
+
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [activeTab, setActiveTab] = useState<"aboutme" | "mystudies" | "activities" | "myprojects" | "myjourney">("aboutme");
 
@@ -186,7 +186,7 @@ export default function TeacherDigitalPortfolioPage() {
             const extractedNums = classNames
               .map((cn: any) => String(cn).replace(/\D/g, ""))
               .filter(Boolean);
-            
+
             if (extractedNums.length > 0) {
               setTeacherAssignedClasses(Array.from(new Set(extractedNums)));
               return;
@@ -209,11 +209,11 @@ export default function TeacherDigitalPortfolioPage() {
         setLoadingStudents(true);
         const res = await fetch(`${API_BASE}/api/students${schoolId ? `?schoolId=${schoolId}` : ""}`);
         const json = await res.json();
-        
+
         if (json.success && json.data) {
           const list: StudentSummary[] = json.data.map((st: any, idx: number) => {
             const rawName = (st.user?.name || st.name || "").trim();
-            const displayName = (!rawName || rawName.length <= 1) 
+            const displayName = (!rawName || rawName.length <= 1)
               ? (idx === 0 ? "Vijay K." : idx === 1 ? "Priya S." : idx === 2 ? "Keerthana L." : `Student ${idx + 1}`)
               : rawName;
 
@@ -233,7 +233,7 @@ export default function TeacherDigitalPortfolioPage() {
               avatarBg: avatarGradients[idx % avatarGradients.length]
             };
           });
-          
+
           setStudents(list);
           if (list.length > 0) {
             setSelectedStudent(list[0]);
@@ -257,11 +257,11 @@ export default function TeacherDigitalPortfolioPage() {
       try {
         setLoadingPortfolio(true);
         const isTeenu = selectedStudent.name.toLowerCase().includes("teenu") || (selectedStudent.emis && selectedStudent.emis.includes("984522222211111"));
-        
+
         // 1. Check local storage
         let localSaved = null;
         if (typeof window !== 'undefined') {
-          localSaved = isTeenu 
+          localSaved = isTeenu
             ? (localStorage.getItem("portfolio_teenu") || localStorage.getItem(`portfolio_${selectedStudent.id}`) || localStorage.getItem("portfolio_984522222211111"))
             : localStorage.getItem(`portfolio_${selectedStudent.id}`);
         }
@@ -300,7 +300,7 @@ export default function TeacherDigitalPortfolioPage() {
                 }
               }
             }
-          } catch (e) {}
+          } catch (e) { }
         }
 
         if (!portData) {
@@ -699,8 +699,8 @@ export default function TeacherDigitalPortfolioPage() {
   const baseStudentsList = !isHeadmaster
     ? students.filter(s => effectiveAssignedClasses.includes(s.class))
     : (onlyMyClasses && teacherAssignedClasses.length > 0
-        ? students.filter(s => teacherAssignedClasses.includes(s.class))
-        : students);
+      ? students.filter(s => teacherAssignedClasses.includes(s.class))
+      : students);
 
   const classesList = ["All", ...Array.from(new Set(baseStudentsList.map(s => s.class).filter(Boolean)))].sort((a, b) => {
     const numA = parseInt(a, 10);
@@ -742,57 +742,53 @@ export default function TeacherDigitalPortfolioPage() {
   return (
     <PortalLayout>
       <div className="space-y-6 pt-4 pb-16 overflow-y-auto min-h-screen">
-        
+
         {/* Executive Hero Banner */}
-        <div className={`relative overflow-hidden rounded-3xl p-6 md:p-8 text-white shadow-2xl border ${
-          isHeadmaster
-            ? "bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-indigo-500/30"
-            : "bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 border-amber-500/30"
-        }`}>
+        <div className="relative bg-white rounded-3xl border border-slate-200 shadow-md p-6 overflow-hidden">
           {/* Subtle Background Glow Spheres */}
           <div className="absolute -top-12 -right-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-amber-500/8 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/80 backdrop-blur-md text-xs font-bold text-amber-400 border border-amber-500/40 shadow-sm">
-                <FolderOpen className="w-4 h-4 text-amber-400" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-xs font-bold text-amber-600 border border-amber-200 shadow-sm">
+                <FolderOpen className="w-4 h-4 text-amber-500" />
                 {isHeadmaster
                   ? (lang === "தமிழ்" ? "🛡️ தலைமையாசிரியர் போர்ட்ஃபோலியோ கட்டுப்பாட்டகம்" : "🛡️ Headmaster Portfolio Console")
                   : (lang === "தமிழ்" ? "🎓 ஆசிரியர் போர்ட்ஃபோலியோ மேலாளர்" : "🎓 Teacher Student Portfolio Manager")}
               </div>
-              
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
+
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-800">
                 {lang === "தமிழ்" ? "மாணவர் டிஜிட்டல் போர்ட்ஃபோலியோ" : "Student Digital Portfolios"}
               </h1>
-              
-              <p className="text-slate-300 text-xs md:text-sm max-w-2xl leading-relaxed">
-                {lang === "தமிழ்" 
+
+              <p className="text-slate-500 text-xs md:text-sm max-w-2xl leading-relaxed">
+                {lang === "தமிழ்"
                   ? "மாணவர்களின் திறன்கள், ஆய்வகப் பங்களிப்பு, திட்டங்கள் மற்றும் சாதனைகளை 360-டிகிரியில் பார்வையிட்டு ஆசிரிய நற்சான்றிதழ்களை வழங்கவும்."
                   : "360-degree cumulative profile monitoring. Track student academic logs, practical competencies, project showcases, and teacher endorsements."}
               </p>
             </div>
-            
+
             {/* Quick Status KPI Widget */}
-            <div className="flex items-center gap-4 bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 shrink-0 w-full lg:w-auto justify-around">
-              <div className="text-center px-3 border-r border-slate-800">
+            <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 shrink-0 w-full lg:w-auto justify-around">
+              <div className="text-center px-3 border-r border-slate-200">
                 <span className="block text-[10px] text-slate-400 uppercase font-bold tracking-wider">
                   {lang === "தமிழ்" ? "மாணவர்கள்" : "Total Students"}
                 </span>
-                <span className="text-lg font-black text-amber-400">{filteredStudents.length}</span>
+                <span className="text-lg font-black text-amber-500">{filteredStudents.length}</span>
               </div>
 
-              <div className="text-center px-3 border-r border-slate-800">
+              <div className="text-center px-3 border-r border-slate-200">
                 <span className="block text-[10px] text-slate-400 uppercase font-bold tracking-wider">
                   {lang === "தமிழ்" ? "வகுப்புகள்" : "Standards"}
                 </span>
-                <span className="text-lg font-black text-indigo-400">{classesList.filter(c => c !== "All").length}</span>
+                <span className="text-lg font-black text-indigo-500">{classesList.filter(c => c !== "All").length}</span>
               </div>
 
               <div className="flex items-center gap-2 pl-2">
-                <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                <ShieldCheck className="w-6 h-6 text-emerald-500" />
                 <div className="text-left text-[11px]">
-                  <span className="block font-black text-emerald-400">
+                  <span className="block font-black text-emerald-600">
                     {lang === "தமிழ்" ? "திருத்தும் அனுமதி" : "Edit Active"}
                   </span>
                   <span className="text-slate-400 font-medium">
@@ -807,7 +803,7 @@ export default function TeacherDigitalPortfolioPage() {
         {/* Student Selector & Filter Bar */}
         <div className="bg-[var(--bg-card)] p-5 rounded-3xl border border-[var(--border)] shadow-lg space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            
+
             {/* Search Box */}
             <div className="relative flex-1">
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -832,7 +828,7 @@ export default function TeacherDigitalPortfolioPage() {
                 >
                   {classesList.map((cls) => (
                     <option key={cls} value={cls}>
-                      {cls === "All" 
+                      {cls === "All"
                         ? (lang === "தமிழ்" ? "அனைத்து வகுப்புகளும்" : "All Classes")
                         : `${lang === "தமிழ்" ? "வகுப்பு" : "Class"} ${cls}`}
                     </option>
@@ -849,7 +845,7 @@ export default function TeacherDigitalPortfolioPage() {
                 >
                   {sectionsList.map((sec) => (
                     <option key={sec} value={sec}>
-                      {sec === "All" 
+                      {sec === "All"
                         ? (lang === "தமிழ்" ? "அனைத்து பிரிவுகளும்" : "All Sections")
                         : `${lang === "தமிழ்" ? "பிரிவு" : "Section"} ${sec}`}
                     </option>
@@ -862,11 +858,10 @@ export default function TeacherDigitalPortfolioPage() {
                 <button
                   type="button"
                   onClick={() => setOnlyMyClasses(!onlyMyClasses)}
-                  className={`px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all border shrink-0 flex items-center gap-1.5 ${
-                    onlyMyClasses
-                      ? "bg-amber-500/15 border-amber-500 text-amber-400 shadow-sm"
-                      : "bg-slate-800/40 border-slate-700 text-slate-400 hover:text-white"
-                  }`}
+                  className={`px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all border shrink-0 flex items-center gap-1.5 ${onlyMyClasses
+                    ? "bg-amber-500/15 border-amber-500 text-amber-400 shadow-sm"
+                    : "bg-slate-800/40 border-slate-700 text-slate-400 hover:text-white"
+                    }`}
                 >
                   {onlyMyClasses
                     ? (lang === "தமிழ்" ? "எனது வகுப்புகள் மட்டும் ✓" : "My Classes Only ✓")
@@ -894,11 +889,10 @@ export default function TeacherDigitalPortfolioPage() {
                   <button
                     key={st.id}
                     onClick={() => setSelectedStudent(st)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all shrink-0 min-w-[210px] ${
-                      isSelected
-                        ? "bg-gradient-to-r from-amber-500/15 to-orange-500/15 border-amber-500 text-[var(--text-heading)] shadow-md ring-1 ring-amber-500/40"
-                        : "bg-[var(--bg-card)] border-[var(--border)] text-slate-400 hover:border-amber-500/40 hover:bg-slate-800/40"
-                    }`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all shrink-0 min-w-[210px] ${isSelected
+                      ? "bg-gradient-to-r from-amber-500/15 to-orange-500/15 border-amber-500 text-[var(--text-heading)] shadow-md ring-1 ring-amber-500/40"
+                      : "bg-[var(--bg-card)] border-[var(--border)] text-slate-400 hover:border-amber-500/40 hover:bg-slate-800/40"
+                      }`}
                   >
                     <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${st.avatarBg} text-white flex items-center justify-center font-black text-sm shadow-md shrink-0`}>
                       {st.avatarLetter}
@@ -922,7 +916,7 @@ export default function TeacherDigitalPortfolioPage() {
         {/* Selected Student Banner & Active Tabs */}
         {selectedStudent && (
           <div className="space-y-6">
-            
+
             {/* Selected Student Executive KPI Card */}
             <div className="bg-[var(--bg-card)] p-6 rounded-3xl border border-[var(--border)] shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div className="flex items-center gap-5">
@@ -970,15 +964,14 @@ export default function TeacherDigitalPortfolioPage() {
 
             {/* 5 Flat Icon Tabs Navigation */}
             <div className="flex items-center gap-2 border-b border-[var(--border)] pb-3 overflow-x-auto">
-              
+
               {/* Tab 1: About Me */}
               <button
                 onClick={() => setActiveTab("aboutme")}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2.5 shrink-0 ${
-                  activeTab === "aboutme"
-                    ? "bg-amber-500 text-slate-950 shadow-lg font-extrabold"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/40"
-                }`}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2.5 shrink-0 ${activeTab === "aboutme"
+                  ? "bg-amber-500 text-slate-950 shadow-lg font-extrabold"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                  }`}
               >
                 <FlatIcon name="identity" className="w-5 h-5" />
                 {lang === "தமிழ்" ? "என்னைப் பற்றி" : "About Me"}
@@ -987,11 +980,10 @@ export default function TeacherDigitalPortfolioPage() {
               {/* Tab 2: My Studies */}
               <button
                 onClick={() => setActiveTab("mystudies")}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2.5 shrink-0 ${
-                  activeTab === "mystudies"
-                    ? "bg-amber-500 text-slate-950 shadow-lg font-extrabold"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/40"
-                }`}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2.5 shrink-0 ${activeTab === "mystudies"
+                  ? "bg-amber-500 text-slate-950 shadow-lg font-extrabold"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                  }`}
               >
                 <FlatIcon name="learning" className="w-5 h-5" />
                 {lang === "தமிழ்" ? "என் படிப்பு" : "My Studies"}
@@ -1000,11 +992,10 @@ export default function TeacherDigitalPortfolioPage() {
               {/* Tab 3: Activities */}
               <button
                 onClick={() => setActiveTab("activities")}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2.5 shrink-0 ${
-                  activeTab === "activities"
-                    ? "bg-amber-500 text-slate-950 shadow-lg font-extrabold"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/40"
-                }`}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2.5 shrink-0 ${activeTab === "activities"
+                  ? "bg-amber-500 text-slate-950 shadow-lg font-extrabold"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                  }`}
               >
                 <FlatIcon name="experience" className="w-5 h-5" />
                 {lang === "தமிழ்" ? "செயல்பாடுகள்" : "Activities"}
@@ -1013,11 +1004,10 @@ export default function TeacherDigitalPortfolioPage() {
               {/* Tab 4: My Projects */}
               <button
                 onClick={() => setActiveTab("myprojects")}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2.5 shrink-0 ${
-                  activeTab === "myprojects"
-                    ? "bg-amber-500 text-slate-950 shadow-lg font-extrabold"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/40"
-                }`}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2.5 shrink-0 ${activeTab === "myprojects"
+                  ? "bg-amber-500 text-slate-950 shadow-lg font-extrabold"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                  }`}
               >
                 <FlatIcon name="portfoliotab" className="w-5 h-5" />
                 {lang === "தமிழ்" ? "என் படைப்புகள்" : "My Projects"}
@@ -1026,11 +1016,10 @@ export default function TeacherDigitalPortfolioPage() {
               {/* Tab 5: My Journey */}
               <button
                 onClick={() => setActiveTab("myjourney")}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2.5 shrink-0 ${
-                  activeTab === "myjourney"
-                    ? "bg-amber-500 text-slate-950 shadow-lg font-extrabold"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/40"
-                }`}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2.5 shrink-0 ${activeTab === "myjourney"
+                  ? "bg-amber-500 text-slate-950 shadow-lg font-extrabold"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+                  }`}
               >
                 <FlatIcon name="growth" className="w-5 h-5" />
                 {lang === "தமிழ்" ? "என் பயணம்" : "My Journey"}
@@ -1045,11 +1034,11 @@ export default function TeacherDigitalPortfolioPage() {
               </div>
             ) : portfolio ? (
               <div>
-                
+
                 {/* 1. ABOUT ME TAB */}
                 {activeTab === "aboutme" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    
+
                     {/* Card 1: Personal Profile & Bio */}
                     <div className="bg-[var(--bg-card)] p-6 rounded-3xl border border-[var(--border)] space-y-4 shadow-sm">
                       <div className="flex items-center justify-between">
@@ -1186,8 +1175,8 @@ export default function TeacherDigitalPortfolioPage() {
                         </form>
                       ) : (
                         <div className="space-y-2">
-                          {(portfolio.profile.termGoals && portfolio.profile.termGoals.length > 0 
-                            ? portfolio.profile.termGoals 
+                          {(portfolio.profile.termGoals && portfolio.profile.termGoals.length > 0
+                            ? portfolio.profile.termGoals
                             : ["Improve Mathematics", "Score above 90%", "Participate in Science Fair", "Become School Captain"]
                           ).map((goal, idx) => (
                             <div key={idx} className="flex items-center gap-3 bg-slate-900/50 p-3 rounded-2xl border border-slate-800">
@@ -1237,11 +1226,10 @@ export default function TeacherDigitalPortfolioPage() {
                                 key={pIdx}
                                 type="button"
                                 onClick={() => setProfileForm({ ...profileForm, careerGoal: preset })}
-                                className={`text-[10px] px-2.5 py-0.5 rounded-lg border transition-colors ${
-                                  profileForm.careerGoal === preset 
-                                    ? "bg-purple-500 text-white border-purple-400 font-bold" 
-                                    : "bg-slate-950 text-slate-300 border-slate-800 hover:border-purple-500/50"
-                                }`}
+                                className={`text-[10px] px-2.5 py-0.5 rounded-lg border transition-colors ${profileForm.careerGoal === preset
+                                  ? "bg-purple-500 text-white border-purple-400 font-bold"
+                                  : "bg-slate-950 text-slate-300 border-slate-800 hover:border-purple-500/50"
+                                  }`}
                               >
                                 {preset}
                               </button>
@@ -1278,11 +1266,10 @@ export default function TeacherDigitalPortfolioPage() {
                             {["Doctor", "Engineer", "IAS Officer", "Teacher", "Sportsperson", "Entrepreneur"].map((asp, idx) => {
                               const isChosen = (portfolio.profile.careerGoal || "Environmental Science").toLowerCase().includes(asp.toLowerCase());
                               return (
-                                <span key={idx} className={`text-[10px] font-extrabold px-3 py-1 rounded-xl border ${
-                                  isChosen
-                                    ? "bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm"
-                                    : "bg-slate-900/40 text-slate-400 border-slate-800"
-                                }`}>
+                                <span key={idx} className={`text-[10px] font-extrabold px-3 py-1 rounded-xl border ${isChosen
+                                  ? "bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm"
+                                  : "bg-slate-900/40 text-slate-400 border-slate-800"
+                                  }`}>
                                   {isChosen ? `✓ ${asp}` : asp}
                                 </span>
                               );
@@ -1480,9 +1467,9 @@ export default function TeacherDigitalPortfolioPage() {
                           <div className="flex flex-wrap gap-1.5 pt-1">
                             <span className="text-[10px] text-slate-400 self-center">Quick Add:</span>
                             {[
-                              "Class Representative", 
-                              "Science Club Secretary", 
-                              "Sports House Captain", 
+                              "Class Representative",
+                              "Science Club Secretary",
+                              "Sports House Captain",
                               "Eco Club Member",
                               "School Assembly Coordinator",
                               "Cultural Club Leader"
@@ -1502,11 +1489,10 @@ export default function TeacherDigitalPortfolioPage() {
                                       setProfileForm({ ...profileForm, leadershipRoles: updated.join(", ") });
                                     }
                                   }}
-                                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-colors ${
-                                    isSelected
-                                      ? "bg-blue-500 text-white border-blue-400 font-bold"
-                                      : "bg-slate-950 text-slate-300 border-slate-800 hover:border-blue-500/50"
-                                  }`}
+                                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-colors ${isSelected
+                                    ? "bg-blue-500 text-white border-blue-400 font-bold"
+                                    : "bg-slate-950 text-slate-300 border-slate-800 hover:border-blue-500/50"
+                                    }`}
                                 >
                                   {isSelected ? `✓ ${rolePreset}` : `+ ${rolePreset}`}
                                 </button>
@@ -1533,8 +1519,8 @@ export default function TeacherDigitalPortfolioPage() {
                         </form>
                       ) : (
                         <div className="space-y-2">
-                          {(portfolio.profile.leadershipRoles && portfolio.profile.leadershipRoles.length > 0 
-                            ? portfolio.profile.leadershipRoles 
+                          {(portfolio.profile.leadershipRoles && portfolio.profile.leadershipRoles.length > 0
+                            ? portfolio.profile.leadershipRoles
                             : ["Class Representative", "Science Club Secretary", "Sports House Captain", "Eco Club Member"]
                           ).map((role, idx) => (
                             <div key={idx} className="flex items-center gap-3 bg-slate-900/50 p-3 rounded-2xl border border-slate-800">
@@ -1612,9 +1598,9 @@ export default function TeacherDigitalPortfolioPage() {
                           <div className="flex flex-wrap gap-1.5 pt-1">
                             <span className="text-[10px] text-slate-400 self-center">Quick Add:</span>
                             {[
-                              "Tamil (Native)", 
-                              "English (Fluent)", 
-                              "Hindi (Basic)", 
+                              "Tamil (Native)",
+                              "English (Fluent)",
+                              "Hindi (Basic)",
                               "French (Basic)",
                               "Telugu (Spoken)"
                             ].map((langPreset, lIdx) => {
@@ -1630,11 +1616,10 @@ export default function TeacherDigitalPortfolioPage() {
                                       setProfileForm({ ...profileForm, languages: updated.join(", ") });
                                     }
                                   }}
-                                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-colors ${
-                                    isSelected
-                                      ? "bg-teal-500 text-white border-teal-400 font-bold"
-                                      : "bg-slate-950 text-slate-300 border-slate-800 hover:border-teal-500/50"
-                                  }`}
+                                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-colors ${isSelected
+                                    ? "bg-teal-500 text-white border-teal-400 font-bold"
+                                    : "bg-slate-950 text-slate-300 border-slate-800 hover:border-teal-500/50"
+                                    }`}
                                 >
                                   {isSelected ? `✓ ${langPreset}` : `+ ${langPreset}`}
                                 </button>
@@ -1815,7 +1800,7 @@ export default function TeacherDigitalPortfolioPage() {
                                   <span className="text-[10px] font-black uppercase text-emerald-400 block">🏆 Highest Scoring Subject</span>
                                   <span className="font-bold text-white text-sm">{highestSub.subject} ({highestSub.examName})</span>
                                 </div>
-                                <span className="font-mono font-black text-emerald-400 text-base">{Math.round((highestSub.marksObtained/highestSub.maxMarks)*100)}%</span>
+                                <span className="font-mono font-black text-emerald-400 text-base">{Math.round((highestSub.marksObtained / highestSub.maxMarks) * 100)}%</span>
                               </div>
 
                               {/* Lowest Subject */}
@@ -1824,7 +1809,7 @@ export default function TeacherDigitalPortfolioPage() {
                                   <span className="text-[10px] font-black uppercase text-rose-400 block">⚠️ Lowest Scoring Subject (Needs Focus)</span>
                                   <span className="font-bold text-white text-sm">{lowestSub.subject} ({lowestSub.examName})</span>
                                 </div>
-                                <span className="font-mono font-black text-rose-400 text-base">{Math.round((lowestSub.marksObtained/lowestSub.maxMarks)*100)}%</span>
+                                <span className="font-mono font-black text-rose-400 text-base">{Math.round((lowestSub.marksObtained / lowestSub.maxMarks) * 100)}%</span>
                               </div>
                             </div>
 
@@ -1833,8 +1818,8 @@ export default function TeacherDigitalPortfolioPage() {
                               <span className="font-bold text-amber-400 block mb-0.5">📌 Teacher / AI Performance Note:</span>
                               <p className="text-[11px] leading-relaxed">
                                 {lang === "தமிழ்"
-                                  ? `${lowestSub.subject} பாடத்தில் (${Math.round((lowestSub.marksObtained/lowestSub.maxMarks)*100)}%) மற்ற பாடங்களோடு ஒப்பிடுகையில் குறைவான மதிப்பெண் பெறப்பட்டுள்ளது. ${highestSub.subject} பாடத்தில் பெறப்பட்ட உயர் மதிப்பெண் (${Math.round((highestSub.marksObtained/highestSub.maxMarks)*100)}%) போல கூடுதல் கவனம் செலுத்த பரிந்துரைக்கப்படுகிறது.`
-                                  : `Notice: ${lowestSub.subject} (${Math.round((lowestSub.marksObtained/lowestSub.maxMarks)*100)}%) is currently your lowest scoring subject compared to ${highestSub.subject} (${Math.round((highestSub.marksObtained/highestSub.maxMarks)*100)}%). Special revision and extra practice recommended.`
+                                  ? `${lowestSub.subject} பாடத்தில் (${Math.round((lowestSub.marksObtained / lowestSub.maxMarks) * 100)}%) மற்ற பாடங்களோடு ஒப்பிடுகையில் குறைவான மதிப்பெண் பெறப்பட்டுள்ளது. ${highestSub.subject} பாடத்தில் பெறப்பட்ட உயர் மதிப்பெண் (${Math.round((highestSub.marksObtained / highestSub.maxMarks) * 100)}%) போல கூடுதல் கவனம் செலுத்த பரிந்துரைக்கப்படுகிறது.`
+                                  : `Notice: ${lowestSub.subject} (${Math.round((lowestSub.marksObtained / lowestSub.maxMarks) * 100)}%) is currently your lowest scoring subject compared to ${highestSub.subject} (${Math.round((highestSub.marksObtained / highestSub.maxMarks) * 100)}%). Special revision and extra practice recommended.`
                                 }
                               </p>
                             </div>
@@ -1858,11 +1843,10 @@ export default function TeacherDigitalPortfolioPage() {
                                 <button
                                   key={fIdx}
                                   onClick={() => setSelectedTermFilter(tFilter.val)}
-                                  className={`px-3 py-1.5 rounded-xl font-bold transition-all border ${
-                                    selectedTermFilter === tFilter.val
-                                      ? "bg-amber-500 text-slate-950 border-amber-400 font-black shadow-md"
-                                      : "bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40"
-                                  }`}
+                                  className={`px-3 py-1.5 rounded-xl font-bold transition-all border ${selectedTermFilter === tFilter.val
+                                    ? "bg-amber-500 text-slate-950 border-amber-400 font-black shadow-md"
+                                    : "bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40"
+                                    }`}
                                 >
                                   {tFilter.label}
                                 </button>
@@ -1922,20 +1906,18 @@ export default function TeacherDigitalPortfolioPage() {
                                               )}
                                             </td>
                                             <td className="p-3.5 text-slate-300 font-medium">
-                                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                                m.examName.includes("Quarterly") ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" :
+                                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${m.examName.includes("Quarterly") ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" :
                                                 m.examName.includes("Half") ? "bg-teal-500/10 text-teal-400 border border-teal-500/20" :
-                                                "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                                              }`}>
+                                                  "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                                }`}>
                                                 {m.examName}
                                               </span>
                                             </td>
                                             <td className="p-3.5 text-center">
-                                              <span className={`px-3 py-1 rounded-xl font-mono text-xs font-black ${
-                                                pct >= 90 ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" :
+                                              <span className={`px-3 py-1 rounded-xl font-mono text-xs font-black ${pct >= 90 ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" :
                                                 pct >= 75 ? "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30" :
-                                                "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                                              }`}>
+                                                  "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                                                }`}>
                                                 {pct}%
                                               </span>
                                             </td>
@@ -1971,10 +1953,10 @@ export default function TeacherDigitalPortfolioPage() {
                       const petEvents = petLoad(EVENTS_KEY, DEFAULT_EVENTS);
 
                       const targetName = portfolio?.profile?.name || selectedStudent?.name || "Teenu";
-                      
+
                       // Match student record from PET Portal database
-                      const matchedRecord = petRecords.find(r => 
-                        r.name.toLowerCase().includes(targetName.toLowerCase()) || 
+                      const matchedRecord = petRecords.find(r =>
+                        r.name.toLowerCase().includes(targetName.toLowerCase()) ||
                         targetName.toLowerCase().includes(r.name.toLowerCase().split(' ')[0])
                       ) || petRecords.find(r => r.id === "fr-9") || {
                         name: targetName,
@@ -1992,8 +1974,8 @@ export default function TeacherDigitalPortfolioPage() {
                       };
 
                       // Match awards from PET Portal database
-                      const matchedAwards = petAwards.filter(a => 
-                        a.student.toLowerCase().includes(targetName.toLowerCase()) || 
+                      const matchedAwards = petAwards.filter(a =>
+                        a.student.toLowerCase().includes(targetName.toLowerCase()) ||
                         targetName.toLowerCase().includes(a.student.toLowerCase().split(' ')[0])
                       );
 

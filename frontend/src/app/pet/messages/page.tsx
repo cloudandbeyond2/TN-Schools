@@ -34,6 +34,7 @@ export default function PetMessagesPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
 
   // Fetch parents in the school
   const fetchParents = useCallback(async () => {
@@ -60,7 +61,7 @@ export default function PetMessagesPage() {
     if (!parentId) return;
     setLoadingMessages(true);
     try {
-      const res = await fetch(`${API_URL}/api/teacher/messages/${parentId}`);
+      const res = await fetch(`${API_URL}/api/teacher/messages/${parentId}?teacherId=${(session?.user as any)?.id || ""}`);
       const json = await res.json();
       if (json.success && json.data) {
         setMessages(json.data);
@@ -70,7 +71,7 @@ export default function PetMessagesPage() {
     } finally {
       setLoadingMessages(false);
     }
-  }, [API_URL]);
+  }, [API_URL, session]);
 
   useEffect(() => {
     fetchParents();
@@ -93,7 +94,8 @@ export default function PetMessagesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           parentId: selectedParentId,
-          sender: teacherName,
+          teacherId: (session?.user as any)?.id,
+          sender: "teacher",
           text: chatInput.trim(),
           schoolId
         }),
@@ -129,7 +131,7 @@ export default function PetMessagesPage() {
 
   return (
     <PortalLayout>
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-6 w-full space-y-6">
 
 
         <div className="flex items-center justify-between">
@@ -154,9 +156,9 @@ export default function PetMessagesPage() {
             No parent chat records found for this school.
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-190px)]">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-260px)] lg:h-[calc(100vh-190px)]">
             {/* Contacts list */}
-            <div className="lg:col-span-1 bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl flex flex-col gap-4 overflow-y-auto">
+            <div className={`lg:col-span-1 bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl flex flex-col gap-4 overflow-y-auto ${mobileView === "list" ? "flex" : "hidden lg:flex"}`}>
               <div className="border-b border-[var(--border-light)] pb-3">
                 <h3 className="text-[var(--text-heading)] font-semibold text-xs uppercase tracking-wider flex items-center gap-1.5">
                   <User size={16} /> Parent Inbox
@@ -168,7 +170,10 @@ export default function PetMessagesPage() {
                   return (
                     <button
                       key={p.id}
-                      onClick={() => setSelectedParentId(p.id)}
+                      onClick={() => {
+                        setSelectedParentId(p.id);
+                        setMobileView("chat");
+                      }}
                       className={`w-full text-left p-3.5 rounded-xl border transition-all text-xs relative ${
                         isSelected
                           ? "border-lime-500 bg-lime-500/5 text-[var(--text-heading)]"
@@ -187,16 +192,27 @@ export default function PetMessagesPage() {
                 })}
               </div>
             </div>
-
+ 
             {/* Chat Box */}
-            <div className="lg:col-span-3 flex flex-col bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden">
+            <div className={`lg:col-span-3 flex flex-col bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden ${mobileView === "chat" ? "flex" : "hidden lg:flex"}`}>
               {activeParent && (
-                <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-light)] bg-slate-50/50 dark:bg-slate-900/10">
-                  <div>
-                    <h4 className="text-[var(--text-heading)] font-bold text-sm">{activeParent.name}</h4>
-                    <p className="text-[10px] text-[var(--text-muted)]">Parent of {activeParent.studentName} (Class {activeParent.studentClass})</p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-3 md:px-5 py-3 sm:py-4 border-b border-[var(--border-light)] bg-slate-50/50 dark:bg-slate-900/10 gap-2">
+                  <div className="flex items-center gap-2 md:gap-3 min-w-0 w-full sm:w-auto">
+                    {/* Mobile Back Button */}
+                    <button
+                      onClick={() => setMobileView("list")}
+                      className="lg:hidden p-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-xs font-semibold text-[var(--text-heading)] mr-1 hover:bg-[var(--bg-card-hover)] transition-all shrink-0"
+                    >
+                      ←
+                    </button>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-[var(--text-heading)] font-bold text-sm truncate">{activeParent.name}</h4>
+                      <p className="text-[10px] font-bold text-[var(--text-muted)] truncate">Parent of {activeParent.studentName} (Class {activeParent.studentClass})</p>
+                    </div>
                   </div>
-                  <span className="px-2 py-0.5 rounded bg-lime-500/10 text-lime-600 dark:text-lime-450 border border-lime-500/20 text-[9px] font-bold">PT Instructor Direct</span>
+                  <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end shrink-0">
+                    <span className="px-2 py-0.5 rounded bg-lime-500/10 text-lime-600 dark:text-lime-450 border border-lime-500/20 text-[9px] font-bold shrink-0">PT Instructor Direct</span>
+                  </div>
                 </div>
               )}
 
@@ -206,7 +222,7 @@ export default function PetMessagesPage() {
                   <div className="text-center py-12 text-xs text-[var(--text-muted)] animate-pulse">Loading message log...</div>
                 ) : messages.length > 0 ? (
                   messages.map((msg, i) => {
-                    const isTeacher = msg.sender !== "Parent";
+                    const isTeacher = msg.sender !== "parent";
                     return (
                       <div key={i} className={`flex ${isTeacher ? "justify-end" : "justify-start"}`}>
                         <div

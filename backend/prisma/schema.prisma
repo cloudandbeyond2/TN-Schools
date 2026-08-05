@@ -1083,12 +1083,14 @@ model CentralContent {
 model Message {
   id        String   @id @default(uuid())
   parentId  String
+  teacherId String?
   sender    String
   text      String
   schoolId  String?
   createdAt DateTime @default(now())
 
   @@index([parentId])
+  @@index([teacherId])
   @@index([schoolId])
 }
 
