@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
@@ -199,6 +199,46 @@ export default function HeadmasterExamsPage() {
   const { lang } = usePortalLanguage();
   const [exams, setExams] = useState<ExamCalendar[]>([]);
   const [isMounted, setIsMounted] = useState(false);
+
+  const [masterClasses, setMasterClasses] = useState<any[]>([]);
+  const [masterSubjects, setMasterSubjects] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchMasterData = async () => {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const [cRes, sRes] = await Promise.all([
+          fetch(`${API_URL}/api/superadmin/academics/classes?_t=${Date.now()}`),
+          fetch(`${API_URL}/api/superadmin/academics/subjects?_t=${Date.now()}`)
+        ]);
+        const cData = await cRes.json();
+        const sData = await sRes.json();
+        if (cRes.ok && Array.isArray(cData)) {
+          setMasterClasses(cData);
+        }
+        if (sRes.ok && Array.isArray(sData)) {
+          setMasterSubjects(sData);
+        }
+      } catch (err) {
+        console.error("Master data fetch error", err);
+      }
+    };
+    fetchMasterData();
+  }, []);
+
+  const availableClasses = useMemo(() => {
+    if (masterClasses && masterClasses.length > 0) {
+      return Array.from(new Set(masterClasses.map(c => `Class ${c.name.replace(/^Class\s+/i, '').trim()} (All)`))).sort((a, b) => parseInt(a.replace(/\D/g, "") || "0") - parseInt(b.replace(/\D/g, "") || "0"));
+    }
+    return CLASS_OPTIONS;
+  }, [masterClasses]);
+
+  const availableSubjects = useMemo(() => {
+    if (masterSubjects && masterSubjects.length > 0) {
+      return Array.from(new Set(masterSubjects.map(s => s.name))).sort();
+    }
+    return SUBJECT_OPTIONS;
+  }, [masterSubjects]);
 
   // Helper to format date in a student friendly format: "18 Jul 2026 (Saturday)"
   const formatStudentFriendlyDate = (dateStr: string) => {
@@ -1445,7 +1485,7 @@ export default function HeadmasterExamsPage() {
                       onChange={(e) => setFormData({ ...formData, classSection: e.target.value })}
                       className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
                     >
-                      {CLASS_OPTIONS.map((cls) => (
+                      {availableClasses.map((cls) => (
                         <option key={cls} value={cls}>{cls}</option>
                       ))}
                     </select>
@@ -1458,7 +1498,7 @@ export default function HeadmasterExamsPage() {
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
                     >
-                      {SUBJECT_OPTIONS.map((subj) => (
+                      {availableSubjects.map((subj) => (
                         <option key={subj} value={subj}>{subj}</option>
                       ))}
                     </select>
@@ -1476,20 +1516,20 @@ export default function HeadmasterExamsPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        if (selectedClasses.length === CLASS_OPTIONS.length) {
+                        if (selectedClasses.length === availableClasses.length) {
                           setSelectedClasses([]);
                         } else {
-                          setSelectedClasses([...CLASS_OPTIONS]);
+                          setSelectedClasses([...availableClasses]);
                         }
                       }}
                       className="text-[10px] font-extrabold text-blue-400 hover:text-blue-300 transition-colors"
                     >
-                      {selectedClasses.length === CLASS_OPTIONS.length ? "Deselect All" : "Select All"}
+                      {selectedClasses.length === availableClasses.length ? "Deselect All" : "Select All"}
                     </button>
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 bg-[var(--input-bg)] border border-[var(--border)] rounded-xl max-h-[160px] overflow-y-auto custom-scrollbar">
-                    {CLASS_OPTIONS.map((cls) => {
+                    {availableClasses.map((cls) => {
                       const isChecked = selectedClasses.includes(cls);
                       return (
                         <label 
@@ -1529,7 +1569,7 @@ export default function HeadmasterExamsPage() {
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
                   >
-                    {SUBJECT_OPTIONS.map((subj) => (
+                    {availableSubjects.map((subj) => (
                       <option key={subj} value={subj}>{subj}</option>
                     ))}
                   </select>
