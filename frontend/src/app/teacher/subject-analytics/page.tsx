@@ -1,8 +1,7 @@
 "use client";
 import { Bot, BarChart, CheckCircle, TrendingUp, Microscope, Book, BookOpen, Pencil, Star, Trash, X } from "lucide-react";
 
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 import PortalLayout from "@/components/PortalLayout";
@@ -11,7 +10,7 @@ import Swal from "sweetalert2";
 interface Chapter {
   id: string;
   name: string;
-  category: "Physics" | "Chemistry" | "Biology";
+  category: string;
   progress: number;
   avgScore: number;
   status: "Completed" | "In Progress" | "Not Started";
@@ -37,9 +36,9 @@ export default function SubjectAnalyticsPage() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [classStudents, setClassStudents] = useState<DiagnosticStudent[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
-  const [activeCategory, setActiveCategory] = useState<"All" | "Physics" | "Chemistry" | "Biology">("All");
+  const [activeCategory, setActiveCategory] = useState<string>("All");
   const [teacherClasses, setTeacherClasses] = useState<any[]>([]);
-  
+
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -53,7 +52,7 @@ export default function SubjectAnalyticsPage() {
   const [editingChapterId, setEditingChapterId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     topic: "",
-    category: "Physics" as Chapter["category"],
+    category: "Physics",
     progress: 0,
     avgScore: 75,
     status: "Not Started" as Chapter["status"],
@@ -91,6 +90,34 @@ export default function SubjectAnalyticsPage() {
     };
     fetchTeacherClasses();
   }, [schoolId, session, API_URL]);
+
+  // Extract unique PostgreSQL subjects taught by teacher
+  const availableCategories = useMemo(() => {
+    const subjectsList: string[] = [];
+
+    // 1. From PostgreSQL teacher classes
+    if (teacherClasses.length > 0) {
+      teacherClasses.forEach((c) => {
+        if (c.subject && !subjectsList.includes(c.subject)) {
+          subjectsList.push(c.subject);
+        }
+      });
+    }
+
+    // 2. From existing chapters
+    chapters.forEach((ch) => {
+      if (ch.category && !subjectsList.includes(ch.category)) {
+        subjectsList.push(ch.category);
+      }
+    });
+
+    // 3. Fallback only if no PostgreSQL classes exist
+    if (subjectsList.length === 0) {
+      return ["Physics", "Chemistry", "Biology"];
+    }
+
+    return subjectsList;
+  }, [teacherClasses, chapters]);
 
   const fetchChapters = async () => {
     try {
@@ -210,19 +237,19 @@ export default function SubjectAnalyticsPage() {
   const distribution =
     classStudents.length > 0
       ? [
-          { grade: "A+ (90-100)", count: distCounts.APlus, percent: Math.round((distCounts.APlus / totalSt) * 100), color: "from-emerald-500 to-teal-500" },
-          { grade: "A (80-89)", count: distCounts.A, percent: Math.round((distCounts.A / totalSt) * 100), color: "from-blue-500 to-cyan-500" },
-          { grade: "B (70-79)", count: distCounts.B, percent: Math.round((distCounts.B / totalSt) * 100), color: "from-indigo-500 to-purple-500" },
-          { grade: "C (60-69)", count: distCounts.C, percent: Math.round((distCounts.C / totalSt) * 100), color: "from-amber-500 to-orange-500" },
-          { grade: "F (<60)", count: distCounts.F, percent: Math.round((distCounts.F / totalSt) * 100), color: "from-red-500 to-pink-500" },
-        ]
+        { grade: "A+ (90-100)", count: distCounts.APlus, percent: Math.round((distCounts.APlus / totalSt) * 100), color: "from-emerald-500 to-teal-500" },
+        { grade: "A (80-89)", count: distCounts.A, percent: Math.round((distCounts.A / totalSt) * 100), color: "from-blue-500 to-cyan-500" },
+        { grade: "B (70-79)", count: distCounts.B, percent: Math.round((distCounts.B / totalSt) * 100), color: "from-indigo-500 to-purple-500" },
+        { grade: "C (60-69)", count: distCounts.C, percent: Math.round((distCounts.C / totalSt) * 100), color: "from-amber-500 to-orange-500" },
+        { grade: "F (<60)", count: distCounts.F, percent: Math.round((distCounts.F / totalSt) * 100), color: "from-red-500 to-pink-500" },
+      ]
       : [
-          { grade: "A+ (90-100)", count: 24, percent: 35, color: "from-emerald-500 to-teal-500" },
-          { grade: "A (80-89)", count: 32, percent: 45, color: "from-blue-500 to-cyan-500" },
-          { grade: "B (70-79)", count: 18, percent: 25, color: "from-indigo-500 to-purple-500" },
-          { grade: "C (60-69)", count: 12, percent: 18, color: "from-amber-500 to-orange-500" },
-          { grade: "F (<60)", count: 4, percent: 6, color: "from-red-500 to-pink-500" },
-        ];
+        { grade: "A+ (90-100)", count: 24, percent: 35, color: "from-emerald-500 to-teal-500" },
+        { grade: "A (80-89)", count: 32, percent: 45, color: "from-blue-500 to-cyan-500" },
+        { grade: "B (70-79)", count: 18, percent: 25, color: "from-indigo-500 to-purple-500" },
+        { grade: "C (60-69)", count: 12, percent: 18, color: "from-amber-500 to-orange-500" },
+        { grade: "F (<60)", count: 4, percent: 6, color: "from-red-500 to-pink-500" },
+      ];
 
   const handlePredictCompletion = () => {
     setIsProjecting(true);
@@ -248,7 +275,7 @@ export default function SubjectAnalyticsPage() {
     setEditingChapterId(null);
     setFormData({
       topic: "",
-      category: "Physics",
+      category: availableCategories[0] || "Physics",
       progress: 0,
       avgScore: 75,
       status: "Not Started",
@@ -407,11 +434,10 @@ export default function SubjectAnalyticsPage() {
                 <button
                   key={cls.id}
                   onClick={() => setSelectedClass(val)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                    isSelected
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${isSelected
                       ? "bg-[var(--primary)] text-white shadow-sm"
                       : "bg-[var(--bg-main)] text-[var(--text-muted)] hover:bg-slate-800"
-                  }`}
+                    }`}
                 >
                   {lang === "தமிழ்" ? `வகுப்பு ${cls.className}${cls.section} - ${cls.subject}` : `Class ${cls.className}${cls.section} - ${cls.subject}`}
                 </button>
@@ -540,16 +566,15 @@ export default function SubjectAnalyticsPage() {
               </h2>
 
               {/* Category tabs filters */}
-              <div className="flex gap-1.5 p-1 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl">
-                {(["All", "Physics", "Chemistry", "Biology"] as const).map((cat) => (
+              <div className="flex gap-1.5 p-1 bg-[var(--bg-main)] border border-[var(--border)] rounded-xl overflow-x-auto">
+                {(["All", ...availableCategories]).map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      activeCategory === cat
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeCategory === cat
                         ? "bg-[var(--primary)] text-white shadow-sm font-bold"
                         : "text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
-                    }`}
+                      }`}
                   >
                     {cat}
                   </button>
@@ -567,7 +592,7 @@ export default function SubjectAnalyticsPage() {
                     <span><span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">{chapter.category}</span>
                       <h3 className="text-sm font-bold text-[var(--text-heading)] mt-0.5">{chapter.name}</h3></span>
                     <div className="flex items-center gap-2">
-                      <span className={`badge ${ chapter.status === "Completed" ? "badge-green" : chapter.status === "In Progress" ? "badge-yellow" : "badge-gray" }`}>
+                      <span className={`badge ${chapter.status === "Completed" ? "badge-green" : chapter.status === "In Progress" ? "badge-yellow" : "badge-gray"}`}>
                         {lang === "தமிழ்" ? (chapter.status === "Completed" ? "முடிந்தது" : chapter.status === "In Progress" ? "நடைபெறுகிறது" : "தோடங்கவில்லை") : chapter.status}
                       </span>
                       <button onClick={() => handleEditClick(chapter)} className="text-xs text-blue-500 hover:text-blue-600 bg-blue-50 dark:bg-blue-500/10 p-1.5 rounded-lg border border-blue-200 dark:border-blue-500/20" title={lang === "தமிழ்" ? "மேம்பாடு திருத்து" : "Edit Progress"} ><Pencil className="w-4 h-4 inline-block mr-1 text-inherit" /><Star className="w-4 h-4 inline-block mr-1 text-inherit" /></button>
@@ -618,7 +643,7 @@ export default function SubjectAnalyticsPage() {
               <button
                 onClick={handlePredictCompletion}
                 disabled={isProjecting}
-                className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
+                className="!text-white  w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2"
               >
                 {isProjecting ? (lang === "தமிழ்" ? "கற்பிக்கும் வேகத்தை பகுப்பாய்வு செய்யப்படுகிறது..." : "Analyzing Teaching Velocity...") : (lang === "தமிழ்" ? " AI கடைசிநாள் பகுப்பாய்வு இயக்கு" : " Run AI Deadline Analysis")}
               </button>
@@ -680,11 +705,11 @@ export default function SubjectAnalyticsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">{lang === "தமிழ்" ? "வகைப்பாடு" : "CATEGORY"}</label>
-                  <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value as Chapter["category"] })} className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)]">
-                    <option value="Physics">{lang === "தமிழ்" ? "இயற்பியல்" : "Physics"}</option>
-                    <option value="Chemistry">{lang === "தமிழ்" ? "வேதியியல்" : "Chemistry"}</option>
-                    <option value="Biology">{lang === "தமிழ்" ? "உயிரியல்" : "Biology"}</option>
+                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">{lang === "தமிழ்" ? "வகைப்பாடு / பாடம்" : "CATEGORY / SUBJECT"}</label>
+                  <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full bg-[var(--bg-main)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary)]">
+                    {availableCategories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                   </select>
                 </div>
                 <div>

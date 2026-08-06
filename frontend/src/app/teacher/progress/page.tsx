@@ -943,7 +943,7 @@ function TeacherProgressContent() {
                 </div>
                 <button
                   onClick={() => setIsMarkModalOpen(false)}
-                  className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+                  className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full !text-black transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>

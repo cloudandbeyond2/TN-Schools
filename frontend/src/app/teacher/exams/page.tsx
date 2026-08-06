@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import PortalLayout from "@/components/PortalLayout";
 import { useSession } from "next-auth/react";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
@@ -143,6 +143,7 @@ export default function TeacherExamsPage() {
 
   // Model Exam results states
   const [modelExams, setModelExams] = useState<any[]>([]);
+  const [dbClassRooms, setDbClassRooms] = useState<any[]>([]);
   const [teacherClasses, setTeacherClasses] = useState<string[]>([]);
   const [activeClassTab, setActiveClassTab] = useState("11");
   const [loadingModelExams, setLoadingModelExams] = useState(false);
@@ -280,6 +281,7 @@ export default function TeacherExamsPage() {
         const res = await fetch(url);
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setDbClassRooms(json.data);
           const classesExtracted = Array.from(
             new Set(
               json.data
@@ -375,12 +377,54 @@ export default function TeacherExamsPage() {
     }
   };
 
+  // Dynamically compute Class Options based on PostgreSQL teacherClasses & Exam Duties
+  const dynamicClassOptions = useMemo(() => {
+    const list: string[] = [];
+
+    // 1. From PostgreSQL DB ClassRooms created on /teacher/classes page
+    if (dbClassRooms.length > 0) {
+      dbClassRooms.forEach((c) => {
+        const name = c.className.startsWith("Class") || c.className.startsWith("Grade")
+          ? c.className
+          : `Class ${c.className}`;
+        const full = c.section ? `${name} (${c.section})` : name;
+        if (!list.includes(full)) {
+          list.push(full);
+        }
+      });
+    }
+
+    // 2. From assigned exam duties
+    myDuties.forEach((e) => {
+      if (e.classSection && !list.includes(e.classSection)) {
+        list.push(e.classSection);
+      }
+    });
+
+    // Fallback to static CLASS_OPTIONS if no PostgreSQL data exists
+    if (list.length === 0) {
+      return CLASS_OPTIONS;
+    }
+
+    // Sort numerically / alphabetically
+    list.sort((a, b) => {
+      const numA = parseInt(a.replace(/\D/g, ""), 10) || 0;
+      const numB = parseInt(b.replace(/\D/g, ""), 10) || 0;
+      return numA - numB;
+    });
+
+    return list;
+  }, [dbClassRooms, myDuties]);
+
   const filteredExams = myDuties.filter((ex) => {
     const matchesSearch = 
       ex.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
       ex.subject.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "All" || ex.status === statusFilter;
-    const matchesClass = classFilter === "All" || ex.classSection === classFilter;
+    const matchesClass = 
+      classFilter === "All" || 
+      ex.classSection.toLowerCase().includes(classFilter.toLowerCase()) || 
+      classFilter.toLowerCase().includes(ex.classSection.toLowerCase());
     const matchesType = typeFilter === "All" || ex.type === typeFilter;
     return matchesSearch && matchesStatus && matchesClass && matchesType;
   });
@@ -535,7 +579,7 @@ export default function TeacherExamsPage() {
                   className="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-[11px] font-bold text-slate-300 focus:outline-none cursor-pointer hover:border-slate-700"
                 >
                   <option value="All">{lang === "தமிழ்" ? "அனைத்து வகுப்புகள்" : "All Classes"}</option>
-                  {CLASS_OPTIONS.map((c) => (
+                  {dynamicClassOptions.map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>

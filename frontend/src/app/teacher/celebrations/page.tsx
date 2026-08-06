@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { Calendar } from "lucide-react";
 import PortalLayout from "@/components/PortalLayout";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
 
@@ -194,40 +195,40 @@ export default function TeacherCelebrationsPage() {
               </p>
             </div>
             <button onClick={() => setCalendarModalOpen(true)} className="px-6 py-3 bg-white text-indigo-700 font-semibold text-sm rounded-xl transition-all shadow-sm hover:shadow-md hover:bg-indigo-50 active:scale-95 flex items-center gap-2 shrink-0 border border-indigo-100">
-              <i className="fi fi-rr-calendar-lines text-base" /> {lang === "தமிழ்" ? "காலெண்டரைப் பார்" : "View Calendar"}
+              <Calendar className="w-5 h-5 text-indigo-600 shrink-0 stroke-[2.2]" /> {lang === "தமிழ்" ? "காலெண்டரைப் பார்" : "View Calendar"}
             </button>
           </div>
         </div>
 
         <div className="w-full">
           {/* Main List */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="theme-card p-0 rounded-2xl overflow-hidden">
             
             {/* Tabs */}
-            <div className="flex border-b border-slate-200 dark:border-slate-800">
+            <div className="flex border-b border-[var(--border)]">
               <button
                 onClick={() => setActiveTab("today")}
-                className={`flex-1 px-4 py-4 text-sm font-medium flex items-center justify-center gap-2 transition-all focus:outline-none border-b-2 ${activeTab === "today"
-                  ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20"
-                  : "border-transparent text-slate-550 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:text-slate-400"
+                className={`flex-1 px-4 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-all focus:outline-none border-b-2 ${activeTab === "today"
+                  ? "border-[var(--primary)] text-[var(--primary)] bg-[var(--primary-light)]"
+                  : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
                   }`}
               >
                 <i className="fi fi-rr-sun" /> {lang === "தமிழ்" ? "இன்று" : "Today"}
               </button>
               <button
                 onClick={() => setActiveTab("week")}
-                className={`flex-1 px-4 py-4 text-sm font-medium flex items-center justify-center gap-2 transition-all focus:outline-none border-b-2 ${activeTab === "week"
-                  ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20"
-                  : "border-transparent text-slate-550 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:text-slate-400"
+                className={`flex-1 px-4 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-all focus:outline-none border-b-2 ${activeTab === "week"
+                  ? "border-[var(--primary)] text-[var(--primary)] bg-[var(--primary-light)]"
+                  : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
                   }`}
               >
                 <i className="fi fi-rr-calendar" /> {lang === "தமிழ்" ? "அனைத்து நிகழ்வுகள்" : "All Events"}
               </button>
               <button
                 onClick={() => setActiveTab("holiday")}
-                className={`flex-1 px-4 py-4 text-sm font-medium flex items-center justify-center gap-2 transition-all focus:outline-none border-b-2 ${activeTab === "holiday"
-                  ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20"
-                  : "border-transparent text-slate-550 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:text-slate-400"
+                className={`flex-1 px-4 py-4 text-sm font-semibold flex items-center justify-center gap-2 transition-all focus:outline-none border-b-2 ${activeTab === "holiday"
+                  ? "border-[var(--primary)] text-[var(--primary)] bg-[var(--primary-light)]"
+                  : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)]"
                   }`}
               >
                 <i className="fi fi-rr-bank" /> {lang === "தமிழ்" ? "விடுமுறைகள்" : "Holidays"}
@@ -256,23 +257,23 @@ export default function TeacherCelebrationsPage() {
                   {todayCelebrations.map((item) => (
                     <div
                       key={item.id}
-                      className="p-5 sm:p-6 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center gap-5 hover:shadow-md transition-shadow bg-white dark:bg-slate-800 relative overflow-hidden"
+                      className="p-5 sm:p-6 rounded-xl border border-[var(--border)] flex flex-col sm:flex-row items-start sm:items-center gap-5 hover:shadow-md transition-shadow bg-[var(--bg-card)] relative overflow-hidden"
                     >
                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500"></div>
-                      <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 bg-indigo-500/10 text-indigo-400">
                         <i className="fi fi-rr-party-horn text-xl" />
                       </div>
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-3 mb-1">
-                          <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{item.title}</h4>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-medium tracking-wide text-indigo-700 bg-indigo-100 dark:bg-indigo-900/50 dark:text-indigo-300 uppercase">
+                          <h4 className="text-lg font-semibold text-[var(--text-heading)]">{item.title}</h4>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-medium tracking-wide text-indigo-400 bg-indigo-500/20 uppercase">
                             {lang === "தமிழ்" ? "நிகழ்வு" : "Event"}
                           </span>
                         </div>
                         {item.description && (
-                          <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{item.description}</p>
+                          <p className="text-sm text-[var(--text-muted)] mb-3">{item.description}</p>
                         )}
-                        <div className="flex items-center gap-2 text-xs font-medium text-slate-500 font-bold">
+                        <div className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)] font-bold">
                           <i className="fi fi-rr-calendar-day" /> {lang === "தமிழ்" ? "இன்று" : "Today"}
                         </div>
                       </div>
@@ -302,23 +303,23 @@ export default function TeacherCelebrationsPage() {
                   {weekCelebrations.map((item) => (
                     <div
                       key={item.id}
-                      className="p-5 sm:p-6 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center gap-5 hover:shadow-md transition-shadow bg-white dark:bg-slate-800 relative overflow-hidden"
+                      className="p-5 sm:p-6 rounded-xl border border-[var(--border)] flex flex-col sm:flex-row items-start sm:items-center gap-5 hover:shadow-md transition-shadow bg-[var(--bg-card)] relative overflow-hidden"
                     >
                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
-                      <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 bg-blue-500/10 text-blue-400">
                         <i className="fi fi-rr-party-horn text-xl" />
                       </div>
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-3 mb-1">
-                          <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{item.title}</h4>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-medium tracking-wide text-blue-700 bg-blue-100 dark:bg-blue-900/50 dark:text-blue-300 uppercase">
+                          <h4 className="text-lg font-semibold text-[var(--text-heading)]">{item.title}</h4>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-medium tracking-wide text-blue-400 bg-blue-500/20 uppercase">
                             {lang === "தமிழ்" ? "நிகழ்வு" : "Event"}
                           </span>
                         </div>
                         {item.description && (
-                          <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{item.description}</p>
+                          <p className="text-sm text-[var(--text-muted)] mb-3">{item.description}</p>
                         )}
-                        <div className="flex items-center gap-2 text-xs font-medium text-slate-500 font-bold">
+                        <div className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)] font-bold">
                           <i className="fi fi-rr-calendar" /> {new Date(item.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                         </div>
                       </div>
@@ -330,48 +331,52 @@ export default function TeacherCelebrationsPage() {
               {activeTab === "holiday" && (
                 <div className="space-y-8">
                   {isLoading && (
-                    <div className="flex items-center gap-3 text-sm text-slate-555 py-4">
+                    <div className="flex items-center gap-3 text-sm text-[var(--text-muted)] py-4">
                       <i className="fi fi-rr-spinner animate-spin text-indigo-600 text-lg" /> {lang === "தமிழ்" ? "விடுமுறைகள் ஏற்றப்படுகின்றன..." : "Loading holidays..."}
                     </div>
                   )}
 
                   {!isLoading && holidays.length === 0 && (
                     <div className="py-12 flex flex-col items-center justify-center text-center">
-                      <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 border border-slate-100 dark:border-slate-700">
+                      <div className="w-16 h-16 bg-[var(--bg-main)] rounded-full flex items-center justify-center mb-4 border border-[var(--border)]">
                         <i className="fi fi-rr-calendar-xmark text-slate-400 text-2xl" />
                       </div>
-                      <h3 className="text-lg font-semibold text-slate-850 dark:text-slate-200">{lang === "தமிழ்" ? "விடுமுறைகள் எதுவும் பட்டியலிடப்படவில்லை" : "No holidays listed"}</h3>
-                      <p className="text-sm text-slate-555 mt-2 font-medium">{lang === "தமிழ்" ? "அதிகாரப்பூர்வ விடுமுறைகள் எதுவும் இன்னும் திட்டமிடப்படவில்லை." : "No official holidays have been scheduled yet."}</p>
+                      <h3 className="text-lg font-semibold text-[var(--text-heading)]">{lang === "தமிழ்" ? "விடுமுறைகள் எதுவும் பட்டியலிடப்படவில்லை" : "No holidays listed"}</h3>
+                      <p className="text-sm text-[var(--text-muted)] mt-2 font-medium">{lang === "தமிழ்" ? "அதிகாரப்பூர்வ விடுமுறைகள் எதுவும் இன்னும் திட்டமிடப்படவில்லை." : "No official holidays have been scheduled yet."}</p>
                     </div>
                   )}
 
                   {!isLoading && sortedYears.map(year => (
                     <div key={year} className="space-y-4">
                       <div className="flex items-center gap-4 py-1">
-                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-md border border-slate-200 dark:border-slate-700 flex items-center gap-2">
+                        <span className="text-sm font-semibold text-[var(--text-heading)] bg-[var(--bg-main)] px-3 py-1 rounded-md border border-[var(--border)] flex items-center gap-2">
                           <i className="fi fi-rr-calendar" /> {year} {lang === "தமிழ்" ? "விடுமுறைகள்" : "Holidays"}
                         </span>
-                        <div className="flex-1 h-[1px] bg-slate-200 dark:bg-slate-700" />
+                        <div className="flex-1 h-[1px] bg-[var(--border)]" />
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {holidaysByYear[year].map(item => (
                           <div
                             key={item.id}
-                            className="p-5 rounded-xl border border-slate-200 dark:border-slate-700 flex items-start gap-4 hover:shadow-md transition-shadow bg-white dark:bg-slate-800 relative overflow-hidden"
+                            className="p-5 rounded-xl border border-[var(--border)] flex items-start gap-4 hover:shadow-md transition-shadow bg-[var(--bg-card)] relative overflow-hidden"
                           >
                             <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500"></div>
-                            <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
+                            <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 bg-amber-500/10 text-amber-400">
                               <i className="fi fi-rr-bank text-xl" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-base font-semibold text-slate-900 dark:text-slate-100 truncate">{item.title}</h4>
+                            <div className="flex-1">
+                              <div className="flex flex-wrap items-center gap-3 mb-1">
+                                <h4 className="text-lg font-semibold text-[var(--text-heading)]">{item.title}</h4>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-medium tracking-wide text-amber-400 bg-amber-500/20 uppercase">
+                                  {lang === "தமிழ்" ? "விடுமுறை" : "Holiday"}
+                                </span>
+                              </div>
                               {item.description && (
-                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-2 truncate">{item.description}</p>
+                                <p className="text-sm text-[var(--text-muted)] mb-3">{item.description}</p>
                               )}
-                              <div className="text-xs font-medium text-slate-500 flex items-center gap-1.5 font-bold">
-                                <i className="fi fi-rr-calendar-day text-xs" />
-                                <span>{new Date(item.date).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}</span>
+                              <div className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)] font-bold">
+                                <i className="fi fi-rr-calendar" /> {new Date(item.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                               </div>
                             </div>
                           </div>
@@ -386,31 +391,23 @@ export default function TeacherCelebrationsPage() {
         </div>
       </div>
 
-      {/* Toast Notification */}
-      {toastMsg && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-lg shadow-xl text-sm font-medium z-50 flex items-center gap-3 animate-in slide-in-from-bottom-5">
-          <i className="fi fi-rr-info text-indigo-400"></i>
-          {toastMsg}
-        </div>
-      )}
-
       {/* Calendar Modal */}
       {calendarModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-all duration-300">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-4xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 relative flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-all duration-300">
+          <div className="bg-[var(--bg-card)] rounded-3xl w-full max-w-4xl shadow-2xl border border-[var(--border)] text-[var(--text-heading)] p-6 relative flex flex-col max-h-[90vh]">
             
             {/* Close Button */}
             <button
               onClick={() => setCalendarModalOpen(false)}
-              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-slate-855 dark:hover:text-slate-200 transition-colors"
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-[var(--bg-main)] border border-[var(--border)] rounded-full text-[var(--text-muted)] hover:text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)] transition-colors"
             >
               <i className="fi fi-rr-cross text-xs" />
             </button>
 
             {/* Modal Header */}
             <div className="mb-4 flex items-center gap-2">
-              <i className="fi fi-rr-calendar-lines text-indigo-600 dark:text-indigo-400 text-xl" />
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              <i className="fi fi-rr-calendar-lines text-indigo-500 text-xl" />
+              <h3 className="text-lg font-bold text-[var(--text-heading)]">
                 Interactive Event Calendar
               </h3>
             </div>
@@ -421,19 +418,19 @@ export default function TeacherCelebrationsPage() {
               {/* Calendar Column (7 cols) */}
               <div className="lg:col-span-7 flex flex-col gap-4">
                 {/* Month & Year Navigation */}
-                <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200/60 dark:border-slate-800">
+                <div className="flex justify-between items-center bg-[var(--bg-main)] p-3 rounded-xl border border-[var(--border)]">
                   <button
                     onClick={handlePrevMonth}
-                    className="p-2 bg-white dark:bg-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-355"
+                    className="p-2 bg-[var(--bg-card)] rounded-lg hover:bg-[var(--bg-card-hover)] transition-colors border border-[var(--border)] text-[var(--text-heading)]"
                   >
                     <i className="fi fi-rr-angle-left text-xs" />
                   </button>
-                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-150">
+                  <span className="text-sm font-semibold text-[var(--text-heading)]">
                     {monthNames[currentMonth]} {currentYear}
                   </span>
                   <button
                     onClick={handleNextMonth}
-                    className="p-2 bg-white dark:bg-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-355"
+                    className="p-2 bg-[var(--bg-card)] rounded-lg hover:bg-[var(--bg-card-hover)] transition-colors border border-[var(--border)] text-[var(--text-heading)]"
                   >
                     <i className="fi fi-rr-angle-right text-xs" />
                   </button>
@@ -443,7 +440,7 @@ export default function TeacherCelebrationsPage() {
                 <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center">
                   {/* Day Headers */}
                   {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(d => (
-                    <div key={d} className="text-xs font-semibold text-slate-400 uppercase py-1">{d}</div>
+                    <div key={d} className="text-xs font-semibold text-[var(--text-muted)] uppercase py-1">{d}</div>
                   ))}
 
                   {/* Pad previous month days */}
@@ -475,14 +472,14 @@ export default function TeacherCelebrationsPage() {
                         type="button"
                         className={`aspect-square rounded-xl font-medium text-xs sm:text-sm flex flex-col items-center justify-center relative transition-all border ${
                           isSelected
-                            ? "border-indigo-600 dark:border-indigo-400 ring-2 ring-indigo-600/20 dark:ring-indigo-400/20"
+                            ? "border-[var(--primary)] ring-2 ring-[var(--primary)]/20"
                             : "border-transparent"
                         } ${
                           isHoliday
-                            ? "bg-amber-50 text-amber-850 hover:bg-amber-100 dark:bg-amber-950/20 dark:text-amber-350 dark:hover:bg-amber-950/30 cursor-pointer animate-none"
+                            ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border-amber-500/30 cursor-pointer animate-none"
                             : isEvent
-                              ? "bg-indigo-50 text-indigo-850 hover:bg-indigo-100 dark:bg-indigo-950/20 dark:text-indigo-350 dark:hover:bg-indigo-950/30 cursor-pointer animate-none"
-                              : "text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-default animate-none"
+                              ? "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border-indigo-500/30 cursor-pointer animate-none"
+                              : "text-[var(--text-heading)] hover:bg-[var(--bg-card-hover)] cursor-default animate-none"
                         }`}
                       >
                         <span>{dayNum}</span>
@@ -497,27 +494,27 @@ export default function TeacherCelebrationsPage() {
                 </div>
 
                 {/* Legend */}
-                <div className="flex gap-4 text-xs mt-2 border-t border-slate-100 dark:border-slate-800 pt-3">
+                <div className="flex gap-4 text-xs mt-2 border-t border-[var(--border)] pt-3">
                   <div className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-none"></span>
-                    <span className="text-slate-550 dark:text-slate-400 font-medium">School Event</span>
+                    <span className="text-[var(--text-muted)] font-medium">School Event</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-none"></span>
-                    <span className="text-slate-555 dark:text-slate-400 font-medium">Govt Holiday</span>
+                    <span className="text-[var(--text-muted)] font-medium">Govt Holiday</span>
                   </div>
                 </div>
               </div>
 
               {/* Event List & Details Column (5 cols) */}
-              <div className="lg:col-span-5 flex flex-col gap-4 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 pt-4 lg:pt-0 lg:pl-6 min-h-[300px]">
+              <div className="lg:col-span-5 flex flex-col gap-4 border-t lg:border-t-0 lg:border-l border-[var(--border)] pt-4 lg:pt-0 lg:pl-6 min-h-[300px]">
                 
                 {/* Header for Monthly List */}
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-bold text-slate-850 dark:text-slate-200 uppercase tracking-wider">
+                  <h4 className="text-sm font-bold text-[var(--text-heading)] uppercase tracking-wider">
                     {monthNames[currentMonth]} Schedule
                   </h4>
-                  <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-555 dark:text-slate-400 rounded-md">
+                  <span className="px-2 py-0.5 bg-[var(--bg-main)] border border-[var(--border)] text-[10px] font-bold text-[var(--text-muted)] rounded-md">
                     {eventsInSelectedMonth.length} {eventsInSelectedMonth.length === 1 ? 'item' : 'items'}
                   </span>
                 </div>
@@ -533,34 +530,34 @@ export default function TeacherCelebrationsPage() {
                           onClick={() => setSelectedDayEvent(item)}
                           className={`p-3 rounded-xl border transition-all cursor-pointer flex gap-3 items-center ${
                             isSelected
-                              ? "bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700 shadow-sm"
-                              : "bg-white dark:bg-slate-900 border-slate-150 dark:border-slate-850 hover:bg-slate-50/50 dark:hover:bg-slate-800/30"
+                              ? "bg-[var(--bg-card-hover)] border-[var(--primary)] shadow-sm"
+                              : "bg-[var(--bg-main)] border-[var(--border)] hover:bg-[var(--bg-card-hover)]"
                           }`}
                         >
                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                             item.type === "HOLIDAY" 
-                              ? "bg-amber-100 text-amber-700 dark:bg-amber-955/20 dark:text-amber-400" 
-                              : "bg-indigo-100 text-indigo-700 dark:bg-indigo-955/20 dark:text-indigo-400"
+                              ? "bg-amber-500/10 text-amber-400" 
+                              : "bg-indigo-500/10 text-indigo-400"
                           }`}>
                             <i className={item.type === "HOLIDAY" ? "fi fi-rr-bank text-sm" : "fi fi-rr-party-horn text-sm"} />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h5 className="text-xs font-semibold text-slate-850 dark:text-slate-200 truncate">{item.title}</h5>
-                            <p className="text-[10px] text-slate-405 font-medium">
+                            <h5 className="text-xs font-semibold text-[var(--text-heading)] truncate">{item.title}</h5>
+                            <p className="text-[10px] text-[var(--text-muted)] font-medium">
                               {new Date(item.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
                             </p>
                           </div>
-                          <i className={`fi fi-rr-angle-small-right text-slate-400 transition-transform ${isSelected ? "translate-x-0.5" : ""}`} />
+                          <i className={`fi fi-rr-angle-small-right text-[var(--text-muted)] transition-transform ${isSelected ? "translate-x-0.5" : ""}`} />
                         </div>
                       );
                     })
                   ) : (
                     <div className="flex flex-col items-center justify-center h-full text-center py-8">
-                      <i className="fi fi-rr-calendar-xmark text-slate-300 dark:text-slate-700 text-3xl mb-2" />
-                      <p className="text-xs text-slate-500 font-medium font-bold">No events this month</p>
+                      <i className="fi fi-rr-calendar-xmark text-[var(--text-muted)] text-3xl mb-2" />
+                      <p className="text-xs text-[var(--text-muted)] font-bold">No events this month</p>
                       <button
                         onClick={handleJumpToNextEvent}
-                        className="mt-3 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-955/30 dark:hover:bg-indigo-955/50 text-indigo-700 dark:text-indigo-400 text-[11px] font-bold rounded-lg transition-colors flex items-center gap-1.5 border border-indigo-100 dark:border-indigo-900"
+                        className="mt-3 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-[11px] font-bold rounded-lg transition-colors flex items-center gap-1.5 border border-indigo-500/30"
                       >
                         <i className="fi fi-rr-search-alt text-xs" /> Jump to Next Event
                       </button>
@@ -569,33 +566,33 @@ export default function TeacherCelebrationsPage() {
                 </div>
 
                 {/* Selected Event Details Panel */}
-                <div className="mt-auto border-t border-slate-100 dark:border-slate-800 pt-4">
+                <div className="mt-auto border-t border-[var(--border)] pt-4">
                   {selectedDayEvent ? (
-                    <div className="bg-slate-50 dark:bg-slate-800/30 border border-slate-150 dark:border-slate-800 rounded-xl p-4 animate-in fade-in duration-200">
+                    <div className="bg-[var(--bg-main)] border border-[var(--border)] rounded-xl p-4 animate-in fade-in duration-200">
                       <div className="flex items-center gap-2 mb-1.5">
                         <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
                           selectedDayEvent.type === "HOLIDAY" 
-                            ? "bg-amber-100 text-amber-800 dark:bg-amber-955/30 dark:text-amber-300" 
-                            : "bg-indigo-100 text-indigo-855 dark:bg-indigo-955/30 dark:text-indigo-300"
+                            ? "bg-amber-500/20 text-amber-400" 
+                            : "bg-indigo-500/20 text-indigo-400"
                         }`}>
                           {selectedDayEvent.type === "HOLIDAY" ? "Holiday" : "Event"}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-medium">
+                        <span className="text-[10px] text-[var(--text-muted)] font-medium">
                           {new Date(selectedDayEvent.date).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}
                         </span>
                       </div>
-                      <h4 className="text-sm font-bold text-slate-850 dark:text-slate-150 leading-tight">
+                      <h4 className="text-sm font-bold text-[var(--text-heading)] leading-tight">
                         {selectedDayEvent.title}
                       </h4>
                       {selectedDayEvent.description && (
-                        <p className="text-xs text-slate-550 dark:text-slate-400 mt-1 leading-relaxed">
+                        <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">
                           {selectedDayEvent.description}
                         </p>
                       )}
                     </div>
                   ) : (
-                    <div className="bg-slate-50 dark:bg-slate-800/30 border border-slate-150 dark:border-slate-800 rounded-xl p-4 text-center">
-                      <p className="text-xs text-slate-400 italic">
+                    <div className="bg-[var(--bg-main)] border border-[var(--border)] rounded-xl p-4 text-center">
+                      <p className="text-xs text-[var(--text-muted)] italic">
                         Select a date to view event details
                       </p>
                     </div>
