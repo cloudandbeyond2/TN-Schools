@@ -176,25 +176,28 @@ export default function TeacherCelebrationsPage() {
       <div className="flex flex-col gap-6 sm:gap-8 text-left w-full">
 
         {/* Professional Banner */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-700 text-white p-6 sm:p-10 shadow-lg">
+        <div 
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-800 p-5 sm:py-6 sm:px-8 shadow-lg"
+          style={{ background: "linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)", color: "#ffffff" }}
+        >
           <div className="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4 scale-150 pointer-events-none">
-            <i className="fi fi-rr-calendar-star text-[160px]" />
+            <i className="fi fi-rr-calendar-star text-[140px]" style={{ color: "#ffffff" }} />
           </div>
 
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full font-medium tracking-wide text-xs uppercase mb-4 border border-white/20">
-                <i className="fi fi-rr-star text-yellow-300" /> {lang === "தமிழ்" ? "பள்ளி நிகழ்வுகள்" : "School Events"}
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-0.5 rounded-full font-medium tracking-wide text-[10px] uppercase mb-2 border border-white/20" style={{ color: "#ffffff" }}>
+                <i className="fi fi-rr-star text-yellow-300 text-[10px]" /> {lang === "தமிழ்" ? "பள்ளி நிகழ்வுகள்" : "School Events"}
               </div>
-              <h2 className="text-2xl sm:text-4xl font-bold tracking-tight mb-3 drop-shadow-sm flex items-center gap-3">
+              <div className="text-xl sm:text-3xl font-bold tracking-tight mb-1.5 drop-shadow-sm flex items-center gap-3" style={{ color: "#ffffff" }}>
                 {lang === "தமிழ்" ? "கொண்டாட்டங்கள் & விடுமுறைகள்" : "Celebrations & Holidays"}
-              </h2>
-              <p className="text-indigo-100 font-normal max-w-2xl text-sm sm:text-base leading-relaxed">
+              </div>
+              <div className="text-indigo-100 font-normal max-w-2xl text-xs sm:text-sm leading-relaxed" style={{ color: "rgba(255, 255, 255, 0.9)" }}>
                 {lang === "தமிழ்" ? "வரவிருக்கும் கொண்டாட்டங்கள், பண்டிகைகள் மற்றும் அதிகாரப்பூர்வ விடுமுறைகள் குறித்து உடனுக்குடன் தெரிந்துகொள்ளுங்கள். முன்கூட்டியே திட்டமிட்டு எமது பள்ளி சமூக நிகழ்வுகளில் தீவிரமாக பங்கேற்கவும்." : "Stay updated on upcoming celebrations, festivals, and official holidays. Plan ahead and actively participate in our school community events."}
-              </p>
+              </div>
             </div>
-            <button onClick={() => setCalendarModalOpen(true)} className="px-6 py-3 bg-white text-indigo-700 font-semibold text-sm rounded-xl transition-all shadow-sm hover:shadow-md hover:bg-indigo-50 active:scale-95 flex items-center gap-2 shrink-0 border border-indigo-100">
-              <i className="fi fi-rr-calendar-lines text-base" /> {lang === "தமிழ்" ? "காலெண்டரைப் பார்" : "View Calendar"}
+            <button onClick={() => setCalendarModalOpen(true)} className="px-5 py-2.5 bg-white text-indigo-700 font-semibold text-xs rounded-xl transition-all shadow-sm hover:shadow-md hover:bg-indigo-50 active:scale-95 flex items-center gap-2 shrink-0 border border-indigo-100">
+              <i className="fi fi-rr-calendar-lines text-xs" /> {lang === "தமிழ்" ? "காலெண்டரைப் பார்" : "View Calendar"}
             </button>
           </div>
         </div>
