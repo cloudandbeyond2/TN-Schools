@@ -169,7 +169,7 @@ router.delete('/:id', requireMinRole('BEO'), async (req: Request, res: Response)
     const student = await prisma.student.findUnique({ where: { userId: id } });
     if (student) {
       await prisma.parentStudentLink.deleteMany({ where: { studentId: student.id } });
-      await prisma.parentNotification.updateMany({ where: { studentId: student.id }, data: { studentId: null } });
+      await prisma.notification.updateMany({ where: { studentId: student.id }, data: { studentId: null } });
       await prisma.homeworkSubmission.updateMany({ where: { studentId: student.id }, data: { studentId: null } });
       await prisma.watchlistStudent.updateMany({ where: { studentId: student.id }, data: { studentId: null } });
       await prisma.clubMember.deleteMany({ where: { studentId: student.id } });

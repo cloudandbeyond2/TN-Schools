@@ -36,19 +36,22 @@ async function dispatchSchoolPressNotification(studentId: string, description: s
     const studentName = student?.user?.name || "your child";
 
     const links = await prisma.parentStudentLink.findMany({
-      where: { studentId }
+      where: { studentId },
+      include: { parent: true }
     });
 
     for (const link of links) {
-      await prisma.parentNotification.create({
-        data: {
-          parentId: link.parentId,
-          studentId: studentId,
-          type: 'general',
-          title: 'School Press Activity Published',
-          message: `${studentName} has a new activity published in School Press: "${description}"`,
-        }
-      });
+      if (link.parent?.userId) {
+        await prisma.notification.create({
+          data: {
+            userId: link.parent.userId,
+            studentId: studentId,
+            type: 'general',
+            title: 'School Press Activity Published',
+            message: `${studentName} has a new activity published in School Press: "${description}"`,
+          }
+        });
+      }
     }
   } catch (err) {
     console.error('Error dispatching school press parent notification:', err);
@@ -308,11 +311,11 @@ router.post('/announcements', async (req: Request, res: Response) => {
               // 1. Deliver mock SMS
               await sendMockSMS(parent.phone, smsMessage);
 
-              // 2. Add DB parentNotification record
-              if (parent.id) {
-                await prisma.parentNotification.create({
+              // 2. Add DB notification record
+              if (parent.userId) {
+                await prisma.notification.create({
                   data: {
-                    parentId: parent.id,
+                    userId: parent.userId,
                     studentId: student.id,
                     type: 'NOTICE_BROADCAST',
                     title: `Notice: ${title}`,
@@ -430,10 +433,10 @@ router.post('/homework', async (req: Request, res: Response) => {
           try {
             const parents = await getStudentParents(s.id);
             for (const parent of parents) {
-              if (parent.id) {
-                await prisma.parentNotification.create({
+              if (parent.userId) {
+                await prisma.notification.create({
                   data: {
-                    parentId: parent.id,
+                    userId: parent.userId,
                     studentId: s.id,
                     type: 'HOMEWORK_ALERT',
                     title: 'New Homework Assigned',

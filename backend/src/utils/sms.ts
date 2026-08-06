@@ -12,8 +12,8 @@ export async function sendMockSMS(to: string, message: string): Promise<boolean>
 }
 
 // Helper to resolve parent details for a given student ID
-export async function getStudentParents(studentId: string): Promise<{ id: string; phone: string; name: string }[]> {
-  const parentsList: { id: string; phone: string; name: string }[] = [];
+export async function getStudentParents(studentId: string): Promise<{ id: string; phone: string; name: string; userId?: string | null }[]> {
+  const parentsList: { id: string; phone: string; name: string; userId?: string | null }[] = [];
 
   try {
     // 1. Resolve via ParentStudentLink
@@ -28,6 +28,7 @@ export async function getStudentParents(studentId: string): Promise<{ id: string
           id: link.parent.id,
           phone: link.parent.phone,
           name: link.parent.name,
+          userId: link.parent.userId,
         });
       }
     }
@@ -47,6 +48,7 @@ export async function getStudentParents(studentId: string): Promise<{ id: string
             id: parent.id,
             phone: parent.phone,
             name: parent.name,
+            userId: parent.userId,
           });
         } else {
           // If no parent profile exists, create a stub entry or mock using student's values
@@ -54,6 +56,7 @@ export async function getStudentParents(studentId: string): Promise<{ id: string
             id: '', // Empty parent ID if no profile exists
             phone: student.parentMobile,
             name: student.parentName || 'Parent/Guardian',
+            userId: null,
           });
         }
       }

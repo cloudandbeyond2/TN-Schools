@@ -398,17 +398,33 @@ router.get('/:parentId/notifications', async (req: Request, res: Response) => {
     const { parentId } = req.params;
     const { unreadOnly } = req.query;
 
-    const notifications = await prisma.parentNotification.findMany({
+    const parent = await prisma.headmasterParent.findUnique({
+      where: { id: parentId },
+      select: { userId: true }
+    });
+
+    if (!parent?.userId) {
+      return res.json({ success: true, unreadCount: 0, data: [] });
+    }
+
+    const notifications = await prisma.notification.findMany({
       where: {
-        parentId,
-        ...(unreadOnly === 'true' ? { isRead: false } : {}),
+        userId: parent.userId,
+        ...(unreadOnly === 'true' ? { read: false } : {}),
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    const unreadCount = await prisma.parentNotification.count({ where: { parentId, isRead: false } });
+    const unreadCount = await prisma.notification.count({
+      where: { userId: parent.userId, read: false }
+    });
 
-    res.json({ success: true, unreadCount, data: notifications });
+    const mapped = notifications.map(({ read, ...rest }) => ({
+      ...rest,
+      isRead: read,
+    }));
+
+    res.json({ success: true, unreadCount, data: mapped });
   } catch (err) {
     console.error('Error fetching notifications:', err);
     res.status(500).json({ success: false, error: String(err) });
@@ -422,7 +438,7 @@ router.get('/:parentId/notifications', async (req: Request, res: Response) => {
 router.put('/:parentId/notifications/:id/read', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.parentNotification.update({ where: { id }, data: { isRead: true } });
+    await prisma.notification.update({ where: { id }, data: { read: true } });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
@@ -436,7 +452,16 @@ router.put('/:parentId/notifications/:id/read', async (req: Request, res: Respon
 router.put('/:parentId/notifications/read-all', async (req: Request, res: Response) => {
   try {
     const { parentId } = req.params;
-    await prisma.parentNotification.updateMany({ where: { parentId, isRead: false }, data: { isRead: true } });
+    const parent = await prisma.headmasterParent.findUnique({
+      where: { id: parentId },
+      select: { userId: true }
+    });
+    if (parent?.userId) {
+      await prisma.notification.updateMany({
+        where: { userId: parent.userId, read: false },
+        data: { read: true }
+      });
+    }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
@@ -450,7 +475,7 @@ router.put('/:parentId/notifications/read-all', async (req: Request, res: Respon
 router.put('/:parentId/notifications/:id/unread', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.parentNotification.update({ where: { id }, data: { isRead: false } });
+    await prisma.notification.update({ where: { id }, data: { read: false } });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
@@ -466,9 +491,9 @@ router.put('/:parentId/notifications/unread-all', async (req: Request, res: Resp
     const { parentId } = req.params;
     const { ids } = req.body;
     if (Array.isArray(ids) && ids.length > 0) {
-      await prisma.parentNotification.updateMany({
-        where: { id: { in: ids }, parentId },
-        data: { isRead: false }
+      await prisma.notification.updateMany({
+        where: { id: { in: ids } },
+        data: { read: false }
       });
     }
     res.json({ success: true });
@@ -484,7 +509,7 @@ router.put('/:parentId/notifications/unread-all', async (req: Request, res: Resp
 router.delete('/:parentId/notifications/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.parentNotification.delete({ where: { id } });
+    await prisma.notification.delete({ where: { id } });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
@@ -605,10 +630,10 @@ router.post('/notifications', async (req: Request, res: Response) => {
         const parent = await prisma.headmasterParent.findFirst({
           where: { phone: student.parentMobile }
         });
-        if (parent) {
-          const notif = await prisma.parentNotification.create({
+        if (parent && parent.userId) {
+          const notif = await prisma.notification.create({
             data: {
-              parentId: parent.id,
+              userId: parent.userId,
               studentId,
               type: type || 'ACADEMIC_ALERT',
               title: title || 'Academic Risk Alert',
@@ -623,16 +648,18 @@ router.post('/notifications', async (req: Request, res: Response) => {
 
     const createdNotifications = [];
     for (const link of links) {
-      const notif = await prisma.parentNotification.create({
-        data: {
-          parentId: link.parentId,
-          studentId,
-          type: type || 'ACADEMIC_ALERT',
-          title: title || 'Academic Risk Alert',
-          message,
-        }
-      });
-      createdNotifications.push(notif);
+      if (link.parent.userId) {
+        const notif = await prisma.notification.create({
+          data: {
+            userId: link.parent.userId,
+            studentId,
+            type: type || 'ACADEMIC_ALERT',
+            title: title || 'Academic Risk Alert',
+            message,
+          }
+        });
+        createdNotifications.push(notif);
+      }
     }
 
     return res.status(201).json({ success: true, data: createdNotifications });
@@ -1208,15 +1235,21 @@ router.post('/pta-appointments', async (req: Request, res: Response) => {
     const sName = studentName || 'your child';
 
     // 1. Parent notification
-    await prisma.parentNotification.create({
-      data: {
-        parentId: resolvedParentId,
-        studentId,
-        type: 'PTA',
-        title: 'Appointment Requested',
-        message: `Appointment request submitted with Teacher ${teacherName} for ${sName} on ${meetingDate} at ${timeSlot}.`
-      }
+    const parentRecord = await prisma.headmasterParent.findUnique({
+      where: { id: resolvedParentId },
+      select: { userId: true }
     });
+    if (parentRecord?.userId) {
+      await prisma.notification.create({
+        data: {
+          userId: parentRecord.userId,
+          studentId,
+          type: 'PTA',
+          title: 'Appointment Requested',
+          message: `Appointment request submitted with Teacher ${teacherName} for ${sName} on ${meetingDate} at ${timeSlot}.`
+        }
+      });
+    }
 
     // 2. Teacher/Staff notification
     if (targetUserId) {
@@ -1266,15 +1299,21 @@ router.put('/pta-appointments/:id/status', async (req: Request, res: Response) =
     }
 
     // Create notification for parent
-    await prisma.parentNotification.create({
-      data: {
-        parentId: appt.parentId,
-        studentId: appt.studentId,
-        type: 'PTA',
-        title: `Appointment ${status}`,
-        message: `Your PTA meeting appointment request with ${teacherName} has been ${status.toLowerCase()}.`
-      }
+    const parentRecord = await prisma.headmasterParent.findUnique({
+      where: { id: appt.parentId },
+      select: { userId: true }
     });
+    if (parentRecord?.userId) {
+      await prisma.notification.create({
+        data: {
+          userId: parentRecord.userId,
+          studentId: appt.studentId,
+          type: 'PTA',
+          title: `Appointment ${status}`,
+          message: `Your PTA meeting appointment request with ${teacherName} has been ${status.toLowerCase()}.`
+        }
+      });
+    }
 
     res.json({ success: true, data: appt });
   } catch (err) {

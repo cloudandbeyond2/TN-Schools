@@ -213,7 +213,7 @@ export default function HeadmasterCelebrationsPage() {
           <div className="lg:col-span-2 space-y-4">
             <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
-                <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
+                <h2 className="text-sm sm:text-base font-semibold flex items-center gap-2">
                   <i className="fi fi-rr-party-horn text-blue-500 text-base" /> {lang === "தமிழ்" ? "பதிவு செய்யப்பட்ட கொண்டாட்டங்கள் & நிகழ்வுகள்" : "Registered Celebrations & Events"}
                 </h2>
               </div>
@@ -301,7 +301,7 @@ export default function HeadmasterCelebrationsPage() {
 
           {/* Right Column - Creation Form */}
           <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800 h-fit">
-            <h2 className="text-sm sm:text-base font-semibold text-white mb-2 flex items-center gap-2">
+            <h2 className="text-sm sm:text-base font-semibold mb-2 flex items-center gap-2">
               {editingId ? (
                 <i className="fi fi-rr-edit text-blue-500 text-base" />
               ) : (
@@ -332,7 +332,7 @@ export default function HeadmasterCelebrationsPage() {
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors [color-scheme:dark]"
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-xl py-1.5 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   required
                 />
               </div>

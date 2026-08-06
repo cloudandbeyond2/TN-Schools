@@ -70,11 +70,11 @@ router.post('/', async (req: Request, res: Response) => {
               // 1. Trigger SMS
               await sendMockSMS(parent.phone, smsMessage);
 
-              // 2. Log ParentNotification in DB for parent portal alerts feed
-              if (parent.id) {
-                await prisma.parentNotification.create({
+              // 2. Log Notification in DB for parent portal alerts feed
+              if (parent.userId) {
+                await prisma.notification.create({
                   data: {
-                    parentId: parent.id,
+                    userId: parent.userId,
                     studentId: studentId,
                     type: 'ATTENDANCE_ALERT',
                     title: 'Student Absence Notice',
@@ -116,10 +116,10 @@ router.post('/', async (req: Request, res: Response) => {
             
             const parents = await getStudentParents(studentId);
             for (const parent of parents) {
-              if (parent.id) {
-                const existingAlert = await prisma.parentNotification.findFirst({
+              if (parent.userId) {
+                const existingAlert = await prisma.notification.findFirst({
                   where: {
-                    parentId: parent.id,
+                    userId: parent.userId,
                     studentId,
                     type: 'LOW_ATTENDANCE_ALERT',
                     createdAt: { gte: startOfMonth, lte: endOfMonth }
@@ -129,9 +129,9 @@ router.post('/', async (req: Request, res: Response) => {
                 if (!existingAlert) {
                   const alertMsg = `Attendance Warning: Your child ${student?.user?.name || 'child'} has low attendance (${Math.round(rate)}%) for this month. Please ensure they attend school regularly.`;
                   await sendMockSMS(parent.phone, alertMsg);
-                  await prisma.parentNotification.create({
+                  await prisma.notification.create({
                     data: {
-                      parentId: parent.id,
+                      userId: parent.userId,
                       studentId,
                       type: 'LOW_ATTENDANCE_ALERT',
                       title: 'Low Monthly Attendance Warning',

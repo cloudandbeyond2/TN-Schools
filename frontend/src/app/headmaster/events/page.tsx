@@ -256,8 +256,8 @@ export default function EventsPage() {
         <div className="lg:col-span-2 space-y-4">
           <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
-              <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-                <i className="fi fi-sr-calendar text-blue-500 text-base" /> {lang === "தமிழ்" ? "நிகழ்வுகள் நாட்காட்டி" : "Calendar of Activities"}
+              <h2 className="text-sm sm:text-base font-semibold flex items-center gap-2">
+                <i className="fi fi-rr-calendar text-blue-500 text-base" /> {lang === "தமிழ்" ? "நிகழ்வுகள் நாட்காட்டி" : "Calendar of Activities"}
               </h2>
               
               {/* Event toggle filters */}
@@ -338,7 +338,7 @@ export default function EventsPage() {
 
         {/* Event scheduler tool */}
         <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800 h-fit">
-          <h2 className="text-sm sm:text-base font-semibold text-white mb-2 flex items-center gap-2">
+          <h2 className="text-sm sm:text-base font-semibold mb-2 flex items-center gap-2">
             <i className="fi fi-rr-calendar-plus text-blue-500 text-base" /> Schedule New Activity
           </h2>
           <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed mb-4">

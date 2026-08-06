@@ -401,8 +401,6 @@ model HeadmasterParent {
   role           String
   phone          String
   email          String?
-  studentName    String               @default("N/A")
-  studentClass   String               @default("N/A")
   term           String
   password       String               @default("$2b$10$672zWrwIOxXoaL.Eh9iZhubuyoMM1/Gc3UJzBJTt45rBRN6ci/Tn2")
   schoolId       String?
@@ -410,7 +408,6 @@ model HeadmasterParent {
   updatedAt      DateTime             @updatedAt
   userId         String?              @unique
   user           User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
-  notifications  ParentNotification[]
   linkedStudents ParentStudentLink[]
   messages       Message[]
 
@@ -431,20 +428,7 @@ model ParentStudentLink {
   @@index([studentId])
 }
 
-model ParentNotification {
-  id        String           @id @default(uuid())
-  parentId  String
-  studentId String?
-  type      String
-  title     String
-  message   String
-  isRead    Boolean          @default(false)
-  createdAt DateTime         @default(now())
-  parent    HeadmasterParent @relation(fields: [parentId], references: [id], onDelete: Cascade)
 
-  @@index([parentId])
-  @@index([parentId, isRead])
-}
 
 model PTAMeeting {
   id              String   @id @default(uuid())
@@ -1018,9 +1002,13 @@ model Notification {
   message   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+  title     String?  @default("Notification")
+  type      String?  @default("GENERAL")
+  studentId String?
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([studentId])
 }
 
 model CentralSubject {
