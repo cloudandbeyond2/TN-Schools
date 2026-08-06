@@ -168,7 +168,7 @@ export default function StudentHealthReportPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border-2 border-slate-100 dark:border-slate-700 text-center relative overflow-hidden group hover:border-sky-300 transition-colors">
-              <div className="w-10 h-10 mx-auto bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-500 mb-3 group-hover:scale-110 group-hover:text-sky-500 transition-all">
+              <div className="w-10 h-10 mx-auto bg-sky-50 dark:bg-sky-950/40 rounded-xl flex items-center justify-center text-sky-500 mb-3 group-hover:scale-110 transition-all">
                 <i className="fi fi-rr-ruler-vertical text-lg flex items-center" />
               </div>
               <h3 className="text-2xl font-black text-slate-800 dark:text-white">{healthData.height || "—"}</h3>
@@ -176,16 +176,16 @@ export default function StudentHealthReportPage() {
             </div>
             
             <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border-2 border-slate-100 dark:border-slate-700 text-center relative overflow-hidden group hover:border-sky-300 transition-colors">
-              <div className="w-10 h-10 mx-auto bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-500 mb-3 group-hover:scale-110 group-hover:text-sky-500 transition-all">
-                <i className="fi fi-rr-balance-scale text-lg flex items-center" />
+              <div className="w-10 h-10 mx-auto bg-sky-50 dark:bg-sky-950/40 rounded-xl flex items-center justify-center text-sky-500 mb-3 group-hover:scale-110 transition-all">
+                <i className="fi fi-rr-scale text-lg flex items-center" />
               </div>
               <h3 className="text-2xl font-black text-slate-800 dark:text-white">{healthData.weight || "—"}</h3>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Weight (kg)</p>
             </div>
 
             <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border-2 border-slate-100 dark:border-slate-700 text-center relative overflow-hidden group hover:border-sky-300 transition-colors">
-              <div className="w-10 h-10 mx-auto bg-slate-50 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-500 mb-3 group-hover:scale-110 group-hover:text-rose-500 transition-all">
-                <i className="fi fi-rr-drop text-lg text-rose-500 flex items-center" />
+              <div className="w-10 h-10 mx-auto bg-rose-50 dark:bg-rose-950/40 rounded-xl flex items-center justify-center text-rose-500 mb-3 group-hover:scale-110 transition-all">
+                <i className="fi fi-rr-heart text-lg text-rose-500 flex items-center" />
               </div>
               <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400">{healthData.bloodGroup || "—"}</h3>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Blood Group</p>
