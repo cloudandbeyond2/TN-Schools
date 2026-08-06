@@ -1053,25 +1053,25 @@ const SECTION_METRICS: {
   [key: string]: Array<{ label: string; defaultVal: string; icon: string; color: string }>
 } = {
   middle: [
-    { label: "Sprint Speed (100m)", defaultVal: "14.5s", icon: "", color: "bg-amber-500" },
-    { label: "Standing Broad Jump", defaultVal: "1.85m", icon: "", color: "bg-cyan-500" },
-    { label: "Shuttle Run (Agility)", defaultVal: "10.6s", icon: "", color: "bg-blue-500" },
-    { label: "Flexibility (Sit & Reach)", defaultVal: "Excellent", icon: "", color: "bg-rose-500" },
-    { label: "Overall Fitness", defaultVal: "Grade A", icon: "", color: "bg-emerald-500" }
+    { label: "Sprint Speed (100m)", defaultVal: "14.5s", icon: "⚡", color: "bg-amber-500" },
+    { label: "Standing Broad Jump", defaultVal: "1.85m", icon: "🤾", color: "bg-cyan-500" },
+    { label: "Shuttle Run (Agility)", defaultVal: "10.6s", icon: "🔄", color: "bg-blue-500" },
+    { label: "Flexibility (Sit & Reach)", defaultVal: "Excellent", icon: "🧘", color: "bg-rose-500" },
+    { label: "Overall Fitness", defaultVal: "Grade A", icon: "🏆", color: "bg-emerald-500" }
   ],
   high: [
-    { label: "Sprint Speed", defaultVal: "12.5s", icon: "", color: "bg-amber-500" },
-    { label: "Shot Put", defaultVal: "9.8m", icon: "", color: "bg-orange-500" },
-    { label: "Cardio Endurance", defaultVal: "Excellent", icon: "", color: "bg-rose-500" },
-    { label: "Agility", defaultVal: "Above Average", icon: "", color: "bg-blue-500" },
-    { label: "Overall Fitness", defaultVal: "Grade A", icon: "", color: "bg-emerald-500" }
+    { label: "Sprint Speed", defaultVal: "12.5s", icon: "⚡", color: "bg-amber-500" },
+    { label: "Shot Put", defaultVal: "9.8m", icon: "🏋️", color: "bg-orange-500" },
+    { label: "Cardio Endurance", defaultVal: "Excellent", icon: "🫀", color: "bg-rose-500" },
+    { label: "Agility", defaultVal: "Above Average", icon: "🔄", color: "bg-blue-500" },
+    { label: "Overall Fitness", defaultVal: "Grade A", icon: "🏆", color: "bg-emerald-500" }
   ],
   hsc: [
-    { label: "Sprint Speed (100m)", defaultVal: "12.1s", icon: "", color: "bg-amber-500" },
-    { label: "Shot Put", defaultVal: "11.2m", icon: "", color: "bg-orange-500" },
-    { label: "Beep Test (Cardio)", defaultVal: "Level 9.5", icon: "", color: "bg-rose-500" },
-    { label: "Agility (Shuttle Run)", defaultVal: "Above Average", icon: "", color: "bg-blue-500" },
-    { label: "Overall Fitness", defaultVal: "Grade A", icon: "", color: "bg-emerald-500" }
+    { label: "Sprint Speed (100m)", defaultVal: "12.1s", icon: "⚡", color: "bg-amber-500" },
+    { label: "Shot Put", defaultVal: "11.2m", icon: "🏋️", color: "bg-orange-500" },
+    { label: "Beep Test (Cardio)", defaultVal: "Level 9.5", icon: "🫀", color: "bg-rose-500" },
+    { label: "Agility (Shuttle Run)", defaultVal: "Above Average", icon: "🔄", color: "bg-blue-500" },
+    { label: "Overall Fitness", defaultVal: "Grade A", icon: "🏆", color: "bg-emerald-500" }
   ]
 };
 
