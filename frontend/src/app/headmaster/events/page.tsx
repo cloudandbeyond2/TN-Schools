@@ -257,7 +257,7 @@ export default function EventsPage() {
           <div className="glass rounded-2xl p-4 sm:p-6 border border-slate-800">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
               <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-                <i className="fi fi-rr-party-horn text-blue-500 text-base" /> {lang === "தமிழ்" ? "நிகழ்வுகள் கலேண்டர்" : "Calendar of Activities"}
+                <i className="fi fi-sr-calendar text-blue-500 text-base" /> {lang === "தமிழ்" ? "நிகழ்வுகள் நாட்காட்டி" : "Calendar of Activities"}
               </h2>
               
               {/* Event toggle filters */}
@@ -347,7 +347,9 @@ export default function EventsPage() {
 
           <form onSubmit={handleAddEvent} className="space-y-4">
             <div>
-              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">Event Title</label>
+              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold flex items-center gap-1.5">
+                <i className="fi fi-rr-text text-blue-500 text-xs" /> Event Title
+              </label>
               <input
                 type="text"
                 placeholder="E.g., Chess Tournament Finals"
@@ -360,7 +362,9 @@ export default function EventsPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">Category</label>
+                <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold flex items-center gap-1.5">
+                  <i className="fi fi-rr-apps text-blue-500 text-xs" /> Category
+                </label>
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value as any)}
@@ -373,19 +377,23 @@ export default function EventsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">Date</label>
+                <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold flex items-center gap-1.5">
+                  <i className="fi fi-rr-calendar text-blue-500 text-xs" /> Date
+                </label>
                 <input
                   type="date"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors [color-scheme:dark]"
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-xl py-1.5 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   required
                 />
               </div>
             </div>
 
             <div className="relative" ref={dropdownRef}>
-              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">Assign Coordinator Staff</label>
+              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold flex items-center gap-1.5">
+                <i className="fi fi-rr-user text-blue-500 text-xs" /> Assign Coordinator Staff
+              </label>
               <div
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer flex justify-between items-center min-h-[38px]"
@@ -465,13 +473,15 @@ export default function EventsPage() {
             </div>
 
             <div>
-              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold">Brief Description</label>
+              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1.5 font-semibold flex items-center gap-1.5">
+                <i className="fi fi-rr-document-text text-blue-500 text-xs" /> Brief Description
+              </label>
               <textarea
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
                 placeholder="E.g., Matches to take place in main grounds. High school finals."
                 rows={3}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white placeholder-slate-650 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs text-white placeholder-slate-655 focus:outline-none focus:border-blue-500 transition-colors resize-none"
               />
             </div>
 
