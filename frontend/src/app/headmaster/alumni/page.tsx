@@ -96,6 +96,16 @@ export default function AlumniPage() {
   const [formBatch, setFormBatch] = useState("");
   const [formRole, setFormRole] = useState("Alumni Member");
   const [formPhone, setFormPhone] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const handlePhoneChange = (val: string) => {
+    const cleaned = val.replace(/\D/g, "").slice(0, 10);
+    setFormPhone(cleaned);
+    if (cleaned.length > 0 && cleaned.length < 10) {
+      phoneError || setPhoneError("Phone number must be exactly 10 digits");
+    } else {
+      phoneError && setPhoneError("");
+    }
+  };
   const [formEmail, setFormEmail] = useState("");
   const [formLocation, setFormLocation] = useState("");
   const [formValue, setFormValue] = useState("");
@@ -225,13 +235,63 @@ export default function AlumniPage() {
     e.preventDefault();
     if (!formName || !formBatch) return;
 
+    // Validate Phone Number
+    const cleanPhone = formPhone.replace(/\D/g, "");
+    if (formPhone && cleanPhone.length !== 10) {
+      setPhoneError("Phone number must be exactly 10 digits");
+      Swal.fire({
+        title: "Validation Error",
+        text: "Phone number must be exactly 10 digits.",
+        icon: "error",
+        background: "var(--bg-card)",
+        color: "var(--text-heading)"
+      });
+      return;
+    }
+
+    // Auto-commit any filled but un-added subform items
+    const finalAchievements = [...formAchievements];
+    if (newAchievementInput.trim()) {
+      finalAchievements.push(newAchievementInput.trim());
+    }
+
+    const finalEngagements = [...formEngagements];
+    if (newEngagementTopic.trim() && newEngagementDate) {
+      finalEngagements.push({
+        type: newEngagementType,
+        date: newEngagementDate,
+        topic: newEngagementTopic.trim(),
+        status: newEngagementStatus
+      });
+    }
+
+    const finalInitiatives = [...formInitiatives];
+    let extraValue = 0;
+    if (newInitiativeTitle.trim()) {
+      const cost = parseCurrency(newInitiativeCost);
+      finalInitiatives.push({
+        title: newInitiativeTitle.trim(),
+        cost: cost,
+        status: newInitiativeStatus
+      });
+      if (cost > 0) {
+        extraValue = cost;
+      }
+    }
+
     setIsSaving(true);
     const serializedContribution = JSON.stringify({
       contributionDetails: formContributionDetails,
-      achievements: formAchievements,
-      engagements: formEngagements,
-      initiatives: formInitiatives
+      achievements: finalAchievements,
+      engagements: finalEngagements,
+      initiatives: finalInitiatives
     });
+
+    let finalValue = formValue;
+    if (extraValue > 0) {
+      const currentValue = parseCurrency(formValue);
+      finalValue = String(currentValue + extraValue);
+    }
 
     const body = {
       name: formName,
@@ -241,7 +301,7 @@ export default function AlumniPage() {
       phone: formPhone || "N/A",
       email: formEmail || "N/A",
       location: formLocation || "N/A",
-      value: formValue || "N/A",
+      value: finalValue || "N/A",
       schoolId: mySchoolId
     };
 
@@ -362,6 +422,7 @@ export default function AlumniPage() {
     setFormBatch("");
     setFormRole("Alumni Member");
     setFormPhone("");
+    setPhoneError("");
     setFormEmail("");
     setFormLocation("");
     setFormValue("");
@@ -752,8 +813,8 @@ export default function AlumniPage() {
       {/* Scope Institutional Banner */}
       <div className="glass rounded-2xl p-4 border border-slate-200 dark:border-slate-800 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 fade-in">
         <div>
-          <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Managed Network</h3>
-          <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Scoping database records to your assigned school catalog only.</p>
+          <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Alumni & Benefactors Network</h3>
+          <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Scoped database records of your institution's alumni contributions, achievements, and engagement interactions.</p>
         </div>
         <div className="flex items-center gap-2 bg-blue-600/10 border border-blue-500/30 rounded-xl px-4 py-2 w-full sm:w-auto">
           <span className="text-blue-500 dark:text-blue-400 text-sm">🏫</span>
@@ -1494,7 +1555,7 @@ export default function AlumniPage() {
                     value={formName}
                     onChange={e => setFormName(e.target.value)}
                     placeholder="e.g. Dr. Ramakrishnan"
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-slate-955 focus:border-blue-500 transition-colors"
                   />
                 </div>
                 <div>
@@ -1505,7 +1566,7 @@ export default function AlumniPage() {
                     value={formBatch}
                     onChange={e => setFormBatch(e.target.value)}
                     placeholder="e.g. 1994"
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-slate-955 focus:border-blue-500 transition-colors"
                   />
                 </div>
                 <div>
@@ -1515,7 +1576,7 @@ export default function AlumniPage() {
                     value={formRole}
                     onChange={e => setFormRole(e.target.value)}
                     placeholder="e.g. Software Architect"
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-slate-955 focus:border-blue-500 transition-colors"
                   />
                 </div>
                 <div>
@@ -1523,10 +1584,12 @@ export default function AlumniPage() {
                   <input
                     type="text"
                     value={formPhone}
-                    onChange={e => setFormPhone(e.target.value)}
+                    onChange={e => handlePhoneChange(e.target.value)}
                     placeholder="e.g. 9876543210"
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
+                    maxLength={10}
+                    className={`w-full bg-slate-50 dark:bg-slate-900 border ${phoneError ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-800 focus:border-blue-500'} rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-slate-955 transition-colors`}
                   />
+                  {phoneError && <p className="text-[9px] text-red-500 font-bold mt-1">{phoneError}</p>}
                 </div>
                 <div>
                   <label className="block text-[10px] text-slate-500 font-bold uppercase mb-1">Email Address</label>
@@ -1535,7 +1598,7 @@ export default function AlumniPage() {
                     value={formEmail}
                     onChange={e => setFormEmail(e.target.value)}
                     placeholder="e.g. ram@gmail.com"
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-slate-955 focus:border-blue-500 transition-colors"
                   />
                 </div>
                 <div>
@@ -1545,7 +1608,7 @@ export default function AlumniPage() {
                     value={formLocation}
                     onChange={e => setFormLocation(e.target.value)}
                     placeholder="e.g. Coimbatore"
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-slate-955 focus:border-blue-500 transition-colors"
                   />
                 </div>
                 <div>
@@ -1555,7 +1618,7 @@ export default function AlumniPage() {
                     value={formValue}
                     onChange={e => setFormValue(e.target.value)}
                     placeholder="e.g. 150000"
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-slate-955 focus:border-blue-500 transition-colors"
                   />
                 </div>
               </div>
@@ -1567,7 +1630,7 @@ export default function AlumniPage() {
                   onChange={e => setFormContributionDetails(e.target.value)}
                   placeholder="Summarize key support initiatives, scholarships, or equipment donated..."
                   rows={2}
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs text-slate-800 dark:text-white focus:outline-none resize-none"
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-slate-955 transition-colors resize-none"
                 />
               </div>
 
@@ -1582,12 +1645,12 @@ export default function AlumniPage() {
                       placeholder="Add outstanding award..."
                       value={newAchievementInput}
                       onChange={e => setNewAchievementInput(e.target.value)}
-                      className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-1 text-xs text-slate-800 dark:text-white focus:outline-none"
+                      className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={addAchievement}
-                      className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm"
                     >
                       +
                     </button>
@@ -1611,7 +1674,7 @@ export default function AlumniPage() {
                     <select
                       value={newEngagementType}
                       onChange={e => setNewEngagementType(e.target.value)}
-                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-0.5 text-[10px]"
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-350 focus:outline-none"
                     >
                       <option value="Guest Lecture">Guest Lecture</option>
                       <option value="Mentorship Session">Mentorship Session</option>
@@ -1622,7 +1685,7 @@ export default function AlumniPage() {
                       type="date"
                       value={newEngagementDate}
                       onChange={e => setNewEngagementDate(e.target.value)}
-                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-0.5 text-[10px]"
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none"
                     />
                     <div className="flex gap-1.5">
                       <input
@@ -1630,12 +1693,12 @@ export default function AlumniPage() {
                         placeholder="Agenda/Topic..."
                         value={newEngagementTopic}
                         onChange={e => setNewEngagementTopic(e.target.value)}
-                        className="flex-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-0.5 text-[10px] text-slate-800 dark:text-white"
+                        className="flex-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={addEngagement}
-                        className="px-2 py-0.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-bold"
+                        className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-bold shadow-sm"
                       >
                         +
                       </button>
@@ -1665,7 +1728,7 @@ export default function AlumniPage() {
                       placeholder="Project Title..."
                       value={newInitiativeTitle}
                       onChange={e => setNewInitiativeTitle(e.target.value)}
-                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-0.5 text-[10px] text-slate-800 dark:text-white"
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none"
                     />
                     <div className="flex gap-1.5">
                       <input
@@ -1673,12 +1736,12 @@ export default function AlumniPage() {
                         placeholder="Cost (₹)..."
                         value={newInitiativeCost}
                         onChange={e => setNewInitiativeCost(e.target.value)}
-                        className="flex-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-0.5 text-[10px] text-slate-800 dark:text-white"
+                        className="flex-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none"
                       />
                       <select
                         value={newInitiativeStatus}
                         onChange={e => setNewInitiativeStatus(e.target.value as any)}
-                        className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-0.5 text-[10px]"
+                        className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-350 focus:outline-none"
                       >
                         <option value="Completed">Completed</option>
                         <option value="In Progress">In Progress</option>
@@ -1686,7 +1749,7 @@ export default function AlumniPage() {
                       <button
                         type="button"
                         onClick={addInitiative}
-                        className="px-2 py-0.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold"
+                        className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold shadow-sm"
                       >
                         +
                       </button>
