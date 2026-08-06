@@ -70,10 +70,10 @@ function badgeClass(subject: string) {
 }
 
 const EMPTY_FORM = {
-  className: "10",
-  section: "A",
-  subject: "Mathematics",
-  academicYear: "2024-25",
+  className: "",
+  section: "",
+  subject: "",
+  academicYear: "",
   roomNumber: "",
   schedule: "",
   totalStudents: "",
@@ -346,7 +346,6 @@ export default function ClassesPage() {
     setEditingId(null);
     setForm({
       ...EMPTY_FORM,
-      className: schoolClasses.length > 0 ? schoolClasses[0] : "10"
     });
     setIsModal(true);
   };
@@ -928,7 +927,7 @@ export default function ClassesPage() {
                     onChange={(e) => setForm({ ...form, className: e.target.value })}
                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                   >
-                    {availableClasses.length === 0 && <option disabled value="">No classes configured</option>}
+                    <option value="" disabled>Select Class</option>
                     {availableClasses.map((c) => (
                       <option key={c} value={c}>Class {c}</option>
                     ))}
@@ -942,6 +941,7 @@ export default function ClassesPage() {
                     onChange={(e) => setForm({ ...form, section: e.target.value })}
                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                   >
+                    <option value="" disabled>Select Section</option>
                     {SECTIONS.map((s) => <option key={s} value={s}>Section {s}</option>)}
                   </select>
                 </div>
@@ -956,8 +956,10 @@ export default function ClassesPage() {
                   onChange={(e) => setForm({ ...form, subject: e.target.value })}
                   className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                 >
-                  {availableSubjects.length === 0 && <option disabled value="">No subjects configured</option>}
-                  {availableSubjects.map((s) => <option key={s} value={s}>{s}</option>)}
+                  <option value="" disabled>Select Subject</option>
+                  {availableSubjects.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
                 </select>
               </div>
 
@@ -970,6 +972,7 @@ export default function ClassesPage() {
                     onChange={(e) => setForm({ ...form, academicYear: e.target.value })}
                     className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                   >
+                    <option value="" disabled>Select Academic Year</option>
                     {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
                   </select>
                 </div>

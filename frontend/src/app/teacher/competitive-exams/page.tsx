@@ -1,6 +1,5 @@
 "use client";
-import { BarChart, Edit, Clipboard, Trophy, Target, Globe, BookOpen, Archive, X } from "lucide-react";
-
+import { BarChart, Edit, Clipboard, Trophy, Target, Globe, BookOpen, Archive, X, Users } from "lucide-react";
 
 import React, { useState, useEffect, useCallback } from "react";
 import PortalLayout from "@/components/PortalLayout";
@@ -46,13 +45,18 @@ const categoryColor: Record<string, string> = {
 };
 
 const categoryIcon: Record<string, string> = {
-  Medical: "",
-  Engineering: "",
-  "Civil Services": "",
-  Banking: "",
-  Defence: "",
-  Law: "",
-  Other: "",
+  Medical: "🏥",
+  Engineering: "⚙️",
+  "Civil Services": "🏛️",
+  Banking: "🏦",
+  Defence: "🛡️",
+  Law: "⚖️",
+  Technology: "💻",
+  Science: "🔬",
+  Arts: "🎨",
+  Management: "💼",
+  General: "📚",
+  Other: "📖",
 };
 
 const statusColor: Record<string, string> = {
@@ -250,7 +254,7 @@ export default function CompetitiveExamsPage() {
         {[
           { label: lang === "தமிழ்" ? "மொத்த தேர்வுகள்" : "Total Exams Tracked", value: examsList.length, icon: <Clipboard className="w-5 h-5" />, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-950/20" },
           { label: lang === "தமிழ்" ? "பதிவு ஆரம்பம்" : "Registration Open", value: registrationOpenCount, icon: <Edit className="w-5 h-5" />, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20" },
-          { label: lang === "தமிழ்" ? "மாணவர்கள் சேர்க்கை" : "Students Enrolled", value: totalEnrolled, icon: "", color: "text-violet-500", bg: "bg-violet-50 dark:bg-violet-950/20" },
+          { label: lang === "தமிழ்" ? "மாணவர்கள் சேர்க்கை" : "Students Enrolled", value: totalEnrolled, icon: <Users className="w-5 h-5" />, color: "text-violet-500", bg: "bg-violet-50 dark:bg-violet-950/20" },
           { label: lang === "தமிழ்" ? "தேர்ச்சி விகிதம்" : "Clearance Rate", value: `${successRate}%`, icon: <Trophy className="w-5 h-5" />, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20" },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
@@ -284,7 +288,7 @@ export default function CompetitiveExamsPage() {
                   : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 hover:border-amber-300"
                 }`}
               >
-                <span className="text-xl mb-0.5">{isAll ? "" : categoryIcon[cat]}</span>
+                <span className="text-xl mb-0.5">{isAll ? "🔍" : categoryIcon[cat] || "📖"}</span>
                 <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300 text-center leading-tight">{catTranslated}</span>
               </button>
             );
@@ -384,7 +388,7 @@ export default function CompetitiveExamsPage() {
                     {/* Header */}
                     <div className="flex items-start gap-3 mb-3">
                       <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shrink-0">
-                        {categoryIcon[exam.category] || ""}
+                        {categoryIcon[exam.category] || "📖"}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-bold text-slate-800 dark:text-white group-hover:text-amber-500 transition-colors leading-tight">{exam.examName}</h4>
@@ -545,7 +549,7 @@ export default function CompetitiveExamsPage() {
                   (lang === "தமிழ்" ? "சட்டம்" : cat);
                 return (
                   <div key={cat} className="flex items-center gap-3 mb-3">
-                    <span className="text-lg">{categoryIcon[cat]}</span>
+                    <span className="text-lg">{categoryIcon[cat] || "📖"}</span>
                     <div className="flex-1">
                       <div className="flex justify-between text-[10px] mb-0.5">
                         <span className="font-semibold text-slate-600 dark:text-slate-300">{catTranslated}</span>

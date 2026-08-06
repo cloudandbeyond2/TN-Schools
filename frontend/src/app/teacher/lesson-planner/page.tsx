@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 import PortalLayout from "@/components/PortalLayout";
@@ -99,11 +99,14 @@ export default function LessonPlannerPage() {
   const { lang } = usePortalLanguage();
   const { data: session } = useSession();
   const schoolId = (session?.user as any)?.schoolId;
+  const teacherId = (session?.user as any)?.id;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const [syllabus, setSyllabus] = useState(syllabusOptions[0]);
-  const [grade, setGrade] = useState(grades[4]); // Grade 10
+  const [grade, setGrade] = useState("Grade 10");
   const [schoolClasses, setSchoolClasses] = useState<string[]>([]);
+  const [teacherClasses, setTeacherClasses] = useState<any[]>([]);
+  const [loadingClasses, setLoadingClasses] = useState(true);
   const [subject, setSubject] = useState("");
   const [subjectOptions, setSubjectOptions] = useState<{ id: string; name: string }[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
@@ -120,6 +123,51 @@ export default function LessonPlannerPage() {
     setContentLanguage(isTamilMediumSyllabus(syllabus) ? "tamil" : "english");
   }, [syllabus]);
 
+  // Fetch PostgreSQL classes created for this teacher/school on /teacher/classes page
+  useEffect(() => {
+    if (!schoolId) return;
+    const fetchTeacherClasses = async () => {
+      setLoadingClasses(true);
+      try {
+        let url = `${API_URL}/api/classes?schoolId=${schoolId}`;
+        if (teacherId) url += `&teacherId=${teacherId}`;
+
+        let res = await fetch(url);
+        let data = await res.json();
+
+        let classRooms: any[] = [];
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          classRooms = data.data;
+        } else {
+          // Fallback to all school classes if teacher-specific query is empty
+          const fallbackRes = await fetch(`${API_URL}/api/classes?schoolId=${schoolId}`);
+          const fallbackData = await fallbackRes.json();
+          if (fallbackData.success && Array.isArray(fallbackData.data) && fallbackData.data.length > 0) {
+            classRooms = fallbackData.data;
+          }
+        }
+
+        setTeacherClasses(classRooms);
+
+        if (classRooms.length > 0) {
+          const first = classRooms[0];
+          const gName = first.className.startsWith("Grade") || first.className.startsWith("Class")
+            ? first.className
+            : `Grade ${first.className}`;
+          setGrade(gName);
+          if (first.subject) setSubject(first.subject);
+          if (first.section) setSection(first.section);
+        }
+      } catch (err) {
+        console.error("Error fetching teacher classes in Lesson Planner:", err);
+      } finally {
+        setLoadingClasses(false);
+      }
+    };
+
+    fetchTeacherClasses();
+  }, [schoolId, teacherId, API_URL]);
+
   // Fetch school configuration for valid classes
   useEffect(() => {
     if (!schoolId) return;
@@ -129,9 +177,6 @@ export default function LessonPlannerPage() {
         const data = await res.json();
         if (data.success && data.data?.classes) {
           setSchoolClasses(data.data.classes);
-          if (data.data.classes.length > 0) {
-            setGrade(`Grade ${data.data.classes[0]}`);
-          }
         }
       } catch (err) {
         console.error("Error fetching school details:", err);
@@ -213,21 +258,13 @@ export default function LessonPlannerPage() {
   // Fetch subjects when grade changes
   useEffect(() => {
     const fetchSubjects = async () => {
-      const classStr = grade.replace("Grade ", "");
+      const classStr = grade.replace(/^(Grade|Class)\s+/i, "").split(" ")[0].split("-")[0].trim();
       setLoadingSubjects(true);
       try {
         const res = await fetch(`${API_URL}/api/centralized-content/subjects?class=${classStr}`);
         const data = await res.json();
         if (data.success && data.data) {
           setSubjectOptions(data.data);
-          if (data.data.length > 0) {
-            setSubject((prev) => {
-              if (data.data.find((s: any) => s.name === prev)) return prev;
-              return data.data[0].name;
-            });
-          } else {
-            setSubject("");
-          }
         }
       } catch (err) {
         console.error("Failed to fetch subjects:", err);
@@ -239,6 +276,91 @@ export default function LessonPlannerPage() {
       fetchSubjects();
     }
   }, [grade, API_URL]);
+
+  // Dynamically compute Grade options EXCLUSIVELY from PostgreSQL teacherClasses
+  const gradeOptions = useMemo(() => {
+    const list: string[] = [];
+
+    // 1. PostgreSQL teacher classes
+    if (teacherClasses.length > 0) {
+      teacherClasses.forEach((c) => {
+        const name = c.className.startsWith("Grade") || c.className.startsWith("Class")
+          ? c.className
+          : `Grade ${c.className}`;
+        if (!list.includes(name)) {
+          list.push(name);
+        }
+      });
+    } else if (schoolClasses.length > 0) {
+      // 2. School configuration classes only if teacher has no PostgreSQL classes
+      schoolClasses.forEach((c) => {
+        const name = c.startsWith("Grade") || c.startsWith("Class") ? c : `Grade ${c}`;
+        if (!list.includes(name)) {
+          list.push(name);
+        }
+      });
+    }
+
+    // Sort numerically by grade number
+    list.sort((a, b) => {
+      const numA = parseInt(a.replace(/\D/g, ""), 10) || 0;
+      const numB = parseInt(b.replace(/\D/g, ""), 10) || 0;
+      return numA - numB;
+    });
+
+    return list;
+  }, [teacherClasses, schoolClasses]);
+
+  // Dynamically compute Subject options EXCLUSIVELY from PostgreSQL teacherClasses
+  const availableSubjects = useMemo(() => {
+    const cleanGrade = grade.replace(/^(Grade|Class)\s+/i, "").split(" ")[0].split("-")[0].trim();
+    const subjectsList: string[] = [];
+
+    // 1. Get subjects from PostgreSQL teacher classes for the selected grade
+    const matchedClasses = teacherClasses.filter((c) => {
+      const cClean = c.className.replace(/^(Grade|Class)\s+/i, "").split(" ")[0].split("-")[0].trim();
+      return cClean === cleanGrade;
+    });
+
+    matchedClasses.forEach((c) => {
+      if (c.subject && !subjectsList.includes(c.subject)) {
+        subjectsList.push(c.subject);
+      }
+    });
+
+    if (subjectsList.length > 0) {
+      return subjectsList;
+    }
+
+    // 2. Fallback to all subjects taught by teacher in PostgreSQL across all classes
+    teacherClasses.forEach((c) => {
+      if (c.subject && !subjectsList.includes(c.subject)) {
+        subjectsList.push(c.subject);
+      }
+    });
+
+    if (subjectsList.length > 0) {
+      return subjectsList;
+    }
+
+    // 3. Fallback to API subjects ONLY if teacher has NO PostgreSQL classes at all
+    subjectOptions.forEach((s) => {
+      if (s.name && !subjectsList.includes(s.name)) {
+        subjectsList.push(s.name);
+      }
+    });
+
+    return subjectsList;
+  }, [grade, teacherClasses, subjectOptions]);
+
+  // Keep selected subject in sync with availableSubjects
+  useEffect(() => {
+    if (availableSubjects.length > 0) {
+      if (!subject || !availableSubjects.includes(subject)) {
+        setSubject(availableSubjects[0]);
+      }
+    }
+  }, [availableSubjects]);
 
   // Set chat messages welcome when a plan changes
   useEffect(() => {
@@ -757,12 +879,31 @@ export default function LessonPlannerPage() {
                     <label className={`text-[10px] font-semibold ${theme.textMuted} block mb-1.5`}>{lang === "தமிழ்" ? "தரம்" : "Grade"}</label>
                     <select
                       value={grade}
-                      onChange={(e) => setGrade(e.target.value)}
+                      onChange={(e) => {
+                        const selectedG = e.target.value;
+                        setGrade(selectedG);
+                        const clean = selectedG.replace(/^(Grade|Class)\s+/i, "").split(" ")[0].split("-")[0].trim();
+                        const matched = teacherClasses.find((c) => {
+                          const cClean = c.className.replace(/^(Grade|Class)\s+/i, "").split(" ")[0].split("-")[0].trim();
+                          return cClean === clean;
+                        });
+                        if (matched) {
+                          if (matched.subject) setSubject(matched.subject);
+                          if (matched.section) setSection(matched.section);
+                        }
+                      }}
                       className={`w-full ${theme.inputBg} border ${theme.borderSoft} rounded-xl px-3 py-2.5 text-xs ${theme.text} focus:outline-none focus:border-amber-500 transition-colors`}
+                      disabled={loadingClasses && gradeOptions.length === 0}
                     >
-                      {(schoolClasses.length > 0 ? schoolClasses : ["6", "7", "8", "9", "10", "11", "12"]).map((c) => (
-                        <option key={c} value={`Grade ${c}`}>Grade {c}</option>
-                      ))}
+                      {loadingClasses && gradeOptions.length === 0 ? (
+                        <option>Loading...</option>
+                      ) : gradeOptions.length > 0 ? (
+                        gradeOptions.map((g) => (
+                          <option key={g} value={g}>{g}</option>
+                        ))
+                      ) : (
+                        <option value="">No Classes</option>
+                      )}
                     </select>
                   </div>
                   <div>
@@ -771,12 +912,14 @@ export default function LessonPlannerPage() {
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
                       className={`w-full ${theme.inputBg} border ${theme.borderSoft} rounded-xl px-3 py-2.5 text-xs ${theme.text} focus:outline-none focus:border-amber-500 transition-colors`}
-                      disabled={loadingSubjects}
+                      disabled={loadingSubjects && availableSubjects.length === 0}
                     >
-                      {loadingSubjects ? (
+                      {loadingSubjects && availableSubjects.length === 0 ? (
                         <option>Loading...</option>
-                      ) : subjectOptions.length > 0 ? (
-                        subjectOptions.map((s) => <option key={s.id} value={s.name}>{s.name}</option>)
+                      ) : availableSubjects.length > 0 ? (
+                        availableSubjects.map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))
                       ) : (
                         <option value="">No Subjects</option>
                       )}
