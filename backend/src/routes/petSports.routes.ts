@@ -99,23 +99,28 @@ router.post('/', async (req: Request, res: Response) => {
 
             // Parent notification
             const links = await prisma.parentStudentLink.findMany({
-              where: { studentId: student.id }
+              where: { studentId: student.id },
+              include: { parent: true }
             });
 
-            const parentIds = new Set<string>();
-            links.forEach(l => parentIds.add(l.parentId));
+            const parentUsers = new Map<string, string>(); // userId -> parentId
+            links.forEach(l => {
+              if (l.parent?.userId) parentUsers.set(l.parent.userId, l.parent.id);
+            });
 
-            if (parentIds.size === 0 && student.parentMobile) {
+            if (parentUsers.size === 0 && student.parentMobile) {
               const parent = await prisma.headmasterParent.findFirst({
                 where: { phone: student.parentMobile }
               });
-              if (parent) parentIds.add(parent.id);
+              if (parent && parent.userId) {
+                parentUsers.set(parent.userId, parent.id);
+              }
             }
 
-            for (const parentId of parentIds) {
-              await prisma.parentNotification.create({
+            for (const [userId, parentId] of parentUsers.entries()) {
+              await prisma.notification.create({
                 data: {
-                  parentId,
+                  userId,
                   studentId: student.id,
                   type: 'SPORTS_ALERT',
                   title: `New Sports ${created.kind} Scheduled`,

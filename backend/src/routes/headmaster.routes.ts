@@ -1134,7 +1134,7 @@ router.post('/pta-meetings', async (req: Request, res: Response) => {
       try {
         const parents = await prisma.headmasterParent.findMany({
           where: { schoolId },
-          select: { id: true }
+          select: { id: true, userId: true }
         });
 
         const meetingDateFormatted = new Date(meetingDate).toLocaleDateString('en-IN', {
@@ -1142,15 +1142,21 @@ router.post('/pta-meetings', async (req: Request, res: Response) => {
         });
 
         if (parents.length > 0) {
-          await prisma.parentNotification.createMany({
-            data: parents.map(p => ({
-              parentId: p.id,
+          const notificationsData = parents
+            .filter(p => p.userId)
+            .map(p => ({
+              userId: p.userId!,
               type: 'PTA_MEETING',
               title: `📅 New PTA Meeting Scheduled`,
               message: `"${title}" has been scheduled on ${meetingDateFormatted} at ${venue || 'School Auditorium'}. Please confirm your attendance in the Parent Portal.`,
-              isRead: false,
-            }))
-          });
+              read: false,
+            }));
+          
+          if (notificationsData.length > 0) {
+            await prisma.notification.createMany({
+              data: notificationsData,
+            });
+          }
         }
       } catch (notifErr) {
         // Notification failure should not block the meeting creation response

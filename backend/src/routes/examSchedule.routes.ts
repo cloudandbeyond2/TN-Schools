@@ -52,39 +52,19 @@ async function notifyExamScheduled(
         include: { parent: true }
       });
       
-      const parentUserIds = Array.from(new Set(parentLinks.map(pl => pl.parent?.userId).filter((id): id is string => Boolean(id))));
-      if (parentUserIds.length > 0) {
-        const existingParentNotifs = await prisma.notification.findMany({
-          where: {
-            userId: { in: parentUserIds },
-            message,
-          },
-          select: { userId: true },
-        });
-        const alreadyNotifiedParents = new Set(existingParentNotifs.map(n => n.userId));
-        const parentsToNotify = parentUserIds.filter(id => !alreadyNotifiedParents.has(id));
-
-        if (parentsToNotify.length > 0) {
-          await prisma.notification.createMany({
-            data: parentsToNotify.map(userId => ({
-              userId,
-              message,
-            })),
-            skipDuplicates: true
-          });
-        }
-      }
+      // Dispatch standard user notifications to parents with rich details
+      const parentNotifications = parentLinks
+        .filter(pl => pl.parent?.userId)
+        .map(pl => ({
+          userId: pl.parent.userId!,
+          studentId: pl.studentId,
+          type: 'Exam Schedule',
+          title: 'New Exam Scheduled',
+          message,
+        }));
       
-      // Also add to ParentNotification table
-      const parentNotifications = parentLinks.map(pl => ({
-        parentId: pl.parentId,
-        studentId: pl.studentId,
-        type: 'Exam Schedule',
-        title: 'New Exam Scheduled',
-        message,
-      }));
       if (parentNotifications.length > 0) {
-        await prisma.parentNotification.createMany({
+        await prisma.notification.createMany({
           data: parentNotifications,
           skipDuplicates: true
         });
