@@ -84,6 +84,30 @@ export default function TemporaryStaffPage() {
   const [newSalary, setNewSalary] = useState("₹15,000");
   const [newPassword, setNewPassword] = useState("123456");
 
+  const [phoneError, setPhoneError] = useState("");
+  const [editPhoneError, setEditPhoneError] = useState("");
+
+  const handlePhoneChange = (val: string) => {
+    const cleaned = val.replace(/\D/g, "").slice(0, 10);
+    setNewPhone(cleaned);
+    if (cleaned.length > 0 && cleaned.length < 10) {
+      setPhoneError("Phone number must be exactly 10 digits");
+    } else {
+      setPhoneError("");
+    }
+  };
+
+  const handleEditPhoneChange = (val: string) => {
+    if (!staffToEdit) return;
+    const cleaned = val.replace(/\D/g, "").slice(0, 10);
+    setStaffToEdit({ ...staffToEdit, phone: cleaned });
+    if (cleaned.length > 0 && cleaned.length < 10) {
+      setEditPhoneError("Phone number must be exactly 10 digits");
+    } else {
+      setEditPhoneError("");
+    }
+  };
+
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [previewStaff, setPreviewStaff] = useState<ParsedPreviewTempStaff[]>([]);
@@ -214,6 +238,19 @@ export default function TemporaryStaffPage() {
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName || !newRole) return;
+
+    // Phone validation
+    const cleanPhone = newPhone.replace(/\D/g, "");
+    if (!cleanPhone) {
+      setPhoneError("Phone number is required");
+      showToast("❌ Phone number is required", "error");
+      return;
+    } else if (cleanPhone.length !== 10) {
+      setPhoneError("Phone number must be exactly 10 digits");
+      showToast("❌ Phone number must be exactly 10 digits", "error");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const res = await fetch(`${API_BASE}/api/headmaster/temp-staff`, {
@@ -310,8 +347,16 @@ export default function TemporaryStaffPage() {
       </div>
 
       {toast && (
-        <div className={`mb-6 p-4 border text-xs rounded-xl shadow-lg ${toast.type === "error" ? "bg-red-500/10 border-red-500/20 text-red-300" : "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"}`}>
-          {toast.msg}
+        <div
+          className={`mb-6 p-4 border text-xs rounded-xl shadow-lg font-semibold flex items-center gap-2 ${
+            toast.type === "error"
+              ? "bg-red-600 border-red-500 text-white"
+              : "bg-emerald-600 border-emerald-500 text-white"
+          }`}
+          style={{ color: "#ffffff" }}
+        >
+          {toast.type === "error" ? "❌" : "🎉"}
+          <span>{toast.msg.replace(/^[❌🎉\s]+/, "")}</span>
         </div>
       )}
 
@@ -323,7 +368,10 @@ export default function TemporaryStaffPage() {
             {isLoading && <div className="w-4 h-4 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />}
           </div>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setPhoneError("");
+              setIsModalOpen(true);
+            }}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md"
           >
             + Add Contract Staff
@@ -379,6 +427,7 @@ export default function TemporaryStaffPage() {
         <button
           onClick={() => {
             setStaffToEdit(t);
+            setEditPhoneError("");
             setIsEditModalOpen(true);
           }}
           className="text-[10px] text-blue-400 hover:text-blue-300 font-semibold border border-blue-500/20 px-2 py-1 rounded-lg transition-colors flex items-center justify-center"
@@ -533,9 +582,11 @@ export default function TemporaryStaffPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Phone Number</label>
-                      <input type="text" required value={newPhone} onChange={(e) => setNewPhone(e.target.value)}
+                      <input type="text" required value={newPhone} onChange={(e) => handlePhoneChange(e.target.value)}
                         placeholder="e.g. 9876543235"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors" />
+                        maxLength={10}
+                        className={`w-full bg-slate-50 border ${phoneError ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'} rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white transition-colors`} />
+                      {phoneError && <p className="text-[9px] text-red-500 font-bold mt-1">{phoneError}</p>}
                     </div>
                     <div>
                       <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Email Address</label>
@@ -664,6 +715,19 @@ export default function TemporaryStaffPage() {
             </div>
             <form onSubmit={async (e) => {
               e.preventDefault();
+
+              // Validate Phone Number
+              const cleanPhone = (staffToEdit.phone || "").replace(/\D/g, "");
+              if (!cleanPhone) {
+                setEditPhoneError("Phone number is required");
+                showToast("❌ Phone number is required", "error");
+                return;
+              } else if (cleanPhone.length !== 10) {
+                setEditPhoneError("Phone number must be exactly 10 digits");
+                showToast("❌ Phone number must be exactly 10 digits", "error");
+                return;
+              }
+
               setIsSaving(true);
               try {
                 const res = await fetch(`${API_BASE}/api/headmaster/temp-staff/${staffToEdit.id}`, {
@@ -716,8 +780,10 @@ export default function TemporaryStaffPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Phone Number</label>
-                  <input type="text" required value={staffToEdit.phone} onChange={(e) => setStaffToEdit({ ...staffToEdit, phone: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:bg-white focus:border-blue-500 transition-colors" />
+                  <input type="text" required value={staffToEdit.phone} onChange={(e) => handleEditPhoneChange(e.target.value)}
+                    maxLength={10}
+                    className={`w-full bg-slate-50 border ${editPhoneError ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'} rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white transition-colors`} />
+                  {editPhoneError && <p className="text-[9px] text-red-500 font-bold mt-1">{editPhoneError}</p>}
                 </div>
                 <div>
                   <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Email Address</label>
