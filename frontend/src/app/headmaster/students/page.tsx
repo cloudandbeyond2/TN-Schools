@@ -330,6 +330,8 @@ export default function StudentsMonitoringPage() {
     setPhoneError("");
     setPincodeError("");
     setEmisError("");
+    setBankAccountError("");
+    setBankIfscError("");
   };
 
   const handleOpenEdit = (s: any) => {
@@ -402,6 +404,8 @@ export default function StudentsMonitoringPage() {
   const [phoneError, setPhoneError] = useState("");
   const [rollError, setRollError] = useState("");
   const [emisError, setEmisError] = useState("");
+  const [bankAccountError, setBankAccountError] = useState("");
+  const [bankIfscError, setBankIfscError] = useState("");
 
   const handleRollChange = (val: string) => {
     // Only allow alphanumeric characters, uppercase them for standard format
@@ -444,6 +448,29 @@ export default function StudentsMonitoringPage() {
       setEmisError("EMIS Number must be exactly 16 digits");
     } else {
       setEmisError("");
+    }
+  };
+
+  const handleBankAccountChange = (val: string) => {
+    // Only allow digits, max 18 digits
+    const cleaned = val.replace(/\D/g, "").slice(0, 18);
+    setNewBankAccount(cleaned);
+    if (cleaned.length > 0 && cleaned.length < 9) {
+      setBankAccountError("Bank Account Number must be between 9 and 18 digits");
+    } else {
+      setBankAccountError("");
+    }
+  };
+
+  const handleBankIfscChange = (val: string) => {
+    // Alphanumeric, max 11 chars, convert to uppercase
+    const cleaned = val.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 11);
+    setNewBankIfsc(cleaned);
+    const ifscRegex = /^[A-Z]{4}[A-Z0-9]{7}$/;
+    if (cleaned.length > 0 && (cleaned.length !== 11 || !ifscRegex.test(cleaned))) {
+      setBankIfscError("IFSC Code must be 11 characters (e.g. SBIN0001234)");
+    } else {
+      setBankIfscError("");
     }
   };
 
@@ -1013,11 +1040,30 @@ export default function StudentsMonitoringPage() {
       invalidFields.push("EMIS Number");
     }
 
+    // 5. Bank Account Number Validation (Optional, but if set, must be 9-18 digits)
+    let localBankAccountError = "";
+    const cleanBankAccount = newBankAccount.replace(/\D/g, "");
+    if (newBankAccount && (cleanBankAccount.length < 9 || cleanBankAccount.length > 18)) {
+      localBankAccountError = "Bank Account Number must be between 9 and 18 digits";
+      invalidFields.push("Bank Account Number");
+    }
+
+    // 6. Bank IFSC Code Validation (Optional, but if set, must be 11-char alphanumeric and valid IFSC)
+    let localBankIfscError = "";
+    const cleanBankIfsc = newBankIfsc.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    const ifscRegex = /^[A-Z]{4}[A-Z0-9]{7}$/;
+    if (newBankIfsc && (cleanBankIfsc.length !== 11 || !ifscRegex.test(cleanBankIfsc))) {
+      localBankIfscError = "IFSC Code must be 11 characters (e.g. SBIN0001234)";
+      invalidFields.push("Bank IFSC Code");
+    }
+
     // Update states
     setRollError(localRollError);
     setPhoneError(localPhoneError);
     setPincodeError(localPincodeError);
     setEmisError(localEmisError);
+    setBankAccountError(localBankAccountError);
+    setBankIfscError(localBankIfscError);
 
     if (invalidFields.length > 0) {
       showToast(`❌ Please fix errors in: ${invalidFields.join(", ")}`, "error");
@@ -1029,6 +1075,8 @@ export default function StudentsMonitoringPage() {
       else if (firstInvalid === "Phone Number") elementId = "manual-phone-number";
       else if (firstInvalid === "Pincode") elementId = "manual-pincode";
       else if (firstInvalid === "EMIS Number") elementId = "manual-emis-number";
+      else if (firstInvalid === "Bank Account Number") elementId = "manual-bank-account";
+      else if (firstInvalid === "Bank IFSC Code") elementId = "manual-bank-ifsc";
 
       if (elementId) {
         setTimeout(() => {
@@ -1352,23 +1400,30 @@ export default function StudentsMonitoringPage() {
       </div>
 
       {toast && (
-        <div className={`fixed top-5 right-5 z-[9999] max-w-sm p-4 border text-xs rounded-2xl shadow-2xl backdrop-blur-md flex items-center justify-between gap-3 animate-fade-in ${toast.type === "error"
-            ? "bg-red-950/95 border-red-500/40 text-red-200"
-            : "bg-emerald-950/95 border-emerald-500/40 text-emerald-200"
-          }`}>
+        <div
+          className={`fixed top-5 right-5 z-[9999] max-w-sm p-4 border text-xs rounded-2xl shadow-2xl backdrop-blur-md flex items-center justify-between gap-3 animate-fade-in ${
+            toast.type === "error"
+              ? "bg-red-600 border-red-500 text-white"
+              : "bg-emerald-600 border-emerald-500 text-white"
+          }`}
+          style={{ color: "#ffffff" }}
+        >
           <div className="flex items-center gap-2">
             {toast.type === "error" ? (
-              <i className="fi fi-rr-exclamation text-red-400 text-sm shrink-0" />
+              <i className="fi fi-rr-exclamation text-white text-sm shrink-0" style={{ color: "#ffffff" }} />
             ) : (
-              <i className="fi fi-rr-check-circle text-emerald-400 text-sm shrink-0" />
+              <i className="fi fi-rr-check-circle text-white text-sm shrink-0" style={{ color: "#ffffff" }} />
             )}
-            <span>{toast.msg.replace(/^[⚠️❌🔴🎉🗑️📊\s]+/, "")}</span>
+            <span className="font-semibold text-white" style={{ color: "#ffffff" }}>
+              {toast.msg.replace(/^[⚠️❌🔴🎉🗑️📊\s]+/, "")}
+            </span>
           </div>
           <button
             onClick={() => setToast(null)}
-            className="text-[10px] font-bold text-slate-500 hover:text-white shrink-0 ml-2 flex items-center justify-center"
+            className="text-[10px] font-bold text-white hover:text-white/80 shrink-0 ml-2 flex items-center justify-center"
+            style={{ color: "#ffffff" }}
           >
-            <i className="fi fi-rr-cross text-[9px]" />
+            <i className="fi fi-rr-cross text-[9px]" style={{ color: "#ffffff" }} />
           </button>
         </div>
       )}
@@ -2789,24 +2844,32 @@ export default function StudentsMonitoringPage() {
                           <div>
                             <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Bank Account Number</label>
                             <input
+                              id="manual-bank-account"
                               type="text"
-                              placeholder="e.g. 30129482718"
+                              placeholder="e.g. 30129482718 (9-18 digits)"
                               value={newBankAccount}
-                              onChange={(e) => setNewBankAccount(e.target.value.replace(/\D/g, ""))}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
+                              onChange={(e) => handleBankAccountChange(e.target.value)}
+                              className={`w-full bg-slate-50 border ${bankAccountError ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'} rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white transition-colors`}
                             />
+                            {bankAccountError && (
+                              <p className="text-[10px] text-red-500 font-bold mt-1">{bankAccountError}</p>
+                            )}
                           </div>
 
                           {/* IFSC Code */}
                           <div>
                             <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Bank IFSC Code</label>
                             <input
+                              id="manual-bank-ifsc"
                               type="text"
-                              placeholder="e.g. SBIN0001234"
+                              placeholder="e.g. SBIN0001234 (11 characters)"
                               value={newBankIfsc}
-                              onChange={(e) => setNewBankIfsc(e.target.value.toUpperCase())}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
+                              onChange={(e) => handleBankIfscChange(e.target.value)}
+                              className={`w-full bg-slate-50 border ${bankIfscError ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'} rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white transition-colors`}
                             />
+                            {bankIfscError && (
+                              <p className="text-[10px] text-red-500 font-bold mt-1">{bankIfscError}</p>
+                            )}
                           </div>
 
                           {/* Income Certificate File */}
