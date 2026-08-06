@@ -401,8 +401,6 @@ model HeadmasterParent {
   role           String
   phone          String
   email          String?
-  studentName    String               @default("N/A")
-  studentClass   String               @default("N/A")
   term           String
   password       String               @default("$2b$10$672zWrwIOxXoaL.Eh9iZhubuyoMM1/Gc3UJzBJTt45rBRN6ci/Tn2")
   schoolId       String?

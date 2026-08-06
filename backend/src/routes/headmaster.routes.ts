@@ -199,8 +199,6 @@ router.post('/students', async (req: Request, res: Response) => {
               role: 'Parent',
               phone: cleanPhone || 'N/A',
               email: parentEmail.trim().toLowerCase(),
-              studentName: name,
-              studentClass: classVal,
               term: fatherName ? 'Father' : motherName ? 'Mother' : 'Parent',
               password: await hashPassword(cleanPhone || '123456'),
               schoolId,
@@ -855,7 +853,19 @@ router.get('/parents', async (req: Request, res: Response) => {
       },
       orderBy: { createdAt: 'desc' },
     });
-    const safeParents = parents.map(({ password, ...rest }) => rest);
+    const safeParents = parents.map(({ password, linkedStudents, ...p }) => {
+      const primaryLink = linkedStudents.find(l => l.isPrimary) || linkedStudents[0];
+      const studentName = primaryLink?.student?.user?.name || 'N/A';
+      const studentClass = primaryLink?.student 
+        ? `${primaryLink.student.class}${primaryLink.student.section || ''}`
+        : 'N/A';
+      return {
+        ...p,
+        studentName,
+        studentClass,
+        linkedStudents,
+      };
+    });
     res.json({ success: true, count: safeParents.length, data: safeParents });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
@@ -875,15 +885,13 @@ router.post('/parents', async (req: Request, res: Response) => {
         role,
         phone,
         email: email || null,
-        studentName: studentName || 'N/A',
-        studentClass: studentClass || 'N/A',
         term: term || '2025-26',
         password: await hashPassword(password || '123456'),
         schoolId: schoolId || null,
       },
     });
     const { password: _pw, ...safeParent } = parent;
-    res.status(201).json({ success: true, data: safeParent });
+    res.status(201).json({ success: true, data: { ...safeParent, studentName: studentName || 'N/A', studentClass: studentClass || 'N/A' } });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
@@ -903,8 +911,6 @@ router.post('/parents/bulk', async (req: Request, res: Response) => {
         role: p.role,
         phone: p.phone,
         email: p.email || null,
-        studentName: p.studentName || 'N/A',
-        studentClass: p.studentClass || 'N/A',
         term: p.term || '2025-26',
         password: await hashPassword(p.password || '123456'),
         schoolId: p.schoolId || null,
@@ -919,13 +925,13 @@ router.post('/parents/bulk', async (req: Request, res: Response) => {
 // PUT /api/headmaster/parents/:id — Update parent officer
 router.put('/parents/:id', async (req: Request, res: Response) => {
   try {
-    const { password, ...rest } = req.body;
+    const { password, studentName, studentClass, ...rest } = req.body;
     const parent = await prisma.headmasterParent.update({
       where: { id: req.params.id },
       data: password !== undefined ? { ...rest, password: await hashPassword(password) } : rest,
     });
     const { password: _pw, ...safeParent } = parent;
-    res.json({ success: true, data: safeParent });
+    res.json({ success: true, data: { ...safeParent, studentName: studentName || 'N/A', studentClass: studentClass || 'N/A' } });
   } catch (err) {
     res.status(500).json({ success: false, error: String(err) });
   }
