@@ -39,20 +39,27 @@ const SYLLABUS_CLASSES = [
 ];
 
 const getSubjectIcon = (name: string) => {
-  if (!name) return "📚";
+  if (!name) return "book-alt";
   const n = name.toLowerCase();
-  if (n.includes("tamil")) return "📜";
-  if (n.includes("english")) return "🗣️";
-  if (n.includes("math")) return "📐";
-  if (n.includes("science") && !n.includes("social")) return "🔬";
-  if (n.includes("social")) return "🌍";
-  if (n.includes("physics")) return "⚡";
-  if (n.includes("chem")) return "🧪";
-  if (n.includes("bio")) return "🧬";
-  if (n.includes("computer")) return "💻";
-  if (n.includes("commerce") || n.includes("account")) return "💼";
-  if (n.includes("economic")) return "📈";
-  return "📚";
+  if (n.includes("tamil")) return "scroll";
+  if (n.includes("english")) return "comment-user";
+  if (n.includes("math")) return "ruler-combined";
+  if (n.includes("science") && !n.includes("social")) return "microscope";
+  if (n.includes("social")) return "globe";
+  if (n.includes("physics")) return "bolt";
+  if (n.includes("chemistry") || n.includes("chem")) return "flask";
+  if (n.includes("biology") || n.includes("bio")) return "dna";
+  if (n.includes("computer")) return "computer";
+  if (n.includes("commerce") || n.includes("account")) return "briefcase";
+  if (n.includes("economic")) return "stats";
+  return "book-alt";
+};
+
+const getFlaticonForSubject = (iconString: string | undefined, name: string) => {
+  if (!iconString || iconString.length <= 2 || !iconString.match(/^[a-z0-9-]+$/i)) {
+    return getSubjectIcon(name);
+  }
+  return iconString;
 };
 
 interface Subject {
@@ -1239,7 +1246,7 @@ export default function HeadmasterAcademicsPage() {
                     : { borderColor: `${s.color}55` }
                 }
               >
-                <span>{s.icon}</span> {s.name}
+                <Fi name={getFlaticonForSubject(s.icon, s.name)} className="text-sm" /> {s.name}
               </button>
             );
           })}
@@ -1695,7 +1702,7 @@ export default function HeadmasterAcademicsPage() {
                                     color: "#fff"
                                   }}
                                 >
-                                  {sub.icon || "📚"}
+                                  <Fi name={getFlaticonForSubject(sub.icon, sub.name)} className="text-base" />
                                 </div>
                                 <div className="truncate">
                                   <h5 className="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">{sub.name}</h5>
@@ -1869,7 +1876,7 @@ export default function HeadmasterAcademicsPage() {
                             color: "#fff"
                           }}
                         >
-                          {sub.icon || "📚"}
+                          <Fi name={getFlaticonForSubject(sub.icon, sub.name)} className="text-lg" />
                         </div>
 
                         {/* Status Label Badge */}
@@ -2045,7 +2052,9 @@ export default function HeadmasterAcademicsPage() {
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-2xl">{getSubjectIcon(selectedSyllabusSubject)}</span>
+                            <span className="text-2xl flex items-center justify-center">
+                              <Fi name={getSubjectIcon(selectedSyllabusSubject)} className="text-2xl" />
+                            </span>
                             <h3 className="text-lg font-black text-slate-800 dark:text-slate-100">
                               {selectedSyllabusSubject} — Class {syllabusClass}
                             </h3>
@@ -3184,7 +3193,7 @@ export default function HeadmasterAcademicsPage() {
               <div>
                 {/* Top Banner (Matching user screenshot) */}
                 <div className="p-4 bg-indigo-50/80 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-800/60 rounded-2xl flex items-center gap-3 mb-4 shadow-sm">
-                  <span className="text-2xl shrink-0">🤖</span>
+                  <Fi name="brain" className="text-2xl shrink-0" />
                   <div>
                     <h4 className="text-[11px] font-black uppercase text-indigo-950 dark:text-indigo-200 tracking-wider">
                       UPLOAD IMAGE OR SCREENSHOT TO LOAD SYLLABUS UNITS & SUBUNITS

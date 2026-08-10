@@ -1405,3 +1405,8 @@ button.bg-red-600 span {
 .animate-shake {
   animation: shake 0.2s ease-in-out 0s 2;
 }
+
+/* Custom helper to force white text on hover for action buttons in light/dark mode */
+.hover-text-white-force:hover:not(:disabled) {
+  color: #ffffff !important;
+}

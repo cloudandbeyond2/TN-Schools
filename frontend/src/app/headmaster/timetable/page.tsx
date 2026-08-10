@@ -474,7 +474,8 @@ export default function HeadmasterTimetablePage() {
         <div className="md:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
           <div>
             <h2 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
-              <span>📅 {lang === "தமிழ்" ? "இயக்கம் தேதியை தேர்வு செய்" : "Select Operation Date"}</span>
+              <i className="fi fi-rr-calendar text-blue-500 text-sm"></i>
+              <span>{lang === "தமிழ்" ? "இயக்கம் தேதியை தேர்வு செய்" : "Select Operation Date"}</span>
             </h2>
             <p className="text-[11px] text-slate-500 mt-1">
               {lang === "தமிழ்" ? "தினசரி பள்ளி அளவிலான நேர அட்டவணைகளை சரிபார்த்தி மாற்று பணியாளர்களை கள்ளமிடவும்." : "Check daily school-wide schedules and assign teacher proxies."}
@@ -495,8 +496,18 @@ export default function HeadmasterTimetablePage() {
               {proxies.length} {lang === "தமிழ்" ? "உள்ளன" : "Active"}
             </span>
           </div>
-          <div className="text-2xl font-black text-slate-800 dark:text-white mt-1">
-            {proxies.length > 0 ? `🤝 ${lang === "தமிழ்" ? "மாற்று பணி உள்ளது" : "Substitution Active"}` : `✅ ${lang === "தமிழ்" ? "இயற்பு நேர அட்டவணைகள்" : "Normal Schedules"}`}
+          <div className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white mt-1 flex items-center gap-2">
+            {proxies.length > 0 ? (
+              <>
+                <i className="fi fi-rr-users text-amber-500 text-lg sm:text-xl"></i>
+                <span>{lang === "தமிழ்" ? "மாற்று பணி உள்ளது" : "Substitution Active"}</span>
+              </>
+            ) : (
+              <>
+                <i className="fi fi-rr-check-circle text-emerald-500 text-lg sm:text-xl"></i>
+                <span>{lang === "தமிழ்" ? "இயற்பு நேர அட்டவணைகள்" : "Normal Schedules"}</span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -509,7 +520,10 @@ export default function HeadmasterTimetablePage() {
             <div className="flex flex-col gap-4 border-b border-slate-100 dark:border-slate-800 pb-5 mb-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-sm font-bold text-slate-800 dark:text-white">🗓️ {lang === "தமிழ்" ? "வாராந்திர வகுப்பு நேரம் விளக்கம்" : "Weekly Class Period Mappings"}</h2>
+                  <h2 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <i className="fi fi-rr-calendar-clock text-blue-500 text-sm"></i>
+                    <span>{lang === "தமிழ்" ? "வாராந்திர வகுப்பு நேரம் விளக்கம்" : "Weekly Class Period Mappings"}</span>
+                  </h2>
                   
                   {/* View Toggles */}
                   <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200/50 dark:border-slate-850">
@@ -615,7 +629,9 @@ export default function HeadmasterTimetablePage() {
               </div>
             ) : activeDayOfWeek === 0 ? (
               <div className="text-center py-16 border-2 border-dashed border-red-200 dark:border-red-900/50 rounded-2xl bg-red-50/50 dark:bg-red-950/20">
-                <span className="text-4xl block mb-3">🏖️</span>
+                <span className="text-4xl block mb-3 text-red-500">
+                  <i className="fi fi-rr-umbrella-beach"></i>
+                </span>
                 <h3 className="text-sm font-bold text-red-600 dark:text-red-400">Sunday - Weekly Holiday</h3>
                 <p className="text-[10px] text-red-500/70 dark:text-red-400/70 mt-1 max-w-[280px] mx-auto leading-relaxed">
                   School is closed on Sundays. Enjoy the weekend!
@@ -623,7 +639,9 @@ export default function HeadmasterTimetablePage() {
               </div>
             ) : timetable.length === 0 ? (
               <div className="text-center py-16 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-                <span className="text-3xl block mb-2">🗓️</span>
+                <span className="text-3xl block mb-2 text-slate-400">
+                  <i className="fi fi-rr-calendar-xmark"></i>
+                </span>
                 <h3 className="text-xs font-bold text-slate-650 dark:text-white">No Timetable Slots Configured</h3>
                 <p className="text-[10px] text-slate-400 mt-1 max-w-[280px] mx-auto leading-relaxed">
                   No classes configured. Press "+ Add Slot" or "Populate Demo Slots" to build your daily timetable.
@@ -674,8 +692,9 @@ export default function HeadmasterTimetablePage() {
                         </div>
 
                         <div className="flex flex-row sm:flex-col justify-between items-center sm:items-end gap-2.5 border-t sm:border-t-0 border-slate-105 dark:border-slate-900 pt-2.5 sm:pt-0">
-                          <div className="text-xs font-bold text-slate-600 dark:text-slate-300">
-                            👩‍🏫 {getTeacherName(slot.teacherId)}
+                          <div className="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                            <i className="fi fi-rr-chalkboard-user text-blue-500 text-sm"></i>
+                            <span>{getTeacherName(slot.teacherId)}</span>
                           </div>
 
                           <div className="flex items-center gap-1.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
@@ -796,19 +815,22 @@ export default function HeadmasterTimetablePage() {
                                       <div className={`text-[10px] font-black truncate ${pNum === 8 ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-800 dark:text-white'}`}>
                                         {slot.subject}
                                       </div>
-                                      <div className="text-[9px] text-slate-505 truncate mt-0.5">
-                                        👨‍🏫 {getTeacherName(slot.teacherId)}
+                                      <div className="text-[9px] text-slate-505 truncate mt-0.5 flex items-center justify-center gap-1">
+                                        <i className="fi fi-rr-chalkboard-user text-blue-500 text-[10px]"></i>
+                                        <span>{getTeacherName(slot.teacherId)}</span>
                                       </div>
+                                      
+                                      {proxy && (
+                                        <span className="text-[8px] bg-amber-500/10 text-amber-600 dark:text-amber-400 font-extrabold border border-amber-500/20 px-1 py-0.5 rounded flex items-center justify-center gap-1 truncate mt-1">
+                                          <i className="fi fi-rr-users text-amber-500 text-[9px]"></i>
+                                          <span>Proxy: {getTeacherName(proxy.proxyTeacherId).split(" ")[0]}</span>
+                                        </span>
+                                      )}
+
                                       <div className="text-[8px] text-emerald-600 dark:text-emerald-400 font-bold mt-1 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-800/50 px-1 py-0.5 rounded flex items-center justify-center gap-1 w-fit mx-auto">
                                         <Users className="w-2.5 h-2.5" /> {40 - (slot.period % 3)}/40
                                       </div>
                                     </div>
-
-                                    {proxy && (
-                                      <span className="text-[8px] bg-amber-500/10 text-amber-600 dark:text-amber-400 font-extrabold border border-amber-500/20 px-1 py-0.5 rounded block truncate mt-1">
-                                        🤝 Proxy: {getTeacherName(proxy.proxyTeacherId).split(" ")[0]}
-                                      </span>
-                                    )}
                                   </div>
                                 ) : (
                                   /* Empty slot button */
@@ -836,7 +858,8 @@ export default function HeadmasterTimetablePage() {
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm h-fit">
           <div className="mb-4">
             <h2 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
-              <span>🤝 Arrange Teacher Proxy</span>
+              <i className="fi fi-rr-shuffle text-amber-500 text-sm"></i>
+              <span>Arrange Teacher Proxy</span>
             </h2>
             <p className="text-[11px] text-slate-505 mt-1">
               Select a schedule slot below, and the dropdown will dynamically check who is available.
@@ -845,7 +868,9 @@ export default function HeadmasterTimetablePage() {
 
           {timetable.length === 0 ? (
             <div className="text-center py-6 border border-dashed border-slate-200 dark:border-slate-850 rounded-2xl">
-              <span className="text-xl block">📝</span>
+              <span className="text-xl block text-slate-400">
+                <i className="fi fi-rr-document-signed"></i>
+              </span>
               <p className="text-[10px] text-slate-400 mt-1 px-3">
                 Timetable must be populated before arranging substitutions.
               </p>
@@ -899,7 +924,7 @@ export default function HeadmasterTimetablePage() {
                     .filter(t => !selectedSlotForProxyDetails || t.id !== selectedSlotForProxyDetails.teacherId)
                     .map(t => (
                       <option key={t.id} value={t.id} disabled={t.isBusy}>
-                        {t.name} ({t.subject}) — {t.isBusy ? `❌ BUSY (${t.busyWithClass})` : `🟢 FREE`}
+                        {t.name} ({t.subject}) — {t.isBusy ? `[BUSY: ${t.busyWithClass}]` : `[FREE]`}
                       </option>
                     ))}
                 </select>
