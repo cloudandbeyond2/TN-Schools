@@ -144,6 +144,7 @@ function calcDurationFromSlot(slot: string): string {
     const hrs  = Math.floor(diff / 60);
     const mins = diff % 60;
     if (mins === 0) return hrs === 1 ? "1 Hour" : `${hrs} Hours`;
+    if (mins === 30) return `${hrs + 0.5} Hours`;
     return `${hrs}h ${mins}m`;
   } catch {
     return "—";
@@ -354,6 +355,49 @@ export default function HeadmasterExamsPage() {
       }));
     }
   }, [formData.subject, formData.classSection, selectedClasses, formData.examMode, editingExam]);
+
+  // Auto-fill and sync Time Slot + Duration based on Class Level (6-8: 1.5 Hours, 9-10: 2 Hours, 11-12: 3 Hours)
+  useEffect(() => {
+    if (editingExam) return; // Do not overwrite on editing an existing scheduled exam
+    if (selectedClasses.length === 0) return;
+
+    // Check which class levels are selected
+    let hasHighSchool = false; // 11-12
+    let hasMiddleHigh = false; // 9-10
+    let hasMiddleSchool = false; // 6-8
+
+    selectedClasses.forEach((cls) => {
+      const match = cls.match(/\d+/);
+      if (match) {
+        const classNum = parseInt(match[0]);
+        if (classNum >= 11) hasHighSchool = true;
+        else if (classNum >= 9) hasMiddleHigh = true;
+        else if (classNum >= 6) hasMiddleSchool = true;
+      }
+    });
+
+    let defaultSlot = "09:30 AM - 12:30 PM"; // default (3 Hours)
+    if (hasHighSchool) {
+      defaultSlot = "09:30 AM - 12:30 PM"; // 3 Hours
+    } else if (hasMiddleHigh) {
+      defaultSlot = "09:00 AM - 11:00 AM"; // 2 Hours
+    } else if (hasMiddleSchool) {
+      defaultSlot = "09:00 AM - 10:30 AM"; // 1.5 Hours
+    }
+
+    setFormData(prev => {
+      // Auto-sync only if the current slot is one of the default standard slots or matching
+      const defaultTierSlots = ["09:00 AM - 10:30 AM", "09:00 AM - 11:00 AM", "09:30 AM - 12:30 PM"];
+      if (prev.timeSlot === defaultSlot || !defaultTierSlots.includes(prev.timeSlot)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        timeSlot: defaultSlot,
+        duration: calcDurationFromSlot(defaultSlot)
+      };
+    });
+  }, [selectedClasses, editingExam]);
 
   // Global Toast State
   const [toast, setToast] = useState<Toast | null>(null);
@@ -920,7 +964,7 @@ export default function HeadmasterExamsPage() {
               <div className="w-full grid grid-cols-2 gap-3 mt-2">
                 {/* Classes */}
                 <div className="col-span-2 bg-white rounded-xl px-4 py-3 flex items-start gap-3 shadow-[0_8px_16px_rgba(0,0,0,0.2)]">
-                  <i className="fi flex items-center justify-center fi-rr-tag w-4 h-4 text-blue-500 mt-0.5 shrink-0"></i>
+                  <i className="fi flex items-center justify-center fi-rr-graduation-cap w-4 h-4 text-blue-500 mt-0.5 shrink-0"></i>
                   <div className="text-left">
                     <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold mb-0.5">Classes</p>
                     <p className="text-sm text-slate-900 font-bold">
@@ -1034,7 +1078,7 @@ export default function HeadmasterExamsPage() {
           </div>
         </div>
 
-        <div className="glass rounded-2xl p-4 col-span-2 lg:col-span-1 flex items-center gap-3 transition-all">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 col-span-2 lg:col-span-1 flex items-center gap-3 transition-all duration-300 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] hover:shadow-[0_8px_20px_-6px_rgba(6,81,237,0.15)] hover:-translate-y-1 border border-slate-100 dark:border-slate-800">
           <div className="p-3 bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10 border border-purple-100 dark:border-purple-800 text-purple-600 dark:text-purple-400 rounded-2xl shadow-inner">
             <i className="fi flex items-center justify-center fi-rr-paper-plane text-lg w-5 h-5"></i>
           </div>
@@ -1122,7 +1166,7 @@ export default function HeadmasterExamsPage() {
               </span>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               
               <button 
                 onClick={() => setIsInfoModalOpen(true)}
@@ -1182,8 +1226,10 @@ export default function HeadmasterExamsPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-              <table className="w-full text-left border-collapse min-w-full">
+            <>
+              {/* Desktop View (Table) */}
+              <div className="hidden lg:block overflow-x-auto w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+                <table className="w-full text-left border-collapse min-w-[900px]">
                 <thead>
                   <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-wider">
                     <th className="p-4 align-middle whitespace-nowrap">Standard & Mode</th>
@@ -1341,7 +1387,140 @@ export default function HeadmasterExamsPage() {
                 </tbody>
               </table>
             </div>
-          )}
+
+            {/* Mobile View (Card List) */}
+            <div className="block lg:hidden space-y-4">
+              {filteredExams.map((ex) => (
+                <div key={ex.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-4 text-left">
+                  <div className="flex justify-between items-start">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 rounded-md w-max">
+                        {ex.classSection}
+                      </span>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-md w-max flex items-center gap-0.5 ${getModeBadgeStyle(ex.examMode || "Theory")}`}>
+                        {getModeIcon(ex.examMode || "Theory")}
+                        {ex.examMode || "Theory"}
+                      </span>
+                    </div>
+                    
+                    <div className="flex flex-col items-end gap-1.5">
+                      {/* Status Badge */}
+                      <span className={`px-2.5 py-0.5 text-[9px] font-black rounded-lg border uppercase tracking-wider text-center w-max ${
+                        ex.status === "Scheduled"
+                          ? "bg-blue-50 border-blue-200 text-blue-750"
+                          : ex.status === "In Progress"
+                          ? "bg-amber-50 border-amber-250 text-amber-800 font-extrabold shadow-sm"
+                          : "bg-emerald-50 border-emerald-250 text-emerald-800"
+                      }`}>
+                        {ex.status}
+                      </span>
+                      
+                      {/* Published Indicator */}
+                      <button 
+                        onClick={() => togglePublishExam(ex.id)}
+                        className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-lg flex items-center gap-1 border transition-all w-max cursor-pointer ${
+                          ex.published
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                            : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        {ex.published ? (
+                          <><i className="fi flex items-center justify-center fi-rr-eye w-2.5 h-2.5 text-emerald-600"></i> Published</>
+                        ) : (
+                          <><i className="fi flex items-center justify-center fi-rr-eye-crossed w-2.5 h-2.5 text-slate-400"></i> Draft</>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-100 dark:border-slate-800/60 pt-3">
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white leading-tight">{ex.subject}</h3>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap text-slate-500 text-xs font-semibold">
+                      <span>{ex.name}</span>
+                      <span className={`text-[8px] font-extrabold px-1.5 py-0.5 border rounded uppercase ${getTypeBadgeStyle(ex.type)}`}>
+                        {ex.type}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 border-t border-slate-100 dark:border-slate-800/60 pt-3 text-xs">
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase font-bold block mb-1">Date & Time</span>
+                      <div className="flex items-center gap-1.5 text-slate-750 dark:text-slate-200 font-bold">
+                        <i className="fi fi-rr-calendar text-indigo-500"></i>
+                        <span>{formatStudentFriendlyDate(ex.date)}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-[10px] font-semibold mt-1">
+                        <i className="fi fi-rr-clock text-cyan-500"></i>
+                        <span>{ex.timeSlot} ({ex.duration || "3 Hours"})</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase font-bold block mb-1">Room & Staff</span>
+                      <div className="flex items-center gap-1.5 text-purple-700 dark:text-purple-400 font-bold">
+                        <i className="fi fi-rr-marker text-purple-500"></i>
+                        <span className="truncate">{ex.hall.split(" (")[0]}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-750 dark:text-slate-200 font-bold mt-1">
+                        <i className="fi fi-rr-user-check text-emerald-600"></i>
+                        <span>{ex.invigilator}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800/60 pt-3">
+                    {ex.status === "Scheduled" && (
+                      <button
+                        onClick={() => handleStartExam(ex.id)}
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition-all shadow-sm flex items-center gap-1 cursor-pointer"
+                      >
+                        <i className="fi flex items-center justify-center fi-rr-play w-2.5 h-2.5 fill-current"></i>
+                        Start
+                      </button>
+                    )}
+
+                    {ex.status === "In Progress" && (
+                      <button
+                        onClick={() => handleCompleteExam(ex.id)}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-[10px] uppercase tracking-wider transition-all shadow-sm flex items-center gap-1 cursor-pointer"
+                      >
+                        <i className="fi flex items-center justify-center fi-rr-check w-2.5 h-2.5 stroke-[3]"></i>
+                        Complete
+                      </button>
+                    )}
+
+                    {ex.status === "Completed" && (
+                      <button
+                        onClick={() => handleRevertExamStatus(ex.id)}
+                        title="Revert status"
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-xl transition-all cursor-pointer"
+                      >
+                        <i className="fi flex items-center justify-center fi-rr-refresh w-3.5 h-3.5"></i>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => handleOpenEdit(ex)}
+                      title="Edit details"
+                      className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-xl transition-all cursor-pointer"
+                    >
+                      <i className="fi flex items-center justify-center fi-rr-edit w-3.5 h-3.5"></i>
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteExam(ex.id)}
+                      title="Delete schedule"
+                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 rounded-xl transition-all cursor-pointer"
+                    >
+                      <i className="fi flex items-center justify-center fi-rr-trash w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
         </div>
 
         
