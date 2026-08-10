@@ -293,6 +293,20 @@ export default function StaffManagementPage() {
     e.preventDefault();
     if (!formName || (!formEmisId && formType !== "Temporary")) return;
 
+    // Validate Phone Number (10 digit mobile starting with 6-9)
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(formPhone)) {
+      Swal.fire({
+        title: "Invalid Phone Number",
+        text: "Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.",
+        icon: "warning",
+        background: "var(--bg-card)",
+        color: "var(--text-heading)",
+        confirmButtonColor: "#3b82f6"
+      });
+      return;
+    }
+
     if (formType === "Teaching" && formIsClassTeacher && formAssignedClass && formAssignedSection) {
       const existingClassTeacher = staffList.find(staff => 
         staff.parsedMeta?.assignedClass === formAssignedClass &&
@@ -427,6 +441,20 @@ export default function StaffManagementPage() {
   // Handle Updates
   const handleEditStaff = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate Phone Number (10 digit mobile starting with 6-9)
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(formPhone)) {
+      Swal.fire({
+        title: "Invalid Phone Number",
+        text: "Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.",
+        icon: "warning",
+        background: "var(--bg-card)",
+        color: "var(--text-heading)",
+        confirmButtonColor: "#3b82f6"
+      });
+      return;
+    }
 
     if (formType === "Teaching" && formIsClassTeacher && formAssignedClass && formAssignedSection) {
       const existingClassTeacher = staffList.find(staff => 
@@ -1877,7 +1905,7 @@ export default function StaffManagementPage() {
                   type="text"
                   required
                   value={formPhone}
-                  onChange={e => setFormPhone(e.target.value)}
+                  onChange={e => setFormPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   placeholder="10 digit mobile"
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
                 />
@@ -2172,7 +2200,8 @@ export default function StaffManagementPage() {
                   type="text"
                   required
                   value={formPhone}
-                  onChange={e => setFormPhone(e.target.value)}
+                  onChange={e => setFormPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="10 digit mobile"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none"
                 />
               </div>

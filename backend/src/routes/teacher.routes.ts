@@ -631,13 +631,16 @@ router.get('/leave', async (req: Request, res: Response) => {
       }
     }
 
-    const leaves = await prisma.leaveRequest.findMany({
+    
+const leaves = await prisma.leaveRequest.findMany({
       where: {
         ...(schoolId ? { schoolId: String(schoolId) } : {}),
-        OR: [
-          ...(staffIdFilter ? [{ staffId: staffIdFilter }] : []),
-          { studentId: { not: null } }
-        ]
+        ...(userId ? {
+          OR: [
+            ...(staffIdFilter ? [{ staffId: staffIdFilter }] : []),
+            { studentId: { not: null } }
+          ]
+        } : {})
       },
       orderBy: { createdAt: 'desc' },
     });
