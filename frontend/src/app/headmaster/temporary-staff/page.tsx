@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import * as XLSX from "xlsx";
@@ -53,6 +53,28 @@ export default function TemporaryStaffPage() {
   const mySchoolId: string = (session?.user as any)?.schoolId || "";
   const [schools, setSchools] = useState<{ id: string; name: string }[]>([]);
   const [temps, setTemps] = useState<TempStaffMember[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  const filteredTemps = useMemo(() => {
+    return temps.filter((t) => {
+      const term = searchTerm.toLowerCase();
+      return (
+        (t.name || "").toLowerCase().includes(term) ||
+        (t.role || "").toLowerCase().includes(term) ||
+        (t.agency || "").toLowerCase().includes(term) ||
+        (t.phone || "").toLowerCase().includes(term) ||
+        (t.email || "").toLowerCase().includes(term)
+      );
+    });
+  }, [temps, searchTerm]);
+
+  const totalPages = Math.ceil(filteredTemps.length / pageSize);
+  const paginatedTemps = useMemo(() => {
+    const pageIndex = Math.min(currentPage, Math.max(1, totalPages)) - 1;
+    return filteredTemps.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
+  }, [filteredTemps, currentPage, totalPages]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -312,13 +334,13 @@ export default function TemporaryStaffPage() {
       accentColor="#3b82f6"
     >
       {/* School Badge — locked to this headmaster's school */}
-      <div className="glass rounded-2xl p-4 border border-slate-800 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 fade-in">
+      <div className="custom-card rounded-2xl p-4 border border-slate-200 dark:border-slate-800/80 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 fade-in">
         <div>
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider">{lang === "தமிழ்" ? "நிர்வகிக்கப்படும் நிறுவனம்" : "Managed Institution"}</h3>
-          <p className="text-[10px] text-slate-500 font-semibold mt-0.5">{lang === "தமிழ்" ? "தற்காலிக பணியாளர் தகவல் உங்கள் பள்ளிக்கு மட்டுமிட்டதாகும்." : "Temporary staff data is scoped to your assigned school only."}</p>
+          <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">{lang === "தமிழ்" ? "நிர்வகிக்கப்படும் நிறுவனம்" : "Managed Institution"}</h3>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">{lang === "தமிழ்" ? "தற்காலிக பணியாளர் தகவல் உங்கள் பள்ளிக்கு மட்டுமிட்டதாகும்." : "Temporary staff data is scoped to your assigned school only."}</p>
         </div>
         <div className="flex items-center gap-2 bg-blue-600/10 border border-blue-500/30 rounded-xl px-4 py-2 w-full sm:w-auto">
-          <span className="text-blue-400 text-base">🏫</span>
+          <i className="fi fi-rr-school text-blue-400 text-sm shrink-0" />
           <span className="text-xs font-bold text-blue-300">
             {schools.find((s) => s.id === mySchoolId)?.name || (mySchoolId ? "Your School" : "No school linked")}
           </span>
@@ -328,20 +350,20 @@ export default function TemporaryStaffPage() {
 
       {/* Metric summaries */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 fade-in">
-        <div className="glass rounded-2xl p-6 border border-slate-700/50">
-          <div className="text-slate-400 text-sm mb-2 font-medium">{lang === "தமிழ்" ? "மொத்த ொப்பந்த பணியாளர்கள்" : "Total Contract Staff"}</div>
-          <div className="text-3xl font-extrabold text-blue-400">{isLoading ? "—" : temps.length} {lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}</div>
+        <div className="custom-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800/80 shadow-sm">
+          <div className="text-slate-500 dark:text-slate-400 text-xs mb-2 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "மொத்த ஒப்பந்த பணியாளர்கள்" : "Total Contract Staff"}</div>
+          <div className="text-3xl font-extrabold text-blue-600 dark:text-blue-400">{isLoading ? "—" : temps.length} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}</span></div>
         </div>
-        <div className="glass rounded-2xl p-6 border border-slate-700/50">
-          <div className="text-slate-400 text-sm mb-2 font-medium">{lang === "தமிழ்" ? "நிறுவன ஒப்பந்தம்" : "Agency Outsourced"}</div>
-          <div className="text-3xl font-extrabold text-emerald-400">
-            {isLoading ? "—" : temps.filter((t) => t.agency.includes("Outsourcing") || t.agency.includes("Scheme")).length} {lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}
+        <div className="custom-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800/80 shadow-sm">
+          <div className="text-slate-500 dark:text-slate-400 text-xs mb-2 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "நிறுவன ஒப்பந்தம்" : "Agency Outsourced"}</div>
+          <div className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
+            {isLoading ? "—" : temps.filter((t) => t.agency.includes("Outsourcing") || t.agency.includes("Scheme")).length} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}</span>
           </div>
         </div>
-        <div className="glass rounded-2xl p-6 border border-slate-700/50">
-          <div className="text-slate-400 text-sm mb-2 font-medium">{lang === "தமிழ்" ? "நேரடி ொப்பந்தங்கள்" : "Direct Contracts"}</div>
-          <div className="text-3xl font-extrabold text-amber-400">
-            {isLoading ? "—" : temps.filter((t) => t.agency === "Direct Contract").length} {lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}
+        <div className="custom-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800/80 shadow-sm">
+          <div className="text-slate-500 dark:text-slate-400 text-xs mb-2 font-semibold uppercase tracking-wider">{lang === "தமிழ்" ? "நேரடி ஒப்பந்தங்கள்" : "Direct Contracts"}</div>
+          <div className="text-3xl font-extrabold text-amber-600 dark:text-amber-400">
+            {isLoading ? "—" : temps.filter((t) => t.agency === "Direct Contract").length} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{lang === "தமிழ்" ? "பணியாளர்கள்" : "staff"}</span>
           </div>
         </div>
       </div>
@@ -355,34 +377,62 @@ export default function TemporaryStaffPage() {
           }`}
           style={{ color: "#ffffff" }}
         >
-          {toast.type === "error" ? "❌" : "🎉"}
+          {toast.type === "error" ? (
+            <i className="fi fi-rr-cross-circle text-white text-sm shrink-0" style={{ color: "#ffffff" }} />
+          ) : (
+            <i className="fi fi-rr-check-circle text-white text-sm shrink-0" style={{ color: "#ffffff" }} />
+          )}
           <span>{toast.msg.replace(/^[❌🎉\s]+/, "")}</span>
         </div>
       )}
 
       {/* Directory Table */}
-      <div className="glass rounded-2xl p-6 border border-slate-800">
-        <div className="flex justify-between items-center mb-6">
+      <div className="custom-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800/80 shadow-sm">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold text-white">📋 Contract Staff Directory</h2>
+            <h2 className="text-base font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+              <i className="fi fi-rr-clipboard-list text-blue-500 text-sm shrink-0" />
+              Contract Staff Directory
+            </h2>
             {isLoading && <div className="w-4 h-4 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />}
           </div>
-          <button
-            onClick={() => {
-              setPhoneError("");
-              setIsModalOpen(true);
-            }}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md"
-          >
-            + Add Contract Staff
-          </button>
+          
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            {/* Search */}
+            <div className="relative w-full sm:w-72">
+              <i className="fi fi-rr-search absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400" />
+              <input
+                type="text"
+                placeholder={lang === "தமிழ்" ? "பெயர், பங்கு அல்லது முகமை மூலம் தேடுக..." : "Search by name, role, agency..."}
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                className="w-full pl-10 pr-4 py-2 rounded-xl text-xs border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
+              />
+            </div>
+
+            <button
+              onClick={() => {
+                setPhoneError("");
+                setIsModalOpen(true);
+              }}
+              className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 whitespace-nowrap"
+            >
+              <i className="fi fi-rr-plus text-[10px]" /> Add Contract Staff
+            </button>
+          </div>
         </div>
 
-        {temps.length === 0 && !isLoading ? (
-          <div className="text-center py-16 text-slate-500 text-xs">
-            <div className="text-3xl mb-3">🤝</div>
-            <div className="font-semibold text-slate-400 mb-1">No contract staff records yet</div>
-            <div>Use the form or Excel import to add records to the database.</div>
+        {filteredTemps.length === 0 && !isLoading ? (
+          <div className="text-center py-16 text-slate-500 text-xs flex flex-col items-center">
+            <i className="fi fi-rr-users text-3xl mb-3 text-slate-400" />
+            <div className="font-semibold text-slate-400 mb-1">
+              {temps.length === 0 ? "No contract staff records yet" : "No matching records found"}
+            </div>
+            <div>
+              {temps.length === 0 
+                ? "Use the form or Excel import to add records to the database."
+                : "Try adjusting your search criteria."}
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto w-full">
@@ -400,7 +450,7 @@ export default function TemporaryStaffPage() {
                 </tr>
               </thead>
               <tbody>
-                {temps.map((t) => (
+                {paginatedTemps.map((t) => (
                   <tr key={t.id || t.name}>
                     <td className="font-bold text-xs py-3">
                       <div>{t.name}</div>
@@ -414,10 +464,10 @@ export default function TemporaryStaffPage() {
                     <td>{t.agency}</td>
                     <td>{t.joined}</td>
                     <td>
-                      <div className="text-xs text-blue-400 font-semibold">{t.salary}</div>
-                      <div className="text-[10px] text-slate-500 font-medium mt-0.5">{t.duration}</div>
+                      <div className="text-xs text-blue-600 dark:text-blue-400 font-semibold">{t.salary}</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">{t.duration}</div>
                     </td>
-                    <td className="text-slate-300 font-medium text-xs">{t.password || "123456"}</td>
+                    <td className="text-slate-700 dark:text-slate-300 font-medium text-xs">{t.password || "123456"}</td>
                     <td className="text-[10px] text-slate-500">
                       {t.createdAt ? new Date(t.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
                     </td>
@@ -430,29 +480,16 @@ export default function TemporaryStaffPage() {
             setEditPhoneError("");
             setIsEditModalOpen(true);
           }}
-          className="text-[10px] text-blue-400 hover:text-blue-300 font-semibold border border-blue-500/20 px-2 py-1 rounded-lg transition-colors flex items-center justify-center"
+          className="text-[10px] text-blue-600 dark:text-blue-400 hover:text-blue-500 border border-blue-500/20 px-2 py-1 rounded-lg transition-colors flex items-center justify-center"
         >
-          ✎
+          <i className="fi fi-rr-edit text-[11px]" />
         </button>
 
         <button
           onClick={() => setTempStaffToDelete(t)}
-          className="text-[10px] text-red-400 hover:text-red-300 font-semibold border border-red-500/20 px-2 py-1 rounded-lg transition-colors flex items-center justify-center"
+          className="text-[10px] text-red-600 dark:text-red-400 hover:text-red-500 border border-red-500/20 px-2 py-1 rounded-lg transition-colors flex items-center justify-center"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-3 w-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-            />
-          </svg>
+          <i className="fi fi-rr-trash text-[11px]" />
         </button>
       </div>
     )}
@@ -463,21 +500,49 @@ export default function TemporaryStaffPage() {
             </table>
           </div>
         )}
+
+        {/* Pagination */}
+        {!isLoading && totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 mt-4 border-t border-slate-200 dark:border-slate-800/80">
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filteredTemps.length)} of {filteredTemps.length} staff members
+            </span>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Previous
+              </button>
+              <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 px-2">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
-            className="w-full max-w-4xl rounded-3xl p-6 space-y-6 relative transition-all duration-300 bg-slate-900 border border-slate-800 shadow-2xl text-white"
+            className="w-full max-w-4xl rounded-3xl p-6 space-y-6 relative transition-all duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl text-slate-800 dark:text-white"
           >
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white">
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white">
                 {previewStaff.length > 0 ? "📋 Preview Contract Staff Import" : "🤝 Register Temporary & Contract Staff"}
               </h3>
               <button
                 onClick={() => { setIsModalOpen(false); setPreviewStaff([]); }}
-                className="text-slate-400 hover:text-white text-xs font-semibold"
+                className="text-slate-400 hover:text-slate-800 dark:hover:text-white text-xs font-semibold"
               >
                 ✕ Close
               </button>
@@ -629,8 +694,8 @@ export default function TemporaryStaffPage() {
                     <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex justify-between items-center">
                       <span>Excel Import</span>
                       <button onClick={downloadExcelTemplate} type="button"
-                        className="text-[10px] text-blue-400 hover:text-blue-500 font-bold underline cursor-pointer">
-                        📥 Get Template
+                        className="text-[10px] text-blue-400 hover:text-blue-500 font-bold underline cursor-pointer flex items-center gap-1">
+                        <i className="fi fi-rr-download" /> Get Template
                       </button>
                     </div>
                     <div
@@ -649,8 +714,8 @@ export default function TemporaryStaffPage() {
                         </>
                       ) : (
                         <>
-                          <span className="text-4xl">📊</span>
-                          <span className="text-xs font-bold text-white">Import Staff Roster</span>
+                          <i className="fi fi-rr-file-spreadsheet text-emerald-500 text-4xl mb-1" />
+                          <span className="text-xs font-bold text-slate-800 dark:text-white">Import Staff Roster</span>
                           <span className="text-[9px] text-slate-400 leading-normal">Drag & drop Excel or click to upload</span>
                         </>
                       )}
@@ -672,15 +737,15 @@ export default function TemporaryStaffPage() {
       {/* Delete Confirmation Modal */}
       {tempStaffToDelete && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-3xl p-6 relative bg-slate-900 border border-slate-800 shadow-2xl text-white">
-            <h3 className="text-lg font-bold text-white mb-2">Remove Temporary Staff?</h3>
-            <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-              Are you sure you want to remove <strong className="text-white">{tempStaffToDelete.name}</strong> from the registry? This action cannot be undone.
+          <div className="w-full max-w-sm rounded-3xl p-6 relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl text-slate-800 dark:text-white">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Remove Temporary Staff?</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+              Are you sure you want to remove <strong className="text-slate-800 dark:text-white">{tempStaffToDelete.name}</strong> from the registry? This action cannot be undone.
             </p>
             <div className="flex space-x-3">
               <button
                 onClick={() => setTempStaffToDelete(null)}
-                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-colors"
+                className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-white font-bold rounded-xl text-xs transition-colors"
               >
                 Cancel
               </button>
@@ -688,9 +753,7 @@ export default function TemporaryStaffPage() {
                 onClick={confirmDelete}
                 className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-colors shadow-md flex items-center justify-center gap-2"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
+                <i className="fi fi-rr-trash text-sm shrink-0" style={{ color: "#ffffff" }} />
                 Yes, Remove
               </button>
             </div>
@@ -702,13 +765,13 @@ export default function TemporaryStaffPage() {
       {isEditModalOpen && staffToEdit && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
-            className="w-full max-w-2xl rounded-3xl p-6 space-y-6 relative transition-all duration-300 bg-slate-900 border border-slate-800 shadow-2xl text-white"
+            className="w-full max-w-2xl rounded-3xl p-6 space-y-6 relative transition-all duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl text-slate-800 dark:text-white"
           >
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white">✎ Edit Temporary Staff</h3>
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white">✎ Edit Temporary Staff</h3>
               <button
                 onClick={() => { setIsEditModalOpen(false); setStaffToEdit(null); }}
-                className="text-slate-400 hover:text-white text-xs font-semibold"
+                className="text-slate-400 hover:text-slate-800 dark:hover:text-white text-xs font-semibold"
               >
                 ✕ Close
               </button>
