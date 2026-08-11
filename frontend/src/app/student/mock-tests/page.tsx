@@ -282,7 +282,7 @@ export default function StudentMockTestsPage() {
             <p className="text-gray-500 text-sm">No mock tests assigned to your class right now.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+          <div className="space-y-8">
             {(() => {
               const uniqueAssignmentsMap = new Map<string, any>();
               assignments.forEach(a => {
@@ -297,68 +297,89 @@ export default function StudentMockTestsPage() {
                   }
                 }
               });
-              return Array.from(uniqueAssignmentsMap.values());
-            })().map((assignment) => {
-              const test = assignment.mockTest;
-              const hasSubmitted = assignment.submissions && assignment.submissions.length > 0;
-              const score = hasSubmitted ? assignment.submissions[0].score : null;
+              
+              const uniqueAssignments = Array.from(uniqueAssignmentsMap.values());
+              const subjectGroups = uniqueAssignments.reduce((acc, assignment) => {
+                const subject = assignment.mockTest.subject || "General";
+                if (!acc[subject]) acc[subject] = [];
+                acc[subject].push(assignment);
+                return acc;
+              }, {} as Record<string, any[]>);
 
-              return (
-                <div key={assignment.id} className="group bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-lg transition-all border border-gray-100 dark:border-gray-700 relative overflow-hidden flex flex-col h-full min-h-[220px] sm:min-h-[250px]">
-
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border tracking-wider text-amber-600 border-amber-600/20 bg-amber-500/10">
-                      {test.subject}
-                    </span>
-                    {test.schoolId === null && (
-                      <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg tracking-wider bg-blue-500 text-white font-bold border border-blue-600/20">
-                        State Board
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 leading-snug">{test.title}</h3>
-
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 min-h-[32px]">
-                    {test.description || "Simulate board conditions and practice to verify your subject mastery."}
-                  </p>
-
-                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4 mt-auto">
-                    <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold text-gray-600 dark:text-gray-300">
-                      <i className="fi fi-rr-clock text-[9px] sm:text-[10px] text-gray-400" />
-                      {test.duration} mins
-                    </span>
-                    <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold text-gray-600 dark:text-gray-300">
-                      <i className="fi fi-rr-trophy text-[9px] sm:text-[10px] text-gray-400" />
-                      {test.totalMarks} Marks
-                    </span>
-                  </div>
-
-                  {hasSubmitted ? (
-                    <div className="flex flex-col gap-2">
-                      <div className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 p-2.5 rounded-xl flex justify-between items-center text-xs font-bold border border-green-200/20">
-                        <div className="font-bold">Completed</div>
-                        <div className="font-black text-sm">{score} / {test.totalMarks} Marks</div>
-                      </div>
-                      {(Number(score) / Number(test.totalMarks)) >= 0.8 && (
-                        <div className="text-[10px] text-green-600 dark:text-green-400 font-bold flex items-center gap-1.5 px-1">
-                          <i className="fi fi-sr-star flex items-center text-amber-500" /> 
-                          {lang === "தமிழ்" ? "நன்று, தொடர்ந்து முயற்சி செய்!" : "Good, keep it up!"}
-                        </div>
-                      )}
+              return Object.entries(subjectGroups).map(([subject, tests]) => (
+                <div key={subject} className="bg-white/50 dark:bg-gray-800/50 rounded-3xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-3 mb-5 border-b border-gray-100 dark:border-gray-700 pb-4">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500 shrink-0">
+                      <i className="fi fi-sr-folder text-lg" />
                     </div>
-                  ) : (
-                    <button 
-                      onClick={() => startTest(assignment)}
-                      className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] sm:text-xs py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/10"
-                    >
-                      <i className="fi fi-sr-play flex items-center text-[9px] sm:text-[10px]" /> Start Test
-                    </button>
-                  )}
+                    <h3 className="text-xl font-black text-gray-800 dark:text-gray-100 tracking-wide">{subject}</h3>
+                    <span className="ml-auto bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-bold border border-gray-100 dark:border-gray-700">
+                      {tests.length} {lang === "தமிழ்" ? "தேர்வுகள்" : "Tests"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                    {tests.map((assignment) => {
+                      const test = assignment.mockTest;
+                      const hasSubmitted = assignment.submissions && assignment.submissions.length > 0;
+                      const score = hasSubmitted ? assignment.submissions[0].score : null;
 
+                      return (
+                        <div key={assignment.id} className="group bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-lg transition-all border border-gray-100 dark:border-gray-700 relative overflow-hidden flex flex-col h-full min-h-[200px] sm:min-h-[220px]">
+                          
+                          {test.schoolId === null && (
+                            <div className="mb-2">
+                              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md tracking-wider bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                                State Board
+                              </span>
+                            </div>
+                          )}
+
+                          <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 leading-snug">{test.title}</h3>
+
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 min-h-[32px]">
+                            {test.description || "Simulate board conditions and practice to verify your subject mastery."}
+                          </p>
+
+                          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4 mt-auto">
+                            <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold text-gray-600 dark:text-gray-300">
+                              <i className="fi fi-rr-clock text-[9px] sm:text-[10px] text-gray-400" />
+                              {test.duration} mins
+                            </span>
+                            <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold text-gray-600 dark:text-gray-300">
+                              <i className="fi fi-rr-trophy text-[9px] sm:text-[10px] text-gray-400" />
+                              {test.totalMarks} Marks
+                            </span>
+                          </div>
+
+                          {hasSubmitted ? (
+                            <div className="flex flex-col gap-2">
+                              <div className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 p-2.5 rounded-xl flex justify-between items-center text-xs font-bold border border-green-200/20">
+                                <div className="font-bold">Completed</div>
+                                <div className="font-black text-sm">{score} / {test.totalMarks} Marks</div>
+                              </div>
+                              {(Number(score) / Number(test.totalMarks)) >= 0.8 && (
+                                <div className="text-[10px] text-green-600 dark:text-green-400 font-bold flex items-center gap-1.5 px-1">
+                                  <i className="fi fi-sr-star flex items-center text-amber-500" /> 
+                                  {lang === "தமிழ்" ? "நன்று, தொடர்ந்து முயற்சி செய்!" : "Good, keep it up!"}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <button 
+                              onClick={() => startTest(assignment)}
+                              className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] sm:text-xs py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/10"
+                            >
+                              <i className="fi fi-sr-play flex items-center text-[9px] sm:text-[10px]" /> Start Test
+                            </button>
+                          )}
+
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              )
-            })}
+              ));
+            })()}
           </div>
         )}
       </div>
