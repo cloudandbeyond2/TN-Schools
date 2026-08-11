@@ -32,13 +32,7 @@ interface ReflectionData {
   environmentalAwareness: string;
 }
 
-interface Suggestion {
-  activityName: string;
-  category: string;
-  hours: string;
-  description: string;
-  skills: string;
-}
+
 
 const CATEGORIES = [
   "Environmental Activities",
@@ -72,30 +66,6 @@ const BADGES = [
 
 
 
-const DEFAULT_SUGGESTIONS = [
-  {
-    activityName: "School Garden Beautification",
-    category: "Tree Plantation",
-    hours: "3",
-    description: "Help plant flowers and vegetable saplings in the school compound to promote green cover.",
-    skills: "Environmental Care, Teamwork"
-  },
-  {
-    activityName: "Classroom Peer Tutoring",
-    category: "Education Support (Teaching Juniors)",
-    hours: "4",
-    description: "Mentor Class 6 students who need assistance with math puzzles or science diagrams after school.",
-    skills: "Leadership, Communication"
-  },
-  {
-    activityName: "Plastic-Free Corridor Campaign",
-    category: "Recycling & Waste Management",
-    hours: "2",
-    description: "Set up separate bins for plastic collection and educate classmates on simple recycling habits.",
-    skills: "Social Responsibility, Organization"
-  }
-];
-
 export default function StudentSocialActivitiesPage() {
   const { data: session } = useSession();
   const [activities, setActivities] = useState<ActivityLog[]>([]);
@@ -116,8 +86,6 @@ export default function StudentSocialActivitiesPage() {
   const [teachers, setTeachers] = useState<any[]>([]);
   
   // States
-  const [aiSuggestions, setAiSuggestions] = useState<Suggestion[]>(DEFAULT_SUGGESTIONS);
-  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [previewReflection, setPreviewReflection] = useState<ReflectionData | null>(null);
   const [generatingReflection, setGeneratingReflection] = useState(false);
   
@@ -150,7 +118,6 @@ export default function StudentSocialActivitiesPage() {
         const profile = studentJson.data.find((s: any) => s.userId === userId);
         if (profile) {
           setStudentProfile(profile);
-          fetchSuggestions(profile.class || "8");
         }
       }
 
@@ -178,25 +145,6 @@ export default function StudentSocialActivitiesPage() {
       }
     } catch (err) {
       console.error("Error fetching teachers", err);
-    }
-  };
-
-  const fetchSuggestions = async (studentClass: string) => {
-    setSuggestionsLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/api/social-activities/suggestions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentClass, interests: "nature, tutoring juniors, clean environment" })
-      });
-      const json = await res.json();
-      if (json.success && json.suggestions) {
-        setAiSuggestions(json.suggestions);
-      }
-    } catch (err) {
-      console.error("Failed to fetch suggestions", err);
-    } finally {
-      setSuggestionsLoading(false);
     }
   };
 
@@ -663,46 +611,6 @@ export default function StudentSocialActivitiesPage() {
                   )}
                 </button>
               </form>
-            </div>
-
-            {/* AI suggestions */}
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 text-left shadow-sm">
-              <h2 className="text-lg font-bold text-black dark:text-white mb-6 flex items-center gap-2">
-                <i className="fi fi-sr-compass flex items-center text-indigo-500" /> AI Suggestions for You
-              </h2>
-
-              {suggestionsLoading ? (
-                <div className="flex justify-center items-center py-10">
-                  <i className="fi fi-sr-refresh animate-spin flex items-center text-3xl text-indigo-500" />
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {aiSuggestions.map((sug, idx) => (
-                    <div key={idx} className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-250/30 flex flex-col justify-between h-full">
-                      <div>
-                        <span className="inline-block text-[9px] font-black tracking-wide uppercase px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 mb-3">{sug.category}</span>
-                        <h4 className="font-bold text-black dark:text-white text-xs leading-snug mb-2">{sug.activityName}</h4>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-semibold mb-4">{sug.description}</p>
-                      </div>
-                      <div className="border-t border-slate-200 dark:border-slate-800 pt-3 flex items-center justify-between mt-auto">
-                        <span className="text-[10px] text-slate-450 font-bold flex items-center gap-1"><i className="fi fi-sr-clock flex items-center text-indigo-500 text-xs" /> {sug.hours} hrs</span>
-                        <button 
-                          onClick={() => {
-                            setActivityName(sug.activityName);
-                            setActivityType(CATEGORIES.includes(sug.category) ? sug.category : CATEGORIES[0]);
-                            setHours(sug.hours);
-                            setDescription(`Participating in suggested task: ${sug.activityName}. Plan to develop: ${sug.skills}.`);
-                            Swal.fire("Suggestion Loaded", "The suggested community project details have been pre-filled into the form above!", "success");
-                          }}
-                          className="text-[10px] text-indigo-500 hover:text-indigo-600 font-black flex items-center gap-0.5 transition-colors"
-                        >
-                          Fill Form <i className="fi fi-sr-angle-right flex items-center text-xs" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
 
           </div>
