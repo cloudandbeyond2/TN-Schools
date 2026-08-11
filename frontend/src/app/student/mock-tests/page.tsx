@@ -335,9 +335,17 @@ export default function StudentMockTestsPage() {
                   </div>
 
                   {hasSubmitted ? (
-                    <div className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 p-2.5 rounded-xl flex justify-between items-center text-xs font-bold border border-green-200/20">
-                      <div className="font-bold">Completed</div>
-                      <div className="font-black text-sm">{score} / {test.totalMarks} Marks</div>
+                    <div className="flex flex-col gap-2">
+                      <div className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 p-2.5 rounded-xl flex justify-between items-center text-xs font-bold border border-green-200/20">
+                        <div className="font-bold">Completed</div>
+                        <div className="font-black text-sm">{score} / {test.totalMarks} Marks</div>
+                      </div>
+                      {(Number(score) / Number(test.totalMarks)) >= 0.8 && (
+                        <div className="text-[10px] text-green-600 dark:text-green-400 font-bold flex items-center gap-1.5 px-1">
+                          <i className="fi fi-sr-star flex items-center text-amber-500" /> 
+                          {lang === "தமிழ்" ? "நன்று, தொடர்ந்து முயற்சி செய்!" : "Good, keep it up!"}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <button 
