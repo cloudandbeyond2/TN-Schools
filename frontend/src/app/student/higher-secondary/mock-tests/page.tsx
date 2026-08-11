@@ -34,7 +34,7 @@ export default function MockTestsPage() {
 
       let actualStudentId = userId;
       try {
-        const studentRes = await fetch(`${API_URL}/api/students/profile?userId=${userId}`);
+        const studentRes = await fetch(`${API_URL}/api/students/profile?userId=${userId}`, { cache: "no-store" });
         const studentResult = await studentRes.json();
         if (studentResult.success && studentResult.data) {
           setStudentProfile(studentResult.data);
@@ -45,7 +45,7 @@ export default function MockTestsPage() {
       }
 
       try {
-        const res = await fetch(`${API_URL}/api/mock-tests/student/${actualStudentId}`);
+        const res = await fetch(`${API_URL}/api/mock-tests/student/${actualStudentId}`, { cache: "no-store" });
         const data = await res.json();
         
         if (data.success && data.data) {
@@ -140,10 +140,10 @@ export default function MockTestsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         
         {/* Left Column: Upcoming & Analytics */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-1 space-y-4 sm:space-y-6">
            
            {/* Upcoming Tests Banner */}
            <div className="glass rounded-3xl p-6 border border-slate-700/50 bg-slate-900/40 relative overflow-hidden">
@@ -181,9 +181,9 @@ export default function MockTestsPage() {
                </div>
              )}
              
-             <button 
+              <button 
                onClick={() => router.push("/student/mock-tests")}
-               className="w-full mt-4 py-3 bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 rounded-xl text-white text-sm font-bold shadow-lg transition-all active:scale-95"
+               className="w-full mt-3 sm:mt-4 py-2 sm:py-3 bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 rounded-lg sm:rounded-xl text-white text-xs sm:text-sm font-bold shadow-lg transition-all active:scale-95"
              >
                View All Exams Hub
              </button>

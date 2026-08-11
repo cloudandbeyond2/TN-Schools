@@ -49,7 +49,7 @@ export default function StudentMockTestsPage() {
 
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/mock-tests/student/${studentId}`);
+      const res = await fetch(`${API_URL}/api/mock-tests/student/${studentId}`, { cache: "no-store" });
       const data = await res.json();
       if (data.success) {
         setAssignments(data.data);
@@ -75,7 +75,7 @@ export default function StudentMockTestsPage() {
     if (confirm.isConfirmed) {
       try {
         // Fetch full test details including questions
-        const res = await fetch(`${API_URL}/api/mock-tests/${assignment.mockTestId}`);
+        const res = await fetch(`${API_URL}/api/mock-tests/${assignment.mockTestId}`, { cache: "no-store" });
         const data = await res.json();
         
         if (data.success) {
@@ -282,46 +282,69 @@ export default function StudentMockTestsPage() {
             <p className="text-gray-500 text-sm">No mock tests assigned to your class right now.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {assignments.map((assignment) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+            {(() => {
+              const uniqueAssignmentsMap = new Map<string, any>();
+              assignments.forEach(a => {
+                const existing = uniqueAssignmentsMap.get(a.mockTestId);
+                const hasSubmitted = a.submissions && a.submissions.length > 0;
+                if (!existing) {
+                  uniqueAssignmentsMap.set(a.mockTestId, a);
+                } else {
+                  const existingSubmitted = existing.submissions && existing.submissions.length > 0;
+                  if (!hasSubmitted && existingSubmitted) {
+                    uniqueAssignmentsMap.set(a.mockTestId, a);
+                  }
+                }
+              });
+              return Array.from(uniqueAssignmentsMap.values());
+            })().map((assignment) => {
               const test = assignment.mockTest;
               const hasSubmitted = assignment.submissions && assignment.submissions.length > 0;
               const score = hasSubmitted ? assignment.submissions[0].score : null;
 
               return (
-                <div key={assignment.id} className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden flex flex-col">
-                  
-                  {test.schoolId === null && (
-                    <div className="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-xl shadow-sm">
-                      State Board
-                    </div>
-                  )}
+                <div key={assignment.id} className="group bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-lg transition-all border border-gray-100 dark:border-gray-700 relative overflow-hidden flex flex-col h-full min-h-[220px] sm:min-h-[250px]">
 
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{test.title}</h3>
-                  <p className="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4">{test.subject}</p>
-                  
-                  <div className="grid grid-cols-2 gap-2 mb-6 mt-auto">
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center">
-                      <i className="fi fi-sr-clock text-gray-400 mb-1 text-sm flex items-center" />
-                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test.duration} mins</span>
-                    </div>
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center">
-                      <i className="fi fi-sr-badge text-gray-400 mb-1 text-sm flex items-center" />
-                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test.totalMarks} Marks</span>
-                    </div>
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border tracking-wider text-amber-600 border-amber-600/20 bg-amber-500/10">
+                      {test.subject}
+                    </span>
+                    {test.schoolId === null && (
+                      <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg tracking-wider bg-blue-500 text-white font-bold border border-blue-600/20">
+                        State Board
+                      </span>
+                    )}
+                  </div>
+
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 leading-snug">{test.title}</h3>
+
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 min-h-[32px]">
+                    {test.description || "Simulate board conditions and practice to verify your subject mastery."}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4 mt-auto">
+                    <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold text-gray-600 dark:text-gray-300">
+                      <i className="fi fi-rr-clock text-[9px] sm:text-[10px] text-gray-400" />
+                      {test.duration} mins
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold text-gray-600 dark:text-gray-300">
+                      <i className="fi fi-rr-trophy text-[9px] sm:text-[10px] text-gray-400" />
+                      {test.totalMarks} Marks
+                    </span>
                   </div>
 
                   {hasSubmitted ? (
-                    <div className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 p-4 rounded-2xl flex justify-between items-center">
-                      <div className="font-bold text-sm">Completed</div>
-                      <div className="font-black text-xl">{score} / {test.totalMarks}</div>
+                    <div className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 p-2.5 rounded-xl flex justify-between items-center text-xs font-bold border border-green-200/20">
+                      <div className="font-bold">Completed</div>
+                      <div className="font-black text-sm">{score} / {test.totalMarks} Marks</div>
                     </div>
                   ) : (
                     <button 
                       onClick={() => startTest(assignment)}
-                      className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm py-4 rounded-2xl transition-colors flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30"
+                      className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] sm:text-xs py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/10"
                     >
-                      <i className="fi fi-sr-play flex items-center text-sm" /> Start Test
+                      <i className="fi fi-sr-play flex items-center text-[9px] sm:text-[10px]" /> Start Test
                     </button>
                   )}
 
