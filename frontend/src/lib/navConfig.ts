@@ -163,7 +163,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // { label: "NEET Preparation", href: "/student/neet-prep", icon: "Microscope" },
       { label: "Maths Formulas", href: "/student/maths-formulas", icon: "Calculator" },
       { label: "Science Draw Mat", href: "/student/science-draw-mat", icon: "Microscope" },
-      { label: "Science Fact", href: "/student/science-fact", icon: "Sparkles" },
+      // { label: "Science Fact", href: "/student/science-fact", icon: "Sparkles" },
       { label: "Language Coaching", href: "/student/language-coaching", icon: "MessageSquare" },
 
       // ── Labs & Centers ────────────────────────
@@ -544,7 +544,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       // Interactive Modules & Centers
       { label: "Interactive Modules", href: "#", icon: "" },
       { label: "Science Draw Mat", href: "/teacher/science-draw-mat", icon: "fi fi-rr-palette" },
-      { label: "Science Fact", href: "/teacher/science-fact", icon: "fi fi-rr-bulb" },
+      // { label: "Science Fact", href: "/teacher/science-fact", icon: "fi fi-rr-bulb" },
       { label: "Maths Formulas", href: "/teacher/maths-formulas", icon: "fi fi-rr-calculator" },
       { label: "Language Coaching", href: "/teacher/language-coaching", icon: "fi fi-rr-comment" },
       { label: "Science Lab Support", href: "/teacher/science-lab-support", icon: "fi fi-rr-flask" },
