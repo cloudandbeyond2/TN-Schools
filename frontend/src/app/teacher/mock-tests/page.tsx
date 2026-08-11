@@ -681,7 +681,7 @@ export default function TeacherMockTestsPage() {
                     className="w-full md:w-auto bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 rounded-2xl px-10 py-4 text-sm font-black tracking-wide transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-3"
                   >
                     {isSubmitting ? <i className="fi fi-rr-refresh text-sm animate-spin" /> : <i className="fi fi-rr-checkbox text-sm mr-1" />}
-                    Publish Mock Test
+                    Save Mock Test
                   </button>
                 </div>
               </form>

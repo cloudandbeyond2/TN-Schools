@@ -506,7 +506,7 @@ export const roleConfigs: Record<string, PortalConfig> = {
       { label: "SSLC Board Prep", href: "/teacher/sslc-prep", icon: "fi fi-rr-target" },
       { label: "NEET Preparation", href: "/teacher/neet-prep", icon: "fi fi-rr-microscope" },
       { label: "Digital Library", href: "/teacher/digital-library", icon: "fi fi-rr-book" },
-      { label: "Personal Guide", href: "/teacher/personal-guide", icon: "fi fi-rr-compass" },
+      { label: "Personal Guide", href: "/teacher/personal-guide", icon: "fi fi-rr-map" },
       { label: "Competitive Exams", href: "/teacher/competitive-exams", icon: "fi fi-rr-trophy" },
 
       // Common Menu & Tools
