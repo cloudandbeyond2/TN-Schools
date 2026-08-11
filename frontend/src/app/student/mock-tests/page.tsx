@@ -306,7 +306,7 @@ export default function StudentMockTestsPage() {
                 return acc;
               }, {} as Record<string, any[]>);
 
-              return Object.entries(subjectGroups).map(([subject, tests]) => (
+              return (Object.entries(subjectGroups) as [string, any[]][]).map(([subject, tests]) => (
                 <div key={subject} className="bg-white/50 dark:bg-gray-800/50 rounded-3xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-700">
                   <div className="flex items-center gap-3 mb-5 border-b border-gray-100 dark:border-gray-700 pb-4">
                     <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500 shrink-0">
