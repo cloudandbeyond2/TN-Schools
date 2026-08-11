@@ -105,7 +105,7 @@ export default function QuizPage() {
     <PortalLayout title="Maths Quiz" subtitle="Completed!" themeClass="theme-student">
        <div className="mt-12 bg-emerald-950 rounded-[2.5rem] p-12 border border-emerald-800/40 shadow-xl text-center">
          <h2 className="text-3xl font-black text-emerald-400 mb-4">Quiz Completed! 🎉</h2>
-         <p className="text-xl text-white mb-6">You've answered all questions for your standard.</p>
+         <p className="text-xl !text-white mb-6" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>You've answered all questions for your standard.</p>
          <div className="text-2xl font-black text-yellow-400">Final Score: {score}</div>
          <button 
            onClick={() => {
