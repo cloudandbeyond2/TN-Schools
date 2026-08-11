@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 import Swal from "sweetalert2";
+import { apiFetch } from "@/lib/api";
 import { usePortalLanguage } from "@/lib/usePortalLanguage";
+import { Plus } from "lucide-react";
 
 interface QuestionInput {
   type: "mcq" | "short";
@@ -66,13 +68,13 @@ export default function TeacherMockTestsPage() {
       setLoading(true);
       setProfile({ schoolId: sessionSchoolId, userId: (session?.user as any)?.id });
 
-      const res = await fetch(`${API_URL}/api/mock-tests?role=TEACHER&schoolId=${sessionSchoolId}`);
+      const res = await apiFetch(`/api/mock-tests?role=TEACHER&schoolId=${sessionSchoolId}`);
       const data = await res.json();
       if (data.success) {
         setExistingTests(data.data);
       }
 
-      const classRes = await fetch(`${API_URL}/api/classes?schoolId=${sessionSchoolId}&teacherId=${(session?.user as any)?.id}`);
+      const classRes = await apiFetch(`/api/classes?schoolId=${sessionSchoolId}&teacherId=${(session?.user as any)?.id}`);
       const classData = await classRes.json();
       if (classData.success) {
         setTeacherClasses(classData.data);
@@ -184,7 +186,7 @@ export default function TeacherMockTestsPage() {
       });
 
       if (confirm.isConfirmed) {
-        const res = await fetch(`${API_URL}/api/mock-tests/${id}`, { method: "DELETE" });
+        const res = await apiFetch(`/api/mock-tests/${id}`, { method: "DELETE" });
         const data = await res.json();
         if (data.success) {
           Swal.fire("Deleted!", "Mock exam removed.", "success");
@@ -275,7 +277,7 @@ export default function TeacherMockTestsPage() {
 
     if (formValues) {
       try {
-        const res = await fetch(`${API_URL}/api/mock-tests/${id}/assign`, {
+        const res = await apiFetch(`/api/mock-tests/${id}/assign`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -303,7 +305,7 @@ export default function TeacherMockTestsPage() {
       setIsResultsModalOpen(true);
       setExpandedSubmissionId(null);
 
-      const res = await fetch(`${API_URL}/api/mock-tests/${testId}/submissions`);
+      const res = await apiFetch(`/api/mock-tests/${testId}/submissions`);
       const data = await res.json();
       if (data.success) {
         setSelectedTestResults(data.data);
@@ -329,7 +331,7 @@ export default function TeacherMockTestsPage() {
     try {
       const totalMarks = questions.reduce((acc, q) => acc + q.marks, 0);
 
-      const res = await fetch(`${API_URL}/api/mock-tests`, {
+      const res = await apiFetch(`/api/mock-tests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -377,128 +379,116 @@ export default function TeacherMockTestsPage() {
       <div className="w-full mb-10">
 
         {/* Glassmorphism Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-800 py-4 px-5 md:py-5 md:px-6 mb-8 shadow-2xl shadow-emerald-500/20 text-white">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-800 p-4 sm:p-5 md:p-6 mb-6 md:mb-8 shadow-2xl shadow-emerald-500/20 text-white flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none text-white">
-            <i className="fi fi-rr-bullseye text-[120px] leading-none" />
+            <i className="fi fi-rr-bullseye text-[100px] leading-none" />
           </div>
-          <div className="relative z-10 max-w-2xl">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider mb-2 border border-white/30">
+          
+          <div className="relative z-10 max-w-2xl text-left">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider mb-1.5 border border-white/30">
               <i className="fi fi-rr-sparkles text-[10px]" /> {lang === "தமிழ்" ? "வகுப்பு மதிப்பீடுகள்" : "Class Assessments"}
             </span>
-            <p className="text-2xl md:text-3xl font-black mb-1 leading-tight !text-white">
+            <p className="text-xl md:text-2xl font-black mb-0.5 leading-tight !text-white">
               {lang === "தமிழ்" ? "உங்கள் மாணவர்களை மேம்படுத்துங்கள்" : "Empower Your Students"}
             </p>
-            <p className="text-emerald-100 !text-white text-xs mb-4 leading-relaxed">
-              {lang === "தமிழ்" ? "கொள்குறி தேர்வுகளை வடிவமைக்கவும், வினாக்களை உடனுக்குடன் உருவாக்க AI ஐ பயன்படுத்தவும்." : "Design tailored objective tests, use AI to build questions instantly, and track individual student performance with ease."}
+            <p className="text-emerald-100 !text-white text-xs leading-relaxed">
+              {lang === "தமிழ்" ? "கொள்கuறி தேர்வுகளை வடிவமைக்கவும், வினாக்களை உடனுக்குடன் உருவாக்க AI ஐ பயன்படுத்தவும்." : "Design tailored objective tests, use AI to build questions instantly, and track individual student performance with ease."}
             </p>
-            <div className="flex gap-4">
-              <button
-                onClick={handleOpenCreate}
-                className="px-5 py-2.5 bg-white text-emerald-700 hover:bg-emerald-55 transition-all rounded-2xl font-bold text-xs shadow-xl flex items-center gap-2"
-              >
-                <i className="fi fi-rr-plus text-xs" /> {lang === "தமிழ்" ? "புதிய மதிப்பீடு" : "New Assessment"}
-              </button>
-            </div>
+          </div>
+
+          <div className="relative z-10 flex-shrink-0">
+            <button
+              onClick={handleOpenCreate}
+              className="px-4 py-2 bg-white text-emerald-700 hover:bg-emerald-50 active:scale-95 transition-all rounded-xl font-bold text-xs shadow-xl flex items-center gap-2 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> {lang === "தமிழ்" ? "புதிய மதிப்பீடு" : "New Assessment"}
+            </button>
           </div>
         </div>
 
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-            <h2 className="text-2xl font-black text-gray-800 dark:text-white flex items-center gap-2">
-              <i className="fi fi-rr-layers text-xl text-emerald-500" /> {lang === "தமிழ்" ? "தேர்வு களஞ்சியம்" : "Test Repository"}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-black text-gray-800 dark:text-white flex items-center gap-2">
+              <i className="fi fi-rr-layers text-blue-500 flex items-center" /> Test Repository
             </h2>
-            <div className="relative w-full md:w-96">
-              <i className="fi fi-rr-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div className="relative w-full sm:w-72 md:w-96">
+              <i className="fi fi-rr-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs sm:text-sm" />
               <input
                 type="text"
-                placeholder={lang === "தமிழ்" ? "தலைப்பு அல்லது பாடம் மூலம் தேடவும்..." : "Search tests by title or subject..."}
+                placeholder="Search tests by title or subject..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-white dark:bg-gray-800 border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-emerald-500 transition-shadow text-sm font-medium"
+                className="w-full pl-9 sm:pl-11 pr-4 py-2 sm:py-3 bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl sm:rounded-2xl shadow-sm focus:ring-2 focus:ring-emerald-500 transition-shadow text-xs sm:text-sm font-medium focus:outline-none"
               />
             </div>
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <i className="fi fi-rr-refresh text-2xl text-emerald-500 animate-spin flex items-center justify-center" />
+            <div className="flex justify-center items-center h-48 sm:h-64">
+              <i className="fi fi-rr-refresh text-emerald-500 text-2xl sm:text-3xl animate-spin" />
             </div>
           ) : filteredTests.length === 0 ? (
-            <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-              <i className="fi fi-rr-bullseye text-4xl text-gray-300 mx-auto mb-4 flex items-center justify-center" />
-              <h3 className="text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">No mock tests found</h3>
-              <p className="text-gray-500">Create your first assessment to start evaluating your class.</p>
+            <div className="text-center py-12 sm:py-20 bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+              <i className="fi fi-rr-file-add text-gray-300 text-4xl sm:text-5xl flex items-center justify-center mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-lg sm:text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">No tests yet</h3>
+              <p className="text-gray-500 text-sm">Create your first mock exam to start evaluating your class.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
               {filteredTests.map((test) => (
-                <div key={test.id} className="group bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all border border-gray-100 dark:border-gray-700 relative overflow-hidden flex flex-col h-full">
+                <div key={test.id} className="group bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-lg transition-all border border-gray-100 dark:border-gray-700 relative overflow-hidden flex flex-col h-full min-h-[220px] sm:min-h-[250px]">
 
-                  {/* Badges */}
-                  {test.schoolId === null ? (
-                    <div className="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-xl shadow-sm">
-                      State Board
-                    </div>
-                  ) : test.createdById !== profile?.userId ? (
-                    <div className="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-xl shadow-sm">
-                      School Level
-                    </div>
-                  ) : (
-                    <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-xl shadow-sm">
-                      My Test
-                    </div>
-                  )}
-
-                  <div className="flex items-start justify-between mb-4 mt-2">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                        <i className="fi fi-rr-book-alt text-lg flex items-center" />
+                      <span className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                        <i className="fi fi-rr-book-alt text-sm flex items-center" />
                       </span>
-                      <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{test.subject}</p>
-                        <p className="text-xs font-medium text-emerald-500">{test.grade}</p>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{test.subject}</span>
+                        <span className="text-[10px] font-bold text-emerald-500">{test.grade}</span>
                       </div>
                     </div>
                   </div>
 
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">{test.title}</h3>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1.5 line-clamp-1">{test.title}</h3>
                   {test.description && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-grow">{test.description}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-4 flex-grow">{test.description}</p>
                   )}
 
-                  <div className="grid grid-cols-2 gap-2 mb-6 mt-auto">
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center">
-                      <i className="fi fi-rr-clock text-xs text-gray-400 mb-1" />
-                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test.duration} mins</span>
-                    </div>
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center">
-                      <i className="fi fi-rr-trophy text-xs text-gray-400 mb-1" />
-                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test.totalMarks} Marks</span>
-                    </div>
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex flex-col justify-center items-center col-span-2">
-                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{test._count?.questions || 0} Questions</span>
-                    </div>
+                  <div className="flex flex-wrap items-center gap-2 mb-4 mt-auto">
+                    <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-2 py-1 rounded-lg text-[11px] font-semibold text-gray-600 dark:text-gray-300">
+                      <i className="fi fi-rr-clock text-[10px] text-gray-400" />
+                      {test.duration} mins
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-2 py-1 rounded-lg text-[11px] font-semibold text-gray-600 dark:text-gray-300">
+                      <i className="fi fi-rr-trophy text-[10px] text-gray-400" />
+                      {test.totalMarks} Marks
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-2 py-1 rounded-lg text-[11px] font-semibold text-gray-600 dark:text-gray-300">
+                      <i className="fi fi-rr-list text-[10px] text-gray-400" />
+                      {test._count?.questions || 0} Qs
+                    </span>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5 sm:gap-2">
                     <button
                       onClick={() => handleAssignTest(test.id, test.grade)}
-                      className="flex-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 font-bold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 font-bold text-[10px] sm:text-xs py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center gap-1 sm:gap-1.5"
                     >
-                      <i className="fi fi-rr-paper-plane text-xs" /> Assign
+                      <i className="fi fi-rr-paper-plane text-[9px] sm:text-[10px]" /> Assign
                     </button>
                     <button
                       onClick={() => handleViewResults(test.id, test.title)}
-                      className="flex-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 font-bold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 font-bold text-[10px] sm:text-xs py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center gap-1 sm:gap-1.5"
                     >
-                      <i className="fi fi-rr-chart-histogram text-xs" /> Results
+                      <i className="fi fi-rr-chart-histogram text-[9px] sm:text-[10px]" /> Results
                     </button>
-                    {test.createdById === profile?.userId && (
+                    {(test.createdById === profile?.userId || test.schoolId === profile?.schoolId) && test.schoolId !== null && (
                       <button
                         onClick={() => handleDeleteTest(test.id)}
-                        className="px-4 bg-red-50 dark:bg-red-900/20 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl transition-colors flex items-center justify-center"
+                        className="px-2 sm:px-3 bg-red-50 dark:bg-red-900/20 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg sm:rounded-xl transition-colors flex items-center justify-center"
                       >
-                        <i className="fi fi-rr-trash text-xs" />
+                        <i className="fi fi-rr-trash text-[10px] sm:text-xs" />
                       </button>
                     )}
                   </div>
@@ -509,8 +499,8 @@ export default function TeacherMockTestsPage() {
         </div>
         {/* Modal Overlay for Creating Mock Exam */}
         {activeTab === "create" && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-[2rem] p-8 md:p-10 shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-t-3xl sm:rounded-[2rem] p-5 sm:p-8 md:p-10 shadow-2xl w-full max-w-5xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto relative animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
 
               <button
                 onClick={() => setActiveTab("repository")}
@@ -701,21 +691,21 @@ export default function TeacherMockTestsPage() {
 
         {/* Results Modal */}
         {isResultsModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-[2rem] p-8 md:p-10 shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-t-3xl sm:rounded-[2rem] p-5 sm:p-8 md:p-10 shadow-2xl w-full max-w-5xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto relative animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
               <button
                 onClick={() => setIsResultsModalOpen(false)}
-                className="absolute top-6 right-6 p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
               >
                 ✕
               </button>
 
-              <div className="mb-8 mt-2">
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-                  <i className="fi fi-rr-chart-histogram text-xl text-indigo-500" />
+              <div className="mb-4 sm:mb-8 mt-2 sm:mt-0">
+                <h2 className="text-lg sm:text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
+                  <i className="fi fi-rr-chart-histogram text-base sm:text-xl text-indigo-500 shrink-0" />
                   Submissions Dashboard
                 </h2>
-                <p className="text-sm text-gray-500 mt-2 font-medium">Viewing results for: <strong className="text-gray-800 dark:text-gray-200">{currentTestName}</strong></p>
+                <p className="text-xs sm:text-sm text-gray-500 mt-2 font-medium">Viewing results for: <strong className="text-gray-800 dark:text-gray-200">{currentTestName}</strong></p>
               </div>
 
               {loadingResults ? (

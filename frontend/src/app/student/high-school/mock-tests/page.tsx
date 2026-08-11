@@ -7,11 +7,13 @@ import PortalLayout from "@/components/PortalLayout";
 import { BookOpen, Clock, FileText, CheckCircle, Play, ArrowLeft, Award, HelpCircle, ShieldAlert, Globe } from "lucide-react";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface MockTest {
   id: string;
   sslcId?: string; // set for teacher-published tests served by /api/sslc-prep (graded server-side)
   title: string;
+  description?: string;
   subject: string;
   duration: number; // in minutes
   totalMarks: number;
@@ -25,6 +27,11 @@ interface MockTest {
     answer: string;
     marks: number;
   }>;
+  isCustom?: boolean;
+  assignmentId?: string;
+  hasSubmitted?: boolean;
+  score?: number | null;
+  createdByRole?: string;
 }
 
 const mockTestsData: MockTest[] = [
@@ -156,8 +163,10 @@ const mockTestsData: MockTest[] = [
 
 export default function MockTestsPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [student, setStudent] = useState<any>(null);
   const [selectedSubject, setSelectedSubject] = useState("All");
+  const [selectedSender, setSelectedSender] = useState<"All" | "HM" | "Teacher">("All");
   const [activeTest, setActiveTest] = useState<MockTest | null>(null);
   
   // Test execution state
@@ -176,18 +185,17 @@ export default function MockTestsPage() {
 
   // Resolve the logged-in student (needed to record attempts against their profile)
   useEffect(() => {
-    fetch(`${API_URL}/api/students`)
+    const userId = (session?.user as any)?.id;
+    if (!userId) return;
+
+    fetch(`${API_URL}/api/students?userId=${userId}`)
       .then((res) => res.json())
       .then((json) => {
         if (json.success && json.data.length > 0) {
-          const myStudent = (session?.user as any)?.id
-            ? json.data.find((s: any) => s.userId === (session?.user as any)?.id)
-            : null;
-          setStudent(myStudent || json.data[0]);
+          setStudent(json.data[0]);
         }
       })
       .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   // Teacher-published SSLC mock tests (answer keys are stripped by the server;
@@ -205,6 +213,7 @@ export default function MockTestsPage() {
         id: `sslc-${t._id}`,
         sslcId: String(t._id),
         title: t.title,
+        description: t.description || "",
         subject: t.subject,
         duration: t.durationMinutes || 180,
         totalMarks: t.totalMarks || 100,
@@ -227,56 +236,97 @@ export default function MockTestsPage() {
   const fetchLiveMockTests = async () => {
     try {
       setLoading(true);
-      const sslcTests = await fetchSSLCTests();
-      if (sslcTests.length > 0) {
-        setDbTests((prev) => {
-          const legacy = prev.filter((t) => !t.sslcId);
-          return [...sslcTests, ...legacy];
-        });
-      }
-      const res = await fetch(`${API_URL}/api/teacher/questions?grade=Grade 10`);
-      const data = await res.json();
-      if (data.success && Array.isArray(data.data)) {
-        const grouped = data.data.reduce((acc: any, q: any) => {
-          let duration = 180;
-          const durMatch = q.topic.match(/Duration:\s*(\d+)/i);
-          if (durMatch) {
-            duration = parseInt(durMatch[1]) || 180;
+      
+      // 1. Fetch custom mock tests assigned to student
+      let customTests: MockTest[] = [];
+      if (student) {
+        try {
+          const studentId = student.id;
+          const customRes = await fetch(`${API_URL}/api/mock-tests/student/${studentId}`);
+          const customData = await customRes.json();
+          if (customData.success && Array.isArray(customData.data)) {
+            customTests = customData.data.map((assignment: any) => {
+              const t = assignment.mockTest;
+              const hasSubmitted = assignment.submissions && assignment.submissions.length > 0;
+              const score = hasSubmitted ? assignment.submissions[0].score : null;
+              return {
+                id: `custom-${assignment.id}`,
+                assignmentId: assignment.id,
+                title: t.title,
+                description: t.description || "",
+                subject: t.subject,
+                duration: t.duration,
+                totalMarks: t.totalMarks,
+                questionCount: t.questions?.length || 0,
+                difficulty: "Medium" as const,
+                isCustom: true,
+                hasSubmitted,
+                score,
+                createdByRole: t.createdByRole || "TEACHER",
+                questions: []
+              };
+            });
           }
-          const cleanTitle = q.topic.replace(/\s*\(Duration:\s*\d+\s*mins\)/i, "");
+        } catch (err) {
+          console.error("Error loading custom assigned mock tests:", err);
+        }
+      }
 
-          if (!acc[cleanTitle]) {
-            acc[cleanTitle] = {
-              id: `live-${cleanTitle.replace(/\s+/g, "-").toLowerCase()}`,
-              title: cleanTitle,
-              subject: q.subject,
-              duration: duration,
-              totalMarks: 0,
-              questionCount: 0,
-              difficulty: q.difficulty,
-              questions: []
-            };
-          }
-          
-          acc[cleanTitle].questions.push({
-            id: q.id,
-            type: q.type,
-            text: q.text,
-            options: q.options,
-            answer: q.answer,
-            marks: q.marks
-          });
-          acc[cleanTitle].totalMarks += q.marks;
-          acc[cleanTitle].questionCount += 1;
-          
-          return acc;
-        }, {});
-        
-        setDbTests((prev) => {
-          const sslc = prev.filter((t) => t.sslcId);
-          return [...sslc, ...(Object.values(grouped) as MockTest[])];
-        });
+      // 2. Fetch SSLC Board mock tests
+      const sslcTests = await fetchSSLCTests();
+      
+      // 3. Fetch teacher questions Grade 10 mock tests
+      let groupedMockTests: MockTest[] = [];
+      try {
+        const res = await fetch(`${API_URL}/api/teacher/questions?grade=Grade 10`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          const grouped = data.data.reduce((acc: any, q: any) => {
+            let duration = 180;
+            const durMatch = q.topic.match(/Duration:\s*(\d+)/i);
+            if (durMatch) {
+              duration = parseInt(durMatch[1]) || 180;
+            }
+            const cleanTitle = q.topic.replace(/\s*\(Duration:\s*\d+\s*mins\)/i, "");
+
+            if (!acc[cleanTitle]) {
+              acc[cleanTitle] = {
+                id: `live-${cleanTitle.replace(/\s+/g, "-").toLowerCase()}`,
+                title: cleanTitle,
+                subject: q.subject,
+                duration: duration,
+                totalMarks: 0,
+                questionCount: 0,
+                difficulty: q.difficulty,
+                questions: []
+              };
+            }
+            
+            acc[cleanTitle].questions.push({
+              id: q.id,
+              type: q.type,
+              text: q.text,
+              options: q.options,
+              answer: q.answer,
+              marks: q.marks
+            });
+            acc[cleanTitle].totalMarks += q.marks;
+            acc[cleanTitle].questionCount += 1;
+            
+            return acc;
+          }, {});
+          groupedMockTests = Object.values(grouped) as MockTest[];
+        }
+      } catch (err) {
+        console.error("Error loading teacher questions mock exams:", err);
       }
+
+      // Combine custom assigned tests and SSLC board tests
+      setDbTests([
+        ...customTests,
+        ...sslcTests
+      ]);
+
     } catch (err) {
       console.error("Error loading live mock exams:", err);
     } finally {
@@ -285,6 +335,7 @@ export default function MockTestsPage() {
   };
 
   useEffect(() => {
+    if (!student) return;
     fetchLiveMockTests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [student]);
@@ -292,9 +343,36 @@ export default function MockTestsPage() {
   const subjects = ["All", "Tamil", "English", "Mathematics", "Science", "Social Science"];
 
   const allAvailableTests = [...dbTests, ...mockTestsData];
-  const filteredTests = selectedSubject === "All" 
-    ? allAvailableTests 
-    : allAvailableTests.filter(t => t.subject === selectedSubject);
+
+  // Deduplicate tests by title to prevent showing duplicate cards if assigned multiple times
+  const uniqueTestsMap = new Map<string, MockTest>();
+  allAvailableTests.forEach(t => {
+    const existing = uniqueTestsMap.get(t.title);
+    if (!existing) {
+      uniqueTestsMap.set(t.title, t);
+    } else {
+      // If the current one is unsubmitted, prefer it over the submitted one
+      if (t.isCustom && !t.hasSubmitted && existing.hasSubmitted) {
+        uniqueTestsMap.set(t.title, t);
+      }
+    }
+  });
+  const uniqueAvailableTests = Array.from(uniqueTestsMap.values());
+
+  const filteredTests = uniqueAvailableTests.filter(t => {
+    // Subject Filter
+    const matchesSubject = selectedSubject === "All" || t.subject === selectedSubject;
+
+    // Sender Filter (HM vs Teacher)
+    let matchesSender = true;
+    if (selectedSender === "HM") {
+      matchesSender = !!t.isCustom && t.createdByRole === "HEADMASTER";
+    } else if (selectedSender === "Teacher") {
+      matchesSender = !!t.isCustom && t.createdByRole === "TEACHER";
+    }
+
+    return matchesSubject && matchesSender;
+  });
 
   // Timer hook
   useEffect(() => {
@@ -423,7 +501,7 @@ export default function MockTestsPage() {
             {/* Header Banner card */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 glass rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 backdrop-blur-md">
               <div className="flex items-start sm:items-center gap-3">
-                <i className="fi fi-sr-file-edit text-xl sm:text-2xl text-indigo-600 dark:text-indigo-400 flex items-center shrink-0 mt-0.5 sm:mt-0" />
+                <i className="fi fi-sr-file-edit text-xl sm:text-2xl text-blue-600 dark:text-blue-400 flex items-center shrink-0 mt-0.5 sm:mt-0" />
                 <div>
                   <h2 className="text-base sm:text-lg md:text-xl font-black text-black dark:text-white uppercase tracking-wider leading-tight">
                     SSLC Mock Exam Repository
@@ -436,71 +514,115 @@ export default function MockTestsPage() {
 
               <div className="flex items-center gap-2 whitespace-nowrap shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/60 self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-end">
                 <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Grade:</span>
-                <span className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 font-extrabold text-xs sm:text-sm rounded-xl border border-indigo-200/20 shadow-sm">
+                <span className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-extrabold text-xs sm:text-sm rounded-xl border border-blue-200/20 shadow-sm">
                   <i className="fi fi-sr-graduation-cap flex items-center text-xs sm:text-sm" />
                   Class 10th Standard
                 </span>
               </div>
             </div>
 
-            {/* Subject Filters */}
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-              {subjects.map((sub) => (
-                <button
-                  key={sub}
-                  onClick={() => setSelectedSubject(sub)}
-                  className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap border-2 ${
-                    selectedSubject === sub
-                      ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                      : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                  }`}
-                >
-                  {sub}
-                </button>
-              ))}
+            {/* Subject and Source Filters */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+              {/* Left side: Subjects */}
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                {subjects.map((sub) => (
+                  <button
+                    key={sub}
+                    onClick={() => setSelectedSubject(sub)}
+                    className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap border-2 ${
+                      selectedSubject === sub
+                        ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                        : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    {sub}
+                  </button>
+                ))}
+              </div>
+
+              {/* Right side: Assigned By */}
+              <div className="flex flex-wrap gap-2 items-center lg:justify-end">
+                {[
+                  { key: "All", label: "All Sources" },
+                  { key: "HM", label: "Headmaster" },
+                  { key: "Teacher", label: "Teachers" }
+                ].map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setSelectedSender(opt.key as any)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                      selectedSender === opt.key
+                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
+
+
             {/* Test list */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
               {filteredTests.map((test) => (
                 <div
                   key={test.id}
-                  className="bg-[var(--bg-card)] border-2 border-slate-100 dark:border-slate-800 rounded-2xl md:rounded-[2rem] p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                  className="group bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-lg transition-all border border-gray-100 dark:border-gray-700 relative overflow-hidden flex flex-col h-full min-h-[220px] sm:min-h-[250px]"
                 >
-                  <div>
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border tracking-wider text-blue-600 border-blue-600/20 bg-blue-500/10">
-                        {test.subject}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-bold">
-                        Difficulty: {test.difficulty}
-                      </span>
-                    </div>
-
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2 leading-snug">{test.title}</h3>
-                    
-                    <div className="grid grid-cols-3 gap-2 py-3 border-y border-[var(--border)] mb-4 text-center">
-                      <div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Duration</div>
-                        <div className="text-xs font-black text-slate-900 dark:text-white">{test.duration} mins</div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Questions</div>
-                        <div className="text-xs font-black text-slate-900 dark:text-white">{test.questionCount} Qs</div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Marks</div>
-                        <div className="text-xs font-black text-slate-900 dark:text-white">{test.totalMarks} Marks</div>
-                      </div>
-                    </div>
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-[10px] font-black uppercase px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border tracking-wider text-blue-600 border-blue-600/20 bg-blue-500/10">
+                      {test.subject}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-bold">
+                      Difficulty: {test.difficulty}
+                    </span>
                   </div>
 
-                  <button
-                    onClick={() => showInstructions(test)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/10"
-                  >
-                    <Play className="w-3.5 h-3.5 fill-white" /> Start Simulation
-                  </button>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 leading-snug">{test.title}</h3>
+
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 min-h-[32px]">
+                    {test.description || "Simulate board conditions and practice to verify your subject mastery."}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4 mt-auto">
+                    <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold text-gray-600 dark:text-gray-300">
+                      <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400" />
+                      {test.duration} mins
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold text-gray-600 dark:text-gray-300">
+                      <Award className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400" />
+                      {test.totalMarks} Marks
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/40 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold text-gray-600 dark:text-gray-300">
+                      <FileText className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400" />
+                      {test.questionCount} Qs
+                    </span>
+                  </div>
+
+                  {test.isCustom ? (
+                    test.hasSubmitted ? (
+                      <div className="bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 p-2.5 rounded-xl flex justify-between items-center text-xs font-bold border border-green-200/20">
+                        <div>Completed</div>
+                        <div>{test.score} / {test.totalMarks} Marks</div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => router.push("/student/mock-tests")}
+                        className="w-full bg-amber-500 hover:bg-amber-600 text-white rounded-lg sm:rounded-xl py-2 sm:py-2.5 text-[10px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/10"
+                      >
+                        <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-white" /> Start Test
+                      </button>
+                    )
+                  ) : (
+                    <button
+                      onClick={() => showInstructions(test)}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-xl py-2 sm:py-2.5 text-[10px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/10"
+                    >
+                      <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-white" /> Start Simulation
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

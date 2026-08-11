@@ -145,8 +145,12 @@ export default function TopPerformersPage() {
             <div className="p-6 border-b border-slate-800 bg-slate-900/40 flex items-center gap-3">
               <Trophy className="w-6 h-6 text-amber-400" />
               <div>
-                <h3 className="text-lg font-black text-white">Top Performers Ranking</h3>
-                <p className="text-xs text-slate-400">Total {results.length} students ranked by total marks</p>
+                <h3 className="text-lg font-black text-white">
+                  {lang === "தமிழ்" ? "வகுப்பு தரவரிசை" : "Class Rankings"}
+                </h3>
+                <p className="text-xs text-slate-400">
+                  {lang === "தமிழ்" ? `மொத்தம் ${results.length} மாணவர்கள் மதிப்பெண் அடிப்படையில் வரிசைப்படுத்தப்பட்டுள்ளனர்` : `Total ${results.length} students ranked by total marks`}
+                </p>
               </div>
             </div>
             
