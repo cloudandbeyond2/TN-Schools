@@ -106,7 +106,7 @@ export default function MathsFormulasPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedFormula, setSelectedFormula] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<"playground" | "memory">("playground");
+
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -126,7 +126,6 @@ export default function MathsFormulasPage() {
 
   const openSandbox = (formula: any, cat: any) => {
     setSelectedFormula({ ...formula, cat });
-    setActiveTab("playground");
     setModalOpen(true);
   };
 
@@ -405,7 +404,7 @@ export default function MathsFormulasPage() {
 
       {/* Toast Alert */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-[120] bg-indigo-900 text-white font-extrabold text-xs px-5 py-3 rounded-2xl border border-indigo-750 shadow-2xl animate-in slide-in-from-bottom duration-300">
+        <div className="fixed bottom-6 right-6 z-[120] bg-indigo-900 !text-white font-extrabold text-xs px-5 py-3 rounded-2xl border border-indigo-750 shadow-2xl animate-in slide-in-from-bottom duration-300" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
           {toastMsg}
         </div>
       )}
@@ -437,50 +436,11 @@ export default function MathsFormulasPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2 mb-6 p-1 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
-                <button
-                  onClick={() => setActiveTab("playground")}
-                  className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${activeTab === "playground" ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                    }`}
-                >
-                  <i className="fi fi-sr-play flex items-center text-xs" /> Sandbox
-                </button>
-                <button
-                  onClick={() => setActiveTab("memory")}
-                  className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${activeTab === "memory" ? "bg-white dark:bg-slate-800 text-pink-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                    }`}
-                >
-                  <i className="fi fi-sr-brain flex items-center text-xs" /> Memory Trick
-                </button>
-              </div>
-
-              {/* Tab Content */}
+              {/* Content */}
               <div className="flex-1 min-h-[250px]">
-                {activeTab === "playground" && (
-                  <div className="h-full flex flex-col justify-center">
-                    <FormulaSandboxLoader formula={selectedFormula} />
-                  </div>
-                )}
-
-                {activeTab === "memory" && (
-                  <div className="space-y-4 animate-in fade-in duration-500">
-                    <div className="w-full h-44 bg-slate-900 rounded-2xl overflow-hidden relative border border-slate-200 dark:border-slate-800 shadow-inner group">
-                      <img
-                        src={`https://image.pollinations.ai/prompt/${encodeURIComponent(selectedFormula.mnemonicPrompt)}?width=600&height=400&nologo=true`}
-                        alt="Memory Mnemonic"
-                        className="w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
-                        <span className="text-white text-[10px] font-bold uppercase tracking-widest opacity-80 flex items-center gap-1">
-                          <i className="fi fi-sr-brain flex items-center text-[10px]" /> AI Generated Mnemonic
-                        </span>
-                      </div>
-                    </div>
-                    <p className="font-bold text-slate-700 dark:text-slate-350 text-sm leading-relaxed p-4 bg-amber-50 dark:bg-amber-950/20 rounded-2xl border border-amber-200 dark:border-amber-900/60 text-center">
-                      "{selectedFormula.mnemonicText}"
-                    </p>
-                  </div>
-                )}
+                <div className="h-full flex flex-col justify-center">
+                  <FormulaSandboxLoader formula={selectedFormula} />
+                </div>
               </div>
 
             </div>
