@@ -50,91 +50,7 @@ const getFormulaBgStyle = (formula: any): React.CSSProperties => {
 
 import { FormulaSandboxLoader } from "@/components/MathSandboxes";
 
-const FormulaQuizSection = ({ formulas, lang }: { formulas: SamacheerFormula[]; lang: "en" | "ta" }) => {
-  const [currentQuiz, setCurrentQuiz] = useState<any>(null);
-  const [score, setScore] = useState(0);
-  const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
-
-  const generateQuiz = React.useCallback(() => {
-    if (!formulas || formulas.length === 0) return;
-    const formulaObj = formulas[Math.floor(Math.random() * formulas.length)];
-    
-    const tokens = formulaObj.formula.split(/\s+/).filter((t: string) => !['=', '×', '+', '-', '/', ':', '::', '(', ')'].includes(t.trim()));
-    let answer = tokens[Math.floor(Math.random() * tokens.length)] || formulaObj.formula;
-    
-    const questionStr = formulaObj.formula.replace(answer, "_____");
-    
-    const allTokens = formulas.flatMap((f: any) => f.formula.split(/\s+/).filter((t: string) => !['=', '×', '+', '-', '/', ':', '::', '(', ')'].includes(t.trim())));
-    const uniqueTokens = Array.from(new Set(allTokens)).filter(t => t !== answer);
-    
-    uniqueTokens.sort(() => Math.random() - 0.5);
-    const distractors = uniqueTokens.slice(0, 3);
-    while(distractors.length < 3) distractors.push(String(Math.floor(Math.random()*10)));
-    
-    const options = [answer, ...distractors].sort(() => Math.random() - 0.5);
-    
-    setCurrentQuiz({ formulaObj, questionStr, answer, options });
-    setFeedback(null);
-  }, [formulas]);
-
-  useEffect(() => {
-    generateQuiz();
-  }, [generateQuiz]);
-
-  if (!currentQuiz) return null;
-
-  const quizTitle = currentQuiz.formulaObj.title[lang] || currentQuiz.formulaObj.title.en;
-
-  return (
-    <div className="mt-8 md:mt-12 bg-indigo-950 rounded-3xl md:rounded-[2.5rem] p-6 md:p-8 border border-indigo-800/40 shadow-xl relative overflow-hidden text-left">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl"></div>
-      <div className="relative z-10 flex flex-col md:flex-row gap-6 md:gap-8 items-center">
-        <div className="flex-1 text-white">
-          <div className="flex items-center gap-2 font-black tracking-widest text-xs md:text-sm uppercase mb-2" style={{ color: "#fde047", WebkitTextFillColor: "#fde047" }}>
-            <i className="fi fi-sr-play-alt text-yellow-400 text-sm flex items-center" />
-            Fill in the Blanks
-          </div>
-          <h2 className="text-xl md:text-3xl font-black mb-3 md:mb-4 leading-tight !text-white" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
-            {quizTitle}
-          </h2>
-          <div className="bg-white/5 border border-white/10 p-4 md:p-6 rounded-xl md:rounded-2xl text-center backdrop-blur-md">
-            <span className="font-mono text-2xl md:text-4xl font-black text-yellow-300 drop-shadow-md" style={{ color: "#fde047", WebkitTextFillColor: "#fde047" }}>
-              {currentQuiz.questionStr}
-            </span>
-          </div>
-          {feedback === "correct" && <div className="text-emerald-400 font-black mt-3 md:mt-4 text-sm md:text-base animate-bounce">Great Job! +10 Points 🌟</div>}
-          {feedback === "wrong" && <div className="text-rose-400 font-black mt-3 md:mt-4 text-sm md:text-base animate-pulse">Oops! Try again! 🤔</div>}
-        </div>
-        <div className="flex-1 w-full flex flex-col gap-3">
-          <div className="text-right font-black mb-2 text-sm md:text-base" style={{ color: "#c7d2fe", WebkitTextFillColor: "#c7d2fe" }}>
-            Score: <span className="text-white text-lg md:text-xl font-mono" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>{score}</span>
-          </div>
-          <div className="grid grid-cols-2 gap-2 md:gap-3">
-            {currentQuiz.options.map((opt: string, i: number) => (
-              <button 
-                key={i} 
-                onClick={() => {
-                  if (opt === currentQuiz.answer) {
-                    setFeedback("correct");
-                    setScore(s => s + 10);
-                    setTimeout(generateQuiz, 1500);
-                  } else {
-                    setFeedback("wrong");
-                  }
-                }}
-                disabled={feedback === "correct"}
-                className="p-3 md:p-4 bg-white dark:bg-slate-900 text-indigo-900 dark:text-indigo-200 font-mono font-black text-lg md:text-xl rounded-xl md:rounded-2xl shadow-md border border-slate-200 dark:border-slate-800 active:translate-y-1 transition-all"
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-          <button onClick={generateQuiz} className="mt-4 text-indigo-300 hover:text-white font-bold text-sm underline text-right">Skip Question</button>
-        </div>
-      </div>
-    </div>
-  );
-};
+// FormulaQuizSection moved to /quiz/page.tsx
 
 export default function MathsFormulasPage() {
   const { data: session } = useSession();
@@ -282,10 +198,19 @@ export default function MathsFormulasPage() {
               {lang === "en" ? "Interactive syllabus formulas tailored for Standards 6-10" : "6-10 வகுப்புகளுக்கான ஊடாடும் கணித சூத்திரங்கள்"}
             </p>
           </div>
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm rounded-xl border border-emerald-200/20 shadow-sm whitespace-nowrap shrink-0">
-            <i className="fi fi-sr-school flex items-center text-sm" />
-            Standard {activeStandard} Portal
-          </span>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm rounded-xl border border-emerald-200/20 shadow-sm whitespace-nowrap">
+              <i className="fi fi-sr-school flex items-center text-sm" />
+              Standard {activeStandard} Portal
+            </span>
+            <button 
+              onClick={() => window.open("/student/maths-formulas/quiz", "_blank")}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm rounded-xl border border-indigo-700 shadow-sm whitespace-nowrap transition-colors"
+            >
+              <i className="fi fi-sr-play-alt flex items-center text-sm" />
+              Test Yourself
+            </button>
+          </div>
         </div>
 
         {/* Playful Search and Categories Header */}
@@ -474,10 +399,7 @@ export default function MathsFormulasPage() {
           })}
         </div>
 
-        {/* Global fill quiz section */}
-        {filteredFormulas.length > 0 && (
-          <FormulaQuizSection formulas={filteredFormulas} lang={lang} />
-        )}
+        {/* Global fill quiz section moved to /quiz/page.tsx */}
 
       </div>
 
