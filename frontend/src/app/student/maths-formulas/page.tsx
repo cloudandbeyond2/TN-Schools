@@ -50,91 +50,7 @@ const getFormulaBgStyle = (formula: any): React.CSSProperties => {
 
 import { FormulaSandboxLoader } from "@/components/MathSandboxes";
 
-const FormulaQuizSection = ({ formulas, lang }: { formulas: SamacheerFormula[]; lang: "en" | "ta" }) => {
-  const [currentQuiz, setCurrentQuiz] = useState<any>(null);
-  const [score, setScore] = useState(0);
-  const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
-
-  const generateQuiz = React.useCallback(() => {
-    if (!formulas || formulas.length === 0) return;
-    const formulaObj = formulas[Math.floor(Math.random() * formulas.length)];
-    
-    const tokens = formulaObj.formula.split(/\s+/).filter((t: string) => !['=', '×', '+', '-', '/', ':', '::', '(', ')'].includes(t.trim()));
-    let answer = tokens[Math.floor(Math.random() * tokens.length)] || formulaObj.formula;
-    
-    const questionStr = formulaObj.formula.replace(answer, "_____");
-    
-    const allTokens = formulas.flatMap((f: any) => f.formula.split(/\s+/).filter((t: string) => !['=', '×', '+', '-', '/', ':', '::', '(', ')'].includes(t.trim())));
-    const uniqueTokens = Array.from(new Set(allTokens)).filter(t => t !== answer);
-    
-    uniqueTokens.sort(() => Math.random() - 0.5);
-    const distractors = uniqueTokens.slice(0, 3);
-    while(distractors.length < 3) distractors.push(String(Math.floor(Math.random()*10)));
-    
-    const options = [answer, ...distractors].sort(() => Math.random() - 0.5);
-    
-    setCurrentQuiz({ formulaObj, questionStr, answer, options });
-    setFeedback(null);
-  }, [formulas]);
-
-  useEffect(() => {
-    generateQuiz();
-  }, [generateQuiz]);
-
-  if (!currentQuiz) return null;
-
-  const quizTitle = currentQuiz.formulaObj.title[lang] || currentQuiz.formulaObj.title.en;
-
-  return (
-    <div className="mt-8 md:mt-12 bg-indigo-950 rounded-3xl md:rounded-[2.5rem] p-6 md:p-8 border border-indigo-800/40 shadow-xl relative overflow-hidden text-left">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl"></div>
-      <div className="relative z-10 flex flex-col md:flex-row gap-6 md:gap-8 items-center">
-        <div className="flex-1 text-white">
-          <div className="flex items-center gap-2 font-black tracking-widest text-xs md:text-sm uppercase mb-2" style={{ color: "#fde047", WebkitTextFillColor: "#fde047" }}>
-            <i className="fi fi-sr-play-alt text-yellow-400 text-sm flex items-center" />
-            Fill in the Blanks
-          </div>
-          <h2 className="text-xl md:text-3xl font-black mb-3 md:mb-4 leading-tight !text-white" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
-            {quizTitle}
-          </h2>
-          <div className="bg-white/5 border border-white/10 p-4 md:p-6 rounded-xl md:rounded-2xl text-center backdrop-blur-md">
-            <span className="font-mono text-2xl md:text-4xl font-black text-yellow-300 drop-shadow-md" style={{ color: "#fde047", WebkitTextFillColor: "#fde047" }}>
-              {currentQuiz.questionStr}
-            </span>
-          </div>
-          {feedback === "correct" && <div className="text-emerald-400 font-black mt-3 md:mt-4 text-sm md:text-base animate-bounce">Great Job! +10 Points 🌟</div>}
-          {feedback === "wrong" && <div className="text-rose-400 font-black mt-3 md:mt-4 text-sm md:text-base animate-pulse">Oops! Try again! 🤔</div>}
-        </div>
-        <div className="flex-1 w-full flex flex-col gap-3">
-          <div className="text-right font-black mb-2 text-sm md:text-base" style={{ color: "#c7d2fe", WebkitTextFillColor: "#c7d2fe" }}>
-            Score: <span className="text-white text-lg md:text-xl font-mono" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>{score}</span>
-          </div>
-          <div className="grid grid-cols-2 gap-2 md:gap-3">
-            {currentQuiz.options.map((opt: string, i: number) => (
-              <button 
-                key={i} 
-                onClick={() => {
-                  if (opt === currentQuiz.answer) {
-                    setFeedback("correct");
-                    setScore(s => s + 10);
-                    setTimeout(generateQuiz, 1500);
-                  } else {
-                    setFeedback("wrong");
-                  }
-                }}
-                disabled={feedback === "correct"}
-                className="p-3 md:p-4 bg-white dark:bg-slate-900 text-indigo-900 dark:text-indigo-200 font-mono font-black text-lg md:text-xl rounded-xl md:rounded-2xl shadow-md border border-slate-200 dark:border-slate-800 active:translate-y-1 transition-all"
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-          <button onClick={generateQuiz} className="mt-4 text-indigo-300 hover:text-white font-bold text-sm underline text-right">Skip Question</button>
-        </div>
-      </div>
-    </div>
-  );
-};
+// FormulaQuizSection moved to /quiz/page.tsx
 
 export default function MathsFormulasPage() {
   const { data: session } = useSession();
@@ -190,7 +106,7 @@ export default function MathsFormulasPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedFormula, setSelectedFormula] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<"playground" | "memory">("playground");
+
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -210,7 +126,6 @@ export default function MathsFormulasPage() {
 
   const openSandbox = (formula: any, cat: any) => {
     setSelectedFormula({ ...formula, cat });
-    setActiveTab("playground");
     setModalOpen(true);
   };
 
@@ -282,10 +197,19 @@ export default function MathsFormulasPage() {
               {lang === "en" ? "Interactive syllabus formulas tailored for Standards 6-10" : "6-10 வகுப்புகளுக்கான ஊடாடும் கணித சூத்திரங்கள்"}
             </p>
           </div>
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm rounded-xl border border-emerald-200/20 shadow-sm whitespace-nowrap shrink-0">
-            <i className="fi fi-sr-school flex items-center text-sm" />
-            Standard {activeStandard} Portal
-          </span>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm rounded-xl border border-emerald-200/20 shadow-sm whitespace-nowrap">
+              <i className="fi fi-sr-school flex items-center text-sm" />
+              Standard {activeStandard} Portal
+            </span>
+            <button 
+              onClick={() => window.open("/student/maths-formulas/quiz", "_blank")}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm rounded-xl border border-indigo-700 shadow-sm whitespace-nowrap transition-colors"
+            >
+              <i className="fi fi-sr-play-alt flex items-center text-sm" />
+              Test Yourself
+            </button>
+          </div>
         </div>
 
         {/* Playful Search and Categories Header */}
@@ -474,16 +398,13 @@ export default function MathsFormulasPage() {
           })}
         </div>
 
-        {/* Global fill quiz section */}
-        {filteredFormulas.length > 0 && (
-          <FormulaQuizSection formulas={filteredFormulas} lang={lang} />
-        )}
+        {/* Global fill quiz section moved to /quiz/page.tsx */}
 
       </div>
 
       {/* Toast Alert */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-[120] bg-indigo-900 text-white font-extrabold text-xs px-5 py-3 rounded-2xl border border-indigo-750 shadow-2xl animate-in slide-in-from-bottom duration-300">
+        <div className="fixed bottom-6 right-6 z-[120] bg-indigo-900 !text-white font-extrabold text-xs px-5 py-3 rounded-2xl border border-indigo-750 shadow-2xl animate-in slide-in-from-bottom duration-300" style={{ color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
           {toastMsg}
         </div>
       )}
@@ -515,50 +436,11 @@ export default function MathsFormulasPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2 mb-6 p-1 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
-                <button
-                  onClick={() => setActiveTab("playground")}
-                  className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${activeTab === "playground" ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                    }`}
-                >
-                  <i className="fi fi-sr-play flex items-center text-xs" /> Sandbox
-                </button>
-                <button
-                  onClick={() => setActiveTab("memory")}
-                  className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${activeTab === "memory" ? "bg-white dark:bg-slate-800 text-pink-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                    }`}
-                >
-                  <i className="fi fi-sr-brain flex items-center text-xs" /> Memory Trick
-                </button>
-              </div>
-
-              {/* Tab Content */}
+              {/* Content */}
               <div className="flex-1 min-h-[250px]">
-                {activeTab === "playground" && (
-                  <div className="h-full flex flex-col justify-center">
-                    <FormulaSandboxLoader formula={selectedFormula} />
-                  </div>
-                )}
-
-                {activeTab === "memory" && (
-                  <div className="space-y-4 animate-in fade-in duration-500">
-                    <div className="w-full h-44 bg-slate-900 rounded-2xl overflow-hidden relative border border-slate-200 dark:border-slate-800 shadow-inner group">
-                      <img
-                        src={`https://image.pollinations.ai/prompt/${encodeURIComponent(selectedFormula.mnemonicPrompt)}?width=600&height=400&nologo=true`}
-                        alt="Memory Mnemonic"
-                        className="w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
-                        <span className="text-white text-[10px] font-bold uppercase tracking-widest opacity-80 flex items-center gap-1">
-                          <i className="fi fi-sr-brain flex items-center text-[10px]" /> AI Generated Mnemonic
-                        </span>
-                      </div>
-                    </div>
-                    <p className="font-bold text-slate-700 dark:text-slate-350 text-sm leading-relaxed p-4 bg-amber-50 dark:bg-amber-950/20 rounded-2xl border border-amber-200 dark:border-amber-900/60 text-center">
-                      "{selectedFormula.mnemonicText}"
-                    </p>
-                  </div>
-                )}
+                <div className="h-full flex flex-col justify-center">
+                  <FormulaSandboxLoader formula={selectedFormula} />
+                </div>
               </div>
 
             </div>
