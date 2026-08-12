@@ -213,15 +213,21 @@ const emptyReportForm = () => ({
 });
 
 const PLACEHOLDER: Record<ResourceCategory, string> = {
-  Classrooms:            "e.g. Classroom 10A – Block B",
-  Laboratories:          "e.g. Physics & Chemistry Lab",
-  Computers:             "e.g. Computer Lab – Ground Floor",
-  "Smart Classrooms":    "e.g. Smart Board Room 8B",
-  Libraries:             "e.g. Central Library & Reading Room",
-  Toilets:               "e.g. Girls Toilet Block – West Wing",
-  "Drinking Water":      "e.g. RO Water Unit – Main Block",
-  Electricity:           "e.g. Solar Panel Grid – Block A",
-  "Internet Facilities": "e.g. Wi-Fi Zone – Admin Block",
+  Classrooms:                  "e.g. Classroom 10A – Block B",
+  Laboratories:                "e.g. Physics & Chemistry Lab",
+  Computers:                   "e.g. Computer Lab – Ground Floor",
+  "Smart Classrooms":          "e.g. Smart Board Room 8B",
+  Libraries:                   "e.g. Central Library & Reading Room",
+  Toilets:                     "e.g. Girls Toilet Block – West Wing",
+  "Drinking Water":            "e.g. RO Water Unit – Main Block",
+  Electricity:                 "e.g. Solar Panel Grid – Block A",
+  "Internet Facilities":       "e.g. Wi-Fi Zone – Admin Block",
+  "Playground & Sports":       "e.g. Main Sports Ground & Athletic Track",
+  "Compound Wall & Security":  "e.g. East Perimeter Wall & Gate 1",
+  "Mid-Day Meal Shed":         "e.g. Kitchen Shed & Dining Area",
+  "PwD Accessibility & Ramps": "e.g. Main Entrance Ramp & Handrails",
+  "Furniture & Desks":         "e.g. Dual Benches & Teacher Tables",
+  "Fire Safety Equipment":     "e.g. Fire Extinguishers – Block B",
 };
 
 const fmtDate = (d: string | null) =>
