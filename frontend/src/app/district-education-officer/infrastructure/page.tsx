@@ -1,211 +1,314 @@
 "use client";
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import PortalLayout from "@/components/PortalLayout";
 
-interface InfraItem { id: string; school: string; block: string; type: string; status: string; priority: string; budget: string; year: string; }
+type ReportStatus = "Submitted" | "Acknowledged" | "In Progress" | "Resolved";
+type ReportPriority = "Low" | "Medium" | "High" | "Urgent";
+type ReportType = "Critical Alert" | "Category Summary" | "Full Infrastructure Report";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+interface ResourceReport {
+  id: string;
+  schoolId: string;
+  schoolName: string;
+  schoolDistrict: string;
+  schoolBlock: string;
+  category: string | null;
+  reportType: ReportType;
+  priority: ReportPriority;
+  subject: string;
+  description: string | null;
+  snapshot: any;
+  status: ReportStatus;
+  createdAt: string;
+}
+
+interface Summary {
+  totalReports: number;
+  urgentCount: number;
+  openCount: number;
+  resolvedCount: number;
+  criticalAlerts: number;
+  totalSchools: number;
+  schoolsReporting: number;
+}
+
+const STATUS_FLOW: ReportStatus[] = ["Submitted", "Acknowledged", "In Progress", "Resolved"];
+
+const STATUS_META: Record<ReportStatus, { badge: string; dot: string; next: ReportStatus | null; nextLabel: string }> = {
+  Submitted:     { badge: "bg-blue-500/15 border border-blue-500/30 text-blue-300",       dot: "bg-blue-500",    next: "Acknowledged", nextLabel: "✓ Acknowledge" },
+  Acknowledged:  { badge: "bg-violet-500/15 border border-violet-500/30 text-violet-300", dot: "bg-violet-500", next: "In Progress",  nextLabel: "▶ Start Progress" },
+  "In Progress": { badge: "bg-amber-500/15 border border-amber-500/30 text-amber-300",   dot: "bg-amber-400",  next: "Resolved",     nextLabel: "✓ Mark Resolved" },
+  Resolved:      { badge: "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300", dot: "bg-emerald-500", next: null, nextLabel: "" },
+};
+
+const PRIORITY_META: Record<ReportPriority, { chip: string; dot: string }> = {
+  Low:    { chip: "bg-slate-500/15 border-slate-500/30 text-slate-300", dot: "bg-slate-400" },
+  Medium: { chip: "bg-sky-500/15 border-sky-500/30 text-sky-300",       dot: "bg-sky-400" },
+  High:   { chip: "bg-amber-500/15 border-amber-500/30 text-amber-300", dot: "bg-amber-400" },
+  Urgent: { chip: "bg-rose-500/15 border-rose-500/30 text-rose-300",    dot: "bg-rose-500" },
+};
+
+const TYPE_ICON: Record<ReportType, string> = {
+  "Critical Alert": "⚠️",
+  "Category Summary": "📋",
+  "Full Infrastructure Report": "📊",
+};
+
+const getApiBase = () => {
+  let url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  if (url && !url.startsWith("http://") && !url.startsWith("https://")) url = `https://${url}`;
+  return url;
+};
+
+const fmtDate = (d: string) =>
+  new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
 export default function DEOInfrastructurePage() {
   const { data: session } = useSession();
-  const district = (session?.user as any)?.district || "Coimbatore";
+  const deoUserId: string = (session?.user as any)?.id || "";
+  const API_BASE = getApiBase();
 
-  const [items, setItems] = useState<InfraItem[]>([]);
+  const [reports, setReports] = useState<ResourceReport[]>([]);
+  const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [form, setForm] = useState({ school: "", block: "", type: "", status: "Planned", priority: "Medium", budget: "₹5L", year: "2025" });
+  const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"All" | ReportStatus>("All");
+  const [priorityFilter, setPriorityFilter] = useState<"All" | ReportPriority>("All");
+  const [search, setSearch] = useState("");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [detailReport, setDetailReport] = useState<ResourceReport | null>(null);
 
-  const fetchProjects = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_URL}/api/deo/infrastructure?district=${encodeURIComponent(district)}`);
-      const json = await res.json();
-      if (json.success && json.data) {
-        const formatted = json.data.map((p: any) => ({
-          id: p.id,
-          school: p.name,
-          block: p.block || "Coimbatore Block",
-          type: p.type,
-          status: p.status,
-          priority: p.priority || "Medium",
-          budget: p.budget,
-          year: p.deadline
-        }));
-        setItems(formatted);
-      }
-    } catch (e) {
-      console.error("Error loading infrastructure projects:", e);
-    } finally {
-      setLoading(false);
-    }
+  const showToast = (msg: string, type: "success" | "error" = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
   };
 
-  useEffect(() => {
-    fetchProjects();
-  }, [session, district]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchReports = useCallback(async () => {
+    if (!deoUserId) return;
+    setLoading(true);
+    setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/deo/infrastructure`, {
-        method: "POST",
+      const res = await fetch(`${API_BASE}/api/hierarchy/deo/${deoUserId}/resource-reports`);
+      const json = await res.json();
+      if (json.success) { setReports(json.data); setSummary(json.summary); }
+      else setError(json.error || "Failed to load reports.");
+    } catch { setError("Network error."); }
+    finally { setLoading(false); }
+  }, [deoUserId, API_BASE]);
+
+  useEffect(() => { fetchReports(); }, [fetchReports]);
+
+  const handleStatusUpdate = async (report: ResourceReport, newStatus: ReportStatus) => {
+    setUpdatingId(report.id);
+    try {
+      const res = await fetch(`${API_BASE}/api/hierarchy/deo/${deoUserId}/resource-reports/${report.id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, district })
+        body: JSON.stringify({ status: newStatus }),
       });
       const json = await res.json();
-      if (json.success && json.data) {
-        const newProj = {
-          id: json.data.id,
-          school: json.data.name,
-          block: json.data.block || form.block || "Coimbatore Block",
-          type: json.data.type,
-          status: json.data.status,
-          priority: json.data.priority || form.priority,
-          budget: json.data.budget,
-          year: json.data.deadline
-        };
-        setItems(p => [newProj, ...p]);
-        setIsModalOpen(false);
-        setToast(`🏗️ Infrastructure project for '${form.school}' logged successfully.`);
-        setTimeout(() => setToast(null), 4000);
-      }
-    } catch (err) {
-      console.error("Error creating project:", err);
-    }
+      if (json.success) {
+        setReports(prev => prev.map(r => r.id === report.id ? { ...r, status: newStatus } : r));
+        if (detailReport?.id === report.id) setDetailReport({ ...detailReport, status: newStatus });
+        showToast(`✓ Marked as "${newStatus}"`);
+      } else showToast(json.error || "Update failed.", "error");
+    } catch { showToast("Network error.", "error"); }
+    finally { setUpdatingId(null); }
   };
 
-  const simulateExcel = () => {
-    setIsUploading(true);
-    setTimeout(async () => {
-      try {
-        const mockUpload = {
-          school: "GHS Vadavalli",
-          block: "CBE South",
-          type: "Lab Renovation",
-          status: "Tendered",
-          priority: "Medium",
-          budget: "₹7L",
-          deadline: "2025"
-        };
-        const res = await fetch(`${API_URL}/api/deo/infrastructure`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...mockUpload, district })
-        });
-        const json = await res.json();
-        if (json.success && json.data) {
-          const newProj = {
-            id: json.data.id,
-            school: json.data.name,
-            block: json.data.block || mockUpload.block,
-            type: json.data.type,
-            status: json.data.status,
-            priority: json.data.priority || mockUpload.priority,
-            budget: json.data.budget,
-            year: json.data.deadline
-          };
-          setItems(p => [newProj, ...p]);
-          setToast("📊 Infrastructure project list imported! 1 new project added.");
-          setTimeout(() => setToast(null), 4000);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setIsUploading(false);
-        setIsModalOpen(false);
-      }
-    }, 1500);
-  };
+  const filtered = reports.filter(r => {
+    if (statusFilter !== "All" && r.status !== statusFilter) return false;
+    if (priorityFilter !== "All" && r.priority !== priorityFilter) return false;
+    if (search && !r.schoolName.toLowerCase().includes(search.toLowerCase()) &&
+      !r.subject.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  const resolvedPct = summary && summary.totalReports > 0
+    ? Math.round((summary.resolvedCount / summary.totalReports) * 100) : 0;
 
   return (
-    <PortalLayout title="Infrastructure" subtitle={`DEO Officer · ${district} District`} avatarLetter="D" avatarColor="#ec4899" themeClass="theme-deo" accentColor="#ec4899">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: "Total Projects", value: items.length.toString(), icon: "🏗️", color: "text-pink-400" },
-          { label: "Completed", value: items.filter(i => i.status === "Completed").length.toString(), icon: "✅", color: "text-emerald-400" },
-          { label: "In Progress", value: items.filter(i => i.status === "In Progress").length.toString(), icon: "🔨", color: "text-amber-400" },
-          { label: "High Priority", value: items.filter(i => i.priority === "High").length.toString(), icon: "⚠️", color: "text-red-400" },
-        ].map(k => (
-          <div key={k.label} className="kpi-card">
-            <div className="text-2xl mb-2">{k.icon}</div>
-            <div className={`text-2xl font-extrabold ${k.color} mb-1`}>{k.value}</div>
-            <div className="text-xs text-slate-500 font-semibold">{k.label}</div>
-          </div>
-        ))}
-      </div>
-      {toast && <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs rounded-xl">{toast}</div>}
-
-      <div className="glass rounded-2xl p-6 border border-slate-800">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-base font-semibold text-white">🏗️ District Infrastructure Projects</h2>
-          <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold rounded-xl">+ Log Project</button>
+    <PortalLayout>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 fade-in">
+        <div>
+          <h2 className="text-base font-semibold text-white">🏗️ Infrastructure Reports</h2>
+          <p className="text-[11px] text-slate-500 mt-0.5">Live resource reports sent by school headmasters to your district office</p>
         </div>
-        <table className="data-table">
-          <thead><tr><th>School</th><th>Block</th><th>Project Type</th><th>Budget</th><th>Priority</th><th>Status</th></tr></thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={6} className="text-center py-8">
-                  <div className="w-6 h-6 border-2 border-pink-500/20 border-t-pink-500 rounded-full animate-spin mx-auto mb-2" />
-                  <span className="text-xs text-slate-500">Loading projects...</span>
-                </td>
-              </tr>
-            ) : items.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="text-center py-8 text-xs text-slate-500">
-                  No infrastructure projects logged for this district.
-                </td>
-              </tr>
-            ) : (
-              items.map(i => (
-                <tr key={i.id}>
-                  <td className="font-bold text-white text-xs">{i.school}</td>
-                  <td className="text-xs text-slate-400">{i.block}</td>
-                  <td className="text-xs text-pink-400">{i.type}</td>
-                  <td className="text-emerald-400 font-bold text-xs">{i.budget}</td>
-                  <td><span className={`badge ${i.priority === "High" ? "badge-red" : i.priority === "Medium" ? "badge-yellow" : "badge-green"}`}>{i.priority}</span></td>
-                  <td><span className={`badge ${i.status === "Completed" ? "badge-green" : i.status === "In Progress" ? "badge-blue" : i.status === "Tendered" ? "badge-yellow" : "badge-red"}`}>{i.status}</span></td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <button onClick={fetchReports} className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold rounded-xl transition-all shadow-md">🔄 Refresh</button>
       </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-3xl p-6 space-y-6" style={{ background: "#090d16", border: "1px solid rgba(255,255,255,0.15)", boxShadow: "0 20px 50px rgba(0,0,0,0.95)" }}>
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white">🏗️ Log Infrastructure Project</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white text-xs">✕ Close</button>
+      {toast && (
+        <div className={`mb-5 p-3.5 rounded-xl text-xs font-semibold border fade-in ${
+          toast.type === "success" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300" : "bg-rose-500/10 border-rose-500/30 text-rose-300"
+        }`}>{toast.msg}</div>
+      )}
+
+      {summary && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-in">
+          <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col gap-2">
+            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Total Reports</span>
+            <div className="flex items-baseline gap-2"><span className="text-2xl font-black text-white">{summary.totalReports}</span><span className="text-[10px] text-pink-400 font-bold">District</span></div>
+            <div className="text-[10px] text-slate-500">From <span className="text-pink-300 font-semibold">{summary.schoolsReporting}</span> schools</div>
+          </div>
+          <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col gap-2">
+            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Open</span>
+            <div className="flex items-baseline gap-2"><span className={`text-2xl font-black ${summary.openCount > 0 ? "text-amber-400" : "text-emerald-400"}`}>{summary.openCount}</span><span className="text-[10px] text-amber-400 font-bold">Pending</span></div>
+            <div className="text-[10px] text-slate-500"><span className="text-rose-400 font-semibold">{summary.urgentCount}</span> urgent</div>
+          </div>
+          <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col gap-2">
+            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Critical Alerts</span>
+            <div className="flex items-baseline gap-2"><span className={`text-2xl font-black ${summary.criticalAlerts > 0 ? "text-rose-400" : "text-emerald-400"}`}>{summary.criticalAlerts}</span><span className="text-[10px] text-rose-400 font-bold">Alerts</span></div>
+          </div>
+          <div className="glass p-5 rounded-2xl border border-slate-800 flex flex-col gap-2">
+            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Resolved</span>
+            <div className="flex items-baseline gap-2"><span className="text-2xl font-black text-emerald-400">{summary.resolvedCount}</span><span className="text-[10px] text-emerald-400 font-bold">{resolvedPct}%</span></div>
+            <div className="w-full bg-slate-900 h-1 rounded-full mt-1 overflow-hidden"><div className="bg-emerald-500 h-full rounded-full" style={{ width: `${resolvedPct}%` }} /></div>
+          </div>
+        </div>
+      )}
+
+      <div className="glass rounded-2xl p-4 border border-slate-800 mb-5 fade-in">
+        <div className="flex flex-wrap gap-3 items-center">
+          <input type="text" placeholder="Search school or subject..." value={search} onChange={e => setSearch(e.target.value)}
+            className="flex-1 min-w-[180px] bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 transition-colors" />
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as any)}
+            className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
+            <option value="All">All Status</option>
+            {STATUS_FLOW.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value as any)}
+            className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
+            <option value="All">All Priority</option>
+            {(["Low", "Medium", "High", "Urgent"] as ReportPriority[]).map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+          <span className="text-[10px] text-slate-500 ml-auto font-semibold">{filtered.length} of {reports.length} reports</span>
+        </div>
+      </div>
+
+      <div className="glass rounded-2xl border border-slate-800 overflow-hidden mb-6 fade-in">
+        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-white">📨 Reports from District Schools</h3>
+          <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Sent to DEO — Your District</span>
+        </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-16 text-slate-500 text-xs gap-3">
+            <div className="w-5 h-5 rounded-full border-2 border-pink-500/20 border-t-pink-500 animate-spin" />
+            Loading infrastructure reports...
+          </div>
+        ) : error ? (
+          <div className="py-12 text-center text-rose-400 text-xs">⚠️ {error}</div>
+        ) : filtered.length === 0 ? (
+          <div className="py-14 text-center">
+            <div className="text-3xl mb-3">{reports.length === 0 ? "📭" : "🔍"}</div>
+            <p className="text-slate-400 text-sm font-semibold">{reports.length === 0 ? "No reports received yet" : "No reports match filters"}</p>
+            <p className="text-slate-600 text-xs mt-1">{reports.length === 0 ? "Headmasters send infrastructure reports to DEO from their school portal" : "Try adjusting filters"}</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-500">
+                  <th className="px-5 py-3 text-left font-bold">School</th>
+                  <th className="px-4 py-3 text-left font-bold">Subject / Type</th>
+                  <th className="px-4 py-3 text-left font-bold">Category</th>
+                  <th className="px-4 py-3 text-left font-bold">Priority</th>
+                  <th className="px-4 py-3 text-left font-bold">Status</th>
+                  <th className="px-4 py-3 text-left font-bold">Date</th>
+                  <th className="px-4 py-3 text-right font-bold">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(r => {
+                  const sm = STATUS_META[r.status];
+                  const pm = PRIORITY_META[r.priority];
+                  const isUpdating = updatingId === r.id;
+                  return (
+                    <tr key={r.id} className="border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors cursor-pointer" onClick={() => setDetailReport(r)}>
+                      <td className="px-5 py-3.5">
+                        <div className="font-bold text-white">{r.schoolName}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">{r.schoolBlock || r.schoolDistrict}</div>
+                      </td>
+                      <td className="px-4 py-3.5 max-w-[200px]">
+                        <div className="text-[10px] text-pink-400 font-semibold mb-0.5">{TYPE_ICON[r.reportType]} {r.reportType}</div>
+                        <div className="text-white text-[11px] line-clamp-1 font-medium">{r.subject}</div>
+                      </td>
+                      <td className="px-4 py-3.5 text-slate-300">{r.category || "All"}</td>
+                      <td className="px-4 py-3.5">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold ${pm.chip}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${pm.dot}`} />{r.priority}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${sm.badge}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${sm.dot}`} />{r.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 text-slate-400">{fmtDate(r.createdAt)}</td>
+                      <td className="px-4 py-3.5 text-right" onClick={e => e.stopPropagation()}>
+                        {sm.next ? (
+                          <button disabled={isUpdating} onClick={() => handleStatusUpdate(r, sm.next!)}
+                            className="px-3 py-1.5 bg-pink-600 hover:bg-pink-700 disabled:opacity-50 text-white text-[10px] font-bold rounded-lg transition-all whitespace-nowrap">
+                            {isUpdating ? "..." : sm.nextLabel}
+                          </button>
+                        ) : <span className="text-[10px] text-emerald-400 font-bold">✓ Done</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {detailReport && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDetailReport(null)}>
+          <div className="w-full max-w-xl rounded-3xl p-6 space-y-4" style={{ background: "#090d16", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 25px 60px rgba(0,0,0,0.95)" }} onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="text-xs font-bold text-pink-400 mb-1">{TYPE_ICON[detailReport.reportType]} {detailReport.reportType}</div>
+                <h3 className="text-base font-bold text-white">{detailReport.subject}</h3>
+                <p className="text-xs text-slate-400 mt-1">From: <span className="text-pink-300 font-semibold">{detailReport.schoolName}</span></p>
+              </div>
+              <button onClick={() => setDetailReport(null)} className="text-slate-400 hover:text-white text-xs">✕ Close</button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <div className="text-xs font-bold text-pink-400 uppercase tracking-wider">Manual Entry</div>
-                {[{ label: "School Name", key: "school", type: "text" }, { label: "Block", key: "block", type: "text" }, { label: "Project Type", key: "type", type: "text" }, { label: "Budget", key: "budget", type: "text" }, { label: "Year", key: "year", type: "text" }].map(f => (
-                  <div key={f.key}>
-                    <label className="block text-[10px] text-slate-400 mb-1 font-semibold">{f.label}</label>
-                    <input type={f.type} required value={(form as any)[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500" />
-                  </div>
-                ))}
-                <div>
-                  <label className="block text-[10px] text-slate-400 mb-1 font-semibold">Priority</label>
-                  <select value={form.priority} onChange={e => setForm(p => ({ ...p, priority: e.target.value }))} className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
-                    {["High", "Medium", "Low"].map(o => <option key={o}>{o}</option>)}
-                  </select>
-                </div>
-                <button type="submit" className="w-full py-2 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-xl text-xs">Log Project</button>
-              </form>
-              <div className="border-l border-slate-800 pl-6 flex flex-col justify-center">
-                <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-3">Excel Import</div>
-                <div onClick={simulateExcel} className="border-2 border-dashed border-slate-700 hover:border-emerald-500/50 bg-slate-900/40 rounded-2xl p-6 text-center cursor-pointer min-h-[160px] flex flex-col items-center justify-center space-y-3">
-                  {isUploading ? (<><div className="w-8 h-8 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin" /><span className="text-[10px] text-slate-400">Parsing...</span></>) : (<><span className="text-3xl">🏗️</span><span className="text-xs font-bold text-white">Import Projects Data</span><span className="text-[9px] text-slate-500">infrastructure_district.xlsx</span></>)}
+            <div className="flex flex-wrap gap-2">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold ${PRIORITY_META[detailReport.priority].chip}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_META[detailReport.priority].dot}`} />{detailReport.priority} Priority
+              </span>
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${STATUS_META[detailReport.status].badge}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${STATUS_META[detailReport.status].dot}`} />{detailReport.status}
+              </span>
+              {detailReport.category && <span className="px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-[10px] font-semibold">🏷️ {detailReport.category}</span>}
+            </div>
+            {detailReport.description && (
+              <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-800">
+                <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-2">Description</div>
+                <p className="text-xs text-slate-300 leading-relaxed">{detailReport.description}</p>
+              </div>
+            )}
+            {detailReport.snapshot && (
+              <div className="bg-slate-900/60 rounded-xl p-4 border border-slate-800">
+                <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-3">School Snapshot</div>
+                <div className="grid grid-cols-4 gap-2 text-xs">
+                  {[{l:"Total",v:detailReport.snapshot?.totalResources},{l:"Functional",v:detailReport.snapshot?.functional,c:"text-emerald-400"},{l:"Needs Repair",v:detailReport.snapshot?.needsRepair,c:"text-amber-400"},{l:"Critical",v:detailReport.snapshot?.critical,c:"text-rose-400"}].map(item=>(
+                    <div key={item.l} className="bg-slate-800/40 rounded-lg p-2 text-center">
+                      <div className="text-[9px] text-slate-500 mb-1">{item.l}</div>
+                      <div className={`text-sm font-black ${item.c||"text-white"}`}>{item.v??"—"}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
+            {STATUS_META[detailReport.status].next && (
+              <button disabled={updatingId === detailReport.id} onClick={() => handleStatusUpdate(detailReport, STATUS_META[detailReport.status].next!)}
+                className="w-full py-3 bg-pink-600 hover:bg-pink-700 disabled:opacity-50 text-white text-sm font-bold rounded-xl transition-all">
+                {updatingId === detailReport.id ? "Updating..." : STATUS_META[detailReport.status].nextLabel}
+              </button>
+            )}
           </div>
         </div>
       )}

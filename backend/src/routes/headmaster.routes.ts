@@ -1925,6 +1925,8 @@ router.get('/model-exams/student/:studentId', async (req: Request, res: Response
 const RESOURCE_CATEGORIES: string[] = [
   'Classrooms', 'Laboratories', 'Computers', 'Smart Classrooms',
   'Libraries', 'Toilets', 'Drinking Water', 'Electricity', 'Internet Facilities',
+  'Playground & Sports', 'Compound Wall & Security', 'Mid-Day Meal Shed',
+  'PwD Accessibility & Ramps', 'Furniture & Desks', 'Fire Safety Equipment',
 ];
 
 // GET /api/headmaster/school-resources?schoolId=&category=

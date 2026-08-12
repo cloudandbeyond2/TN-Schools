@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import PortalLayout from "@/components/PortalLayout";
 
+interface OfficialUser { id: string; name: string; block?: string | null; district?: string | null; }
+
 interface School {
   id: string | number;
   name: string;
@@ -14,6 +16,8 @@ interface School {
   students: number;
   teachers: number;
   status: "active" | "inactive";
+  beoId?: string | null;
+  deoId?: string | null;
 }
 
 const DISTRICTS = [
@@ -38,7 +42,7 @@ const typeColors: Record<string, string> = {
   Aided: "text-amber-400 bg-amber-500/10 border-amber-500/30",
 };
 
-const emptyForm = { name: "", dise: "", district: "Coimbatore", block: "", type: "Government" as string, medium: "Tamil" as string, hm: "", students: 0, teachers: 0 };
+const emptyForm = { name: "", dise: "", district: "Coimbatore", block: "", type: "Government" as string, medium: "Tamil" as string, hm: "", students: 0, teachers: 0, beoId: "", deoId: "" };
 
 export default function SchoolManagement() {
   const [schools, setSchools] = useState<School[]>([]);
@@ -50,6 +54,8 @@ export default function SchoolManagement() {
   const [editSchool, setEditSchool] = useState<School | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [viewSchool, setViewSchool] = useState<School | null>(null);
+  const [beoUsers, setBeoUsers] = useState<OfficialUser[]>([]);
+  const [deoUsers, setDeoUsers] = useState<OfficialUser[]>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -71,6 +77,8 @@ export default function SchoolManagement() {
           students: s._count?.students || 0,
           teachers: s._count?.teachers || 0,
           status: "active",
+          beoId: s.beoId || null,
+          deoId: s.deoId || null,
         }));
         setSchools(mapped);
       }
@@ -81,8 +89,23 @@ export default function SchoolManagement() {
     }
   };
 
+  const fetchOfficials = async () => {
+    try {
+      const [beoRes, deoRes] = await Promise.all([
+        fetch(`${API_URL}/api/hierarchy/users?role=BEO`),
+        fetch(`${API_URL}/api/hierarchy/users?role=DEO`),
+      ]);
+      const [beoData, deoData] = await Promise.all([beoRes.json(), deoRes.json()]);
+      if (beoData.success) setBeoUsers(beoData.data);
+      if (deoData.success) setDeoUsers(deoData.data);
+    } catch (err) {
+      console.error("Error fetching officials:", err);
+    }
+  };
+
   useEffect(() => {
     fetchSchools();
+    fetchOfficials();
   }, []);
 
   const filtered = schools.filter((s) => {
@@ -94,19 +117,25 @@ export default function SchoolManagement() {
   });
 
   const openAdd = () => { setEditSchool(null); setForm(emptyForm); setShowModal(true); };
-  const openEdit = (s: School) => { setEditSchool(s); setForm({ name: s.name, dise: s.dise, district: s.district, block: s.block, type: s.type, medium: s.medium, hm: s.hm, students: s.students, teachers: s.teachers }); setShowModal(true); };
+  const openEdit = (s: School) => {
+    setEditSchool(s);
+    setForm({ name: s.name, dise: s.dise, district: s.district, block: s.block, type: s.type, medium: s.medium, hm: s.hm, students: s.students, teachers: s.teachers, beoId: s.beoId || "", deoId: s.deoId || "" });
+    setShowModal(true);
+  };
 
   const saveSchool = async () => {
     if (!form.name || !form.dise) return;
     try {
-      const payload = {
+      const payload: any = {
         dise: form.dise,
         name: form.name,
         district: form.district,
         block: form.block,
         schoolType: form.type,
         mediumOfInstruction: form.medium,
-        headmasterName: form.hm || "N/A"
+        headmasterName: form.hm || "N/A",
+        beoId: form.beoId || null,
+        deoId: form.deoId || null,
       };
       const endpoint = editSchool ? `${API_URL}/api/schools/${editSchool.id}` : `${API_URL}/api/schools`;
       const method = editSchool ? "PUT" : "POST";
@@ -342,6 +371,31 @@ export default function SchoolManagement() {
                 <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Students</label>
                 <input type="number" value={form.students} onChange={(e) => setForm((f) => ({ ...f, students: +e.target.value }))}
                   className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500" />
+              </div>
+
+              {/* ── BEO Assignment ── */}
+              <div className="col-span-2 border-t border-slate-700 pt-3">
+                <div className="text-[10px] font-bold text-violet-400 uppercase tracking-wider mb-2">🔵 Official Assignments</div>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Assign BEO</label>
+                <select value={form.beoId} onChange={(e) => setForm((f) => ({ ...f, beoId: e.target.value }))}
+                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500">
+                  <option value="">— None —</option>
+                  {beoUsers.map((b) => (
+                    <option key={b.id} value={b.id}>{b.name}{b.block ? ` (${b.block})` : ""}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Assign DEO</label>
+                <select value={form.deoId} onChange={(e) => setForm((f) => ({ ...f, deoId: e.target.value }))}
+                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-pink-500">
+                  <option value="">— None —</option>
+                  {deoUsers.map((d) => (
+                    <option key={d.id} value={d.id}>{d.name}{d.district ? ` (${d.district})` : ""}</option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="flex gap-3 mt-6">

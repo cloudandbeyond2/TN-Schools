@@ -16,7 +16,13 @@ type ResourceCategory =
   | "Toilets"
   | "Drinking Water"
   | "Electricity"
-  | "Internet Facilities";
+  | "Internet Facilities"
+  | "Playground & Sports"
+  | "Compound Wall & Security"
+  | "Mid-Day Meal Shed"
+  | "PwD Accessibility & Ramps"
+  | "Furniture & Desks"
+  | "Fire Safety Equipment";
 
 type ResourceStatus = "Excellent" | "Good" | "Needs Repair" | "Critical";
 type ViewTab = "monitor" | "table" | "reports";
@@ -68,6 +74,12 @@ const CATEGORIES: ResourceCategory[] = [
   "Drinking Water",
   "Electricity",
   "Internet Facilities",
+  "Playground & Sports",
+  "Compound Wall & Security",
+  "Mid-Day Meal Shed",
+  "PwD Accessibility & Ramps",
+  "Furniture & Desks",
+  "Fire Safety Equipment",
 ];
 
 // Flaticon UIcons (regular-rounded set, loaded globally in layout.tsx)
@@ -75,15 +87,21 @@ const CATEGORY_META: Record<
   ResourceCategory,
   { icon: string; color: string; bg: string; border: string }
 > = {
-  Classrooms:           { icon: "fi fi-rr-school",          color: "text-blue-400",    bg: "bg-blue-500/18",    border: "border-blue-500/30" },
-  Laboratories:         { icon: "fi fi-rr-flask",           color: "text-violet-400",  bg: "bg-violet-500/18",  border: "border-violet-500/30" },
-  Computers:            { icon: "fi fi-rr-computer",        color: "text-cyan-400",    bg: "bg-cyan-500/18",    border: "border-cyan-500/30" },
-  "Smart Classrooms":   { icon: "fi fi-rr-screen",          color: "text-indigo-400",  bg: "bg-indigo-500/18",  border: "border-indigo-500/30" },
-  Libraries:            { icon: "fi fi-rr-book-alt",        color: "text-amber-400",   bg: "bg-amber-500/18",   border: "border-amber-500/30" },
-  Toilets:              { icon: "fi fi-rr-restroom-simple", color: "text-teal-400",    bg: "bg-teal-500/18",    border: "border-teal-500/30" },
-  "Drinking Water":     { icon: "fi fi-rr-raindrops",       color: "text-sky-400",     bg: "bg-sky-500/18",     border: "border-sky-500/30" },
-  Electricity:          { icon: "fi fi-rr-bolt",            color: "text-yellow-400",  bg: "bg-yellow-500/18",  border: "border-yellow-500/30" },
-  "Internet Facilities":{ icon: "fi fi-rr-wifi",            color: "text-emerald-400", bg: "bg-emerald-500/18", border: "border-emerald-500/30" },
+  Classrooms:                  { icon: "fi fi-rr-school",          color: "text-blue-400",    bg: "bg-blue-500/18",    border: "border-blue-500/30" },
+  Laboratories:                { icon: "fi fi-rr-flask",           color: "text-violet-400",  bg: "bg-violet-500/18",  border: "border-violet-500/30" },
+  Computers:                   { icon: "fi fi-rr-computer",        color: "text-cyan-400",    bg: "bg-cyan-500/18",    border: "border-cyan-500/30" },
+  "Smart Classrooms":          { icon: "fi fi-rr-screen",          color: "text-indigo-400",  bg: "bg-indigo-500/18",  border: "border-indigo-500/30" },
+  Libraries:                   { icon: "fi fi-rr-book-alt",        color: "text-amber-400",   bg: "bg-amber-500/18",   border: "border-amber-500/30" },
+  Toilets:                     { icon: "fi fi-rr-restroom-simple", color: "text-teal-400",    bg: "bg-teal-500/18",    border: "border-teal-500/30" },
+  "Drinking Water":            { icon: "fi fi-rr-raindrops",       color: "text-sky-400",     bg: "bg-sky-500/18",     border: "border-sky-500/30" },
+  Electricity:                 { icon: "fi fi-rr-bolt",            color: "text-yellow-400",  bg: "bg-yellow-500/18",  border: "border-yellow-500/30" },
+  "Internet Facilities":       { icon: "fi fi-rr-wifi",            color: "text-emerald-400", bg: "bg-emerald-500/18", border: "border-emerald-500/30" },
+  "Playground & Sports":       { icon: "fi fi-rr-football",        color: "text-rose-400",    bg: "bg-rose-500/18",    border: "border-rose-500/30" },
+  "Compound Wall & Security":  { icon: "fi fi-rr-shield-check",    color: "text-orange-400",  bg: "bg-orange-500/18",  border: "border-orange-500/30" },
+  "Mid-Day Meal Shed":         { icon: "fi fi-rr-utensils",        color: "text-lime-400",    bg: "bg-lime-500/18",    border: "border-lime-500/30" },
+  "PwD Accessibility & Ramps": { icon: "fi fi-rr-user",            color: "text-purple-400",  bg: "bg-purple-500/18",  border: "border-purple-500/30" },
+  "Furniture & Desks":         { icon: "fi fi-rr-chair",           color: "text-amber-300",   bg: "bg-amber-400/18",   border: "border-amber-400/30" },
+  "Fire Safety Equipment":     { icon: "fi fi-rr-flame",           color: "text-red-500",     bg: "bg-red-500/18",     border: "border-red-500/30" },
 };
 
 const STATUS_META: Record<ResourceStatus, { badge: string; dot: string; row: string }> = {
@@ -129,14 +147,14 @@ const OFFICIALS: {
     role: "Commissioner",
     title: "Commissioner of School Education",
     desc: "State directorate — policy, major projects & compliance",
-    icon: "fi fi-rr-government-user",
+    icon: "fi fi-rr-bank",
     color: "text-amber-400", bg: "bg-amber-500/15", border: "border-amber-500/30", accent: "bg-amber-600",
   },
   {
     role: "Minister",
     title: "Minister for School Education",
     desc: "Highest authority — critical emergencies & special sanctions",
-    icon: "fi fi-rr-landmark",
+    icon: "fi fi-rr-star",
     color: "text-rose-400", bg: "bg-rose-500/15", border: "border-rose-500/30", accent: "bg-rose-600",
   },
 ];
@@ -1163,7 +1181,7 @@ export default function ResourcesPage() {
           <div key={k.label}
             className={`relative overflow-hidden glass p-4 rounded-2xl border border-slate-800 bg-gradient-to-br ${k.glow} to-transparent transition-transform hover:scale-[1.02]`}>
             <div className="flex items-center justify-between">
-              <p className="text-[9px] uppercase font-bold text-slate-500 tracking-widest">{k.label}</p>
+              <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{k.label}</p>
               <i className={`${k.icon} ${k.color} text-sm leading-none opacity-70`} aria-hidden />
             </div>
             <p className={`text-2xl sm:text-3xl font-black mt-1 ${k.color}`}>{loading ? "—" : k.value}</p>
@@ -1186,7 +1204,7 @@ export default function ResourcesPage() {
               {loading ? "—" : healthScore == null ? "–" : healthScore}
             </span>
           </div>
-          <p className="text-[8px] uppercase font-bold text-slate-500 tracking-widest mt-1.5">Health Score</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mt-1.5">Health Score</p>
         </div>
       </div>
 
@@ -1194,23 +1212,23 @@ export default function ResourcesPage() {
       <div className="glass rounded-2xl border border-slate-800 p-4 sm:p-5 mb-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
               <i className="fi fi-rr-chart-histogram text-blue-400 leading-none" aria-hidden /> Category Overview
             </h2>
-            <p className="text-[10px] text-slate-500 mt-0.5">Click any category to add a resource</p>
+            <p className="text-xs text-slate-400 mt-0.5">Click any category to add a resource</p>
           </div>
           <div className="flex gap-2">
             <button
               id="btn-report-officials"
               onClick={() => openReport()}
-              className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-[11px] font-bold transition-all active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md"
             >
               <i className="fi fi-rr-bullhorn leading-none" aria-hidden /> <span className="hidden sm:inline">Report to</span> Officials
             </button>
             <button
               id="btn-add-resource"
               onClick={() => openAdd()}
-              className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11px] font-bold transition-all active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md"
             >
               <span className="text-base leading-none">+</span> Add Resource
             </button>
@@ -1233,7 +1251,7 @@ export default function ResourcesPage() {
               >
                 {/* Count / critical badge */}
                 {cnt > 0 && (
-                  <span className={`absolute top-2 right-2 text-[9px] font-black px-1.5 py-0.5 rounded-full border
+                  <span className={`absolute top-2 right-2 text-[10px] font-black px-1.5 py-0.5 rounded-full border
                     ${catCritical > 0
                       ? "bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse"
                       : `${m.bg} ${m.color} ${m.border}`}`}>
@@ -1241,10 +1259,10 @@ export default function ResourcesPage() {
                   </span>
                 )}
                 <i className={`${m.icon} text-xl sm:text-2xl leading-none ${m.color} transition-transform duration-300 group-hover:scale-110`} aria-hidden />
-                <span className={`text-[9px] sm:text-[10px] font-bold text-center leading-tight ${m.color}`}>
+                <span className={`text-xs font-bold text-center leading-tight ${m.color}`}>
                   {cat}
                 </span>
-                <span className="text-[9px] text-slate-500 font-semibold group-hover:text-slate-400 transition-colors">
+                <span className="text-[10px] text-slate-400 font-semibold group-hover:text-white transition-colors">
                   {loading ? "…" : `${cnt} ${cnt === 1 ? "record" : "records"}`}
                 </span>
               </button>
@@ -1264,15 +1282,15 @@ export default function ResourcesPage() {
             key={t.id}
             id={`tab-${t.id}`}
             onClick={() => setViewTab(t.id)}
-            className={`relative flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all
+            className={`relative flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all
               ${viewTab === t.id
                 ? "bg-blue-600 text-white shadow"
                 : "text-slate-400 hover:text-white hover:bg-slate-800"}`}
           >
-            <i className={`${t.icon} leading-none`} aria-hidden />
+            <i className={`${t.icon} leading-none text-xs`} aria-hidden />
             <span>{t.label}</span>
             {t.badge != null && t.badge > 0 && (
-              <span className="ml-1 min-w-[16px] h-4 px-1 rounded-full bg-violet-600 text-white text-[8px] font-black flex items-center justify-center">
+              <span className="ml-1 min-w-[16px] h-4 px-1 rounded-full bg-violet-600 text-white text-[10px] font-black flex items-center justify-center">
                 {t.badge}
               </span>
             )}
@@ -1480,17 +1498,17 @@ export default function ResourcesPage() {
             <div className="flex flex-wrap gap-1">
               <button
                 onClick={() => setFilterCat("All")}
-                className={`px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all
                   ${filterCat === "All" ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
               >All</button>
               {CATEGORIES.map(cat => (
                 <button
                   key={cat}
                   onClick={() => setFilterCat(cat)}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all
                     ${filterCat === cat ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}
                 >
-                  <i className={`${CATEGORY_META[cat].icon} text-[10px] leading-none`} aria-hidden />
+                  <i className={`${CATEGORY_META[cat].icon} text-xs leading-none`} aria-hidden />
                   <span>{cat}</span>
                 </button>
               ))}
@@ -1500,7 +1518,7 @@ export default function ResourcesPage() {
           {/* Responsive table */}
           {tableRows.length === 0 ? (
             <div className="py-14 text-center">
-              <p className="text-slate-500 text-sm">No resources found for selected category.</p>
+              <p className="text-slate-400 text-sm font-semibold">No resources found for selected category.</p>
               <button onClick={() => openAdd()} className="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold">+ Add Resource</button>
             </div>
           ) : (
@@ -1509,7 +1527,7 @@ export default function ResourcesPage() {
                 <thead>
                   <tr className="border-b border-slate-800">
                     {["#", "Category", "Name", "Total", "Functional", "%", "Status", "Last Audit", "Actions"].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-[9px] uppercase font-bold text-slate-500 tracking-widest whitespace-nowrap">
+                      <th key={h} className="text-left px-4 py-3 text-xs uppercase font-extrabold text-slate-400 tracking-wider whitespace-nowrap">
                         {h}
                       </th>
                     ))}
@@ -1526,21 +1544,21 @@ export default function ResourcesPage() {
                       <tr key={res.id}
                         className="border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors group">
                         {/* # */}
-                        <td className="px-4 py-3 text-[11px] text-slate-600 font-semibold">{idx + 1}</td>
+                        <td className="px-4 py-3.5 text-xs text-slate-400 font-bold">{idx + 1}</td>
 
                         {/* Category */}
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3.5">
                           <div className="flex items-center gap-1.5">
-                            <span className={`w-6 h-6 rounded-lg flex items-center justify-center ${m.bg} border ${m.border}`}>
-                              <i className={`${m.icon} text-[11px] leading-none ${m.color}`} aria-hidden />
+                            <span className={`w-7 h-7 rounded-lg flex items-center justify-center ${m.bg} border ${m.border}`}>
+                              <i className={`${m.icon} text-xs leading-none ${m.color}`} aria-hidden />
                             </span>
-                            <span className={`text-[10px] font-bold ${m.color} whitespace-nowrap`}>{res.category}</span>
+                            <span className={`text-xs font-extrabold ${m.color} whitespace-nowrap`}>{res.category}</span>
                           </div>
                         </td>
 
                         {/* Name */}
-                        <td className="px-4 py-3">
-                          <span className="text-xs font-semibold text-white max-w-[180px] block truncate">{res.name}</span>
+                        <td className="px-4 py-3.5">
+                          <span className="text-sm font-bold text-white max-w-[200px] block truncate">{res.name}</span>
                           {res.remarks && (() => {
                             let parsedRemarks = res.remarks;
                             let subDetails = "";
@@ -1568,7 +1586,7 @@ export default function ResourcesPage() {
                               } catch(e) {}
                             }
                             return (
-                              <span className="text-[9px] text-slate-500 italic block truncate max-w-[180px]">
+                              <span className="text-xs text-slate-400 italic block truncate max-w-[200px] mt-0.5">
                                 {subDetails ? `${subDetails}${parsedRemarks ? ` — ${parsedRemarks}` : ""}` : parsedRemarks}
                               </span>
                             );
@@ -1576,7 +1594,7 @@ export default function ResourcesPage() {
                         </td>
 
                         {/* Total */}
-                        <td className="px-4 py-3 text-xs font-bold text-slate-300">{res.totalCount ?? "—"}</td>
+                        <td className="px-4 py-3.5 text-sm font-bold text-slate-200">{res.totalCount ?? "—"}</td>
 
                         {/* Functional */}
                         <td className="px-4 py-3 text-xs font-bold text-emerald-400">{res.functionalCount ?? "—"}</td>
@@ -1669,15 +1687,15 @@ export default function ResourcesPage() {
           <div className="glass rounded-2xl border border-slate-800 p-4 sm:p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                <h2 className="text-lg font-extrabold text-white flex items-center gap-2">
                   <i className="fi fi-rr-government-flag text-violet-400 leading-none" aria-hidden /> Escalation Chain
                 </h2>
-                <p className="text-[10px] text-slate-500 mt-0.5">Click an official to send them a report directly</p>
+                <p className="text-xs text-slate-400 mt-0.5 font-semibold">Click an official to send them a report directly</p>
               </div>
               <button
                 id="btn-new-report"
                 onClick={() => openReport()}
-                className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-[11px] font-bold transition-all active:scale-95"
+                className="flex items-center gap-1.5 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 shadow-md"
               >
                 <i className="fi fi-rr-paper-plane leading-none" aria-hidden /> New Report
               </button>
@@ -1695,23 +1713,23 @@ export default function ResourcesPage() {
                     className={`group relative text-left p-4 rounded-2xl border transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 ${o.bg} ${o.border}`}
                   >
                     {/* Chain step number */}
-                    <span className="absolute top-3 right-3 text-[9px] font-black text-slate-600">
+                    <span className="absolute top-3 right-3 text-xs font-black text-slate-500">
                       {i < OFFICIALS.length - 1 ? `LEVEL ${i + 1} →` : `LEVEL ${i + 1}`}
                     </span>
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${o.bg} border ${o.border} mb-2.5`}>
-                      <i className={`${o.icon} text-lg leading-none ${o.color} transition-transform duration-300 group-hover:scale-110`} aria-hidden />
+                      <i className={`${o.icon} text-xl leading-none ${o.color} transition-transform duration-300 group-hover:scale-110`} aria-hidden />
                     </div>
-                    <p className={`text-xs font-black ${o.color}`}>{o.role}</p>
-                    <p className="text-[10px] font-bold text-white leading-tight mt-0.5">{o.title}</p>
-                    <p className="text-[9px] text-slate-500 leading-snug mt-1.5 line-clamp-2">{o.desc}</p>
+                    <p className={`text-sm font-black ${o.color}`}>{o.role}</p>
+                    <p className="text-xs sm:text-sm font-extrabold text-white leading-tight mt-0.5">{o.title}</p>
+                    <p className="text-xs text-slate-400 font-medium leading-snug mt-1.5 line-clamp-2">{o.desc}</p>
                     <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-slate-800/70">
-                      <span className="text-[9px] text-slate-500 font-semibold">{sent} sent</span>
+                      <span className="text-xs text-slate-400 font-bold">{sent} sent</span>
                       {open > 0 && (
-                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${o.bg} ${o.color} border ${o.border}`}>
+                        <span className={`text-xs font-black px-2 py-0.5 rounded-full ${o.bg} ${o.color} border ${o.border}`}>
                           {open} open
                         </span>
                       )}
-                      <i className={`fi fi-rr-arrow-up-right ml-auto text-[10px] leading-none ${o.color} opacity-0 group-hover:opacity-100 transition-opacity`} aria-hidden />
+                      <i className={`fi fi-rr-arrow-up-right ml-auto text-xs leading-none ${o.color} opacity-0 group-hover:opacity-100 transition-opacity`} aria-hidden />
                     </div>
                   </button>
                 );
@@ -1723,10 +1741,10 @@ export default function ResourcesPage() {
           <div className="glass rounded-2xl border border-slate-800 overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-800">
               <div>
-                <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                <h2 className="text-lg font-extrabold text-white flex items-center gap-2">
                   <i className="fi fi-rr-inbox-out text-violet-400 leading-none" aria-hidden /> Report History
                 </h2>
-                <p className="text-[10px] text-slate-500 mt-0.5">{reportRows.length} report{reportRows.length !== 1 ? "s" : ""}</p>
+                <p className="text-xs text-slate-400 mt-0.5 font-semibold">{reportRows.length} report{reportRows.length !== 1 ? "s" : ""}</p>
               </div>
               <div className="flex flex-wrap gap-1">
                 <button
@@ -1775,29 +1793,29 @@ export default function ResourcesPage() {
                         {/* Body */}
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                            <span className={`text-[10px] font-black ${off.color}`}>{rep.recipientRole}</span>
-                            <span className="text-[9px] text-slate-600">·</span>
-                            <span className="text-[9px] text-slate-500 font-semibold">{off.title}</span>
-                            <span className={`ml-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[8px] font-black ${pm.chip}`}>
-                              <span className={`w-1 h-1 rounded-full ${pm.dot}`} /> {rep.priority.toUpperCase()}
+                            <span className={`text-xs font-black ${off.color}`}>{rep.recipientRole}</span>
+                            <span className="text-xs text-slate-600">·</span>
+                            <span className="text-xs text-slate-400 font-bold">{off.title}</span>
+                            <span className={`ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-black ${pm.chip}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${pm.dot}`} /> {rep.priority.toUpperCase()}
                             </span>
                             {catMeta && rep.category && (
-                              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[8px] font-bold ${catMeta.bg} ${catMeta.border} ${catMeta.color}`}>
-                                <i className={`${catMeta.icon} text-[8px] leading-none`} aria-hidden /> {rep.category}
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold ${catMeta.bg} ${catMeta.border} ${catMeta.color}`}>
+                                <i className={`${catMeta.icon} text-[10px] leading-none`} aria-hidden /> {rep.category}
                               </span>
                             )}
                           </div>
-                          <p className="text-xs font-bold text-white leading-snug">{rep.subject}</p>
+                          <p className="text-sm sm:text-base font-extrabold text-white leading-snug">{rep.subject}</p>
                           {rep.description && (
-                            <p className="text-[10px] text-slate-500 mt-1 line-clamp-2">{rep.description}</p>
+                            <p className="text-xs text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">{rep.description}</p>
                           )}
-                          <div className="flex flex-wrap items-center gap-3 mt-1.5">
-                            <span className="text-[9px] text-slate-600 font-semibold flex items-center gap-1">
+                          <div className="flex flex-wrap items-center gap-3 mt-2">
+                            <span className="text-xs text-slate-400 font-bold flex items-center gap-1">
                               <i className="fi fi-rr-calendar-clock leading-none" aria-hidden /> {fmtDate(rep.createdAt)}
                             </span>
-                            <span className="text-[9px] text-slate-600 font-semibold">{rep.reportType}</span>
+                            <span className="text-xs text-slate-400 font-bold">{rep.reportType}</span>
                             {rep.snapshot?.healthScore != null && (
-                              <span className="text-[9px] text-slate-600 font-semibold">Health at send: {rep.snapshot.healthScore}/100</span>
+                              <span className="text-xs text-slate-400 font-bold">Health at send: {rep.snapshot.healthScore}/100</span>
                             )}
                           </div>
                         </div>
@@ -1853,11 +1871,11 @@ export default function ResourcesPage() {
             {/* Modal Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
               <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <i className={`${editTarget ? "fi fi-rr-pencil" : "fi fi-rr-apps"} text-blue-400 leading-none`} aria-hidden />
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <i className={`${editTarget ? "fi fi-rr-pencil" : CATEGORY_META[form.category]?.icon || "fi fi-rr-apps"} text-blue-400 leading-none`} aria-hidden />
                   {editTarget ? "Edit Resource" : `Add ${form.category}`}
                 </h3>
-                <p className="text-[10px] text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5">
                   {editTarget ? "Update resource details below." : "Fill in the details for this infrastructure item."}
                 </p>
               </div>
@@ -1885,13 +1903,13 @@ export default function ResourcesPage() {
                           key={cat}
                           type="button"
                           onClick={() => setForm(f => ({ ...f, category: cat }))}
-                          className={`group flex flex-col items-center justify-center gap-1.5 py-3.5 px-1 rounded-2xl border text-center transition-all duration-300 active:scale-95 hover:scale-[1.03]
+                          className={`group flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border text-center transition-all duration-300 active:scale-95 hover:scale-[1.03]
                             ${sel
                               ? `${m.bg} ${m.border} ${m.color} ring-2 ring-blue-500/25 font-extrabold shadow-md shadow-black/10`
                               : "bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300"}`}
                         >
                           <i className={`${m.icon} text-lg leading-none transition-transform duration-300 ${sel ? m.color : "text-slate-500 group-hover:scale-110"}`} aria-hidden />
-                          <span className="text-[9px] font-bold leading-tight">{cat}</span>
+                          <span className="text-xs font-bold leading-tight">{cat}</span>
                         </button>
                       );
                     })}
@@ -2025,10 +2043,10 @@ export default function ResourcesPage() {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
               <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <i className="fi fi-rr-bullhorn text-violet-400 leading-none" aria-hidden /> Report to Higher Officials
                 </h3>
-                <p className="text-[10px] text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5">
                   Escalate infrastructure needs up the chain — BEO → DEO → Commissioner → Minister
                 </p>
               </div>
@@ -2060,8 +2078,8 @@ export default function ResourcesPage() {
                             : "bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300"}`}
                       >
                         <i className={`${o.icon} text-lg leading-none transition-transform duration-300 ${sel ? o.color : "text-slate-500 group-hover:scale-110"}`} aria-hidden />
-                        <span className="text-[10px] font-black leading-tight">{o.role}</span>
-                        <span className="text-[8px] font-semibold leading-tight opacity-80 line-clamp-1 px-0.5">{o.title}</span>
+                        <span className="text-xs font-black leading-tight">{o.role}</span>
+                        <span className="text-[9px] font-semibold leading-tight opacity-80 line-clamp-1 px-0.5">{o.title}</span>
                       </button>
                     );
                   })}

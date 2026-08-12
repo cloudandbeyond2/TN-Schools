@@ -2050,7 +2050,7 @@ model ResourceReport {
   priority      String   @default("Medium")
   subject       String
   description   String?
-  status        String   @default("Pending")
+  status        String   @default("Submitted")
   snapshot      Json?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
