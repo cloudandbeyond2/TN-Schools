@@ -387,7 +387,7 @@ export default function MathsFormulasPage() {
 
                   <button
                     onClick={() => openSandbox(formula, cat)}
-                    className="w-full mt-auto bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-350 font-black text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700 shadow-sm"
+                    className="w-full mt-auto bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-black text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700 shadow-sm"
                   >
                     Interactive Sandbox
                   </button>
